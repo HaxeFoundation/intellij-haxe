@@ -41,6 +41,7 @@ public abstract class HaxeCompilerBase implements TranslatingCompiler {
 
     HaxeApplicationConfiguration applicationConfiguration = getApplicationConfiguration(context.getProject());
 
+    if (sdkData == null) return;
     compileImpl(context, sdkData, applicationConfiguration);
   }
 
