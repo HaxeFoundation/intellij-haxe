@@ -1,0 +1,69 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Condition')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('void')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_IFSTATEMENT
+                  PsiElement(if)('if')
+                  PsiElement(()('(')
+                  HAXE_LOGICANDEXPRESSION
+                    HAXE_CALLEXPRESSION
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('isPrime')
+                      PsiElement(()('(')
+                      HAXE_EXPRESSIONLIST
+                        HAXE_LITERALEXPRESSION
+                          PsiElement(LITINT)('239')
+                      PsiElement())(')')
+                    PsiWhiteSpace(' ')
+                    PsiElement(&&)('&&')
+                    PsiWhiteSpace(' ')
+                    HAXE_PARENTHESIZEDEXPRESSION
+                      PsiElement(()('(')
+                      HAXE_COMPAREEXPRESSION
+                        HAXE_BITWISEEXPRESSION
+                          HAXE_LITERALEXPRESSION
+                            PsiElement(LITINT)('3')
+                          PsiWhiteSpace(' ')
+                          HAXE_BITOPERATION
+                            PsiElement(^)('^')
+                          PsiWhiteSpace(' ')
+                          HAXE_LITERALEXPRESSION
+                            PsiElement(LITINT)('5')
+                        PsiWhiteSpace(' ')
+                        HAXE_COMPAREOPERATION
+                          PsiElement(==)('==')
+                        PsiWhiteSpace(' ')
+                        HAXE_LITERALEXPRESSION
+                          PsiElement(LITINT)('6')
+                      PsiElement())(')')
+                  PsiElement())(')')
+                  HAXE_BLOCKSTATEMENT
+                    PsiElement({)('{')
+                    PsiElement(})('}')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

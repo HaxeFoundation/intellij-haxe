@@ -1,0 +1,41 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Simple')
+          PsiWhiteSpace(' ')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_THROWSTATEMENT
+                  PsiElement(throw)('throw')
+                  PsiWhiteSpace(' ')
+                  HAXE_NEWEXPRESSION
+                    PsiElement(new)('new')
+                    PsiWhiteSpace(' ')
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Error')
+                    PsiElement(()('(')
+                    HAXE_EXPRESSIONLIST
+                      HAXE_LITERALEXPRESSION
+                        PsiElement(LITSTRING)('"invalid foo"')
+                    PsiElement())(')')
+                  PsiElement(;)(';')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

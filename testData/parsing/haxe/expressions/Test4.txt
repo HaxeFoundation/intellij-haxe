@@ -1,0 +1,190 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Test5')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('bar1')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_ADDITIVEEXPRESSION
+                          HAXE_MULTIPLICATIVEEXPRESSION
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('a')
+                            PsiElement(*)('*')
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('b')
+                          PsiElement(+)('+')
+                          HAXE_MULTIPLICATIVEEXPRESSION
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('c')
+                            PsiElement(*)('*')
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('d')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('bar2')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_MULTIPLICATIVEEXPRESSION
+                          HAXE_MULTIPLICATIVEEXPRESSION
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('a')
+                            PsiElement(*)('*')
+                            HAXE_PARENTHESIZEDEXPRESSION
+                              PsiElement(()('(')
+                              HAXE_ADDITIVEEXPRESSION
+                                HAXE_REFERENCEEXPRESSION
+                                  HAXE_IDENTIFIER
+                                    PsiElement(ID)('b')
+                                PsiElement(+)('+')
+                                HAXE_REFERENCEEXPRESSION
+                                  HAXE_IDENTIFIER
+                                    PsiElement(ID)('c')
+                              PsiElement())(')')
+                          PsiElement(*)('*')
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('d')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('bar3')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_ADDITIVEEXPRESSION
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('b')
+                          PsiElement(+)('+')
+                          HAXE_PREFIXEXPRESSION
+                            PsiElement(--)('--')
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('c')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('bar4')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_ADDITIVEEXPRESSION
+                          HAXE_SUFFIXEXPRESSION
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('b')
+                            PsiElement(--)('--')
+                          PsiElement(+)('+')
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('c')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('bar5')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_ADDITIVEEXPRESSION
+                          HAXE_SUFFIXEXPRESSION
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('b')
+                            PsiElement(--)('--')
+                          PsiElement(+)('+')
+                          HAXE_PREFIXEXPRESSION
+                            PsiElement(--)('--')
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('c')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('bar6')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_MULTIPLICATIVEEXPRESSION
+                          HAXE_PARENTHESIZEDEXPRESSION
+                            PsiElement(()('(')
+                            HAXE_ADDITIVEEXPRESSION
+                              HAXE_REFERENCEEXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('a')
+                              PsiElement(+)('+')
+                              HAXE_REFERENCEEXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('b')
+                            PsiElement())(')')
+                          PsiElement(*)('*')
+                          HAXE_PARENTHESIZEDEXPRESSION
+                            PsiElement(()('(')
+                            HAXE_ADDITIVEEXPRESSION
+                              HAXE_REFERENCEEXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('c')
+                              PsiElement(+)('+')
+                              HAXE_REFERENCEEXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('d')
+                            PsiElement())(')')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

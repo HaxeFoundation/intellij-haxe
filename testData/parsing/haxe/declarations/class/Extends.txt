@@ -1,0 +1,21 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Extends')
+          PsiWhiteSpace(' ')
+          HAXE_INHERITLIST
+            HAXE_INHERIT
+              PsiElement(extends)('extends')
+              PsiWhiteSpace(' ')
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('Bar')
+          PsiElement({)('{')
+          HAXE_CLASSBODY
+            <empty list>
+          PsiElement(})('}')

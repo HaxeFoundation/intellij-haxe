@@ -1,0 +1,35 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_IMPORTSTATEMENT
+        PsiElement(import)('import')
+        PsiWhiteSpace(' ')
+        HAXE_REFERENCEEXPRESSION
+          HAXE_REFERENCEEXPRESSION
+            HAXE_REFERENCEEXPRESSION
+              HAXE_IDENTIFIER
+                PsiElement(ID)('com')
+            PsiElement(.)('.')
+            HAXE_IDENTIFIER
+              PsiElement(ID)('fedor')
+          PsiElement(.)('.')
+          HAXE_IDENTIFIER
+            PsiElement(ID)('test1')
+        PsiElement(;)(';')
+    PsiWhiteSpace('\n')
+    HAXE_TOPLEVEL
+      HAXE_IMPORTSTATEMENT
+        PsiElement(import)('import')
+        PsiWhiteSpace(' ')
+        HAXE_REFERENCEEXPRESSION
+          HAXE_REFERENCEEXPRESSION
+            HAXE_REFERENCEEXPRESSION
+              HAXE_IDENTIFIER
+                PsiElement(ID)('com')
+            PsiElement(.)('.')
+            HAXE_IDENTIFIER
+              PsiElement(ID)('fedor')
+          PsiElement(.)('.')
+          HAXE_IDENTIFIER
+            PsiElement(ID)('test2')
+        PsiElement(;)(';')

@@ -1,0 +1,7 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_IMPORTSTATEMENT
+        PsiElement(import)('import')
+        PsiErrorElement:ID expected, unexpected end of file
+          <empty list>

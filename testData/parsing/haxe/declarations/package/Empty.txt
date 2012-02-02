@@ -1,0 +1,3 @@
+haXe File
+  PsiElement(package)('package')
+  PsiElement(;)(';')

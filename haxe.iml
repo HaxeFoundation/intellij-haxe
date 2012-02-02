@@ -6,11 +6,19 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/grammar" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="lang-api" />
+    <orderEntry type="module" module-name="core-impl" />
+    <orderEntry type="module" module-name="execution-impl" />
+    <orderEntry type="module" module-name="compiler-impl" />
+    <orderEntry type="module" module-name="compiler-openapi" />
+    <orderEntry type="module" module-name="openapi" />
+    <orderEntry type="module" module-name="testFramework" scope="TEST" />
   </component>
 </module>
 

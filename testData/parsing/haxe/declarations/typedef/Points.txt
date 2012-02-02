@@ -1,0 +1,143 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_TYPEDEFDECLARATION
+          PsiElement(ID)('typedef')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Point')
+          PsiWhiteSpace(' ')
+          PsiElement(=)('=')
+          PsiWhiteSpace(' ')
+          HAXE_ANONYMOUSTYPE
+            PsiElement({)('{')
+            PsiWhiteSpace('\n    ')
+            HAXE_VARDECLARATIONLIST
+              HAXE_VARDECLARATION
+                PsiElement(var)('var')
+                PsiWhiteSpace(' ')
+                HAXE_VARDECLARATIONPART
+                  PsiElement(ID)('x')
+                  PsiWhiteSpace(' ')
+                  HAXE_TYPETAG
+                    PsiElement(:)(':')
+                    PsiWhiteSpace(' ')
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Int')
+                PsiElement(;)(';')
+              PsiWhiteSpace('\n    ')
+              HAXE_VARDECLARATION
+                PsiElement(var)('var')
+                PsiWhiteSpace(' ')
+                HAXE_VARDECLARATIONPART
+                  PsiElement(ID)('y')
+                  PsiWhiteSpace(' ')
+                  HAXE_TYPETAG
+                    PsiElement(:)(':')
+                    PsiWhiteSpace(' ')
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Int')
+                PsiElement(;)(';')
+            PsiWhiteSpace('\n')
+            PsiElement(})('}')
+    PsiWhiteSpace('\n\n')
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Points')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('p')
+                      PsiWhiteSpace(' ')
+                      HAXE_TYPETAG
+                        PsiElement(:)(':')
+                        PsiWhiteSpace(' ')
+                        HAXE_ANONYMOUSTYPE
+                          PsiElement({)('{')
+                          HAXE_TYPEEXTENDS
+                            PsiElement(>)('>')
+                            PsiWhiteSpace(' ')
+                            HAXE_TYPE
+                              HAXE_REFERENCEEXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('Point')
+                            PsiElement(,)(',')
+                          PsiWhiteSpace(' ')
+                          HAXE_ANONYMOUSTYPEFIELDLIST
+                            HAXE_ANONYMOUSTYPEFIELD
+                              PsiElement(ID)('z')
+                              PsiWhiteSpace(' ')
+                              PsiElement(:)(':')
+                              PsiWhiteSpace(' ')
+                              HAXE_TYPE
+                                HAXE_REFERENCEEXPRESSION
+                                  HAXE_IDENTIFIER
+                                    PsiElement(ID)('Int')
+                          PsiWhiteSpace(' ')
+                          PsiElement(})('}')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_ASSIGNEXPRESSION
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('p')
+                    PsiWhiteSpace(' ')
+                    HAXE_ASSIGNOPERATION
+                      PsiElement(=)('=')
+                    PsiWhiteSpace(' ')
+                    HAXE_OBJECTLITERAL
+                      PsiElement({)('{')
+                      PsiWhiteSpace(' ')
+                      HAXE_OBJECTLITERALELEMENT
+                        PsiElement(ID)('x')
+                        PsiWhiteSpace(' ')
+                        PsiElement(:)(':')
+                        PsiWhiteSpace(' ')
+                        HAXE_LITERALEXPRESSION
+                          PsiElement(LITINT)('0')
+                      PsiElement(,)(',')
+                      PsiWhiteSpace(' ')
+                      HAXE_OBJECTLITERALELEMENT
+                        PsiElement(ID)('y')
+                        PsiWhiteSpace(' ')
+                        PsiElement(:)(':')
+                        PsiWhiteSpace(' ')
+                        HAXE_LITERALEXPRESSION
+                          PsiElement(LITINT)('0')
+                      PsiElement(,)(',')
+                      PsiWhiteSpace(' ')
+                      HAXE_OBJECTLITERALELEMENT
+                        PsiElement(ID)('z')
+                        PsiWhiteSpace(' ')
+                        PsiElement(:)(':')
+                        PsiWhiteSpace(' ')
+                        HAXE_LITERALEXPRESSION
+                          PsiElement(LITINT)('0')
+                      PsiWhiteSpace(' ')
+                      PsiElement(})('}')
+                  PsiElement(;)(';')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

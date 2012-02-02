@@ -1,0 +1,1 @@
+class Implements implements Bar{}

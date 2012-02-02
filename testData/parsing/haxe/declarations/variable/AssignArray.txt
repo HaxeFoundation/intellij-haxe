@@ -1,0 +1,73 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('AssignArray')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_VARDECLARATION
+              PsiElement(var)('var')
+              PsiWhiteSpace(' ')
+              HAXE_VARDECLARATIONPART
+                PsiElement(ID)('matrix')
+                HAXE_TYPETAG
+                  PsiElement(:)(':')
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Array')
+                    HAXE_TYPEPARAM
+                      PsiElement(<)('<')
+                      PsiWhiteSpace(' ')
+                      HAXE_TYPELIST
+                        HAXE_TYPE
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('Array')
+                          HAXE_TYPEPARAM
+                            PsiElement(<)('<')
+                            HAXE_TYPELIST
+                              HAXE_TYPE
+                                HAXE_REFERENCEEXPRESSION
+                                  HAXE_IDENTIFIER
+                                    PsiElement(ID)('Int')
+                            PsiElement(>)('>')
+                      PsiWhiteSpace(' ')
+                      PsiElement(>)('>')
+                PsiWhiteSpace(' ')
+                HAXE_VARINIT
+                  PsiElement(=)('=')
+                  PsiWhiteSpace(' ')
+                  HAXE_ARRAYLITERAL
+                    PsiElement([)('[')
+                    HAXE_EXPRESSIONLIST
+                      HAXE_ARRAYLITERAL
+                        PsiElement([)('[')
+                        HAXE_EXPRESSIONLIST
+                          HAXE_LITERALEXPRESSION
+                            PsiElement(LITINT)('1')
+                          PsiElement(,)(',')
+                          PsiWhiteSpace(' ')
+                          HAXE_LITERALEXPRESSION
+                            PsiElement(LITINT)('1')
+                        PsiElement(])(']')
+                      PsiElement(,)(',')
+                      PsiWhiteSpace(' ')
+                      HAXE_ARRAYLITERAL
+                        PsiElement([)('[')
+                        HAXE_EXPRESSIONLIST
+                          HAXE_LITERALEXPRESSION
+                            PsiElement(LITINT)('1')
+                          PsiElement(,)(',')
+                          PsiWhiteSpace(' ')
+                          HAXE_LITERALEXPRESSION
+                            PsiElement(LITINT)('0')
+                        PsiElement(])(']')
+                    PsiElement(])(']')
+              PsiElement(;)(';')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

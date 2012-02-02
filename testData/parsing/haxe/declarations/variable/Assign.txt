@@ -1,0 +1,31 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Assign')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_VARDECLARATION
+              PsiElement(var)('var')
+              PsiWhiteSpace(' ')
+              HAXE_VARDECLARATIONPART
+                PsiElement(ID)('foo')
+                HAXE_TYPETAG
+                  PsiElement(:)(':')
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('int')
+                PsiWhiteSpace(' ')
+                HAXE_VARINIT
+                  PsiElement(=)('=')
+                  PsiWhiteSpace(' ')
+                  HAXE_LITERALEXPRESSION
+                    PsiElement(LITINT)('239')
+              PsiElement(;)(';')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

@@ -1,0 +1,9 @@
+haXe File
+  PsiElement(package)('package')
+  PsiWhiteSpace(' ')
+  PsiElement(ID)('com')
+  PsiElement(.)('.')
+  PsiElement(ID)('fedor')
+  PsiElement(.)('.')
+  PsiElement(ID)('test')
+  PsiElement(;)(';')

@@ -1,0 +1,97 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Simple')
+          PsiWhiteSpace(' ')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('i')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_LITERALEXPRESSION
+                          PsiElement(LITINT)('0')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_WHILESTATEMENT
+                  PsiElement(while)('while')
+                  PsiElement(()('(')
+                  PsiWhiteSpace(' ')
+                  HAXE_COMPAREEXPRESSION
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('i')
+                    PsiWhiteSpace(' ')
+                    HAXE_COMPAREOPERATION
+                      PsiElement(<)('<')
+                    PsiWhiteSpace(' ')
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITINT)('10')
+                  PsiWhiteSpace(' ')
+                  PsiElement())(')')
+                  PsiWhiteSpace(' ')
+                  HAXE_BLOCKSTATEMENT
+                    PsiElement({)('{')
+                    PsiWhiteSpace('\n            ')
+                    HAXE_STATEMENT
+                      HAXE_PREFIXEXPRESSION
+                        PsiElement(++)('++')
+                        HAXE_REFERENCEEXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('i')
+                      PsiElement(;)(';')
+                    PsiWhiteSpace('\n            ')
+                    HAXE_IFSTATEMENT
+                      PsiElement(if)('if')
+                      PsiElement(()('(')
+                      PsiWhiteSpace(' ')
+                      HAXE_COMPAREEXPRESSION
+                        HAXE_REFERENCEEXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('i')
+                        PsiWhiteSpace(' ')
+                        HAXE_COMPAREOPERATION
+                          PsiElement(<)('<')
+                        PsiWhiteSpace(' ')
+                        HAXE_LITERALEXPRESSION
+                          PsiElement(LITINT)('5')
+                      PsiWhiteSpace(' ')
+                      PsiElement())(')')
+                      PsiWhiteSpace('\n                ')
+                      HAXE_CONTINUESTATEMENT
+                        PsiElement(continue)('continue')
+                        PsiElement(;)(';')
+                    PsiWhiteSpace('\n            ')
+                    HAXE_STATEMENT
+                      HAXE_PREFIXEXPRESSION
+                        PsiElement(++)('++')
+                        HAXE_REFERENCEEXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('i')
+                      PsiElement(;)(';')
+                    PsiWhiteSpace('\n        ')
+                    PsiElement(})('}')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

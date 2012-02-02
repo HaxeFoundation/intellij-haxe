@@ -1,0 +1,36 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_TYPEDEFDECLARATION
+          PsiElement(ID)('typedef')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('vi')
+          PsiWhiteSpace(' ')
+          PsiElement(=)('=')
+          PsiWhiteSpace(' ')
+          HAXE_TYPE
+            HAXE_REFERENCEEXPRESSION
+              HAXE_IDENTIFIER
+                PsiElement(ID)('Array')
+            HAXE_TYPEPARAM
+              PsiElement(<)('<')
+              HAXE_TYPELIST
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+              PsiElement(>)('>')
+          PsiElement(;)(';')
+    PsiWhiteSpace('\n\n')
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Simple')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n\n')
+          HAXE_CLASSBODY
+            <empty list>
+          PsiElement(})('}')

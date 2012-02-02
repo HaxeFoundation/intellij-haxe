@@ -1,0 +1,63 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Simple')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('void')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_FORSTATEMENT
+                  PsiElement(for)('for')
+                  PsiElement(()('(')
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('i')
+                  PsiWhiteSpace(' ')
+                  PsiElement(in)('in')
+                  PsiWhiteSpace(' ')
+                  HAXE_ITERATOREXPRESSION
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITINT)('1')
+                    PsiElement(...)('...')
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITINT)('11')
+                  PsiElement())(')')
+                  HAXE_BLOCKSTATEMENT
+                    PsiElement({)('{')
+                    PsiWhiteSpace('\n            ')
+                    HAXE_STATEMENT
+                      HAXE_CALLEXPRESSION
+                        HAXE_REFERENCEEXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('trace')
+                        PsiElement(()('(')
+                        HAXE_EXPRESSIONLIST
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('i')
+                        PsiElement())(')')
+                      PsiElement(;)(';')
+                    PsiWhiteSpace('\n        ')
+                    PsiElement(})('}')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

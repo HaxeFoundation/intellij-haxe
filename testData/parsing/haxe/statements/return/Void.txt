@@ -1,0 +1,46 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Void')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              PsiWhiteSpace(' ')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                PsiWhiteSpace(' ')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Void')
+              PsiWhiteSpace(' ')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_IFSTATEMENT
+                  PsiElement(if)('if')
+                  PsiElement(()('(')
+                  PsiWhiteSpace(' ')
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('abort')
+                  PsiWhiteSpace(' ')
+                  PsiElement())(')')
+                  PsiWhiteSpace(' ')
+                  HAXE_RETURNSTATEMENT
+                    PsiElement(return)('return')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

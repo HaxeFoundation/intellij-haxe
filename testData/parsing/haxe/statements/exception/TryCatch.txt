@@ -1,0 +1,78 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('TryCatch')
+          PsiWhiteSpace(' ')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_TRYSTATEMENT
+                  PsiElement(ID)('try')
+                  HAXE_BLOCKSTATEMENT
+                    PsiElement({)('{')
+                    PsiWhiteSpace('\n            ')
+                    HAXE_THROWSTATEMENT
+                      PsiElement(throw)('throw')
+                      PsiWhiteSpace(' ')
+                      HAXE_NEWEXPRESSION
+                        PsiElement(new)('new')
+                        PsiWhiteSpace(' ')
+                        HAXE_TYPE
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('Error')
+                        PsiElement(()('(')
+                        HAXE_EXPRESSIONLIST
+                          HAXE_LITERALEXPRESSION
+                            PsiElement(LITSTRING)('"invalid foo"')
+                        PsiElement())(')')
+                      PsiElement(;)(';')
+                    PsiWhiteSpace('\n        ')
+                    PsiElement(})('}')
+                  PsiWhiteSpace(' ')
+                  HAXE_CATCHSTATEMENT
+                    PsiElement(ID)('catch')
+                    PsiElement(()('(')
+                    HAXE_PARAMETER
+                      PsiElement(ID)('e')
+                      HAXE_TYPETAG
+                        PsiElement(:)(':')
+                        HAXE_TYPE
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('Error')
+                    PsiElement())(')')
+                    PsiWhiteSpace(' ')
+                    HAXE_BLOCKSTATEMENT
+                      PsiElement({)('{')
+                      PsiWhiteSpace('\n            ')
+                      HAXE_STATEMENT
+                        HAXE_CALLEXPRESSION
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('trace')
+                          PsiElement(()('(')
+                          HAXE_EXPRESSIONLIST
+                            HAXE_LITERALEXPRESSION
+                              PsiElement(LITSTRING)('"error"')
+                          PsiElement())(')')
+                        PsiElement(;)(';')
+                      PsiWhiteSpace('\n        ')
+                      PsiElement(})('}')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

@@ -1,0 +1,4 @@
+haXe File
+  PsiElement(package)('package')
+  PsiWhiteSpace(' ')
+  PsiElement(ID)('error')

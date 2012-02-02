@@ -1,0 +1,12 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Simple')
+          PsiElement({)('{')
+          HAXE_CLASSBODY
+            <empty list>
+          PsiElement(})('}')

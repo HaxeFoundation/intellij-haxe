@@ -1,0 +1,90 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Value')
+          PsiWhiteSpace(' ')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              HAXE_DECLARATIONATTRIBUTELIST
+                HAXE_DECLARATIONATTRIBUTE
+                  HAXE_ACCESS
+                    PsiElement(public)('public')
+              PsiWhiteSpace(' ')
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('odd')
+              PsiElement(()('(')
+              PsiWhiteSpace(' ')
+              HAXE_PARAMETERLIST
+                HAXE_PARAMETER
+                  PsiElement(ID)('x')
+                  PsiWhiteSpace(' ')
+                  HAXE_TYPETAG
+                    PsiElement(:)(':')
+                    PsiWhiteSpace(' ')
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Int')
+              PsiWhiteSpace(' ')
+              PsiElement())(')')
+              PsiWhiteSpace(' ')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                PsiWhiteSpace(' ')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Bool')
+              PsiWhiteSpace(' ')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_IFSTATEMENT
+                  PsiElement(if)('if')
+                  PsiElement(()('(')
+                  PsiWhiteSpace(' ')
+                  HAXE_COMPAREEXPRESSION
+                    HAXE_MULTIPLICATIVEEXPRESSION
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('x')
+                      PsiWhiteSpace(' ')
+                      PsiElement(%)('%')
+                      PsiWhiteSpace(' ')
+                      HAXE_LITERALEXPRESSION
+                        PsiElement(LITINT)('2')
+                    PsiWhiteSpace(' ')
+                    HAXE_COMPAREOPERATION
+                      PsiElement(!=)('!=')
+                    PsiWhiteSpace(' ')
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITINT)('0')
+                  PsiWhiteSpace(' ')
+                  PsiElement())(')')
+                  PsiWhiteSpace('\n            ')
+                  HAXE_RETURNSTATEMENT
+                    PsiElement(return)('return')
+                    PsiWhiteSpace(' ')
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('true')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_RETURNSTATEMENT
+                  PsiElement(return)('return')
+                  PsiWhiteSpace(' ')
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('false')
+                  PsiElement(;)(';')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')

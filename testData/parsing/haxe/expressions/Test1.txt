@@ -1,0 +1,53 @@
+haXe File
+  HAXE_TOPLEVELLIST
+    HAXE_TOPLEVEL
+      HAXE_TOPLEVELDECLARATION
+        HAXE_CLASSDECLARATION
+          PsiElement(class)('class')
+          PsiWhiteSpace(' ')
+          PsiElement(ID)('Test1')
+          PsiElement({)('{')
+          PsiWhiteSpace('\n    ')
+          HAXE_CLASSBODY
+            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+              PsiElement(function)('function')
+              PsiWhiteSpace(' ')
+              PsiElement(ID)('foo')
+              PsiElement(()('(')
+              PsiElement())(')')
+              HAXE_BLOCKSTATEMENT
+                PsiElement({)('{')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_LOCALVARDECLARATION
+                    PsiElement(var)('var')
+                    PsiWhiteSpace(' ')
+                    HAXE_LOCALVARDECLARATIONPART
+                      PsiElement(ID)('f')
+                      PsiWhiteSpace(' ')
+                      HAXE_VARINIT
+                        PsiElement(=)('=')
+                        PsiWhiteSpace(' ')
+                        HAXE_FUNCTIONLITERAL
+                          PsiElement(function)('function')
+                          PsiElement(()('(')
+                          PsiElement())(')')
+                          PsiWhiteSpace(' ')
+                          HAXE_BLOCKSTATEMENT
+                            PsiElement({)('{')
+                            PsiWhiteSpace(' ')
+                            PsiElement(})('}')
+                    PsiElement(;)(';')
+                PsiWhiteSpace('\n        ')
+                HAXE_STATEMENT
+                  HAXE_CALLEXPRESSION
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('f')
+                    PsiElement(()('(')
+                    PsiElement())(')')
+                  PsiElement(;)(';')
+                PsiWhiteSpace('\n    ')
+                PsiElement(})('}')
+          PsiWhiteSpace('\n')
+          PsiElement(})('}')
