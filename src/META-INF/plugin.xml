@@ -1,0 +1,35 @@
+<idea-plugin version="2">
+  <id>com.intellij.plugins.haxe</id>
+  <name>haXe Support</name>
+  <description>Support for haXe programming language</description>
+  <version>0.1</version>
+  <vendor logo="/general/ijLogo.png">JetBrains</vendor>
+  <idea-version since-build="112.1"/>
+  <depends>com.intellij.modules.ultimate</depends>
+
+  <application-components>
+    <!-- Add your application components here -->
+  </application-components>
+
+  <project-components>
+    <!--<component>-->
+      <!--<implementation-class>com.intellij.plugins.haxe.components.HaxeCompilerLoader</implementation-class>-->
+    <!--</component>-->
+  </project-components>
+
+  <actions>
+    <!-- Add your actions here -->
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!--<sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>-->
+    <!--<moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.HaxeModuleType"-->
+                <!--classpathProvider="true"/>-->
+    <!--<fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>-->
+    <!---->
+    <!--<lang.parserDefinition language="haXe"-->
+                           <!--implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>-->
+    <!---->
+    <!--<configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>-->
+  </extensions>
+</idea-plugin>
