@@ -18,6 +18,7 @@ import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
 import com.intellij.util.Chunk;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class HaxeCompilerBase implements TranslatingCompiler {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompilerBase");
@@ -37,7 +38,11 @@ public abstract class HaxeCompilerBase implements TranslatingCompiler {
 
   public void compile(CompileContext context, Chunk<Module> moduleChunk, VirtualFile[] files, OutputSink sink) {
     final Sdk sdk = getSdk(moduleChunk);
-    final HaxeSdkData sdkData = HaxeSdkUtil.testHaxeSdk(sdk.getHomePath());
+    final String sdkHome = sdk == null ? null : sdk.getHomePath();
+    final HaxeSdkData sdkData = sdkHome == null ? null : HaxeSdkUtil.testHaxeSdk(sdkHome);
+    if (sdkData == null) {
+      return;
+    }
 
     HaxeApplicationConfiguration applicationConfiguration = getApplicationConfiguration(context.getProject());
 
@@ -50,7 +55,8 @@ public abstract class HaxeCompilerBase implements TranslatingCompiler {
   /**
    * @return the jdk. Assumes that the jdk is the same for all modules
    */
-  private Sdk getSdk(Chunk<Module> moduleChunk) {
+  @Nullable
+  private static Sdk getSdk(Chunk<Module> moduleChunk) {
     final Module module = moduleChunk.getNodes().iterator().next();
     return ModuleRootManager.getInstance(module).getSdk();
   }

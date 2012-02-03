@@ -5,6 +5,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -22,6 +23,7 @@ public class HaxeSdkUtil {
   /*
      TODO check VM. Not only compiler.
   */
+  @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
     if (!checkFolderExists(path)) {
       return null;
@@ -76,7 +78,7 @@ public class HaxeSdkUtil {
   }
 
   private static boolean checkFolderExists(String path) {
-    return checkFolderExists(new File(path));
+    return path != null && checkFolderExists(new File(path));
   }
 
   private static boolean checkFolderExists(File file) {
