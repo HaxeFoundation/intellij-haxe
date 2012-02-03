@@ -18,8 +18,8 @@ public class HaxeCompilerLoader extends AbstractProjectComponent {
   }
 
   public void projectOpened() {
-    CompilerManager compilerManager = CompilerManager.getInstance(myProject);
-    compilerManager.addCompilableFileType(HaxeFileType.HAXE_FILE_TYPE);
-    compilerManager.addCompiler(new MakeHaxeCompile());
+    //CompilerManager compilerManager = CompilerManager.getInstance(myProject);
+    //compilerManager.addCompilableFileType(HaxeFileType.HAXE_FILE_TYPE);
+    //compilerManager.addCompiler(new MakeHaxeCompile());
   }
 }
