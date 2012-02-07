@@ -44,9 +44,8 @@ public abstract class HaxeCompilerBase implements TranslatingCompiler {
       return;
     }
 
-    HaxeApplicationConfiguration applicationConfiguration = getApplicationConfiguration(context.getProject());
+    final HaxeApplicationConfiguration applicationConfiguration = getApplicationConfiguration(context.getProject());
 
-    if (sdkData == null) return;
     compileImpl(context, sdkData, applicationConfiguration);
   }
 
@@ -61,7 +60,8 @@ public abstract class HaxeCompilerBase implements TranslatingCompiler {
     return ModuleRootManager.getInstance(module).getSdk();
   }
 
-  private HaxeApplicationConfiguration getApplicationConfiguration(Project project) {
+  @Nullable
+  private static HaxeApplicationConfiguration getApplicationConfiguration(Project project) {
     RunManager runManager = RunManager.getInstance(project);
     RunConfiguration[] configurations = runManager.getConfigurations(HaxeRunConfigurationType.getInstance());
     if (configurations.length > 0) {

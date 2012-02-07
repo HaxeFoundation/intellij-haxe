@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.RawCommandLineEditor;
@@ -19,22 +20,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicationConfiguration> {
-  private DefaultComboBoxModel modulesModel;
-
   private JPanel component;
-  private RawCommandLineEditor appArguments;
+  private RawCommandLineEditor myAppArguments;
   private TextFieldWithBrowseButton applicationName;
   private JComboBox comboModules;
+  private JComboBox myTargetComboBox;
 
   private ConfigurationModuleSelector moduleSelector;
-  private Project project;
+  private final Project project;
 
   public HaxeRunConfigurationEditorForm(Project project) {
     this.project = project;
     addActionListeners();
   }
 
-  public void addActionListeners() {
+  private void addActionListeners() {
     applicationName.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
 
@@ -55,6 +55,15 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
         }
       }
     });
+
+    initTargets();
+  }
+
+  private void initTargets() {
+    final DefaultComboBoxModel comboBoxModel = (DefaultComboBoxModel)myTargetComboBox.getModel();
+    for (HaxeTarget target : HaxeTarget.values()) {
+      comboBoxModel.insertElementAt(target, 0);
+    }
   }
 
   private void setChosenFile(VirtualFile virtualFile) {
@@ -63,6 +72,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
 
   @Override
   protected void resetEditorFrom(HaxeApplicationConfiguration configuration) {
+    myTargetComboBox.setSelectedItem(configuration.getHaxeTarget());
     applicationName.setText(configuration.getMainClass());
     moduleSelector.reset(configuration);
   }
@@ -70,6 +80,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
   @Override
   protected void applyEditorTo(HaxeApplicationConfiguration configuration) throws ConfigurationException {
     configuration.setMainClass(applicationName.getText());
+    configuration.setHaxeTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     moduleSelector.applyTo(configuration);
   }
 

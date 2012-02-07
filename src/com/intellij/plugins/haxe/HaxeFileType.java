@@ -23,13 +23,13 @@ public class HaxeFileType extends LanguageFileType {
   @NotNull
   @NonNls
   public String getName() {
-    return "haXe";
+    return HaxeBundle.message("haxe.file.type.name");
   }
 
   @NonNls
   @NotNull
   public String getDescription() {
-    return "haXe Files";
+    return HaxeBundle.message("haxe.file.type.description");
   }
 
   @NotNull
@@ -40,10 +40,6 @@ public class HaxeFileType extends LanguageFileType {
 
   public Icon getIcon() {
     return HaxeIcons.HAXE_ICON_16x16;
-  }
-
-  public boolean isJVMDebuggingSupported() {
-    return false;
   }
 
   @Override

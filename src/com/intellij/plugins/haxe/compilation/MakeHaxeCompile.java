@@ -1,13 +1,16 @@
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.compiler.impl.CompilerUtil;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
@@ -20,20 +23,30 @@ public class MakeHaxeCompile extends HaxeCompilerBase {
   protected void compileImpl(CompileContext context, HaxeSdkData sdkData, HaxeApplicationConfiguration applicationConfiguration) {
     final String homePath = sdkData.getHomePath();
     final Module module = applicationConfiguration.getConfigurationModule().getModule();
+    if (module == null) {
+      return;
+    }
 
-    GeneralCommandLine commandLine = new GeneralCommandLine();
+    final GeneralCommandLine commandLine = new GeneralCommandLine();
 
     commandLine.setExePath(HaxeSdkUtil.getCompilerPathByFolderPath(homePath));
 
     commandLine.addParameter("-main");
     commandLine.addParameter(CompilationUtil.getClassNameByPath(applicationConfiguration.getMainClass()));
 
-    commandLine.addParameter("-neko");
-    commandLine.addParameter(CompilationUtil.getNekoBinPathForModule(module));
+    for (VirtualFile sourceRoot : ModuleRootManager.getInstance(module).getSourceRoots()) {
+      commandLine.addParameter("-cp");
+      commandLine.addParameter(sourceRoot.getPath());
+    }
 
-    commandLine.addParameter("-cp");
-    String sourceFolderPath = CompilationUtil.getSourceFolderByModule(module);
-    commandLine.addParameter(CompilerUtil.quotePath(sourceFolderPath));
+    final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
+    if (outputDirectory != null) {
+      commandLine.setWorkDirectory(outputDirectory.getPath());
+    }
+
+    final HaxeTarget target = applicationConfiguration.getHaxeTarget();
+    commandLine.addParameter(target.getCompilerFlag());
+    commandLine.addParameter(target.getTargetOutput(module));
 
     ProcessOutput output = null;
     try {

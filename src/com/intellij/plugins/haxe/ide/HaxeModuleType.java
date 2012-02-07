@@ -8,7 +8,7 @@ import com.intellij.plugins.haxe.HaxeIcons;
 import javax.swing.*;
 
 public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
-  public static final String MODULE_TYPE_ID = "HAXE_MODULE";
+  private static final String MODULE_TYPE_ID = "HAXE_MODULE";
 
   public HaxeModuleType() {
     super(MODULE_TYPE_ID);
@@ -29,11 +29,6 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   }
 
   @Override
-  public HaxeModuleBuilder createModuleBuilder() {
-    return new HaxeModuleBuilder();
-  }
-
-  @Override
   public Icon getBigIcon() {
     return HaxeIcons.HAXE_ICON_16x16;
   }
@@ -41,5 +36,10 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   @Override
   public Icon getNodeIcon(boolean isOpened) {
     return HaxeIcons.HAXE_ICON_16x16;
+  }
+
+  @Override
+  public HaxeModuleBuilder createModuleBuilder() {
+    return new HaxeModuleBuilder();
   }
 }

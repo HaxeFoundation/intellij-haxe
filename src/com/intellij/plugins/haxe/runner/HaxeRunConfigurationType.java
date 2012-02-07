@@ -51,7 +51,7 @@ public class HaxeRunConfigurationType implements ConfigurationType {
     }
 
     public RunConfiguration createTemplateConfiguration(Project project) {
-      String name = HaxeBundle.message("runner.configuration.name");
+      final String name = HaxeBundle.message("runner.configuration.name");
       return new HaxeApplicationConfiguration(name, project, getInstance());
     }
   }

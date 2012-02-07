@@ -1,15 +1,15 @@
 package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 
 public class HaxeSdkType extends SdkType {
-
   private HaxeSdkData sdkData;
 
   public HaxeSdkType() {
-    super("haXe SDK");
+    super(HaxeBundle.message("haxe.sdk.name"));
   }
 
   public static HaxeSdkType getInstance() {
@@ -20,13 +20,9 @@ public class HaxeSdkType extends SdkType {
     return sdkData;
   }
 
-  public void setSdkData(HaxeSdkData sdkData) {
-    this.sdkData = sdkData;
-  }
-
   @Override
   public String getPresentableName() {
-    return "haXe SDK";
+    return HaxeBundle.message("haxe.sdk.name.presentable");
   }
 
   @Override
@@ -41,7 +37,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public String suggestHomePath() {
-    return System.getProperty("HAXE_LIBRARY_PATH");
+    return System.getenv("HAXEPATH");
   }
 
   @Override
@@ -52,7 +48,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public AdditionalDataConfigurable createAdditionalDataConfigurable(SdkModel sdkModel, SdkModificator sdkModificator) {
-    return null;
+    return new NekoConfigurable();
   }
 
   @Override

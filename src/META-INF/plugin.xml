@@ -11,20 +11,16 @@
     <!-- Add your application components here -->
   </application-components>
 
-  <project-components>
-    <component>
-      <implementation-class>com.intellij.plugins.haxe.components.HaxeCompilerLoader</implementation-class>
-    </component>
-  </project-components>
-
   <actions>
     <!-- Add your actions here -->
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.HaxeModuleType"
-                classpathProvider="true"/>
+    <compiler implementation="com.intellij.plugins.haxe.compilation.MakeHaxeCompile"/>
+    <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.HaxeModuleType"/>
+    <moduleConfigurationEditorProvider
+        implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
     <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
 
     <lang.syntaxHighlighterFactory key="haXe" implementationClass="com.intellij.plugins.haxe.highlight.HaxeSyntaxHighlighterFactory"/>

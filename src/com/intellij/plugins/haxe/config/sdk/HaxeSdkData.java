@@ -5,10 +5,14 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModel;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeSdkData implements SdkAdditionalData, PersistentStateComponent<HaxeSdkData> {
   private String homePath = "";
   private String version = "";
+
+  @Nullable
+  private String nekoBinPath = null;
 
   public HaxeSdkData() {
   }
@@ -24,6 +28,15 @@ public class HaxeSdkData implements SdkAdditionalData, PersistentStateComponent<
 
   public String getVersion() {
     return version;
+  }
+
+  @Nullable
+  public String getNekoBinPath() {
+    return nekoBinPath;
+  }
+
+  public void setNekoBinPath(@Nullable String nekoBinPath) {
+    this.nekoBinPath = nekoBinPath;
   }
 
   @SuppressWarnings({"CloneDoesntCallSuperClone"})
