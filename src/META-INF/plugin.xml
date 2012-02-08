@@ -17,7 +17,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <compiler implementation="com.intellij.plugins.haxe.compilation.MakeHaxeCompile"/>
+    <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompile"/>
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.HaxeModuleType"/>
     <moduleConfigurationEditorProvider
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
