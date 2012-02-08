@@ -35,8 +35,9 @@ public abstract class HaxeCompilerBase implements SourceProcessingCompiler {
   @Override
   public boolean validateConfiguration(CompileScope scope) {
     //todo: support make(runConfiguration == null)
-    final RunConfiguration runConfiguration = CompileStepBeforeRun.getRunConfiguration(scope);
-    return runConfiguration instanceof HaxeApplicationConfiguration;
+    //final RunConfiguration runConfiguration = CompileStepBeforeRun.getRunConfiguration(scope);
+    //return runConfiguration instanceof HaxeApplicationConfiguration;
+    return true;
   }
 
   @NotNull
