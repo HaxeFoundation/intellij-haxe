@@ -8,33 +8,43 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
+import com.intellij.plugins.haxe.runner.HaxeApplicationModuleBasedConfiguration;
 import com.intellij.plugins.haxe.util.CompilationUtil;
 
 import java.nio.charset.Charset;
 
-public class MakeHaxeCompile extends HaxeCompilerBase {
+public class HaxeCompile extends HaxeCompilerBase {
   @Override
-  protected void compileImpl(CompileContext context, HaxeSdkData sdkData, HaxeApplicationConfiguration applicationConfiguration) {
-    final String homePath = sdkData.getHomePath();
-    final Module module = applicationConfiguration.getConfigurationModule().getModule();
+  protected boolean compileModule(CompileContext context, HaxeApplicationConfiguration applicationConfiguration) {
+    final HaxeApplicationModuleBasedConfiguration moduleConfiguration = applicationConfiguration.getConfigurationModule();
+    final Module module = moduleConfiguration.getModule();
     if (module == null) {
-      return;
+      return false;
+    }
+    final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    final Sdk sdk = moduleRootManager.getSdk();
+
+    if (sdk == null) {
+      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.sdk.for.module", module.getName()), null, -1, -1);
+      return false;
     }
 
     final GeneralCommandLine commandLine = new GeneralCommandLine();
 
-    commandLine.setExePath(HaxeSdkUtil.getCompilerPathByFolderPath(homePath));
+    commandLine.setExePath(HaxeSdkUtil.getCompilerPathByFolderPath(sdk.getHomePath()));
 
     commandLine.addParameter("-main");
     commandLine.addParameter(CompilationUtil.getClassNameByPath(applicationConfiguration.getMainClass()));
 
-    for (VirtualFile sourceRoot : ModuleRootManager.getInstance(module).getSourceRoots()) {
+    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().exportedOnly().sources().getRoots()) {
       commandLine.addParameter("-cp");
       commandLine.addParameter(sourceRoot.getPath());
     }
@@ -57,7 +67,7 @@ public class MakeHaxeCompile extends HaxeCompilerBase {
     }
     catch (ExecutionException e) {
       context.addMessage(CompilerMessageCategory.ERROR, "process throw exception: " + e.getMessage(), null, -1, -1);
-      return;
+      return false;
     }
 
     if (output.getExitCode() != 0) {
@@ -65,5 +75,6 @@ public class MakeHaxeCompile extends HaxeCompilerBase {
       context.addMessage(CompilerMessageCategory.WARNING, "process exited with output: " + output.getStdout(), null, -1, -1);
       context.addMessage(CompilerMessageCategory.WARNING, "process exited with error: " + output.getStderr(), null, -1, -1);
     }
+    return true;
   }
 }
