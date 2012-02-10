@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.highlight;
+package com.intellij.plugins.haxe.ide.highlight;
 
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.CodeInsightColors;

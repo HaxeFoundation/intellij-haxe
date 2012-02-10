@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 %function advance
 %type IElementType
 
-%eof{ return;
+%eof{
 %eof}
 
 WHITE_SPACE_CHAR=[\ \n\r\t\f]
@@ -104,6 +104,10 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "inline"                                  {  return KINLINE;  }
 
 "untype"                                  {  return KUNTYPE;  }
+"typedef"                                 {  return KTYPEDEF;  }
+
+"try"                                     {  return KTRY;  }
+"catch"                                   {  return KCATCH;  }
 
 
 {IDENTIFIER}                              {  return ID; }

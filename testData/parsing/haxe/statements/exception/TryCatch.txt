@@ -20,7 +20,7 @@ haXe File
                 PsiElement({)('{')
                 PsiWhiteSpace('\n        ')
                 HAXE_TRYSTATEMENT
-                  PsiElement(ID)('try')
+                  PsiElement(try)('try')
                   HAXE_BLOCKSTATEMENT
                     PsiElement({)('{')
                     PsiWhiteSpace('\n            ')
@@ -44,7 +44,7 @@ haXe File
                     PsiElement(})('}')
                   PsiWhiteSpace(' ')
                   HAXE_CATCHSTATEMENT
-                    PsiElement(ID)('catch')
+                    PsiElement(catch)('catch')
                     PsiElement(()('(')
                     HAXE_PARAMETER
                       PsiElement(ID)('e')

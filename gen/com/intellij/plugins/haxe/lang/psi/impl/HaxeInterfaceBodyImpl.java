@@ -1,13 +1,15 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAttributes;
+import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceBody;
+import com.intellij.plugins.haxe.lang.psi.HaxePp;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.psi.util.PsiTreeUtil;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import com.intellij.plugins.haxe.lang.psi.*;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class HaxeInterfaceBodyImpl extends HaxePsiCompositeElementImpl implements HaxeInterfaceBody {
 
@@ -17,8 +19,8 @@ public class HaxeInterfaceBodyImpl extends HaxePsiCompositeElementImpl implement
 
   @Override
   @NotNull
-  public List<HaxeFunctionDeclarationWithAttributes> getFunctionDeclarationWithAttributesList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionDeclarationWithAttributes.class);
+  public List<HaxeFunctionPrototypeDeclarationWithAttributes> getFunctionPrototypeDeclarationWithAttributesList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionPrototypeDeclarationWithAttributes.class);
   }
 
   @Override
@@ -32,5 +34,4 @@ public class HaxeInterfaceBodyImpl extends HaxePsiCompositeElementImpl implement
   public List<HaxeVarDeclaration> getVarDeclarationList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeVarDeclaration.class);
   }
-
 }

@@ -7,6 +7,7 @@ import com.intellij.lexer.Lexer;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.lexer.HaxeLexer;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
@@ -46,7 +47,7 @@ public class HaxeParserDefinition implements ParserDefinition {
 
   @NotNull
   public PsiElement createElement(ASTNode node) {
-    return HaxePsiCreator.createElement(node);
+    return HaxeTokenTypes.Factory.createElement(node);
   }
 
   public PsiFile createFile(FileViewProvider viewProvider) {

@@ -34,9 +34,6 @@ public abstract class HaxeCompilerBase implements SourceProcessingCompiler {
 
   @Override
   public boolean validateConfiguration(CompileScope scope) {
-    //todo: support make(runConfiguration == null)
-    //final RunConfiguration runConfiguration = CompileStepBeforeRun.getRunConfiguration(scope);
-    //return runConfiguration instanceof HaxeApplicationConfiguration;
     return true;
   }
 
@@ -75,7 +72,7 @@ public abstract class HaxeCompilerBase implements SourceProcessingCompiler {
     return ProcessingItem.EMPTY_ARRAY;
   }
 
-  private int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {
+  private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {
     final Module module = moduleConfiguration.getModule();
     if (module == null || module.getModuleFile() == null) {
       return -1;

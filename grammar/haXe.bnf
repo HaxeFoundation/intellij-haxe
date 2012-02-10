@@ -15,6 +15,8 @@
     elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
     tokenTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
 
+    generateFirstCheck=50
+
     pLCURLY="{"
     pRCURLY="}"
     pLBRACK="["
@@ -120,6 +122,10 @@
     kINLINE="inline"
 
     kUNTYPE="untyped"
+    kTYPEDEF="typedef"
+
+    kTRY="try"
+    kCATCH="catch"
 
     elementTypeHolderClass="org.intellij.grammar.psi.HaxeTypes"
     elementTypePrefix="HAXE_"
@@ -144,7 +150,8 @@ shiftOperator ::= '>>' | '<<' | '>>>'
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 topLevelList ::= topLevel+
-topLevel ::= importStatement | pp | topLevelDeclaration
+topLevel ::= importStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
+private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 
@@ -161,13 +168,17 @@ topLevelDeclaration ::= classDeclaration
                       | typedefDeclaration
 
 typedefDeclaration ::= 'typedef' ID typeParam? '=' functionType ';'? {pin=1 recoverUntil="typedef_recover"}
-private typedef_recover ::= !topLevel
+private typedef_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
 classDeclaration ::= 'class' ID typeParam? inheritList? '{' classBody '}' {pin=1}
-classBody ::= (varDeclaration | functionDeclarationWithAttributes | pp)*
+classBody ::= classBodyPart*
+private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
+private class_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
 
 interfaceDeclaration ::= 'interface' type inheritList? '{' interfaceBody '}' {pin=1}
-interfaceBody ::= (varDeclaration | functionDeclarationWithAttributes | pp)*
+interfaceBody ::= interfaceBodyPart*
+private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
+private interface_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
 
 enumDeclaration ::= 'enum' ID typeParam? '{' enumBody '}' {pin=1}
 enumBody ::= enumValueDeclaration+
@@ -192,13 +203,14 @@ private var_declaration_part_recover ::= !(';' | ',')
 localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1}
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
 localVarDeclarationPart ::= ID propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover"}
-private local_var_declaration_part_recover ::= !(';' | ',' | statement)
+private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= ID | 'null' | 'default' | 'dynamic'
 
-functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | ID typeParam?) '(' parameterList? ')' typeTag? (blockStatement | ';' | returnStatementWithoutSemicolon) {pin=3}
+functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | ID typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3}
+functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | ID typeParam?) '(' parameterList? ')' typeTag? ';' {pin=3}
 localFunctionDeclaration ::= 'function' ID typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2}
 
 /*
@@ -226,7 +238,7 @@ blockStatement ::= '{' statementList? '}'
 private statementList ::= (statement ';'?)+
 
 statement ::= blockStatement | notBlockStatement {recoverUntil="statement_recovery"}
-private statement_recovery ::= !(statement | ';' | '{' | '}' | ')' | 'else' | 'while')
+private statement_recovery ::= !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | ';' | '}' | ')' | 'else')
 
 private notBlockStatement ::= ('untyped' statement)
                             | localVarDeclaration

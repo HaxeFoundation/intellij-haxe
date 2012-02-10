@@ -3,7 +3,7 @@ haXe File
     HAXE_TOPLEVEL
       HAXE_TOPLEVELDECLARATION
         HAXE_TYPEDEFDECLARATION
-          PsiElement(ID)('typedef')
+          PsiElement(typedef)('typedef')
           PsiWhiteSpace(' ')
           PsiElement(ID)('vi')
           PsiWhiteSpace(' ')

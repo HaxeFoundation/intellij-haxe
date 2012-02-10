@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.runner.ui;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.TreeFileChooser;
 import com.intellij.ide.util.TreeFileChooserFactory;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
@@ -68,6 +69,10 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
 
   private void setChosenFile(VirtualFile virtualFile) {
     applicationName.setText(virtualFile.getPath());
+  }
+
+  public Module getSelectedModule() {
+    return moduleSelector.getModule();
   }
 
   @Override

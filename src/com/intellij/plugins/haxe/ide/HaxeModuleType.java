@@ -30,7 +30,7 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
 
   @Override
   public Icon getBigIcon() {
-    return HaxeIcons.HAXE_ICON_16x16;
+    return HaxeIcons.HAXE_ICON_24x24;
   }
 
   @Override

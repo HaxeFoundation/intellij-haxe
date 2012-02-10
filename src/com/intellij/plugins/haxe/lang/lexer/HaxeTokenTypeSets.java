@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.lang.lexer;
 
-import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
@@ -9,51 +9,51 @@ import com.intellij.psi.tree.TokenSet;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public interface HaxeTokenTypeSets {
-  IFileElementType HAXE_FILE = new IFileElementType("HAXEFILE", HaxeFileType.HAXE_LANGUAGE);
+  IFileElementType HAXE_FILE = new IFileElementType("HAXEFILE", HaxeLanguage.INSTANCE);
   IElementType MSL_COMMENT = new HaxeElementType("MSL_COMMENT");
   IElementType WSNLS = new HaxeElementType("WSNLS");
 
   IElementType MML_COMMENT = new HaxeElementType("MML_COMMENT");
 
-  static final TokenSet WHITESPACES = TokenSet.create(
+  TokenSet WHITESPACES = TokenSet.create(
     WSNLS,
     TokenType.WHITE_SPACE,
     TokenType.NEW_LINE_INDENT
   );
 
-  static final TokenSet COMMENTS = TokenSet.create(
+  TokenSet COMMENTS = TokenSet.create(
     MML_COMMENT,
     MSL_COMMENT
   );
 
-  static final TokenSet BLOCK_COMMENTS = TokenSet.create(
+  TokenSet BLOCK_COMMENTS = TokenSet.create(
     MML_COMMENT
   );
 
-  static final TokenSet NUMBERS = TokenSet.create(
+  TokenSet NUMBERS = TokenSet.create(
     LITINT,
     LITHEX,
     LITOCT,
     LITFLOAT
   );
 
-  static final TokenSet LINE_COMMENTS = TokenSet.create(
+  TokenSet LINE_COMMENTS = TokenSet.create(
     MSL_COMMENT
   );
 
-  static final TokenSet BAD_TOKENS = TokenSet.create(
+  TokenSet BAD_TOKENS = TokenSet.create(
     TokenType.BAD_CHARACTER
   );
 
-  static final TokenSet STRINGS = TokenSet.create(
+  TokenSet STRINGS = TokenSet.create(
     LITSTRING
   );
 
-  static final TokenSet IDENTIFIERS = TokenSet.create(
+  TokenSet IDENTIFIERS = TokenSet.create(
     ID
   );
 
-  static final TokenSet BRACES = TokenSet.create(
+  TokenSet BRACES = TokenSet.create(
     PLBRACK,
     PRBRACK,
     PLPAREN,
@@ -62,7 +62,7 @@ public interface HaxeTokenTypeSets {
     PRCURLY
   );
 
-  static final TokenSet LITERALS = TokenSet.create(
+  TokenSet LITERALS = TokenSet.create(
     LITCHAR,
     LITFLOAT,
     LITSTRING,
@@ -71,38 +71,53 @@ public interface HaxeTokenTypeSets {
     LITOCT
   );
 
-  public static final TokenSet KEYWORDS = TokenSet.create(
-    KPACKAGE,
-    KIMPORT,
+  TokenSet KEYWORDS = TokenSet.create(
     KBREAK,
     KCASE,
+    KCAST,
+    KCLASS,
     KCONTINUE,
     KDEFAULT,
-    KELSE,
-    KFOR,
     KDO,
-    KWHILE,
+    KDYNAMIC,
+    KELSE,
+    KENUM,
+    KEXTENDS,
+    KFOR,
     KFUNCTION,
     KIF,
-    KIMPORT,
-    KINTERFACE,
-    KPACKAGE,
-    KRETURN,
-    KCLASS,
-    KSWITCH,
-    KVAR,
-    KENUM,
-    KINTERFACE,
-    KTHROW,
     KIMPLEMENTS,
-    KEXTENDS
+    KIMPORT,
+    KINLINE,
+    KINTERFACE,
+    KNULL,
+    KOVERRIDE,
+    KPACKAGE,
+    KPRIVATE,
+    KPUBLIC,
+    KRETURN,
+    KSTATIC,
+    KSWITCH,
+    KTHIS,
+    KTHROW,
+    KUNTYPE,
+    KVAR,
+    KWHILE,
+    KTRY,
+    KCATCH,
+    KTYPEDEF,
+    PPELSE,
+    PPELSEIF,
+    PPEND,
+    PPERROR,
+    PPIF
   );
 
-  public static final TokenSet UNARY_OPERATORS = TokenSet.create(
+  TokenSet UNARY_OPERATORS = TokenSet.create(
     OPLUS_PLUS, OMINUS_MINUS, ONOT
   );
 
-  public static final TokenSet ASSIGN_OPERATORS = TokenSet.create(
+  TokenSet ASSIGN_OPERATORS = TokenSet.create(
     OASSIGN,
     OPLUS_ASSIGN, OMINUS_ASSIGN, OBIT_OR_ASSIGN, OBIT_XOR_ASSIGN,
     OMUL_ASSIGN, OQUOTIENT_ASSIGN, OREMAINDER_ASSIGN,
@@ -110,18 +125,18 @@ public interface HaxeTokenTypeSets {
     OBIT_AND_ASSIGN
   );
 
-  public static final TokenSet BINARY_OPERATORS = TokenSet.create(
+  TokenSet BINARY_OPERATORS = TokenSet.create(
     OCOND_OR, OCOND_AND,
     OEQ, ONOT_EQ, OLESS, OLESS_OR_EQUAL, OGREATER, OGREATER_OR_EQUAL,
     OPLUS, OMINUS, OBIT_OR, OBIT_XOR,
     OMUL, OQUOTIENT, OREMAINDER, OSHIFT_LEFT, OSHIFT_RIGHT, OBIT_AND
   );
 
-  public static final TokenSet INC_DEC_OPERATORS = TokenSet.create(
+  TokenSet INC_DEC_OPERATORS = TokenSet.create(
     OPLUS_PLUS, OMINUS_MINUS
   );
 
-  public static final TokenSet OPERATORS = TokenSet.create(
+  TokenSet OPERATORS = TokenSet.create(
     OSEMI,
     OTRIPLE_DOT,
     ODOT,

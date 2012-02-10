@@ -1,10 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 
 public interface HaxeTokenTypes {
 
@@ -43,6 +43,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_FORSTATEMENT = new HaxeElementType("HAXE_FORSTATEMENT");
   IElementType HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES = new HaxeElementType("HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES");
   IElementType HAXE_FUNCTIONLITERAL = new HaxeElementType("HAXE_FUNCTIONLITERAL");
+  IElementType HAXE_FUNCTIONPROTOTYPEDECLARATIONWITHATTRIBUTES = new HaxeElementType("HAXE_FUNCTIONPROTOTYPEDECLARATIONWITHATTRIBUTES");
   IElementType HAXE_FUNCTIONTYPE = new HaxeElementType("HAXE_FUNCTIONTYPE");
   IElementType HAXE_IDENTIFIER = new HaxeElementType("HAXE_IDENTIFIER");
   IElementType HAXE_IFEXPRESSION = new HaxeElementType("HAXE_IFEXPRESSION");
@@ -108,6 +109,7 @@ public interface HaxeTokenTypes {
   IElementType KBREAK = new HaxeElementType("break");
   IElementType KCASE = new HaxeElementType("case");
   IElementType KCAST = new HaxeElementType("cast");
+  IElementType KCATCH = new HaxeElementType("catch");
   IElementType KCLASS = new HaxeElementType("class");
   IElementType KCONTINUE = new HaxeElementType("continue");
   IElementType KDEFAULT = new HaxeElementType("default");
@@ -133,6 +135,8 @@ public interface HaxeTokenTypes {
   IElementType KSWITCH = new HaxeElementType("switch");
   IElementType KTHIS = new HaxeElementType("this");
   IElementType KTHROW = new HaxeElementType("throw");
+  IElementType KTRY = new HaxeElementType("try");
+  IElementType KTYPEDEF = new HaxeElementType("typedef");
   IElementType KUNTYPE = new HaxeElementType("untyped");
   IElementType KVAR = new HaxeElementType("var");
   IElementType KWHILE = new HaxeElementType("while");
@@ -199,7 +203,7 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == HAXE_ACCESS) {
+      if (type == HAXE_ACCESS) {
         return new HaxeAccessImpl(node);
       }
       else if (type == HAXE_ADDITIVEEXPRESSION) {
@@ -303,6 +307,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_FUNCTIONLITERAL) {
         return new HaxeFunctionLiteralImpl(node);
+      }
+      else if (type == HAXE_FUNCTIONPROTOTYPEDECLARATIONWITHATTRIBUTES) {
+        return new HaxeFunctionPrototypeDeclarationWithAttributesImpl(node);
       }
       else if (type == HAXE_FUNCTIONTYPE) {
         return new HaxeFunctionTypeImpl(node);
