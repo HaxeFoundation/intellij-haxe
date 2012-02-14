@@ -11,14 +11,10 @@
     <!-- Add your application components here -->
   </application-components>
 
-  <actions>
-    <!-- Add your actions here -->
-  </actions>
-
   <extensions defaultExtensionNs="com.intellij">
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompile"/>
-    <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.HaxeModuleType"/>
+    <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompiler"/>
+    <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <moduleConfigurationEditorProvider
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
     <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
@@ -30,5 +26,19 @@
     <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
+
+    <moduleService serviceInterface="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"
+                   serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
+
+    <internalFileTemplate name="haXe Class"/>
+    <internalFileTemplate name="haXe Interface"/>
+    <internalFileTemplate name="haXe Enum"/>
   </extensions>
+
+  <actions>
+    <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"
+            text="haXe Class" description="Create new haXe class/interface/enum">
+      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+    </action>
+  </actions>
 </idea-plugin>

@@ -46,7 +46,9 @@ public class HaxeSdkUtil {
 
       final Matcher matcher = VERSION_MATCHER.matcher(outputString);
       if (matcher.find()) {
-        return new HaxeSdkData(path, matcher.group(1));
+        final HaxeSdkData haxeSdkData = new HaxeSdkData(path, matcher.group(1));
+        haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
+        return haxeSdkData;
       }
 
       return null;
@@ -58,10 +60,17 @@ public class HaxeSdkUtil {
   }
 
   @Nullable
-  private static String suggestNekoBinPath() {
+  private static String suggestNekoBinPath(@NotNull String path) {
     String result = System.getenv("NEKOPATH");
+    if (result == null) {
+      result = System.getenv("NEKO_INSTPATH");
+    }
+    if (result == null) {
+      final String parentPath = new File(path).getParent();
+      result = new File(parentPath, "neko").getAbsolutePath();
+    }
     if (result != null) {
-      result += getExecutableName("neko");
+      result = new File(result, getExecutableName("neko")).getAbsolutePath();
     }
     if (result != null && new File(result).exists()) {
       return result;

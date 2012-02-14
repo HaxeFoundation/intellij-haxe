@@ -5,7 +5,6 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -13,8 +12,6 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.runner.ui.HaxeRunConfigurationEditorForm;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
@@ -24,27 +21,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeApplicationModuleBasedConfiguration> {
-  private String mainClass;
-  private HaxeTarget haxeTarget;
-
   public HaxeApplicationConfiguration(String name, Project project, HaxeRunConfigurationType configurationType) {
     super(name, new HaxeApplicationModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
-  }
-
-  public String getMainClass() {
-    return mainClass;
-  }
-
-  public void setMainClass(String mainClass) {
-    this.mainClass = mainClass;
-  }
-
-  public HaxeTarget getHaxeTarget() {
-    return haxeTarget;
-  }
-
-  public void setHaxeTarget(HaxeTarget haxeTarget) {
-    this.haxeTarget = haxeTarget;
   }
 
   @Override
@@ -63,15 +41,7 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
   }
 
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    return new HaxeRunningState(env, haxeTarget, getConfigurationModule().getModule());
-  }
-
-  @Override
-  public void checkConfiguration() throws RuntimeConfigurationException {
-    super.checkConfiguration();
-    if (haxeTarget == null) {
-      throw new RuntimeConfigurationException(HaxeBundle.message("application.configuration.no.target.exception"));
-    }
+    return new HaxeRunningState(env, getConfigurationModule().getModule());
   }
 
   public void writeExternal(final Element element) throws WriteExternalException {

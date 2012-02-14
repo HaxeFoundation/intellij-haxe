@@ -2,8 +2,11 @@ package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
+
+import javax.swing.*;
 
 public class HaxeSdkType extends SdkType {
   private HaxeSdkData sdkData;
@@ -12,11 +15,21 @@ public class HaxeSdkType extends SdkType {
     super(HaxeBundle.message("haxe.sdk.name"));
   }
 
+  @Override
+  public Icon getIcon() {
+    return HaxeIcons.HAXE_ICON_16x16;
+  }
+
+  @Override
+  public Icon getIconForAddAction() {
+    return HaxeIcons.HAXE_ICON_16x16;
+  }
+
   public static HaxeSdkType getInstance() {
     return SdkType.findInstance(HaxeSdkType.class);
   }
 
-  public HaxeSdkData getSdkData() {
+  protected HaxeSdkData getSdkData() {
     return sdkData;
   }
 
@@ -27,7 +40,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public String suggestSdkName(String currentSdkName, String sdkHome) {
-    return "haXe SDK";
+    return HaxeBundle.message("haxe.sdk.name.suggest", getVersionString(sdkHome));
   }
 
   @Override

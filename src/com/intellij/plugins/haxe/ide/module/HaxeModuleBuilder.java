@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.module;
 
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
@@ -12,13 +12,20 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsBuilder, ModuleBuilderListener {
+  private Sdk haxeSdk;
+
+  public void setHaxeSdk(Sdk haxeSdk) {
+    this.haxeSdk = haxeSdk;
+  }
+
   @Override
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
     addListener(this);
-    super.setupRootModel(modifiableRootModel);
-  }
 
-  public void moduleCreated(@NotNull Module module) {
+    if (haxeSdk != null) {
+      modifiableRootModel.setSdk(haxeSdk);
+    }
+    super.setupRootModel(modifiableRootModel);
   }
 
   @Override
@@ -29,5 +36,9 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
   @Override
   public boolean isSuitableSdk(Sdk sdk) {
     return sdk.getSdkType() == HaxeSdkType.getInstance();
+  }
+
+  @Override
+  public void moduleCreated(@NotNull Module module) {
   }
 }

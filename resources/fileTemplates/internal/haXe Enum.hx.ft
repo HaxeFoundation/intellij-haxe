@@ -1,0 +1,3 @@
+package ${PACKAGE_NAME}
+enum ${NAME} {
+}

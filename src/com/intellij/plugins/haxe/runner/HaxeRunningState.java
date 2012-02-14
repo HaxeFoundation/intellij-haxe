@@ -13,33 +13,41 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeRunningState extends CommandLineState {
   private final Module module;
-  private final HaxeTarget haxeTarget;
 
-  public HaxeRunningState(ExecutionEnvironment env, HaxeTarget haxeTarget, Module module) {
+  public HaxeRunningState(ExecutionEnvironment env, Module module) {
     super(env);
-    this.haxeTarget = haxeTarget;
     this.module = module;
   }
 
   @NotNull
   @Override
   protected ProcessHandler startProcess() throws ExecutionException {
+    final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+    final HaxeTarget haxeTarget = settings.getTarget();
     final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+    assert sdk != null;
     final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
 
     GeneralCommandLine commandLine = new GeneralCommandLine();
 
     //todo: all targets
-    if (sdkData != null && sdkData.getNekoBinPath() != null && haxeTarget == HaxeTarget.NEKO) {
-      commandLine.setExePath(sdkData.getNekoBinPath());
+    if (haxeTarget != HaxeTarget.NEKO) {
+      throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", haxeTarget));
     }
-    commandLine.addParameter(haxeTarget.getTargetOutput(module));
+    if (sdkData == null || sdkData.getNekoBinPath() == null || sdkData.getNekoBinPath().isEmpty()) {
+      throw new ExecutionException(HaxeBundle.message("haxe.run.bad.neko.bin.path"));
+    }
+
+    commandLine.setExePath(sdkData.getNekoBinPath());
+    commandLine.addParameter(module.getName());
 
     final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
     if (outputDirectory != null) {

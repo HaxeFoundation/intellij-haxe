@@ -1,9 +1,14 @@
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.module;
 
+import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.intellij.ide.util.projectWizard.ProjectJdkForModuleStep;
+import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleTypeManager;
+import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeIcons;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 
 import javax.swing.*;
 
@@ -25,7 +30,7 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
 
   @Override
   public String getDescription() {
-    return HaxeBundle.message("haxe.module.type.name");
+    return HaxeBundle.message("haxe.module.type.description");
   }
 
   @Override
@@ -41,5 +46,12 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   @Override
   public HaxeModuleBuilder createModuleBuilder() {
     return new HaxeModuleBuilder();
+  }
+
+
+  public ModuleWizardStep[] createWizardSteps(final WizardContext wizardContext,
+                                              final HaxeModuleBuilder moduleBuilder,
+                                              final ModulesProvider modulesProvider) {
+    return new ModuleWizardStep[]{new ProjectJdkForModuleStep(wizardContext, HaxeSdkType.getInstance())};
   }
 }

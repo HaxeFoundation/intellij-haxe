@@ -22,6 +22,8 @@
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="testFramework-java" />
     <orderEntry type="module" module-name="java-psi-impl" />
+    <orderEntry type="module" module-name="idea-ui" />
+    <orderEntry type="module" module-name="java-impl" />
   </component>
 </module>
 
