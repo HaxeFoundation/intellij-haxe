@@ -151,7 +151,7 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel+
 private topLevel ::= importStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
-private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
+private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'private' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 
@@ -168,9 +168,9 @@ private topLevelDeclaration ::= classDeclaration
                               | typedefDeclaration
 
 typedefDeclaration ::= 'typedef' identifier typeParam? '=' functionType ';'? {pin=1 recoverUntil="typedef_recover"}
-private typedef_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
+private typedef_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'private' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
-classDeclaration ::= 'class' identifier typeParam? inheritList? '{' classBody '}' {pin=1}
+classDeclaration ::= 'private'? 'class' identifier typeParam? inheritList? '{' classBody '}' {pin=2}
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
 private class_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
