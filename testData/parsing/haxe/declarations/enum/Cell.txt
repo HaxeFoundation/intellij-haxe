@@ -1,65 +1,55 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_ENUMDECLARATION
-          PsiElement(enum)('enum')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Cell')
-          HAXE_TYPEPARAM
-            PsiElement(<)('<')
-            HAXE_TYPELIST
-              HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('T')
-            PsiElement(>)('>')
-          PsiWhiteSpace(' ')
-          PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_ENUMBODY
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('empty')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('cons')
-              HAXE_ENUMCONSTRUCTORPARAMETERS
-                PsiElement(()('(')
-                PsiWhiteSpace(' ')
-                HAXE_PARAMETERLIST
-                  HAXE_PARAMETER
-                    PsiElement(ID)('item')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
+  HAXE_ENUMDECLARATION
+    PsiElement(enum)('enum')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Cell')
+    HAXE_TYPEPARAM
+      PsiElement(<)('<')
+      HAXE_TYPELIST
+        HAXE_TYPE
+          HAXE_REFERENCEEXPRESSION
+            HAXE_IDENTIFIER
+              PsiElement(ID)('T')
+      PsiElement(>)('>')
+    PsiElement({)('{')
+    HAXE_ENUMBODY
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('empty')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('cons')
+        HAXE_ENUMCONSTRUCTORPARAMETERS
+          PsiElement(()('(')
+          HAXE_PARAMETERLIST
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('item')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('T')
+            PsiElement(,)(',')
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('next')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Cell')
+                  HAXE_TYPEPARAM
+                    PsiElement(<)('<')
+                    HAXE_TYPELIST
                       HAXE_TYPE
                         HAXE_REFERENCEEXPRESSION
                           HAXE_IDENTIFIER
                             PsiElement(ID)('T')
-                  PsiElement(,)(',')
-                  PsiWhiteSpace(' ')
-                  HAXE_PARAMETER
-                    PsiElement(ID)('next')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('Cell')
-                        HAXE_TYPEPARAM
-                          PsiElement(<)('<')
-                          HAXE_TYPELIST
-                            HAXE_TYPE
-                              HAXE_REFERENCEEXPRESSION
-                                HAXE_IDENTIFIER
-                                  PsiElement(ID)('T')
-                          PsiElement(>)('>')
-                PsiWhiteSpace(' ')
-                PsiElement())(')')
-              PsiElement(;)(';')
-          PsiWhiteSpace('\n')
-          PsiElement(})('}')
+                    PsiElement(>)('>')
+          PsiElement())(')')
+        PsiElement(;)(';')
+    PsiElement(})('}')

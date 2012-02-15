@@ -16,15 +16,39 @@ public class HaxeHaxeFileImpl extends HaxePsiCompositeElementImpl implements Hax
   }
 
   @Override
-  @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
+  @NotNull
+  public List<HaxeClassDeclaration> getClassDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeClassDeclaration.class);
   }
 
   @Override
   @NotNull
-  public HaxeTopLevelList getTopLevelList() {
-    return findNotNullChildByClass(HaxeTopLevelList.class);
+  public List<HaxeEnumDeclaration> getEnumDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeEnumDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeInterfaceDeclaration> getInterfaceDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeInterfaceDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxePp> getPpList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePp.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeStatement> getStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeStatement.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeTypedefDeclaration> getTypedefDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypedefDeclaration.class);
   }
 
 }

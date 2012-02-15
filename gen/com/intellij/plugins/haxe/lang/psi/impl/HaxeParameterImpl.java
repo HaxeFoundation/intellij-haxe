@@ -16,6 +16,12 @@ public class HaxeParameterImpl extends HaxePsiCompositeElementImpl implements Ha
   }
 
   @Override
+  @NotNull
+  public HaxeIdentifier getIdentifier() {
+    return findNotNullChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
   @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);

@@ -1,27 +1,20 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_CLASSDECLARATION
-          PsiElement(class)('class')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Constructor')
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Constructor')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+        HAXE_DECLARATIONATTRIBUTELIST
+          HAXE_DECLARATIONATTRIBUTE
+            HAXE_ACCESS
+              PsiElement(public)('public')
+        PsiElement(function)('function')
+        PsiElement(new)('new')
+        PsiElement(()('(')
+        PsiElement())(')')
+        HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_CLASSBODY
-            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-              HAXE_DECLARATIONATTRIBUTELIST
-                HAXE_DECLARATIONATTRIBUTE
-                  HAXE_ACCESS
-                    PsiElement(public)('public')
-              PsiWhiteSpace(' ')
-              PsiElement(function)('function')
-              PsiWhiteSpace(' ')
-              PsiElement(new)('new')
-              PsiElement(()('(')
-              PsiElement())(')')
-              HAXE_BLOCKSTATEMENT
-                PsiElement({)('{')
-                PsiElement(})('}')
-          PsiWhiteSpace('\n')
           PsiElement(})('}')
+    PsiElement(})('}')

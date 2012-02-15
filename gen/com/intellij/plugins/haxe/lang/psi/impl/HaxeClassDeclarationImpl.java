@@ -23,6 +23,12 @@ public class HaxeClassDeclarationImpl extends HaxePsiCompositeElementImpl implem
 
   @Override
   @Nullable
+  public HaxeIdentifier getIdentifier() {
+    return findChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeInheritList getInheritList() {
     return findChildByClass(HaxeInheritList.class);
   }

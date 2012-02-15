@@ -16,6 +16,12 @@ public class HaxeTypeConstraintImpl extends HaxePsiCompositeElementImpl implemen
   }
 
   @Override
+  @NotNull
+  public HaxeIdentifier getIdentifier() {
+    return findNotNullChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
   @Nullable
   public HaxeTypeList getTypeList() {
     return findChildByClass(HaxeTypeList.class);

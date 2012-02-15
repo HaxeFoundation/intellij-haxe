@@ -1,107 +1,94 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_CLASSDECLARATION
-          PsiElement(class)('class')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Test5')
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Test5')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+        PsiElement(function)('function')
+        HAXE_IDENTIFIER
+          PsiElement(ID)('foo')
+        PsiElement(()('(')
+        PsiElement())(')')
+        HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_CLASSBODY
-            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-              PsiElement(function)('function')
-              PsiWhiteSpace(' ')
-              PsiElement(ID)('foo')
-              PsiElement(()('(')
-              PsiElement())(')')
-              HAXE_BLOCKSTATEMENT
-                PsiElement({)('{')
-                PsiWhiteSpace('\n        ')
-                HAXE_STATEMENT
-                  HAXE_LOCALVARDECLARATION
-                    PsiElement(var)('var')
-                    PsiWhiteSpace(' ')
-                    HAXE_LOCALVARDECLARATIONPART
-                      PsiElement(ID)('bar1')
-                      PsiWhiteSpace(' ')
-                      HAXE_VARINIT
-                        PsiElement(=)('=')
-                        PsiWhiteSpace(' ')
-                        HAXE_MULTIPLICATIVEEXPRESSION
-                          HAXE_CALLEXPRESSION
-                            HAXE_REFERENCEEXPRESSION
-                              HAXE_REFERENCEEXPRESSION
-                                HAXE_IDENTIFIER
-                                  PsiElement(ID)('a')
-                              PsiElement(.)('.')
-                              HAXE_IDENTIFIER
-                                PsiElement(ID)('b')
-                            PsiElement(()('(')
-                            PsiElement())(')')
-                          PsiElement(*)('*')
-                          HAXE_CALLEXPRESSION
-                            HAXE_REFERENCEEXPRESSION
-                              HAXE_ARRAYACCESSEXPRESSION
-                                HAXE_REFERENCEEXPRESSION
-                                  HAXE_IDENTIFIER
-                                    PsiElement(ID)('c')
-                                PsiElement([)('[')
-                                PsiElement(])(']')
-                              PsiElement(.)('.')
-                              HAXE_IDENTIFIER
-                                PsiElement(ID)('d')
-                            PsiElement(()('(')
-                            PsiElement())(')')
-                    PsiElement(;)(';')
-                PsiWhiteSpace('\n        ')
-                HAXE_STATEMENT
-                  HAXE_CALLEXPRESSION
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_PARENTHESIZEDEXPRESSION
-                        PsiElement(()('(')
-                        HAXE_NEWEXPRESSION
-                          PsiElement(new)('new')
-                          PsiWhiteSpace(' ')
-                          HAXE_TYPE
-                            HAXE_REFERENCEEXPRESSION
-                              HAXE_IDENTIFIER
-                                PsiElement(ID)('Timer')
-                          PsiElement(()('(')
-                          HAXE_EXPRESSIONLIST
-                            HAXE_LITERALEXPRESSION
-                              PsiElement(LITINT)('100')
-                          PsiElement())(')')
-                        PsiElement())(')')
-                      PsiElement(.)('.')
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('start')
-                    PsiElement(()('(')
-                    PsiElement())(')')
-                  PsiElement(;)(';')
-                PsiWhiteSpace('\n        ')
-                HAXE_STATEMENT
-                  HAXE_CALLEXPRESSION
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_NEWEXPRESSION
-                        PsiElement(new)('new')
-                        PsiWhiteSpace(' ')
-                        HAXE_TYPE
+          HAXE_STATEMENT
+            HAXE_LOCALVARDECLARATION
+              PsiElement(var)('var')
+              HAXE_LOCALVARDECLARATIONPART
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('bar1')
+                HAXE_VARINIT
+                  PsiElement(=)('=')
+                  HAXE_MULTIPLICATIVEEXPRESSION
+                    HAXE_CALLEXPRESSION
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_REFERENCEEXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('a')
+                        PsiElement(.)('.')
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('b')
+                      PsiElement(()('(')
+                      PsiElement())(')')
+                    PsiElement(*)('*')
+                    HAXE_CALLEXPRESSION
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_ARRAYACCESSEXPRESSION
                           HAXE_REFERENCEEXPRESSION
                             HAXE_IDENTIFIER
-                              PsiElement(ID)('Timer')
-                        PsiElement(()('(')
-                        HAXE_EXPRESSIONLIST
-                          HAXE_LITERALEXPRESSION
-                            PsiElement(LITINT)('100')
-                        PsiElement())(')')
-                      PsiElement(.)('.')
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('start')
+                              PsiElement(ID)('c')
+                          PsiElement([)('[')
+                          PsiElement(])(']')
+                        PsiElement(.)('.')
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('d')
+                      PsiElement(()('(')
+                      PsiElement())(')')
+              PsiElement(;)(';')
+          HAXE_STATEMENT
+            HAXE_CALLEXPRESSION
+              HAXE_REFERENCEEXPRESSION
+                HAXE_PARENTHESIZEDEXPRESSION
+                  PsiElement(()('(')
+                  HAXE_NEWEXPRESSION
+                    PsiElement(new)('new')
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Timer')
                     PsiElement(()('(')
+                    HAXE_EXPRESSIONLIST
+                      HAXE_LITERALEXPRESSION
+                        PsiElement(LITINT)('100')
                     PsiElement())(')')
-                  PsiElement(;)(';')
-                PsiWhiteSpace('\n    ')
-                PsiElement(})('}')
-          PsiWhiteSpace('\n')
+                  PsiElement())(')')
+                PsiElement(.)('.')
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('start')
+              PsiElement(()('(')
+              PsiElement())(')')
+            PsiElement(;)(';')
+          HAXE_STATEMENT
+            HAXE_CALLEXPRESSION
+              HAXE_REFERENCEEXPRESSION
+                HAXE_NEWEXPRESSION
+                  PsiElement(new)('new')
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Timer')
+                  PsiElement(()('(')
+                  HAXE_EXPRESSIONLIST
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITINT)('100')
+                  PsiElement())(')')
+                PsiElement(.)('.')
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('start')
+              PsiElement(()('(')
+              PsiElement())(')')
+            PsiElement(;)(';')
           PsiElement(})('}')
+    PsiElement(})('}')

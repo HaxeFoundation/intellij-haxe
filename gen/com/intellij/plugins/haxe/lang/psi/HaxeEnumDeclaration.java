@@ -11,6 +11,9 @@ public interface HaxeEnumDeclaration extends HaxePsiCompositeElement {
   public HaxeEnumBody getEnumBody();
 
   @Nullable
+  public HaxeIdentifier getIdentifier();
+
+  @Nullable
   public HaxeTypeParam getTypeParam();
 
 }

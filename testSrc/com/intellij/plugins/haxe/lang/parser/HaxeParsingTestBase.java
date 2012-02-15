@@ -27,4 +27,9 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
   protected String getTestDataPath() {
     return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/");
   }
+
+  @Override
+  protected boolean skipSpaces() {
+    return true;
+  }
 }

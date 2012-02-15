@@ -1,12 +1,17 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
-import org.jetbrains.annotations.Nullable;
+import java.util.List;
+import org.jetbrains.annotations.*;
+import com.intellij.psi.PsiElement;
 
 public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxePsiCompositeElement {
 
   @Nullable
   public HaxeDeclarationAttributeList getDeclarationAttributeList();
+
+  @Nullable
+  public HaxeIdentifier getIdentifier();
 
   @Nullable
   public HaxeParameterList getParameterList();
@@ -16,4 +21,5 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxePsiC
 
   @Nullable
   public HaxeTypeTag getTypeTag();
+
 }

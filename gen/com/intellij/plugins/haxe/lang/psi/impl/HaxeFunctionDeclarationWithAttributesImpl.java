@@ -23,6 +23,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxePsiCompositeE
 
   @Override
   @Nullable
+  public HaxeIdentifier getIdentifier() {
+    return findChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);
   }

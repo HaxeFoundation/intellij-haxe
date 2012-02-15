@@ -149,8 +149,8 @@ shiftOperator ::= '>>' | '<<' | '>>>'
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
-topLevelList ::= topLevel+
-topLevel ::= importStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
+private topLevelList ::= topLevel+
+private topLevel ::= importStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
 private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
@@ -162,15 +162,15 @@ ppElse ::= '#else' {pin=1}
 ppEnd  ::= '#end' {pin=1}
 ppError ::= '#error' {pin=1}
 
-topLevelDeclaration ::= classDeclaration
-                      | interfaceDeclaration
-                      | enumDeclaration
-                      | typedefDeclaration
+private topLevelDeclaration ::= classDeclaration
+                              | interfaceDeclaration
+                              | enumDeclaration
+                              | typedefDeclaration
 
-typedefDeclaration ::= 'typedef' ID typeParam? '=' functionType ';'? {pin=1 recoverUntil="typedef_recover"}
+typedefDeclaration ::= 'typedef' identifier typeParam? '=' functionType ';'? {pin=1 recoverUntil="typedef_recover"}
 private typedef_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
-classDeclaration ::= 'class' ID typeParam? inheritList? '{' classBody '}' {pin=1}
+classDeclaration ::= 'class' identifier typeParam? inheritList? '{' classBody '}' {pin=1}
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
 private class_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
@@ -180,7 +180,7 @@ interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
 private interface_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
 
-enumDeclaration ::= 'enum' ID typeParam? '{' enumBody '}' {pin=1}
+enumDeclaration ::= 'enum' identifier typeParam? '{' enumBody '}' {pin=1}
 enumBody ::= enumValueDeclaration+
 
 /*
@@ -191,34 +191,34 @@ access ::= 'public' | 'private'
 declarationAttribute ::= 'static' | 'inline' | 'dynamic' | 'override' | access
 declarationAttributeList ::= declarationAttribute+
 
-enumValueDeclaration ::= pp | (ID enumConstructorParameters? ';')
+enumValueDeclaration ::= pp | (identifier enumConstructorParameters? ';')
 enumConstructorParameters ::= '(' parameterList? ')' {pin=1}
 
 varDeclarationList ::= varDeclaration+
 varDeclaration ::= declarationAttributeList? 'var' varDeclarationPartList ';' {pin=2}
 private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
-varDeclarationPart ::= ID propertyDeclaration? typeTag? varInit? {recoverUntil="var_declaration_part_recover"}
+varDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="var_declaration_part_recover"}
 private var_declaration_part_recover ::= !(';' | ',')
 
 localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1}
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
-localVarDeclarationPart ::= ID propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover"}
+localVarDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover"}
 private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
-propertyAccessor ::= ID | 'null' | 'default' | 'dynamic'
+propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 
-functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | ID typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3}
-functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | ID typeParam?) '(' parameterList? ')' typeTag? ';' {pin=3}
-localFunctionDeclaration ::= 'function' ID typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2}
+functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3}
+functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? ';' {pin=3}
+localFunctionDeclaration ::= 'function' identifier typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2}
 
 /*
  *
  */
 
 varInit ::= '=' expression {pin=1}
-parameter ::= '?'? ID typeTag? varInit?
+parameter ::= '?'? identifier typeTag? varInit?
 parameterList ::= parameter (',' parameter)* {recoverUntil="parameterListRecovery"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
@@ -230,9 +230,9 @@ functionType ::= typeOrAnonymous ('->' typeOrAnonymous)*
 typeTag ::= ':' functionType
 typeParam ::= '<' typeList '>'
 typeList ::= (typeConstraint | functionType) (',' typeList)*
-type ::= referenceExpression typeParam? {extends="functionType"}
+type ::= referenceExpression qualifiedReferenceExpression* typeParam? {extends="functionType"}
 private typeOrAnonymous ::= type | anonymousType
-typeConstraint ::= ID ':' '(' typeList ')' {pin=3}
+typeConstraint ::= identifier ':' '(' typeList ')' {pin=3}
 
 blockStatement ::= '{' statementList? '}'
 private statementList ::= (statement ';'?)+
@@ -367,13 +367,13 @@ typeExtends ::= '>' functionType ','
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField )*
 
-anonymousTypeField ::= ID ':' functionType
+anonymousTypeField ::= identifier ':' functionType
 
 objectLiteral ::= '{' objectLiteralElementList '}'
 
 private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)*
 
-objectLiteralElement ::= ID ':' expression
+objectLiteralElement ::= identifier ':' expression
 
 
 

@@ -1,121 +1,101 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_ENUMDECLARATION
-          PsiElement(enum)('enum')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Color3')
-          PsiWhiteSpace(' ')
-          PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_ENUMBODY
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('red')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('green')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('blue')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('grey')
-              HAXE_ENUMCONSTRUCTORPARAMETERS
-                PsiElement(()('(')
-                PsiWhiteSpace(' ')
-                HAXE_PARAMETERLIST
-                  HAXE_PARAMETER
-                    PsiElement(ID)('v')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('Int')
-                PsiWhiteSpace(' ')
-                PsiElement())(')')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('rgb')
-              HAXE_ENUMCONSTRUCTORPARAMETERS
-                PsiElement(()('(')
-                PsiWhiteSpace(' ')
-                HAXE_PARAMETERLIST
-                  HAXE_PARAMETER
-                    PsiElement(ID)('r')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('Int')
-                  PsiElement(,)(',')
-                  PsiWhiteSpace(' ')
-                  HAXE_PARAMETER
-                    PsiElement(ID)('g')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('Int')
-                  PsiElement(,)(',')
-                  PsiWhiteSpace(' ')
-                  HAXE_PARAMETER
-                    PsiElement(ID)('b')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('Int')
-                PsiWhiteSpace(' ')
-                PsiElement())(')')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('alpha')
-              HAXE_ENUMCONSTRUCTORPARAMETERS
-                PsiElement(()('(')
-                PsiWhiteSpace(' ')
-                HAXE_PARAMETERLIST
-                  HAXE_PARAMETER
-                    PsiElement(ID)('a')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('Int')
-                  PsiElement(,)(',')
-                  PsiWhiteSpace(' ')
-                  HAXE_PARAMETER
-                    PsiElement(ID)('col')
-                    PsiWhiteSpace(' ')
-                    HAXE_TYPETAG
-                      PsiElement(:)(':')
-                      PsiWhiteSpace(' ')
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('Color3')
-                PsiWhiteSpace(' ')
-                PsiElement())(')')
-              PsiElement(;)(';')
-          PsiWhiteSpace('\n')
-          PsiElement(})('}')
+  HAXE_ENUMDECLARATION
+    PsiElement(enum)('enum')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Color3')
+    PsiElement({)('{')
+    HAXE_ENUMBODY
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('red')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('green')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('blue')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('grey')
+        HAXE_ENUMCONSTRUCTORPARAMETERS
+          PsiElement(()('(')
+          HAXE_PARAMETERLIST
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('v')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+          PsiElement())(')')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('rgb')
+        HAXE_ENUMCONSTRUCTORPARAMETERS
+          PsiElement(()('(')
+          HAXE_PARAMETERLIST
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('r')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+            PsiElement(,)(',')
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('g')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+            PsiElement(,)(',')
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('b')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+          PsiElement())(')')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('alpha')
+        HAXE_ENUMCONSTRUCTORPARAMETERS
+          PsiElement(()('(')
+          HAXE_PARAMETERLIST
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('a')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+            PsiElement(,)(',')
+            HAXE_PARAMETER
+              HAXE_IDENTIFIER
+                PsiElement(ID)('col')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Color3')
+          PsiElement())(')')
+        PsiElement(;)(';')
+    PsiElement(})('}')

@@ -1,10 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
 
 public interface HaxeTokenTypes {
 
@@ -88,9 +88,6 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TERNARYEXPRESSION = new HaxeElementType("HAXE_TERNARYEXPRESSION");
   IElementType HAXE_THISEXPRESSION = new HaxeElementType("HAXE_THISEXPRESSION");
   IElementType HAXE_THROWSTATEMENT = new HaxeElementType("HAXE_THROWSTATEMENT");
-  IElementType HAXE_TOPLEVEL = new HaxeElementType("HAXE_TOPLEVEL");
-  IElementType HAXE_TOPLEVELDECLARATION = new HaxeElementType("HAXE_TOPLEVELDECLARATION");
-  IElementType HAXE_TOPLEVELLIST = new HaxeElementType("HAXE_TOPLEVELLIST");
   IElementType HAXE_TRYSTATEMENT = new HaxeElementType("HAXE_TRYSTATEMENT");
   IElementType HAXE_TYPE = new HaxeElementType("HAXE_TYPE");
   IElementType HAXE_TYPECONSTRAINT = new HaxeElementType("HAXE_TYPECONSTRAINT");
@@ -203,7 +200,7 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == HAXE_ACCESS) {
+       if (type == HAXE_ACCESS) {
         return new HaxeAccessImpl(node);
       }
       else if (type == HAXE_ADDITIVEEXPRESSION) {
@@ -442,15 +439,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_THROWSTATEMENT) {
         return new HaxeThrowStatementImpl(node);
-      }
-      else if (type == HAXE_TOPLEVEL) {
-        return new HaxeTopLevelImpl(node);
-      }
-      else if (type == HAXE_TOPLEVELDECLARATION) {
-        return new HaxeTopLevelDeclarationImpl(node);
-      }
-      else if (type == HAXE_TOPLEVELLIST) {
-        return new HaxeTopLevelListImpl(node);
       }
       else if (type == HAXE_TRYSTATEMENT) {
         return new HaxeTryStatementImpl(node);

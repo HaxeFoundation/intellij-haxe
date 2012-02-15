@@ -10,4 +10,7 @@ public interface HaxeAnonymousTypeField extends HaxePsiCompositeElement {
   @NotNull
   public HaxeFunctionType getFunctionType();
 
+  @NotNull
+  public HaxeIdentifier getIdentifier();
+
 }

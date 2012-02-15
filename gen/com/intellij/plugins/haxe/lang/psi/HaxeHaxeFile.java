@@ -7,10 +7,22 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeHaxeFile extends HaxePsiCompositeElement {
 
-  @Nullable
-  public HaxeStatement getStatement();
+  @NotNull
+  public List<HaxeClassDeclaration> getClassDeclarationList();
 
   @NotNull
-  public HaxeTopLevelList getTopLevelList();
+  public List<HaxeEnumDeclaration> getEnumDeclarationList();
+
+  @NotNull
+  public List<HaxeInterfaceDeclaration> getInterfaceDeclarationList();
+
+  @NotNull
+  public List<HaxePp> getPpList();
+
+  @NotNull
+  public List<HaxeStatement> getStatementList();
+
+  @NotNull
+  public List<HaxeTypedefDeclaration> getTypedefDeclarationList();
 
 }

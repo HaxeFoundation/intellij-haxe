@@ -1,63 +1,52 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_CLASSDECLARATION
-          PsiElement(class)('class')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Test')
-          PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_CLASSBODY
-            HAXE_VARDECLARATION
-              PsiElement(var)('var')
-              PsiWhiteSpace(' ')
-              HAXE_VARDECLARATIONPART
-                PsiElement(ID)('foo')
-                HAXE_TYPETAG
-                  PsiElement(:)(':')
-                  HAXE_TYPE
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Test')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      HAXE_VARDECLARATION
+        PsiElement(var)('var')
+        HAXE_VARDECLARATIONPART
+          HAXE_IDENTIFIER
+            PsiElement(ID)('foo')
+          HAXE_TYPETAG
+            PsiElement(:)(':')
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('Boolean')
+          HAXE_VARINIT
+            PsiElement(=)('=')
+            HAXE_LOGICOREXPRESSION
+              HAXE_PREFIXEXPRESSION
+                PsiElement(!)('!')
+                HAXE_ARRAYACCESSEXPRESSION
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('condition')
+                  PsiElement([)('[')
+                  HAXE_LITERALEXPRESSION
+                    PsiElement(LITINT)('0')
+                  PsiElement(])(']')
+              PsiElement(||)('||')
+              HAXE_PARENTHESIZEDEXPRESSION
+                PsiElement(()('(')
+                HAXE_COMPAREEXPRESSION
+                  HAXE_CALLEXPRESSION
                     HAXE_REFERENCEEXPRESSION
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('today')
+                      PsiElement(.)('.')
                       HAXE_IDENTIFIER
-                        PsiElement(ID)('Boolean')
-                PsiWhiteSpace(' ')
-                HAXE_VARINIT
-                  PsiElement(=)('=')
-                  PsiWhiteSpace(' ')
-                  HAXE_LOGICOREXPRESSION
-                    HAXE_PREFIXEXPRESSION
-                      PsiElement(!)('!')
-                      HAXE_ARRAYACCESSEXPRESSION
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('condition')
-                        PsiElement([)('[')
-                        HAXE_LITERALEXPRESSION
-                          PsiElement(LITINT)('0')
-                        PsiElement(])(']')
-                    PsiWhiteSpace(' ')
-                    PsiElement(||)('||')
-                    PsiWhiteSpace(' ')
-                    HAXE_PARENTHESIZEDEXPRESSION
-                      PsiElement(()('(')
-                      HAXE_COMPAREEXPRESSION
-                        HAXE_CALLEXPRESSION
-                          HAXE_REFERENCEEXPRESSION
-                            HAXE_REFERENCEEXPRESSION
-                              HAXE_IDENTIFIER
-                                PsiElement(ID)('today')
-                            PsiElement(.)('.')
-                            HAXE_IDENTIFIER
-                              PsiElement(ID)('getTime')
-                          PsiElement(()('(')
-                          PsiElement())(')')
-                        PsiWhiteSpace(' ')
-                        HAXE_COMPAREOPERATION
-                          PsiElement(>)('>')
-                        PsiWhiteSpace(' ')
-                        HAXE_LITERALEXPRESSION
-                          PsiElement(LITINT)('0')
-                      PsiElement())(')')
-              PsiElement(;)(';')
-          PsiWhiteSpace('\n')
-          PsiElement(})('}')
+                        PsiElement(ID)('getTime')
+                    PsiElement(()('(')
+                    PsiElement())(')')
+                  HAXE_COMPAREOPERATION
+                    PsiElement(>)('>')
+                  HAXE_LITERALEXPRESSION
+                    PsiElement(LITINT)('0')
+                PsiElement())(')')
+        PsiElement(;)(';')
+    PsiElement(})('}')

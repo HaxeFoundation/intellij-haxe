@@ -10,4 +10,7 @@ public interface HaxeObjectLiteralElement extends HaxePsiCompositeElement {
   @NotNull
   public HaxeExpression getExpression();
 
+  @NotNull
+  public HaxeIdentifier getIdentifier();
+
 }

@@ -7,6 +7,9 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeTypeConstraint extends HaxePsiCompositeElement {
 
+  @NotNull
+  public HaxeIdentifier getIdentifier();
+
   @Nullable
   public HaxeTypeList getTypeList();
 

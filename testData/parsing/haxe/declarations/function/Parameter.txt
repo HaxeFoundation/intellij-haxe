@@ -1,42 +1,37 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_CLASSDECLARATION
-          PsiElement(class)('class')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Parameter')
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Parameter')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+        HAXE_DECLARATIONATTRIBUTELIST
+          HAXE_DECLARATIONATTRIBUTE
+            HAXE_ACCESS
+              PsiElement(public)('public')
+        PsiElement(function)('function')
+        HAXE_IDENTIFIER
+          PsiElement(ID)('foo')
+        PsiElement(()('(')
+        HAXE_PARAMETERLIST
+          HAXE_PARAMETER
+            HAXE_IDENTIFIER
+              PsiElement(ID)('param1')
+            HAXE_TYPETAG
+              PsiElement(:)(':')
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('int')
+        PsiElement())(')')
+        HAXE_TYPETAG
+          PsiElement(:)(':')
+          HAXE_TYPE
+            HAXE_REFERENCEEXPRESSION
+              HAXE_IDENTIFIER
+                PsiElement(ID)('void')
+        HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_CLASSBODY
-            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-              HAXE_DECLARATIONATTRIBUTELIST
-                HAXE_DECLARATIONATTRIBUTE
-                  HAXE_ACCESS
-                    PsiElement(public)('public')
-              PsiWhiteSpace(' ')
-              PsiElement(function)('function')
-              PsiWhiteSpace(' ')
-              PsiElement(ID)('foo')
-              PsiElement(()('(')
-              HAXE_PARAMETERLIST
-                HAXE_PARAMETER
-                  PsiElement(ID)('param1')
-                  HAXE_TYPETAG
-                    PsiElement(:)(':')
-                    HAXE_TYPE
-                      HAXE_REFERENCEEXPRESSION
-                        HAXE_IDENTIFIER
-                          PsiElement(ID)('int')
-              PsiElement())(')')
-              HAXE_TYPETAG
-                PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('void')
-              HAXE_BLOCKSTATEMENT
-                PsiElement({)('{')
-                PsiElement(})('}')
-          PsiWhiteSpace('\n')
           PsiElement(})('}')
+    PsiElement(})('}')

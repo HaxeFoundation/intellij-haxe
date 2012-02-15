@@ -1,12 +1,9 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_CLASSDECLARATION
-          PsiElement(class)('class')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Simple')
-          PsiElement({)('{')
-          HAXE_CLASSBODY
-            <empty list>
-          PsiElement(})('}')
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Simple')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      <empty list>
+    PsiElement(})('}')

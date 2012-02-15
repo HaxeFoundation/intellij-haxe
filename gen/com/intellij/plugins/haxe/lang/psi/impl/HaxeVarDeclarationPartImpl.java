@@ -16,6 +16,12 @@ public class HaxeVarDeclarationPartImpl extends HaxePsiCompositeElementImpl impl
   }
 
   @Override
+  @NotNull
+  public HaxeIdentifier getIdentifier() {
+    return findNotNullChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
   @Nullable
   public HaxePropertyDeclaration getPropertyDeclaration() {
     return findChildByClass(HaxePropertyDeclaration.class);

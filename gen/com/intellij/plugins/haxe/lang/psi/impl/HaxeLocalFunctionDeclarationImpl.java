@@ -16,6 +16,12 @@ public class HaxeLocalFunctionDeclarationImpl extends HaxePsiCompositeElementImp
   }
 
   @Override
+  @NotNull
+  public HaxeIdentifier getIdentifier() {
+    return findNotNullChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
   @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);

@@ -21,4 +21,10 @@ public class HaxeAnonymousTypeFieldImpl extends HaxePsiCompositeElementImpl impl
     return findNotNullChildByClass(HaxeFunctionType.class);
   }
 
+  @Override
+  @NotNull
+  public HaxeIdentifier getIdentifier() {
+    return findNotNullChildByClass(HaxeIdentifier.class);
+  }
+
 }

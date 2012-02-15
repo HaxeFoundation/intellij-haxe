@@ -1,56 +1,42 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_CLASSDECLARATION
-          PsiElement(class)('class')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Test6')
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Test6')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+        PsiElement(function)('function')
+        HAXE_IDENTIFIER
+          PsiElement(ID)('foo')
+        PsiElement(()('(')
+        PsiElement())(')')
+        HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_CLASSBODY
-            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-              PsiElement(function)('function')
-              PsiWhiteSpace(' ')
-              PsiElement(ID)('foo')
-              PsiElement(()('(')
-              PsiElement())(')')
-              HAXE_BLOCKSTATEMENT
-                PsiElement({)('{')
-                PsiWhiteSpace('\n        ')
-                HAXE_STATEMENT
-                  HAXE_LOCALVARDECLARATION
-                    PsiElement(var)('var')
-                    PsiWhiteSpace(' ')
-                    HAXE_LOCALVARDECLARATIONPART
-                      PsiElement(ID)('o')
-                      PsiWhiteSpace(' ')
-                      HAXE_VARINIT
-                        PsiElement(=)('=')
-                        PsiWhiteSpace(' ')
-                        HAXE_OBJECTLITERAL
-                          PsiElement({)('{')
-                          PsiWhiteSpace(' ')
-                          HAXE_OBJECTLITERALELEMENT
-                            PsiElement(ID)('age')
-                            PsiWhiteSpace(' ')
-                            PsiElement(:)(':')
-                            PsiWhiteSpace(' ')
-                            HAXE_LITERALEXPRESSION
-                              PsiElement(LITINT)('26')
-                          PsiElement(,)(',')
-                          PsiWhiteSpace(' ')
-                          HAXE_OBJECTLITERALELEMENT
-                            PsiElement(ID)('name')
-                            PsiWhiteSpace(' ')
-                            PsiElement(:)(':')
-                            PsiWhiteSpace(' ')
-                            HAXE_LITERALEXPRESSION
-                              PsiElement(LITSTRING)('"Tom"')
-                          PsiWhiteSpace(' ')
-                          PsiElement(})('}')
-                    PsiElement(;)(';')
-                PsiWhiteSpace('\n    ')
-                PsiElement(})('}')
-          PsiWhiteSpace('\n')
+          HAXE_STATEMENT
+            HAXE_LOCALVARDECLARATION
+              PsiElement(var)('var')
+              HAXE_LOCALVARDECLARATIONPART
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('o')
+                HAXE_VARINIT
+                  PsiElement(=)('=')
+                  HAXE_OBJECTLITERAL
+                    PsiElement({)('{')
+                    HAXE_OBJECTLITERALELEMENT
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('age')
+                      PsiElement(:)(':')
+                      HAXE_LITERALEXPRESSION
+                        PsiElement(LITINT)('26')
+                    PsiElement(,)(',')
+                    HAXE_OBJECTLITERALELEMENT
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('name')
+                      PsiElement(:)(':')
+                      HAXE_LITERALEXPRESSION
+                        PsiElement(LITSTRING)('"Tom"')
+                    PsiElement(})('}')
+              PsiElement(;)(';')
           PsiElement(})('}')
+    PsiElement(})('}')

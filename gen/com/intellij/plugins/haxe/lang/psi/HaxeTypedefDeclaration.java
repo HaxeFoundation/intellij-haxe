@@ -11,6 +11,9 @@ public interface HaxeTypedefDeclaration extends HaxePsiCompositeElement {
   public HaxeFunctionType getFunctionType();
 
   @Nullable
+  public HaxeIdentifier getIdentifier();
+
+  @Nullable
   public HaxeTypeParam getTypeParam();
 
 }

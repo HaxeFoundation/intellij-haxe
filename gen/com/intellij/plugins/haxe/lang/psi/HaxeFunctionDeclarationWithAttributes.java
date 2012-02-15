@@ -11,6 +11,9 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxePsiCompositeE
   public HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @Nullable
+  public HaxeIdentifier getIdentifier();
+
+  @Nullable
   public HaxeParameterList getParameterList();
 
   @Nullable

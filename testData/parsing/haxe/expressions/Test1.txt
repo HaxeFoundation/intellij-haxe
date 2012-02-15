@@ -1,53 +1,41 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_CLASSDECLARATION
-          PsiElement(class)('class')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Test1')
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Test1')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+        PsiElement(function)('function')
+        HAXE_IDENTIFIER
+          PsiElement(ID)('foo')
+        PsiElement(()('(')
+        PsiElement())(')')
+        HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_CLASSBODY
-            HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-              PsiElement(function)('function')
-              PsiWhiteSpace(' ')
-              PsiElement(ID)('foo')
-              PsiElement(()('(')
-              PsiElement())(')')
-              HAXE_BLOCKSTATEMENT
-                PsiElement({)('{')
-                PsiWhiteSpace('\n        ')
-                HAXE_STATEMENT
-                  HAXE_LOCALVARDECLARATION
-                    PsiElement(var)('var')
-                    PsiWhiteSpace(' ')
-                    HAXE_LOCALVARDECLARATIONPART
-                      PsiElement(ID)('f')
-                      PsiWhiteSpace(' ')
-                      HAXE_VARINIT
-                        PsiElement(=)('=')
-                        PsiWhiteSpace(' ')
-                        HAXE_FUNCTIONLITERAL
-                          PsiElement(function)('function')
-                          PsiElement(()('(')
-                          PsiElement())(')')
-                          PsiWhiteSpace(' ')
-                          HAXE_BLOCKSTATEMENT
-                            PsiElement({)('{')
-                            PsiWhiteSpace(' ')
-                            PsiElement(})('}')
-                    PsiElement(;)(';')
-                PsiWhiteSpace('\n        ')
-                HAXE_STATEMENT
-                  HAXE_CALLEXPRESSION
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('f')
+          HAXE_STATEMENT
+            HAXE_LOCALVARDECLARATION
+              PsiElement(var)('var')
+              HAXE_LOCALVARDECLARATIONPART
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('f')
+                HAXE_VARINIT
+                  PsiElement(=)('=')
+                  HAXE_FUNCTIONLITERAL
+                    PsiElement(function)('function')
                     PsiElement(()('(')
                     PsiElement())(')')
-                  PsiElement(;)(';')
-                PsiWhiteSpace('\n    ')
-                PsiElement(})('}')
-          PsiWhiteSpace('\n')
+                    HAXE_BLOCKSTATEMENT
+                      PsiElement({)('{')
+                      PsiElement(})('}')
+              PsiElement(;)(';')
+          HAXE_STATEMENT
+            HAXE_CALLEXPRESSION
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('f')
+              PsiElement(()('(')
+              PsiElement())(')')
+            PsiElement(;)(';')
           PsiElement(})('}')
+    PsiElement(})('}')

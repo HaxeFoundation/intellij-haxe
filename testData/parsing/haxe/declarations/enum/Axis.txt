@@ -1,24 +1,20 @@
 haXe File
-  HAXE_TOPLEVELLIST
-    HAXE_TOPLEVEL
-      HAXE_TOPLEVELDECLARATION
-        HAXE_ENUMDECLARATION
-          PsiElement(enum)('enum')
-          PsiWhiteSpace(' ')
-          PsiElement(ID)('Axis')
-          PsiElement({)('{')
-          PsiWhiteSpace('\n    ')
-          HAXE_ENUMBODY
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('x')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('y')
-              PsiElement(;)(';')
-            PsiWhiteSpace('\n    ')
-            HAXE_ENUMVALUEDECLARATION
-              PsiElement(ID)('z')
-              PsiElement(;)(';')
-          PsiWhiteSpace('\n')
-          PsiElement(})('}')
+  HAXE_ENUMDECLARATION
+    PsiElement(enum)('enum')
+    HAXE_IDENTIFIER
+      PsiElement(ID)('Axis')
+    PsiElement({)('{')
+    HAXE_ENUMBODY
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('x')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('y')
+        PsiElement(;)(';')
+      HAXE_ENUMVALUEDECLARATION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('z')
+        PsiElement(;)(';')
+    PsiElement(})('}')

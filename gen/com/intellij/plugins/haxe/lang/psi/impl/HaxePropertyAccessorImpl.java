@@ -15,4 +15,10 @@ public class HaxePropertyAccessorImpl extends HaxePsiCompositeElementImpl implem
     super(node);
   }
 
+  @Override
+  @Nullable
+  public HaxeIdentifier getIdentifier() {
+    return findChildByClass(HaxeIdentifier.class);
+  }
+
 }

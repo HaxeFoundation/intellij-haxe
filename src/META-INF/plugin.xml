@@ -38,7 +38,7 @@
   <actions>
     <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"
             text="haXe Class" description="Create new haXe class/interface/enum">
-      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
     </action>
   </actions>
 </idea-plugin>

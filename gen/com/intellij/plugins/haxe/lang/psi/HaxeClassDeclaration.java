@@ -11,6 +11,9 @@ public interface HaxeClassDeclaration extends HaxePsiCompositeElement {
   public HaxeClassBody getClassBody();
 
   @Nullable
+  public HaxeIdentifier getIdentifier();
+
+  @Nullable
   public HaxeInheritList getInheritList();
 
   @Nullable

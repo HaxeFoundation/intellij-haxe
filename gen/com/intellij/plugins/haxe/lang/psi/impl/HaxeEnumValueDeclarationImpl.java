@@ -23,6 +23,12 @@ public class HaxeEnumValueDeclarationImpl extends HaxePsiCompositeElementImpl im
 
   @Override
   @Nullable
+  public HaxeIdentifier getIdentifier() {
+    return findChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
+  @Nullable
   public HaxePp getPp() {
     return findChildByClass(HaxePp.class);
   }
