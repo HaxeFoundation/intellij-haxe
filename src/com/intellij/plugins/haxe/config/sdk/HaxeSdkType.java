@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.util.xmlb.XmlSerializer;
@@ -9,8 +10,6 @@ import org.jdom.Element;
 import javax.swing.*;
 
 public class HaxeSdkType extends SdkType {
-  private HaxeSdkData sdkData;
-
   public HaxeSdkType() {
     super(HaxeBundle.message("haxe.sdk.name"));
   }
@@ -29,10 +28,6 @@ public class HaxeSdkType extends SdkType {
     return SdkType.findInstance(HaxeSdkType.class);
   }
 
-  protected HaxeSdkData getSdkData() {
-    return sdkData;
-  }
-
   @Override
   public String getPresentableName() {
     return HaxeBundle.message("haxe.sdk.name.presentable");
@@ -45,7 +40,8 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public String getVersionString(String sdkHome) {
-    return getSdkData() != null ? getSdkData().getVersion() : super.getVersionString(sdkHome);
+    final HaxeSdkData haxeSdkData = HaxeSdkUtil.testHaxeSdk(sdkHome);
+    return haxeSdkData != null ? haxeSdkData.getVersion() : super.getVersionString(sdkHome);
   }
 
   @Override
@@ -55,13 +51,30 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public boolean isValidSdkHome(String path) {
-    sdkData = HaxeSdkUtil.testHaxeSdk(path);
-    return sdkData != null;
+    return HaxeSdkUtil.testHaxeSdk(path) != null;
   }
 
   @Override
   public AdditionalDataConfigurable createAdditionalDataConfigurable(SdkModel sdkModel, SdkModificator sdkModificator) {
     return new NekoConfigurable();
+  }
+
+  @Override
+  public boolean isRootTypeApplicable(OrderRootType type) {
+    return false;
+  }
+
+  @Override
+  public void setupSdkPaths(Sdk sdk) {
+    final SdkModificator modificator = sdk.getSdkModificator();
+
+    SdkAdditionalData data = sdk.getSdkAdditionalData();
+    if (data == null) {
+      data = HaxeSdkUtil.testHaxeSdk(sdk.getHomePath());
+      modificator.setSdkAdditionalData(data);
+    }
+    modificator.commitChanges();
+    super.setupSdkPaths(sdk);
   }
 
   @Override

@@ -5,7 +5,6 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeIcons;
-import com.intellij.util.PlatformIcons;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -45,13 +44,13 @@ public class HaxeFileTemplateUtil {
   public static Icon getTemplateIcon(String name) {
     name = getTemplateShortName(name);
     if ("Class".equals(name)) {
-      return PlatformIcons.CLASS_ICON;
+      return HaxeIcons.CLASS_ICON;
     }
     else if ("Interface".equals(name)) {
-      return PlatformIcons.INTERFACE_ICON;
+      return HaxeIcons.INTERFACE_ICON;
     }
     else if ("Enum".equals(name)) {
-      return PlatformIcons.ENUM_ICON;
+      return HaxeIcons.ENUM_ICON;
     }
     return HaxeIcons.HAXE_ICON_16x16;
   }

@@ -37,7 +37,7 @@ public class HaxeConfigurationEditor {
     this.module = module;
     addActionListeners();
 
-    myMainClassLabel.setLabelFor(myMainClassFieldWithButton.getButton());
+    myMainClassLabel.setLabelFor(myMainClassFieldWithButton.getTextField());
     myParametersLabel.setLabelFor(myAppArguments.getTextField());
   }
 

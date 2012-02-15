@@ -22,7 +22,7 @@ public class NekoConfigurablePanel {
       public void actionPerformed(ActionEvent e) {
         final VirtualFile file = FileChooser.chooseFile(myPanel, new FileChooserDescriptor(true, false, false, false, false, false));
         if (file != null) {
-          setNekoBinPath(file.getPath());
+          setNekoBinPath(file.getPresentableName());
         }
       }
     });
