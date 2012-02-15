@@ -65,6 +65,12 @@ public class HaxeSdkUtil {
     if (result == null) {
       result = System.getenv("NEKO_INSTPATH");
     }
+    if (result == null && !SystemInfo.isWindows) {
+      final File candidate = new File("/usr/bin/neko");
+      if (candidate.exists()) {
+        return candidate.getAbsolutePath();
+      }
+    }
     if (result == null) {
       final String parentPath = new File(path).getParent();
       result = new File(parentPath, "neko").getAbsolutePath();
@@ -79,8 +85,10 @@ public class HaxeSdkUtil {
   }
 
   public static String getCompilerPathByFolderPath(String folderPath) {
-    final File compilerFile = new File(folderPath, getExecutableName(COMPILER_EXECUTABLE_NAME));
-    return compilerFile.getPath();
+    if (SystemInfo.isWindows) {
+      return new File(folderPath, getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
+    }
+    return new File(folderPath + File.separator + "bin", getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
   }
 
   private static String getExecutableName(String name) {
@@ -100,5 +108,13 @@ public class HaxeSdkUtil {
 
   private static boolean fileExists(@Nullable String filePath) {
     return filePath != null && new File(filePath).exists();
+  }
+
+  public static String suggestHomePath() {
+    String result = System.getenv("HAXEPATH");
+    if (result == null && !SystemInfo.isWindows) {
+      return "/usr/local/haxe";
+    }
+    return result;
   }
 }

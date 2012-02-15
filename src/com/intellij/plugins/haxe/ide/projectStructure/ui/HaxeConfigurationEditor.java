@@ -23,23 +23,29 @@ import java.awt.event.ActionListener;
  */
 public class HaxeConfigurationEditor {
   private JPanel myMainPanel;
-  private TextFieldWithBrowseButton applicationName;
+  private TextFieldWithBrowseButton myMainClassFieldWithButton;
   private RawCommandLineEditor myAppArguments;
   private JComboBox myTargetComboBox;
   private JCheckBox myExcludeFromCompilationCheckBox;
+  private JLabel myTargetLabel;
+  private JLabel myMainClassLabel;
+  private JLabel myParametersLabel;
 
   private final Module module;
 
   public HaxeConfigurationEditor(Module module) {
     this.module = module;
     addActionListeners();
+
+    myMainClassLabel.setLabelFor(myMainClassFieldWithButton.getButton());
+    myParametersLabel.setLabelFor(myAppArguments.getTextField());
   }
 
   private void addActionListeners() {
-    applicationName.getButton().addActionListener(new ActionListener() {
+    myMainClassFieldWithButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         TreeFileChooser fileChooser = TreeFileChooserFactory.getInstance(module.getProject()).createFileChooser(
-          HaxeBundle.message("choose.haxe.application"),
+          HaxeBundle.message("choose.haxe.main.class"),
           null,
           HaxeFileType.HAXE_FILE_TYPE,
           new TreeFileChooser.PsiFileFilter() {
@@ -63,24 +69,25 @@ public class HaxeConfigurationEditor {
   private void setChosenFile(VirtualFile virtualFile) {
     String qualifier = DirectoryIndex.getInstance(module.getProject()).getPackageName(virtualFile.getParent());
     qualifier = qualifier != null && qualifier.length() != 0 ? qualifier + '.' : "";
-    applicationName.setText(qualifier + CompilationUtil.getClassNameByPath(virtualFile.getPath()));
+    myMainClassFieldWithButton.setText(qualifier + CompilationUtil.getClassNameByPath(virtualFile.getPath()));
   }
 
   public boolean isModified() {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     assert settings != null;
-    boolean result = !applicationName.getText().equals(settings.getMainClass());
-    result = result || !myAppArguments.getText().equals(settings.getArguments());
-    final boolean isTargetsEquals = (myTargetComboBox.getSelectedItem() != null || settings.getTarget() != null) &&
-                                    myTargetComboBox.getSelectedItem() == settings.getTarget();
-    result = result || !isTargetsEquals;
-    return result;
+    final HaxeModuleSettings newSettings = new HaxeModuleSettings(
+      myMainClassFieldWithButton.getText(),
+      (HaxeTarget)myTargetComboBox.getSelectedItem(),
+      myAppArguments.getText(),
+      myExcludeFromCompilationCheckBox.isSelected()
+    );
+    return !settings.equals(newSettings);
   }
 
   public void reset() {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     assert settings != null;
-    applicationName.setText(settings.getMainClass());
+    myMainClassFieldWithButton.setText(settings.getMainClass());
     myAppArguments.setText(settings.getArguments());
     myTargetComboBox.setSelectedItem(settings.getTarget());
     myExcludeFromCompilationCheckBox.setSelected(settings.isExcludeFromCompilation());
@@ -89,7 +96,7 @@ public class HaxeConfigurationEditor {
   public void apply() {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     assert settings != null;
-    settings.setMainClass(applicationName.getText());
+    settings.setMainClass(myMainClassFieldWithButton.getText());
     settings.setArguments(myAppArguments.getText());
     settings.setTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());

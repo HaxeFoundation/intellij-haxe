@@ -8,7 +8,6 @@ import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -25,10 +24,16 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   private String mainClass = "";
   private String arguments = "";
   private boolean excludeFromCompilation = false;
-  @Nullable
-  private HaxeTarget target = null;
+  private HaxeTarget target = HaxeTarget.NEKO;
 
   public HaxeModuleSettings() {
+  }
+
+  public HaxeModuleSettings(String mainClass, HaxeTarget target, String arguments, boolean excludeFromCompilation) {
+    this.mainClass = mainClass;
+    this.arguments = arguments;
+    this.excludeFromCompilation = excludeFromCompilation;
+    this.target = target;
   }
 
   @Override
@@ -61,12 +66,11 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     this.arguments = arguments;
   }
 
-  @Nullable
   public HaxeTarget getTarget() {
     return target;
   }
 
-  public void setTarget(@Nullable HaxeTarget target) {
+  public void setTarget(HaxeTarget target) {
     this.target = target;
   }
 
@@ -76,5 +80,29 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
 
   public void setExcludeFromCompilation(boolean excludeFromCompilation) {
     this.excludeFromCompilation = excludeFromCompilation;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HaxeModuleSettings settings = (HaxeModuleSettings)o;
+
+    if (excludeFromCompilation != settings.excludeFromCompilation) return false;
+    if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
+    if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
+    if (target != settings.target) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = mainClass != null ? mainClass.hashCode() : 0;
+    result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
+    result = 31 * result + (excludeFromCompilation ? 1 : 0);
+    result = 31 * result + (target != null ? target.hashCode() : 0);
+    return result;
   }
 }

@@ -17,6 +17,7 @@ import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -131,6 +132,11 @@ public class HaxeCompiler implements SourceProcessingCompiler {
 
     if (sdk == null) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.sdk.for.module", module.getName()), null, -1, -1);
+      return false;
+    }
+
+    if (sdk.getSdkType() != HaxeSdkType.getInstance()) {
+      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("not.haxe.sdk.for.module", module.getName()), null, -1, -1);
       return false;
     }
 

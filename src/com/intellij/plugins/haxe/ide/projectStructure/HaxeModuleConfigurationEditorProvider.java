@@ -20,8 +20,8 @@ public class HaxeModuleConfigurationEditorProvider implements ModuleConfiguratio
     }
     return new ModuleConfigurationEditor[]{
       new CommonContentEntriesEditor(module.getName(), state, true, true),
-      new HaxeModuleConfigurationEditor(state),
-      new ClasspathEditor(state)
+      new ClasspathEditor(state),
+      new HaxeModuleConfigurationEditor(state)
     };
   }
 }

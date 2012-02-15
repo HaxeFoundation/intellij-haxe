@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.config;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.plugins.haxe.HaxeBundle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -9,19 +10,19 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public enum HaxeTarget {
-  NEKO("neko") {
+  NEKO("neko", HaxeBundle.message("haxe.target.neko")) {
     @NotNull
     @Override
     public String getTargetOutput(Module module) {
       return module.getName() + ".n";
     }
-  }, JAVA_SCRIPT("js") {
+  }, JAVA_SCRIPT("js", HaxeBundle.message("haxe.target.js")) {
     @NotNull
     @Override
     public String getTargetOutput(Module module) {
       return module.getName() + ".js";
     }
-  }, FLASH("swf") {
+  }, FLASH("swf", HaxeBundle.message("haxe.target.swf")) {
     @NotNull
     @Override
     public String getTargetOutput(Module module) {
@@ -30,9 +31,11 @@ public enum HaxeTarget {
   };
 
   private final String flag;
+  private final String description;
 
-  HaxeTarget(String flag) {
+  HaxeTarget(String flag, String description) {
     this.flag = flag;
+    this.description = description;
   }
 
   public String getCompilerFlag() {
@@ -46,5 +49,10 @@ public enum HaxeTarget {
     for (HaxeTarget target : HaxeTarget.values()) {
       comboBoxModel.insertElementAt(target, 0);
     }
+  }
+
+  @Override
+  public String toString() {
+    return description;
   }
 }

@@ -50,7 +50,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public String suggestHomePath() {
-    return System.getenv("HAXEPATH");
+    return HaxeSdkUtil.suggestHomePath();
   }
 
   @Override
