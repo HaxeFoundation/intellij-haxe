@@ -2,9 +2,20 @@
   <id>com.intellij.plugins.haxe</id>
   <name>haXe Support</name>
   <description>Support for haXe programming language</description>
+  <change-notes>
+      <![CDATA[
+      <p>0.1:</p>
+      <ul>
+        <li>haXe module and SDK</li>
+        <li>Parsing haXe files</li>
+        <li>Keyword completion</li>
+        <li>Compile haXe files and run in Neko VM</li>
+      </ul>
+      ]]>
+  </change-notes>
   <version>0.1</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
-  <idea-version since-build="112.1"/>
+  <idea-version since-build="114.98" until-build="115.1"/>
   <depends>com.intellij.modules.ultimate</depends>
 
   <application-components>
@@ -38,7 +49,7 @@
   <actions>
     <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"
             text="haXe Class" description="Create new haXe class/interface/enum">
-      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
+      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
     </action>
   </actions>
 </idea-plugin>

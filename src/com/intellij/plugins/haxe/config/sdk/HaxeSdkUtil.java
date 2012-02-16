@@ -85,10 +85,10 @@ public class HaxeSdkUtil {
   }
 
   public static String getCompilerPathByFolderPath(String folderPath) {
-    if (SystemInfo.isWindows) {
-      return new File(folderPath, getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
+    if (SystemInfo.isMac) {
+      return new File(folderPath + File.separator + "bin", getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
     }
-    return new File(folderPath + File.separator + "bin", getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
+    return new File(folderPath, getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
   }
 
   private static String getExecutableName(String name) {
@@ -110,10 +110,14 @@ public class HaxeSdkUtil {
     return filePath != null && new File(filePath).exists();
   }
 
+  @Nullable
   public static String suggestHomePath() {
     String result = System.getenv("HAXEPATH");
-    if (result == null && !SystemInfo.isWindows) {
+    if (result == null && SystemInfo.isMac) {
       return "/usr/local/haxe";
+    }
+    if (result == null && SystemInfo.isLinux) {
+      return "/usr/lib/haxe";
     }
     return result;
   }

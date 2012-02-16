@@ -6,11 +6,16 @@ import com.intellij.ide.actions.CreateTemplateInPackageAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -26,6 +31,12 @@ import java.util.Properties;
 public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
   public CreateClassAction() {
     super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), HaxeIcons.HAXE_ICON_16x16, true);
+  }
+
+  @Override
+  protected boolean isAvailable(DataContext dataContext) {
+    final Module module = LangDataKeys.MODULE.getData(dataContext);
+    return super.isAvailable(dataContext) && module != null && ModuleType.get(module) == HaxeModuleType.getInstance();
   }
 
   @Override
