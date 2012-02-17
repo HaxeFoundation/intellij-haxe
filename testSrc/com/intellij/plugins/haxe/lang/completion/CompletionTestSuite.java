@@ -10,6 +10,7 @@ public class CompletionTestSuite {
   public static Test suite() {
     final TestSuite testSuite = new TestSuite();
     testSuite.addTestSuite(KeywordCompletionTest.class);
+    testSuite.addTestSuite(ReferenceCompletionTest.class);
     return testSuite;
   }
 }

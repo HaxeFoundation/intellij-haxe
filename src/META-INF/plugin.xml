@@ -36,7 +36,8 @@
     <lang.syntaxHighlighterFactory key="haXe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
     <lang.braceMatcher language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
 
-    <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCompletionContributor"/>
+    <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
+    <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLocalReferenceCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 

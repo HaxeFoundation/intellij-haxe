@@ -30,7 +30,7 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeCompletionContributor extends CompletionContributor {
+public class HaxeKeywordCompletionContributor extends CompletionContributor {
   private static final Set<String> allowedKeywords = new THashSet<String>() {
     {
       for (IElementType elementType : HaxeTokenTypeSets.KEYWORDS.getTypes()) {
@@ -40,7 +40,7 @@ public class HaxeCompletionContributor extends CompletionContributor {
     }
   };
 
-  public HaxeCompletionContributor() {
+  public HaxeKeywordCompletionContributor() {
     extend(CompletionType.BASIC, psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)),
            new CompletionProvider<CompletionParameters>() {
              @Override
