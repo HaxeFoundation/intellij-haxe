@@ -9,7 +9,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -30,7 +29,7 @@ public abstract class HaxeCompletionTestBase extends JavaCodeInsightFixtureTestC
     final StringBuilder result = new StringBuilder();
     for (String folder : args) {
       if (result.length() > 0) {
-        result.append(File.separator);
+        result.append("/");
       }
       result.append(folder);
     }

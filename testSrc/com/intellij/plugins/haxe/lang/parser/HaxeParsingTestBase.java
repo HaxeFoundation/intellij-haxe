@@ -5,8 +5,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.testFramework.ParsingTestCase;
 
-import java.io.File;
-
 abstract public class HaxeParsingTestBase extends ParsingTestCase {
   public HaxeParsingTestBase(String... path) {
     super(getPath(path), HaxeFileType.DEFAULT_EXTENSION, new HaxeParserDefinition());
@@ -16,7 +14,7 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
     final StringBuilder result = new StringBuilder();
     for (String folder : args) {
       if (result.length() > 0) {
-        result.append(File.separator);
+        result.append("/");
       }
       result.append(folder);
     }
