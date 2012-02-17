@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeEnumDeclaration extends HaxePsiCompositeElement {
+public interface HaxeEnumDeclaration extends PsiIdentifiedElement {
 
   @Nullable
   public HaxeEnumBody getEnumBody();

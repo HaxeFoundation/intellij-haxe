@@ -19,35 +19,33 @@ haXe File
                 PsiElement(ID)('void')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          HAXE_STATEMENT
-            HAXE_LOCALVARDECLARATION
-              PsiElement(var)('var')
-              HAXE_LOCALVARDECLARATIONPART
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('i')
-                HAXE_VARINIT
-                  PsiElement(=)('=')
-                  HAXE_LITERALEXPRESSION
-                    PsiElement(LITINT)('0')
-              PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_IDENTIFIER
+                PsiElement(ID)('i')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITINT)('0')
+            PsiElement(;)(';')
           HAXE_DOWHILESTATEMENT
             PsiElement(do)('do')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')
-              HAXE_STATEMENT
-                HAXE_CALLEXPRESSION
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('trace')
-                  PsiElement(()('(')
-                  HAXE_EXPRESSIONLIST
-                    HAXE_PREFIXEXPRESSION
-                      PsiElement(++)('++')
-                      HAXE_REFERENCEEXPRESSION
-                        HAXE_IDENTIFIER
-                          PsiElement(ID)('i')
-                  PsiElement())(')')
-                PsiElement(;)(';')
+              HAXE_CALLEXPRESSION
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('trace')
+                PsiElement(()('(')
+                HAXE_EXPRESSIONLIST
+                  HAXE_PREFIXEXPRESSION
+                    PsiElement(++)('++')
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('i')
+                PsiElement())(')')
+              PsiElement(;)(';')
               PsiElement(})('}')
             PsiElement(while)('while')
             PsiElement(()('(')

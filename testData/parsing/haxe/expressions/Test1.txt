@@ -13,29 +13,27 @@ haXe File
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          HAXE_STATEMENT
-            HAXE_LOCALVARDECLARATION
-              PsiElement(var)('var')
-              HAXE_LOCALVARDECLARATIONPART
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('f')
-                HAXE_VARINIT
-                  PsiElement(=)('=')
-                  HAXE_FUNCTIONLITERAL
-                    PsiElement(function)('function')
-                    PsiElement(()('(')
-                    PsiElement())(')')
-                    HAXE_BLOCKSTATEMENT
-                      PsiElement({)('{')
-                      PsiElement(})('}')
-              PsiElement(;)(';')
-          HAXE_STATEMENT
-            HAXE_CALLEXPRESSION
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('f')
-              PsiElement(()('(')
-              PsiElement())(')')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_IDENTIFIER
+                PsiElement(ID)('f')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_FUNCTIONLITERAL
+                  PsiElement(function)('function')
+                  PsiElement(()('(')
+                  PsiElement())(')')
+                  HAXE_BLOCKSTATEMENT
+                    PsiElement({)('{')
+                    PsiElement(})('}')
             PsiElement(;)(';')
+          HAXE_CALLEXPRESSION
+            HAXE_REFERENCEEXPRESSION
+              HAXE_IDENTIFIER
+                PsiElement(ID)('f')
+            PsiElement(()('(')
+            PsiElement())(')')
+          PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

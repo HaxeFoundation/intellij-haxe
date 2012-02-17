@@ -17,8 +17,8 @@ public class HaxeInterfaceDeclarationImpl extends HaxePsiCompositeElementImpl im
 
   @Override
   @Nullable
-  public HaxeFunctionType getFunctionType() {
-    return findChildByClass(HaxeFunctionType.class);
+  public HaxeIdentifier getIdentifier() {
+    return findChildByClass(HaxeIdentifier.class);
   }
 
   @Override

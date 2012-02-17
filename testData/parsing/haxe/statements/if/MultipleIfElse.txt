@@ -31,10 +31,9 @@ haXe File
               HAXE_LITERALEXPRESSION
                 PsiElement(LITINT)('0')
             PsiElement())(')')
-            HAXE_STATEMENT
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('e1')
+            HAXE_REFERENCEEXPRESSION
+              HAXE_IDENTIFIER
+                PsiElement(ID)('e1')
             PsiElement(else)('else')
             HAXE_IFSTATEMENT
               PsiElement(if)('if')
@@ -55,10 +54,9 @@ haXe File
                       PsiElement(LITINT)('1')
                   PsiElement())(')')
               PsiElement())(')')
-              HAXE_STATEMENT
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('e2')
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('e2')
               PsiElement(else)('else')
               HAXE_IFSTATEMENT
                 PsiElement(if)('if')
@@ -82,15 +80,13 @@ haXe File
                     HAXE_LITERALEXPRESSION
                       PsiElement(LITINT)('90')
                 PsiElement())(')')
-                HAXE_STATEMENT
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('e3')
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('e3')
                 PsiElement(else)('else')
-                HAXE_STATEMENT
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('e4')
-                  PsiElement(;)(';')
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('e4')
+                PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

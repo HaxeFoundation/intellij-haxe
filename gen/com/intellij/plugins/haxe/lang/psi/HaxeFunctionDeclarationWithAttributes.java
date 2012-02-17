@@ -5,7 +5,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeFunctionDeclarationWithAttributes extends HaxePsiCompositeElement {
+public interface HaxeFunctionDeclarationWithAttributes extends PsiIdentifiedElement {
+
+  @Nullable
+  public HaxeBlockStatement getBlockStatement();
 
   @Nullable
   public HaxeDeclarationAttributeList getDeclarationAttributeList();
@@ -18,9 +21,6 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxePsiCompositeE
 
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
-
-  @Nullable
-  public HaxeStatement getStatement();
 
   @Nullable
   public HaxeTypeParam getTypeParam();

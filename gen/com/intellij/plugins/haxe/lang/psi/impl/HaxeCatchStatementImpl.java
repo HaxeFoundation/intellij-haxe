@@ -9,7 +9,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeCatchStatementImpl extends HaxeStatementImpl implements HaxeCatchStatement {
+public class HaxeCatchStatementImpl extends HaxePsiCompositeElementImpl implements HaxeCatchStatement {
 
   public HaxeCatchStatementImpl(ASTNode node) {
     super(node);
@@ -17,14 +17,14 @@ public class HaxeCatchStatementImpl extends HaxeStatementImpl implements HaxeCat
 
   @Override
   @Nullable
-  public HaxeParameter getParameter() {
-    return findChildByClass(HaxeParameter.class);
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
   }
 
   @Override
   @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
+  public HaxeParameter getParameter() {
+    return findChildByClass(HaxeParameter.class);
   }
 
 }

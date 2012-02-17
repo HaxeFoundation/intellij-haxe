@@ -23,6 +23,8 @@
   </application-components>
 
   <extensions defaultExtensionNs="com.intellij">
+    <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
+
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompiler"/>
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>

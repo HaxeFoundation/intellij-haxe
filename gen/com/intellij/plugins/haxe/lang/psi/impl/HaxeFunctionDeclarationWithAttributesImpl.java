@@ -17,6 +17,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxePsiCompositeE
 
   @Override
   @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeDeclarationAttributeList getDeclarationAttributeList() {
     return findChildByClass(HaxeDeclarationAttributeList.class);
   }
@@ -37,12 +43,6 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxePsiCompositeE
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
     return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
   }
 
   @Override

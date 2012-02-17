@@ -28,14 +28,13 @@ haXe File
                   HAXE_LITERALEXPRESSION
                     PsiElement(LITINT)('0')
                 PsiElement(:)(':')
-              HAXE_STATEMENT
-                HAXE_CALLEXPRESSION
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('e1')
-                  PsiElement(()('(')
-                  PsiElement())(')')
-                PsiElement(;)(';')
+              HAXE_CALLEXPRESSION
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('e1')
+                PsiElement(()('(')
+                PsiElement())(')')
+              PsiElement(;)(';')
               HAXE_CASESTATEMENT
                 PsiElement(case)('case')
                 HAXE_EXPRESSIONLIST
@@ -61,14 +60,13 @@ haXe File
                   HAXE_LITERALEXPRESSION
                     PsiElement(LITINT)('90')
                 PsiElement(:)(':')
-              HAXE_STATEMENT
-                HAXE_CALLEXPRESSION
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('e3')
-                  PsiElement(()('(')
-                  PsiElement())(')')
-                PsiElement(;)(';')
+              HAXE_CALLEXPRESSION
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('e3')
+                PsiElement(()('(')
+                PsiElement())(')')
+              PsiElement(;)(';')
               HAXE_DEFAULTSTATEMENT
                 PsiElement(default)('default')
                 PsiElement(:)(':')

@@ -60,13 +60,14 @@ public class HaxeCompletionContributor extends CompletionContributor {
     final TextRange posRange = position.getTextRange();
     final HaxeFile posFile = (HaxeFile)position.getContainingFile();
 
-    final HaxeStatement statement = PsiTreeUtil.getParentOfType(position, HaxeStatement.class);
+    final List<PsiElement> pathToBlockStatement = UsefulPsiTreeUtil.getPathToParentOfType(position, HaxeBlockStatement.class);
+
     final HaxePsiCompositeElement classInterfaceEnum =
       PsiTreeUtil.getParentOfType(position, HaxeClassBody.class, HaxeInterfaceBody.class, HaxeEnumBody.class);
 
     final String text;
     final int offset;
-    if (statement != null) {
+    if (pathToBlockStatement != null) {
       final Pair<String, Integer> pair = HaxeCodeGenerateUtil.wrapStatement(posRange.substring(posFile.getText()));
       text = pair.getFirst();
       offset = pair.getSecond();
@@ -82,8 +83,9 @@ public class HaxeCompletionContributor extends CompletionContributor {
     }
 
     final List<String> result = new ArrayList<String>();
-    if (statement != null) {
-      result.addAll(suggestBySibling(UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(statement)));
+    if (pathToBlockStatement != null && pathToBlockStatement.size() > 1) {
+      final PsiElement blockChild = pathToBlockStatement.get(pathToBlockStatement.size() - 2);
+      result.addAll(suggestBySibling(UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(blockChild)));
     }
 
     PsiFile file = PsiFileFactory.getInstance(posFile.getProject()).createFileFromText("a.hx", HaxeLanguage.INSTANCE, text, true, false);

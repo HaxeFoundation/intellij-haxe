@@ -135,7 +135,6 @@
     extends(".*(Expression|Literal)")="expression"
     pin(".*Expression")=1
 
-    extends(".*Statement")="statement"
     pin(".*Statement")=1
 }
 
@@ -170,17 +169,17 @@ private topLevelDeclaration ::= classDeclaration
 typedefDeclaration ::= 'typedef' identifier typeParam? '=' functionType ';'? {pin=1 recoverUntil="typedef_recover"}
 private typedef_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'private' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
-classDeclaration ::= 'private'? 'class' identifier typeParam? inheritList? '{' classBody '}' {pin=2}
+classDeclaration ::= 'private'? 'class' identifier typeParam? inheritList? '{' classBody '}' {pin=2 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
 private class_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
 
-interfaceDeclaration ::= 'interface' type inheritList? '{' interfaceBody '}' {pin=1}
+interfaceDeclaration ::= 'interface' identifier inheritList? '{' interfaceBody '}' {pin=1 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
 private interface_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
 
-enumDeclaration ::= 'enum' identifier typeParam? '{' enumBody '}' {pin=1}
+enumDeclaration ::= 'enum' identifier typeParam? '{' enumBody '}' {pin=1 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 enumBody ::= enumValueDeclaration+
 
 /*
@@ -197,28 +196,28 @@ enumConstructorParameters ::= '(' parameterList? ')' {pin=1}
 varDeclarationList ::= varDeclaration+
 varDeclaration ::= declarationAttributeList? 'var' varDeclarationPartList ';' {pin=2}
 private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
-varDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="var_declaration_part_recover"}
+varDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 private var_declaration_part_recover ::= !(';' | ',')
 
-localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1}
+localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1 }
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
-localVarDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover"}
+localVarDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 
-functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3}
+functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? ';' {pin=3}
-localFunctionDeclaration ::= 'function' identifier typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2}
+localFunctionDeclaration ::= 'function' identifier typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 
 /*
  *
  */
 
 varInit ::= '=' expression {pin=1}
-parameter ::= '?'? identifier typeTag? varInit?
+parameter ::= '?'? identifier typeTag? varInit? {implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
 parameterList ::= parameter (',' parameter)* {recoverUntil="parameterListRecovery"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
@@ -237,8 +236,12 @@ typeConstraint ::= identifier ':' '(' typeList ')' {pin=3}
 blockStatement ::= '{' statementList? '}'
 private statementList ::= (statement ';'?)+
 
-statement ::= blockStatement | notBlockStatement {recoverUntil="statement_recovery"}
-private statement_recovery ::= !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | ';' | '}' | ')' | 'else')
+private statement ::= blockStatement | notBlockStatement {recoverUntil="statement_recovery"}
+private statement_recovery ::= !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '('
+  | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for'
+  | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped'
+  | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
+  | ';' | '}' | ')' | 'else')
 
 private notBlockStatement ::= ('untyped' statement)
                             | localVarDeclaration
@@ -286,7 +289,7 @@ catchStatement ::= 'catch' '(' parameter ')' blockStatement
 
 expressionList ::= expression (',' expression)*
 
-expression ::= assignExpressionWrapper
+ expression ::= assignExpressionWrapper
 
 private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression*
 left assignExpression ::= assignOperation iteratorExpressionWrapper {pin=1 extends="expression"}

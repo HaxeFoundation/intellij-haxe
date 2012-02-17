@@ -13,17 +13,16 @@ haXe File
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          HAXE_STATEMENT
-            HAXE_LOCALVARDECLARATION
-              PsiElement(var)('var')
-              HAXE_LOCALVARDECLARATIONPART
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('i')
-                HAXE_VARINIT
-                  PsiElement(=)('=')
-                  HAXE_LITERALEXPRESSION
-                    PsiElement(LITINT)('0')
-              PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_IDENTIFIER
+                PsiElement(ID)('i')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITINT)('0')
+            PsiElement(;)(';')
           HAXE_WHILESTATEMENT
             PsiElement(while)('while')
             PsiElement(()('(')
@@ -38,13 +37,12 @@ haXe File
             PsiElement())(')')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')
-              HAXE_STATEMENT
-                HAXE_PREFIXEXPRESSION
-                  PsiElement(++)('++')
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('i')
-                PsiElement(;)(';')
+              HAXE_PREFIXEXPRESSION
+                PsiElement(++)('++')
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('i')
+              PsiElement(;)(';')
               HAXE_IFSTATEMENT
                 PsiElement(if)('if')
                 PsiElement(()('(')
@@ -60,13 +58,12 @@ haXe File
                 HAXE_CONTINUESTATEMENT
                   PsiElement(continue)('continue')
                   PsiElement(;)(';')
-              HAXE_STATEMENT
-                HAXE_PREFIXEXPRESSION
-                  PsiElement(++)('++')
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('i')
-                PsiElement(;)(';')
+              HAXE_PREFIXEXPRESSION
+                PsiElement(++)('++')
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('i')
+              PsiElement(;)(';')
               PsiElement(})('}')
           PsiElement(})('}')
     PsiElement(})('}')

@@ -17,6 +17,12 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
 
   @Override
   @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);
   }
@@ -25,12 +31,6 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
     return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
   }
 
   @Override

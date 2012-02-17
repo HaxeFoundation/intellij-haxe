@@ -35,18 +35,17 @@ haXe File
             PsiElement())(')')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')
-              HAXE_STATEMENT
-                HAXE_CALLEXPRESSION
+              HAXE_CALLEXPRESSION
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('trace')
+                PsiElement(()('(')
+                HAXE_EXPRESSIONLIST
                   HAXE_REFERENCEEXPRESSION
                     HAXE_IDENTIFIER
-                      PsiElement(ID)('trace')
-                  PsiElement(()('(')
-                  HAXE_EXPRESSIONLIST
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('i')
-                  PsiElement())(')')
-                PsiElement(;)(';')
+                      PsiElement(ID)('i')
+                PsiElement())(')')
+              PsiElement(;)(';')
               PsiElement(})('}')
           PsiElement(})('}')
     PsiElement(})('}')

@@ -16,6 +16,12 @@ public class HaxeLocalFunctionDeclarationImpl extends HaxePsiCompositeElementImp
   }
 
   @Override
+  @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
   @NotNull
   public HaxeIdentifier getIdentifier() {
     return findNotNullChildByClass(HaxeIdentifier.class);
@@ -31,12 +37,6 @@ public class HaxeLocalFunctionDeclarationImpl extends HaxePsiCompositeElementImp
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
     return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
   }
 
   @Override

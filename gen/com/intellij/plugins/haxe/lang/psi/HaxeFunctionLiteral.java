@@ -8,13 +8,13 @@ import com.intellij.psi.PsiElement;
 public interface HaxeFunctionLiteral extends HaxeExpression {
 
   @Nullable
+  public HaxeBlockStatement getBlockStatement();
+
+  @Nullable
   public HaxeParameterList getParameterList();
 
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
-
-  @Nullable
-  public HaxeStatement getStatement();
 
   @Nullable
   public HaxeTypeTag getTypeTag();

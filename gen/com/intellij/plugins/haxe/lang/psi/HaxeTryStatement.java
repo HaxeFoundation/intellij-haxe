@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeTryStatement extends HaxeStatement {
+public interface HaxeTryStatement extends HaxePsiCompositeElement {
+
+  @Nullable
+  public HaxeBlockStatement getBlockStatement();
 
   @NotNull
-  public List<HaxeStatement> getStatementList();
+  public List<HaxeCatchStatement> getCatchStatementList();
 
 }

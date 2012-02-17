@@ -28,32 +28,30 @@ haXe File
             PsiElement())(')')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')
-              HAXE_STATEMENT
-                HAXE_CALLEXPRESSION
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('trace')
-                  PsiElement(()('(')
-                  HAXE_EXPRESSIONLIST
-                    HAXE_LITERALEXPRESSION
-                      PsiElement(LITSTRING)('":)"')
-                  PsiElement())(')')
-                PsiElement(;)(';')
+              HAXE_CALLEXPRESSION
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('trace')
+                PsiElement(()('(')
+                HAXE_EXPRESSIONLIST
+                  HAXE_LITERALEXPRESSION
+                    PsiElement(LITSTRING)('":)"')
+                PsiElement())(')')
+              PsiElement(;)(';')
               PsiElement(})('}')
             PsiElement(else)('else')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')
-              HAXE_STATEMENT
-                HAXE_CALLEXPRESSION
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('trace')
-                  PsiElement(()('(')
-                  HAXE_EXPRESSIONLIST
-                    HAXE_LITERALEXPRESSION
-                      PsiElement(LITSTRING)('"wtf"')
-                  PsiElement())(')')
-                PsiElement(;)(';')
+              HAXE_CALLEXPRESSION
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('trace')
+                PsiElement(()('(')
+                HAXE_EXPRESSIONLIST
+                  HAXE_LITERALEXPRESSION
+                    PsiElement(LITSTRING)('"wtf"')
+                PsiElement())(')')
+              PsiElement(;)(';')
               PsiElement(})('}')
           PsiElement(})('}')
     PsiElement(})('}')

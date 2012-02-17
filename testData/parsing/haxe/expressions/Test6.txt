@@ -13,30 +13,29 @@ haXe File
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          HAXE_STATEMENT
-            HAXE_LOCALVARDECLARATION
-              PsiElement(var)('var')
-              HAXE_LOCALVARDECLARATIONPART
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('o')
-                HAXE_VARINIT
-                  PsiElement(=)('=')
-                  HAXE_OBJECTLITERAL
-                    PsiElement({)('{')
-                    HAXE_OBJECTLITERALELEMENT
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('age')
-                      PsiElement(:)(':')
-                      HAXE_LITERALEXPRESSION
-                        PsiElement(LITINT)('26')
-                    PsiElement(,)(',')
-                    HAXE_OBJECTLITERALELEMENT
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('name')
-                      PsiElement(:)(':')
-                      HAXE_LITERALEXPRESSION
-                        PsiElement(LITSTRING)('"Tom"')
-                    PsiElement(})('}')
-              PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_IDENTIFIER
+                PsiElement(ID)('o')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_OBJECTLITERAL
+                  PsiElement({)('{')
+                  HAXE_OBJECTLITERALELEMENT
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('age')
+                    PsiElement(:)(':')
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITINT)('26')
+                  PsiElement(,)(',')
+                  HAXE_OBJECTLITERALELEMENT
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('name')
+                    PsiElement(:)(':')
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITSTRING)('"Tom"')
+                  PsiElement(})('}')
+            PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

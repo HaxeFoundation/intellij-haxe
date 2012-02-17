@@ -17,14 +17,13 @@ haXe File
             PsiElement(try)('try')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')
-              HAXE_STATEMENT
-                HAXE_CALLEXPRESSION
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('bar')
-                  PsiElement(()('(')
-                  PsiElement())(')')
-                PsiElement(;)(';')
+              HAXE_CALLEXPRESSION
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('bar')
+                PsiElement(()('(')
+                PsiElement())(')')
+              PsiElement(;)(';')
               PsiElement(})('}')
             HAXE_CATCHSTATEMENT
               PsiElement(catch)('catch')
@@ -41,17 +40,16 @@ haXe File
               PsiElement())(')')
               HAXE_BLOCKSTATEMENT
                 PsiElement({)('{')
-                HAXE_STATEMENT
-                  HAXE_CALLEXPRESSION
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('trace')
-                    PsiElement(()('(')
-                    HAXE_EXPRESSIONLIST
-                      HAXE_LITERALEXPRESSION
-                        PsiElement(LITSTRING)('"String"')
-                    PsiElement())(')')
-                  PsiElement(;)(';')
+                HAXE_CALLEXPRESSION
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('trace')
+                  PsiElement(()('(')
+                  HAXE_EXPRESSIONLIST
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITSTRING)('"String"')
+                  PsiElement())(')')
+                PsiElement(;)(';')
                 PsiElement(})('}')
             HAXE_CATCHSTATEMENT
               PsiElement(catch)('catch')
@@ -68,17 +66,16 @@ haXe File
               PsiElement())(')')
               HAXE_BLOCKSTATEMENT
                 PsiElement({)('{')
-                HAXE_STATEMENT
-                  HAXE_CALLEXPRESSION
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('trace')
-                    PsiElement(()('(')
-                    HAXE_EXPRESSIONLIST
-                      HAXE_LITERALEXPRESSION
-                        PsiElement(LITSTRING)('"Error"')
-                    PsiElement())(')')
-                  PsiElement(;)(';')
+                HAXE_CALLEXPRESSION
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('trace')
+                  PsiElement(()('(')
+                  HAXE_EXPRESSIONLIST
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITSTRING)('"Error"')
+                  PsiElement())(')')
+                PsiElement(;)(';')
                 PsiElement(})('}')
             HAXE_CATCHSTATEMENT
               PsiElement(catch)('catch')
@@ -95,17 +92,16 @@ haXe File
               PsiElement())(')')
               HAXE_BLOCKSTATEMENT
                 PsiElement({)('{')
-                HAXE_STATEMENT
-                  HAXE_CALLEXPRESSION
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('trace')
-                    PsiElement(()('(')
-                    HAXE_EXPRESSIONLIST
-                      HAXE_LITERALEXPRESSION
-                        PsiElement(LITSTRING)('"Dynamic"')
-                    PsiElement())(')')
-                  PsiElement(;)(';')
+                HAXE_CALLEXPRESSION
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('trace')
+                  PsiElement(()('(')
+                  HAXE_EXPRESSIONLIST
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITSTRING)('"Dynamic"')
+                  PsiElement())(')')
+                PsiElement(;)(';')
                 PsiElement(})('}')
           PsiElement(})('}')
     PsiElement(})('}')

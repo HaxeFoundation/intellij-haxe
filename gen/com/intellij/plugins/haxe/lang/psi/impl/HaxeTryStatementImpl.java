@@ -9,16 +9,22 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTryStatementImpl extends HaxeStatementImpl implements HaxeTryStatement {
+public class HaxeTryStatementImpl extends HaxePsiCompositeElementImpl implements HaxeTryStatement {
 
   public HaxeTryStatementImpl(ASTNode node) {
     super(node);
   }
 
   @Override
+  @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
   @NotNull
-  public List<HaxeStatement> getStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeStatement.class);
+  public List<HaxeCatchStatement> getCatchStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCatchStatement.class);
   }
 
 }

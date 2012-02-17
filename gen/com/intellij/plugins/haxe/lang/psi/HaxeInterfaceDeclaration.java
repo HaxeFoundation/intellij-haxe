@@ -5,10 +5,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeInterfaceDeclaration extends HaxePsiCompositeElement {
+public interface HaxeInterfaceDeclaration extends PsiIdentifiedElement {
 
   @Nullable
-  public HaxeFunctionType getFunctionType();
+  public HaxeIdentifier getIdentifier();
 
   @Nullable
   public HaxeInheritList getInheritList();

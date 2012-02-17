@@ -5,12 +5,57 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeWhileStatement extends HaxeStatement {
+public interface HaxeWhileStatement extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeExpression getExpression();
+  public HaxeBlockStatement getBlockStatement();
 
   @Nullable
-  public HaxeStatement getStatement();
+  public HaxeBreakStatement getBreakStatement();
+
+  @Nullable
+  public HaxeCaseStatement getCaseStatement();
+
+  @Nullable
+  public HaxeContinueStatement getContinueStatement();
+
+  @Nullable
+  public HaxeDefaultStatement getDefaultStatement();
+
+  @Nullable
+  public HaxeDoWhileStatement getDoWhileStatement();
+
+  @NotNull
+  public List<HaxeExpression> getExpressionList();
+
+  @Nullable
+  public HaxeForStatement getForStatement();
+
+  @Nullable
+  public HaxeIfStatement getIfStatement();
+
+  @Nullable
+  public HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();
+
+  @Nullable
+  public HaxeLocalVarDeclaration getLocalVarDeclaration();
+
+  @Nullable
+  public HaxePp getPp();
+
+  @Nullable
+  public HaxeReturnStatement getReturnStatement();
+
+  @Nullable
+  public HaxeSwitchStatement getSwitchStatement();
+
+  @Nullable
+  public HaxeThrowStatement getThrowStatement();
+
+  @Nullable
+  public HaxeTryStatement getTryStatement();
+
+  @Nullable
+  public HaxeWhileStatement getWhileStatement();
 
 }

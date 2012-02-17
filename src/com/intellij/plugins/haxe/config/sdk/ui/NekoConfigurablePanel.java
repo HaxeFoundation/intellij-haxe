@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 public class NekoConfigurablePanel {
   private TextFieldWithBrowseButton myNekoTextField;
   private JPanel myPanel;
+  private JLabel myNekoLabel;
 
   public NekoConfigurablePanel() {
     myNekoTextField.getButton().addActionListener(new ActionListener() {
@@ -26,6 +27,7 @@ public class NekoConfigurablePanel {
         }
       }
     });
+    myNekoLabel.setLabelFor(myNekoTextField.getTextField());
   }
 
   public JComponent getPanel() {
