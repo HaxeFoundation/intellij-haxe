@@ -3,7 +3,7 @@
   <name>haXe Support</name>
   <description>Support for haXe programming language</description>
   <change-notes>
-      <![CDATA[
+    <![CDATA[
       <p>0.1:</p>
       <ul>
         <li>haXe module and SDK</li>
@@ -35,6 +35,10 @@
     <lang.parserDefinition language="haXe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.syntaxHighlighterFactory key="haXe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
     <lang.braceMatcher language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
+
+    <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
+
+    <quoteHandler fileType="haXe" className="com.intellij.plugins.haxe.ide.HaxeQuoteHandler"/>
 
     <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
     <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLocalReferenceCompletionContributor"/>

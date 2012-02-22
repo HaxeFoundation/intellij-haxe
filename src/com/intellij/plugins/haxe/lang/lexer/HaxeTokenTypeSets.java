@@ -137,11 +137,7 @@ public interface HaxeTokenTypeSets {
   );
 
   TokenSet OPERATORS = TokenSet.create(
-    OSEMI,
     OTRIPLE_DOT,
-    ODOT,
-    OCOLON,
-    OCOMMA,
     OEQ,
     OASSIGN,
     ONOT_EQ,
@@ -173,8 +169,7 @@ public interface HaxeTokenTypeSets {
     OSHIFT_RIGHT_ASSIGN,
     OSHIFT_RIGHT,
     OGREATER_OR_EQUAL,
-    OGREATER,
-    ONEW
+    OGREATER
   );
 }
 

@@ -50,7 +50,9 @@ public class HaxeLocalReferenceCompletionContributor extends CompletionContribut
     public boolean execute(PsiElement element, ResolveState state) {
       if (element instanceof PsiIdentifiedElement) {
         final PsiIdentifiedElement psiIdentifiedElement = (PsiIdentifiedElement)element;
-        result.add(psiIdentifiedElement.getIdentifier().getText());
+        if (psiIdentifiedElement.getIdentifier() != null) {
+          result.add(psiIdentifiedElement.getIdentifier().getText());
+        }
       }
       return true;
     }
