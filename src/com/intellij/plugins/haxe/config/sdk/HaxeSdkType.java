@@ -1,7 +1,10 @@
 package com.intellij.plugins.haxe.config.sdk;
 
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.util.xmlb.XmlSerializer;
@@ -87,5 +90,14 @@ public class HaxeSdkType extends SdkType {
     if (additionalData instanceof HaxeSdkData) {
       XmlSerializer.serializeInto(additionalData, additional);
     }
+  }
+
+  @Override
+  public FileChooserDescriptor getHomeChooserDescriptor() {
+    final FileChooserDescriptor result = super.getHomeChooserDescriptor();
+    if (SystemInfo.isMac) {
+      result.putUserData(PathChooserDialog.NATIVE_MAC_CHOOSER_SHOW_HIDDEN_FILES, Boolean.TRUE);
+    }
+    return result;
   }
 }

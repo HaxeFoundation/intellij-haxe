@@ -6,6 +6,8 @@ import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,9 +24,6 @@ public class HaxeSdkUtil {
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
     final String exePath = getCompilerPathByFolderPath(path);
-    if (!folderExists(path) || !fileExists(exePath)) {
-      return null;
-    }
 
     final GeneralCommandLine command = new GeneralCommandLine();
     command.setExePath(exePath);
@@ -66,9 +65,9 @@ public class HaxeSdkUtil {
       result = System.getenv("NEKO_INSTPATH");
     }
     if (result == null && !SystemInfo.isWindows) {
-      final File candidate = new File("/usr/bin/neko");
-      if (candidate.exists()) {
-        return candidate.getAbsolutePath();
+      final VirtualFile candidate = VirtualFileManager.getInstance().findFileByUrl("/usr/bin/neko");
+      if (candidate != null && candidate.exists()) {
+        return candidate.getPath();
       }
     }
     if (result == null) {
@@ -85,10 +84,13 @@ public class HaxeSdkUtil {
   }
 
   public static String getCompilerPathByFolderPath(String folderPath) {
-    if (SystemInfo.isMac) {
-      return new File(folderPath + File.separator + "bin", getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
+    if (!SystemInfo.isLinux) {
+      final String candidate = folderPath + "/bin/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
+      if (VirtualFileManager.getInstance().findFileByUrl(candidate) != null) {
+        return candidate;
+      }
     }
-    return new File(folderPath, getExecutableName(COMPILER_EXECUTABLE_NAME)).getPath();
+    return folderPath + "/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
   }
 
   private static String getExecutableName(String name) {
@@ -99,25 +101,29 @@ public class HaxeSdkUtil {
   }
 
   private static boolean folderExists(@Nullable String path) {
-    return path != null && checkFolderExists(new File(path));
+    return path != null && checkFolderExists(VirtualFileManager.getInstance().findFileByUrl(path));
   }
 
-  private static boolean checkFolderExists(@NotNull File file) {
-    return file.exists() && file.isDirectory();
+  private static boolean checkFolderExists(@Nullable VirtualFile file) {
+    return checkFileExists(file) && file.isDirectory();
   }
 
   private static boolean fileExists(@Nullable String filePath) {
-    return filePath != null && new File(filePath).exists();
+    return filePath != null && checkFileExists(VirtualFileManager.getInstance().findFileByUrl(filePath));
+  }
+
+  private static boolean checkFileExists(@Nullable VirtualFile file) {
+    return file != null && file.exists();
   }
 
   @Nullable
   public static String suggestHomePath() {
-    String result = System.getenv("HAXEPATH");
-    if (result == null && SystemInfo.isMac) {
-      return "/usr/local/haxe";
-    }
-    if (result == null && SystemInfo.isLinux) {
-      return "/usr/lib/haxe";
+    final String result = System.getenv("HAXEPATH");
+    if (result == null && !SystemInfo.isWindows) {
+      final String candidate = "/usr/lib/haxe";
+      if (VirtualFileManager.getInstance().findFileByUrl(candidate) != null) {
+        return candidate;
+      }
     }
     return result;
   }

@@ -5,12 +5,12 @@ import com.intellij.ide.util.TreeFileChooserFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
-import com.intellij.plugins.haxe.util.CompilationUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.RawCommandLineEditor;
 
@@ -69,7 +69,7 @@ public class HaxeConfigurationEditor {
   private void setChosenFile(VirtualFile virtualFile) {
     String qualifier = DirectoryIndex.getInstance(module.getProject()).getPackageName(virtualFile.getParent());
     qualifier = qualifier != null && qualifier.length() != 0 ? qualifier + '.' : "";
-    myMainClassFieldWithButton.setText(qualifier + CompilationUtil.getClassNameByPath(virtualFile.getPath()));
+    myMainClassFieldWithButton.setText(qualifier + FileUtil.getNameWithoutExtension(virtualFile.getName()));
   }
 
   public boolean isModified() {
