@@ -41,7 +41,7 @@ mNUM_HEX = ("0x" | "0X") {mHEX_DIGIT}+
 mNUM_OCT = "0" {mOCT_DIGIT}+
 
 mFLOAT_EXPONENT = [eE] [+-]? {mDIGIT}+
-mNUM_FLOAT = ( ({mDIGIT}+ "." {mDIGIT}+) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
+mNUM_FLOAT = ( ({mDIGIT}* "." {mDIGIT}+) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
 
 CHARACTER_LITERAL="'"([^\\\'\r\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
 STRING_LITERAL=\"([^\\\"\r\n]|{ESCAPE_SEQUENCE})*(\"|\\)?
@@ -59,6 +59,8 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 
 {CHARACTER_LITERAL}                       { return LITCHAR; }
 {STRING_LITERAL}                          { return LITSTRING; }
+
+"..."                                     { return OTRIPLE_DOT; }
 
 {mNUM_FLOAT}                              {  return LITFLOAT; }
 {mNUM_OCT}                                {  return LITOCT; }
@@ -114,8 +116,6 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 
 {IDENTIFIER}                              {  return ID; }
 
-
-"..."                                     { return OTRIPLE_DOT; }
 "."                                       { return ODOT; }
 
 "{"                                       { return PLCURLY; }
