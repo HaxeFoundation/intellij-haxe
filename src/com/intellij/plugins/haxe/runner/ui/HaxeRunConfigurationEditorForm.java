@@ -2,9 +2,11 @@ package com.intellij.plugins.haxe.runner.ui;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +29,9 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
 
     final Module[] modules = ModuleManager.getInstance(configuration.getProject()).getModules();
     for (final Module module : modules) {
-      myComboModules.addItem(module);
+      if (ModuleType.get(module) == HaxeModuleType.getInstance()) {
+        myComboModules.addItem(module);
+      }
     }
     myComboModules.setSelectedItem(configuration.getConfigurationModule().getModule());
 
