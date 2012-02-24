@@ -21,6 +21,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
   private static final AttributesDescriptor[] ATTRS = new AttributesDescriptor[]{
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.line.comment"), LINE_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.block.comment"), BLOCK_COMMENT),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.doc.comment"), DOC_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.keyword"), KEYWORD),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.number"), NUMBER),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.string"), STRING),
@@ -74,6 +75,9 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     return "/* Block comment */\n" +
            "import java.util.Date;\n" +
            "\n" +
+           "/**\n" +
+           " Document comment\n" +
+           "**/\n" +
            "class SomeClass { // some comment\n" +
            "  private var field = null;\n" +
            "  private var unusedField:Number = 12345.67890;\n" +

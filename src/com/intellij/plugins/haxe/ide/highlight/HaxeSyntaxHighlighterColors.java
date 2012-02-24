@@ -14,6 +14,8 @@ public class HaxeSyntaxHighlighterColors {
     createTextAttributesKey("HAXE_LINE_COMMENT", SyntaxHighlighterColors.LINE_COMMENT.getDefaultAttributes());
   public static final TextAttributesKey BLOCK_COMMENT =
     createTextAttributesKey("HAXE_BLOCK_COMMENT", SyntaxHighlighterColors.JAVA_BLOCK_COMMENT.getDefaultAttributes());
+  public static final TextAttributesKey DOC_COMMENT =
+      createTextAttributesKey("HAXE_DOC_COMMENT", SyntaxHighlighterColors.DOC_COMMENT.getDefaultAttributes());
   public static final TextAttributesKey KEYWORD =
     createTextAttributesKey("HAXE_KEYWORD", SyntaxHighlighterColors.KEYWORD.getDefaultAttributes());
   public static final TextAttributesKey NUMBER =

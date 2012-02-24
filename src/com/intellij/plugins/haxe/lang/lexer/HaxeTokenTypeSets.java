@@ -11,9 +11,10 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 public interface HaxeTokenTypeSets {
   IFileElementType HAXE_FILE = new IFileElementType("HAXEFILE", HaxeLanguage.INSTANCE);
   IElementType MSL_COMMENT = new HaxeElementType("MSL_COMMENT");
-  IElementType WSNLS = new HaxeElementType("WSNLS");
-
   IElementType MML_COMMENT = new HaxeElementType("MML_COMMENT");
+  IElementType DOC_COMMENT = new HaxeElementType("DOC_COMMENT");
+
+  IElementType WSNLS = new HaxeElementType("WSNLS");
 
   TokenSet WHITESPACES = TokenSet.create(
     WSNLS,
@@ -23,7 +24,8 @@ public interface HaxeTokenTypeSets {
 
   TokenSet COMMENTS = TokenSet.create(
     MML_COMMENT,
-    MSL_COMMENT
+    MSL_COMMENT,
+    DOC_COMMENT
   );
 
   TokenSet BLOCK_COMMENTS = TokenSet.create(

@@ -28,6 +28,7 @@ mDIGIT = [:digit:]
 IDENTIFIER={mLETTER} ({mDIGIT} | {mLETTER})*
 
 C_STYLE_COMMENT=("/*"[^"*"]{COMMENT_TAIL})|"/*"
+DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?
 COMMENT_TAIL=([^"*"]*("*"+[^"*""/"])?)*("*"+"/")?
 END_OF_LINE_COMMENT="/""/"[^\r\n]*
 
@@ -54,6 +55,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 
 {END_OF_LINE_COMMENT}                     { return MSL_COMMENT; }
 {C_STYLE_COMMENT}                         { return MML_COMMENT; }
+{DOC_COMMENT}                             { return DOC_COMMENT; }
 
 {CHARACTER_LITERAL}                       { return LITCHAR; }
 {STRING_LITERAL}                          { return LITSTRING; }

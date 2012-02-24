@@ -43,6 +43,7 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
 
     ATTRIBUTES.put(MML_COMMENT, HaxeSyntaxHighlighterColors.BLOCK_COMMENT);
     ATTRIBUTES.put(MSL_COMMENT, HaxeSyntaxHighlighterColors.LINE_COMMENT);
+    ATTRIBUTES.put(DOC_COMMENT, HaxeSyntaxHighlighterColors.DOC_COMMENT);
 
     fillMap(ATTRIBUTES, BAD_TOKENS, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
   }
