@@ -10,6 +10,7 @@ import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -64,7 +65,9 @@ public abstract class HaxeCompletionTestBase extends JavaCodeInsightFixtureTestC
 
     myFixture.complete(type, count);
     List<String> stringList = myFixture.getLookupElementStrings();
-    assertNotNull(stringList);
+    if (stringList == null) {
+      stringList = Collections.emptyList();
+    }
 
     if (checkType == CheckType.EQUALS) {
       UsefulTestCase.assertSameElements(stringList, variants);

@@ -30,10 +30,12 @@ public class HaxeLocalReferenceCompletionContributor extends CompletionContribut
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-               final Set<String> suggestedKeywords = new THashSet<String>();
-               PsiTreeUtil.treeWalkUp(new MyPsiScopeProcessor(suggestedKeywords), parameters.getPosition(), null, new ResolveState());
-               for (String keyword : suggestedKeywords) {
-                 result.addElement(LookupElementBuilder.create(keyword));
+               final Set<String> suggestedVariants = new THashSet<String>();
+               final PsiElement position = parameters.getPosition();
+               PsiTreeUtil.treeWalkUp(new MyPsiScopeProcessor(suggestedVariants, position), position, null, new ResolveState());
+
+               for (String variant : suggestedVariants) {
+                 result.addElement(LookupElementBuilder.create(variant));
                }
              }
            });
@@ -41,16 +43,19 @@ public class HaxeLocalReferenceCompletionContributor extends CompletionContribut
 
   private static class MyPsiScopeProcessor implements PsiScopeProcessor {
     private final Set<String> result;
+    private final PsiElement position;
 
-    private MyPsiScopeProcessor(Set<String> result) {
+    private MyPsiScopeProcessor(Set<String> result, PsiElement position) {
       this.result = result;
+      this.position = position;
     }
 
     @Override
     public boolean execute(PsiElement element, ResolveState state) {
       if (element instanceof PsiIdentifiedElement) {
         final PsiIdentifiedElement psiIdentifiedElement = (PsiIdentifiedElement)element;
-        if (psiIdentifiedElement.getIdentifier() != null) {
+        if (psiIdentifiedElement.getIdentifier() != null &&
+            !PsiTreeUtil.isAncestor(psiIdentifiedElement, position, false)) {
           result.add(psiIdentifiedElement.getIdentifier().getText());
         }
       }

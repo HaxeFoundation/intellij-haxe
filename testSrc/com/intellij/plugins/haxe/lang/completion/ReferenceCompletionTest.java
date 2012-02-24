@@ -27,4 +27,12 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testTest5() throws Throwable {
     doTest();
   }
+
+  public void testTest6() throws Throwable {
+    doTest();
+  }
+
+  public void testTest7() throws Throwable {
+    doTest();
+  }
 }
