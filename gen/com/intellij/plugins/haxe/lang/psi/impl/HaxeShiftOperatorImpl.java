@@ -15,4 +15,16 @@ public class HaxeShiftOperatorImpl extends HaxePsiCompositeElementImpl implement
     super(node);
   }
 
+  @Override
+  @Nullable
+  public HaxeShiftRightOperator getShiftRightOperator() {
+    return findChildByClass(HaxeShiftRightOperator.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeUnsignedShiftRightOperator getUnsignedShiftRightOperator() {
+    return findChildByClass(HaxeUnsignedShiftRightOperator.class);
+  }
+
 }

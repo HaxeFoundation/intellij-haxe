@@ -28,49 +28,12 @@ public interface HaxeTokenTypeSets {
     DOC_COMMENT
   );
 
-  TokenSet BLOCK_COMMENTS = TokenSet.create(
-    MML_COMMENT
-  );
-
-  TokenSet NUMBERS = TokenSet.create(
-    LITINT,
-    LITHEX,
-    LITOCT,
-    LITFLOAT
-  );
-
-  TokenSet LINE_COMMENTS = TokenSet.create(
-    MSL_COMMENT
-  );
-
   TokenSet BAD_TOKENS = TokenSet.create(
     TokenType.BAD_CHARACTER
   );
 
   TokenSet STRINGS = TokenSet.create(
     LITSTRING
-  );
-
-  TokenSet IDENTIFIERS = TokenSet.create(
-    ID
-  );
-
-  TokenSet BRACES = TokenSet.create(
-    PLBRACK,
-    PRBRACK,
-    PLPAREN,
-    PRPAREN,
-    PLCURLY,
-    PRCURLY
-  );
-
-  TokenSet LITERALS = TokenSet.create(
-    LITCHAR,
-    LITFLOAT,
-    LITSTRING,
-    LITINT,
-    LITHEX,
-    LITOCT
   );
 
   TokenSet KEYWORDS = TokenSet.create(
@@ -115,29 +78,6 @@ public interface HaxeTokenTypeSets {
     PPIF
   );
 
-  TokenSet UNARY_OPERATORS = TokenSet.create(
-    OPLUS_PLUS, OMINUS_MINUS, ONOT
-  );
-
-  TokenSet ASSIGN_OPERATORS = TokenSet.create(
-    OASSIGN,
-    OPLUS_ASSIGN, OMINUS_ASSIGN, OBIT_OR_ASSIGN, OBIT_XOR_ASSIGN,
-    OMUL_ASSIGN, OQUOTIENT_ASSIGN, OREMAINDER_ASSIGN,
-    OSHIFT_LEFT_ASSIGN, OSHIFT_RIGHT_ASSIGN,
-    OBIT_AND_ASSIGN
-  );
-
-  TokenSet BINARY_OPERATORS = TokenSet.create(
-    OCOND_OR, OCOND_AND,
-    OEQ, ONOT_EQ, OLESS, OLESS_OR_EQUAL, OGREATER, OGREATER_OR_EQUAL,
-    OPLUS, OMINUS, OBIT_OR, OBIT_XOR,
-    OMUL, OQUOTIENT, OREMAINDER, OSHIFT_LEFT, OSHIFT_RIGHT, OBIT_AND
-  );
-
-  TokenSet INC_DEC_OPERATORS = TokenSet.create(
-    OPLUS_PLUS, OMINUS_MINUS
-  );
-
   TokenSet OPERATORS = TokenSet.create(
     OTRIPLE_DOT,
     OEQ,
@@ -169,7 +109,6 @@ public interface HaxeTokenTypeSets {
     OREMAINDER_ASSIGN,
     OREMAINDER,
     OSHIFT_RIGHT_ASSIGN,
-    OSHIFT_RIGHT,
     OGREATER_OR_EQUAL,
     OGREATER
   );

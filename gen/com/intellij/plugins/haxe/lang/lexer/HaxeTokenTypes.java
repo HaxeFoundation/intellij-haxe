@@ -82,6 +82,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_RETURNSTATEMENTWITHOUTSEMICOLON = new HaxeElementType("HAXE_RETURNSTATEMENTWITHOUTSEMICOLON");
   IElementType HAXE_SHIFTEXPRESSION = new HaxeElementType("HAXE_SHIFTEXPRESSION");
   IElementType HAXE_SHIFTOPERATOR = new HaxeElementType("HAXE_SHIFTOPERATOR");
+  IElementType HAXE_SHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_SHIFTRIGHTOPERATOR");
   IElementType HAXE_SUFFIXEXPRESSION = new HaxeElementType("HAXE_SUFFIXEXPRESSION");
   IElementType HAXE_SWITCHSTATEMENT = new HaxeElementType("HAXE_SWITCHSTATEMENT");
   IElementType HAXE_TERNARYEXPRESSION = new HaxeElementType("HAXE_TERNARYEXPRESSION");
@@ -95,6 +96,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TYPEPARAM = new HaxeElementType("HAXE_TYPEPARAM");
   IElementType HAXE_TYPETAG = new HaxeElementType("HAXE_TYPETAG");
   IElementType HAXE_TYPEDEFDECLARATION = new HaxeElementType("HAXE_TYPEDEFDECLARATION");
+  IElementType HAXE_UNSIGNEDSHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_UNSIGNEDSHIFTRIGHTOPERATOR");
   IElementType HAXE_VARDECLARATION = new HaxeElementType("HAXE_VARDECLARATION");
   IElementType HAXE_VARDECLARATIONLIST = new HaxeElementType("HAXE_VARDECLARATIONLIST");
   IElementType HAXE_VARDECLARATIONPART = new HaxeElementType("HAXE_VARDECLARATIONPART");
@@ -180,10 +182,8 @@ public interface HaxeTokenTypes {
   IElementType OSEMI = new HaxeElementType(";");
   IElementType OSHIFT_LEFT = new HaxeElementType("<<");
   IElementType OSHIFT_LEFT_ASSIGN = new HaxeElementType("<<=");
-  IElementType OSHIFT_RIGHT = new HaxeElementType(">>");
   IElementType OSHIFT_RIGHT_ASSIGN = new HaxeElementType(">>=");
   IElementType OTRIPLE_DOT = new HaxeElementType("...");
-  IElementType OUNSIGNED_SHIFT_RIGHT = new HaxeElementType(">>>");
   IElementType PLBRACK = new HaxeElementType("[");
   IElementType PLCURLY = new HaxeElementType("{");
   IElementType PLPAREN = new HaxeElementType("(");
@@ -421,6 +421,9 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_SHIFTOPERATOR) {
         return new HaxeShiftOperatorImpl(node);
       }
+      else if (type == HAXE_SHIFTRIGHTOPERATOR) {
+        return new HaxeShiftRightOperatorImpl(node);
+      }
       else if (type == HAXE_SUFFIXEXPRESSION) {
         return new HaxeSuffixExpressionImpl(node);
       }
@@ -459,6 +462,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_TYPEDEFDECLARATION) {
         return new HaxeTypedefDeclarationImpl(node);
+      }
+      else if (type == HAXE_UNSIGNEDSHIFTRIGHTOPERATOR) {
+        return new HaxeUnsignedShiftRightOperatorImpl(node);
       }
       else if (type == HAXE_VARDECLARATION) {
         return new HaxeVarDeclarationImpl(node);

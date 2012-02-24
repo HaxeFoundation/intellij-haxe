@@ -173,9 +173,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "%="                                      { return OREMAINDER_ASSIGN; }
 "%"                                       { return OREMAINDER; }
 
-">>>"                                     { return OUNSIGNED_SHIFT_RIGHT; }
 ">>="                                     { return OSHIFT_RIGHT_ASSIGN; }
-">>"                                      { return OSHIFT_RIGHT; }
 ">="                                      { return OGREATER_OR_EQUAL; }
 ">"                                       { return OGREATER; }
 

@@ -247,6 +247,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == HAXE_SHIFTOPERATOR) {
       result_ = shiftOperator(builder_, level_ + 1);
     }
+    else if (root_ == HAXE_SHIFTRIGHTOPERATOR) {
+      result_ = shiftRightOperator(builder_, level_ + 1);
+    }
     else if (root_ == HAXE_REFERENCEEXPRESSION) {
       result_ = simpleQualifiedReferenceExpression(builder_, level_ + 1);
     }
@@ -288,6 +291,9 @@ public class HaxeParser implements PsiParser {
     }
     else if (root_ == HAXE_TYPEDEFDECLARATION) {
       result_ = typedefDeclaration(builder_, level_ + 1);
+    }
+    else if (root_ == HAXE_UNSIGNEDSHIFTRIGHTOPERATOR) {
+      result_ = unsignedShiftRightOperator(builder_, level_ + 1);
     }
     else if (root_ == HAXE_VARDECLARATION) {
       result_ = varDeclaration(builder_, level_ + 1);
@@ -4100,8 +4106,7 @@ public class HaxeParser implements PsiParser {
   // shiftOperator additiveExpressionWrapper
   public static boolean shiftExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "shiftExpression")) return false;
-    if (!nextTokenIs(builder_, OSHIFT_LEFT) && !nextTokenIs(builder_, OUNSIGNED_SHIFT_RIGHT)
-        && !nextTokenIs(builder_, OSHIFT_RIGHT)) return false;
+    if (!nextTokenIs(builder_, OSHIFT_LEFT) && !nextTokenIs(builder_, OGREATER)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker left_marker_ = (Marker)builder_.getLatestDoneMarker();
@@ -4167,18 +4172,35 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '>>' | '<<' | '>>>'
+  // shiftRightOperator | unsignedShiftRightOperator | '<<'
   public static boolean shiftOperator(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "shiftOperator")) return false;
-    if (!nextTokenIs(builder_, OSHIFT_LEFT) && !nextTokenIs(builder_, OUNSIGNED_SHIFT_RIGHT)
-        && !nextTokenIs(builder_, OSHIFT_RIGHT)) return false;
+    if (!nextTokenIs(builder_, OSHIFT_LEFT) && !nextTokenIs(builder_, OGREATER)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = consumeToken(builder_, OSHIFT_RIGHT);
+    result_ = shiftRightOperator(builder_, level_ + 1);
+    if (!result_) result_ = unsignedShiftRightOperator(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, OSHIFT_LEFT);
-    if (!result_) result_ = consumeToken(builder_, OUNSIGNED_SHIFT_RIGHT);
     if (result_) {
       marker_.done(HAXE_SHIFTOPERATOR);
+    }
+    else {
+      marker_.rollbackTo();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // '>' '>'
+  public static boolean shiftRightOperator(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "shiftRightOperator")) return false;
+    if (!nextTokenIs(builder_, OGREATER)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, OGREATER);
+    result_ = result_ && consumeToken(builder_, OGREATER);
+    if (result_) {
+      marker_.done(HAXE_SHIFTRIGHTOPERATOR);
     }
     else {
       marker_.rollbackTo();
@@ -5078,6 +5100,25 @@ public class HaxeParser implements PsiParser {
     }
     else {
       marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // '>' '>' '>'
+  public static boolean unsignedShiftRightOperator(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "unsignedShiftRightOperator")) return false;
+    if (!nextTokenIs(builder_, OGREATER)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, OGREATER);
+    result_ = result_ && consumeToken(builder_, OGREATER);
+    result_ = result_ && consumeToken(builder_, OGREATER);
+    if (result_) {
+      marker_.done(HAXE_UNSIGNEDSHIFTRIGHTOPERATOR);
+    }
+    else {
+      marker_.rollbackTo();
     }
     return result_;
   }

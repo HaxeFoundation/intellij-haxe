@@ -68,8 +68,6 @@
     oREMAINDER="%"
 
     oSHIFT_RIGHT_ASSIGN=">>="
-    oSHIFT_RIGHT=">>"
-    oUNSIGNED_SHIFT_RIGHT=">>>"
     oGREATER_OR_EQUAL=">="
     oGREATER=">"
 
@@ -143,8 +141,10 @@ haxeFile ::= packageStatement? topLevelList
 assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>='
 compareOperation ::= '==' | '!=' | '<=' | '<' | '>' | '>='
 bitOperation ::= '|' | '&' | '^'
-shiftOperator ::= '>>' | '<<' | '>>>'
+shiftOperator ::= shiftRightOperator | unsignedShiftRightOperator | '<<'
 
+shiftRightOperator ::= '>' '>'
+unsignedShiftRightOperator ::= '>' '>' '>'
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
