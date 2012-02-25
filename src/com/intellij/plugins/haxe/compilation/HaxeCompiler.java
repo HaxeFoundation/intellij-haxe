@@ -173,9 +173,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     }
 
     if (output.getExitCode() != 0) {
-      context.addMessage(CompilerMessageCategory.WARNING, "process exited with code: " + output.getExitCode(), null, -1, -1);
-      context.addMessage(CompilerMessageCategory.WARNING, "process exited with output: " + output.getStdout(), null, -1, -1);
-      context.addMessage(CompilerMessageCategory.WARNING, "process exited with error: " + output.getStderr(), null, -1, -1);
+      HaxeCompilerUtil.fillContext(context, output.getStderrLines());
     }
     return true;
   }
