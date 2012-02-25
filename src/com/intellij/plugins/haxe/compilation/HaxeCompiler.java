@@ -12,8 +12,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -115,17 +118,24 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.main.class.for.module", module.getName()), null, -1, -1);
       return false;
     }
+    final String fileName = settings.getOutputFileName();
+    if (fileName == null || fileName.length() == 0) {
+      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.output.file.name.for.module", module.getName()), null, -1,
+                         -1);
+      return false;
+    }
     final HaxeTarget target = settings.getTarget();
     if (target == null) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.target.for.module", module.getName()), null, -1, -1);
       return false;
     }
-    return compileModule(context, module, mainClass, target);
+    return compileModule(context, module, mainClass, fileName, target);
   }
 
   private static boolean compileModule(CompileContext context,
                                        @NotNull Module module,
                                        @NonNls String mainClass,
+                                       @NonNls String fileName,
                                        @NotNull HaxeTarget target) {
     final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     final Sdk sdk = moduleRootManager.getSdk();
@@ -152,13 +162,10 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       commandLine.addParameter(sourceRoot.getPath());
     }
 
-    final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
-    if (outputDirectory != null) {
-      commandLine.setWorkDirectory(outputDirectory.getPath());
-    }
-
+    final String url = CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
+    commandLine.setWorkDirectory(VfsUtil.urlToPath(url));
     commandLine.addParameter(target.getCompilerFlag());
-    commandLine.addParameter(target.getTargetOutput(module));
+    commandLine.addParameter(fileName);
 
     ProcessOutput output = null;
     try {

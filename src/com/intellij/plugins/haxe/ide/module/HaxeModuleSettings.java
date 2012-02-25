@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 )
 public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSettings> {
   private String mainClass = "";
+  private String outputFileName = "";
   private String arguments = "";
   private boolean excludeFromCompilation = false;
   private HaxeTarget target = HaxeTarget.NEKO;
@@ -29,11 +30,16 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   public HaxeModuleSettings() {
   }
 
-  public HaxeModuleSettings(String mainClass, HaxeTarget target, String arguments, boolean excludeFromCompilation) {
+  public HaxeModuleSettings(String mainClass,
+                            HaxeTarget target,
+                            String arguments,
+                            boolean excludeFromCompilation,
+                            String outputFileName) {
     this.mainClass = mainClass;
     this.arguments = arguments;
     this.excludeFromCompilation = excludeFromCompilation;
     this.target = target;
+    this.outputFileName = outputFileName;
   }
 
   @Override
@@ -82,6 +88,14 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     this.excludeFromCompilation = excludeFromCompilation;
   }
 
+  public String getOutputFileName() {
+    return outputFileName;
+  }
+
+  public void setOutputFileName(String outputFileName) {
+    this.outputFileName = outputFileName;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -92,6 +106,8 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     if (excludeFromCompilation != settings.excludeFromCompilation) return false;
     if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
+    if (outputFileName != null ? !outputFileName.equals(settings.outputFileName) : settings.outputFileName != null) return false;
+    if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
     if (target != settings.target) return false;
 
     return true;
@@ -101,6 +117,7 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   public int hashCode() {
     int result = mainClass != null ? mainClass.hashCode() : 0;
     result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
+    result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
     result = 31 * result + (target != null ? target.hashCode() : 0);
     return result;

@@ -7,7 +7,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,5 +43,9 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
 
   @Override
   public void moduleCreated(@NotNull Module module) {
+    final CompilerModuleExtension model = (CompilerModuleExtension)CompilerModuleExtension.getInstance(module).getModifiableModel(true);
+    model.setCompilerOutputPath(model.getCompilerOutputUrl());
+    model.inheritCompilerOutputPath(false);
+    model.commit();
   }
 }
