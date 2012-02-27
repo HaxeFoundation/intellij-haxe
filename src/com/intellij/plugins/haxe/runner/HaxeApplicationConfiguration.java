@@ -6,6 +6,7 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.SettingsEditor;
@@ -20,7 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeApplicationModuleBasedConfiguration> {
+public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeApplicationModuleBasedConfiguration>
+  implements RunConfigurationWithSuppressedDefaultRunAction {
   public HaxeApplicationConfiguration(String name, Project project, HaxeRunConfigurationType configurationType) {
     super(name, new HaxeApplicationModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
   }
@@ -41,7 +43,7 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
   }
 
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    return new HaxeRunningState(env, getConfigurationModule().getModule());
+    return HaxeRunner.EMPTY_RUN_STATE;
   }
 
   public void writeExternal(final Element element) throws WriteExternalException {

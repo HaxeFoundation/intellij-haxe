@@ -39,6 +39,8 @@
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
     <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
 
+    <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
+
     <lang.parserDefinition language="haXe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.syntaxHighlighterFactory key="haXe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
     <lang.braceMatcher language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
