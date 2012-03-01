@@ -139,6 +139,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     public boolean execute(PsiElement element, ResolveState state) {
       if (element instanceof PsiIdentifiedElement) {
         final PsiIdentifiedElement psiIdentifiedElement = (PsiIdentifiedElement)element;
+        if (psiIdentifiedElement.getIdentifier() == null) {
+          return true;
+        }
         if (getIdentifier().getText().equals(psiIdentifiedElement.getIdentifier().getText())) {
           result.add(((PsiIdentifiedElement)element).getIdentifier());
           return false;

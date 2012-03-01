@@ -13,6 +13,7 @@ public class LanguageTestSuite {
     final TestSuite testSuite = new TestSuite();
     testSuite.addTest(ParserTestSuite.suite());
     testSuite.addTest(CompletionTestSuite.suite());
+    testSuite.addTestSuite(HaxeFormatterTest.class);
     return testSuite;
   }
 }
