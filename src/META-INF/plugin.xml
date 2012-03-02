@@ -66,6 +66,8 @@
     <internalFileTemplate name="haXe Class"/>
     <internalFileTemplate name="haXe Interface"/>
     <internalFileTemplate name="haXe Enum"/>
+
+    <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.lang.annotator.HaxeReferenceAnnotator"/>-->
   </extensions>
 
   <actions>
