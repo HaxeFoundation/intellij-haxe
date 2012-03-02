@@ -289,7 +289,7 @@ catchStatement ::= 'catch' '(' parameter ')' blockStatement
 
 expressionList ::= expression (',' expression)*
 
- expression ::= assignExpressionWrapper
+expression ::= assignExpressionWrapper
 
 private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression*
 left assignExpression ::= assignOperation iteratorExpressionWrapper {pin=1 extends="expression"}

@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -54,6 +55,12 @@ public class HaxeCompilerError {
       errorMessage = message.substring(semicolonIndex2 + 1);
     }
 
-    return new HaxeCompilerError(errorMessage, VfsUtil.getUrlForLibraryRoot(new File(path)), line);
+    final String navigatableUrl = VfsUtil.getUrlForLibraryRoot(new File(path));
+
+    if (VirtualFileManager.getInstance().findFileByUrl(navigatableUrl) == null) {
+      return null;
+    }
+
+    return new HaxeCompilerError(errorMessage, navigatableUrl, line);
   }
 }

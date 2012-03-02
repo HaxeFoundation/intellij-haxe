@@ -6,6 +6,7 @@ import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,10 @@ public class HaxeSdkUtil {
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
     final String exePath = getCompilerPathByFolderPath(path);
+
+    if (exePath == null) {
+      return null;
+    }
 
     final GeneralCommandLine command = new GeneralCommandLine();
     command.setExePath(exePath);
@@ -83,14 +88,22 @@ public class HaxeSdkUtil {
     return null;
   }
 
+  @Nullable
   public static String getCompilerPathByFolderPath(String folderPath) {
+    final String folderUrl = VfsUtil.pathToUrl(folderPath);
     if (!SystemInfo.isLinux) {
-      final String candidate = folderPath + "/bin/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
-      if (VirtualFileManager.getInstance().findFileByUrl(candidate) != null) {
-        return candidate;
+      final String candidate = folderUrl + "/bin/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
+      if (fileExists(candidate)) {
+        return VfsUtil.urlToPath(candidate);
       }
     }
-    return folderPath + "/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
+
+    final String resultUrl = folderUrl + "/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
+    if (fileExists(resultUrl)) {
+      return VfsUtil.urlToPath(resultUrl);
+    }
+
+    return null;
   }
 
   private static String getExecutableName(String name) {
@@ -98,14 +111,6 @@ public class HaxeSdkUtil {
       return name + ".exe";
     }
     return name;
-  }
-
-  private static boolean folderExists(@Nullable String path) {
-    return path != null && checkFolderExists(VirtualFileManager.getInstance().findFileByUrl(path));
-  }
-
-  private static boolean checkFolderExists(@Nullable VirtualFile file) {
-    return checkFileExists(file) && file.isDirectory();
   }
 
   private static boolean fileExists(@Nullable String filePath) {

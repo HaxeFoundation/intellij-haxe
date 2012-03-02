@@ -15,7 +15,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -150,9 +149,16 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       return false;
     }
 
+    final String sdkExePath = HaxeSdkUtil.getCompilerPathByFolderPath(sdk.getHomePath());
+
+    if (sdkExePath == null) {
+      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("invalid.haxe.sdk.for.module", module.getName()), null, -1, -1);
+      return false;
+    }
+
     final GeneralCommandLine commandLine = new GeneralCommandLine();
 
-    commandLine.setExePath(HaxeSdkUtil.getCompilerPathByFolderPath(sdk.getHomePath()));
+    commandLine.setExePath(sdkExePath);
 
     commandLine.addParameter("-main");
     commandLine.addParameter(mainClass);
@@ -181,6 +187,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
 
     if (output.getExitCode() != 0) {
       HaxeCompilerUtil.fillContext(context, output.getStderrLines());
+      return false;
     }
     return true;
   }
