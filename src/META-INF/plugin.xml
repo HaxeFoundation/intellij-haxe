@@ -6,9 +6,11 @@
     <![CDATA[
       <p>0.2:</p>
       <ul>
-        <li>Basic goto action implementation(local declarations, class)</li>
+        <li>Basic goto action implementation(local declarations, classes)</li>
         <li>Local reference completion</li>
         <li>Color settings</li>
+        <li>Code formatter</li>
+        <li>Parsing fixes</li>
         <li>Fixes for MacOS</li>
       </ul>
       <p>0.1:</p>
@@ -22,7 +24,7 @@
   </change-notes>
   <version>0.2</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
-  <idea-version since-build="114.145" until-build="115.1"/>
+  <idea-version since-build="114.145" until-build="117.1"/>
   <depends>com.intellij.modules.ultimate</depends>
 
   <application-components>
