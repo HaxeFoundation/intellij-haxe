@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.psi.PsiComment;
@@ -22,6 +23,16 @@ public class UsefulPsiTreeUtil {
     PsiElement result = sibling.getPrevSibling();
     while (result != null && isWhitespaceOrComment(result)) {
       result = result.getPrevSibling();
+    }
+    return result;
+  }
+
+  @Nullable
+  public static ASTNode getPrevSiblingSkipWhiteSpacesAndComments(@Nullable ASTNode sibling) {
+    if (sibling == null) return null;
+    ASTNode result = sibling.getTreePrev();
+    while (result != null && isWhitespaceOrComment(result.getPsi())) {
+      result = result.getTreePrev();
     }
     return result;
   }

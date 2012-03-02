@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.ide.formatter;
 
 import com.intellij.formatting.Indent;
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
@@ -24,6 +25,8 @@ public class HaxeIndentProcessor {
 
   public Indent getChildIndent(ASTNode node) {
     final IElementType elementType = node.getElementType();
+    final ASTNode prevSibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(node);
+    final IElementType prevSiblingType = prevSibling == null ? null : prevSibling.getElementType();
     final ASTNode parent = node.getTreeParent();
     final IElementType parentType = parent != null ? parent.getElementType() : null;
     final ASTNode superParent = parent == null ? null : parent.getTreeParent();
@@ -70,6 +73,21 @@ public class HaxeIndentProcessor {
       if (elementType == HAXE_PARAMETERLIST || elementType == HAXE_EXPRESSIONLIST) {
         return Indent.getNormalIndent();
       }
+    }
+    if (parentType == HAXE_FORSTATEMENT && prevSiblingType == PRPAREN && elementType != HAXE_BLOCKSTATEMENT) {
+      return Indent.getNormalIndent();
+    }
+    if (parentType == HAXE_WHILESTATEMENT && prevSiblingType == PRPAREN && elementType != HAXE_BLOCKSTATEMENT) {
+      return Indent.getNormalIndent();
+    }
+    if (parentType == HAXE_DOWHILESTATEMENT && prevSiblingType == KDO && elementType != HAXE_BLOCKSTATEMENT) {
+      return Indent.getNormalIndent();
+    }
+    if (parentType == HAXE_RETURNSTATEMENT && prevSiblingType == KRETURN && elementType != HAXE_BLOCKSTATEMENT) {
+      return Indent.getNormalIndent();
+    }
+    if (parentType == HAXE_IFSTATEMENT && (prevSiblingType == PRPAREN || prevSiblingType == KELSE) && elementType != HAXE_BLOCKSTATEMENT) {
+      return Indent.getNormalIndent();
     }
     return Indent.getNoneIndent();
   }

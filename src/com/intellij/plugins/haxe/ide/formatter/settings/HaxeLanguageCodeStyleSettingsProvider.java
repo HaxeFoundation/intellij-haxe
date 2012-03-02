@@ -19,13 +19,13 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
 
   @Override
   public String getCodeSample(@NotNull SettingsType settingsType) {
-    switch (settingsType) {
-      case SPACING_SETTINGS:
-        return SPACING_CODE_SAMPLE;
-      case WRAPPING_AND_BRACES_SETTINGS:
-        return WRAPPING_CODE_SAMPLE;
+    if (settingsType == SettingsType.SPACING_SETTINGS) {
+      return SPACING_CODE_SAMPLE;
     }
-    return SPACING_CODE_SAMPLE;
+    if (settingsType == SettingsType.WRAPPING_AND_BRACES_SETTINGS) {
+      return WRAPPING_CODE_SAMPLE;
+    }
+    return BLANK_LINES_CODE_SAMPLE;
   }
 
   @Override
@@ -188,4 +188,14 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
                                                     "    }\n" +
                                                     "    public function new() {}\n" +
                                                     "}";
+
+  public static final String BLANK_LINES_CODE_SAMPLE = "class Foo {\n" +
+                                                       "    public function new() {\n" +
+                                                       "    }\n" +
+                                                       "\n" +
+                                                       "\n" +
+                                                       "    public static function main() {\n" +
+                                                       "        trace(\"Hello!\");\n" +
+                                                       "    }\n" +
+                                                       "}";
 }

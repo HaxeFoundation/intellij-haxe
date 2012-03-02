@@ -1,0 +1,21 @@
+class Foo {
+    public function new() {}
+
+    public static function print(arr:Array<Int>) {
+        for (i in 0...arr.length)
+        trace(arr[i]);
+        if(arr.length == 0)
+        trace("empty");
+        else
+        trace("empty");
+        do
+        trace(arr.pop())
+        while(arr.length > 0);
+    }
+
+    public static function main() {
+        var arr:Array<Int> = new Array<Int>();
+        for (i in 0...10) arr.push(i);
+        print(arr);
+    }
+}

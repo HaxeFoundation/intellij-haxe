@@ -20,11 +20,11 @@ class Foo {
 
     function fTwo(strA, strB, strC, strD) {
         if (true)
-        return strC;
+            return strC;
         if (strA=='one'||strB=='two') {
             return strA+strB;
         } else if (true)
-        return strD;
+            return strD;
         throw strD;
     }
 
