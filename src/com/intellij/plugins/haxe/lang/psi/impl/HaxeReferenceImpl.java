@@ -3,7 +3,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -66,6 +69,18 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     final HaxeType type = PsiTreeUtil.getParentOfType(this, HaxeType.class);
     if (type != null) {
       return resolveType(type);
+    }
+
+    // if not first in chain
+    // foo.bar.baz
+    if (UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(this) != null &&
+        PsiTreeUtil.getParentOfType(this, HaxeReferenceExpression.class) != null) {
+      return ResolveResult.EMPTY_ARRAY;
+    }
+    // chain
+    // foo.bar
+    if (PsiTreeUtil.getChildrenOfType(this, HaxeReferenceExpression.class) != null) {
+      return ResolveResult.EMPTY_ARRAY;
     }
 
     final List<PsiElement> result = new ArrayList<PsiElement>();
