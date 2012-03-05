@@ -1760,7 +1760,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'for' '(' expression 'in' expression ')' statement
+  // 'for' '(' componentName 'in' expression ')' statement
   public static boolean forStatement(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "forStatement")) return false;
     if (!nextTokenIs(builder_, KFOR)) return false;
@@ -1771,7 +1771,7 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, KFOR);
     pinned_ = result_; // pin = 1
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, componentName(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, OIN)) && result_;
     result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;

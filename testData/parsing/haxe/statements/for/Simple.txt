@@ -24,7 +24,7 @@ haXe File
           HAXE_FORSTATEMENT
             PsiElement(for)('for')
             PsiElement(()('(')
-            HAXE_REFERENCEEXPRESSION
+            HAXE_COMPONENTNAME
               HAXE_IDENTIFIER
                 PsiElement(ID)('i')
             PsiElement(in)('in')

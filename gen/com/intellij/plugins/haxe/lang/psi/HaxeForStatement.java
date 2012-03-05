@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeForStatement extends HaxePsiCompositeElement {
+public interface HaxeForStatement extends HaxeComponent {
 
   @Nullable
   public HaxeBlockStatement getBlockStatement();
@@ -15,6 +15,9 @@ public interface HaxeForStatement extends HaxePsiCompositeElement {
 
   @Nullable
   public HaxeCaseStatement getCaseStatement();
+
+  @Nullable
+  public HaxeComponentName getComponentName();
 
   @Nullable
   public HaxeContinueStatement getContinueStatement();

@@ -28,8 +28,16 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("VarDeclaration.hx", "com/bar/Foo.hx"));
   }
 
-  public void testFunctionParametr() {
-    doTest(myFixture.configureByFiles("FunctionParametr.hx", "com/bar/Foo.hx"));
+  public void testFunctionParameter() {
+    doTest(myFixture.configureByFiles("FunctionParameter.hx", "com/bar/Foo.hx"));
+  }
+
+  public void testInterfaceParameter() {
+    doTest(myFixture.configureByFiles("InterfaceDeclaration.hx", "com/bar/IBar.hx"));
+  }
+
+  public void testForDeclaration() {
+    doTest(myFixture.configureByFiles("ForDeclaration.hx"));
   }
 
   public void testLocalVarDeclaration1() {

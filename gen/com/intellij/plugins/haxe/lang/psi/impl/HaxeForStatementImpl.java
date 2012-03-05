@@ -9,7 +9,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeForStatementImpl extends HaxePsiCompositeElementImpl implements HaxeForStatement {
+public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements HaxeForStatement {
 
   public HaxeForStatementImpl(ASTNode node) {
     super(node);
@@ -31,6 +31,12 @@ public class HaxeForStatementImpl extends HaxePsiCompositeElementImpl implements
   @Nullable
   public HaxeCaseStatement getCaseStatement() {
     return findChildByClass(HaxeCaseStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeComponentName getComponentName() {
+    return findChildByClass(HaxeComponentName.class);
   }
 
   @Override

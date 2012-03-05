@@ -2,8 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveState;
@@ -47,42 +46,32 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     final List<PsiElement> result = new ArrayList<PsiElement>();
     addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeVarDeclarationImpl.class));
     addLocalVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclarationImpl.class));
-    addFunctionDeclarations(result, lastParent, PsiTreeUtil.getChildrenOfType(this, HaxeFunctionDeclarationWithAttributesImpl.class));
-    addLocalFunctionDeclarations(result, lastParent, PsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclarationImpl.class));
+
+    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFunctionDeclarationWithAttributesImpl.class));
+    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclarationImpl.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeClassDeclarationImpl.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeEnumDeclarationImpl.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeInterfaceDeclarationImpl.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeTypedefDeclarationImpl.class));
+
+    if (this instanceof HaxeFunctionDeclarationWithAttributes) {
+      final HaxeParameterList parameterList = ((HaxeFunctionDeclarationWithAttributes)this).getParameterList();
+      if (parameterList != null) {
+        result.addAll(parameterList.getParameterList());
+      }
+    }
+
+    if (this instanceof HaxeLocalFunctionDeclaration) {
+      final HaxeParameterList parameterList = ((HaxeLocalFunctionDeclaration)this).getParameterList();
+      if (parameterList != null) {
+        result.addAll(parameterList.getParameterList());
+      }
+    }
+
+    if (this instanceof HaxeForStatement) {
+      result.add(this);
+    }
     return result;
-  }
-
-  private static void addLocalFunctionDeclarations(@NotNull List<PsiElement> result,
-                                                   PsiElement lastParent,
-                                                   @Nullable HaxeLocalFunctionDeclarationImpl[] items) {
-    addDeclarations(result, items);
-    if (items == null) {
-      return;
-    }
-    for (HaxeLocalFunctionDeclarationImpl localFunctionDeclaration : items) {
-      if (localFunctionDeclaration.getParameterList() != null && PsiTreeUtil.isAncestor(localFunctionDeclaration, lastParent, false)) {
-        result.addAll(UsefulPsiTreeUtil.getSubnodesOfType(localFunctionDeclaration, HaxeNamedComponent.class));
-      }
-    }
-  }
-
-  private static void addFunctionDeclarations(@NotNull List<PsiElement> result,
-                                              PsiElement lastParent,
-                                              @Nullable HaxeFunctionDeclarationWithAttributesImpl[] items) {
-    addDeclarations(result, items);
-    if (items == null) {
-      return;
-    }
-    for (HaxeFunctionDeclarationWithAttributesImpl functionDeclarationWithAttributes : items) {
-      if (functionDeclarationWithAttributes.getParameterList() != null &&
-          PsiTreeUtil.isAncestor(functionDeclarationWithAttributes, lastParent, false)) {
-        result.addAll(UsefulPsiTreeUtil.getSubnodesOfType(functionDeclarationWithAttributes, HaxeNamedComponent.class));
-      }
-    }
   }
 
   private static void addLocalVarDeclarations(@NotNull List<PsiElement> result, @Nullable HaxeLocalVarDeclarationImpl[] items) {

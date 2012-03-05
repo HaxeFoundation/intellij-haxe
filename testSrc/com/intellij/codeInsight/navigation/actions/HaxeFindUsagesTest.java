@@ -51,6 +51,11 @@ public class HaxeFindUsagesTest extends JavaCodeInsightFixtureTestCase {
     doTest(2);
   }
 
+  public void testForDeclaration() throws Throwable {
+    myFixture.configureByFiles("ForDeclaration.hx", "com/bar/IBar.hx");
+    doTest(3);
+  }
+
   public void testLocalVarDeclaration1() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration1.hx");
     doTest(1);

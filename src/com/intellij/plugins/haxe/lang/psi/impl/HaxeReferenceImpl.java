@@ -76,7 +76,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     return ResolveResult.EMPTY_ARRAY;
   }
 
-  private ResolveResult[] toCandidateInfoArray(List<PsiElement> elements) {
+  private static ResolveResult[] toCandidateInfoArray(List<PsiElement> elements) {
     final ResolveResult[] result = new ResolveResult[elements.size()];
     for (int i = 0, size = elements.size(); i < size; i++) {
       result[i] = new CandidateInfo(elements.get(i), null);
@@ -121,9 +121,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
 
-    final HaxeClassDeclaration classDeclaration = HaxeResolveUtil.findClassByQName(qName, type.getContext());
-    if (classDeclaration != null) {
-      return new ResolveResult[]{new CandidateInfo(classDeclaration.getComponentName(), null)};
+    final HaxeNamedComponent namedComponent = HaxeResolveUtil.findNamedComponentByQName(qName, type.getContext());
+    if (namedComponent != null) {
+      return new ResolveResult[]{new CandidateInfo(namedComponent.getComponentName(), null)};
     }
     return ResolveResult.EMPTY_ARRAY;
   }

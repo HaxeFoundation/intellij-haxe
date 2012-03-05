@@ -267,7 +267,8 @@ private notBlockStatement ::= ('untyped' statement)
 ifStatement ::= 'if' '(' expression ')' statement ('else' statement)?
 ifExpression ::= 'if' '(' expression ')' expression ('else' expression)?
 
-forStatement ::= 'for' '(' expression 'in' expression ')' statement
+forStatement ::= 'for' '(' componentName 'in' expression ')' statement
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 whileStatement ::= 'while' '(' expression ')' statement
 doWhileStatement ::= 'do' statement 'while' '(' expression ')'
