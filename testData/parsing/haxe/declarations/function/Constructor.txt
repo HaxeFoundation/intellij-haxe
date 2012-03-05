@@ -1,8 +1,9 @@
 haXe File
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Constructor')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Constructor')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES

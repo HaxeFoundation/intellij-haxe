@@ -1,15 +1,17 @@
 haXe File
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Assign')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Assign')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_VARDECLARATION
         PsiElement(var)('var')
         HAXE_VARDECLARATIONPART
-          HAXE_IDENTIFIER
-            PsiElement(ID)('foo')
+          HAXE_COMPONENTNAME
+            HAXE_IDENTIFIER
+              PsiElement(ID)('foo')
           HAXE_TYPETAG
             PsiElement(:)(':')
             HAXE_TYPE

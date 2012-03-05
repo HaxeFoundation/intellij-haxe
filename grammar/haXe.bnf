@@ -169,17 +169,20 @@ private topLevelDeclaration ::= classDeclaration
 typedefDeclaration ::= 'typedef' identifier typeParam? '=' functionType ';'? {pin=1 recoverUntil="typedef_recover"}
 private typedef_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'private' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
 
-classDeclaration ::= 'private'? 'class' identifier typeParam? inheritList? '{' classBody '}' {pin=2 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
+classDeclaration ::= 'private'? 'class' componentName typeParam? inheritList? '{' classBody '}'
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
 private class_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
 
-interfaceDeclaration ::= 'interface' identifier inheritList? '{' interfaceBody '}' {pin=1 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
+interfaceDeclaration ::= 'interface' componentName inheritList? '{' interfaceBody '}'
+{pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
 private interface_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
 
-enumDeclaration ::= 'enum' identifier typeParam? '{' enumBody '}' {pin=1 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
+enumDeclaration ::= 'enum' componentName typeParam? '{' enumBody '}'
+{pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 enumBody ::= enumValueDeclaration+
 
 /*
@@ -196,28 +199,28 @@ enumConstructorParameters ::= '(' parameterList? ')' {pin=1}
 varDeclarationList ::= varDeclaration+
 varDeclaration ::= declarationAttributeList? 'var' varDeclarationPartList ';' {pin=2}
 private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
-varDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
+varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit? {recoverUntil="var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
 private var_declaration_part_recover ::= !(';' | ',')
 
 localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1 }
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
-localVarDeclarationPart ::= identifier propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
+localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
 private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 
-functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
-functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? ';' {pin=3}
-localFunctionDeclaration ::= 'function' identifier typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2 implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
+functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3 implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
+functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? ';' {pin=3}
+localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2 implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
 
 /*
  *
  */
 
 varInit ::= '=' expression {pin=1}
-parameter ::= '?'? identifier typeTag? varInit? {implements="com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement"}
+parameter ::= '?'? componentName typeTag? varInit? {implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
 parameterList ::= parameter (',' parameter)* {recoverUntil="parameterListRecovery"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
@@ -352,6 +355,8 @@ left arrayAccessExpression ::= '[' expression? ']'
 referenceExpression ::= identifier {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl"}
 left qualifiedReferenceExpression ::= '.' identifier {extends="referenceExpression" elementType="referenceExpression"}
 simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * {elementType="referenceExpression"}
+componentName ::= identifier
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
 identifier ::=  ID
 
 thisExpression ::= 'this'

@@ -1,14 +1,16 @@
 haXe File
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Generic')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Generic')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
         PsiElement(function)('function')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('f')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('f')
         HAXE_TYPEPARAM
           PsiElement(<)('<')
           HAXE_TYPELIST
@@ -20,8 +22,9 @@ haXe File
         PsiElement(()('(')
         HAXE_PARAMETERLIST
           HAXE_PARAMETER
-            HAXE_IDENTIFIER
-              PsiElement(ID)('p')
+            HAXE_COMPONENTNAME
+              HAXE_IDENTIFIER
+                PsiElement(ID)('p')
             HAXE_TYPETAG
               PsiElement(:)(':')
               HAXE_TYPE

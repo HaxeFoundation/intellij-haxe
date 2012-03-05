@@ -5,16 +5,16 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeFunctionDeclarationWithAttributes extends PsiIdentifiedElement {
+public interface HaxeFunctionDeclarationWithAttributes extends HaxeNamedComponent {
 
   @Nullable
   public HaxeBlockStatement getBlockStatement();
 
   @Nullable
-  public HaxeDeclarationAttributeList getDeclarationAttributeList();
+  public HaxeComponentName getComponentName();
 
   @Nullable
-  public HaxeIdentifier getIdentifier();
+  public HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @Nullable
   public HaxeParameterList getParameterList();

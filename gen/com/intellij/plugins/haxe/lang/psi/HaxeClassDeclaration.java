@@ -5,13 +5,13 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeClassDeclaration extends PsiIdentifiedElement {
+public interface HaxeClassDeclaration extends HaxeComponent {
 
   @Nullable
   public HaxeClassBody getClassBody();
 
   @Nullable
-  public HaxeIdentifier getIdentifier();
+  public HaxeComponentName getComponentName();
 
   @Nullable
   public HaxeInheritList getInheritList();

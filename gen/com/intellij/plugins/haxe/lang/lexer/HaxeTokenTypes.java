@@ -29,6 +29,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_CLASSDECLARATION = new HaxeElementType("HAXE_CLASSDECLARATION");
   IElementType HAXE_COMPAREEXPRESSION = new HaxeElementType("HAXE_COMPAREEXPRESSION");
   IElementType HAXE_COMPAREOPERATION = new HaxeElementType("HAXE_COMPAREOPERATION");
+  IElementType HAXE_COMPONENTNAME = new HaxeElementType("HAXE_COMPONENTNAME");
   IElementType HAXE_CONTINUESTATEMENT = new HaxeElementType("HAXE_CONTINUESTATEMENT");
   IElementType HAXE_DECLARATIONATTRIBUTE = new HaxeElementType("HAXE_DECLARATIONATTRIBUTE");
   IElementType HAXE_DECLARATIONATTRIBUTELIST = new HaxeElementType("HAXE_DECLARATIONATTRIBUTELIST");
@@ -261,6 +262,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_COMPAREOPERATION) {
         return new HaxeCompareOperationImpl(node);
+      }
+      else if (type == HAXE_COMPONENTNAME) {
+        return new HaxeComponentNameImpl(node);
       }
       else if (type == HAXE_CONTINUESTATEMENT) {
         return new HaxeContinueStatementImpl(node);

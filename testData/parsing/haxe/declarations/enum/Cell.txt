@@ -1,8 +1,9 @@
 haXe File
   HAXE_ENUMDECLARATION
     PsiElement(enum)('enum')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Cell')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Cell')
     HAXE_TYPEPARAM
       PsiElement(<)('<')
       HAXE_TYPELIST
@@ -24,8 +25,9 @@ haXe File
           PsiElement(()('(')
           HAXE_PARAMETERLIST
             HAXE_PARAMETER
-              HAXE_IDENTIFIER
-                PsiElement(ID)('item')
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('item')
               HAXE_TYPETAG
                 PsiElement(:)(':')
                 HAXE_TYPE
@@ -34,8 +36,9 @@ haXe File
                       PsiElement(ID)('T')
             PsiElement(,)(',')
             HAXE_PARAMETER
-              HAXE_IDENTIFIER
-                PsiElement(ID)('next')
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('next')
               HAXE_TYPETAG
                 PsiElement(:)(':')
                 HAXE_TYPE

@@ -1,8 +1,9 @@
 haXe File
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Test')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Test')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
@@ -11,13 +12,15 @@ haXe File
             HAXE_ACCESS
               PsiElement(public)('public')
         PsiElement(function)('function')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('foo')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('foo')
         PsiElement(()('(')
         HAXE_PARAMETERLIST
           HAXE_PARAMETER
-            HAXE_IDENTIFIER
-              PsiElement(ID)('param1')
+            HAXE_COMPONENTNAME
+              HAXE_IDENTIFIER
+                PsiElement(ID)('param1')
             HAXE_TYPETAG
               PsiElement(:)(':')
               HAXE_TYPE
@@ -26,8 +29,9 @@ haXe File
                     PsiElement(ID)('int')
           PsiElement(,)(',')
           HAXE_PARAMETER
-            HAXE_IDENTIFIER
-              PsiElement(ID)('param2')
+            HAXE_COMPONENTNAME
+              HAXE_IDENTIFIER
+                PsiElement(ID)('param2')
             HAXE_TYPETAG
               PsiElement(:)(':')
               HAXE_TYPE

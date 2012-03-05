@@ -85,6 +85,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == HAXE_COMPAREOPERATION) {
       result_ = compareOperation(builder_, level_ + 1);
     }
+    else if (root_ == HAXE_COMPONENTNAME) {
+      result_ = componentName(builder_, level_ + 1);
+    }
     else if (root_ == HAXE_CONTINUESTATEMENT) {
       result_ = continueStatement(builder_, level_ + 1);
     }
@@ -1187,7 +1190,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'private'? 'class' identifier typeParam? inheritList? '{' classBody '}'
+  // 'private'? 'class' componentName typeParam? inheritList? '{' classBody '}'
   public static boolean classDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classDeclaration")) return false;
     if (!nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KCLASS)) return false;
@@ -1198,7 +1201,7 @@ public class HaxeParser implements PsiParser {
     result_ = classDeclaration_0(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, KCLASS);
     pinned_ = result_; // pin = 2
-    result_ = result_ && report_error_(builder_, identifier(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, componentName(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, classDeclaration_3(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, classDeclaration_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLCURLY)) && result_;
@@ -1370,6 +1373,23 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, OGREATER_OR_EQUAL);
     if (result_) {
       marker_.done(HAXE_COMPAREOPERATION);
+    }
+    else {
+      marker_.rollbackTo();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // identifier
+  public static boolean componentName(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "componentName")) return false;
+    if (!nextTokenIs(builder_, ID)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = identifier(builder_, level_ + 1);
+    if (result_) {
+      marker_.done(HAXE_COMPONENTNAME);
     }
     else {
       marker_.rollbackTo();
@@ -1559,7 +1579,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'enum' identifier typeParam? '{' enumBody '}'
+  // 'enum' componentName typeParam? '{' enumBody '}'
   public static boolean enumDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumDeclaration")) return false;
     if (!nextTokenIs(builder_, KENUM)) return false;
@@ -1569,7 +1589,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, KENUM);
     pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, identifier(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, componentName(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, enumDeclaration_2(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLCURLY)) && result_;
     result_ = pinned_ && report_error_(builder_, enumBody(builder_, level_ + 1)) && result_;
@@ -1767,7 +1787,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+  // declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
   public static boolean functionDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KDYNAMIC)
@@ -1804,13 +1824,13 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ('new' | identifier typeParam?)
+  // ('new' | componentName typeParam?)
   private static boolean functionDeclarationWithAttributes_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_2")) return false;
     return functionDeclarationWithAttributes_2_0(builder_, level_ + 1);
   }
 
-  // 'new' | identifier typeParam?
+  // 'new' | componentName typeParam?
   private static boolean functionDeclarationWithAttributes_2_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_2_0")) return false;
     boolean result_ = false;
@@ -1826,12 +1846,12 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // identifier typeParam?
+  // componentName typeParam?
   private static boolean functionDeclarationWithAttributes_2_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_2_0_1")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = identifier(builder_, level_ + 1);
+    result_ = componentName(builder_, level_ + 1);
     result_ = result_ && functionDeclarationWithAttributes_2_0_1_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
@@ -1953,7 +1973,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // declarationAttributeList? 'function' ('new' | identifier typeParam?) '(' parameterList? ')' typeTag? ';'
+  // declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? ';'
   public static boolean functionPrototypeDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KDYNAMIC)
@@ -1990,13 +2010,13 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ('new' | identifier typeParam?)
+  // ('new' | componentName typeParam?)
   private static boolean functionPrototypeDeclarationWithAttributes_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2")) return false;
     return functionPrototypeDeclarationWithAttributes_2_0(builder_, level_ + 1);
   }
 
-  // 'new' | identifier typeParam?
+  // 'new' | componentName typeParam?
   private static boolean functionPrototypeDeclarationWithAttributes_2_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2_0")) return false;
     boolean result_ = false;
@@ -2012,12 +2032,12 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // identifier typeParam?
+  // componentName typeParam?
   private static boolean functionPrototypeDeclarationWithAttributes_2_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2_0_1")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = identifier(builder_, level_ + 1);
+    result_ = componentName(builder_, level_ + 1);
     result_ = result_ && functionPrototypeDeclarationWithAttributes_2_0_1_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
@@ -2435,7 +2455,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'interface' identifier inheritList? '{' interfaceBody '}'
+  // 'interface' componentName inheritList? '{' interfaceBody '}'
   public static boolean interfaceDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "interfaceDeclaration")) return false;
     if (!nextTokenIs(builder_, KINTERFACE)) return false;
@@ -2445,7 +2465,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, KINTERFACE);
     pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, identifier(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, componentName(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, interfaceDeclaration_2(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLCURLY)) && result_;
     result_ = pinned_ && report_error_(builder_, interfaceBody(builder_, level_ + 1)) && result_;
@@ -2614,7 +2634,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'function' identifier typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+  // 'function' componentName typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
   public static boolean localFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "localFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KFUNCTION)) return false;
@@ -2623,7 +2643,7 @@ public class HaxeParser implements PsiParser {
     final Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, KFUNCTION);
-    result_ = result_ && identifier(builder_, level_ + 1);
+    result_ = result_ && componentName(builder_, level_ + 1);
     pinned_ = result_; // pin = 2
     result_ = result_ && report_error_(builder_, localFunctionDeclaration_2(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLPAREN)) && result_;
@@ -2715,13 +2735,13 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // identifier propertyDeclaration? typeTag? varInit?
+  // componentName propertyDeclaration? typeTag? varInit?
   public static boolean localVarDeclarationPart(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "localVarDeclarationPart")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_);
-    result_ = identifier(builder_, level_ + 1);
+    result_ = componentName(builder_, level_ + 1);
     result_ = result_ && localVarDeclarationPart_1(builder_, level_ + 1);
     result_ = result_ && localVarDeclarationPart_2(builder_, level_ + 1);
     result_ = result_ && localVarDeclarationPart_3(builder_, level_ + 1);
@@ -3511,14 +3531,14 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '?'? identifier typeTag? varInit?
+  // '?'? componentName typeTag? varInit?
   public static boolean parameter(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "parameter")) return false;
     if (!nextTokenIs(builder_, OQUEST) && !nextTokenIs(builder_, ID)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = parameter_0(builder_, level_ + 1);
-    result_ = result_ && identifier(builder_, level_ + 1);
+    result_ = result_ && componentName(builder_, level_ + 1);
     result_ = result_ && parameter_2(builder_, level_ + 1);
     result_ = result_ && parameter_3(builder_, level_ + 1);
     if (result_) {
@@ -5222,13 +5242,13 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // identifier propertyDeclaration? typeTag? varInit?
+  // componentName propertyDeclaration? typeTag? varInit?
   public static boolean varDeclarationPart(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "varDeclarationPart")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_);
-    result_ = identifier(builder_, level_ + 1);
+    result_ = componentName(builder_, level_ + 1);
     result_ = result_ && varDeclarationPart_1(builder_, level_ + 1);
     result_ = result_ && varDeclarationPart_2(builder_, level_ + 1);
     result_ = result_ && varDeclarationPart_3(builder_, level_ + 1);

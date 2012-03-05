@@ -116,14 +116,14 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     String qName = type.getText();
     if (qName.indexOf('.') == -1) {
       final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(type, qName);
-      if (importStatement != null) {
+      if (importStatement != null && importStatement.getExpression() != null) {
         qName = importStatement.getExpression().getText();
       }
     }
 
     final HaxeClassDeclaration classDeclaration = HaxeResolveUtil.findClassByQName(qName, type.getContext());
     if (classDeclaration != null) {
-      return new ResolveResult[]{new CandidateInfo(classDeclaration.getIdentifier(), null)};
+      return new ResolveResult[]{new CandidateInfo(classDeclaration.getComponentName(), null)};
     }
     return ResolveResult.EMPTY_ARRAY;
   }
@@ -137,13 +137,13 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     @Override
     public boolean execute(PsiElement element, ResolveState state) {
-      if (element instanceof PsiIdentifiedElement) {
-        final PsiIdentifiedElement psiIdentifiedElement = (PsiIdentifiedElement)element;
-        if (psiIdentifiedElement.getIdentifier() == null) {
+      if (element instanceof HaxeNamedComponent) {
+        final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
+        if (haxeNamedComponent.getComponentName() == null) {
           return true;
         }
-        if (getIdentifier().getText().equals(psiIdentifiedElement.getIdentifier().getText())) {
-          result.add(((PsiIdentifiedElement)element).getIdentifier());
+        if (getIdentifier().getText().equals(haxeNamedComponent.getComponentName().getText())) {
+          result.add(((HaxeNamedComponent)element).getComponentName());
           return false;
         }
       }

@@ -1,8 +1,9 @@
 haXe File
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('NoReturnType')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('NoReturnType')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
@@ -11,8 +12,9 @@ haXe File
             HAXE_ACCESS
               PsiElement(public)('public')
         PsiElement(function)('function')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('foo')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT

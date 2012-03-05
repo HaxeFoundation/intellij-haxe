@@ -1,0 +1,33 @@
+package com.intellij.plugins.haxe.lang.psi.impl;
+
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * @author: Fedor.Korotkov
+ */
+abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl implements HaxeNamedComponent, PsiNamedElement {
+  public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
+    super(node);
+  }
+
+  @Override
+  public String getName() {
+    final HaxeComponentName name = getComponentName();
+    if (name != null) {
+      return name.getText();
+    }
+    return super.getName();
+  }
+
+  @Override
+  public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
+    return this;
+  }
+}

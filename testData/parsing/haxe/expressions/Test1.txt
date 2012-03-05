@@ -1,14 +1,16 @@
 haXe File
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Test1')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Test1')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
         PsiElement(function)('function')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('foo')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT
@@ -16,8 +18,9 @@ haXe File
           HAXE_LOCALVARDECLARATION
             PsiElement(var)('var')
             HAXE_LOCALVARDECLARATIONPART
-              HAXE_IDENTIFIER
-                PsiElement(ID)('f')
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('f')
               HAXE_VARINIT
                 PsiElement(=)('=')
                 HAXE_FUNCTIONLITERAL

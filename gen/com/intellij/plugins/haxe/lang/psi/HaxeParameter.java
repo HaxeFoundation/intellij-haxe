@@ -5,10 +5,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeParameter extends PsiIdentifiedElement {
+public interface HaxeParameter extends HaxeNamedComponent {
 
   @NotNull
-  public HaxeIdentifier getIdentifier();
+  public HaxeComponentName getComponentName();
 
   @Nullable
   public HaxeTypeTag getTypeTag();

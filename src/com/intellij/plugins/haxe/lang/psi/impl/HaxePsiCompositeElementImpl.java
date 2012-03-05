@@ -2,8 +2,8 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
-import com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveState;
@@ -65,7 +65,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     }
     for (HaxeLocalFunctionDeclarationImpl localFunctionDeclaration : items) {
       if (localFunctionDeclaration.getParameterList() != null && PsiTreeUtil.isAncestor(localFunctionDeclaration, lastParent, false)) {
-        result.addAll(UsefulPsiTreeUtil.getSubnodesOfType(localFunctionDeclaration, PsiIdentifiedElement.class));
+        result.addAll(UsefulPsiTreeUtil.getSubnodesOfType(localFunctionDeclaration, HaxeNamedComponent.class));
       }
     }
   }
@@ -78,8 +78,9 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       return;
     }
     for (HaxeFunctionDeclarationWithAttributesImpl functionDeclarationWithAttributes : items) {
-      if (functionDeclarationWithAttributes.getParameterList() != null && PsiTreeUtil.isAncestor(functionDeclarationWithAttributes, lastParent, false)) {
-        result.addAll(UsefulPsiTreeUtil.getSubnodesOfType(functionDeclarationWithAttributes, PsiIdentifiedElement.class));
+      if (functionDeclarationWithAttributes.getParameterList() != null &&
+          PsiTreeUtil.isAncestor(functionDeclarationWithAttributes, lastParent, false)) {
+        result.addAll(UsefulPsiTreeUtil.getSubnodesOfType(functionDeclarationWithAttributes, HaxeNamedComponent.class));
       }
     }
   }

@@ -9,16 +9,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTopLevelListImpl extends HaxePsiCompositeElementImpl implements HaxeTopLevelList {
+public class HaxeComponentNameImpl extends HaxeNamedElementImpl implements HaxeComponentName {
 
-  public HaxeTopLevelListImpl(ASTNode node) {
+  public HaxeComponentNameImpl(ASTNode node) {
     super(node);
   }
 
   @Override
   @NotNull
-  public List<HaxeTopLevel> getTopLevelList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTopLevel.class);
+  public HaxeIdentifier getIdentifier() {
+    return findNotNullChildByClass(HaxeIdentifier.class);
   }
 
 }

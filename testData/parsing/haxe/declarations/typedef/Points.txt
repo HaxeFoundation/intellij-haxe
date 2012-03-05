@@ -10,8 +10,9 @@ haXe File
         HAXE_VARDECLARATION
           PsiElement(var)('var')
           HAXE_VARDECLARATIONPART
-            HAXE_IDENTIFIER
-              PsiElement(ID)('x')
+            HAXE_COMPONENTNAME
+              HAXE_IDENTIFIER
+                PsiElement(ID)('x')
             HAXE_TYPETAG
               PsiElement(:)(':')
               HAXE_TYPE
@@ -22,8 +23,9 @@ haXe File
         HAXE_VARDECLARATION
           PsiElement(var)('var')
           HAXE_VARDECLARATIONPART
-            HAXE_IDENTIFIER
-              PsiElement(ID)('y')
+            HAXE_COMPONENTNAME
+              HAXE_IDENTIFIER
+                PsiElement(ID)('y')
             HAXE_TYPETAG
               PsiElement(:)(':')
               HAXE_TYPE
@@ -34,14 +36,16 @@ haXe File
       PsiElement(})('}')
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Points')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Points')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
         PsiElement(function)('function')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('foo')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT
@@ -49,8 +53,9 @@ haXe File
           HAXE_LOCALVARDECLARATION
             PsiElement(var)('var')
             HAXE_LOCALVARDECLARATIONPART
-              HAXE_IDENTIFIER
-                PsiElement(ID)('p')
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('p')
               HAXE_TYPETAG
                 PsiElement(:)(':')
                 HAXE_ANONYMOUSTYPE

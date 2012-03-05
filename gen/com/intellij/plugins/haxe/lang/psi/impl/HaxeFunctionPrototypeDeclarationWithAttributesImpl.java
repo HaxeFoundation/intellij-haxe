@@ -17,14 +17,14 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends HaxePsiC
 
   @Override
   @Nullable
-  public HaxeDeclarationAttributeList getDeclarationAttributeList() {
-    return findChildByClass(HaxeDeclarationAttributeList.class);
+  public HaxeComponentName getComponentName() {
+    return findChildByClass(HaxeComponentName.class);
   }
 
   @Override
   @Nullable
-  public HaxeIdentifier getIdentifier() {
-    return findChildByClass(HaxeIdentifier.class);
+  public HaxeDeclarationAttributeList getDeclarationAttributeList() {
+    return findChildByClass(HaxeDeclarationAttributeList.class);
   }
 
   @Override

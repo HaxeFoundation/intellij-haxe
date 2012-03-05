@@ -1,14 +1,16 @@
 haXe File
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('TryCatch')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('TryCatch')
     PsiElement({)('{')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
         PsiElement(function)('function')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('foo')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT
@@ -36,8 +38,9 @@ haXe File
               PsiElement(catch)('catch')
               PsiElement(()('(')
               HAXE_PARAMETER
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('e')
+                HAXE_COMPONENTNAME
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('e')
                 HAXE_TYPETAG
                   PsiElement(:)(':')
                   HAXE_TYPE

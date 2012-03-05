@@ -5,7 +5,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.util.Key;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.PsiIdentifiedElement;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -52,11 +52,11 @@ public class HaxeLocalReferenceCompletionContributor extends CompletionContribut
 
     @Override
     public boolean execute(PsiElement element, ResolveState state) {
-      if (element instanceof PsiIdentifiedElement) {
-        final PsiIdentifiedElement psiIdentifiedElement = (PsiIdentifiedElement)element;
-        if (psiIdentifiedElement.getIdentifier() != null &&
-            !PsiTreeUtil.isAncestor(psiIdentifiedElement, position, false)) {
-          result.add(psiIdentifiedElement.getIdentifier().getText());
+      if (element instanceof HaxeNamedComponent) {
+        final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
+        if (haxeNamedComponent.getComponentName() != null &&
+            !PsiTreeUtil.isAncestor(haxeNamedComponent, position, false)) {
+          result.add(haxeNamedComponent.getComponentName().getText());
         }
       }
       return true;

@@ -5,7 +5,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -14,9 +14,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +73,7 @@ public class HaxeResolveUtil {
     }
     for (HaxeClassDeclaration classDeclaration : declarations) {
       final String fileName = FileUtil.getNameWithoutExtension(file.getName());
-      final HaxeIdentifier identifier = classDeclaration.getIdentifier();
+      final HaxeComponentName identifier = classDeclaration.getComponentName();
       if (identifier != null && fileName.equals(identifier.getText())) {
         return classDeclaration;
       }
