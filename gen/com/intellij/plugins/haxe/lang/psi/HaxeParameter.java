@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeParameter extends HaxeNamedComponent {
+public interface HaxeParameter extends HaxeComponent {
 
   @NotNull
   public HaxeComponentName getComponentName();

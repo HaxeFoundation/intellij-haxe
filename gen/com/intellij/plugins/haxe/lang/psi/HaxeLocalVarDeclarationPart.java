@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeLocalVarDeclarationPart extends HaxeNamedComponent {
+public interface HaxeLocalVarDeclarationPart extends HaxeComponent {
 
   @NotNull
   public HaxeComponentName getComponentName();

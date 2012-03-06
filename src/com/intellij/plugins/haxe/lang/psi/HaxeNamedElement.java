@@ -1,9 +1,10 @@
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.navigation.NavigationItem;
 import com.intellij.psi.PsiNamedElement;
 
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeNamedElement extends HaxePsiCompositeElement, PsiNamedElement {
+public interface HaxeNamedElement extends HaxePsiCompositeElement, PsiNamedElement, NavigationItem {
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeFunctionDeclarationWithAttributes extends HaxeNamedComponent {
+public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponent {
 
   @Nullable
   public HaxeBlockStatement getBlockStatement();

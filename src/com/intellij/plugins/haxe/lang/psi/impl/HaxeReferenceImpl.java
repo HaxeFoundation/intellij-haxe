@@ -3,23 +3,22 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.ide.HaxeLookupElement;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferenceExpression, PsiPolyVariantReference {
 
@@ -84,7 +83,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     final List<PsiElement> result = new ArrayList<PsiElement>();
-    PsiTreeUtil.treeWalkUp(new MyPsiScopeProcessor(result), getParent(), null, new ResolveState());
+    PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result), getParent(), null, new ResolveState());
     if (result.size() > 0) {
       return toCandidateInfoArray(result);
     }
@@ -119,8 +118,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @NotNull
   @Override
   public Object[] getVariants() {
-    //todo
-    return ArrayUtil.EMPTY_STRING_ARRAY;
+    final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
+    PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants, this), this, null, new ResolveState());
+    return HaxeLookupElement.convert(suggestedVariants).toArray();
   }
 
   @NotNull
@@ -143,10 +143,10 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     return ResolveResult.EMPTY_ARRAY;
   }
 
-  private class MyPsiScopeProcessor implements PsiScopeProcessor {
+  private class ResolveScopeProcessor implements PsiScopeProcessor {
     private final List<PsiElement> result;
 
-    private MyPsiScopeProcessor(List<PsiElement> result) {
+    private ResolveScopeProcessor(List<PsiElement> result) {
       this.result = result;
     }
 
@@ -160,6 +160,37 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         if (getIdentifier().getText().equals(haxeNamedComponent.getComponentName().getText())) {
           result.add(((HaxeNamedComponent)element).getComponentName());
           return false;
+        }
+      }
+      return true;
+    }
+
+    @Override
+    public <T> T getHint(Key<T> hintKey) {
+      return null;
+    }
+
+    @Override
+    public void handleEvent(Event event, @Nullable Object associated) {
+    }
+  }
+
+  private static class ComponentNameScopeProcessor implements PsiScopeProcessor {
+    private final Set<HaxeComponentName> result;
+    private final PsiElement position;
+
+    private ComponentNameScopeProcessor(Set<HaxeComponentName> result, PsiElement position) {
+      this.result = result;
+      this.position = position;
+    }
+
+    @Override
+    public boolean execute(PsiElement element, ResolveState state) {
+      if (element instanceof HaxeNamedComponent) {
+        final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
+        if (haxeNamedComponent.getComponentName() != null &&
+            !PsiTreeUtil.isAncestor(haxeNamedComponent, position, false)) {
+          result.add(haxeNamedComponent.getComponentName());
         }
       }
       return true;

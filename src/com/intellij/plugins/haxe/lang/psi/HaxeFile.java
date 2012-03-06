@@ -7,6 +7,8 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.FileViewProvider;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+
 public class HaxeFile extends PsiFileBase {
   public HaxeFile(@NotNull FileViewProvider viewProvider) {
     super(viewProvider, HaxeLanguage.INSTANCE);
@@ -21,5 +23,10 @@ public class HaxeFile extends PsiFileBase {
   @Override
   public String toString() {
     return "haXe File";
+  }
+
+  @Override
+  public Icon getIcon(int flags) {
+    return super.getIcon(flags);
   }
 }

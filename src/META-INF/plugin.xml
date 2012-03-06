@@ -12,6 +12,8 @@
         <li>Code formatter</li>
         <li>Parsing fixes</li>
         <li>Fixes for MacOS</li>
+        <li>Go to Class</li>
+        <li>Icons for components</li>
       </ul>
       <p>0.1:</p>
       <ul>
@@ -33,6 +35,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
+
+    <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompiler"/>
@@ -58,7 +62,6 @@
     <quoteHandler fileType="haXe" className="com.intellij.plugins.haxe.ide.HaxeQuoteHandler"/>
 
     <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
-    <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLocalReferenceCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 
@@ -68,6 +71,9 @@
     <internalFileTemplate name="haXe Class"/>
     <internalFileTemplate name="haXe Interface"/>
     <internalFileTemplate name="haXe Enum"/>
+
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
+    <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeClassContributor"/>
 
     <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.lang.annotator.HaxeReferenceAnnotator"/>-->
   </extensions>

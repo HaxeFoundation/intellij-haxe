@@ -199,28 +199,34 @@ enumConstructorParameters ::= '(' parameterList? ')' {pin=1}
 varDeclarationList ::= varDeclaration+
 varDeclaration ::= declarationAttributeList? 'var' varDeclarationPartList ';' {pin=2}
 private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
-varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit? {recoverUntil="var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
+varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
+{recoverUntil="var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 private var_declaration_part_recover ::= !(';' | ',')
 
 localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1 }
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
-localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit? {recoverUntil="local_var_declaration_part_recover" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
+localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
+{recoverUntil="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 
-functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=3 implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
-functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? ';' {pin=3}
-localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2 implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
+functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? ';'
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 /*
  *
  */
 
 varInit ::= '=' expression {pin=1}
-parameter ::= '?'? componentName typeTag? varInit? {implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent"}
+parameter ::= '?'? componentName typeTag? varInit?
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 parameterList ::= parameter (',' parameter)* {recoverUntil="parameterListRecovery"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
