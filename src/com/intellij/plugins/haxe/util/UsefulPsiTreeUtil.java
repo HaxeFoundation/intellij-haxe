@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -17,6 +18,15 @@ import java.util.*;
  * @author: Fedor.Korotkov
  */
 public class UsefulPsiTreeUtil {
+  @NotNull
+  public static String findPackageName(PsiFile file) {
+    final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(file, HaxePackageStatement.class);
+    if (packageStatement == null || packageStatement.getExpression() == null) {
+      return "";
+    }
+    return packageStatement.getExpression().getText();
+  }
+
   @Nullable
   public static PsiElement getPrevSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement sibling) {
     if (sibling == null) return null;

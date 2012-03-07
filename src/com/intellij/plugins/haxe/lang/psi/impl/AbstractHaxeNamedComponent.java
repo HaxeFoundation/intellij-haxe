@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
-import com.intellij.plugins.haxe.HaxeIcons;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -39,7 +39,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public Icon getIcon(int flags) {
-    return HaxeIcons.getIcon(this, flags);
+    final HaxeComponentType type = HaxeComponentType.typeOf(this);
+    return type == null ? null : type.getIcon();
   }
 
   @Override

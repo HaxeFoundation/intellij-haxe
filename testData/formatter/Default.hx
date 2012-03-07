@@ -1,4 +1,4 @@
-class Foo{
+import com.Foo;class Foo{
 // function fBar (x,y);
     function fOne(argA:Int,     
                   argB, argC, argD,

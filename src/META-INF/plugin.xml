@@ -62,6 +62,7 @@
     <quoteHandler fileType="haXe" className="com.intellij.plugins.haxe.ide.HaxeQuoteHandler"/>
 
     <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
+    <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 
