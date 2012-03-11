@@ -128,19 +128,30 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (type == null || type.getContext() == null) {
       return ResolveResult.EMPTY_ARRAY;
     }
-    String qName = type.getText();
-    if (qName.indexOf('.') == -1) {
-      final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(type, qName);
-      if (importStatement != null && importStatement.getExpression() != null) {
-        qName = importStatement.getExpression().getText();
-      }
-    }
+    final String qName = getQName(type);
 
     final HaxeNamedComponent namedComponent = HaxeResolveUtil.findNamedComponentByQName(qName, type.getContext());
     if (namedComponent != null) {
       return new ResolveResult[]{new CandidateInfo(namedComponent.getComponentName(), null)};
     }
     return ResolveResult.EMPTY_ARRAY;
+  }
+
+  private static String getQName(HaxeType type) {
+    String result = type.getText();
+    if (result.indexOf('.') == -1) {
+      final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(type, result);
+      if (importStatement != null && importStatement.getExpression() != null) {
+        result = importStatement.getExpression().getText();
+      }
+      else {
+        final String packageName = HaxeResolveUtil.getPackageName(type.getContainingFile());
+        if (!packageName.isEmpty()) {
+          result = packageName + "." + result;
+        }
+      }
+    }
+    return result;
   }
 
   private class ResolveScopeProcessor implements PsiScopeProcessor {
