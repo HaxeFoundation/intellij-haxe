@@ -33,6 +33,11 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   @Override
+  public String getText() {
+    return super.getText();
+  }
+
+  @Override
   public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
     return this;
   }

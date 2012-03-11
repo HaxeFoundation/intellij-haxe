@@ -52,7 +52,8 @@
     <lang.syntaxHighlighterFactory key="haXe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
     <lang.braceMatcher language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
     <lang.findUsagesProvider language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider"/>
-
+    <lang.implementationTextSelectioner language="haXe"
+                                        implementationClass="com.intellij.plugins.haxe.ide.HaxeImplementationTextSelectioner"/>
 
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
 

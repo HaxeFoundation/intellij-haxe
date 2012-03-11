@@ -188,8 +188,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     public boolean execute(PsiElement element, ResolveState state) {
       if (element instanceof HaxeNamedComponent) {
         final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
-        if (haxeNamedComponent.getComponentName() != null &&
-            !PsiTreeUtil.isAncestor(haxeNamedComponent, position, false)) {
+        if (haxeNamedComponent.getComponentName() != null) {
           result.add(haxeNamedComponent.getComponentName());
         }
       }

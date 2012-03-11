@@ -49,7 +49,7 @@ public class HaxeLookupElement extends LookupElement {
     presentation.setIcon(myComponentNamePresentation.getIcon(true));
     final String pkg = myComponentNamePresentation.getLocationString();
     if (StringUtil.isNotEmpty(pkg)) {
-      presentation.setTailText(" (" + pkg + ")", true);
+      presentation.setTailText(" " + pkg, true);
     }
   }
 
