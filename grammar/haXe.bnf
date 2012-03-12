@@ -122,6 +122,9 @@
     kUNTYPE="untyped"
     kTYPEDEF="typedef"
 
+    kEXTERN="extern"
+    kMACRO="@:macro"
+
     kTRY="try"
     kCATCH="catch"
 
@@ -141,7 +144,7 @@ haxeFile ::= packageStatement? topLevelList
 assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>='
 compareOperation ::= '==' | '!=' | '<=' | '<' | '>' | '>='
 bitOperation ::= '|' | '&' | '^'
-shiftOperator ::= shiftRightOperator | unsignedShiftRightOperator | '<<'
+shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | '<<'
 
 shiftRightOperator ::= '>' '>'
 unsignedShiftRightOperator ::= '>' '>' '>'
@@ -150,7 +153,7 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel+
 private topLevel ::= importStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
-private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'private' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
+private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:macro' | 'class' | 'enum' | 'extern' | 'import' | 'interface' | 'private' | 'typedef')
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 
@@ -162,28 +165,34 @@ ppEnd  ::= '#end' {pin=1}
 ppError ::= '#error' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration
+                              | externClassDeclaration
                               | interfaceDeclaration
                               | enumDeclaration
                               | typedefDeclaration
 
-typedefDeclaration ::= 'typedef' identifier typeParam? '=' functionType ';'? {pin=1 recoverUntil="typedef_recover"}
-private typedef_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'private' | 'class' | 'enum' | 'import' | 'interface' | 'typedef')
+externOrPrivate ::= 'extern' | 'private'
 
-classDeclaration ::= 'private'? 'class' componentName typeParam? inheritList? '{' classBody '}'
+typedefDeclaration ::= externOrPrivate? 'typedef' componentName typeParam? '=' functionType ';'?
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+
+externClassDeclaration ::= 'extern' 'class' componentName typeParam? inheritList? '{' interfaceBody '}'
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+
+classDeclaration ::= '@:macro'? 'private'? 'class' componentName typeParam? inheritList? '{' classBody '}'
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
-private class_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
+private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:macro' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' )
 
-interfaceDeclaration ::= 'interface' componentName inheritList? '{' interfaceBody '}'
-{pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+interfaceDeclaration ::= externOrPrivate? 'interface' componentName typeParam? inheritList? '{' interfaceBody '}'
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
-private interface_body_part_recover ::= !('}' | '#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var')
+private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' )
 
-enumDeclaration ::= 'enum' componentName typeParam? '{' enumBody '}'
-{pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-enumBody ::= enumValueDeclaration+
+enumDeclaration ::= externOrPrivate? 'enum' componentName typeParam? '{' enumBody '}'
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+enumBody ::= enumValueDeclaration*
 
 /*
  *  declarations
@@ -193,10 +202,11 @@ access ::= 'public' | 'private'
 declarationAttribute ::= 'static' | 'inline' | 'dynamic' | 'override' | access
 declarationAttributeList ::= declarationAttribute+
 
-enumValueDeclaration ::= pp | (identifier enumConstructorParameters? ';')
+enumValueDeclaration ::= pp | (identifier enumConstructorParameters? ';') {recoverUntil="enum_value_declaration_recovery"}
+private enum_value_declaration_recovery ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | ID | '}')
+
 enumConstructorParameters ::= '(' parameterList? ')' {pin=1}
 
-varDeclarationList ::= varDeclaration+
 varDeclaration ::= declarationAttributeList? 'var' varDeclarationPartList ';' {pin=2}
 private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
 varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
@@ -213,8 +223,8 @@ propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 
-functionDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+functionDeclarationWithAttributes ::= '@:macro'? declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 functionPrototypeDeclarationWithAttributes ::= declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
@@ -364,7 +374,7 @@ left qualifiedReferenceExpression ::= '.' identifier {extends="referenceExpressi
 simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * {elementType="referenceExpression"}
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
-identifier ::=  ID
+identifier ::= ID
 
 thisExpression ::= 'this'
 
@@ -376,11 +386,15 @@ inheritList ::= inherit (',' inherit)*
 
 inherit ::= ('extends' | 'implements') type {pin=1}
 
-anonymousType ::= '{' typeExtends? (varDeclarationList | anonymousTypeFieldList)? '}' {extends="functionType"}
+anonymousType ::= '{' anonymousTypeBody '}' {extends="functionType"}
 
-typeExtends ::= '>' functionType ','
+anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBody
+private extendedAnonymousTypeBody ::= typeExtends (',' anonymousTypeFieldList)? (',' interfaceBody)?
+private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBody)?
 
-anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField )*
+typeExtends ::= '>' functionType
+
+anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 
 anonymousTypeField ::= identifier ':' functionType
 

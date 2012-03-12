@@ -110,6 +110,9 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "untype"                                  {  return KUNTYPE;  }
 "typedef"                                 {  return KTYPEDEF;  }
 
+"extern"                                  {  return KEXTERN;  }
+"@:macro"                                 {  return KMACRO;  }
+
 "try"                                     {  return KTRY;  }
 "catch"                                   {  return KCATCH;  }
 

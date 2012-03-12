@@ -9,22 +9,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeInterfaceDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeInterfaceDeclaration {
+public class HaxeExternClassDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeExternClassDeclaration {
 
-  public HaxeInterfaceDeclarationImpl(ASTNode node) {
+  public HaxeExternClassDeclarationImpl(ASTNode node) {
     super(node);
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeComponentName getComponentName() {
-    return findChildByClass(HaxeComponentName.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeExternOrPrivate getExternOrPrivate() {
-    return findChildByClass(HaxeExternOrPrivate.class);
+    return findNotNullChildByClass(HaxeComponentName.class);
   }
 
   @Override

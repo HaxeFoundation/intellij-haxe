@@ -11,6 +11,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_ACCESS = new HaxeElementType("HAXE_ACCESS");
   IElementType HAXE_ADDITIVEEXPRESSION = new HaxeElementType("HAXE_ADDITIVEEXPRESSION");
   IElementType HAXE_ANONYMOUSTYPE = new HaxeElementType("HAXE_ANONYMOUSTYPE");
+  IElementType HAXE_ANONYMOUSTYPEBODY = new HaxeElementType("HAXE_ANONYMOUSTYPEBODY");
   IElementType HAXE_ANONYMOUSTYPEFIELD = new HaxeElementType("HAXE_ANONYMOUSTYPEFIELD");
   IElementType HAXE_ANONYMOUSTYPEFIELDLIST = new HaxeElementType("HAXE_ANONYMOUSTYPEFIELDLIST");
   IElementType HAXE_ARRAYACCESSEXPRESSION = new HaxeElementType("HAXE_ARRAYACCESSEXPRESSION");
@@ -41,6 +42,8 @@ public interface HaxeTokenTypes {
   IElementType HAXE_ENUMVALUEDECLARATION = new HaxeElementType("HAXE_ENUMVALUEDECLARATION");
   IElementType HAXE_EXPRESSION = new HaxeElementType("HAXE_EXPRESSION");
   IElementType HAXE_EXPRESSIONLIST = new HaxeElementType("HAXE_EXPRESSIONLIST");
+  IElementType HAXE_EXTERNCLASSDECLARATION = new HaxeElementType("HAXE_EXTERNCLASSDECLARATION");
+  IElementType HAXE_EXTERNORPRIVATE = new HaxeElementType("HAXE_EXTERNORPRIVATE");
   IElementType HAXE_FORSTATEMENT = new HaxeElementType("HAXE_FORSTATEMENT");
   IElementType HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES = new HaxeElementType("HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES");
   IElementType HAXE_FUNCTIONLITERAL = new HaxeElementType("HAXE_FUNCTIONLITERAL");
@@ -99,7 +102,6 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TYPEDEFDECLARATION = new HaxeElementType("HAXE_TYPEDEFDECLARATION");
   IElementType HAXE_UNSIGNEDSHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_UNSIGNEDSHIFTRIGHTOPERATOR");
   IElementType HAXE_VARDECLARATION = new HaxeElementType("HAXE_VARDECLARATION");
-  IElementType HAXE_VARDECLARATIONLIST = new HaxeElementType("HAXE_VARDECLARATIONLIST");
   IElementType HAXE_VARDECLARATIONPART = new HaxeElementType("HAXE_VARDECLARATIONPART");
   IElementType HAXE_VARINIT = new HaxeElementType("HAXE_VARINIT");
   IElementType HAXE_WHILESTATEMENT = new HaxeElementType("HAXE_WHILESTATEMENT");
@@ -117,6 +119,7 @@ public interface HaxeTokenTypes {
   IElementType KELSE = new HaxeElementType("else");
   IElementType KENUM = new HaxeElementType("enum");
   IElementType KEXTENDS = new HaxeElementType("extends");
+  IElementType KEXTERN = new HaxeElementType("extern");
   IElementType KFOR = new HaxeElementType("for");
   IElementType KFUNCTION = new HaxeElementType("function");
   IElementType KIF = new HaxeElementType("if");
@@ -124,6 +127,7 @@ public interface HaxeTokenTypes {
   IElementType KIMPORT = new HaxeElementType("import");
   IElementType KINLINE = new HaxeElementType("inline");
   IElementType KINTERFACE = new HaxeElementType("interface");
+  IElementType KMACRO = new HaxeElementType("@:macro");
   IElementType KNULL = new HaxeElementType("null");
   IElementType KOVERRIDE = new HaxeElementType("override");
   IElementType KPACKAGE = new HaxeElementType("package");
@@ -208,6 +212,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_ANONYMOUSTYPE) {
         return new HaxeAnonymousTypeImpl(node);
+      }
+      else if (type == HAXE_ANONYMOUSTYPEBODY) {
+        return new HaxeAnonymousTypeBodyImpl(node);
       }
       else if (type == HAXE_ANONYMOUSTYPEFIELD) {
         return new HaxeAnonymousTypeFieldImpl(node);
@@ -298,6 +305,12 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_EXPRESSIONLIST) {
         return new HaxeExpressionListImpl(node);
+      }
+      else if (type == HAXE_EXTERNCLASSDECLARATION) {
+        return new HaxeExternClassDeclarationImpl(node);
+      }
+      else if (type == HAXE_EXTERNORPRIVATE) {
+        return new HaxeExternOrPrivateImpl(node);
       }
       else if (type == HAXE_FORSTATEMENT) {
         return new HaxeForStatementImpl(node);
@@ -472,9 +485,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_VARDECLARATION) {
         return new HaxeVarDeclarationImpl(node);
-      }
-      else if (type == HAXE_VARDECLARATIONLIST) {
-        return new HaxeVarDeclarationListImpl(node);
       }
       else if (type == HAXE_VARDECLARATIONPART) {
         return new HaxeVarDeclarationPartImpl(node);

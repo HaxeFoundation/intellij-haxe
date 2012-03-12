@@ -1,38 +1,40 @@
 haXe File
   HAXE_TYPEDEFDECLARATION
     PsiElement(typedef)('typedef')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('Point')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Point')
     PsiElement(=)('=')
     HAXE_ANONYMOUSTYPE
       PsiElement({)('{')
-      HAXE_VARDECLARATIONLIST
-        HAXE_VARDECLARATION
-          PsiElement(var)('var')
-          HAXE_VARDECLARATIONPART
-            HAXE_COMPONENTNAME
-              HAXE_IDENTIFIER
-                PsiElement(ID)('x')
-            HAXE_TYPETAG
-              PsiElement(:)(':')
-              HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('Int')
-          PsiElement(;)(';')
-        HAXE_VARDECLARATION
-          PsiElement(var)('var')
-          HAXE_VARDECLARATIONPART
-            HAXE_COMPONENTNAME
-              HAXE_IDENTIFIER
-                PsiElement(ID)('y')
-            HAXE_TYPETAG
-              PsiElement(:)(':')
-              HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('Int')
-          PsiElement(;)(';')
+      HAXE_ANONYMOUSTYPEBODY
+        HAXE_INTERFACEBODY
+          HAXE_VARDECLARATION
+            PsiElement(var)('var')
+            HAXE_VARDECLARATIONPART
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('x')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+            PsiElement(;)(';')
+          HAXE_VARDECLARATION
+            PsiElement(var)('var')
+            HAXE_VARDECLARATIONPART
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('y')
+              HAXE_TYPETAG
+                PsiElement(:)(':')
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
+            PsiElement(;)(';')
       PsiElement(})('}')
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
@@ -60,22 +62,23 @@ haXe File
                 PsiElement(:)(':')
                 HAXE_ANONYMOUSTYPE
                   PsiElement({)('{')
-                  HAXE_TYPEEXTENDS
-                    PsiElement(>)('>')
-                    HAXE_TYPE
-                      HAXE_REFERENCEEXPRESSION
-                        HAXE_IDENTIFIER
-                          PsiElement(ID)('Point')
-                    PsiElement(,)(',')
-                  HAXE_ANONYMOUSTYPEFIELDLIST
-                    HAXE_ANONYMOUSTYPEFIELD
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('z')
-                      PsiElement(:)(':')
+                  HAXE_ANONYMOUSTYPEBODY
+                    HAXE_TYPEEXTENDS
+                      PsiElement(>)('>')
                       HAXE_TYPE
                         HAXE_REFERENCEEXPRESSION
                           HAXE_IDENTIFIER
-                            PsiElement(ID)('Int')
+                            PsiElement(ID)('Point')
+                    PsiElement(,)(',')
+                    HAXE_ANONYMOUSTYPEFIELDLIST
+                      HAXE_ANONYMOUSTYPEFIELD
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('z')
+                        PsiElement(:)(':')
+                        HAXE_TYPE
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('Int')
                   PsiElement(})('}')
           HAXE_ASSIGNEXPRESSION
             HAXE_REFERENCEEXPRESSION

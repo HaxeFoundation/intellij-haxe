@@ -78,14 +78,15 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, Componen
 
   public static Collection<NavigationItem> getItemsByName(final String name, Project project) {
     Collection<VirtualFile> files =
-      FileBasedIndex.getInstance().getContainingFiles(HAXE_COMPONENT_INDEX, name, GlobalSearchScope.projectScope(project));
+      FileBasedIndex.getInstance().getContainingFiles(HAXE_COMPONENT_INDEX, name, GlobalSearchScope.allScope(project));
     final Collection<NavigationItem> result = new ArrayList<NavigationItem>();
     for (VirtualFile vFile : files) {
       PsiFile file = PsiManager.getInstance(project).findFile(vFile);
       if (file == null || file.getFileType() != HaxeFileType.HAXE_FILE_TYPE) {
         continue;
       }
-      for (HaxeComponent component : HaxeResolveUtil.findComponentDeclarations(file)) {
+      final HaxeComponent component = HaxeResolveUtil.findComponentDeclaration(file, name);
+      if (component != null) {
         result.add(component);
       }
     }

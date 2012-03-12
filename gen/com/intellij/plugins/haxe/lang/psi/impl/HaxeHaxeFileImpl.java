@@ -29,6 +29,12 @@ public class HaxeHaxeFileImpl extends HaxePsiCompositeElementImpl implements Hax
 
   @Override
   @NotNull
+  public List<HaxeExternClassDeclaration> getExternClassDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExternClassDeclaration.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeImportStatement> getImportStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeImportStatement.class);
   }

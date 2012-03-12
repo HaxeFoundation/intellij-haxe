@@ -63,4 +63,8 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
   public void testSamePackage() {
     doTest(myFixture.configureByFiles("com/bar/Baz.hx", "com/bar/Foo.hx"), 1);
   }
+
+  public void testExternClass() {
+    doTest(myFixture.configureByFiles("ExternClass.hx", "com/bar/Foo.hx"), 1);
+  }
 }

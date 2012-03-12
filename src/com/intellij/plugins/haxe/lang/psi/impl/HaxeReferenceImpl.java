@@ -119,7 +119,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public Object[] getVariants() {
     final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
-    PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants, this), this, null, new ResolveState());
+    PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
     return HaxeLookupElement.convert(suggestedVariants).toArray();
   }
 
@@ -188,11 +188,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   private static class ComponentNameScopeProcessor implements PsiScopeProcessor {
     private final Set<HaxeComponentName> result;
-    private final PsiElement position;
 
-    private ComponentNameScopeProcessor(Set<HaxeComponentName> result, PsiElement position) {
+    private ComponentNameScopeProcessor(Set<HaxeComponentName> result) {
       this.result = result;
-      this.position = position;
     }
 
     @Override

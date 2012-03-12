@@ -9,16 +9,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeAnonymousTypeImpl extends HaxeFunctionTypeImpl implements HaxeAnonymousType {
+public class HaxeExternOrPrivateImpl extends HaxePsiCompositeElementImpl implements HaxeExternOrPrivate {
 
-  public HaxeAnonymousTypeImpl(ASTNode node) {
+  public HaxeExternOrPrivateImpl(ASTNode node) {
     super(node);
-  }
-
-  @Override
-  @NotNull
-  public HaxeAnonymousTypeBody getAnonymousTypeBody() {
-    return findNotNullChildByClass(HaxeAnonymousTypeBody.class);
   }
 
 }

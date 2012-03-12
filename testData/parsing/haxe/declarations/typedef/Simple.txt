@@ -1,8 +1,9 @@
 haXe File
   HAXE_TYPEDEFDECLARATION
     PsiElement(typedef)('typedef')
-    HAXE_IDENTIFIER
-      PsiElement(ID)('vi')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('vi')
     PsiElement(=)('=')
     HAXE_TYPE
       HAXE_REFERENCEEXPRESSION

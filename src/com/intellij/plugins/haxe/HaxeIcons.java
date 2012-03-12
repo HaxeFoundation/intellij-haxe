@@ -11,6 +11,7 @@ public interface HaxeIcons {
   Icon CLASS_ICON = IconLoader.getIcon("/icons/C_haXe.png");
   Icon ENUM_ICON = IconLoader.getIcon("/icons/E_haXe.png");
   Icon INTERFACE_ICON = IconLoader.getIcon("/icons/I_haXe.png");
+  Icon TYPEDEF_ICON = IconLoader.getIcon("/nodes/annotationtype.png");
 
   Icon FUNCTION = IconLoader.getIcon("/nodes/function.png");
   Icon METHOD = IconLoader.getIcon("/nodes/method.png");

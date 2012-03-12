@@ -1,9 +1,6 @@
 package com.intellij.plugins.haxe;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassDeclarationImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumDeclarationImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeInterfaceDeclarationImpl;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +50,11 @@ public enum HaxeComponentType {
     public Icon getIcon() {
       return HaxeIcons.PARAMETER;
     }
+  }, TYPEDEF(8) {
+    @Override
+    public Icon getIcon() {
+      return HaxeIcons.TYPEDEF_ICON;
+    }
   };
 
   private final int myKey;
@@ -86,20 +88,26 @@ public enum HaxeComponentType {
         return FIELD;
       case 7:
         return PARAMETER;
+      case 8:
+        return TYPEDEF;
     }
     return null;
   }
 
   @Nullable
   public static HaxeComponentType typeOf(PsiElement element) {
-    if (element instanceof HaxeClassDeclarationImpl) {
+    if (element instanceof HaxeClassDeclaration ||
+        element instanceof HaxeExternClassDeclaration) {
       return CLASS;
     }
-    if (element instanceof HaxeEnumDeclarationImpl) {
+    if (element instanceof HaxeEnumDeclaration) {
       return ENUM;
     }
-    if (element instanceof HaxeInterfaceDeclarationImpl) {
+    if (element instanceof HaxeInterfaceDeclaration) {
       return INTERFACE;
+    }
+    if (element instanceof HaxeTypedefDeclaration) {
+      return TYPEDEF;
     }
     if (element instanceof HaxeFunctionDeclarationWithAttributes ||
         element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {

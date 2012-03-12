@@ -163,7 +163,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     commandLine.addParameter("-main");
     commandLine.addParameter(mainClass);
 
-    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().exportedOnly().sources().getRoots()) {
+    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().withoutSdk().exportedOnly().sources().getRoots()) {
       commandLine.addParameter("-cp");
       commandLine.addParameter(sourceRoot.getPath());
     }

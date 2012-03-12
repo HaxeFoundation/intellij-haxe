@@ -5,6 +5,9 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -60,6 +63,24 @@ public class HaxeSdkUtil {
     catch (ExecutionException e) {
       LOG.info("Exception while executing the process:", e);
       return null;
+    }
+  }
+
+  public static void setupSdkPaths(@Nullable VirtualFile sdkRoot, SdkModificator modificator) {
+    if (sdkRoot == null) {
+      return;
+    }
+    final VirtualFile stdRoot = sdkRoot.findChild("std");
+    if (stdRoot != null) {
+      modificator.addRoot(stdRoot, OrderRootType.SOURCES);
+    }
+    final VirtualFile libRoot = sdkRoot.findChild("lib");
+    if (libRoot != null) {
+      modificator.addRoot(libRoot, OrderRootType.SOURCES);
+    }
+    final VirtualFile docRoot = sdkRoot.findChild("doc");
+    if (docRoot != null) {
+      modificator.addRoot(docRoot, JavadocOrderRootType.getInstance());
     }
   }
 

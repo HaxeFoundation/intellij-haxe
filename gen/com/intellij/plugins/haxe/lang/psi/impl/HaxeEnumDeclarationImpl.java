@@ -29,6 +29,12 @@ public class HaxeEnumDeclarationImpl extends AbstractHaxeNamedComponent implemen
 
   @Override
   @Nullable
+  public HaxeExternOrPrivate getExternOrPrivate() {
+    return findChildByClass(HaxeExternOrPrivate.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeTypeParam getTypeParam() {
     return findChildByClass(HaxeTypeParam.class);
   }

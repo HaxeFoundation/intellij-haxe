@@ -32,4 +32,8 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testGeneric() throws Throwable {
     doTest(true);
   }
+
+  public void testMacro() throws Throwable {
+    doTest(true);
+  }
 }

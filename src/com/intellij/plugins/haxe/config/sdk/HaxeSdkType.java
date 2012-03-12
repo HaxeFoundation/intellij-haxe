@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.config.sdk;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -64,7 +65,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public boolean isRootTypeApplicable(OrderRootType type) {
-    return false;
+    return type == OrderRootType.SOURCES || type == JavadocOrderRootType.getInstance();
   }
 
   @Override
@@ -76,6 +77,9 @@ public class HaxeSdkType extends SdkType {
       data = HaxeSdkUtil.testHaxeSdk(sdk.getHomePath());
       modificator.setSdkAdditionalData(data);
     }
+
+    HaxeSdkUtil.setupSdkPaths(sdk.getHomeDirectory(), modificator);
+
     modificator.commitChanges();
     super.setupSdkPaths(sdk);
   }

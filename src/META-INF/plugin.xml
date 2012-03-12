@@ -75,6 +75,7 @@
     <internalFileTemplate name="haXe Enum"/>
 
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex"/>
     <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeClassContributor"/>
 
     <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.lang.annotator.HaxeReferenceAnnotator"/>-->

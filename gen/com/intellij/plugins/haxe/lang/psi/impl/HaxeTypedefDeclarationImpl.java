@@ -9,7 +9,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypedefDeclarationImpl extends HaxePsiCompositeElementImpl implements HaxeTypedefDeclaration {
+public class HaxeTypedefDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeTypedefDeclaration {
 
   public HaxeTypedefDeclarationImpl(ASTNode node) {
     super(node);
@@ -17,14 +17,20 @@ public class HaxeTypedefDeclarationImpl extends HaxePsiCompositeElementImpl impl
 
   @Override
   @Nullable
-  public HaxeFunctionType getFunctionType() {
-    return findChildByClass(HaxeFunctionType.class);
+  public HaxeComponentName getComponentName() {
+    return findChildByClass(HaxeComponentName.class);
   }
 
   @Override
   @Nullable
-  public HaxeIdentifier getIdentifier() {
-    return findChildByClass(HaxeIdentifier.class);
+  public HaxeExternOrPrivate getExternOrPrivate() {
+    return findChildByClass(HaxeExternOrPrivate.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeFunctionType getFunctionType() {
+    return findChildByClass(HaxeFunctionType.class);
   }
 
   @Override

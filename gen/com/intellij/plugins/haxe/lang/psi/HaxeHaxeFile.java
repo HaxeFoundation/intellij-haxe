@@ -14,6 +14,9 @@ public interface HaxeHaxeFile extends HaxePsiCompositeElement {
   public List<HaxeEnumDeclaration> getEnumDeclarationList();
 
   @NotNull
+  public List<HaxeExternClassDeclaration> getExternClassDeclarationList();
+
+  @NotNull
   public List<HaxeImportStatement> getImportStatementList();
 
   @NotNull
