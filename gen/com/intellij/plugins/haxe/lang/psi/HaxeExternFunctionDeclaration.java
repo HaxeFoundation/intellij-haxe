@@ -6,23 +6,29 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface HaxeClassDeclaration extends HaxeComponent {
+public interface HaxeExternFunctionDeclaration extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeClassBody getClassBody();
+  public HaxeBlockStatement getBlockStatement();
 
   @Nullable
   public HaxeComponentName getComponentName();
 
-  @NotNull
-  public List<HaxeFakeEnumMeta> getFakeEnumMetaList();
+  @Nullable
+  public HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @Nullable
-  public HaxeInheritList getInheritList();
+  public HaxeParameterList getParameterList();
 
   @NotNull
   public List<HaxeRequireMeta> getRequireMetaList();
 
   @Nullable
+  public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
+
+  @Nullable
   public HaxeTypeParam getTypeParam();
+
+  @Nullable
+  public HaxeTypeTag getTypeTag();
 }

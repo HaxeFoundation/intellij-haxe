@@ -1,10 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 
 public interface HaxeTokenTypes {
 
@@ -43,7 +43,11 @@ public interface HaxeTokenTypes {
   IElementType HAXE_EXPRESSION = new HaxeElementType("HAXE_EXPRESSION");
   IElementType HAXE_EXPRESSIONLIST = new HaxeElementType("HAXE_EXPRESSIONLIST");
   IElementType HAXE_EXTERNCLASSDECLARATION = new HaxeElementType("HAXE_EXTERNCLASSDECLARATION");
+  IElementType HAXE_EXTERNCLASSDECLARATIONBODY = new HaxeElementType("HAXE_EXTERNCLASSDECLARATIONBODY");
+  IElementType HAXE_EXTERNCLASSDECLARATIONBODYPART = new HaxeElementType("HAXE_EXTERNCLASSDECLARATIONBODYPART");
+  IElementType HAXE_EXTERNFUNCTIONDECLARATION = new HaxeElementType("HAXE_EXTERNFUNCTIONDECLARATION");
   IElementType HAXE_EXTERNORPRIVATE = new HaxeElementType("HAXE_EXTERNORPRIVATE");
+  IElementType HAXE_FAKEENUMMETA = new HaxeElementType("HAXE_FAKEENUMMETA");
   IElementType HAXE_FORSTATEMENT = new HaxeElementType("HAXE_FORSTATEMENT");
   IElementType HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES = new HaxeElementType("HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES");
   IElementType HAXE_FUNCTIONLITERAL = new HaxeElementType("HAXE_FUNCTIONLITERAL");
@@ -82,6 +86,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_PROPERTYACCESSOR = new HaxeElementType("HAXE_PROPERTYACCESSOR");
   IElementType HAXE_PROPERTYDECLARATION = new HaxeElementType("HAXE_PROPERTYDECLARATION");
   IElementType HAXE_REFERENCEEXPRESSION = new HaxeElementType("HAXE_REFERENCEEXPRESSION");
+  IElementType HAXE_REQUIREMETA = new HaxeElementType("HAXE_REQUIREMETA");
   IElementType HAXE_RETURNSTATEMENT = new HaxeElementType("HAXE_RETURNSTATEMENT");
   IElementType HAXE_RETURNSTATEMENTWITHOUTSEMICOLON = new HaxeElementType("HAXE_RETURNSTATEMENTWITHOUTSEMICOLON");
   IElementType HAXE_SHIFTEXPRESSION = new HaxeElementType("HAXE_SHIFTEXPRESSION");
@@ -120,6 +125,8 @@ public interface HaxeTokenTypes {
   IElementType KENUM = new HaxeElementType("enum");
   IElementType KEXTENDS = new HaxeElementType("extends");
   IElementType KEXTERN = new HaxeElementType("extern");
+  IElementType KFAKEENUM = new HaxeElementType("@:fakeEnum");
+  IElementType KFINAL = new HaxeElementType("@:final");
   IElementType KFOR = new HaxeElementType("for");
   IElementType KFUNCTION = new HaxeElementType("function");
   IElementType KIF = new HaxeElementType("if");
@@ -133,6 +140,7 @@ public interface HaxeTokenTypes {
   IElementType KPACKAGE = new HaxeElementType("package");
   IElementType KPRIVATE = new HaxeElementType("private");
   IElementType KPUBLIC = new HaxeElementType("public");
+  IElementType KREQUIRE = new HaxeElementType("@:require");
   IElementType KRETURN = new HaxeElementType("return");
   IElementType KSTATIC = new HaxeElementType("static");
   IElementType KSWITCH = new HaxeElementType("switch");
@@ -204,7 +212,7 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == HAXE_ACCESS) {
+      if (type == HAXE_ACCESS) {
         return new HaxeAccessImpl(node);
       }
       else if (type == HAXE_ADDITIVEEXPRESSION) {
@@ -309,8 +317,20 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_EXTERNCLASSDECLARATION) {
         return new HaxeExternClassDeclarationImpl(node);
       }
+      else if (type == HAXE_EXTERNCLASSDECLARATIONBODY) {
+        return new HaxeExternClassDeclarationBodyImpl(node);
+      }
+      else if (type == HAXE_EXTERNCLASSDECLARATIONBODYPART) {
+        return new HaxeExternClassDeclarationBodyPartImpl(node);
+      }
+      else if (type == HAXE_EXTERNFUNCTIONDECLARATION) {
+        return new HaxeExternFunctionDeclarationImpl(node);
+      }
       else if (type == HAXE_EXTERNORPRIVATE) {
         return new HaxeExternOrPrivateImpl(node);
+      }
+      else if (type == HAXE_FAKEENUMMETA) {
+        return new HaxeFakeEnumMetaImpl(node);
       }
       else if (type == HAXE_FORSTATEMENT) {
         return new HaxeForStatementImpl(node);
@@ -425,6 +445,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_REFERENCEEXPRESSION) {
         return new HaxeReferenceExpressionImpl(node);
+      }
+      else if (type == HAXE_REQUIREMETA) {
+        return new HaxeRequireMetaImpl(node);
       }
       else if (type == HAXE_RETURNSTATEMENT) {
         return new HaxeReturnStatementImpl(node);

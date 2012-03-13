@@ -28,4 +28,8 @@ public class ClassDeclarationTest extends DeclarationTestBase {
   public void testConstraint() throws Throwable {
     doTest(true);
   }
+
+  public void testNativeRandom() throws Throwable {
+    doTest(true);
+  }
 }

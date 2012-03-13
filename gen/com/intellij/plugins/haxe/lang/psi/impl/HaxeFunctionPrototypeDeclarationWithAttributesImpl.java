@@ -1,15 +1,16 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends AbstractHaxeNamedComponent implements HaxeFunctionPrototypeDeclarationWithAttributes {
+import java.util.List;
+
+public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends AbstractHaxeNamedComponent
+  implements HaxeFunctionPrototypeDeclarationWithAttributes {
 
   public HaxeFunctionPrototypeDeclarationWithAttributesImpl(ASTNode node) {
     super(node);
@@ -34,6 +35,12 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends Abstract
   }
 
   @Override
+  @NotNull
+  public List<HaxeRequireMeta> getRequireMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeRequireMeta.class);
+  }
+
+  @Override
   @Nullable
   public HaxeTypeParam getTypeParam() {
     return findChildByClass(HaxeTypeParam.class);
@@ -44,5 +51,4 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends Abstract
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
   }
-
 }

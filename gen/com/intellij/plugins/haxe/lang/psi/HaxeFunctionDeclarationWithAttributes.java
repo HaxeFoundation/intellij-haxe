@@ -1,9 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
 
 public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponent {
 
@@ -19,6 +20,9 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponent {
   @Nullable
   public HaxeParameterList getParameterList();
 
+  @NotNull
+  public List<HaxeRequireMeta> getRequireMetaList();
+
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
 
@@ -27,5 +31,4 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponent {
 
   @Nullable
   public HaxeTypeTag getTypeTag();
-
 }

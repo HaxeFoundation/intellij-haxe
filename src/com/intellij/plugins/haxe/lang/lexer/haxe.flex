@@ -113,6 +113,10 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "extern"                                  {  return KEXTERN;  }
 "@:macro"                                 {  return KMACRO;  }
 
+"@:final"                                 {  return KFINAL;  }
+"@:require"                               {  return KREQUIRE;  }
+"@:fakeEnum"                              {  return KFAKEENUM;  }
+
 "try"                                     {  return KTRY;  }
 "catch"                                   {  return KCATCH;  }
 

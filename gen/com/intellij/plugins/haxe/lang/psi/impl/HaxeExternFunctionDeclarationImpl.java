@@ -9,16 +9,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class HaxeClassDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeClassDeclaration {
+public class HaxeExternFunctionDeclarationImpl extends HaxePsiCompositeElementImpl implements HaxeExternFunctionDeclaration {
 
-  public HaxeClassDeclarationImpl(ASTNode node) {
+  public HaxeExternFunctionDeclarationImpl(ASTNode node) {
     super(node);
   }
 
   @Override
   @Nullable
-  public HaxeClassBody getClassBody() {
-    return findChildByClass(HaxeClassBody.class);
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
   }
 
   @Override
@@ -28,15 +28,15 @@ public class HaxeClassDeclarationImpl extends AbstractHaxeNamedComponent impleme
   }
 
   @Override
-  @NotNull
-  public List<HaxeFakeEnumMeta> getFakeEnumMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFakeEnumMeta.class);
+  @Nullable
+  public HaxeDeclarationAttributeList getDeclarationAttributeList() {
+    return findChildByClass(HaxeDeclarationAttributeList.class);
   }
 
   @Override
   @Nullable
-  public HaxeInheritList getInheritList() {
-    return findChildByClass(HaxeInheritList.class);
+  public HaxeParameterList getParameterList() {
+    return findChildByClass(HaxeParameterList.class);
   }
 
   @Override
@@ -47,7 +47,19 @@ public class HaxeClassDeclarationImpl extends AbstractHaxeNamedComponent impleme
 
   @Override
   @Nullable
+  public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
+    return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeTypeParam getTypeParam() {
     return findChildByClass(HaxeTypeParam.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeTypeTag getTypeTag() {
+    return findChildByClass(HaxeTypeTag.class);
   }
 }
