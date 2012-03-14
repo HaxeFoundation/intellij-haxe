@@ -163,6 +163,12 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     commandLine.addParameter("-main");
     commandLine.addParameter(mainClass);
 
+    if (target == HaxeTarget.FLASH) {
+      commandLine.addParameter("-debug");
+      commandLine.addParameter("-D");
+      commandLine.addParameter("fdb");
+    }
+
     for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().withoutSdk().exportedOnly().sources().getRoots()) {
       commandLine.addParameter("-cp");
       commandLine.addParameter(sourceRoot.getPath());

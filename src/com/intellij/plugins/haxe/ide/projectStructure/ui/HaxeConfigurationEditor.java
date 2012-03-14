@@ -5,6 +5,8 @@ import com.intellij.ide.util.TreeFileChooserFactory;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.UnnamedConfigurable;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -15,12 +17,17 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.RawCommandLineEditor;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -37,14 +44,21 @@ public class HaxeConfigurationEditor {
   private JTextField myFileNameTextField;
   private TextFieldWithBrowseButton myFolderTextField;
   private JLabel myFolderLabel;
+  private JPanel myAdditionalComponentPanel;
 
   private final Module myModule;
   private final CompilerModuleExtension myExtension;
+
+  private final List<UnnamedConfigurable> cofigurables = new ArrayList<UnnamedConfigurable>();
 
   public HaxeConfigurationEditor(Module module, CompilerModuleExtension extension) {
     myModule = module;
     myExtension = extension;
     addActionListeners();
+
+    HaxeTarget.initCombo((DefaultComboBoxModel)myTargetComboBox.getModel());
+
+    initExtensions();
 
     myMainClassLabel.setLabelFor(myMainClassFieldWithButton.getTextField());
     myParametersLabel.setLabelFor(myAppArguments.getTextField());
@@ -92,8 +106,24 @@ public class HaxeConfigurationEditor {
         }
       }
     });
+  }
 
-    HaxeTarget.initCombo((DefaultComboBoxModel)myTargetComboBox.getModel());
+  private void initExtensions() {
+    final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(myModule);
+    final HaxeModuleConfigurationExtensionPoint[] extensionPoints = HaxeModuleConfigurationExtensionPoint.EP_NAME.getExtensions();
+
+    if (extensionPoints.length > 0) {
+      final GridLayoutManager layoutManager = new GridLayoutManager(extensionPoints.length, 1);
+      myAdditionalComponentPanel.setLayout(layoutManager);
+    }
+    for (HaxeModuleConfigurationExtensionPoint extensionPoint : extensionPoints) {
+      final GridConstraints gridConstraints = new GridConstraints();
+      gridConstraints.setFill(GridConstraints.FILL_HORIZONTAL);
+
+      final UnnamedConfigurable configurable = extensionPoint.createConfigurable(settings);
+      cofigurables.add(configurable);
+      myAdditionalComponentPanel.add(configurable.createComponent(), gridConstraints);
+    }
   }
 
   private void setChosenFile(VirtualFile virtualFile) {
@@ -117,17 +147,18 @@ public class HaxeConfigurationEditor {
   public boolean isModified() {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(myModule);
     assert settings != null;
-    final HaxeModuleSettings newSettings = new HaxeModuleSettings(
-      myMainClassFieldWithButton.getText(),
-      (HaxeTarget)myTargetComboBox.getSelectedItem(),
-      myAppArguments.getText(),
-      myExcludeFromCompilationCheckBox.isSelected(),
-      myFileNameTextField.getText()
-    );
+    boolean result = !settings.getMainClass().equals(myMainClassFieldWithButton.getText());
+    result = result || settings.getTarget() != myTargetComboBox.getSelectedItem();
+    result = result || !settings.getArguments().equals(myAppArguments.getText());
+    result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
+    result = result || !settings.getOutputFileName().equals(myFileNameTextField.getText());
+    for (UnnamedConfigurable configurable : cofigurables) {
+      result = result || configurable.isModified();
+    }
     final String url = myExtension.getCompilerOutputUrl();
     final String urlCandidate = VfsUtil.pathToUrl(myFolderTextField.getText());
-
-    return !settings.equals(newSettings) || !urlCandidate.equals(url);
+    result = result || !urlCandidate.equals(url);
+    return result;
   }
 
   public void reset() {
@@ -138,6 +169,9 @@ public class HaxeConfigurationEditor {
     myTargetComboBox.setSelectedItem(settings.getTarget());
     myExcludeFromCompilationCheckBox.setSelected(settings.isExcludeFromCompilation());
     myFileNameTextField.setText(settings.getOutputFileName());
+    for (UnnamedConfigurable configurable : cofigurables) {
+      configurable.reset();
+    }
 
     final String url = myExtension.getCompilerOutputUrl();
     myFolderTextField.setText(VfsUtil.urlToPath(url));
@@ -151,6 +185,13 @@ public class HaxeConfigurationEditor {
     settings.setTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());
     settings.setOutputFileName(myFileNameTextField.getText());
+    for (UnnamedConfigurable configurable : cofigurables) {
+      try {
+        configurable.apply();
+      }
+      catch (ConfigurationException ignored) {
+      }
+    }
 
     final String url = myExtension.getCompilerOutputUrl();
     final String urlCandidate = VfsUtil.pathToUrl(myFolderTextField.getText());

@@ -24,6 +24,8 @@
     <orderEntry type="module" module-name="java-psi-impl" />
     <orderEntry type="module" module-name="idea-ui" />
     <orderEntry type="module" module-name="java-impl" />
+    <orderEntry type="module" module-name="xdebugger-api" />
+    <orderEntry type="module" module-name="flex" />
   </component>
 </module>
 

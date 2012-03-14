@@ -26,6 +26,7 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   private String arguments = "";
   private boolean excludeFromCompilation = false;
   private HaxeTarget target = HaxeTarget.NEKO;
+  private String flexSdkName = "";
 
   public HaxeModuleSettings() {
   }
@@ -34,12 +35,14 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
                             HaxeTarget target,
                             String arguments,
                             boolean excludeFromCompilation,
-                            String outputFileName) {
+                            String outputFileName,
+                            String flexSdkName) {
     this.mainClass = mainClass;
     this.arguments = arguments;
     this.excludeFromCompilation = excludeFromCompilation;
     this.target = target;
     this.outputFileName = outputFileName;
+    this.flexSdkName = flexSdkName;
   }
 
   @Override
@@ -50,6 +53,14 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   @Override
   public void loadState(HaxeModuleSettings state) {
     XmlSerializerUtil.copyBean(state, this);
+  }
+
+  public void setFlexSdkName(String flexSdkName) {
+    this.flexSdkName = flexSdkName;
+  }
+
+  public String getFlexSdkName() {
+    return flexSdkName;
   }
 
   public static HaxeModuleSettings getInstance(@NotNull Module module) {
@@ -108,6 +119,7 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
     if (outputFileName != null ? !outputFileName.equals(settings.outputFileName) : settings.outputFileName != null) return false;
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
+    if (flexSdkName != null ? !flexSdkName.equals(settings.flexSdkName) : settings.flexSdkName != null) return false;
     if (target != settings.target) return false;
 
     return true;
@@ -118,6 +130,7 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     int result = mainClass != null ? mainClass.hashCode() : 0;
     result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
     result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
+    result = 31 * result + (flexSdkName != null ? flexSdkName.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
     result = 31 * result + (target != null ? target.hashCode() : 0);
     return result;

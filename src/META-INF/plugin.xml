@@ -8,12 +8,14 @@
       <ul>
         <li>Basic goto action implementation(local declarations, classes)</li>
         <li>Local reference completion</li>
+        <li>Class completion</li>
         <li>Color settings</li>
         <li>Code formatter</li>
         <li>Parsing fixes</li>
         <li>Fixes for MacOS</li>
         <li>Go to Class</li>
         <li>Icons for components</li>
+        <li>Debugger for flash target (require "Flex Support" plugin)</li>
       </ul>
       <p>0.1:</p>
       <ul>
@@ -28,11 +30,14 @@
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
   <idea-version since-build="114.145" until-build="117.1"/>
   <depends>com.intellij.modules.ultimate</depends>
+  <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
 
   <application-components>
     <!-- Add your application components here -->
   </application-components>
-
+  <extensionPoints>
+    <extensionPoint name="module.config" interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
+  </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
 

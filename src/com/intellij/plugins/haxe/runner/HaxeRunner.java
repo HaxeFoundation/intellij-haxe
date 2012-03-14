@@ -91,7 +91,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     return super.doExecute(project, executor, haxeRunningState, contentToReuse, env);
   }
 
-  private static void launchUrl(String urlOrPath) {
+  public static void launchUrl(String urlOrPath) {
     if (Desktop.isDesktopSupported()) {
       final Desktop desktop = Desktop.getDesktop();
       if (BrowserUtil.isAbsoluteURL(urlOrPath)) {
