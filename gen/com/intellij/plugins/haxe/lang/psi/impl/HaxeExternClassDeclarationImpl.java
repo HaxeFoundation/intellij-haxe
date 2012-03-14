@@ -1,13 +1,13 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
+import org.jetbrains.annotations.*;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import com.intellij.plugins.haxe.lang.psi.*;
 
 public class HaxeExternClassDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeExternClassDeclaration {
 
@@ -50,4 +50,5 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxeNamedComponent i
   public HaxeTypeParam getTypeParam() {
     return findChildByClass(HaxeTypeParam.class);
   }
+
 }

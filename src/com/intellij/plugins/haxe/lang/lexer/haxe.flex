@@ -138,6 +138,8 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 ";"                                       { return OSEMI; }
 ","                                       { return OCOMMA; }
 
+"->"                                      { return OARROW; }
+
 "=="                                      { return OEQ; }
 "="                                       { return OASSIGN; }
 

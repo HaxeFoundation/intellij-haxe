@@ -32,4 +32,8 @@ public class ClassDeclarationTest extends DeclarationTestBase {
   public void testNativeRandom() throws Throwable {
     doTest(true);
   }
+
+  public void testArrayUtils() throws Throwable {
+    doTest(true);
+  }
 }

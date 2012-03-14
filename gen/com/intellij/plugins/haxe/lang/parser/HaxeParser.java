@@ -1,18 +1,17 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.parser;
 
-import com.intellij.lang.ASTNode;
+import org.jetbrains.annotations.*;
 import com.intellij.lang.LighterASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
-import com.intellij.lang.PsiParser;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
-import org.jetbrains.annotations.NotNull;
-
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import static com.intellij.plugins.haxe.lang.parser.GeneratedParserUtilBase.*;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.tree.TokenSet;
+import com.intellij.lang.PsiParser;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class HaxeParser implements PsiParser {
@@ -346,18 +345,17 @@ public class HaxeParser implements PsiParser {
     return builder_.getTreeBuilt();
   }
 
-  private static final TokenSet[] EXTENDS_SETS_ = new TokenSet[]{
+  private static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
     TokenSet.create(HAXE_ADDITIVEEXPRESSION, HAXE_ARRAYACCESSEXPRESSION, HAXE_ARRAYLITERAL, HAXE_ASSIGNEXPRESSION,
-                    HAXE_BITWISEEXPRESSION, HAXE_CALLEXPRESSION, HAXE_CASTEXPRESSION, HAXE_COMPAREEXPRESSION,
-                    HAXE_EXPRESSION, HAXE_FUNCTIONLITERAL, HAXE_IFEXPRESSION, HAXE_ITERATOREXPRESSION,
-                    HAXE_LITERALEXPRESSION, HAXE_LOGICANDEXPRESSION, HAXE_LOGICOREXPRESSION, HAXE_MULTIPLICATIVEEXPRESSION,
-                    HAXE_NEWEXPRESSION, HAXE_OBJECTLITERAL, HAXE_PARENTHESIZEDEXPRESSION, HAXE_PREFIXEXPRESSION,
-                    HAXE_REFERENCEEXPRESSION, HAXE_SHIFTEXPRESSION, HAXE_SUFFIXEXPRESSION, HAXE_TERNARYEXPRESSION,
-                    HAXE_THISEXPRESSION),
+      HAXE_BITWISEEXPRESSION, HAXE_CALLEXPRESSION, HAXE_CASTEXPRESSION, HAXE_COMPAREEXPRESSION,
+      HAXE_EXPRESSION, HAXE_FUNCTIONLITERAL, HAXE_IFEXPRESSION, HAXE_ITERATOREXPRESSION,
+      HAXE_LITERALEXPRESSION, HAXE_LOGICANDEXPRESSION, HAXE_LOGICOREXPRESSION, HAXE_MULTIPLICATIVEEXPRESSION,
+      HAXE_NEWEXPRESSION, HAXE_OBJECTLITERAL, HAXE_PARENTHESIZEDEXPRESSION, HAXE_PREFIXEXPRESSION,
+      HAXE_REFERENCEEXPRESSION, HAXE_SHIFTEXPRESSION, HAXE_SUFFIXEXPRESSION, HAXE_TERNARYEXPRESSION,
+      HAXE_THISEXPRESSION),
     TokenSet.create(HAXE_ANONYMOUSTYPE, HAXE_FUNCTIONTYPE, HAXE_TYPE),
     TokenSet.create(HAXE_REFERENCEEXPRESSION),
   };
-
   public static boolean type_extends_(IElementType child_, IElementType parent_) {
     for (TokenSet set : EXTENDS_SETS_) {
       if (set.contains(child_) && set.contains(parent_)) return true;
@@ -444,9 +442,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = multiplicativeExpressionWrapper(builder_, level_ + 1);
@@ -487,7 +483,7 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, PLCURLY);
     result_ = result_ && anonymousTypeBody(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRCURLY);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_ANONYMOUSTYPE)) {
       marker_.drop();
     }
@@ -637,7 +633,7 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, PLBRACK);
     result_ = result_ && arrayLiteral_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRBRACK);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_ARRAYLITERAL)) {
       marker_.drop();
     }
@@ -695,9 +691,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = iteratorExpressionWrapper(builder_, level_ + 1);
@@ -759,9 +753,7 @@ public class HaxeParser implements PsiParser {
   public static boolean bitOperation(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "bitOperation")) return false;
     if (!nextTokenIs(builder_, OBIT_OR) && !nextTokenIs(builder_, OBIT_XOR)
-        && !nextTokenIs(builder_, OBIT_AND)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, OBIT_AND)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OBIT_OR);
@@ -781,9 +773,7 @@ public class HaxeParser implements PsiParser {
   public static boolean bitwiseExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "bitwiseExpression")) return false;
     if (!nextTokenIs(builder_, OBIT_OR) && !nextTokenIs(builder_, OBIT_XOR)
-        && !nextTokenIs(builder_, OBIT_AND)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, OBIT_AND)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker left_marker_ = (Marker)builder_.getLatestDoneMarker();
@@ -818,9 +808,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = shiftExpressionWrapper(builder_, level_ + 1);
@@ -1050,7 +1038,7 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, KCAST);
     pinned_ = result_; // pin = 1
     result_ = result_ && castExpression_1(builder_, level_ + 1);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_CASTEXPRESSION)) {
       marker_.drop();
     }
@@ -1209,9 +1197,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "classDeclaration")) return false;
     if (!nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KREQUIRE)
         && !nextTokenIs(builder_, KCLASS) && !nextTokenIs(builder_, KFAKEENUM)
-        && !nextTokenIs(builder_, KFINAL) && !nextTokenIs(builder_, KMACRO)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KFINAL) && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -1327,9 +1313,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "compareExpression")) return false;
     if (!nextTokenIs(builder_, OEQ) && !nextTokenIs(builder_, ONOT_EQ)
         && !nextTokenIs(builder_, OGREATER_OR_EQUAL) && !nextTokenIs(builder_, OLESS)
-        && !nextTokenIs(builder_, OLESS_OR_EQUAL) && !nextTokenIs(builder_, OGREATER)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, OLESS_OR_EQUAL) && !nextTokenIs(builder_, OGREATER)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker left_marker_ = (Marker)builder_.getLatestDoneMarker();
@@ -1364,9 +1348,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = bitwiseExpressionWrapper(builder_, level_ + 1);
@@ -1402,9 +1384,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "compareOperation")) return false;
     if (!nextTokenIs(builder_, OEQ) && !nextTokenIs(builder_, ONOT_EQ)
         && !nextTokenIs(builder_, OGREATER_OR_EQUAL) && !nextTokenIs(builder_, OLESS)
-        && !nextTokenIs(builder_, OLESS_OR_EQUAL) && !nextTokenIs(builder_, OGREATER)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, OLESS_OR_EQUAL) && !nextTokenIs(builder_, OGREATER)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OEQ);
@@ -1467,9 +1447,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "declarationAttribute")) return false;
     if (!nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KDYNAMIC)
         && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
-        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, KSTATIC);
@@ -1492,9 +1470,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "declarationAttributeList")) return false;
     if (!nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KDYNAMIC)
         && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
-        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = declarationAttribute(builder_, level_ + 1);
@@ -1619,9 +1595,7 @@ public class HaxeParser implements PsiParser {
   public static boolean enumDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumDeclaration")) return false;
     if (!nextTokenIs(builder_, KEXTERN) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KENUM)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KENUM)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -1761,14 +1735,12 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final int start_ = builder_.getCurrentOffset();
     final Marker marker_ = builder_.mark();
     result_ = assignExpressionWrapper(builder_, level_ + 1);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_EXPRESSION)) {
       marker_.drop();
     }
@@ -1795,9 +1767,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = expression(builder_, level_ + 1);
@@ -1932,9 +1902,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration")) return false;
     if (!nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KEXTERN)
         && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KFINAL)
-        && !nextTokenIs(builder_, KMACRO)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -2036,9 +2004,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
         && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
         && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, KMACRO)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = externFunctionDeclaration_0(builder_, level_ + 1);
@@ -2286,9 +2252,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
         && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
         && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, KMACRO)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -2434,7 +2398,7 @@ public class HaxeParser implements PsiParser {
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, functionLiteral_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && functionLiteral_5(builder_, level_ + 1) && result_;
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_FUNCTIONLITERAL)) {
       marker_.drop();
     }
@@ -2492,9 +2456,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
         && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
         && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, KMACRO)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -2611,7 +2573,7 @@ public class HaxeParser implements PsiParser {
     final Marker marker_ = builder_.mark();
     result_ = typeOrAnonymous(builder_, level_ + 1);
     result_ = result_ && functionType_1(builder_, level_ + 1);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_FUNCTIONTYPE)) {
       marker_.drop();
     }
@@ -2651,7 +2613,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "functionType_1_0_0")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = consumeToken(builder_, "->");
+    result_ = consumeToken(builder_, OARROW);
     result_ = result_ && typeOrAnonymous(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
@@ -2674,9 +2636,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KEXTERN)
         && !nextTokenIs(builder_, KCLASS) && !nextTokenIs(builder_, KPRIVATE)
         && !nextTokenIs(builder_, KINTERFACE) && !nextTokenIs(builder_, KENUM)
-        && !nextTokenIs(builder_, PPELSEIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, PPELSEIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = haxeFile_0(builder_, level_ + 1);
@@ -2731,7 +2691,7 @@ public class HaxeParser implements PsiParser {
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
     result_ = pinned_ && ifExpression_5(builder_, level_ + 1) && result_;
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_IFEXPRESSION)) {
       marker_.drop();
     }
@@ -2998,9 +2958,7 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KEXTERN)
         && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KINTERFACE)
         && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KFINAL)
-        && !nextTokenIs(builder_, KMACRO)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -3148,9 +3106,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = ternaryExpressionWrapper(builder_, level_ + 1);
@@ -3183,9 +3139,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, LITHEX)
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, LITOCT)
         && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, LITFLOAT)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, LITFLOAT)) return false;
     boolean result_ = false;
     final int start_ = builder_.getCurrentOffset();
     final Marker marker_ = builder_.mark();
@@ -3199,7 +3153,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = functionLiteral(builder_, level_ + 1);
     if (!result_) result_ = arrayLiteral(builder_, level_ + 1);
     if (!result_) result_ = objectLiteral(builder_, level_ + 1);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_LITERALEXPRESSION)) {
       marker_.drop();
     }
@@ -3524,9 +3478,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = compareExpressionWrapper(builder_, level_ + 1);
@@ -3595,9 +3547,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = logicAndExpressionWrapper(builder_, level_ + 1);
@@ -3632,9 +3582,7 @@ public class HaxeParser implements PsiParser {
   static boolean macroClass(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroClass")) return false;
     if (!nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KFINAL)
-        && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KREQUIRE)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KREQUIRE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, KFINAL);
@@ -3672,9 +3620,7 @@ public class HaxeParser implements PsiParser {
   public static boolean multiplicativeExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "multiplicativeExpression")) return false;
     if (!nextTokenIs(builder_, OQUOTIENT) && !nextTokenIs(builder_, OMUL)
-        && !nextTokenIs(builder_, OREMAINDER)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, OREMAINDER)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker left_marker_ = (Marker)builder_.getLatestDoneMarker();
@@ -3754,9 +3700,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = prefixExpression(builder_, level_ + 1);
@@ -3802,7 +3746,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
     result_ = pinned_ && report_error_(builder_, newExpression_3(builder_, level_ + 1)) && result_;
     result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_NEWEXPRESSION)) {
       marker_.drop();
     }
@@ -3948,9 +3892,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KVAR) && !nextTokenIs(builder_, KFOR)
         && !nextTokenIs(builder_, KBREAK) && !nextTokenIs(builder_, PLCURLY)
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, LITINT)
-        && !nextTokenIs(builder_, KCASE)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KCASE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = notBlockStatement_0(builder_, level_ + 1);
@@ -4041,7 +3983,7 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, PLCURLY);
     result_ = result_ && objectLiteralElementList(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRCURLY);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_OBJECTLITERAL)) {
       marker_.drop();
     }
@@ -4284,7 +4226,7 @@ public class HaxeParser implements PsiParser {
     pinned_ = result_; // pin = 1
     result_ = result_ && report_error_(builder_, parenthesizedExpression_1(builder_, level_ + 1));
     result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_PARENTHESIZEDEXPRESSION)) {
       marker_.drop();
     }
@@ -4412,9 +4354,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "pp")) return false;
     if (!nextTokenIs(builder_, PPERROR) && !nextTokenIs(builder_, PPIF)
         && !nextTokenIs(builder_, PPELSEIF) && !nextTokenIs(builder_, PPEND)
-        && !nextTokenIs(builder_, PPELSE)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, PPELSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = ppIf(builder_, level_ + 1);
@@ -4552,15 +4492,13 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final int start_ = builder_.getCurrentOffset();
     final Marker marker_ = builder_.mark();
     result_ = prefixExpression_0(builder_, level_ + 1);
     if (!result_) result_ = suffixExpressionWrapper(builder_, level_ + 1);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_PREFIXEXPRESSION)) {
       marker_.drop();
     }
@@ -4619,9 +4557,7 @@ public class HaxeParser implements PsiParser {
   public static boolean propertyAccessor(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "propertyAccessor")) return false;
     if (!nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KDEFAULT)
-        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, ID)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, ID)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = identifier(builder_, level_ + 1);
@@ -4695,7 +4631,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = identifier(builder_, level_ + 1);
     pinned_ = result_; // pin = 1
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_REFERENCEEXPRESSION)) {
       marker_.drop();
     }
@@ -4816,9 +4752,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = additiveExpressionWrapper(builder_, level_ + 1);
@@ -4945,7 +4879,7 @@ public class HaxeParser implements PsiParser {
     result_ = referenceExpression(builder_, level_ + 1);
     pinned_ = result_; // pin = 1
     result_ = result_ && simpleQualifiedReferenceExpression_1(builder_, level_ + 1);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_REFERENCEEXPRESSION)) {
       marker_.drop();
     }
@@ -5017,9 +4951,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KVAR) && !nextTokenIs(builder_, KFOR)
         && !nextTokenIs(builder_, KBREAK) && !nextTokenIs(builder_, PLCURLY)
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, LITINT)
-        && !nextTokenIs(builder_, KCASE)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KCASE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = statementList_0(builder_, level_ + 1);
@@ -5197,9 +5129,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, LITINT)
         && !nextTokenIs(builder_, KTHIS) && !nextTokenIs(builder_, PLBRACK)
         && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = value(builder_, level_ + 1);
@@ -5295,9 +5225,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
         && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = logicOrExpressionWrapper(builder_, level_ + 1);
@@ -5330,7 +5258,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, KTHIS);
     pinned_ = result_; // pin = 1
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_THISEXPRESSION)) {
       marker_.drop();
     }
@@ -5399,9 +5327,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KEXTERN)
         && !nextTokenIs(builder_, KCLASS) && !nextTokenIs(builder_, KINTERFACE)
         && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KFINAL)
-        && !nextTokenIs(builder_, KENUM) && !nextTokenIs(builder_, KMACRO)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KENUM) && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = classDeclaration(builder_, level_ + 1);
@@ -5429,9 +5355,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KIMPORT) && !nextTokenIs(builder_, KREQUIRE)
         && !nextTokenIs(builder_, PPIF) && !nextTokenIs(builder_, KFAKEENUM)
         && !nextTokenIs(builder_, PPERROR) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KINTERFACE) && !nextTokenIs(builder_, PPELSEIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KINTERFACE) && !nextTokenIs(builder_, PPELSEIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = topLevel(builder_, level_ + 1);
@@ -5553,7 +5477,7 @@ public class HaxeParser implements PsiParser {
     result_ = referenceExpression(builder_, level_ + 1);
     result_ = result_ && type_1(builder_, level_ + 1);
     result_ = result_ && type_2(builder_, level_ + 1);
-    LighterASTNode last_ = result_ ? builder_.getLatestDoneMarker() : null;
+    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_TYPE)) {
       marker_.drop();
     }
@@ -5770,9 +5694,7 @@ public class HaxeParser implements PsiParser {
   public static boolean typedefDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typedefDeclaration")) return false;
     if (!nextTokenIs(builder_, KEXTERN) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KTYPEDEF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KTYPEDEF)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -5851,9 +5773,7 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, LITINT)
         && !nextTokenIs(builder_, KTHIS) && !nextTokenIs(builder_, PLBRACK)
         && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, KIF)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = literalExpression(builder_, level_ + 1);
@@ -5878,9 +5798,7 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, KVAR) && !nextTokenIs(builder_, KPRIVATE)
         && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KINLINE)
         && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPUBLIC)
-        && !nextTokenIs(builder_, KSTATIC)) {
-      return false;
-    }
+        && !nextTokenIs(builder_, KSTATIC)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
@@ -6088,48 +6006,48 @@ public class HaxeParser implements PsiParser {
   }
 
   final static Parser class_body_part_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return class_body_part_recover(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return class_body_part_recover(builder_, level_ + 1);
+      }
+    };
   final static Parser enum_value_declaration_recovery_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return enum_value_declaration_recovery(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return enum_value_declaration_recovery(builder_, level_ + 1);
+      }
+    };
   final static Parser extern_class_body_part_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return extern_class_body_part_recover(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return extern_class_body_part_recover(builder_, level_ + 1);
+      }
+    };
   final static Parser interface_body_part_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return interface_body_part_recover(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return interface_body_part_recover(builder_, level_ + 1);
+      }
+    };
   final static Parser local_var_declaration_part_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return local_var_declaration_part_recover(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return local_var_declaration_part_recover(builder_, level_ + 1);
+      }
+    };
   final static Parser parameterListRecovery_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return parameterListRecovery(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return parameterListRecovery(builder_, level_ + 1);
+      }
+    };
   final static Parser statement_recovery_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return statement_recovery(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return statement_recovery(builder_, level_ + 1);
+      }
+    };
   final static Parser top_level_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return top_level_recover(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return top_level_recover(builder_, level_ + 1);
+      }
+    };
   final static Parser var_declaration_part_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return var_declaration_part_recover(builder_, level_ + 1);
-    }
-  };
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return var_declaration_part_recover(builder_, level_ + 1);
+      }
+    };
 }

@@ -1,10 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
 
 public interface HaxeTokenTypes {
 
@@ -157,6 +157,7 @@ public interface HaxeTokenTypes {
   IElementType LITINT = new HaxeElementType("LITINT");
   IElementType LITOCT = new HaxeElementType("LITOCT");
   IElementType LITSTRING = new HaxeElementType("LITSTRING");
+  IElementType OARROW = new HaxeElementType("->");
   IElementType OASSIGN = new HaxeElementType("=");
   IElementType OBIT_AND = new HaxeElementType("&");
   IElementType OBIT_AND_ASSIGN = new HaxeElementType("&=");
@@ -212,7 +213,7 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == HAXE_ACCESS) {
+       if (type == HAXE_ACCESS) {
         return new HaxeAccessImpl(node);
       }
       else if (type == HAXE_ADDITIVEEXPRESSION) {

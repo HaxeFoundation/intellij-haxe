@@ -73,6 +73,7 @@
 
     oTRIPLE_DOT="..."
     OIN='in'
+    OARROW='->'
 
     oNEW="new"
 

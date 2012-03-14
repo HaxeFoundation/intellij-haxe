@@ -267,6 +267,10 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(false);
     }
 
+    if (type1 == OARROW || type2 == OARROW) {
+      return addSingleSpaceIf(true);
+    }
+
     return Spacing.createSpacing(0, 1, 0, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
 

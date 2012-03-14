@@ -89,6 +89,10 @@ public class HaxeFormatterTest extends JavaCodeInsightFixtureTestCase {
     doTest();
   }
 
+  public void testArrayUtils() throws Exception {
+    doTest();
+  }
+
   public void testSpaceBeforeParentheses() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES = true;

@@ -1,10 +1,13 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import java.util.List;
+import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.psi.HaxeFakeEnumMeta;
-import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import com.intellij.plugins.haxe.lang.psi.*;
 
 public class HaxeFakeEnumMetaImpl extends HaxePsiCompositeElementImpl implements HaxeFakeEnumMeta {
 
@@ -17,4 +20,5 @@ public class HaxeFakeEnumMetaImpl extends HaxePsiCompositeElementImpl implements
   public HaxeIdentifier getIdentifier() {
     return findNotNullChildByClass(HaxeIdentifier.class);
   }
+
 }
