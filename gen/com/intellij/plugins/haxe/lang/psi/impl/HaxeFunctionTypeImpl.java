@@ -17,8 +17,20 @@ public class HaxeFunctionTypeImpl extends HaxePsiCompositeElementImpl implements
 
   @Override
   @NotNull
+  public List<HaxeAnonymousType> getAnonymousTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeAnonymousType.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeFunctionType getFunctionType() {
-    return findNotNullChildByClass(HaxeFunctionType.class);
+    return findChildByClass(HaxeFunctionType.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeType> getTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
   }
 
 }

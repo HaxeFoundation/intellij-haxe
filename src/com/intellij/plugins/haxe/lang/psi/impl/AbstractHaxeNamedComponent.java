@@ -5,10 +5,14 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -71,5 +75,19 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         return AbstractHaxeNamedComponent.this.getIcon(open ? ICON_FLAG_OPEN : ICON_FLAG_CLOSED);
       }
     };
+  }
+
+  @Override
+  public HaxeNamedComponent getTypeComponent() {
+    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
+    final HaxeType type = typeTag == null ? null : typeTag.getType();
+    final PsiReference reference = type == null ? null : type.getReference();
+    if (reference != null) {
+      final PsiElement result = reference.resolve();
+      if (result instanceof HaxeNamedComponent) {
+        return (HaxeNamedComponent)result;
+      }
+    }
+    return null;
   }
 }

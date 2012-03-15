@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeClassDeclaration extends HaxeComponent {
+public interface HaxeClassDeclaration extends HaxeClass {
 
   @Nullable
   public HaxeClassBody getClassBody();

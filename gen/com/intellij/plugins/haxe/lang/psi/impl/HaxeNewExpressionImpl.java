@@ -23,8 +23,8 @@ public class HaxeNewExpressionImpl extends HaxeExpressionImpl implements HaxeNew
 
   @Override
   @NotNull
-  public HaxeFunctionType getFunctionType() {
-    return findNotNullChildByClass(HaxeFunctionType.class);
+  public HaxeType getType() {
+    return findNotNullChildByClass(HaxeType.class);
   }
 
 }

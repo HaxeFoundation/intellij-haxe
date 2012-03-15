@@ -181,23 +181,23 @@ private macroCommon ::= '@:macro' | requireMeta
 requireMeta ::=  '@:require' '(' identifier ')'
 fakeEnumMeta ::=  '@:fakeEnum' '(' identifier ')'
 
-typedefDeclaration ::= externOrPrivate? 'typedef' componentName typeParam? '=' functionType ';'?
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+typedefDeclaration ::= externOrPrivate? 'typedef' componentName typeParam? '=' functionTypeWrapper ';'?
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= macroClass* 'extern' 'class' componentName typeParam? inheritList? '{' externClassDeclarationBody '}'
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration | pp {recoverUntil="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:macro' | '@:require' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
 classDeclaration ::= macroClass* 'private'? 'class' componentName typeParam? inheritList? '{' classBody '}'
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
 private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:macro' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' )
 
 interfaceDeclaration ::= macroClass* externOrPrivate? 'interface' componentName typeParam? inheritList? '{' interfaceBody '}'
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
 private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' )
@@ -257,12 +257,13 @@ private parameterListRecovery ::= !')' // after parameterList always ')'
 functionLiteral ::= 'function' '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2}
 arrayLiteral ::= '[' expressionList? ']'
 
-functionType ::= typeOrAnonymous ('->' typeOrAnonymous)*
+private functionTypeWrapper ::= typeOrAnonymous functionType*
+left functionType ::= '->' typeOrAnonymous
 
-typeTag ::= ':' functionType
+typeTag ::= ':' functionTypeWrapper
 typeParam ::= '<' typeList '>'
-typeList ::= (typeConstraint | functionType) (',' typeList)*
-type ::= referenceExpression qualifiedReferenceExpression* typeParam? {extends="functionType"}
+typeList ::= (typeConstraint | functionTypeWrapper) (',' typeList)*
+type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 private typeOrAnonymous ::= type | anonymousType
 typeConstraint ::= identifier ':' '(' typeList ')' {pin=3}
 
@@ -383,7 +384,8 @@ private callOrArrayAccess ::= (referenceExpression | thisExpression) (callExpres
 left callExpression ::= '(' expressionList? ')'
 left arrayAccessExpression ::= '[' expression? ']'
 
-referenceExpression ::= identifier {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl"}
+referenceExpression ::= identifier
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 left qualifiedReferenceExpression ::= '.' identifier {extends="referenceExpression" elementType="referenceExpression"}
 simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * {elementType="referenceExpression"}
 componentName ::= identifier
@@ -394,23 +396,23 @@ thisExpression ::= 'this'
 
 newExpression ::= 'new' type '(' expressionList? ')' {pin=2}
 
-castExpression ::= 'cast' (expression | ( '(' expression (',' functionType)? ')' ))
+castExpression ::= 'cast' (expression | ( '(' expression (',' functionTypeWrapper)? ')' ))
 
 inheritList ::= inherit (',' inherit)*
 
 inherit ::= ('extends' | 'implements') type {pin=1}
 
-anonymousType ::= '{' anonymousTypeBody '}' {extends="functionType"}
+anonymousType ::= '{' anonymousTypeBody '}'
 
 anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBody
 private extendedAnonymousTypeBody ::= typeExtends (',' anonymousTypeFieldList)? (',' interfaceBody)?
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBody)?
 
-typeExtends ::= '>' functionType
+typeExtends ::= '>' functionTypeWrapper
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 
-anonymousTypeField ::= identifier ':' functionType
+anonymousTypeField ::= identifier ':' functionTypeWrapper
 
 objectLiteral ::= '{' objectLiteralElementList '}'
 

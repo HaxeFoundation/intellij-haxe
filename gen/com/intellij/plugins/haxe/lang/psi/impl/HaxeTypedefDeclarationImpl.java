@@ -9,10 +9,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypedefDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeTypedefDeclaration {
+public class HaxeTypedefDeclarationImpl extends AbstractHaxePsiClass implements HaxeTypedefDeclaration {
 
   public HaxeTypedefDeclarationImpl(ASTNode node) {
     super(node);
+  }
+
+  @Override
+  @Nullable
+  public HaxeAnonymousType getAnonymousType() {
+    return findChildByClass(HaxeAnonymousType.class);
   }
 
   @Override
@@ -29,8 +35,8 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeNamedComponent imple
 
   @Override
   @Nullable
-  public HaxeFunctionType getFunctionType() {
-    return findChildByClass(HaxeFunctionType.class);
+  public HaxeType getType() {
+    return findChildByClass(HaxeType.class);
   }
 
   @Override

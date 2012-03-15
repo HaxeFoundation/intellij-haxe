@@ -11,6 +11,6 @@ public interface HaxeNewExpression extends HaxeExpression {
   public HaxeExpressionList getExpressionList();
 
   @NotNull
-  public HaxeFunctionType getFunctionType();
+  public HaxeType getType();
 
 }

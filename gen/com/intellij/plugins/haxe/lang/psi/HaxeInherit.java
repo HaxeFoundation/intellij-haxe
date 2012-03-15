@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeInherit extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeFunctionType getFunctionType();
+  public HaxeType getType();
 
 }

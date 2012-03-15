@@ -7,7 +7,10 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeTypeExtends extends HaxePsiCompositeElement {
 
-  @NotNull
-  public HaxeFunctionType getFunctionType();
+  @Nullable
+  public HaxeAnonymousType getAnonymousType();
+
+  @Nullable
+  public HaxeType getType();
 
 }

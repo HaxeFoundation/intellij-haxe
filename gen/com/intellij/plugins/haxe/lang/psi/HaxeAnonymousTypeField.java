@@ -7,10 +7,13 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeAnonymousTypeField extends HaxePsiCompositeElement {
 
-  @NotNull
-  public HaxeFunctionType getFunctionType();
+  @Nullable
+  public HaxeAnonymousType getAnonymousType();
 
   @NotNull
   public HaxeIdentifier getIdentifier();
+
+  @Nullable
+  public HaxeType getType();
 
 }

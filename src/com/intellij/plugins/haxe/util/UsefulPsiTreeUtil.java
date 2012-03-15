@@ -28,6 +28,17 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
+  public static PsiElement getFirstChildSkipWhiteSpacesAndComments(@Nullable PsiElement root) {
+    if (root == null) return null;
+    for (PsiElement child : root.getChildren()) {
+      if (!isWhitespaceOrComment(child)) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   public static PsiElement getPrevSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement sibling) {
     if (sibling == null) return null;
     PsiElement result = sibling.getPrevSibling();

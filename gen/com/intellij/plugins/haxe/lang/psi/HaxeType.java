@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeType extends HaxeFunctionType {
+public interface HaxeType extends HaxePsiCompositeElement {
 
   @NotNull
   public HaxeReferenceExpression getReferenceExpression();

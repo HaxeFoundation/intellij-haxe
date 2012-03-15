@@ -57,7 +57,7 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
   }
 
   public void testReference() {
-    doTest(myFixture.configureByFiles("Reference.hx"), 0);
+    doTest(myFixture.configureByFiles("Reference.hx"), 1);
   }
 
   public void testSamePackage() {
@@ -66,5 +66,17 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
 
   public void testExternClass() {
     doTest(myFixture.configureByFiles("ExternClass.hx", "com/bar/Foo.hx"), 1);
+  }
+
+  public void testReferenceExpression1() {
+    doTest(myFixture.configureByFiles("ReferenceExpression1.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
+  }
+
+  public void testReferenceExpression2() {
+    doTest(myFixture.configureByFiles("ReferenceExpression2.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
+  }
+
+  public void testReferenceExpression3() {
+    doTest(myFixture.configureByFiles("ReferenceExpression3.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 2);
   }
 }

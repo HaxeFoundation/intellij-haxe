@@ -16,9 +16,15 @@ public class HaxeTypeExtendsImpl extends HaxePsiCompositeElementImpl implements 
   }
 
   @Override
-  @NotNull
-  public HaxeFunctionType getFunctionType() {
-    return findNotNullChildByClass(HaxeFunctionType.class);
+  @Nullable
+  public HaxeAnonymousType getAnonymousType() {
+    return findChildByClass(HaxeAnonymousType.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeType getType() {
+    return findChildByClass(HaxeType.class);
   }
 
 }
