@@ -3,6 +3,8 @@ package com.intellij.plugins.haxe.runner.debugger;
 import com.intellij.lang.javascript.flex.sdk.FlexSdkComboBoxWithBrowseButton;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.UnnamedConfigurable;
+import com.intellij.openapi.ui.LabeledComponent;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 
 import javax.swing.*;
@@ -20,7 +22,7 @@ public class HaxeFlexSDKConfigurable implements UnnamedConfigurable {
 
   @Override
   public JComponent createComponent() {
-    return flexSdkCombo;
+    return LabeledComponent.create(flexSdkCombo, HaxeBundle.message("flex.sdk.label"));
   }
 
   @Override
