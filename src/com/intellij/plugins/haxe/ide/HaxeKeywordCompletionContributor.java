@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
@@ -41,7 +42,8 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
   };
 
   public HaxeKeywordCompletionContributor() {
-    extend(CompletionType.BASIC, psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)),
+    final PsiElementPattern.Capture<PsiElement> inExpression = psiElement().withParent(HaxeReference.class);
+    extend(CompletionType.BASIC, psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).andNot(inExpression),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,

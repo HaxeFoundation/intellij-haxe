@@ -31,11 +31,11 @@ public interface HaxeClass extends HaxeComponent {
   List<HaxeNamedComponent> getFields();
 
   @Nullable
-  HaxeNamedComponent findFieldByName(final String name);
+  HaxeNamedComponent findFieldByName(@NotNull final String name);
 
   @Nullable
-  HaxeNamedComponent findMethodByName(final String name);
+  HaxeNamedComponent findMethodByName(@NotNull final String name);
 
   @Nullable
-  HaxeNamedComponent findMethodBySignature(final String name, List<HaxeType> parameterTypes);
+  HaxeNamedComponent findMethodBySignature(@NotNull final String name, List<HaxeType> parameterTypes);
 }

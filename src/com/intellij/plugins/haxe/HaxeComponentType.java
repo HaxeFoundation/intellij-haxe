@@ -110,10 +110,12 @@ public enum HaxeComponentType {
       return TYPEDEF;
     }
     if (element instanceof HaxeFunctionDeclarationWithAttributes ||
+        element instanceof HaxeExternFunctionDeclaration ||
         element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
       return METHOD;
     }
-    if (element instanceof HaxeLocalFunctionDeclaration) {
+    if (element instanceof HaxeLocalFunctionDeclaration ||
+        element instanceof HaxeFunctionLiteral) {
       return FUNCTION;
     }
     if (element instanceof HaxeVarDeclarationPart || element instanceof HaxeEnumValueDeclaration) {

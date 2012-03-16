@@ -13,7 +13,6 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -68,7 +67,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Nullable
   @Override
-  public HaxeNamedComponent findFieldByName(final String name) {
+  public HaxeNamedComponent findFieldByName(@NotNull final String name) {
     return ContainerUtil.find(getFields(), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
@@ -78,12 +77,17 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public HaxeNamedComponent findMethodByName(String name) {
-    return findMethodBySignature(name, Collections.<HaxeType>emptyList());
+  public HaxeNamedComponent findMethodByName(@NotNull final String name) {
+    return ContainerUtil.find(getMethods(), new Condition<HaxeNamedComponent>() {
+      @Override
+      public boolean value(HaxeNamedComponent component) {
+        return name.equals(component.getName());
+      }
+    });
   }
 
   @Override
-  public HaxeNamedComponent findMethodBySignature(final String name, final List<HaxeType> parameterTypes) {
+  public HaxeNamedComponent findMethodBySignature(@NotNull final String name, final List<HaxeType> parameterTypes) {
     return ContainerUtil.find(getMethods(), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {

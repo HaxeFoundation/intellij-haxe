@@ -64,6 +64,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Nullable
   @Override
   public HaxeClass getHaxeClass() {
+    if (getParent() instanceof HaxeThisExpression) {
+      return PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+    }
     return HaxeResolveUtil.getHaxeClass(resolve());
   }
 
@@ -95,7 +98,13 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return toCandidateInfoArray(result);
     }
 
-    // super field
+    // Maybe this is class name
+    final HaxeClass resultClass = HaxeResolveUtil.resolveClass(this);
+    if (resultClass != null) {
+      return toCandidateInfoArray(resultClass);
+    }
+
+    // try super field
     return resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(this, HaxeClass.class), getText());
   }
 

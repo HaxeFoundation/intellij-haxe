@@ -9,7 +9,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeExternFunctionDeclarationImpl extends HaxePsiCompositeElementImpl implements HaxeExternFunctionDeclaration {
+public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeExternFunctionDeclaration {
 
   public HaxeExternFunctionDeclarationImpl(ASTNode node) {
     super(node);

@@ -1996,23 +1996,27 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, KFUNCTION)
         && !nextTokenIs(builder_, KMACRO)) return false;
     boolean result_ = false;
+    boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = externFunctionDeclaration_0(builder_, level_ + 1);
     result_ = result_ && externFunctionDeclaration_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, KFUNCTION);
     result_ = result_ && externFunctionDeclaration_3(builder_, level_ + 1);
-    result_ = result_ && consumeToken(builder_, PLPAREN);
-    result_ = result_ && externFunctionDeclaration_5(builder_, level_ + 1);
-    result_ = result_ && consumeToken(builder_, PRPAREN);
-    result_ = result_ && externFunctionDeclaration_7(builder_, level_ + 1);
-    result_ = result_ && externFunctionDeclaration_8(builder_, level_ + 1);
-    if (result_) {
+    pinned_ = result_; // pin = 4
+    result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
+    result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_5(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
+    result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_7(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && externFunctionDeclaration_8(builder_, level_ + 1) && result_;
+    if (result_ || pinned_) {
       marker_.done(HAXE_EXTERNFUNCTIONDECLARATION);
     }
     else {
       marker_.rollbackTo();
     }
-    return result_;
+    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
+    return result_ || pinned_;
   }
 
   // macroCommon*

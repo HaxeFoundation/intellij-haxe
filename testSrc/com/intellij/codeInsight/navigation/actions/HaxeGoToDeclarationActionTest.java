@@ -56,8 +56,28 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("FunctionParameter2.hx"), 1);
   }
 
+  public void testFunctionParameter3() {
+    doTest(myFixture.configureByFiles("FunctionParameter3.hx"), 1);
+  }
+
   public void testReference() {
     doTest(myFixture.configureByFiles("Reference.hx"), 1);
+  }
+
+  public void testThisExpression() {
+    doTest(myFixture.configureByFiles("ThisExpression.hx"), 1);
+  }
+
+  public void testStaticClassMember1() {
+    doTest(myFixture.configureByFiles("StaticClassMember1.hx", "com/bar/Foo.hx"), 1);
+  }
+
+  public void testStaticClassMember2() {
+    doTest(myFixture.configureByFiles("StaticClassMember2.hx", "com/bar/Foo.hx"), 2);
+  }
+
+  public void testFunctionCall() {
+    doTest(myFixture.configureByFiles("FunctionCall.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   public void testSamePackage() {

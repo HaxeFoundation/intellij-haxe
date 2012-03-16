@@ -240,7 +240,7 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeClass resolveClass(@Nullable HaxeType type) {
+  public static HaxeClass resolveClass(@Nullable PsiElement type) {
     if (type == null || type.getContext() == null) {
       return null;
     }
@@ -249,15 +249,19 @@ public class HaxeResolveUtil {
     return findNamedComponentByQName(qName, type.getContext());
   }
 
-  public static String getQName(@NotNull HaxeType type) {
+  public static String getQName(@NotNull PsiElement type) {
+    if(type instanceof HaxeType){
+      type = ((HaxeType)type).getExpression();
+    }
     String result = type.getText();
     if (result.indexOf('.') == -1) {
       final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(type, result);
-      if (importStatement != null && importStatement.getExpression() != null) {
-        result = importStatement.getExpression().getText();
+      final HaxeExpression expression = importStatement == null ? null : importStatement.getExpression();
+      if (importStatement != null && expression != null) {
+        result = expression.getText();
       }
       else {
-        final String packageName = HaxeResolveUtil.getPackageName(type.getContainingFile());
+        final String packageName = getPackageName(type.getContainingFile());
         if (!packageName.isEmpty()) {
           result = packageName + "." + result;
         }

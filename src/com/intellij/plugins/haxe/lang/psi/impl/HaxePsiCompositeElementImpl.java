@@ -54,18 +54,9 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeInterfaceDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeTypedefDeclaration.class));
 
-    if (this instanceof HaxeFunctionDeclarationWithAttributes) {
-      final HaxeParameterList parameterList = ((HaxeFunctionDeclarationWithAttributes)this).getParameterList();
-      if (parameterList != null) {
-        result.addAll(parameterList.getParameterList());
-      }
-    }
-
-    if (this instanceof HaxeLocalFunctionDeclaration) {
-      final HaxeParameterList parameterList = ((HaxeLocalFunctionDeclaration)this).getParameterList();
-      if (parameterList != null) {
-        result.addAll(parameterList.getParameterList());
-      }
+    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
+    if (parameterList != null) {
+      result.addAll(parameterList.getParameterList());
     }
 
     if (this instanceof HaxeForStatement) {
