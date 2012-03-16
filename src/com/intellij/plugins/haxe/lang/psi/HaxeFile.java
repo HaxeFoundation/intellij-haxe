@@ -5,6 +5,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.FileViewProvider;
+import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,5 +29,10 @@ public class HaxeFile extends PsiFileBase {
   @Override
   public Icon getIcon(int flags) {
     return super.getIcon(flags);
+  }
+
+  @Override
+  public PsiReference findReferenceAt(int offset) {
+    return super.findReferenceAt(offset);
   }
 }

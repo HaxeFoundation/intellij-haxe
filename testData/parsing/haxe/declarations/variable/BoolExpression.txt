@@ -41,8 +41,9 @@ haXe File
                         HAXE_IDENTIFIER
                           PsiElement(ID)('today')
                       PsiElement(.)('.')
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('getTime')
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('getTime')
                     PsiElement(()('(')
                     PsiElement())(')')
                   HAXE_COMPAREOPERATION

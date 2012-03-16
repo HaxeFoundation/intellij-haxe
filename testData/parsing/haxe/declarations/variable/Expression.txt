@@ -30,8 +30,9 @@ haXe File
                     HAXE_IDENTIFIER
                       PsiElement(ID)('Math')
                   PsiElement(.)('.')
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('PI')
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('PI')
               PsiElement(*)('*')
               HAXE_ARRAYACCESSEXPRESSION
                 HAXE_REFERENCEEXPRESSION

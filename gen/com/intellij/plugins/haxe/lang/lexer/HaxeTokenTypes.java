@@ -44,7 +44,6 @@ public interface HaxeTokenTypes {
   IElementType HAXE_EXPRESSIONLIST = new HaxeElementType("HAXE_EXPRESSIONLIST");
   IElementType HAXE_EXTERNCLASSDECLARATION = new HaxeElementType("HAXE_EXTERNCLASSDECLARATION");
   IElementType HAXE_EXTERNCLASSDECLARATIONBODY = new HaxeElementType("HAXE_EXTERNCLASSDECLARATIONBODY");
-  IElementType HAXE_EXTERNCLASSDECLARATIONBODYPART = new HaxeElementType("HAXE_EXTERNCLASSDECLARATIONBODYPART");
   IElementType HAXE_EXTERNFUNCTIONDECLARATION = new HaxeElementType("HAXE_EXTERNFUNCTIONDECLARATION");
   IElementType HAXE_EXTERNORPRIVATE = new HaxeElementType("HAXE_EXTERNORPRIVATE");
   IElementType HAXE_FAKEENUMMETA = new HaxeElementType("HAXE_FAKEENUMMETA");
@@ -320,9 +319,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_EXTERNCLASSDECLARATIONBODY) {
         return new HaxeExternClassDeclarationBodyImpl(node);
-      }
-      else if (type == HAXE_EXTERNCLASSDECLARATIONBODYPART) {
-        return new HaxeExternClassDeclarationBodyPartImpl(node);
       }
       else if (type == HAXE_EXTERNFUNCTIONDECLARATION) {
         return new HaxeExternFunctionDeclarationImpl(node);

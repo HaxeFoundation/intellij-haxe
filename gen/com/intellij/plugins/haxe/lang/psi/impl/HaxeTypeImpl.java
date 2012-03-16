@@ -17,8 +17,8 @@ public class HaxeTypeImpl extends HaxePsiCompositeElementImpl implements HaxeTyp
 
   @Override
   @NotNull
-  public HaxeReferenceExpression getReferenceExpression() {
-    return findNotNullChildByClass(HaxeReferenceExpression.class);
+  public HaxeExpression getExpression() {
+    return findNotNullChildByClass(HaxeExpression.class);
   }
 
   @Override

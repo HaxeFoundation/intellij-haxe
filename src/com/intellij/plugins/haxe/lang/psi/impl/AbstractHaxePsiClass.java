@@ -55,14 +55,14 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public List<HaxeNamedComponent> getMethods() {
-    final List<HaxeNamedComponent> result = HaxeResolveUtil.getNamedSubComponents(this);
+    final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(this);
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.METHOD);
   }
 
   @NotNull
   @Override
   public List<HaxeNamedComponent> getFields() {
-    final List<HaxeNamedComponent> result = HaxeResolveUtil.getNamedSubComponents(this);
+    final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(this);
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.FIELD);
   }
 

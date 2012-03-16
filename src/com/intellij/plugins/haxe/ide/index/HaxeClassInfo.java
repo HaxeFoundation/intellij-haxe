@@ -9,11 +9,11 @@ import javax.swing.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class ComponentInfo {
+public class HaxeClassInfo {
   @NotNull private final String packageName;
   @Nullable private final HaxeComponentType type;
 
-  public ComponentInfo(@NotNull String name, @Nullable HaxeComponentType type) {
+  public HaxeClassInfo(@NotNull String name, @Nullable HaxeComponentType type) {
     packageName = name;
     this.type = type;
   }

@@ -7,5 +7,5 @@ class Foo {
 }
 
 extern class FooExtern {
-
+  public var fooExtern(default,null):FooExtern;
 }

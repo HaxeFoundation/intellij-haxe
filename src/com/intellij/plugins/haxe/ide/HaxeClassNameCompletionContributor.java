@@ -7,7 +7,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
-import com.intellij.plugins.haxe.ide.index.ComponentInfo;
+import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
@@ -56,7 +56,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     new WriteCommandAction(context.getProject(), context.getFile()) {
       @Override
       protected void run(Result result) throws Throwable {
-        final ComponentInfo info = (ComponentInfo)item.getObject();
+        final HaxeClassInfo info = (HaxeClassInfo)item.getObject();
         if (info.getPackageName().isEmpty()) {
           return;
         }
@@ -66,7 +66,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     }.execute();
   }
 
-  private static class MyProcessor implements Processor<Pair<String, ComponentInfo>> {
+  private static class MyProcessor implements Processor<Pair<String, HaxeClassInfo>> {
     private final CompletionResultSet myResultSet;
     private final InsertHandler<LookupElement> myInsertHandler;
 
@@ -76,12 +76,12 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     }
 
     @Override
-    public boolean process(Pair<String, ComponentInfo> pair) {
+    public boolean process(Pair<String, HaxeClassInfo> pair) {
       add(pair.getFirst(), pair.getSecond());
       return true;
     }
 
-    private void add(String name, ComponentInfo info) {
+    private void add(String name, HaxeClassInfo info) {
       myResultSet.addElement(LookupElementBuilder.create(info, name)
                                .setIcon(info.getIcon())
                                .setTailText(" " + info.getPackageName(), true)

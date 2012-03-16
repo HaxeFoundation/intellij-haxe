@@ -130,9 +130,6 @@ public class HaxeParser implements PsiParser {
     else if (root_ == HAXE_EXTERNCLASSDECLARATIONBODY) {
       result_ = externClassDeclarationBody(builder_, level_ + 1);
     }
-    else if (root_ == HAXE_EXTERNCLASSDECLARATIONBODYPART) {
-      result_ = externClassDeclarationBodyPart(builder_, level_ + 1);
-    }
     else if (root_ == HAXE_EXTERNFUNCTIONDECLARATION) {
       result_ = externFunctionDeclaration(builder_, level_ + 1);
     }
@@ -353,7 +350,6 @@ public class HaxeParser implements PsiParser {
       HAXE_NEWEXPRESSION, HAXE_OBJECTLITERAL, HAXE_PARENTHESIZEDEXPRESSION, HAXE_PREFIXEXPRESSION,
       HAXE_REFERENCEEXPRESSION, HAXE_SHIFTEXPRESSION, HAXE_SUFFIXEXPRESSION, HAXE_TERNARYEXPRESSION,
       HAXE_THISEXPRESSION),
-    TokenSet.create(HAXE_REFERENCEEXPRESSION),
   };
   public static boolean type_extends_(IElementType child_, IElementType parent_) {
     for (TokenSet set : EXTENDS_SETS_) {
@@ -1972,7 +1968,7 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // varDeclaration | externFunctionDeclaration | pp
-  public static boolean externClassDeclarationBodyPart(PsiBuilder builder_, int level_) {
+  static boolean externClassDeclarationBodyPart(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclarationBodyPart")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
@@ -1980,11 +1976,11 @@ public class HaxeParser implements PsiParser {
     result_ = varDeclaration(builder_, level_ + 1);
     if (!result_) result_ = externFunctionDeclaration(builder_, level_ + 1);
     if (!result_) result_ = pp(builder_, level_ + 1);
-    if (result_) {
-      marker_.done(HAXE_EXTERNCLASSDECLARATIONBODYPART);
+    if (!result_) {
+      marker_.rollbackTo();
     }
     else {
-      marker_.rollbackTo();
+      marker_.drop();
     }
     result_ = exitErrorRecordingSection(builder_, result_, level_, false, _SECTION_RECOVER_, extern_class_body_part_recover_parser_);
     return result_;
@@ -4583,7 +4579,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '.' identifier
+  // '.' referenceExpression
   public static boolean qualifiedReferenceExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "qualifiedReferenceExpression")) return false;
     if (!nextTokenIs(builder_, ODOT)) return false;
@@ -4595,7 +4591,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, ODOT);
     pinned_ = result_; // pin = 1
-    result_ = result_ && identifier(builder_, level_ + 1);
+    result_ = result_ && referenceExpression(builder_, level_ + 1);
     if (result_ || pinned_) {
       marker_.drop();
       left_marker_.precede().done(HAXE_REFERENCEEXPRESSION);

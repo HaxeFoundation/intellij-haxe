@@ -17,8 +17,20 @@ public class HaxeExternClassDeclarationBodyImpl extends HaxePsiCompositeElementI
 
   @Override
   @NotNull
-  public List<HaxeExternClassDeclarationBodyPart> getExternClassDeclarationBodyPartList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExternClassDeclarationBodyPart.class);
+  public List<HaxeExternFunctionDeclaration> getExternFunctionDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExternFunctionDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxePp> getPpList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePp.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeVarDeclaration> getVarDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeVarDeclaration.class);
   }
 
 }

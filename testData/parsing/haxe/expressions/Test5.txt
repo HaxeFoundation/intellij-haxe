@@ -30,8 +30,9 @@ haXe File
                         HAXE_IDENTIFIER
                           PsiElement(ID)('a')
                       PsiElement(.)('.')
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('b')
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('b')
                     PsiElement(()('(')
                     PsiElement())(')')
                   PsiElement(*)('*')
@@ -44,8 +45,9 @@ haXe File
                         PsiElement([)('[')
                         PsiElement(])(']')
                       PsiElement(.)('.')
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('d')
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('d')
                     PsiElement(()('(')
                     PsiElement())(')')
             PsiElement(;)(';')
@@ -66,8 +68,9 @@ haXe File
                   PsiElement())(')')
                 PsiElement())(')')
               PsiElement(.)('.')
-              HAXE_IDENTIFIER
-                PsiElement(ID)('start')
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('start')
             PsiElement(()('(')
             PsiElement())(')')
           PsiElement(;)(';')
@@ -85,8 +88,9 @@ haXe File
                     PsiElement(LITINT)('100')
                 PsiElement())(')')
               PsiElement(.)('.')
-              HAXE_IDENTIFIER
-                PsiElement(ID)('start')
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('start')
             PsiElement(()('(')
             PsiElement())(')')
           PsiElement(;)(';')

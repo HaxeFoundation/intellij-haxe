@@ -6,6 +6,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -28,15 +29,15 @@ import java.util.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeComponentIndex extends FileBasedIndexExtension<String, ComponentInfo> {
-  public static final ID<String, ComponentInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeComponentIndex");
+public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClassInfo> {
+  public static final ID<String, HaxeClassInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeComponentIndex");
   private static final int INDEX_VERSION = 1;
-  private final DataIndexer<String, ComponentInfo, FileContent> myIndexer = new MyDataIndexer();
-  private final DataExternalizer<ComponentInfo> myExternalizer = new MyDataExternalizer();
+  private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
+  private final DataExternalizer<HaxeClassInfo> myExternalizer = new MyDataExternalizer();
 
   @NotNull
   @Override
-  public ID<String, ComponentInfo> getName() {
+  public ID<String, HaxeClassInfo> getName() {
     return HAXE_COMPONENT_INDEX;
   }
 
@@ -56,7 +57,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, Componen
   }
 
   @Override
-  public DataExternalizer<ComponentInfo> getValueExternalizer() {
+  public DataExternalizer<HaxeClassInfo> getValueExternalizer() {
     return myExternalizer;
   }
 
@@ -72,7 +73,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, Componen
 
   @NotNull
   @Override
-  public DataIndexer<String, ComponentInfo, FileContent> getIndexer() {
+  public DataIndexer<String, HaxeClassInfo, FileContent> getIndexer() {
     return myIndexer;
   }
 
@@ -97,13 +98,13 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, Componen
     return FileBasedIndex.getInstance().getAllKeys(HAXE_COMPONENT_INDEX, project);
   }
 
-  public static void processAll(final Project project, final @NotNull Processor<Pair<String, ComponentInfo>> processor) {
+  public static void processAll(final Project project, final @NotNull Processor<Pair<String, HaxeClassInfo>> processor) {
     final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     final Collection<String> keys = getNames(project);
     for (String key : keys) {
-      final List<ComponentInfo> values = FileBasedIndex.getInstance().getValues(HAXE_COMPONENT_INDEX, key, scope);
-      for (ComponentInfo value : values) {
-        final Pair<String, ComponentInfo> pair = Pair.create(key, value);
+      final List<HaxeClassInfo> values = FileBasedIndex.getInstance().getValues(HAXE_COMPONENT_INDEX, key, scope);
+      for (HaxeClassInfo value : values) {
+        final Pair<String, HaxeClassInfo> pair = Pair.create(key, value);
         if (!processor.process(pair)) {
           return;
         }
@@ -111,9 +112,9 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, Componen
     }
   }
 
-  private static class MyDataExternalizer implements DataExternalizer<ComponentInfo> {
+  private static class MyDataExternalizer implements DataExternalizer<HaxeClassInfo> {
     @Override
-    public void save(DataOutput out, ComponentInfo value) throws IOException {
+    public void save(DataOutput out, HaxeClassInfo value) throws IOException {
       out.writeUTF(value.getPackageName());
       final HaxeComponentType haxeComponentType = value.getType();
       final int key = haxeComponentType == null ? -1 : haxeComponentType.getKey();
@@ -121,27 +122,27 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, Componen
     }
 
     @Override
-    public ComponentInfo read(DataInput in) throws IOException {
+    public HaxeClassInfo read(DataInput in) throws IOException {
       final String packageName = in.readUTF();
       final int key = in.readInt();
-      return new ComponentInfo(packageName, HaxeComponentType.valueOf(key));
+      return new HaxeClassInfo(packageName, HaxeComponentType.valueOf(key));
     }
   }
 
-  private static class MyDataIndexer implements DataIndexer<String, ComponentInfo, FileContent> {
+  private static class MyDataIndexer implements DataIndexer<String, HaxeClassInfo, FileContent> {
     @Override
     @NotNull
-    public Map<String, ComponentInfo> map(final FileContent inputData) {
+    public Map<String, HaxeClassInfo> map(final FileContent inputData) {
       final PsiFile psiFile = inputData.getPsiFile();
-      final List<HaxeComponent> components = HaxeResolveUtil.findComponentDeclarations(psiFile);
-      if (components.isEmpty()) {
+      final List<HaxeClass> classes = HaxeResolveUtil.findComponentDeclarations(psiFile);
+      if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
       final String packageName = UsefulPsiTreeUtil.findPackageName(psiFile);
-      final Map<String, ComponentInfo> result = new THashMap<String, ComponentInfo>(components.size());
-      for (HaxeComponent component : components) {
-        final ComponentInfo info = new ComponentInfo(packageName, HaxeComponentType.typeOf(component));
-        result.put(component.getName(), info);
+      final Map<String, HaxeClassInfo> result = new THashMap<String, HaxeClassInfo>(classes.size());
+      for (HaxeClass haxeClass : classes) {
+        final HaxeClassInfo info = new HaxeClassInfo(packageName, HaxeComponentType.typeOf(haxeClass));
+        result.put(haxeClass.getName(), info);
       }
       return result;
     }

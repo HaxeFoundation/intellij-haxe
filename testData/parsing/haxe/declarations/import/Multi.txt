@@ -7,11 +7,13 @@ haXe File
           HAXE_IDENTIFIER
             PsiElement(ID)('com')
         PsiElement(.)('.')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('fedor')
+        HAXE_REFERENCEEXPRESSION
+          HAXE_IDENTIFIER
+            PsiElement(ID)('fedor')
       PsiElement(.)('.')
-      HAXE_IDENTIFIER
-        PsiElement(ID)('test1')
+      HAXE_REFERENCEEXPRESSION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('test1')
     PsiElement(;)(';')
   HAXE_IMPORTSTATEMENT
     PsiElement(import)('import')
@@ -21,9 +23,11 @@ haXe File
           HAXE_IDENTIFIER
             PsiElement(ID)('com')
         PsiElement(.)('.')
-        HAXE_IDENTIFIER
-          PsiElement(ID)('fedor')
+        HAXE_REFERENCEEXPRESSION
+          HAXE_IDENTIFIER
+            PsiElement(ID)('fedor')
       PsiElement(.)('.')
-      HAXE_IDENTIFIER
-        PsiElement(ID)('test2')
+      HAXE_REFERENCEEXPRESSION
+        HAXE_IDENTIFIER
+          PsiElement(ID)('test2')
     PsiElement(;)(';')

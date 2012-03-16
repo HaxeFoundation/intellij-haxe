@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
@@ -19,10 +20,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -60,7 +58,7 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeNamedComponent findNamedComponentByQName(final String qName, final @Nullable PsiElement context) {
+  public static HaxeClass findNamedComponentByQName(final String qName, final @Nullable PsiElement context) {
     if (context == null) {
       return null;
     }
@@ -71,7 +69,7 @@ public class HaxeResolveUtil {
     final Pair<String, String> qNamePair = splitQName(qName);
 
     for (VirtualFile classFile : classFiles) {
-      final HaxeComponent componentPsiElement = findComponentDeclaration(context.getManager().findFile(classFile), qNamePair.getSecond());
+      final HaxeClass componentPsiElement = findComponentDeclaration(context.getManager().findFile(classFile), qNamePair.getSecond());
       if (componentPsiElement != null) {
         return componentPsiElement;
       }
@@ -80,11 +78,11 @@ public class HaxeResolveUtil {
   }
 
   @NotNull
-  public static List<HaxeComponent> findComponentDeclarations(@Nullable PsiFile file) {
+  public static List<HaxeClass> findComponentDeclarations(@Nullable PsiFile file) {
     if (file == null) {
       return Collections.emptyList();
     }
-    final HaxeComponent[] components = PsiTreeUtil.getChildrenOfType(file, HaxeComponent.class);
+    final HaxeClass[] components = PsiTreeUtil.getChildrenOfType(file, HaxeClass.class);
     if (components == null) {
       return Collections.emptyList();
     }
@@ -92,12 +90,12 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeComponent findComponentDeclaration(@Nullable PsiFile file, @NotNull String componentName) {
-    final List<HaxeComponent> declarations = findComponentDeclarations(file);
-    for (HaxeComponent component : declarations) {
-      final HaxeComponentName identifier = component.getComponentName();
+  public static HaxeClass findComponentDeclaration(@Nullable PsiFile file, @NotNull String componentName) {
+    final List<HaxeClass> declarations = findComponentDeclarations(file);
+    for (HaxeClass haxeClass : declarations) {
+      final HaxeComponentName identifier = haxeClass.getComponentName();
       if (identifier != null && componentName.equals(identifier.getText())) {
-        return component;
+        return haxeClass;
       }
     }
     return null;
@@ -120,8 +118,9 @@ public class HaxeResolveUtil {
     }
     final List<HaxeType> result = new ArrayList<HaxeType>();
     for (HaxeInherit inherit : extendsList.getInheritList()) {
-      final PsiElement keyword = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(inherit);
-      if (keyword != null && keyword == expectedKeyword) {
+      final PsiElement firstChild = inherit.getFirstChild();
+      final IElementType childType = firstChild instanceof ASTNode ? ((ASTNode)firstChild).getElementType() : null;
+      if (childType == expectedKeyword) {
         result.add(inherit.getType());
       }
     }
@@ -138,13 +137,30 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeNamedComponent getNamedSubComponent(HaxeClass haxeClass, @NotNull final String name) {
-    return ContainerUtil.find(getNamedSubComponents(haxeClass), new Condition<HaxeNamedComponent>() {
-      @Override
-      public boolean value(HaxeNamedComponent component) {
-        return name.equals(component.getName());
+  public static HaxeNamedComponent findNamedSubComponent(@Nullable HaxeClass haxeClass, @NotNull final String name) {
+    if (haxeClass == null) {
+      return null;
+    }
+    final HaxeNamedComponent result = haxeClass.findMethodByName(name);
+    return result != null ? result : haxeClass.findFieldByName(name);
+  }
+
+  @NotNull
+  public static List<HaxeNamedComponent> findNamedSubComponents(@NotNull HaxeClass rootHaxeClass) {
+    final Map<String, HaxeNamedComponent> result = new HashMap<String, HaxeNamedComponent>();
+    final LinkedList<HaxeClass> classes = new LinkedList<HaxeClass>();
+    classes.add(rootHaxeClass);
+    while (!classes.isEmpty()) {
+      final HaxeClass haxeClass = classes.pollFirst();
+      for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
+        if (namedComponent.getName() != null && !result.containsKey(namedComponent.getName())) {
+          result.put(namedComponent.getName(), namedComponent);
+        }
       }
-    });
+      classes.addAll(resolveClasses(haxeClass.getExtendsList()));
+      classes.addAll(resolveClasses(haxeClass.getImplementsList()));
+    }
+    return new ArrayList<HaxeNamedComponent>(result.values());
   }
 
   @NotNull
@@ -152,7 +168,7 @@ public class HaxeResolveUtil {
     PsiElement body = null;
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
     if (type == HaxeComponentType.CLASS) {
-      body = PsiTreeUtil.getChildOfType(haxeClass, HaxeClassBody.class);
+      body = PsiTreeUtil.getChildOfAnyType(haxeClass, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
     }
     if (type == HaxeComponentType.INTERFACE) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeInterfaceBody.class);
@@ -207,12 +223,24 @@ public class HaxeResolveUtil {
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag == null ? null : typeTag.getType();
-    final HaxeNamedComponent typeComponent = type == null ? null : resolveType(type);
+    final HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
     return getHaxeClass(typeComponent);
   }
 
+  @NotNull
+  public static List<HaxeClass> resolveClasses(@NotNull List<HaxeType> types) {
+    final List<HaxeClass> result = new ArrayList<HaxeClass>();
+    for (HaxeType haxeType : types) {
+      final HaxeClass haxeClass = resolveClass(haxeType);
+      if (haxeClass != null) {
+        result.add(haxeClass);
+      }
+    }
+    return result;
+  }
+
   @Nullable
-  public static HaxeNamedComponent resolveType(@Nullable HaxeType type) {
+  public static HaxeClass resolveClass(@Nullable HaxeType type) {
     if (type == null || type.getContext() == null) {
       return null;
     }

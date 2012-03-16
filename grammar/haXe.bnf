@@ -187,7 +187,7 @@ typedefDeclaration ::= externOrPrivate? 'typedef' componentName typeParam? '=' f
 externClassDeclaration ::= macroClass* 'extern' 'class' componentName typeParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
-externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration | pp {recoverUntil="extern_class_body_part_recover"}
+private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration | pp {recoverUntil="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:macro' | '@:require' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
 classDeclaration ::= macroClass* 'private'? 'class' componentName typeParam? inheritList? '{' classBody '}'
@@ -203,7 +203,7 @@ private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithA
 private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' )
 
 enumDeclaration ::= externOrPrivate? 'enum' componentName typeParam? '{' enumBody '}'
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 enumBody ::= enumValueDeclaration*
 
 /*
@@ -386,7 +386,7 @@ left arrayAccessExpression ::= '[' expression? ']'
 
 referenceExpression ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
-left qualifiedReferenceExpression ::= '.' identifier {extends="referenceExpression" elementType="referenceExpression"}
+left qualifiedReferenceExpression ::= '.' referenceExpression {elementType="referenceExpression"}
 simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * {elementType="referenceExpression"}
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}

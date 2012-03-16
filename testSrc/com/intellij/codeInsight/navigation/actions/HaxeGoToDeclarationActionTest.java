@@ -68,6 +68,10 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("ExternClass.hx", "com/bar/Foo.hx"), 1);
   }
 
+  public void testSuperField() {
+    doTest(myFixture.configureByFiles("SuperField.hx", "com/bar/Foo.hx"), 1);
+  }
+
   public void testReferenceExpression1() {
     doTest(myFixture.configureByFiles("ReferenceExpression1.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
   }
@@ -78,5 +82,17 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
 
   public void testReferenceExpression3() {
     doTest(myFixture.configureByFiles("ReferenceExpression3.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 2);
+  }
+
+  public void testReferenceExpression4() {
+    doTest(myFixture.configureByFiles("ReferenceExpression4.hx",
+                                      "com/bar/Foo.hx",
+                                      "com/bar/Baz.hx",
+                                      "com/bar/IBar.hx",
+                                      "com/bar/SuperClass.hx"), 1);
+  }
+
+  public void testReferenceExpression5() {
+    doTest(myFixture.configureByFiles("ReferenceExpression5.hx", "com/bar/Foo.hx"), 1);
   }
 }
