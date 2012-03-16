@@ -75,7 +75,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public ResolveResult[] multiResolve(boolean incompleteCode) {
     final HaxeType type = PsiTreeUtil.getParentOfType(this, HaxeType.class);
     if (type != null) {
-      return toCandidateInfoArray(HaxeResolveUtil.resolveClass(type));
+      final HaxeClass haxeClass = HaxeResolveUtil.resolveClass(type);
+      return toCandidateInfoArray(haxeClass == null ? null : haxeClass.getComponentName());
     }
 
     // if not first in chain

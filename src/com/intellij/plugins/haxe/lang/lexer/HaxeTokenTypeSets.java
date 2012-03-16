@@ -75,7 +75,8 @@ public interface HaxeTokenTypeSets {
     PPELSEIF,
     PPEND,
     PPERROR,
-    PPIF
+    PPIF,
+    KEXTERN
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(

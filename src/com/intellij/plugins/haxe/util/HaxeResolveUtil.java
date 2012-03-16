@@ -244,12 +244,12 @@ public class HaxeResolveUtil {
     if (type == null || type.getContext() == null) {
       return null;
     }
-    final String qName = getQName(type);
 
-    return findNamedComponentByQName(qName, type.getContext());
+    final HaxeClass result = findNamedComponentByQName(getQName(type, true), type.getContext());
+    return result != null ? result : findNamedComponentByQName(getQName(type, false), type.getContext());
   }
 
-  public static String getQName(@NotNull PsiElement type) {
+  public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
     if(type instanceof HaxeType){
       type = ((HaxeType)type).getExpression();
     }
@@ -260,7 +260,7 @@ public class HaxeResolveUtil {
       if (importStatement != null && expression != null) {
         result = expression.getText();
       }
-      else {
+      else if(searchInSamePackage) {
         final String packageName = getPackageName(type.getContainingFile());
         if (!packageName.isEmpty()) {
           result = packageName + "." + result;

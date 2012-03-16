@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -28,12 +29,14 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
 
   @NotNull
   public String getType(@NotNull final PsiElement element) {
-    return "reference";
+    final String result = HaxeComponentType.getName(element.getParent());
+    return result == null ? "reference" : result;
   }
 
   @NotNull
   public String getDescriptiveName(@NotNull final PsiElement element) {
-    return "reference";
+    final String result = HaxeComponentType.getPresentableName(element.getParent());
+    return result == null ? "" : result;
   }
 
   @NotNull

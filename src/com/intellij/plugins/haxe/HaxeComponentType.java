@@ -69,6 +69,7 @@ public enum HaxeComponentType {
 
   public abstract Icon getIcon();
 
+
   @Nullable
   public static HaxeComponentType valueOf(int key) {
     switch (key) {
@@ -129,5 +130,37 @@ public enum HaxeComponentType {
       return PARAMETER;
     }
     return null;
+  }
+
+  @Nullable
+  public static String getName(PsiElement element) {
+    final HaxeComponentType type = typeOf(element);
+    if (type == null) {
+      return null;
+    }
+    return type.toString().toLowerCase();
+  }
+
+  @Nullable
+  public static String getPresentableName(PsiElement element) {
+    final HaxeComponentType type = typeOf(element);
+    if (type == null) {
+      return null;
+    }
+    switch (type) {
+      case TYPEDEF:
+      case CLASS:
+      case ENUM:
+      case INTERFACE:
+        return ((HaxeClass)element).getQualifiedName();
+      case FUNCTION:
+      case METHOD:
+      case FIELD:
+      case VARIABLE:
+      case PARAMETER:
+        return ((HaxeNamedComponent)element).getName();
+      default:
+        return null;
+    }
   }
 }

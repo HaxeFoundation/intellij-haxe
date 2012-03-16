@@ -70,4 +70,9 @@ public class HaxeFindUsagesTest extends JavaCodeInsightFixtureTestCase {
     myFixture.configureByFiles("FunctionParameter.hx");
     doTest(2);
   }
+
+  public void testClassDeclaration() throws Throwable {
+    myFixture.configureByFiles("com/bar/ClassToFind.hx", "ClassDeclaration.hx");
+    doTest(5);
+  }
 }
