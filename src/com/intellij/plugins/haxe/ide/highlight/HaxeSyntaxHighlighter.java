@@ -23,6 +23,8 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
     ATTRIBUTES.put(LITINT, HaxeSyntaxHighlighterColors.NUMBER);
     ATTRIBUTES.put(LITHEX, HaxeSyntaxHighlighterColors.NUMBER);
     ATTRIBUTES.put(LITOCT, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(KFALSE, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(KTRUE, HaxeSyntaxHighlighterColors.NUMBER);
     ATTRIBUTES.put(LITFLOAT, HaxeSyntaxHighlighterColors.NUMBER);
 
     ATTRIBUTES.put(LITSTRING, HaxeSyntaxHighlighterColors.STRING);

@@ -87,6 +87,8 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 
 "if"                                      {  return KIF ;  }
 "null"                                    {  return KNULL ;  }
+"true"                                    {  return KTRUE ;  }
+"false"                                   {  return KFALSE ;  }
 "this"                                    {  return KTHIS ;  }
 
 "for"                                     {  return KFOR ;  }
@@ -116,6 +118,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "@:final"                                 {  return KFINAL;  }
 "@:require"                               {  return KREQUIRE;  }
 "@:fakeEnum"                              {  return KFAKEENUM;  }
+"@:core_api"                              {  return KCOREAPI;  }
 
 "try"                                     {  return KTRY;  }
 "catch"                                   {  return KCATCH;  }

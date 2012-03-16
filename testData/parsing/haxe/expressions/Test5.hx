@@ -3,5 +3,6 @@ class Test5{
         var bar1 = a.b()*c[].d();
         (new Timer(100)).start();
         new Timer(100).start();
+        var flag = true | false;
     }
 }

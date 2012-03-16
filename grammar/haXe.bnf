@@ -99,6 +99,8 @@
     kEXTENDS="extends"
 
     kNULL ="null"
+    kTRUE ="true"
+    kFALSE ="false"
     kTHIS ="this"
 
     kIF ="if"
@@ -128,6 +130,7 @@
     kFINAL="@:final"
     kREQUIRE="@:require"
     kFAKEENUM="@:fakeEnum"
+    kCOREAPI="@:core_api"
 
     kTRY="try"
     kCATCH="catch"
@@ -175,7 +178,7 @@ private topLevelDeclaration ::= classDeclaration
                               | typedefDeclaration
 
 externOrPrivate ::= 'extern' | 'private'
-private macroClass ::= '@:final' | fakeEnumMeta | macroCommon
+private macroClass ::= '@:final' | '@:core_api' | fakeEnumMeta | macroCommon
 private macroCommon ::= '@:macro' | requireMeta
 
 requireMeta ::=  '@:require' '(' identifier ')'
@@ -369,7 +372,7 @@ private value ::= literalExpression
                 | callOrArrayAccess
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
-                    | 'null'
+                    | 'null' | 'true' | 'false'
                     | functionLiteral
                     | arrayLiteral
                     | objectLiteral

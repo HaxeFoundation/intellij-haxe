@@ -24,9 +24,8 @@ haXe File
           HAXE_WHILESTATEMENT
             PsiElement(while)('while')
             PsiElement(()('(')
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('true')
+            HAXE_LITERALEXPRESSION
+              PsiElement(true)('true')
             PsiElement())(')')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')

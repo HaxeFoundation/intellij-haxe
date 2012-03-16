@@ -117,6 +117,7 @@ public interface HaxeTokenTypes {
   IElementType KCATCH = new HaxeElementType("catch");
   IElementType KCLASS = new HaxeElementType("class");
   IElementType KCONTINUE = new HaxeElementType("continue");
+  IElementType KCOREAPI = new HaxeElementType("@:core_api");
   IElementType KDEFAULT = new HaxeElementType("default");
   IElementType KDO = new HaxeElementType("do");
   IElementType KDYNAMIC = new HaxeElementType("dynamic");
@@ -125,6 +126,7 @@ public interface HaxeTokenTypes {
   IElementType KEXTENDS = new HaxeElementType("extends");
   IElementType KEXTERN = new HaxeElementType("extern");
   IElementType KFAKEENUM = new HaxeElementType("@:fakeEnum");
+  IElementType KFALSE = new HaxeElementType("false");
   IElementType KFINAL = new HaxeElementType("@:final");
   IElementType KFOR = new HaxeElementType("for");
   IElementType KFUNCTION = new HaxeElementType("function");
@@ -145,6 +147,7 @@ public interface HaxeTokenTypes {
   IElementType KSWITCH = new HaxeElementType("switch");
   IElementType KTHIS = new HaxeElementType("this");
   IElementType KTHROW = new HaxeElementType("throw");
+  IElementType KTRUE = new HaxeElementType("true");
   IElementType KTRY = new HaxeElementType("try");
   IElementType KTYPEDEF = new HaxeElementType("typedef");
   IElementType KUNTYPE = new HaxeElementType("untyped");

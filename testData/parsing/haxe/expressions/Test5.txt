@@ -94,5 +94,21 @@ haXe File
             PsiElement(()('(')
             PsiElement())(')')
           PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('flag')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_BITWISEEXPRESSION
+                  HAXE_LITERALEXPRESSION
+                    PsiElement(true)('true')
+                  HAXE_BITOPERATION
+                    PsiElement(|)('|')
+                  HAXE_LITERALEXPRESSION
+                    PsiElement(false)('false')
+            PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

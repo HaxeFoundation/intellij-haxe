@@ -128,9 +128,8 @@ haXe File
               PsiElement(ID)('a11')
           HAXE_VARINIT
             PsiElement(=)('=')
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('true')
+            HAXE_LITERALEXPRESSION
+              PsiElement(true)('true')
         PsiElement(;)(';')
       HAXE_VARDECLARATION
         PsiElement(var)('var')
@@ -140,8 +139,7 @@ haXe File
               PsiElement(ID)('a12')
           HAXE_VARINIT
             PsiElement(=)('=')
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('false')
+            HAXE_LITERALEXPRESSION
+              PsiElement(false)('false')
         PsiElement(;)(';')
     PsiElement(})('}')

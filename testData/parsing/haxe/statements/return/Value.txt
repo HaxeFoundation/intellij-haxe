@@ -54,15 +54,13 @@ haXe File
             PsiElement())(')')
             HAXE_RETURNSTATEMENT
               PsiElement(return)('return')
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('true')
+              HAXE_LITERALEXPRESSION
+                PsiElement(true)('true')
               PsiElement(;)(';')
           HAXE_RETURNSTATEMENT
             PsiElement(return)('return')
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('false')
+            HAXE_LITERALEXPRESSION
+              PsiElement(false)('false')
             PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

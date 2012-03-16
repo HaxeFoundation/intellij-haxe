@@ -24,9 +24,8 @@ haXe File
           HAXE_IFSTATEMENT
             PsiElement(if)('if')
             PsiElement(()('(')
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('true')
+            HAXE_LITERALEXPRESSION
+              PsiElement(true)('true')
             PsiElement())(')')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')
