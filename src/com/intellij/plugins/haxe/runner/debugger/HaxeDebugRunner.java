@@ -16,6 +16,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -71,9 +72,14 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     //HaxeRunner.launchUrl(url);
 
-    final Sdk flexSdk = FlexSdkUtils.findFlexOrFlexmojosSdk(settings.getFlexSdkName());
+
+    String flexSdkName = settings.getFlexSdkName();
+    if (StringUtil.isEmpty(flexSdkName)) {
+      throw new ExecutionException(HaxeBundle.message("flex.sdk.not.specified"));
+    }
+    final Sdk flexSdk = FlexSdkUtils.findFlexOrFlexmojosSdk(flexSdkName);
     if (flexSdk == null) {
-      throw new ExecutionException(HaxeBundle.message("haxe.bad.flex.sdk.for.module", module.getName()));
+      throw new ExecutionException(HaxeBundle.message("flex.sdk.not.found", flexSdkName));
     }
 
     final FlexIdeBuildConfiguration bc = new FakeFlexIdeBuildConfiguration(flexSdk, url);
