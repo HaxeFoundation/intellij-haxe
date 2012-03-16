@@ -6,16 +6,16 @@
     <![CDATA[
       <p>0.2:</p>
       <ul>
-        <li>Basic goto action implementation(local declarations, classes)</li>
+        <li>Jump to declaration of local, std symbol or class</li>
         <li>Reference completion</li>
         <li>Class completion</li>
         <li>Color settings</li>
         <li>Code formatter</li>
-        <li>Parsing fixes</li>
-        <li>Fixes for MacOS</li>
         <li>Go to Class</li>
-        <li>Icons for components</li>
-        <li>Debugger for flash target (require "Flex Support" plugin)</li>
+        <li>Icons for haXe files</li>
+        <li>Search for usages</li>
+        <li>Highlight symbol occurencies</li>
+        <li>Debugger for Flash target ("Flex Support" plugin required)</li>
       </ul>
       <p>0.1:</p>
       <ul>
