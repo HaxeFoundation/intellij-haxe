@@ -67,7 +67,11 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (getParent() instanceof HaxeThisExpression) {
       return PsiTreeUtil.getParentOfType(this, HaxeClass.class);
     }
-    return HaxeResolveUtil.getHaxeClass(resolve());
+    HaxeClass result = HaxeResolveUtil.getHaxeClass(resolve());
+    if (result == null) {
+      result = HaxeResolveUtil.findNamedComponentByQName(getText(), this);
+    }
+    return result;
   }
 
   @NotNull
