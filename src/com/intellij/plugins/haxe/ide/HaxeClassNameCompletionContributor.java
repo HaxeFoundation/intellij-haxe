@@ -10,9 +10,13 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.LazyPsiElement;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.util.Function;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +42,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                                            final PsiFile targetFile,
                                            final InsertHandler<LookupElement> insertHandler) {
     final Project project = targetFile.getProject();
-    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, insertHandler));
+    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, targetFile, insertHandler));
   }
 
   private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER = new InsertHandler<LookupElement>() {
@@ -56,11 +60,8 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     new WriteCommandAction(context.getProject(), context.getFile()) {
       @Override
       protected void run(Result result) throws Throwable {
-        final HaxeClassInfo info = (HaxeClassInfo)item.getObject();
-        if (info.getPackageName().isEmpty()) {
-          return;
-        }
-        final String importPath = info.getPackageName() + "." + item.getLookupString();
+        final LazyPsiElement psiElement = (LazyPsiElement)item.getObject();
+        final String importPath = HaxeResolveUtil.getPackageName(psiElement.getContainingFile()) + "." + item.getLookupString();
         HaxeAddImportHelper.addImport(importPath, context.getFile());
       }
     }.execute();
@@ -69,10 +70,12 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   private static class MyProcessor implements Processor<Pair<String, HaxeClassInfo>> {
     private final CompletionResultSet myResultSet;
     private final InsertHandler<LookupElement> myInsertHandler;
+    private final PsiElement myContext;
 
-    private MyProcessor(CompletionResultSet resultSet, InsertHandler<LookupElement> insertHandler) {
+    private MyProcessor(CompletionResultSet resultSet, PsiElement context, InsertHandler<LookupElement> insertHandler) {
       myResultSet = resultSet;
       myInsertHandler = insertHandler;
+      myContext = context;
     }
 
     @Override
@@ -82,7 +85,15 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     }
 
     private void add(String name, HaxeClassInfo info) {
-      myResultSet.addElement(LookupElementBuilder.create(info, name)
+      final String qName = HaxeResolveUtil.joinQName(info.getPackageName(), name);
+      //todo: move to stubs
+      final PsiElement lazyElement = new LazyPsiElement(new Function<Void, PsiElement>() {
+        @Override
+        public PsiElement fun(Void aVoid) {
+          return HaxeResolveUtil.findClassByQName(qName, myContext);
+        }
+      });
+      myResultSet.addElement(LookupElementBuilder.create(lazyElement, name)
                                .setIcon(info.getIcon())
                                .setTailText(" " + info.getPackageName(), true)
                                .setInsertHandler(myInsertHandler));
