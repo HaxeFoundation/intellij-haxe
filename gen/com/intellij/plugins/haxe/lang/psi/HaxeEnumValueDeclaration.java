@@ -8,12 +8,12 @@ import com.intellij.psi.PsiElement;
 public interface HaxeEnumValueDeclaration extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeEnumConstructorParameters getEnumConstructorParameters();
+  HaxeEnumConstructorParameters getEnumConstructorParameters();
 
   @Nullable
-  public HaxeIdentifier getIdentifier();
+  HaxeIdentifier getIdentifier();
 
   @Nullable
-  public HaxePp getPp();
+  HaxePp getPp();
 
 }

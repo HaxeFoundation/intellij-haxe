@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeReturnStatementWithoutSemicolon extends HaxePsiCompositeElement {
 
   @NotNull
-  public HaxeExpression getExpression();
+  HaxeExpression getExpression();
 
 }

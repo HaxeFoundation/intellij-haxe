@@ -5,6 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -49,6 +50,11 @@ public class HaxeClassDeclarationImpl extends AbstractHaxePsiClass implements Ha
   @Nullable
   public HaxeTypeParam getTypeParam() {
     return findChildByClass(HaxeTypeParam.class);
+  }
+
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitClassDeclaration(this);
+    else super.accept(visitor);
   }
 
 }

@@ -9,8 +9,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import org.jetbrains.annotations.NotNull;
 

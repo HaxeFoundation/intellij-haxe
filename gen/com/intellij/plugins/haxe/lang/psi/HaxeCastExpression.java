@@ -8,12 +8,12 @@ import com.intellij.psi.PsiElement;
 public interface HaxeCastExpression extends HaxeExpression {
 
   @Nullable
-  public HaxeAnonymousType getAnonymousType();
+  HaxeAnonymousType getAnonymousType();
 
   @Nullable
-  public HaxeExpression getExpression();
+  HaxeExpression getExpression();
 
   @Nullable
-  public HaxeType getType();
+  HaxeType getType();
 
 }

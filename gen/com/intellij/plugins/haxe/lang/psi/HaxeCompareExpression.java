@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeCompareExpression extends HaxeExpression {
 
   @NotNull
-  public HaxeCompareOperation getCompareOperation();
+  HaxeCompareOperation getCompareOperation();
 
   @NotNull
-  public List<HaxeExpression> getExpressionList();
+  List<HaxeExpression> getExpressionList();
 
 }

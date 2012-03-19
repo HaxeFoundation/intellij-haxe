@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 public interface HaxeEnumDeclaration extends HaxeClass {
 
   @Nullable
-  public HaxeComponentName getComponentName();
+  HaxeComponentName getComponentName();
 
   @Nullable
-  public HaxeEnumBody getEnumBody();
+  HaxeEnumBody getEnumBody();
 
   @Nullable
-  public HaxeExternOrPrivate getExternOrPrivate();
+  HaxeExternOrPrivate getExternOrPrivate();
 
   @Nullable
-  public HaxeTypeParam getTypeParam();
+  HaxeTypeParam getTypeParam();
 
 }

@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeAnonymousTypeFieldList extends HaxePsiCompositeElement {
 
   @NotNull
-  public List<HaxeAnonymousTypeField> getAnonymousTypeFieldList();
+  List<HaxeAnonymousTypeField> getAnonymousTypeFieldList();
 
 }

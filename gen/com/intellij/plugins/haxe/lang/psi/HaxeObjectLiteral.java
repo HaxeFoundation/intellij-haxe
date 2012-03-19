@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeObjectLiteral extends HaxeExpression {
 
   @NotNull
-  public List<HaxeObjectLiteralElement> getObjectLiteralElementList();
+  List<HaxeObjectLiteralElement> getObjectLiteralElementList();
 
 }

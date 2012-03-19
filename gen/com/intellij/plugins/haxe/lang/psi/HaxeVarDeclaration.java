@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeVarDeclaration extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeDeclarationAttributeList getDeclarationAttributeList();
+  HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @NotNull
-  public List<HaxeVarDeclarationPart> getVarDeclarationPartList();
+  List<HaxeVarDeclarationPart> getVarDeclarationPartList();
 
 }

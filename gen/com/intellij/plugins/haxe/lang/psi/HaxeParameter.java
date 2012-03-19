@@ -8,12 +8,12 @@ import com.intellij.psi.PsiElement;
 public interface HaxeParameter extends HaxeComponent {
 
   @NotNull
-  public HaxeComponentName getComponentName();
+  HaxeComponentName getComponentName();
 
   @Nullable
-  public HaxeTypeTag getTypeTag();
+  HaxeTypeTag getTypeTag();
 
   @Nullable
-  public HaxeVarInit getVarInit();
+  HaxeVarInit getVarInit();
 
 }

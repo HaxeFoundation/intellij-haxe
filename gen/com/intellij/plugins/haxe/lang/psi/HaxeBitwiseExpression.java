@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeBitwiseExpression extends HaxeExpression {
 
   @NotNull
-  public HaxeBitOperation getBitOperation();
+  HaxeBitOperation getBitOperation();
 
   @NotNull
-  public List<HaxeExpression> getExpressionList();
+  List<HaxeExpression> getExpressionList();
 
 }

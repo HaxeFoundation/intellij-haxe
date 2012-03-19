@@ -8,21 +8,21 @@ import com.intellij.psi.PsiElement;
 public interface HaxeClassDeclaration extends HaxeClass {
 
   @Nullable
-  public HaxeClassBody getClassBody();
+  HaxeClassBody getClassBody();
 
   @Nullable
-  public HaxeComponentName getComponentName();
+  HaxeComponentName getComponentName();
 
   @NotNull
-  public List<HaxeFakeEnumMeta> getFakeEnumMetaList();
+  List<HaxeFakeEnumMeta> getFakeEnumMetaList();
 
   @Nullable
-  public HaxeInheritList getInheritList();
+  HaxeInheritList getInheritList();
 
   @NotNull
-  public List<HaxeRequireMeta> getRequireMetaList();
+  List<HaxeRequireMeta> getRequireMetaList();
 
   @Nullable
-  public HaxeTypeParam getTypeParam();
+  HaxeTypeParam getTypeParam();
 
 }

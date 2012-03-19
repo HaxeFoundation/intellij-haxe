@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeShiftOperator extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeShiftRightOperator getShiftRightOperator();
+  HaxeShiftRightOperator getShiftRightOperator();
 
   @Nullable
-  public HaxeUnsignedShiftRightOperator getUnsignedShiftRightOperator();
+  HaxeUnsignedShiftRightOperator getUnsignedShiftRightOperator();
 
 }

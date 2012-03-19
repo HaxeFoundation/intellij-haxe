@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeType extends HaxePsiCompositeElement {
 
   @NotNull
-  public HaxeExpression getExpression();
+  HaxeExpression getExpression();
 
   @Nullable
-  public HaxeTypeParam getTypeParam();
+  HaxeTypeParam getTypeParam();
 
 }

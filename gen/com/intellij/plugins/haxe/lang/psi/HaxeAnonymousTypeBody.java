@@ -8,12 +8,12 @@ import com.intellij.psi.PsiElement;
 public interface HaxeAnonymousTypeBody extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeAnonymousTypeFieldList getAnonymousTypeFieldList();
+  HaxeAnonymousTypeFieldList getAnonymousTypeFieldList();
 
   @Nullable
-  public HaxeInterfaceBody getInterfaceBody();
+  HaxeInterfaceBody getInterfaceBody();
 
   @Nullable
-  public HaxeTypeExtends getTypeExtends();
+  HaxeTypeExtends getTypeExtends();
 
 }

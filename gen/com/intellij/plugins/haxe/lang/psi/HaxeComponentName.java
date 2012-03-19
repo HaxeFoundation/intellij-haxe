@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeComponentName extends HaxeNamedElement {
 
   @NotNull
-  public HaxeIdentifier getIdentifier();
+  HaxeIdentifier getIdentifier();
 
 }

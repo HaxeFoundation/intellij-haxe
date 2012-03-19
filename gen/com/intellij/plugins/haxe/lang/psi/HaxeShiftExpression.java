@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeShiftExpression extends HaxeExpression {
 
   @NotNull
-  public List<HaxeExpression> getExpressionList();
+  List<HaxeExpression> getExpressionList();
 
   @NotNull
-  public HaxeShiftOperator getShiftOperator();
+  HaxeShiftOperator getShiftOperator();
 
 }

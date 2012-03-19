@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeFakeEnumMeta extends HaxePsiCompositeElement {
 
   @NotNull
-  public HaxeIdentifier getIdentifier();
+  HaxeIdentifier getIdentifier();
 
 }

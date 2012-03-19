@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeTryStatement extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeBlockStatement getBlockStatement();
+  HaxeBlockStatement getBlockStatement();
 
   @NotNull
-  public List<HaxeCatchStatement> getCatchStatementList();
+  List<HaxeCatchStatement> getCatchStatementList();
 
 }

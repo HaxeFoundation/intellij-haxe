@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeCallExpression extends HaxeExpression {
 
   @NotNull
-  public HaxeExpression getExpression();
+  HaxeExpression getExpression();
 
   @Nullable
-  public HaxeExpressionList getExpressionList();
+  HaxeExpressionList getExpressionList();
 
 }

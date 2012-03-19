@@ -15,7 +15,7 @@ public class HaxeSyntaxHighlighterColors {
   public static final TextAttributesKey BLOCK_COMMENT =
     createTextAttributesKey("HAXE_BLOCK_COMMENT", SyntaxHighlighterColors.JAVA_BLOCK_COMMENT.getDefaultAttributes());
   public static final TextAttributesKey DOC_COMMENT =
-      createTextAttributesKey("HAXE_DOC_COMMENT", SyntaxHighlighterColors.DOC_COMMENT.getDefaultAttributes());
+    createTextAttributesKey("HAXE_DOC_COMMENT", SyntaxHighlighterColors.DOC_COMMENT.getDefaultAttributes());
   public static final TextAttributesKey KEYWORD =
     createTextAttributesKey("HAXE_KEYWORD", SyntaxHighlighterColors.KEYWORD.getDefaultAttributes());
   public static final TextAttributesKey NUMBER =
@@ -35,5 +35,5 @@ public class HaxeSyntaxHighlighterColors {
   public static final TextAttributesKey SEMICOLON =
     createTextAttributesKey("HAXE_SEMICOLON", SyntaxHighlighterColors.JAVA_SEMICOLON.getDefaultAttributes());
   public static final TextAttributesKey BAD_CHARACTER =
-      createTextAttributesKey("HAXE_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER.getDefaultAttributes());
+    createTextAttributesKey("HAXE_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER.getDefaultAttributes());
 }

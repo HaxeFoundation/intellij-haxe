@@ -99,11 +99,11 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TRYSTATEMENT = new HaxeElementType("HAXE_TRYSTATEMENT");
   IElementType HAXE_TYPE = new HaxeElementType("HAXE_TYPE");
   IElementType HAXE_TYPECONSTRAINT = new HaxeElementType("HAXE_TYPECONSTRAINT");
+  IElementType HAXE_TYPEDEFDECLARATION = new HaxeElementType("HAXE_TYPEDEFDECLARATION");
   IElementType HAXE_TYPEEXTENDS = new HaxeElementType("HAXE_TYPEEXTENDS");
   IElementType HAXE_TYPELIST = new HaxeElementType("HAXE_TYPELIST");
   IElementType HAXE_TYPEPARAM = new HaxeElementType("HAXE_TYPEPARAM");
   IElementType HAXE_TYPETAG = new HaxeElementType("HAXE_TYPETAG");
-  IElementType HAXE_TYPEDEFDECLARATION = new HaxeElementType("HAXE_TYPEDEFDECLARATION");
   IElementType HAXE_UNSIGNEDSHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_UNSIGNEDSHIFTRIGHTOPERATOR");
   IElementType HAXE_VARDECLARATION = new HaxeElementType("HAXE_VARDECLARATION");
   IElementType HAXE_VARDECLARATIONPART = new HaxeElementType("HAXE_VARDECLARATIONPART");
@@ -488,6 +488,9 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_TYPECONSTRAINT) {
         return new HaxeTypeConstraintImpl(node);
       }
+      else if (type == HAXE_TYPEDEFDECLARATION) {
+        return new HaxeTypedefDeclarationImpl(node);
+      }
       else if (type == HAXE_TYPEEXTENDS) {
         return new HaxeTypeExtendsImpl(node);
       }
@@ -499,9 +502,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_TYPETAG) {
         return new HaxeTypeTagImpl(node);
-      }
-      else if (type == HAXE_TYPEDEFDECLARATION) {
-        return new HaxeTypedefDeclarationImpl(node);
       }
       else if (type == HAXE_UNSIGNEDSHIFTRIGHTOPERATOR) {
         return new HaxeUnsignedShiftRightOperatorImpl(node);

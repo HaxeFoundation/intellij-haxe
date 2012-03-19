@@ -8,54 +8,54 @@ import com.intellij.psi.PsiElement;
 public interface HaxeParenthesizedExpression extends HaxeExpression {
 
   @Nullable
-  public HaxeBlockStatement getBlockStatement();
+  HaxeBlockStatement getBlockStatement();
 
   @Nullable
-  public HaxeBreakStatement getBreakStatement();
+  HaxeBreakStatement getBreakStatement();
 
   @Nullable
-  public HaxeCaseStatement getCaseStatement();
+  HaxeCaseStatement getCaseStatement();
 
   @Nullable
-  public HaxeContinueStatement getContinueStatement();
+  HaxeContinueStatement getContinueStatement();
 
   @Nullable
-  public HaxeDefaultStatement getDefaultStatement();
+  HaxeDefaultStatement getDefaultStatement();
 
   @Nullable
-  public HaxeDoWhileStatement getDoWhileStatement();
+  HaxeDoWhileStatement getDoWhileStatement();
 
   @Nullable
-  public HaxeExpression getExpression();
+  HaxeExpression getExpression();
 
   @Nullable
-  public HaxeForStatement getForStatement();
+  HaxeForStatement getForStatement();
 
   @Nullable
-  public HaxeIfStatement getIfStatement();
+  HaxeIfStatement getIfStatement();
 
   @Nullable
-  public HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();
+  HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();
 
   @Nullable
-  public HaxeLocalVarDeclaration getLocalVarDeclaration();
+  HaxeLocalVarDeclaration getLocalVarDeclaration();
 
   @Nullable
-  public HaxePp getPp();
+  HaxePp getPp();
 
   @Nullable
-  public HaxeReturnStatement getReturnStatement();
+  HaxeReturnStatement getReturnStatement();
 
   @Nullable
-  public HaxeSwitchStatement getSwitchStatement();
+  HaxeSwitchStatement getSwitchStatement();
 
   @Nullable
-  public HaxeThrowStatement getThrowStatement();
+  HaxeThrowStatement getThrowStatement();
 
   @Nullable
-  public HaxeTryStatement getTryStatement();
+  HaxeTryStatement getTryStatement();
 
   @Nullable
-  public HaxeWhileStatement getWhileStatement();
+  HaxeWhileStatement getWhileStatement();
 
 }

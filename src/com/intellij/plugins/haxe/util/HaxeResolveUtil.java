@@ -59,8 +59,8 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeClass findClassByQName(final String qName, final @Nullable PsiElement context) {
-    if (context == null) {
+  public static HaxeClass findClassByQName(final @Nullable String qName, final @Nullable PsiElement context) {
+    if (context == null || qName == null) {
       return null;
     }
     final Project project = context.getProject();

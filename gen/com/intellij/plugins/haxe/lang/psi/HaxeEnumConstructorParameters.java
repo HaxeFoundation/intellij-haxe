@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeEnumConstructorParameters extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxeParameterList getParameterList();
+  HaxeParameterList getParameterList();
 
 }

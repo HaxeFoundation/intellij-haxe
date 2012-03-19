@@ -5,11 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeArrayLiteralImpl extends HaxeExpressionImpl implements HaxeArrayLiteral {
+public class HaxeArrayLiteralImpl extends HaxeUnnamedReferenceImpl implements HaxeArrayLiteral {
 
   public HaxeArrayLiteralImpl(ASTNode node) {
     super(node);
@@ -19,6 +20,11 @@ public class HaxeArrayLiteralImpl extends HaxeExpressionImpl implements HaxeArra
   @Nullable
   public HaxeExpressionList getExpressionList() {
     return findChildByClass(HaxeExpressionList.class);
+  }
+
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitArrayLiteral(this);
+    else super.accept(visitor);
   }
 
 }

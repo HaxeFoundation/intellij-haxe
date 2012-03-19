@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeLocalVarDeclaration extends HaxePsiCompositeElement {
 
   @NotNull
-  public List<HaxeLocalVarDeclarationPart> getLocalVarDeclarationPartList();
+  List<HaxeLocalVarDeclarationPart> getLocalVarDeclarationPartList();
 
 }

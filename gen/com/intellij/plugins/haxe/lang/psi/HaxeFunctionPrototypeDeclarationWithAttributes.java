@@ -8,21 +8,21 @@ import com.intellij.psi.PsiElement;
 public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComponent {
 
   @Nullable
-  public HaxeComponentName getComponentName();
+  HaxeComponentName getComponentName();
 
   @Nullable
-  public HaxeDeclarationAttributeList getDeclarationAttributeList();
+  HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @Nullable
-  public HaxeParameterList getParameterList();
+  HaxeParameterList getParameterList();
 
   @NotNull
-  public List<HaxeRequireMeta> getRequireMetaList();
+  List<HaxeRequireMeta> getRequireMetaList();
 
   @Nullable
-  public HaxeTypeParam getTypeParam();
+  HaxeTypeParam getTypeParam();
 
   @Nullable
-  public HaxeTypeTag getTypeTag();
+  HaxeTypeTag getTypeTag();
 
 }

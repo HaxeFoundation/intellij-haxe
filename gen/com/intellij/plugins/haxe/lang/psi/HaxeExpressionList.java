@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeExpressionList extends HaxePsiCompositeElement {
 
   @NotNull
-  public List<HaxeExpression> getExpressionList();
+  List<HaxeExpression> getExpressionList();
 
 }

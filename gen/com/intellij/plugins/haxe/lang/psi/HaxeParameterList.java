@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeParameterList extends HaxePsiCompositeElement {
 
   @NotNull
-  public List<HaxeParameter> getParameterList();
+  List<HaxeParameter> getParameterList();
 
 }

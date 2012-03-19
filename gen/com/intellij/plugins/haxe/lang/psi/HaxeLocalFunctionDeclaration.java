@@ -8,21 +8,21 @@ import com.intellij.psi.PsiElement;
 public interface HaxeLocalFunctionDeclaration extends HaxeComponent {
 
   @Nullable
-  public HaxeBlockStatement getBlockStatement();
+  HaxeBlockStatement getBlockStatement();
 
   @NotNull
-  public HaxeComponentName getComponentName();
+  HaxeComponentName getComponentName();
 
   @Nullable
-  public HaxeParameterList getParameterList();
+  HaxeParameterList getParameterList();
 
   @Nullable
-  public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
+  HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
 
   @Nullable
-  public HaxeTypeParam getTypeParam();
+  HaxeTypeParam getTypeParam();
 
   @Nullable
-  public HaxeTypeTag getTypeTag();
+  HaxeTypeTag getTypeTag();
 
 }

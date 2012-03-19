@@ -8,54 +8,54 @@ import com.intellij.psi.PsiElement;
 public interface HaxeBlockStatement extends HaxePsiCompositeElement {
 
   @NotNull
-  public List<HaxeBlockStatement> getBlockStatementList();
+  List<HaxeBlockStatement> getBlockStatementList();
 
   @NotNull
-  public List<HaxeBreakStatement> getBreakStatementList();
+  List<HaxeBreakStatement> getBreakStatementList();
 
   @NotNull
-  public List<HaxeCaseStatement> getCaseStatementList();
+  List<HaxeCaseStatement> getCaseStatementList();
 
   @NotNull
-  public List<HaxeContinueStatement> getContinueStatementList();
+  List<HaxeContinueStatement> getContinueStatementList();
 
   @NotNull
-  public List<HaxeDefaultStatement> getDefaultStatementList();
+  List<HaxeDefaultStatement> getDefaultStatementList();
 
   @NotNull
-  public List<HaxeDoWhileStatement> getDoWhileStatementList();
+  List<HaxeDoWhileStatement> getDoWhileStatementList();
 
   @NotNull
-  public List<HaxeExpression> getExpressionList();
+  List<HaxeExpression> getExpressionList();
 
   @NotNull
-  public List<HaxeForStatement> getForStatementList();
+  List<HaxeForStatement> getForStatementList();
 
   @NotNull
-  public List<HaxeIfStatement> getIfStatementList();
+  List<HaxeIfStatement> getIfStatementList();
 
   @NotNull
-  public List<HaxeLocalFunctionDeclaration> getLocalFunctionDeclarationList();
+  List<HaxeLocalFunctionDeclaration> getLocalFunctionDeclarationList();
 
   @NotNull
-  public List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
+  List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
   @NotNull
-  public List<HaxePp> getPpList();
+  List<HaxePp> getPpList();
 
   @NotNull
-  public List<HaxeReturnStatement> getReturnStatementList();
+  List<HaxeReturnStatement> getReturnStatementList();
 
   @NotNull
-  public List<HaxeSwitchStatement> getSwitchStatementList();
+  List<HaxeSwitchStatement> getSwitchStatementList();
 
   @NotNull
-  public List<HaxeThrowStatement> getThrowStatementList();
+  List<HaxeThrowStatement> getThrowStatementList();
 
   @NotNull
-  public List<HaxeTryStatement> getTryStatementList();
+  List<HaxeTryStatement> getTryStatementList();
 
   @NotNull
-  public List<HaxeWhileStatement> getWhileStatementList();
+  List<HaxeWhileStatement> getWhileStatementList();
 
 }

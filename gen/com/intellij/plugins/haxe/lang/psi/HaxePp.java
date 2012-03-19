@@ -8,18 +8,18 @@ import com.intellij.psi.PsiElement;
 public interface HaxePp extends HaxePsiCompositeElement {
 
   @Nullable
-  public HaxePpElse getPpElse();
+  HaxePpElse getPpElse();
 
   @Nullable
-  public HaxePpElseIf getPpElseIf();
+  HaxePpElseIf getPpElseIf();
 
   @Nullable
-  public HaxePpEnd getPpEnd();
+  HaxePpEnd getPpEnd();
 
   @Nullable
-  public HaxePpError getPpError();
+  HaxePpError getPpError();
 
   @Nullable
-  public HaxePpIf getPpIf();
+  HaxePpIf getPpIf();
 
 }

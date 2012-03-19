@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 public interface HaxeVarDeclarationPart extends HaxeComponent {
 
   @NotNull
-  public HaxeComponentName getComponentName();
+  HaxeComponentName getComponentName();
 
   @Nullable
-  public HaxePropertyDeclaration getPropertyDeclaration();
+  HaxePropertyDeclaration getPropertyDeclaration();
 
   @Nullable
-  public HaxeTypeTag getTypeTag();
+  HaxeTypeTag getTypeTag();
 
   @Nullable
-  public HaxeVarInit getVarInit();
+  HaxeVarInit getVarInit();
 
 }

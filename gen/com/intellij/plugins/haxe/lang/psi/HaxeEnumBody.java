@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeEnumBody extends HaxePsiCompositeElement {
 
   @NotNull
-  public List<HaxeEnumValueDeclaration> getEnumValueDeclarationList();
+  List<HaxeEnumValueDeclaration> getEnumValueDeclarationList();
 
 }

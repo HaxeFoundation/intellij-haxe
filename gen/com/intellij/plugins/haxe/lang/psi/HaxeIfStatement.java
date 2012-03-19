@@ -7,55 +7,55 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeIfStatement extends HaxePsiCompositeElement {
 
-  @Nullable
-  public HaxeBlockStatement getBlockStatement();
-
-  @Nullable
-  public HaxeBreakStatement getBreakStatement();
-
-  @Nullable
-  public HaxeCaseStatement getCaseStatement();
-
-  @Nullable
-  public HaxeContinueStatement getContinueStatement();
-
-  @Nullable
-  public HaxeDefaultStatement getDefaultStatement();
-
-  @Nullable
-  public HaxeDoWhileStatement getDoWhileStatement();
+  @NotNull
+  List<HaxeBlockStatement> getBlockStatementList();
 
   @NotNull
-  public List<HaxeExpression> getExpressionList();
+  List<HaxeBreakStatement> getBreakStatementList();
 
-  @Nullable
-  public HaxeForStatement getForStatement();
+  @NotNull
+  List<HaxeCaseStatement> getCaseStatementList();
 
-  @Nullable
-  public HaxeIfStatement getIfStatement();
+  @NotNull
+  List<HaxeContinueStatement> getContinueStatementList();
 
-  @Nullable
-  public HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();
+  @NotNull
+  List<HaxeDefaultStatement> getDefaultStatementList();
 
-  @Nullable
-  public HaxeLocalVarDeclaration getLocalVarDeclaration();
+  @NotNull
+  List<HaxeDoWhileStatement> getDoWhileStatementList();
 
-  @Nullable
-  public HaxePp getPp();
+  @NotNull
+  List<HaxeExpression> getExpressionList();
 
-  @Nullable
-  public HaxeReturnStatement getReturnStatement();
+  @NotNull
+  List<HaxeForStatement> getForStatementList();
 
-  @Nullable
-  public HaxeSwitchStatement getSwitchStatement();
+  @NotNull
+  List<HaxeIfStatement> getIfStatementList();
 
-  @Nullable
-  public HaxeThrowStatement getThrowStatement();
+  @NotNull
+  List<HaxeLocalFunctionDeclaration> getLocalFunctionDeclarationList();
 
-  @Nullable
-  public HaxeTryStatement getTryStatement();
+  @NotNull
+  List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
-  @Nullable
-  public HaxeWhileStatement getWhileStatement();
+  @NotNull
+  List<HaxePp> getPpList();
+
+  @NotNull
+  List<HaxeReturnStatement> getReturnStatementList();
+
+  @NotNull
+  List<HaxeSwitchStatement> getSwitchStatementList();
+
+  @NotNull
+  List<HaxeThrowStatement> getThrowStatementList();
+
+  @NotNull
+  List<HaxeTryStatement> getTryStatementList();
+
+  @NotNull
+  List<HaxeWhileStatement> getWhileStatementList();
 
 }

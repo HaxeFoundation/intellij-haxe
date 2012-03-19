@@ -8,12 +8,12 @@ import com.intellij.psi.PsiElement;
 public interface HaxeInterfaceBody extends HaxePsiCompositeElement {
 
   @NotNull
-  public List<HaxeFunctionPrototypeDeclarationWithAttributes> getFunctionPrototypeDeclarationWithAttributesList();
+  List<HaxeFunctionPrototypeDeclarationWithAttributes> getFunctionPrototypeDeclarationWithAttributesList();
 
   @NotNull
-  public List<HaxePp> getPpList();
+  List<HaxePp> getPpList();
 
   @NotNull
-  public List<HaxeVarDeclaration> getVarDeclarationList();
+  List<HaxeVarDeclaration> getVarDeclarationList();
 
 }

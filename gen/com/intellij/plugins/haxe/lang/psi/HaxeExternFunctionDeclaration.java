@@ -8,27 +8,27 @@ import com.intellij.psi.PsiElement;
 public interface HaxeExternFunctionDeclaration extends HaxeComponent {
 
   @Nullable
-  public HaxeBlockStatement getBlockStatement();
+  HaxeBlockStatement getBlockStatement();
 
   @Nullable
-  public HaxeComponentName getComponentName();
+  HaxeComponentName getComponentName();
 
   @Nullable
-  public HaxeDeclarationAttributeList getDeclarationAttributeList();
+  HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @Nullable
-  public HaxeParameterList getParameterList();
+  HaxeParameterList getParameterList();
 
   @NotNull
-  public List<HaxeRequireMeta> getRequireMetaList();
+  List<HaxeRequireMeta> getRequireMetaList();
 
   @Nullable
-  public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
+  HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
 
   @Nullable
-  public HaxeTypeParam getTypeParam();
+  HaxeTypeParam getTypeParam();
 
   @Nullable
-  public HaxeTypeTag getTypeTag();
+  HaxeTypeTag getTypeTag();
 
 }

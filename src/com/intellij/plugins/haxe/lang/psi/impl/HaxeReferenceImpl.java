@@ -4,11 +4,14 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import gnu.trove.THashSet;
@@ -67,11 +70,36 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (getParent() instanceof HaxeThisExpression) {
       return PsiTreeUtil.getParentOfType(this, HaxeClass.class);
     }
+    if (this instanceof HaxeLiteralExpression) {
+      final LeafPsiElement child = (LeafPsiElement)getFirstChild();
+      final IElementType childTokenType = child == null ? null : child.getElementType();
+      return HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this);
+    }
+    if (this instanceof HaxeArrayLiteral) {
+      return HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this);
+    }
     HaxeClass result = HaxeResolveUtil.getHaxeClass(resolve());
     if (result == null) {
       result = HaxeResolveUtil.findClassByQName(getText(), this);
     }
     return result;
+  }
+
+  @Nullable
+  private static String getLiteralClassName(IElementType type) {
+    if (type == HaxeTokenTypes.LITSTRING || type == HaxeTokenTypes.LITCHAR) {
+      return "String";
+    }
+    else if (type == HaxeTokenTypes.HAXE_ARRAYLITERAL) {
+      return "Array";
+    }
+    else if (type == HaxeTokenTypes.LITFLOAT) {
+      return "Float";
+    }
+    else if (type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITOCT) {
+      return "Int";
+    }
+    return null;
   }
 
   @NotNull

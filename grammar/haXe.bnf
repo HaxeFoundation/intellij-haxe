@@ -259,6 +259,7 @@ private parameterListRecovery ::= !')' // after parameterList always ')'
 
 functionLiteral ::= 'function' '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2}
 arrayLiteral ::= '[' expressionList? ']'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionTypeWrapper ::= typeOrAnonymous functionType*
 left functionType ::= '->' typeOrAnonymous
@@ -364,7 +365,7 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
-private value ::= literalExpression
+private value ::= (literalExpression qualifiedReferenceTail?)
                 | ifExpression
                 | castExpression
                 | newExpressionOrCall
@@ -376,11 +377,13 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
                     | functionLiteral
                     | arrayLiteral
                     | objectLiteral
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private parenthesizedExpressionOrCall ::= parenthesizedExpression (qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*)?
+private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
 parenthesizedExpression ::= '(' (expression | statement) ')'
 
-private newExpressionOrCall ::= newExpression (qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*)?
+private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
+private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 private callOrArrayAccess ::= (referenceExpression | thisExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
