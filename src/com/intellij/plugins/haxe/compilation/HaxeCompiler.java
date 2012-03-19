@@ -24,6 +24,8 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
+import com.intellij.util.PathUtil;
+import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -136,6 +138,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
                                        @NonNls String mainClass,
                                        @NonNls String fileName,
                                        @NotNull HaxeTarget target) {
+    final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     final Sdk sdk = moduleRootManager.getSdk();
 
@@ -163,6 +166,11 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     commandLine.addParameter("-main");
     commandLine.addParameter(mainClass);
 
+    final StringTokenizer argumentsTokenizer = new StringTokenizer(settings.getArguments());
+    while (argumentsTokenizer.hasMoreTokens()) {
+      commandLine.addParameter(argumentsTokenizer.nextToken());
+    }
+
     if (target == HaxeTarget.FLASH) {
       commandLine.addParameter("-debug");
       commandLine.addParameter("-D");
@@ -174,10 +182,10 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       commandLine.addParameter(sourceRoot.getPath());
     }
 
-    final String url = CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
-    commandLine.setWorkDirectory(VfsUtil.urlToPath(url));
+    commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
     commandLine.addParameter(target.getCompilerFlag());
-    commandLine.addParameter(fileName);
+    final String outputUrl = CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
+    commandLine.addParameter(VfsUtil.urlToPath(outputUrl + "/" + fileName));
 
     ProcessOutput output = null;
     try {
