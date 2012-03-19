@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -58,7 +59,7 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeClass findNamedComponentByQName(final String qName, final @Nullable PsiElement context) {
+  public static HaxeClass findClassByQName(final String qName, final @Nullable PsiElement context) {
     if (context == null) {
       return null;
     }
@@ -245,12 +246,12 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    final HaxeClass result = findNamedComponentByQName(getQName(type, true), type.getContext());
-    return result != null ? result : findNamedComponentByQName(getQName(type, false), type.getContext());
+    final HaxeClass result = findClassByQName(getQName(type, true), type.getContext());
+    return result != null ? result : findClassByQName(getQName(type, false), type.getContext());
   }
 
   public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
-    if(type instanceof HaxeType){
+    if (type instanceof HaxeType) {
       type = ((HaxeType)type).getExpression();
     }
     String result = type.getText();
@@ -260,7 +261,7 @@ public class HaxeResolveUtil {
       if (importStatement != null && expression != null) {
         result = expression.getText();
       }
-      else if(searchInSamePackage) {
+      else if (searchInSamePackage) {
         final String packageName = getPackageName(type.getContainingFile());
         if (!packageName.isEmpty()) {
           result = packageName + "." + result;
@@ -268,5 +269,29 @@ public class HaxeResolveUtil {
       }
     }
     return result;
+  }
+
+  @Nullable
+  public static PsiComment findDocumentation(HaxeNamedComponent element) {
+    final HaxeComponentType type = HaxeComponentType.typeOf(element);
+    HaxeClass haxeClass = null;
+    String name = null;
+    if (element instanceof HaxeClass) {
+      haxeClass = (HaxeClass)element;
+    }
+    else if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
+      haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+      name = element.getText();
+    }
+    PsiElement result = haxeClass;
+    if (haxeClass != null && name != null) {
+      result = findNamedSubComponent(haxeClass, name);
+      if (result != null) result = result.getParent();
+    }
+    final PsiElement candidate = result == null ? null : UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(result);
+    if (candidate instanceof PsiComment) {
+      return (PsiComment)candidate;
+    }
+    return null;
   }
 }

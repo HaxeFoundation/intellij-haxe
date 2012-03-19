@@ -69,7 +69,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     HaxeClass result = HaxeResolveUtil.getHaxeClass(resolve());
     if (result == null) {
-      result = HaxeResolveUtil.findNamedComponentByQName(getText(), this);
+      result = HaxeResolveUtil.findClassByQName(getText(), this);
     }
     return result;
   }
