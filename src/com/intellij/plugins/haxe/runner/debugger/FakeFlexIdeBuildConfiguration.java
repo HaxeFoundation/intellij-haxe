@@ -148,4 +148,14 @@ public class FakeFlexIdeBuildConfiguration implements FlexIdeBuildConfiguration 
   public boolean isEqual(FlexIdeBuildConfiguration other) {
     return false;
   }
+
+  @Override
+  public String getShortText() {
+    return null;
+  }
+
+  @Override
+  public String getDescription() {
+    return null;
+  }
 }
