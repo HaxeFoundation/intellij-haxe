@@ -11,6 +11,9 @@ public interface HaxeFunctionLiteral extends HaxeExpression {
   HaxeBlockStatement getBlockStatement();
 
   @Nullable
+  HaxeExpression getExpression();
+
+  @Nullable
   HaxeParameterList getParameterList();
 
   @Nullable

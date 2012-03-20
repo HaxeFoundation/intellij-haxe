@@ -68,6 +68,10 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("ThisExpression.hx"), 1);
   }
 
+  public void testThisShadowing() {
+    doTest(myFixture.configureByFiles("ThisShadowing.hx"), 0);
+  }
+
   public void testStaticClassMember1() {
     doTest(myFixture.configureByFiles("StaticClassMember1.hx", "com/bar/Foo.hx"), 1);
   }

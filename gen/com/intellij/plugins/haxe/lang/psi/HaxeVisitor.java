@@ -354,7 +354,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitThisExpression(@NotNull HaxeThisExpression o) {
-    visitExpression(o);
+    visitReference(o);
+    // visitExpression(o);
   }
 
   public void visitThrowStatement(@NotNull HaxeThrowStatement o) {

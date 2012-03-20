@@ -1988,7 +1988,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon | ';')
+  // macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (functionCommonBody | ';')
   public static boolean externFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KDYNAMIC)
@@ -2102,19 +2102,18 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // (blockStatement | returnStatementWithoutSemicolon | ';')
+  // (functionCommonBody | ';')
   private static boolean externFunctionDeclaration_8(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_8")) return false;
     return externFunctionDeclaration_8_0(builder_, level_ + 1);
   }
 
-  // blockStatement | returnStatementWithoutSemicolon | ';'
+  // functionCommonBody | ';'
   private static boolean externFunctionDeclaration_8_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_8_0")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = blockStatement(builder_, level_ + 1);
-    if (!result_) result_ = returnStatementWithoutSemicolon(builder_, level_ + 1);
+    result_ = functionCommonBody(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, OSEMI);
     if (!result_) {
       marker_.rollbackTo();
@@ -2240,7 +2239,37 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+  // blockStatement | returnStatementWithoutSemicolon | expression
+  static boolean functionCommonBody(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionCommonBody")) return false;
+    if (!nextTokenIs(builder_, LITOCT) && !nextTokenIs(builder_, LITHEX)
+        && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
+        && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
+        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KIF) && !nextTokenIs(builder_, ONOT)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, KNULL)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KRETURN)
+        && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, ONEW)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = blockStatement(builder_, level_ + 1);
+    if (!result_) result_ = returnStatementWithoutSemicolon(builder_, level_ + 1);
+    if (!result_) result_ = expression(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? functionCommonBody
   public static boolean functionDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KDYNAMIC)
@@ -2261,7 +2290,7 @@ public class HaxeParser implements PsiParser {
     result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_5(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_7(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && functionDeclarationWithAttributes_8(builder_, level_ + 1) && result_;
+    result_ = pinned_ && functionCommonBody(builder_, level_ + 1) && result_;
     if (result_ || pinned_) {
       marker_.done(HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES);
     }
@@ -2354,30 +2383,8 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // (blockStatement | returnStatementWithoutSemicolon)
-  private static boolean functionDeclarationWithAttributes_8(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_8")) return false;
-    return functionDeclarationWithAttributes_8_0(builder_, level_ + 1);
-  }
-
-  // blockStatement | returnStatementWithoutSemicolon
-  private static boolean functionDeclarationWithAttributes_8_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_8_0")) return false;
-    boolean result_ = false;
-    final Marker marker_ = builder_.mark();
-    result_ = blockStatement(builder_, level_ + 1);
-    if (!result_) result_ = returnStatementWithoutSemicolon(builder_, level_ + 1);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
-  }
-
   /* ********************************************************** */
-  // 'function' '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+  // 'function' '(' parameterList? ')' typeTag? functionCommonBody
   public static boolean functionLiteral(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionLiteral")) return false;
     if (!nextTokenIs(builder_, KFUNCTION)) return false;
@@ -2392,7 +2399,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && report_error_(builder_, functionLiteral_2(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, functionLiteral_4(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && functionLiteral_5(builder_, level_ + 1) && result_;
+    result_ = pinned_ && functionCommonBody(builder_, level_ + 1) && result_;
     LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_FUNCTIONLITERAL)) {
       marker_.drop();
@@ -2419,28 +2426,6 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "functionLiteral_4")) return false;
     typeTag(builder_, level_ + 1);
     return true;
-  }
-
-  // (blockStatement | returnStatementWithoutSemicolon)
-  private static boolean functionLiteral_5(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionLiteral_5")) return false;
-    return functionLiteral_5_0(builder_, level_ + 1);
-  }
-
-  // blockStatement | returnStatementWithoutSemicolon
-  private static boolean functionLiteral_5_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionLiteral_5_0")) return false;
-    boolean result_ = false;
-    final Marker marker_ = builder_.mark();
-    result_ = blockStatement(builder_, level_ + 1);
-    if (!result_) result_ = returnStatementWithoutSemicolon(builder_, level_ + 1);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
   }
 
   /* ********************************************************** */
@@ -3160,7 +3145,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'function' componentName typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+  // 'function' componentName typeParam? '(' parameterList? ')' typeTag? functionCommonBody
   public static boolean localFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "localFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KFUNCTION)) return false;
@@ -3176,7 +3161,7 @@ public class HaxeParser implements PsiParser {
     result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_6(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && localFunctionDeclaration_7(builder_, level_ + 1) && result_;
+    result_ = pinned_ && functionCommonBody(builder_, level_ + 1) && result_;
     if (result_ || pinned_) {
       marker_.done(HAXE_LOCALFUNCTIONDECLARATION);
     }
@@ -3206,28 +3191,6 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_6")) return false;
     typeTag(builder_, level_ + 1);
     return true;
-  }
-
-  // (blockStatement | returnStatementWithoutSemicolon)
-  private static boolean localFunctionDeclaration_7(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_7")) return false;
-    return localFunctionDeclaration_7_0(builder_, level_ + 1);
-  }
-
-  // blockStatement | returnStatementWithoutSemicolon
-  private static boolean localFunctionDeclaration_7_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_7_0")) return false;
-    boolean result_ = false;
-    final Marker marker_ = builder_.mark();
-    result_ = blockStatement(builder_, level_ + 1);
-    if (!result_) result_ = returnStatementWithoutSemicolon(builder_, level_ + 1);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
   }
 
   /* ********************************************************** */

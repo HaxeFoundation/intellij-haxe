@@ -67,7 +67,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Nullable
   @Override
   public HaxeClass getHaxeClass() {
-    if (getParent() instanceof HaxeThisExpression) {
+    if (this instanceof HaxeThisExpression) {
       return PsiTreeUtil.getParentOfType(this, HaxeClass.class);
     }
     if (this instanceof HaxeLiteralExpression) {

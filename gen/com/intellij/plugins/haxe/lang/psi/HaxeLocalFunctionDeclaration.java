@@ -14,6 +14,9 @@ public interface HaxeLocalFunctionDeclaration extends HaxeComponent {
   HaxeComponentName getComponentName();
 
   @Nullable
+  HaxeExpression getExpression();
+
+  @Nullable
   HaxeParameterList getParameterList();
 
   @Nullable

@@ -17,6 +17,9 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponent {
   HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @Nullable
+  HaxeExpression getExpression();
+
+  @Nullable
   HaxeParameterList getParameterList();
 
   @NotNull

@@ -238,13 +238,15 @@ propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 
-externFunctionDeclaration ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon | ';')
+private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression
+
+externFunctionDeclaration ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (functionCommonBody | ';')
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-functionDeclarationWithAttributes ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+functionDeclarationWithAttributes ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? functionCommonBody
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 functionPrototypeDeclarationWithAttributes ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? ';'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon)
+localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 /*
@@ -257,7 +259,7 @@ parameter ::= '?'? componentName typeTag? varInit?
 parameterList ::= parameter (',' parameter)* {recoverUntil="parameterListRecovery"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
-functionLiteral ::= 'function' '(' parameterList? ')' typeTag? (blockStatement | returnStatementWithoutSemicolon) {pin=2}
+functionLiteral ::= 'function' '(' parameterList? ')' typeTag? functionCommonBody {pin=2}
 arrayLiteral ::= '[' expressionList? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
@@ -399,6 +401,7 @@ componentName ::= identifier
 identifier ::= ID
 
 thisExpression ::= 'this'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 newExpression ::= 'new' type '(' expressionList? ')' {pin=2}
 

@@ -39,4 +39,8 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testSelfMethod() throws Throwable {
     doTest();
   }
+
+  public void testThisMembers() throws Throwable {
+    doTest();
+  }
 }

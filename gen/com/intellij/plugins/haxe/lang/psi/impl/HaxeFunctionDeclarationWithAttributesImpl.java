@@ -36,6 +36,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
 
   @Override
   @Nullable
+  public HaxeExpression getExpression() {
+    return findChildByClass(HaxeExpression.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);
   }
