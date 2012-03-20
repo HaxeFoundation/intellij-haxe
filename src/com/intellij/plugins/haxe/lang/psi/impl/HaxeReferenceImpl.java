@@ -78,6 +78,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (this instanceof HaxeArrayLiteral) {
       return HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this);
     }
+    if (this instanceof HaxeNewExpression) {
+      return HaxeResolveUtil.resolveClass(((HaxeNewExpression)this).getType());
+    }
     HaxeClass result = HaxeResolveUtil.getHaxeClass(resolve());
     if (result == null) {
       result = HaxeResolveUtil.findClassByQName(getText(), this);

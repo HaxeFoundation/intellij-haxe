@@ -42,8 +42,13 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
   };
 
   public HaxeKeywordCompletionContributor() {
-    final PsiElementPattern.Capture<PsiElement> inExpression = psiElement().withParent(HaxeReference.class);
-    extend(CompletionType.BASIC, psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).andNot(inExpression),
+    final PsiElementPattern.Capture<PsiElement> idInExpression =
+      psiElement().withSuperParent(1, HaxeIdentifier.class).withSuperParent(2, HaxeReference.class);
+    final PsiElementPattern.Capture<PsiElement> inComplexExpression = psiElement().withSuperParent(3, HaxeReference.class);
+    // foo.b<caret> - bad
+    // i<caret> - good
+    extend(CompletionType.BASIC,
+           psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).andNot(idInExpression.and(inComplexExpression)),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,

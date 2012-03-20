@@ -225,7 +225,16 @@ public class HaxeResolveUtil {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag == null ? null : typeTag.getType();
     final HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
-    return getHaxeClass(typeComponent);
+    final HaxeClass result = getHaxeClass(typeComponent);
+    if (result != null) {
+      return result;
+    }
+    final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
+    final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
+    if(initExpression instanceof HaxeReference){
+      return ((HaxeReference)initExpression).getHaxeClass();
+    }
+    return getHaxeClass(initExpression);
   }
 
   @NotNull

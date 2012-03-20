@@ -31,4 +31,8 @@ public class KeywordCompletionTest extends HaxeCompletionTestBase {
   public void testStatement2() throws Throwable {
     doTest();
   }
+
+  public void testReference() throws Throwable {
+    doTest();
+  }
 }

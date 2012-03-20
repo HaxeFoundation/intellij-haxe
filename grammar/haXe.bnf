@@ -403,7 +403,8 @@ identifier ::= ID
 thisExpression ::= 'this'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-newExpression ::= 'new' type '(' expressionList? ')' {pin=2}
+newExpression ::= 'new' type '(' expressionList? ')'
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (expression | ( '(' expression (',' functionTypeWrapper)? ')' ))
 

@@ -249,7 +249,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitNewExpression(@NotNull HaxeNewExpression o) {
-    visitExpression(o);
+    visitReference(o);
+    // visitExpression(o);
   }
 
   public void visitObjectLiteral(@NotNull HaxeObjectLiteral o) {

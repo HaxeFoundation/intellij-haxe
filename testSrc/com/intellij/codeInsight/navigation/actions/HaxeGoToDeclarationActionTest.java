@@ -133,4 +133,20 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
                                       "std/StdTypes.hx",
                                       "std/String.hx"), 1);
   }
+
+  public void testAssign1() {
+    doTest(myFixture.configureByFiles("Assign1.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
+  }
+
+  public void testAssign2() {
+    doTest(myFixture.configureByFiles("Assign2.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
+  }
+
+  public void testNewExpression1() {
+    doTest(myFixture.configureByFiles("NewExpression1.hx", "com/bar/Foo.hx"), 1);
+  }
+
+  public void testNewExpression2() {
+    doTest(myFixture.configureByFiles("NewExpression2.hx", "com/bar/Foo.hx"), 1);
+  }
 }
