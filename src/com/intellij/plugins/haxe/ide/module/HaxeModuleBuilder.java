@@ -13,19 +13,9 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsBuilder, ModuleBuilderListener {
-  private Sdk haxeSdk;
-
-  public void setHaxeSdk(Sdk haxeSdk) {
-    this.haxeSdk = haxeSdk;
-  }
-
   @Override
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
     addListener(this);
-
-    if (haxeSdk != null) {
-      modifiableRootModel.setSdk(haxeSdk);
-    }
     super.setupRootModel(modifiableRootModel);
   }
 
