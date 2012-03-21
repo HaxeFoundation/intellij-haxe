@@ -11,6 +11,9 @@ public interface HaxeVarDeclaration extends HaxePsiCompositeElement {
   HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @NotNull
+  List<HaxeRequireMeta> getRequireMetaList();
+
+  @NotNull
   List<HaxeVarDeclarationPart> getVarDeclarationPartList();
 
 }

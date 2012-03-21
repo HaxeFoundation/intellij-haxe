@@ -23,6 +23,9 @@ public interface HaxeInterfaceDeclaration extends HaxeClass {
   HaxeInterfaceBody getInterfaceBody();
 
   @NotNull
+  List<HaxeNativeMeta> getNativeMetaList();
+
+  @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
 
   @Nullable

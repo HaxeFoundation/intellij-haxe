@@ -76,7 +76,13 @@ public interface HaxeTokenTypeSets {
     PPEND,
     PPERROR,
     PPIF,
-    KEXTERN
+    KEXTERN,
+    KMACRO,
+    KFINAL,
+    KREQUIRE,
+    KFAKEENUM,
+    KCOREAPI,
+    KNATIVE
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(

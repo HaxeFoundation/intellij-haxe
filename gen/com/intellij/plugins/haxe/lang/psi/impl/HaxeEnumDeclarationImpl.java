@@ -35,6 +35,24 @@ public class HaxeEnumDeclarationImpl extends AbstractHaxePsiClass implements Hax
   }
 
   @Override
+  @NotNull
+  public List<HaxeFakeEnumMeta> getFakeEnumMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFakeEnumMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeNativeMeta> getNativeMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNativeMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeRequireMeta> getRequireMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeRequireMeta.class);
+  }
+
+  @Override
   @Nullable
   public HaxeTypeParam getTypeParam() {
     return findChildByClass(HaxeTypeParam.class);

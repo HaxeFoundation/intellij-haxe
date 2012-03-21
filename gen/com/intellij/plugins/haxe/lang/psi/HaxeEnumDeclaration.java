@@ -16,6 +16,15 @@ public interface HaxeEnumDeclaration extends HaxeClass {
   @Nullable
   HaxeExternOrPrivate getExternOrPrivate();
 
+  @NotNull
+  List<HaxeFakeEnumMeta> getFakeEnumMetaList();
+
+  @NotNull
+  List<HaxeNativeMeta> getNativeMetaList();
+
+  @NotNull
+  List<HaxeRequireMeta> getRequireMetaList();
+
   @Nullable
   HaxeTypeParam getTypeParam();
 

@@ -119,6 +119,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "@:require"                               {  return KREQUIRE;  }
 "@:fakeEnum"                              {  return KFAKEENUM;  }
 "@:core_api"                              {  return KCOREAPI;  }
+"@:native"                                {  return KNATIVE;  }
 
 "try"                                     {  return KTRY;  }
 "catch"                                   {  return KCATCH;  }

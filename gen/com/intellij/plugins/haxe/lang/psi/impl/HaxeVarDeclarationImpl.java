@@ -24,6 +24,12 @@ public class HaxeVarDeclarationImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @NotNull
+  public List<HaxeRequireMeta> getRequireMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeRequireMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeVarDeclarationPart> getVarDeclarationPartList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeVarDeclarationPart.class);
   }

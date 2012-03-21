@@ -20,6 +20,9 @@ public interface HaxeExternClassDeclaration extends HaxeClass {
   HaxeInheritList getInheritList();
 
   @NotNull
+  List<HaxeNativeMeta> getNativeMetaList();
+
+  @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
 
   @Nullable

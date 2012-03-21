@@ -1,10 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
 
 public interface HaxeTokenTypes {
 
@@ -68,6 +68,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_LOGICANDEXPRESSION = new HaxeElementType("HAXE_LOGICANDEXPRESSION");
   IElementType HAXE_LOGICOREXPRESSION = new HaxeElementType("HAXE_LOGICOREXPRESSION");
   IElementType HAXE_MULTIPLICATIVEEXPRESSION = new HaxeElementType("HAXE_MULTIPLICATIVEEXPRESSION");
+  IElementType HAXE_NATIVEMETA = new HaxeElementType("HAXE_NATIVEMETA");
   IElementType HAXE_NEWEXPRESSION = new HaxeElementType("HAXE_NEWEXPRESSION");
   IElementType HAXE_OBJECTLITERAL = new HaxeElementType("HAXE_OBJECTLITERAL");
   IElementType HAXE_OBJECTLITERALELEMENT = new HaxeElementType("HAXE_OBJECTLITERALELEMENT");
@@ -136,6 +137,7 @@ public interface HaxeTokenTypes {
   IElementType KINLINE = new HaxeElementType("inline");
   IElementType KINTERFACE = new HaxeElementType("interface");
   IElementType KMACRO = new HaxeElementType("@:macro");
+  IElementType KNATIVE = new HaxeElementType("@:native");
   IElementType KNULL = new HaxeElementType("null");
   IElementType KOVERRIDE = new HaxeElementType("override");
   IElementType KPACKAGE = new HaxeElementType("package");
@@ -215,7 +217,7 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == HAXE_ACCESS) {
+       if (type == HAXE_ACCESS) {
         return new HaxeAccessImpl(node);
       }
       else if (type == HAXE_ADDITIVEEXPRESSION) {
@@ -394,6 +396,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_MULTIPLICATIVEEXPRESSION) {
         return new HaxeMultiplicativeExpressionImpl(node);
+      }
+      else if (type == HAXE_NATIVEMETA) {
+        return new HaxeNativeMetaImpl(node);
       }
       else if (type == HAXE_NEWEXPRESSION) {
         return new HaxeNewExpressionImpl(node);

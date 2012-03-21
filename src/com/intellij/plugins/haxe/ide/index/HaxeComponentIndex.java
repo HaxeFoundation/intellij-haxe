@@ -141,8 +141,11 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
       final String packageName = UsefulPsiTreeUtil.findPackageName(psiFile);
       final Map<String, HaxeClassInfo> result = new THashMap<String, HaxeClassInfo>(classes.size());
       for (HaxeClass haxeClass : classes) {
+        final String name = haxeClass.getName();
         final HaxeClassInfo info = new HaxeClassInfo(packageName, HaxeComponentType.typeOf(haxeClass));
-        result.put(haxeClass.getName(), info);
+        if (name != null) {
+          result.put(name, info);
+        }
       }
       return result;
     }
