@@ -5,15 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeEnumValueDeclaration extends HaxePsiCompositeElement {
+public interface HaxeEnumValueDeclaration extends HaxeComponent {
+
+  @NotNull
+  HaxeComponentName getComponentName();
 
   @Nullable
   HaxeEnumConstructorParameters getEnumConstructorParameters();
-
-  @Nullable
-  HaxeIdentifier getIdentifier();
-
-  @Nullable
-  HaxePp getPp();
 
 }

@@ -209,7 +209,7 @@ private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error
 
 enumDeclaration ::= macroClass* externOrPrivate? 'enum' componentName typeParam? '{' enumBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
-enumBody ::= enumValueDeclaration*
+enumBody ::= (pp | enumValueDeclaration)*
 
 /*
  *  declarations
@@ -219,7 +219,9 @@ access ::= 'public' | 'private'
 declarationAttribute ::= 'static' | 'inline' | 'dynamic' | 'override' | access
 declarationAttributeList ::= declarationAttribute+
 
-enumValueDeclaration ::= pp | (identifier enumConstructorParameters? ';') {recoverUntil="enum_value_declaration_recovery"}
+enumValueDeclaration ::= componentName enumConstructorParameters? ';'
+{recoverUntil="enum_value_declaration_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+
 private enum_value_declaration_recovery ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | ID | '}')
 
 enumConstructorParameters ::= '(' parameterList? ')' {pin=1}
@@ -371,10 +373,13 @@ left suffixExpression ::= ('--' | '++')
 
 private value ::= (literalExpression qualifiedReferenceTail?)
                 | ifExpression
+                | ppIfValue
                 | castExpression
                 | newExpressionOrCall
                 | parenthesizedExpressionOrCall
                 | callOrArrayAccess
+
+ppIfValue ::= ppIf expression (ppElseIf expression)* ppElse expression ppEnd {pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
                     | 'null' | 'true' | 'false'

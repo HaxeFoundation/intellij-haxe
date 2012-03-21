@@ -1,4 +1,4 @@
-class Tes7{
+class Test7{
   function bar(){
     var b<caret>
   }

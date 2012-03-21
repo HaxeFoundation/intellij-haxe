@@ -10,9 +10,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeMultiplicativeExpressionImpl extends HaxeExpressionImpl implements HaxeMultiplicativeExpression {
+public class HaxePpIfValueImpl extends HaxePsiCompositeElementImpl implements HaxePpIfValue {
 
-  public HaxeMultiplicativeExpressionImpl(ASTNode node) {
+  public HaxePpIfValueImpl(ASTNode node) {
     super(node);
   }
 
@@ -24,12 +24,30 @@ public class HaxeMultiplicativeExpressionImpl extends HaxeExpressionImpl impleme
 
   @Override
   @Nullable
-  public HaxePpIfValue getPpIfValue() {
-    return findChildByClass(HaxePpIfValue.class);
+  public HaxePpElse getPpElse() {
+    return findChildByClass(HaxePpElse.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxePpElseIf> getPpElseIfList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePpElseIf.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxePpEnd getPpEnd() {
+    return findChildByClass(HaxePpEnd.class);
+  }
+
+  @Override
+  @NotNull
+  public HaxePpIf getPpIf() {
+    return findNotNullChildByClass(HaxePpIf.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitMultiplicativeExpression(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitPpIfValue(this);
     else super.accept(visitor);
   }
 

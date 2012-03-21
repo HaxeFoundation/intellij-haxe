@@ -10,28 +10,22 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeEnumValueDeclarationImpl extends HaxePsiCompositeElementImpl implements HaxeEnumValueDeclaration {
+public class HaxeEnumValueDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeEnumValueDeclaration {
 
   public HaxeEnumValueDeclarationImpl(ASTNode node) {
     super(node);
   }
 
   @Override
+  @NotNull
+  public HaxeComponentName getComponentName() {
+    return findNotNullChildByClass(HaxeComponentName.class);
+  }
+
+  @Override
   @Nullable
   public HaxeEnumConstructorParameters getEnumConstructorParameters() {
     return findChildByClass(HaxeEnumConstructorParameters.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeIdentifier getIdentifier() {
-    return findChildByClass(HaxeIdentifier.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxePp getPp() {
-    return findChildByClass(HaxePp.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

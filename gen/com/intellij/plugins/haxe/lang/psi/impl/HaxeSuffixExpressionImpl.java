@@ -22,6 +22,12 @@ public class HaxeSuffixExpressionImpl extends HaxeExpressionImpl implements Haxe
     return findChildByClass(HaxeExpression.class);
   }
 
+  @Override
+  @Nullable
+  public HaxePpIfValue getPpIfValue() {
+    return findChildByClass(HaxePpIfValue.class);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSuffixExpression(this);
     else super.accept(visitor);

@@ -1,3 +1,3 @@
-class Tes6{
+class Test6{
   function p<caret>
 }

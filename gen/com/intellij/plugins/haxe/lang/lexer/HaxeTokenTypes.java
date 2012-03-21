@@ -82,6 +82,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_PPEND = new HaxeElementType("HAXE_PPEND");
   IElementType HAXE_PPERROR = new HaxeElementType("HAXE_PPERROR");
   IElementType HAXE_PPIF = new HaxeElementType("HAXE_PPIF");
+  IElementType HAXE_PPIFVALUE = new HaxeElementType("HAXE_PPIFVALUE");
   IElementType HAXE_PREFIXEXPRESSION = new HaxeElementType("HAXE_PREFIXEXPRESSION");
   IElementType HAXE_PROPERTYACCESSOR = new HaxeElementType("HAXE_PROPERTYACCESSOR");
   IElementType HAXE_PROPERTYDECLARATION = new HaxeElementType("HAXE_PROPERTYDECLARATION");
@@ -438,6 +439,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_PPIF) {
         return new HaxePpIfImpl(node);
+      }
+      else if (type == HAXE_PPIFVALUE) {
+        return new HaxePpIfValueImpl(node);
       }
       else if (type == HAXE_PREFIXEXPRESSION) {
         return new HaxePrefixExpressionImpl(node);

@@ -10,4 +10,7 @@ public interface HaxeEnumBody extends HaxePsiCompositeElement {
   @NotNull
   List<HaxeEnumValueDeclaration> getEnumValueDeclarationList();
 
+  @NotNull
+  List<HaxePp> getPpList();
+
 }

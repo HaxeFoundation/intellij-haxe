@@ -244,6 +244,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == HAXE_PPIF) {
       result_ = ppIf(builder_, level_ + 1);
     }
+    else if (root_ == HAXE_PPIFVALUE) {
+      result_ = ppIfValue(builder_, level_ + 1);
+    }
     else if (root_ == HAXE_PREFIXEXPRESSION) {
       result_ = prefixExpression(builder_, level_ + 1);
     }
@@ -428,14 +431,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = multiplicativeExpressionWrapper(builder_, level_ + 1);
@@ -673,14 +676,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = iteratorExpressionWrapper(builder_, level_ + 1);
@@ -791,14 +794,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = shiftExpressionWrapper(builder_, level_ + 1);
@@ -1334,14 +1337,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = bitwiseExpressionWrapper(builder_, level_ + 1);
@@ -1535,13 +1538,13 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // enumValueDeclaration*
+  // (pp | enumValueDeclaration)*
   public static boolean enumBody(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumBody")) return false;
     final Marker marker_ = builder_.mark();
     int offset_ = builder_.getCurrentOffset();
     while (true) {
-      if (!enumValueDeclaration(builder_, level_ + 1)) break;
+      if (!enumBody_0(builder_, level_ + 1)) break;
       int next_offset_ = builder_.getCurrentOffset();
       if (offset_ == next_offset_) {
         empty_element_parsed_guard_(builder_, offset_, "enumBody");
@@ -1551,6 +1554,28 @@ public class HaxeParser implements PsiParser {
     }
     marker_.done(HAXE_ENUMBODY);
     return true;
+  }
+
+  // (pp | enumValueDeclaration)
+  private static boolean enumBody_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "enumBody_0")) return false;
+    return enumBody_0_0(builder_, level_ + 1);
+  }
+
+  // pp | enumValueDeclaration
+  private static boolean enumBody_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "enumBody_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = pp(builder_, level_ + 1);
+    if (!result_) result_ = enumValueDeclaration(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   /* ********************************************************** */
@@ -1646,14 +1671,15 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // pp | (identifier enumConstructorParameters? ';')
+  // componentName enumConstructorParameters? ';'
   public static boolean enumValueDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumValueDeclaration")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_);
-    result_ = pp(builder_, level_ + 1);
-    if (!result_) result_ = enumValueDeclaration_1(builder_, level_ + 1);
+    result_ = componentName(builder_, level_ + 1);
+    result_ = result_ && enumValueDeclaration_1(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, OSEMI);
     if (result_) {
       marker_.done(HAXE_ENUMVALUEDECLARATION);
     }
@@ -1664,32 +1690,9 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (identifier enumConstructorParameters? ';')
+  // enumConstructorParameters?
   private static boolean enumValueDeclaration_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumValueDeclaration_1")) return false;
-    return enumValueDeclaration_1_0(builder_, level_ + 1);
-  }
-
-  // identifier enumConstructorParameters? ';'
-  private static boolean enumValueDeclaration_1_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "enumValueDeclaration_1_0")) return false;
-    boolean result_ = false;
-    final Marker marker_ = builder_.mark();
-    result_ = identifier(builder_, level_ + 1);
-    result_ = result_ && enumValueDeclaration_1_0_1(builder_, level_ + 1);
-    result_ = result_ && consumeToken(builder_, OSEMI);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
-  }
-
-  // enumConstructorParameters?
-  private static boolean enumValueDeclaration_1_0_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "enumValueDeclaration_1_0_1")) return false;
     enumConstructorParameters(builder_, level_ + 1);
     return true;
   }
@@ -1742,14 +1745,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final int start_ = builder_.getCurrentOffset();
     final Marker marker_ = builder_.mark();
@@ -1775,14 +1778,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = expression(builder_, level_ + 1);
@@ -2280,13 +2283,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, OMINUS)
         && !nextTokenIs(builder_, KIF) && !nextTokenIs(builder_, ONOT)
-        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, ID)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KRETURN)
-        && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KCAST)
-        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, LITFLOAT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, LITSTRING)
+        && !nextTokenIs(builder_, PPIF) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KRETURN) && !nextTokenIs(builder_, OPLUS_PLUS)
+        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
+        && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = blockStatement(builder_, level_ + 1);
@@ -3135,14 +3139,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = ternaryExpressionWrapper(builder_, level_ + 1);
@@ -3497,14 +3501,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = compareExpressionWrapper(builder_, level_ + 1);
@@ -3567,14 +3571,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = logicAndExpressionWrapper(builder_, level_ + 1);
@@ -3724,14 +3728,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = prefixExpression(builder_, level_ + 1);
@@ -4409,6 +4413,70 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // ppIf expression (ppElseIf expression)* ppElse expression ppEnd
+  public static boolean ppIfValue(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ppIfValue")) return false;
+    if (!nextTokenIs(builder_, PPIF)) return false;
+    boolean result_ = false;
+    boolean pinned_ = false;
+    final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
+    result_ = ppIf(builder_, level_ + 1);
+    result_ = result_ && expression(builder_, level_ + 1);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && report_error_(builder_, ppIfValue_2(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, ppElse(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && ppEnd(builder_, level_ + 1) && result_;
+    if (result_ || pinned_) {
+      marker_.done(HAXE_PPIFVALUE);
+    }
+    else {
+      marker_.rollbackTo();
+    }
+    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
+    return result_ || pinned_;
+  }
+
+  // (ppElseIf expression)*
+  private static boolean ppIfValue_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ppIfValue_2")) return false;
+    int offset_ = builder_.getCurrentOffset();
+    while (true) {
+      if (!ppIfValue_2_0(builder_, level_ + 1)) break;
+      int next_offset_ = builder_.getCurrentOffset();
+      if (offset_ == next_offset_) {
+        empty_element_parsed_guard_(builder_, offset_, "ppIfValue_2");
+        break;
+      }
+      offset_ = next_offset_;
+    }
+    return true;
+  }
+
+  // (ppElseIf expression)
+  private static boolean ppIfValue_2_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ppIfValue_2_0")) return false;
+    return ppIfValue_2_0_0(builder_, level_ + 1);
+  }
+
+  // ppElseIf expression
+  private static boolean ppIfValue_2_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ppIfValue_2_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = ppElseIf(builder_, level_ + 1);
+    result_ = result_ && expression(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
   // ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
   public static boolean prefixExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "prefixExpression")) return false;
@@ -4416,14 +4484,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final int start_ = builder_.getCurrentOffset();
     final Marker marker_ = builder_.mark();
@@ -4734,14 +4802,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = additiveExpressionWrapper(builder_, level_ + 1);
@@ -5114,13 +5182,14 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "suffixExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, LITCHAR) && !nextTokenIs(builder_, LITHEX)
         && !nextTokenIs(builder_, LITOCT) && !nextTokenIs(builder_, KTRUE)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, ID)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KTHIS)
-        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, KCAST)
-        && !nextTokenIs(builder_, KFALSE) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, KIF)) return false;
+        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, LITSTRING)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KTHIS) && !nextTokenIs(builder_, PLBRACK)
+        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, KFALSE)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = value(builder_, level_ + 1);
@@ -5210,14 +5279,14 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
         && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KTHIS)
         && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
-        && !nextTokenIs(builder_, KFALSE)) return false;
+        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KCAST)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, OMINUS)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KFALSE)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = logicOrExpressionWrapper(builder_, level_ + 1);
@@ -5751,6 +5820,7 @@ public class HaxeParser implements PsiParser {
   /* ********************************************************** */
   // (literalExpression qualifiedReferenceTail?)
   //                 | ifExpression
+  //                 | ppIfValue
   //                 | castExpression
   //                 | newExpressionOrCall
   //                 | parenthesizedExpressionOrCall
@@ -5759,17 +5829,19 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "value")) return false;
     if (!nextTokenIs(builder_, LITCHAR) && !nextTokenIs(builder_, LITHEX)
         && !nextTokenIs(builder_, LITOCT) && !nextTokenIs(builder_, KTRUE)
-        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, ID)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, LITFLOAT)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KTHIS)
-        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, KCAST)
-        && !nextTokenIs(builder_, KFALSE) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, KIF)) return false;
+        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, LITSTRING)
+        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KTHIS) && !nextTokenIs(builder_, PLBRACK)
+        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, KFALSE)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, PLCURLY)
+        && !nextTokenIs(builder_, KIF)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = value_0(builder_, level_ + 1);
     if (!result_) result_ = ifExpression(builder_, level_ + 1);
+    if (!result_) result_ = ppIfValue(builder_, level_ + 1);
     if (!result_) result_ = castExpression(builder_, level_ + 1);
     if (!result_) result_ = newExpressionOrCall(builder_, level_ + 1);
     if (!result_) result_ = parenthesizedExpressionOrCall(builder_, level_ + 1);

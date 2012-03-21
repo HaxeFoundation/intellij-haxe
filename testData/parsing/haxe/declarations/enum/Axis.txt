@@ -7,15 +7,18 @@ haXe File
     PsiElement({)('{')
     HAXE_ENUMBODY
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('x')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('x')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('y')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('y')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('z')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('z')
         PsiElement(;)(';')
     PsiElement(})('}')

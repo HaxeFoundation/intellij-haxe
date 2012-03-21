@@ -132,7 +132,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitEnumValueDeclaration(@NotNull HaxeEnumValueDeclaration o) {
-    visitPsiCompositeElement(o);
+    visitComponent(o);
   }
 
   public void visitExpression(@NotNull HaxeExpression o) {
@@ -302,6 +302,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitPpIf(@NotNull HaxePpIf o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitPpIfValue(@NotNull HaxePpIfValue o) {
     visitPsiCompositeElement(o);
   }
 

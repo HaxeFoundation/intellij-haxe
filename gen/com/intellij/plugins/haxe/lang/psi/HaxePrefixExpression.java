@@ -7,4 +7,10 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxePrefixExpression extends HaxeExpression {
 
+  @Nullable
+  HaxeExpression getExpression();
+
+  @Nullable
+  HaxePpIfValue getPpIfValue();
+
 }

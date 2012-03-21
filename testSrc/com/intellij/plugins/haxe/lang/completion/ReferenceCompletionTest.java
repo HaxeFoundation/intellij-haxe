@@ -43,4 +43,9 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testThisMembers() throws Throwable {
     doTest();
   }
+
+  public void testClassName() throws Throwable {
+    myFixture.configureByFiles("ClassName.hx", "com/util/ClassFactory.hx");
+    doTestVariantsInner("ClassName.txt");
+  }
 }

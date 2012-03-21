@@ -5,12 +5,21 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeMultiplicativeExpression extends HaxeExpression {
+public interface HaxePpIfValue extends HaxePsiCompositeElement {
 
   @NotNull
   List<HaxeExpression> getExpressionList();
 
   @Nullable
-  HaxePpIfValue getPpIfValue();
+  HaxePpElse getPpElse();
+
+  @NotNull
+  List<HaxePpElseIf> getPpElseIfList();
+
+  @Nullable
+  HaxePpEnd getPpEnd();
+
+  @NotNull
+  HaxePpIf getPpIf();
 
 }

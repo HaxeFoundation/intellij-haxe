@@ -15,12 +15,14 @@ haXe File
     PsiElement({)('{')
     HAXE_ENUMBODY
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('empty')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('empty')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('cons')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('cons')
         HAXE_ENUMCONSTRUCTORPARAMETERS
           PsiElement(()('(')
           HAXE_PARAMETERLIST

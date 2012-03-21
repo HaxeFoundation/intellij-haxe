@@ -10,4 +10,7 @@ public interface HaxeSuffixExpression extends HaxeExpression {
   @Nullable
   HaxeExpression getExpression();
 
+  @Nullable
+  HaxePpIfValue getPpIfValue();
+
 }

@@ -7,8 +7,12 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.patterns.PsiElementPattern;
+import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
+import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
+import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.LazyPsiElement;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
@@ -28,14 +32,19 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
  */
 public class HaxeClassNameCompletionContributor extends CompletionContributor {
   public HaxeClassNameCompletionContributor() {
-    extend(CompletionType.BASIC, psiElement().inside(HaxeType.class), new CompletionProvider<CompletionParameters>() {
-      @Override
-      protected void addCompletions(@NotNull CompletionParameters parameters,
-                                    ProcessingContext context,
-                                    @NotNull CompletionResultSet result) {
-        addVariantsFromIndex(result, parameters.getOriginalFile(), CLASS_INSERT_HANDLER);
-      }
-    });
+    final PsiElementPattern.Capture<PsiElement> idInExpression =
+      psiElement().withSuperParent(1, HaxeIdentifier.class).withSuperParent(2, HaxeReference.class);
+    final PsiElementPattern.Capture<PsiElement> inComplexExpression = psiElement().withSuperParent(3, HaxeReference.class);
+    extend(CompletionType.BASIC,
+           psiElement().andOr(StandardPatterns.instanceOf(HaxeType.class), idInExpression.andNot(inComplexExpression)),
+           new CompletionProvider<CompletionParameters>() {
+             @Override
+             protected void addCompletions(@NotNull CompletionParameters parameters,
+                                           ProcessingContext context,
+                                           @NotNull CompletionResultSet result) {
+               addVariantsFromIndex(result, parameters.getOriginalFile(), CLASS_INSERT_HANDLER);
+             }
+           });
   }
 
   private static void addVariantsFromIndex(final CompletionResultSet resultSet,

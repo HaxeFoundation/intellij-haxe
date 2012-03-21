@@ -176,6 +176,9 @@ public class HaxeResolveUtil {
     if (type == HaxeComponentType.INTERFACE) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeInterfaceBody.class);
     }
+    if (type == HaxeComponentType.ENUM) {
+      body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
+    }
     if (body == null) {
       return Collections.emptyList();
     }

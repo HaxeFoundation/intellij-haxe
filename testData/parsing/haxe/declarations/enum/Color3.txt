@@ -7,20 +7,24 @@ haXe File
     PsiElement({)('{')
     HAXE_ENUMBODY
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('red')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('red')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('green')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('green')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('blue')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('blue')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('grey')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('grey')
         HAXE_ENUMCONSTRUCTORPARAMETERS
           PsiElement(()('(')
           HAXE_PARAMETERLIST
@@ -37,8 +41,9 @@ haXe File
           PsiElement())(')')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('rgb')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('rgb')
         HAXE_ENUMCONSTRUCTORPARAMETERS
           PsiElement(()('(')
           HAXE_PARAMETERLIST
@@ -77,8 +82,9 @@ haXe File
           PsiElement())(')')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
-        HAXE_IDENTIFIER
-          PsiElement(ID)('alpha')
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('alpha')
         HAXE_ENUMCONSTRUCTORPARAMETERS
           PsiElement(()('(')
           HAXE_PARAMETERLIST
