@@ -12,11 +12,13 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
+import gnu.trove.THashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -231,7 +233,7 @@ public class HaxeResolveUtil {
     }
     final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
     final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
-    if(initExpression instanceof HaxeReference){
+    if (initExpression instanceof HaxeReference) {
       return ((HaxeReference)initExpression).getHaxeClass();
     }
     return getHaxeClass(initExpression);
@@ -302,5 +304,23 @@ public class HaxeResolveUtil {
       return (PsiComment)candidate;
     }
     return null;
+  }
+
+  public static Set<IElementType> getDeclarationTypes(@Nullable HaxeDeclarationAttributeList attributeList) {
+    if (attributeList == null) {
+      return Collections.emptySet();
+    }
+    final Set<IElementType> resultSet = new THashSet<IElementType>();
+    for (HaxeDeclarationAttribute attribute : attributeList.getDeclarationAttributeList()) {
+      PsiElement result = attribute.getFirstChild();
+      final HaxeAccess access = attribute.getAccess();
+      if (access != null) {
+        result = access.getFirstChild();
+      }
+      if (result instanceof LeafPsiElement) {
+        resultSet.add(((LeafPsiElement)result).getElementType());
+      }
+    }
+    return resultSet;
   }
 }

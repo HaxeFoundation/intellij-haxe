@@ -121,7 +121,13 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return resolveByClassAndSymbol(referenceExpression.getHaxeClass(), getText());
     }
 
-    // if chain
+    // Maybe this is class name
+    final HaxeClass resultClass = HaxeResolveUtil.resolveClass(this);
+    if (resultClass != null) {
+      return toCandidateInfoArray(resultClass.getComponentName());
+    }
+
+    // then maybe chain
     // node(foo.node(bar)).node(baz)
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
@@ -132,12 +138,6 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result), getParent(), null, new ResolveState());
     if (result.size() > 0) {
       return toCandidateInfoArray(result);
-    }
-
-    // Maybe this is class name
-    final HaxeClass resultClass = HaxeResolveUtil.resolveClass(this);
-    if (resultClass != null) {
-      return toCandidateInfoArray(resultClass);
     }
 
     // try super field

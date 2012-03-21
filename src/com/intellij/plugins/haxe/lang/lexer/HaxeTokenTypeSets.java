@@ -65,7 +65,7 @@ public interface HaxeTokenTypeSets {
     KSWITCH,
     KTHIS,
     KTHROW,
-    KUNTYPE,
+    KUNTYPED,
     KVAR,
     KWHILE,
     KTRY,

@@ -109,7 +109,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "override"                                {  return KOVERRIDE;  }
 "inline"                                  {  return KINLINE;  }
 
-"untype"                                  {  return KUNTYPE;  }
+"untyped"                                 {  return KUNTYPED;  }
 "typedef"                                 {  return KTYPEDEF;  }
 
 "extern"                                  {  return KEXTERN;  }

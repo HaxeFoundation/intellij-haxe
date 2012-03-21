@@ -122,7 +122,7 @@
     kOVERRIDE="override"
     kINLINE="inline"
 
-    kUNTYPE="untyped"
+    kUNTYPED="untyped"
     kTYPEDEF="typedef"
 
     kEXTERN="extern"
@@ -240,13 +240,13 @@ propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 
 private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression
 
-externFunctionDeclaration ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? (functionCommonBody | ';')
+externFunctionDeclaration ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-functionDeclarationWithAttributes ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? functionCommonBody
+functionDeclarationWithAttributes ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-functionPrototypeDeclarationWithAttributes ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? ';'
+functionPrototypeDeclarationWithAttributes ::= macroCommon* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? functionCommonBody
+localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 /*
@@ -259,7 +259,7 @@ parameter ::= '?'? componentName typeTag? varInit?
 parameterList ::= parameter (',' parameter)* {recoverUntil="parameterListRecovery"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
-functionLiteral ::= 'function' '(' parameterList? ')' typeTag? functionCommonBody {pin=2}
+functionLiteral ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody {pin=2}
 arrayLiteral ::= '[' expressionList? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 

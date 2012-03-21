@@ -28,6 +28,7 @@ public class HaxeClassInfo {
     return type;
   }
 
+  @Nullable
   public Icon getIcon() {
     return type == null ? null : type.getIcon();
   }

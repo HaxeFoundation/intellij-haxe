@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.lang.annotator;
+package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;

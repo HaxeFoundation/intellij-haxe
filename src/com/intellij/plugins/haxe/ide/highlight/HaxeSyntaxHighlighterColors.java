@@ -1,8 +1,13 @@
 package com.intellij.plugins.haxe.ide.highlight;
 
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.SyntaxHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.TextAttributes;
+
+import java.awt.*;
 
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
@@ -10,6 +15,15 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
  * @author fedor.korotkov
  */
 public class HaxeSyntaxHighlighterColors {
+  public static final String HAXE_CLASS = "HAXE_CLASS";
+  public static final String HAXE_INTERFACE = "HAXE_INTERFACE";
+  public static final String HAXE_STATIC_MEMBER_FUNCTION = "HAXE_STATIC_MEMBER_FUNCTION";
+  public static final String HAXE_INSTANCE_MEMBER_FUNCTION = "HAXE_INSTANCE_MEMBER_FUNCTION";
+  public static final String HAXE_INSTANCE_MEMBER_VARIABLE = "HAXE_INSTANCE_MEMBER_VARIABLE";
+  public static final String HAXE_STATIC_MEMBER_VARIABLE = "HAXE_STATIC_MEMBER_VARIABLE";
+  public static final String HAXE_LOCAL_VARIABLE = "HAXE_LOCAL_VARIABLE";
+  public static final String HAXE_PARAMETER = "HAXE_PARAMETER";
+
   public static final TextAttributesKey LINE_COMMENT =
     createTextAttributesKey("HAXE_LINE_COMMENT", SyntaxHighlighterColors.LINE_COMMENT.getDefaultAttributes());
   public static final TextAttributesKey BLOCK_COMMENT =
@@ -36,4 +50,20 @@ public class HaxeSyntaxHighlighterColors {
     createTextAttributesKey("HAXE_SEMICOLON", SyntaxHighlighterColors.JAVA_SEMICOLON.getDefaultAttributes());
   public static final TextAttributesKey BAD_CHARACTER =
     createTextAttributesKey("HAXE_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER.getDefaultAttributes());
+  public static final TextAttributesKey CLASS =
+    createTextAttributesKey(HAXE_CLASS, HighlightInfoType.CLASS_NAME.getAttributesKey().getDefaultAttributes());
+  public static final TextAttributesKey INTERFACE =
+    createTextAttributesKey(HAXE_INTERFACE, HighlightInfoType.INTERFACE_NAME.getAttributesKey().getDefaultAttributes());
+  public static final TextAttributesKey STATIC_MEMBER_FUNCTION =
+    createTextAttributesKey(HAXE_STATIC_MEMBER_FUNCTION, HighlightInfoType.STATIC_METHOD.getAttributesKey().getDefaultAttributes());
+  public static final TextAttributesKey INSTANCE_MEMBER_FUNCTION =
+    createTextAttributesKey(HAXE_INSTANCE_MEMBER_FUNCTION, new TextAttributes(new Color(0x7a, 0x7a, 43), Color.white, null, null, 0));
+  public static final TextAttributesKey INSTANCE_MEMBER_VARIABLE =
+    createTextAttributesKey(HAXE_INSTANCE_MEMBER_VARIABLE, HighlightInfoType.INSTANCE_FIELD.getAttributesKey().getDefaultAttributes());
+  public static final TextAttributesKey STATIC_MEMBER_VARIABLE =
+    createTextAttributesKey(HAXE_STATIC_MEMBER_VARIABLE, HighlightInfoType.STATIC_FIELD.getAttributesKey().getDefaultAttributes());
+  public static final TextAttributesKey LOCAL_VARIABLE =
+    createTextAttributesKey(HAXE_LOCAL_VARIABLE, new TextAttributes(new Color(69, 131, 131), Color.white, null, null, 0));
+  public static final TextAttributesKey PARAMETER =
+    createTextAttributesKey(HAXE_PARAMETER, new TextAttributes(Color.black, Color.white, Color.black, EffectType.LINE_UNDERSCORE, 0));
 }

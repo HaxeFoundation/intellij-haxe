@@ -1,10 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 
 public interface HaxeTokenTypes {
 
@@ -150,7 +150,7 @@ public interface HaxeTokenTypes {
   IElementType KTRUE = new HaxeElementType("true");
   IElementType KTRY = new HaxeElementType("try");
   IElementType KTYPEDEF = new HaxeElementType("typedef");
-  IElementType KUNTYPE = new HaxeElementType("untyped");
+  IElementType KUNTYPED = new HaxeElementType("untyped");
   IElementType KVAR = new HaxeElementType("var");
   IElementType KWHILE = new HaxeElementType("while");
   IElementType LITCHAR = new HaxeElementType("LITCHAR");
@@ -215,7 +215,7 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == HAXE_ACCESS) {
+      if (type == HAXE_ACCESS) {
         return new HaxeAccessImpl(node);
       }
       else if (type == HAXE_ADDITIVEEXPRESSION) {

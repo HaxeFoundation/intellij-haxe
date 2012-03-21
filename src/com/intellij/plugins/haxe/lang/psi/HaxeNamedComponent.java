@@ -10,4 +10,10 @@ public interface HaxeNamedComponent extends HaxePsiCompositeElement {
 
   @Nullable
   HaxeNamedComponent getTypeComponent();
+
+  boolean isPublic();
+
+  boolean isStatic();
+
+  boolean isOverride();
 }
