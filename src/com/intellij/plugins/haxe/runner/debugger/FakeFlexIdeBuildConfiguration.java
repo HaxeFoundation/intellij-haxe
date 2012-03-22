@@ -37,7 +37,7 @@ public class FakeFlexIdeBuildConfiguration implements FlexIdeBuildConfiguration 
   }
 
   @Override
-  public String getOutputFilePath(boolean respectAdditionalConfigFile) {
+  public String getActualOutputFilePath() {
     return url;
   }
 
