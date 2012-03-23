@@ -6,6 +6,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -170,14 +171,17 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-    //todo
-    return null;
+    final HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(this, HaxeIdentifier.class);
+    final HaxeIdentifier identifierNew = HaxeElementGenerator.createIdentifierFromText(getProject(), newElementName);
+    if (identifier != null && identifierNew != null) {
+      getNode().replaceChild(identifier.getNode(), identifierNew.getNode());
+    }
+    return this;
   }
 
   @Override
   public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
-    //todo
-    return null;
+    return this;
   }
 
   @Override

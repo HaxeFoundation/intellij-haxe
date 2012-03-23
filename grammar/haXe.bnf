@@ -265,7 +265,7 @@ private parameterListRecovery ::= !')' // after parameterList always ')'
 
 functionLiteral ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody {pin=2}
 arrayLiteral ::= '[' expressionList? ']'
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionTypeWrapper ::= typeOrAnonymous functionType*
 left functionType ::= '->' typeOrAnonymous
@@ -386,7 +386,7 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
                     | functionLiteral
                     | arrayLiteral
                     | objectLiteral
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
 parenthesizedExpression ::= '(' (expression | statement) ')'
@@ -408,10 +408,10 @@ componentName ::= identifier
 identifier ::= ID
 
 thisExpression ::= 'this'
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 newExpression ::= 'new' type '(' expressionList? ')'
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUnnamedReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (expression | ( '(' expression (',' functionTypeWrapper)? ')' ))
 

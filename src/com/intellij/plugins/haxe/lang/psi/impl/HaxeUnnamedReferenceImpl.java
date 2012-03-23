@@ -10,9 +10,4 @@ public class HaxeUnnamedReferenceImpl extends HaxeReferenceImpl {
   public HaxeUnnamedReferenceImpl(ASTNode node) {
     super(node);
   }
-
-  @Override
-  public HaxeIdentifier getIdentifier() {
-    return null;
-  }
 }

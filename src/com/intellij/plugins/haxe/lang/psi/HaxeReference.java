@@ -8,8 +8,5 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface HaxeReference extends HaxeExpression, PsiReference {
   @Nullable
-  HaxeIdentifier getIdentifier();
-
-  @Nullable
   HaxeClass getHaxeClass();
 }

@@ -1,6 +1,6 @@
 import com.bar.Foo;
 
-class FunctionParametr{
+class FunctionParameter{
     public static function main(){
         var foo:Foo;
         function print(foo:F<caret>oo){
