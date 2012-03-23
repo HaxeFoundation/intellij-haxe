@@ -17,9 +17,9 @@ public class HaxeCustomMetaImpl extends HaxePsiCompositeElementImpl implements H
   }
 
   @Override
-  @Nullable
-  public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
+  @NotNull
+  public List<HaxeExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

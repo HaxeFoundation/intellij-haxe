@@ -1475,7 +1475,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // MACRO_ID '(' literalExpression ')'
+  // MACRO_ID ('(' customMetaLiterals ')')?
   public static boolean customMeta(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "customMeta")) return false;
     if (!nextTokenIs(builder_, MACRO_ID)) return false;
@@ -1485,9 +1485,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, MACRO_ID);
     pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, literalExpression(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
+    result_ = result_ && customMeta_1(builder_, level_ + 1);
     if (result_ || pinned_) {
       marker_.done(HAXE_CUSTOMMETA);
     }
@@ -1496,6 +1494,97 @@ public class HaxeParser implements PsiParser {
     }
     result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
     return result_ || pinned_;
+  }
+
+  // ('(' customMetaLiterals ')')?
+  private static boolean customMeta_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "customMeta_1")) return false;
+    customMeta_1_0(builder_, level_ + 1);
+    return true;
+  }
+
+  // ('(' customMetaLiterals ')')
+  private static boolean customMeta_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "customMeta_1_0")) return false;
+    return customMeta_1_0_0(builder_, level_ + 1);
+  }
+
+  // '(' customMetaLiterals ')'
+  private static boolean customMeta_1_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "customMeta_1_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, PLPAREN);
+    result_ = result_ && customMetaLiterals(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // literalExpression (',' literalExpression)*
+  static boolean customMetaLiterals(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "customMetaLiterals")) return false;
+    if (!nextTokenIs(builder_, LITCHAR) && !nextTokenIs(builder_, PLBRACK)
+        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, LITHEX)
+        && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KNULL)
+        && !nextTokenIs(builder_, LITOCT) && !nextTokenIs(builder_, KFALSE)
+        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, LITFLOAT)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = literalExpression(builder_, level_ + 1);
+    result_ = result_ && customMetaLiterals_1(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  // (',' literalExpression)*
+  private static boolean customMetaLiterals_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "customMetaLiterals_1")) return false;
+    int offset_ = builder_.getCurrentOffset();
+    while (true) {
+      if (!customMetaLiterals_1_0(builder_, level_ + 1)) break;
+      int next_offset_ = builder_.getCurrentOffset();
+      if (offset_ == next_offset_) {
+        empty_element_parsed_guard_(builder_, offset_, "customMetaLiterals_1");
+        break;
+      }
+      offset_ = next_offset_;
+    }
+    return true;
+  }
+
+  // (',' literalExpression)
+  private static boolean customMetaLiterals_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "customMetaLiterals_1_0")) return false;
+    return customMetaLiterals_1_0_0(builder_, level_ + 1);
+  }
+
+  // ',' literalExpression
+  private static boolean customMetaLiterals_1_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "customMetaLiterals_1_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, OCOMMA);
+    result_ = result_ && literalExpression(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   /* ********************************************************** */

@@ -179,7 +179,8 @@ bitmapMeta ::= '@:bitmap' '(' LITSTRING ')'
 nsMeta ::= '@:ns' '(' LITSTRING ')'
 getterMeta ::= '@:getter' '(' referenceExpression ')'
 setterMeta ::= '@:setter' '(' referenceExpression ')'
-customMeta ::= MACRO_ID ('(' literalExpression (',' literalExpression)* ')')?
+customMeta ::= MACRO_ID ('(' customMetaLiterals ')')?
+private customMetaLiterals ::= literalExpression (',' literalExpression)*
 metaMeta ::= '@:meta' '(' ID '(' metaPartList ')' ')'
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
 metaKeyValue ::= ID '=' LITSTRING
