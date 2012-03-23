@@ -325,6 +325,7 @@ throwStatement ::= 'throw' expression ';'
 caseStatement ::= 'case' expressionList ':'
 
 switchStatement ::= 'switch' '(' expression ')' blockStatement
+switchExpression ::= 'switch' '(' expression ')' blockStatement
 tryStatement ::= 'try' blockStatement catchStatement*
 catchStatement ::= 'catch' '(' parameter ')' blockStatement
 
@@ -373,6 +374,7 @@ left suffixExpression ::= ('--' | '++')
 
 private value ::= (literalExpression qualifiedReferenceTail?)
                 | ifExpression
+                | switchExpression
                 | ppIfValue
                 | castExpression
                 | newExpressionOrCall
@@ -413,7 +415,7 @@ thisExpression ::= 'this'
 newExpression ::= 'new' type '(' expressionList? ')'
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-castExpression ::= 'cast' (expression | ( '(' expression (',' functionTypeWrapper)? ')' ))
+castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
 
 inheritList ::= inherit (',' inherit)*
 
@@ -431,7 +433,7 @@ anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 
 anonymousTypeField ::= identifier ':' functionTypeWrapper
 
-objectLiteral ::= '{' objectLiteralElementList '}'
+objectLiteral ::= '{' objectLiteralElementList? '}'
 
 private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)*
 

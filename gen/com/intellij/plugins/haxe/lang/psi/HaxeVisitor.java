@@ -354,6 +354,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitSwitchExpression(@NotNull HaxeSwitchExpression o) {
+    visitExpression(o);
+  }
+
   public void visitSwitchStatement(@NotNull HaxeSwitchStatement o) {
     visitPsiCompositeElement(o);
   }

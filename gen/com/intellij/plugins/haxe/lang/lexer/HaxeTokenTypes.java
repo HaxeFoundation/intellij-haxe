@@ -94,6 +94,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_SHIFTOPERATOR = new HaxeElementType("HAXE_SHIFTOPERATOR");
   IElementType HAXE_SHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_SHIFTRIGHTOPERATOR");
   IElementType HAXE_SUFFIXEXPRESSION = new HaxeElementType("HAXE_SUFFIXEXPRESSION");
+  IElementType HAXE_SWITCHEXPRESSION = new HaxeElementType("HAXE_SWITCHEXPRESSION");
   IElementType HAXE_SWITCHSTATEMENT = new HaxeElementType("HAXE_SWITCHSTATEMENT");
   IElementType HAXE_TERNARYEXPRESSION = new HaxeElementType("HAXE_TERNARYEXPRESSION");
   IElementType HAXE_THISEXPRESSION = new HaxeElementType("HAXE_THISEXPRESSION");
@@ -475,6 +476,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_SUFFIXEXPRESSION) {
         return new HaxeSuffixExpressionImpl(node);
+      }
+      else if (type == HAXE_SWITCHEXPRESSION) {
+        return new HaxeSwitchExpressionImpl(node);
       }
       else if (type == HAXE_SWITCHSTATEMENT) {
         return new HaxeSwitchStatementImpl(node);

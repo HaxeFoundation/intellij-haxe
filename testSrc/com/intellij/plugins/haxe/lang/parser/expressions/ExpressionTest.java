@@ -33,4 +33,8 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testTest6() throws Throwable {
     doTest(true);
   }
+
+  public void testTest7() throws Throwable {
+    doTest(true);
+  }
 }
