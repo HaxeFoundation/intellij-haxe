@@ -10,14 +10,26 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComp
   @Nullable
   HaxeComponentName getComponentName();
 
+  @NotNull
+  List<HaxeCustomMeta> getCustomMetaList();
+
   @Nullable
   HaxeDeclarationAttributeList getDeclarationAttributeList();
+
+  @NotNull
+  List<HaxeGetterMeta> getGetterMetaList();
+
+  @NotNull
+  List<HaxeNsMeta> getNsMetaList();
 
   @Nullable
   HaxeParameterList getParameterList();
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
+
+  @NotNull
+  List<HaxeSetterMeta> getSetterMetaList();
 
   @Nullable
   HaxeTypeParam getTypeParam();

@@ -51,6 +51,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitBitmapMeta(@NotNull HaxeBitmapMeta o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitBitwiseExpression(@NotNull HaxeBitwiseExpression o) {
     visitExpression(o);
   }
@@ -100,6 +104,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitContinueStatement(@NotNull HaxeContinueStatement o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitCustomMeta(@NotNull HaxeCustomMeta o) {
     visitPsiCompositeElement(o);
   }
 
@@ -183,6 +191,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitGetterMeta(@NotNull HaxeGetterMeta o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitIdentifier(@NotNull HaxeIdentifier o) {
     visitPsiCompositeElement(o);
   }
@@ -244,6 +256,14 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitMetaKeyValue(@NotNull HaxeMetaKeyValue o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitMetaMeta(@NotNull HaxeMetaMeta o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitMultiplicativeExpression(@NotNull HaxeMultiplicativeExpression o) {
     visitExpression(o);
   }
@@ -255,6 +275,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   public void visitNewExpression(@NotNull HaxeNewExpression o) {
     visitReference(o);
     // visitExpression(o);
+  }
+
+  public void visitNsMeta(@NotNull HaxeNsMeta o) {
+    visitPsiCompositeElement(o);
   }
 
   public void visitObjectLiteral(@NotNull HaxeObjectLiteral o) {
@@ -335,6 +359,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitReturnStatementWithoutSemicolon(@NotNull HaxeReturnStatementWithoutSemicolon o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitSetterMeta(@NotNull HaxeSetterMeta o) {
     visitPsiCompositeElement(o);
   }
 

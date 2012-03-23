@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeRequireMeta extends HaxePsiCompositeElement {
+public interface HaxeOverloadMeta extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeIdentifier getIdentifier();
+  HaxeParameterList getParameterList();
+
+  @Nullable
+  HaxeTypeTag getTypeTag();
 
 }

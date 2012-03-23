@@ -7,11 +7,23 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeVarDeclaration extends HaxePsiCompositeElement {
 
+  @NotNull
+  List<HaxeCustomMeta> getCustomMetaList();
+
   @Nullable
   HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @NotNull
+  List<HaxeGetterMeta> getGetterMetaList();
+
+  @NotNull
+  List<HaxeNsMeta> getNsMetaList();
+
+  @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
+
+  @NotNull
+  List<HaxeSetterMeta> getSetterMetaList();
 
   @NotNull
   List<HaxeVarDeclarationPart> getVarDeclarationPartList();

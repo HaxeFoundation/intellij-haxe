@@ -18,6 +18,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_ARRAYLITERAL = new HaxeElementType("HAXE_ARRAYLITERAL");
   IElementType HAXE_ASSIGNEXPRESSION = new HaxeElementType("HAXE_ASSIGNEXPRESSION");
   IElementType HAXE_ASSIGNOPERATION = new HaxeElementType("HAXE_ASSIGNOPERATION");
+  IElementType HAXE_BITMAPMETA = new HaxeElementType("HAXE_BITMAPMETA");
   IElementType HAXE_BITOPERATION = new HaxeElementType("HAXE_BITOPERATION");
   IElementType HAXE_BITWISEEXPRESSION = new HaxeElementType("HAXE_BITWISEEXPRESSION");
   IElementType HAXE_BLOCKSTATEMENT = new HaxeElementType("HAXE_BLOCKSTATEMENT");
@@ -32,6 +33,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_COMPAREOPERATION = new HaxeElementType("HAXE_COMPAREOPERATION");
   IElementType HAXE_COMPONENTNAME = new HaxeElementType("HAXE_COMPONENTNAME");
   IElementType HAXE_CONTINUESTATEMENT = new HaxeElementType("HAXE_CONTINUESTATEMENT");
+  IElementType HAXE_CUSTOMMETA = new HaxeElementType("HAXE_CUSTOMMETA");
   IElementType HAXE_DECLARATIONATTRIBUTE = new HaxeElementType("HAXE_DECLARATIONATTRIBUTE");
   IElementType HAXE_DECLARATIONATTRIBUTELIST = new HaxeElementType("HAXE_DECLARATIONATTRIBUTELIST");
   IElementType HAXE_DEFAULTSTATEMENT = new HaxeElementType("HAXE_DEFAULTSTATEMENT");
@@ -52,6 +54,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_FUNCTIONLITERAL = new HaxeElementType("HAXE_FUNCTIONLITERAL");
   IElementType HAXE_FUNCTIONPROTOTYPEDECLARATIONWITHATTRIBUTES = new HaxeElementType("HAXE_FUNCTIONPROTOTYPEDECLARATIONWITHATTRIBUTES");
   IElementType HAXE_FUNCTIONTYPE = new HaxeElementType("HAXE_FUNCTIONTYPE");
+  IElementType HAXE_GETTERMETA = new HaxeElementType("HAXE_GETTERMETA");
   IElementType HAXE_IDENTIFIER = new HaxeElementType("HAXE_IDENTIFIER");
   IElementType HAXE_IFEXPRESSION = new HaxeElementType("HAXE_IFEXPRESSION");
   IElementType HAXE_IFSTATEMENT = new HaxeElementType("HAXE_IFSTATEMENT");
@@ -67,9 +70,12 @@ public interface HaxeTokenTypes {
   IElementType HAXE_LOCALVARDECLARATIONPART = new HaxeElementType("HAXE_LOCALVARDECLARATIONPART");
   IElementType HAXE_LOGICANDEXPRESSION = new HaxeElementType("HAXE_LOGICANDEXPRESSION");
   IElementType HAXE_LOGICOREXPRESSION = new HaxeElementType("HAXE_LOGICOREXPRESSION");
+  IElementType HAXE_METAKEYVALUE = new HaxeElementType("HAXE_METAKEYVALUE");
+  IElementType HAXE_METAMETA = new HaxeElementType("HAXE_METAMETA");
   IElementType HAXE_MULTIPLICATIVEEXPRESSION = new HaxeElementType("HAXE_MULTIPLICATIVEEXPRESSION");
   IElementType HAXE_NATIVEMETA = new HaxeElementType("HAXE_NATIVEMETA");
   IElementType HAXE_NEWEXPRESSION = new HaxeElementType("HAXE_NEWEXPRESSION");
+  IElementType HAXE_NSMETA = new HaxeElementType("HAXE_NSMETA");
   IElementType HAXE_OBJECTLITERAL = new HaxeElementType("HAXE_OBJECTLITERAL");
   IElementType HAXE_OBJECTLITERALELEMENT = new HaxeElementType("HAXE_OBJECTLITERALELEMENT");
   IElementType HAXE_PACKAGESTATEMENT = new HaxeElementType("HAXE_PACKAGESTATEMENT");
@@ -90,6 +96,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_REQUIREMETA = new HaxeElementType("HAXE_REQUIREMETA");
   IElementType HAXE_RETURNSTATEMENT = new HaxeElementType("HAXE_RETURNSTATEMENT");
   IElementType HAXE_RETURNSTATEMENTWITHOUTSEMICOLON = new HaxeElementType("HAXE_RETURNSTATEMENTWITHOUTSEMICOLON");
+  IElementType HAXE_SETTERMETA = new HaxeElementType("HAXE_SETTERMETA");
   IElementType HAXE_SHIFTEXPRESSION = new HaxeElementType("HAXE_SHIFTEXPRESSION");
   IElementType HAXE_SHIFTOPERATOR = new HaxeElementType("HAXE_SHIFTOPERATOR");
   IElementType HAXE_SHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_SHIFTRIGHTOPERATOR");
@@ -114,13 +121,17 @@ public interface HaxeTokenTypes {
   IElementType HAXE_WHILESTATEMENT = new HaxeElementType("HAXE_WHILESTATEMENT");
 
   IElementType ID = new HaxeElementType("ID");
+  IElementType KBIND = new HaxeElementType("@:bind");
+  IElementType KBITMAP = new HaxeElementType("@:bitmap");
   IElementType KBREAK = new HaxeElementType("break");
+  IElementType KBUILD = new HaxeElementType("@:build");
   IElementType KCASE = new HaxeElementType("case");
   IElementType KCAST = new HaxeElementType("cast");
   IElementType KCATCH = new HaxeElementType("catch");
   IElementType KCLASS = new HaxeElementType("class");
   IElementType KCONTINUE = new HaxeElementType("continue");
   IElementType KCOREAPI = new HaxeElementType("@:core_api");
+  IElementType KDEBUG = new HaxeElementType("@:debug");
   IElementType KDEFAULT = new HaxeElementType("default");
   IElementType KDO = new HaxeElementType("do");
   IElementType KDYNAMIC = new HaxeElementType("dynamic");
@@ -133,20 +144,28 @@ public interface HaxeTokenTypes {
   IElementType KFINAL = new HaxeElementType("@:final");
   IElementType KFOR = new HaxeElementType("for");
   IElementType KFUNCTION = new HaxeElementType("function");
+  IElementType KGETTER = new HaxeElementType("@:getter");
+  IElementType KHACK = new HaxeElementType("@:hack");
   IElementType KIF = new HaxeElementType("if");
   IElementType KIMPLEMENTS = new HaxeElementType("implements");
   IElementType KIMPORT = new HaxeElementType("import");
   IElementType KINLINE = new HaxeElementType("inline");
   IElementType KINTERFACE = new HaxeElementType("interface");
+  IElementType KKEEP = new HaxeElementType("@:keep");
   IElementType KMACRO = new HaxeElementType("@:macro");
+  IElementType KMETA = new HaxeElementType("@:meta");
   IElementType KNATIVE = new HaxeElementType("@:native");
+  IElementType KNODEBUG = new HaxeElementType("@:nodebug");
+  IElementType KNS = new HaxeElementType("@:ns");
   IElementType KNULL = new HaxeElementType("null");
   IElementType KOVERRIDE = new HaxeElementType("override");
   IElementType KPACKAGE = new HaxeElementType("package");
   IElementType KPRIVATE = new HaxeElementType("private");
+  IElementType KPROTECTED = new HaxeElementType("@:protected");
   IElementType KPUBLIC = new HaxeElementType("public");
   IElementType KREQUIRE = new HaxeElementType("@:require");
   IElementType KRETURN = new HaxeElementType("return");
+  IElementType KSETTER = new HaxeElementType("@:setter");
   IElementType KSTATIC = new HaxeElementType("static");
   IElementType KSWITCH = new HaxeElementType("switch");
   IElementType KTHIS = new HaxeElementType("this");
@@ -163,6 +182,7 @@ public interface HaxeTokenTypes {
   IElementType LITINT = new HaxeElementType("LITINT");
   IElementType LITOCT = new HaxeElementType("LITOCT");
   IElementType LITSTRING = new HaxeElementType("LITSTRING");
+  IElementType MACRO_ID = new HaxeElementType("MACRO_ID");
   IElementType OARROW = new HaxeElementType("->");
   IElementType OASSIGN = new HaxeElementType("=");
   IElementType OBIT_AND = new HaxeElementType("&");
@@ -249,6 +269,9 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_ASSIGNOPERATION) {
         return new HaxeAssignOperationImpl(node);
       }
+      else if (type == HAXE_BITMAPMETA) {
+        return new HaxeBitmapMetaImpl(node);
+      }
       else if (type == HAXE_BITOPERATION) {
         return new HaxeBitOperationImpl(node);
       }
@@ -290,6 +313,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_CONTINUESTATEMENT) {
         return new HaxeContinueStatementImpl(node);
+      }
+      else if (type == HAXE_CUSTOMMETA) {
+        return new HaxeCustomMetaImpl(node);
       }
       else if (type == HAXE_DECLARATIONATTRIBUTE) {
         return new HaxeDeclarationAttributeImpl(node);
@@ -351,6 +377,9 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_FUNCTIONTYPE) {
         return new HaxeFunctionTypeImpl(node);
       }
+      else if (type == HAXE_GETTERMETA) {
+        return new HaxeGetterMetaImpl(node);
+      }
       else if (type == HAXE_IDENTIFIER) {
         return new HaxeIdentifierImpl(node);
       }
@@ -396,6 +425,12 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_LOGICOREXPRESSION) {
         return new HaxeLogicOrExpressionImpl(node);
       }
+      else if (type == HAXE_METAKEYVALUE) {
+        return new HaxeMetaKeyValueImpl(node);
+      }
+      else if (type == HAXE_METAMETA) {
+        return new HaxeMetaMetaImpl(node);
+      }
       else if (type == HAXE_MULTIPLICATIVEEXPRESSION) {
         return new HaxeMultiplicativeExpressionImpl(node);
       }
@@ -404,6 +439,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_NEWEXPRESSION) {
         return new HaxeNewExpressionImpl(node);
+      }
+      else if (type == HAXE_NSMETA) {
+        return new HaxeNsMetaImpl(node);
       }
       else if (type == HAXE_OBJECTLITERAL) {
         return new HaxeObjectLiteralImpl(node);
@@ -464,6 +502,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_RETURNSTATEMENTWITHOUTSEMICOLON) {
         return new HaxeReturnStatementWithoutSemicolonImpl(node);
+      }
+      else if (type == HAXE_SETTERMETA) {
+        return new HaxeSetterMetaImpl(node);
       }
       else if (type == HAXE_SHIFTEXPRESSION) {
         return new HaxeShiftExpressionImpl(node);

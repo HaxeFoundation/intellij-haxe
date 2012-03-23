@@ -13,11 +13,20 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponent {
   @Nullable
   HaxeComponentName getComponentName();
 
+  @NotNull
+  List<HaxeCustomMeta> getCustomMetaList();
+
   @Nullable
   HaxeDeclarationAttributeList getDeclarationAttributeList();
 
   @Nullable
   HaxeExpression getExpression();
+
+  @NotNull
+  List<HaxeGetterMeta> getGetterMetaList();
+
+  @NotNull
+  List<HaxeNsMeta> getNsMetaList();
 
   @Nullable
   HaxeParameterList getParameterList();
@@ -27,6 +36,9 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponent {
 
   @Nullable
   HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
+
+  @NotNull
+  List<HaxeSetterMeta> getSetterMetaList();
 
   @Nullable
   HaxeTypeParam getTypeParam();

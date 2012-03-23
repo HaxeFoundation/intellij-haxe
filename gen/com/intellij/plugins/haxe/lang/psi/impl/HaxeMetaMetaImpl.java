@@ -10,20 +10,20 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeFakeEnumMetaImpl extends HaxePsiCompositeElementImpl implements HaxeFakeEnumMeta {
+public class HaxeMetaMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMetaMeta {
 
-  public HaxeFakeEnumMetaImpl(ASTNode node) {
+  public HaxeMetaMetaImpl(ASTNode node) {
     super(node);
   }
 
   @Override
-  @Nullable
-  public HaxeType getType() {
-    return findChildByClass(HaxeType.class);
+  @NotNull
+  public List<HaxeMetaKeyValue> getMetaKeyValueList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaKeyValue.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitFakeEnumMeta(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitMetaMeta(this);
     else super.accept(visitor);
   }
 

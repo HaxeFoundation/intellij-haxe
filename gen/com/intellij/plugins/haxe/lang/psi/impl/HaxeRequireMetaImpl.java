@@ -17,9 +17,9 @@ public class HaxeRequireMetaImpl extends HaxePsiCompositeElementImpl implements 
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeIdentifier getIdentifier() {
-    return findNotNullChildByClass(HaxeIdentifier.class);
+    return findChildByClass(HaxeIdentifier.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

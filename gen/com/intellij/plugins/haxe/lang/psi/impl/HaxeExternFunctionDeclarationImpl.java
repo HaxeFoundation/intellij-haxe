@@ -29,6 +29,12 @@ public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponen
   }
 
   @Override
+  @NotNull
+  public List<HaxeCustomMeta> getCustomMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCustomMeta.class);
+  }
+
+  @Override
   @Nullable
   public HaxeDeclarationAttributeList getDeclarationAttributeList() {
     return findChildByClass(HaxeDeclarationAttributeList.class);
@@ -38,6 +44,18 @@ public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponen
   @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeGetterMeta> getGetterMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeGetterMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeNsMeta> getNsMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNsMeta.class);
   }
 
   @Override
@@ -56,6 +74,12 @@ public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponen
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
     return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeSetterMeta> getSetterMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSetterMeta.class);
   }
 
   @Override

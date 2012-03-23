@@ -26,6 +26,7 @@ mLETTER = [:letter:] | "_"
 mDIGIT = [:digit:]
 
 IDENTIFIER={mLETTER} ({mDIGIT} | {mLETTER})*
+MACRO_IDENTIFIER="@" {IDENTIFIER}
 
 C_STYLE_COMMENT=("/*"[^"*"]{COMMENT_TAIL})|"/*"
 DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?
@@ -113,18 +114,32 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "typedef"                                 {  return KTYPEDEF;  }
 
 "extern"                                  {  return KEXTERN;  }
-"@:macro"                                 {  return KMACRO;  }
 
 "@:final"                                 {  return KFINAL;  }
+"@:hack"                                  {  return KHACK;  }
+"@:native"                                {  return KNATIVE;  }
+"@:macro"                                 {  return KMACRO;  }
+"@:build"                                 {  return KBUILD;  }
+"@:keep"                                  {  return KKEEP;  }
 "@:require"                               {  return KREQUIRE;  }
 "@:fakeEnum"                              {  return KFAKEENUM;  }
 "@:core_api"                              {  return KCOREAPI;  }
-"@:native"                                {  return KNATIVE;  }
+
+"@:bind"                                  {  return KBIND;  }
+"@:bitmap"                                {  return KBITMAP;  }
+"@:ns"                                    {  return KNS;  }
+"@:protected"                             {  return KPROTECTED;  }
+"@:getter"                                {  return KGETTER;  }
+"@:setter"                                {  return KSETTER;  }
+"@:debug"                                 {  return KDEBUG;  }
+"@:nodebug"                               {  return KNODEBUG;  }
+"@:meta"                                  {  return KMETA;  }
 
 "try"                                     {  return KTRY;  }
 "catch"                                   {  return KCATCH;  }
 
 
+{MACRO_IDENTIFIER}                        {  return MACRO_ID; }
 {IDENTIFIER}                              {  return ID; }
 
 "."                                       { return ODOT; }

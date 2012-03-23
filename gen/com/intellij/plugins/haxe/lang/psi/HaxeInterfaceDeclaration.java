@@ -7,8 +7,14 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeInterfaceDeclaration extends HaxeClass {
 
+  @NotNull
+  List<HaxeBitmapMeta> getBitmapMetaList();
+
   @Nullable
   HaxeComponentName getComponentName();
+
+  @NotNull
+  List<HaxeCustomMeta> getCustomMetaList();
 
   @Nullable
   HaxeExternOrPrivate getExternOrPrivate();
@@ -23,7 +29,13 @@ public interface HaxeInterfaceDeclaration extends HaxeClass {
   HaxeInterfaceBody getInterfaceBody();
 
   @NotNull
+  List<HaxeMetaMeta> getMetaMetaList();
+
+  @NotNull
   List<HaxeNativeMeta> getNativeMetaList();
+
+  @NotNull
+  List<HaxeNsMeta> getNsMetaList();
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();

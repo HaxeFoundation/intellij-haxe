@@ -23,9 +23,27 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends Abstract
   }
 
   @Override
+  @NotNull
+  public List<HaxeCustomMeta> getCustomMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCustomMeta.class);
+  }
+
+  @Override
   @Nullable
   public HaxeDeclarationAttributeList getDeclarationAttributeList() {
     return findChildByClass(HaxeDeclarationAttributeList.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeGetterMeta> getGetterMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeGetterMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeNsMeta> getNsMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNsMeta.class);
   }
 
   @Override
@@ -38,6 +56,12 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends Abstract
   @NotNull
   public List<HaxeRequireMeta> getRequireMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeRequireMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeSetterMeta> getSetterMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSetterMeta.class);
   }
 
   @Override

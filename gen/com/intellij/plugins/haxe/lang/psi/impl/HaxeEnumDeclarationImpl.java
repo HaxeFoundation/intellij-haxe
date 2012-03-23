@@ -17,9 +17,21 @@ public class HaxeEnumDeclarationImpl extends AbstractHaxePsiClass implements Hax
   }
 
   @Override
+  @NotNull
+  public List<HaxeBitmapMeta> getBitmapMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBitmapMeta.class);
+  }
+
+  @Override
   @Nullable
   public HaxeComponentName getComponentName() {
     return findChildByClass(HaxeComponentName.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeCustomMeta> getCustomMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCustomMeta.class);
   }
 
   @Override
@@ -42,8 +54,20 @@ public class HaxeEnumDeclarationImpl extends AbstractHaxePsiClass implements Hax
 
   @Override
   @NotNull
+  public List<HaxeMetaMeta> getMetaMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeNativeMeta> getNativeMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNativeMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeNsMeta> getNsMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNsMeta.class);
   }
 
   @Override
