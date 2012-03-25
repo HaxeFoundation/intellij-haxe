@@ -158,4 +158,9 @@ public class FakeFlexIdeBuildConfiguration implements FlexIdeBuildConfiguration 
   public String getDescription() {
     return null;
   }
+
+  @Override
+  public String getStatisticsEntry() {
+    return null;
+  }
 }
