@@ -115,6 +115,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TYPEPARAM = new HaxeElementType("HAXE_TYPEPARAM");
   IElementType HAXE_TYPETAG = new HaxeElementType("HAXE_TYPETAG");
   IElementType HAXE_UNSIGNEDSHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_UNSIGNEDSHIFTRIGHTOPERATOR");
+  IElementType HAXE_USINGSTATEMENT = new HaxeElementType("HAXE_USINGSTATEMENT");
   IElementType HAXE_VARDECLARATION = new HaxeElementType("HAXE_VARDECLARATION");
   IElementType HAXE_VARDECLARATIONPART = new HaxeElementType("HAXE_VARDECLARATIONPART");
   IElementType HAXE_VARINIT = new HaxeElementType("HAXE_VARINIT");
@@ -174,6 +175,7 @@ public interface HaxeTokenTypes {
   IElementType KTRY = new HaxeElementType("try");
   IElementType KTYPEDEF = new HaxeElementType("typedef");
   IElementType KUNTYPED = new HaxeElementType("untyped");
+  IElementType KUSING = new HaxeElementType("using");
   IElementType KVAR = new HaxeElementType("var");
   IElementType KWHILE = new HaxeElementType("while");
   IElementType LITCHAR = new HaxeElementType("LITCHAR");
@@ -559,6 +561,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_UNSIGNEDSHIFTRIGHTOPERATOR) {
         return new HaxeUnsignedShiftRightOperatorImpl(node);
+      }
+      else if (type == HAXE_USINGSTATEMENT) {
+        return new HaxeUsingStatementImpl(node);
       }
       else if (type == HAXE_VARDECLARATION) {
         return new HaxeVarDeclarationImpl(node);

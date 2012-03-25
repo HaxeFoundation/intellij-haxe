@@ -439,6 +439,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitUsingStatement(@NotNull HaxeUsingStatement o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitVarDeclaration(@NotNull HaxeVarDeclaration o) {
     visitPsiCompositeElement(o);
   }

@@ -109,6 +109,7 @@
     kWHILE ="while"
     kRETURN="return"
     kIMPORT ="import"
+    kUSING ="using"
     kCONTINUE ="continue"
     kELSE ="else"
     kSWITCH ="switch"
@@ -196,10 +197,11 @@ unsignedShiftRightOperator ::= '>' '>' '>'
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel+
-private topLevel ::= importStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
-private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:bind' | '@:bitmap' | '@:build' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'interface' | 'private' | 'typedef' | MACRO_ID)
+private topLevel ::= importStatement | usingStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
+private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:bind' | '@:bitmap' | '@:build' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
+usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 pp ::= ppIf | ppElseIf | ppElse | ppEnd | ppError
 ppIf ::= '#if' ternaryExpressionWrapper {pin=1}

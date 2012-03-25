@@ -141,6 +141,13 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return toCandidateInfoArray(result);
     }
 
+    for (HaxeClass haxeClass : HaxeResolveUtil.findUsingClasses(getContainingFile())) {
+      final HaxeNamedComponent namedSubComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, getCanonicalText());
+      if (namedSubComponent != null) {
+        return toCandidateInfoArray(namedSubComponent);
+      }
+    }
+
     // try super field
     return resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(this, HaxeClass.class), getText());
   }
@@ -210,10 +217,21 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       else {
         PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class));
+        addUsingVariants(suggestedVariants, HaxeResolveUtil.findUsingClasses(getContainingFile()));
       }
     }
 
     return HaxeLookupElement.convert(suggestedVariants).toArray();
+  }
+
+  private static void addUsingVariants(Set<HaxeComponentName> variants, List<HaxeClass> classes) {
+    for (HaxeClass haxeClass : classes) {
+      for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+        if (haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName()!= null) {
+          variants.add(haxeNamedComponent.getComponentName());
+        }
+      }
+    }
   }
 
   private static void addClassVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass) {

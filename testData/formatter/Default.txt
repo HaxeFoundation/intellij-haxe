@@ -1,4 +1,5 @@
 import com.Foo;
+using com.utils.MathUtil;
 class Foo {
     // function fBar (x,y);
     function fOne(argA:Int,

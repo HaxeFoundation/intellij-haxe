@@ -326,4 +326,22 @@ public class HaxeResolveUtil {
     }
     return resultSet;
   }
+
+  @NotNull
+  public static List<HaxeClass> findUsingClasses(PsiFile file) {
+    final HaxeUsingStatement[] usingStatements = PsiTreeUtil.getChildrenOfType(file, HaxeUsingStatement.class);
+    if (usingStatements == null) {
+      return Collections.emptyList();
+    }
+    final List<HaxeClass> result = new ArrayList<HaxeClass>();
+    for (HaxeUsingStatement usingStatement : usingStatements) {
+      final HaxeExpression usingStatementExpression = usingStatement.getExpression();
+      if (usingStatementExpression == null) continue;
+      final HaxeClass haxeClass = findClassByQName(usingStatementExpression.getText(), file);
+      if (haxeClass != null) {
+        result.add(haxeClass);
+      }
+    }
+    return result;
+  }
 }

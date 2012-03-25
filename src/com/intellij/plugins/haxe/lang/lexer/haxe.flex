@@ -97,6 +97,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "while"                                   {  return KWHILE ;  }
 "return"                                  {  return KRETURN ;  }
 "import"                                  {  return KIMPORT ;  }
+"using"                                   {  return KUSING ;  }
 "continue"                                {  return KCONTINUE ;  }
 "else"                                    {  return KELSE ;  }
 "switch"                                  {  return KSWITCH ;  }

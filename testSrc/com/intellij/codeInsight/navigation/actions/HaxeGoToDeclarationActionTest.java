@@ -84,6 +84,10 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("FunctionCall.hx", "com/utils/MathUtil.hx"), 1);
   }
 
+  public void testUsingUtil() {
+    doTest(myFixture.configureByFiles("UsingUtil.hx", "com/utils/MathUtil.hx"), 1);
+  }
+
   public void testSamePackage() {
     doTest(myFixture.configureByFiles("com/bar/Baz.hx", "com/bar/Foo.hx"), 1);
   }
