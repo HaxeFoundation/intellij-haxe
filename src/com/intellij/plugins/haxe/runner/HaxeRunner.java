@@ -17,6 +17,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -72,6 +73,11 @@ public class HaxeRunner extends DefaultProgramRunner {
     }
 
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+
+    if(configuration.isCustomFileToLaunch()){
+      launchUrl(configuration.getCustomFileToLaunchPath());
+      return null;
+    }
 
     if (settings.getTarget() == HaxeTarget.FLASH) {
       FileDocumentManager.getInstance().saveAllDocuments();

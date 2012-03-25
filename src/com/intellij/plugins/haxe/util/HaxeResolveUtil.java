@@ -287,22 +287,7 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiComment findDocumentation(HaxeNamedComponent element) {
-    final HaxeComponentType type = HaxeComponentType.typeOf(element);
-    HaxeClass haxeClass = null;
-    String name = null;
-    if (element instanceof HaxeClass) {
-      haxeClass = (HaxeClass)element;
-    }
-    else if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-      haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
-      name = element.getText();
-    }
-    PsiElement result = haxeClass;
-    if (haxeClass != null && name != null) {
-      result = findNamedSubComponent(haxeClass, name);
-      if (result != null) result = result.getParent();
-    }
-    final PsiElement candidate = result == null ? null : UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(result);
+    final PsiElement candidate = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(element);
     if (candidate instanceof PsiComment) {
       return (PsiComment)candidate;
     }

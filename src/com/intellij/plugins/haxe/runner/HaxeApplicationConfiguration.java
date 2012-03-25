@@ -23,6 +23,9 @@ import java.util.Collection;
 
 public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeApplicationModuleBasedConfiguration>
   implements RunConfigurationWithSuppressedDefaultRunAction {
+  private boolean customFileToLaunch = false;
+  private String customFileToLaunchPath = "";
+
   public HaxeApplicationConfiguration(String name, Project project, HaxeRunConfigurationType configurationType) {
     super(name, new HaxeApplicationModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
   }
@@ -44,6 +47,22 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
 
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     return HaxeRunner.EMPTY_RUN_STATE;
+  }
+
+  public boolean isCustomFileToLaunch() {
+    return customFileToLaunch;
+  }
+
+  public void setCustomFileToLaunch(boolean customFileToLaunch) {
+    this.customFileToLaunch = customFileToLaunch;
+  }
+
+  public String getCustomFileToLaunchPath() {
+    return customFileToLaunchPath;
+  }
+
+  public void setCustomFileToLaunchPath(String customFileToLaunchPath) {
+    this.customFileToLaunchPath = customFileToLaunchPath;
   }
 
   public void writeExternal(final Element element) throws WriteExternalException {

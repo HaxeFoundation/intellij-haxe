@@ -32,22 +32,22 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     if (!(element instanceof HaxeComponentName) && !(element instanceof HaxeNamedComponent)) {
       return null;
     }
-    PsiElement namedComponent = element instanceof HaxeNamedComponent ? element : element.getParent();
+    HaxeNamedComponent namedComponent = (HaxeNamedComponent)(element instanceof HaxeNamedComponent ? element : element.getParent());
     final StringBuilder builder = new StringBuilder();
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     if (namedComponent instanceof HaxeClass) {
       builder.append(((HaxeClass)namedComponent).getQualifiedName());
     }
     else if (type == HaxeComponentType.FIELD || type == HaxeComponentType.METHOD) {
-      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(namedComponent, HaxeClass.class);
       assert haxeClass != null;
       builder.append(haxeClass.getQualifiedName());
       builder.append(" ");
       builder.append(type.toString().toLowerCase());
       builder.append(" ");
-      builder.append(element.getText());
+      builder.append(namedComponent.getName());
     }
-    final PsiComment comment = HaxeResolveUtil.findDocumentation((HaxeNamedComponent)namedComponent);
+    final PsiComment comment = HaxeResolveUtil.findDocumentation(namedComponent);
     if (comment != null) {
       builder.append("<br/>");
       builder.append(HaxeDocumentationUtil.unwrapCommentDelimiters(comment.getText()));

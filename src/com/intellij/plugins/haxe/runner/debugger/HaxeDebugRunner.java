@@ -68,10 +68,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     FileDocumentManager.getInstance().saveAllDocuments();
     final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
     assert model != null;
-    final String url = model.getCompilerOutputUrl() + "/" + settings.getOutputFileName();
-
-    //HaxeRunner.launchUrl(url);
-
+    String urlToLaunch = model.getCompilerOutputUrl() + "/" + settings.getOutputFileName();
+    if (configuration.isCustomFileToLaunch()) {
+      urlToLaunch = configuration.getCustomFileToLaunchPath();
+    }
 
     String flexSdkName = settings.getFlexSdkName();
     if (StringUtil.isEmpty(flexSdkName)) {
@@ -82,7 +82,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       throw new ExecutionException(HaxeBundle.message("flex.sdk.not.found", flexSdkName));
     }
 
-    final FlexIdeBuildConfiguration bc = new FakeFlexIdeBuildConfiguration(flexSdk, url);
+    final FlexIdeBuildConfiguration bc = new FakeFlexIdeBuildConfiguration(flexSdk, urlToLaunch);
 
     final XDebugSession debugSession =
       XDebuggerManager.getInstance(project).startSession(this, env, contentToReuse, new XDebugProcessStarter() {
