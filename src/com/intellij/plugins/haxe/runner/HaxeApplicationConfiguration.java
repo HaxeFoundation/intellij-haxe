@@ -5,6 +5,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.module.Module;
@@ -13,6 +14,8 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.ui.HaxeRunConfigurationEditorForm;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
@@ -47,6 +50,20 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
 
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     return HaxeRunner.EMPTY_RUN_STATE;
+  }
+
+  @Override
+  public void checkConfiguration() throws RuntimeConfigurationException {
+    super.checkConfiguration();
+    final HaxeApplicationModuleBasedConfiguration configurationModule = getConfigurationModule();
+    final Module module = configurationModule.getModule();
+    if (module == null) {
+      throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.no.module", getName()));
+    }
+    final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+    if (settings.isUseHxmlToBuild() && !customFileToLaunch) {
+      throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.select.custom.file"));
+    }
   }
 
   public boolean isCustomFileToLaunch() {

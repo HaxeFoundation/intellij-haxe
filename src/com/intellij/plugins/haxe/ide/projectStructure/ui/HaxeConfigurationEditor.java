@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.projectStructure.ui;
 import com.intellij.ide.util.TreeFileChooser;
 import com.intellij.ide.util.TreeFileChooserFactory;
 import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
@@ -20,6 +21,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.RawCommandLineEditor;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 
@@ -45,6 +47,10 @@ public class HaxeConfigurationEditor {
   private TextFieldWithBrowseButton myFolderTextField;
   private JLabel myFolderLabel;
   private JPanel myAdditionalComponentPanel;
+  private JPanel myControlPanel;
+  private TextFieldWithBrowseButton myHxmlTextField;
+  private JBCheckBox myHxmlFileCheckBox;
+  private String customPathToHxmlFile = "";
 
   private final Module myModule;
   private final CompilerModuleExtension myExtension;
@@ -93,7 +99,7 @@ public class HaxeConfigurationEditor {
         final VirtualFile folder =
           FileChooser.chooseFile(myModule.getProject(), FileChooserDescriptorFactory.createSingleFolderDescriptor());
         if (folder != null) {
-          myFolderTextField.setText(folder.getPresentableUrl());
+          myFolderTextField.setText(FileUtil.toSystemDependentName(folder.getPath()));
         }
       }
     });
@@ -106,6 +112,46 @@ public class HaxeConfigurationEditor {
         }
       }
     });
+
+    myHxmlFileCheckBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (!myHxmlFileCheckBox.isSelected()) {
+          customPathToHxmlFile = myHxmlTextField.getText();
+        }
+        updateHxmlFilePath();
+      }
+    });
+
+    myHxmlTextField.getButton().addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        final VirtualFile moduleFile = myModule.getModuleFile();
+        assert moduleFile != null;
+        final VirtualFile file = FileChooser.chooseFile(getMainPanel(), new FileChooserDescriptor(true, false, false, true, false, false) {
+          public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
+            return super.isFileVisible(file, showHiddenFiles) &&
+                   (file.isDirectory() || "hxml".equalsIgnoreCase(file.getExtension()));
+          }
+        },
+                                                        moduleFile.getParent());
+        if (file != null) {
+          customPathToHxmlFile = FileUtil.toSystemIndependentName(file.getPath());
+          updateHxmlFilePath();
+        }
+      }
+    });
+  }
+
+  private void updateHxmlFilePath() {
+    myHxmlTextField.setText(myHxmlFileCheckBox.isSelected() ? FileUtil.toSystemDependentName(customPathToHxmlFile) : "");
+    myHxmlTextField.setEnabled(myHxmlFileCheckBox.isSelected());
+
+    myMainClassFieldWithButton.setEnabled(!myHxmlFileCheckBox.isSelected());
+    myAppArguments.setEnabled(!myHxmlFileCheckBox.isSelected());
+    myTargetComboBox.setEnabled(!myHxmlFileCheckBox.isSelected());
+    myFileNameTextField.setEnabled(!myHxmlFileCheckBox.isSelected());
+    myFolderTextField.setEnabled(!myHxmlFileCheckBox.isSelected());
   }
 
   private void initExtensions() {
@@ -151,7 +197,9 @@ public class HaxeConfigurationEditor {
     result = result || settings.getTarget() != myTargetComboBox.getSelectedItem();
     result = result || !settings.getArguments().equals(myAppArguments.getText());
     result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
+    result = result || (settings.isUseHxmlToBuild() ^ myHxmlFileCheckBox.isSelected());
     result = result || !settings.getOutputFileName().equals(myFileNameTextField.getText());
+    result = result || (myHxmlFileCheckBox.isSelected() && !settings.getHxmlPath().equals(customPathToHxmlFile));
     for (UnnamedConfigurable configurable : cofigurables) {
       result = result || configurable.isModified();
     }
@@ -175,6 +223,9 @@ public class HaxeConfigurationEditor {
 
     final String url = myExtension.getCompilerOutputUrl();
     myFolderTextField.setText(VfsUtil.urlToPath(url));
+    myHxmlFileCheckBox.setSelected(settings.isUseHxmlToBuild());
+    customPathToHxmlFile = settings.getHxmlPath();
+    updateHxmlFilePath();
   }
 
   public void apply() {
@@ -185,6 +236,8 @@ public class HaxeConfigurationEditor {
     settings.setTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());
     settings.setOutputFileName(myFileNameTextField.getText());
+    settings.setHxmlPath(myHxmlTextField.getText());
+    settings.setUseHxmlToBuild(myHxmlFileCheckBox.isSelected());
     for (UnnamedConfigurable configurable : cofigurables) {
       try {
         configurable.apply();

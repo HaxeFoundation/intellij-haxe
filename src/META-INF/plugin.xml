@@ -4,6 +4,13 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.2.2:</p>
+      <ul>
+        <li>Type resolving improvements</li>
+        <li>Bug fixes</li>
+        <li>NMML scheme</li>
+        <li>Build with HXML</li>
+      </ul>
       <p>0.2.1:</p>
       <ul>
         <li>Type resolving improvements</li>
@@ -32,9 +39,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
-  <idea-version since-build="117.21" until-build="118.1"/>
+  <idea-version since-build="117.82" until-build="118.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
 

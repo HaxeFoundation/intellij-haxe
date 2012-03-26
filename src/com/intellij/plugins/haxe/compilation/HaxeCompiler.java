@@ -162,30 +162,34 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     final GeneralCommandLine commandLine = new GeneralCommandLine();
 
     commandLine.setExePath(sdkExePath);
-
-    commandLine.addParameter("-main");
-    commandLine.addParameter(mainClass);
-
-    final StringTokenizer argumentsTokenizer = new StringTokenizer(settings.getArguments());
-    while (argumentsTokenizer.hasMoreTokens()) {
-      commandLine.addParameter(argumentsTokenizer.nextToken());
-    }
-
-    if (target == HaxeTarget.FLASH) {
-      commandLine.addParameter("-debug");
-      commandLine.addParameter("-D");
-      commandLine.addParameter("fdb");
-    }
-
-    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().withoutSdk().exportedOnly().sources().getRoots()) {
-      commandLine.addParameter("-cp");
-      commandLine.addParameter(sourceRoot.getPath());
-    }
-
     commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
-    commandLine.addParameter(target.getCompilerFlag());
-    final String outputUrl = CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
-    commandLine.addParameter(VfsUtil.urlToPath(outputUrl + "/" + fileName));
+
+    if (settings.isUseHxmlToBuild()) {
+      commandLine.addParameter(settings.getHxmlPath());
+    }
+    else {
+      commandLine.addParameter("-main");
+      commandLine.addParameter(mainClass);
+
+      final StringTokenizer argumentsTokenizer = new StringTokenizer(settings.getArguments());
+      while (argumentsTokenizer.hasMoreTokens()) {
+        commandLine.addParameter(argumentsTokenizer.nextToken());
+      }
+
+      if (target == HaxeTarget.FLASH) {
+        commandLine.addParameter("-debug");
+        commandLine.addParameter("-D");
+        commandLine.addParameter("fdb");
+      }
+
+      for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().withoutSdk().exportedOnly().sources().getRoots()) {
+        commandLine.addParameter("-cp");
+        commandLine.addParameter(sourceRoot.getPath());
+      }
+      commandLine.addParameter(target.getCompilerFlag());
+      final String outputUrl = CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
+      commandLine.addParameter(VfsUtil.urlToPath(outputUrl + "/" + fileName));
+    }
 
     ProcessOutput output = null;
     try {

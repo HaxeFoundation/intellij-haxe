@@ -30,6 +30,6 @@ public class NMMLSchemaProvider extends XmlSchemaProvider {
 
   @Override
   public boolean isAvailable(final @NotNull XmlFile file) {
-    return NMMLFileType.INSTANCE.getDefaultExtension().equals(FileUtil.getExtension(file.getName()));
+    return NMMLFileType.INSTANCE.getDefaultExtension().equalsIgnoreCase(FileUtil.getExtension(file.getName()));
   }
 }

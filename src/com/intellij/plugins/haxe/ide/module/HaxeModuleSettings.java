@@ -27,6 +27,8 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   private boolean excludeFromCompilation = false;
   private HaxeTarget target = HaxeTarget.NEKO;
   private String flexSdkName = "";
+  private String hxmlPath = "";
+  private boolean useHxmlToBuild = false;
 
   public HaxeModuleSettings() {
   }
@@ -36,13 +38,17 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
                             String arguments,
                             boolean excludeFromCompilation,
                             String outputFileName,
-                            String flexSdkName) {
+                            String flexSdkName,
+                            boolean useHxmlToBuild,
+                            String hxmlPath) {
     this.mainClass = mainClass;
     this.arguments = arguments;
     this.excludeFromCompilation = excludeFromCompilation;
     this.target = target;
     this.outputFileName = outputFileName;
     this.flexSdkName = flexSdkName;
+    this.useHxmlToBuild = useHxmlToBuild;
+    this.hxmlPath = hxmlPath;
   }
 
   @Override
@@ -107,6 +113,22 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     this.outputFileName = outputFileName;
   }
 
+  public String getHxmlPath() {
+    return hxmlPath;
+  }
+
+  public void setHxmlPath(String hxmlPath) {
+    this.hxmlPath = hxmlPath;
+  }
+
+  public boolean isUseHxmlToBuild() {
+    return useHxmlToBuild;
+  }
+
+  public void setUseHxmlToBuild(boolean useHxmlToBuild) {
+    this.useHxmlToBuild = useHxmlToBuild;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -115,11 +137,12 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     HaxeModuleSettings settings = (HaxeModuleSettings)o;
 
     if (excludeFromCompilation != settings.excludeFromCompilation) return false;
+    if (useHxmlToBuild != settings.useHxmlToBuild) return false;
     if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
+    if (flexSdkName != null ? !flexSdkName.equals(settings.flexSdkName) : settings.flexSdkName != null) return false;
+    if (hxmlPath != null ? !hxmlPath.equals(settings.hxmlPath) : settings.hxmlPath != null) return false;
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
     if (outputFileName != null ? !outputFileName.equals(settings.outputFileName) : settings.outputFileName != null) return false;
-    if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
-    if (flexSdkName != null ? !flexSdkName.equals(settings.flexSdkName) : settings.flexSdkName != null) return false;
     if (target != settings.target) return false;
 
     return true;
@@ -128,11 +151,13 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   @Override
   public int hashCode() {
     int result = mainClass != null ? mainClass.hashCode() : 0;
-    result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
     result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
-    result = 31 * result + (flexSdkName != null ? flexSdkName.hashCode() : 0);
+    result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
     result = 31 * result + (target != null ? target.hashCode() : 0);
+    result = 31 * result + (flexSdkName != null ? flexSdkName.hashCode() : 0);
+    result = 31 * result + (hxmlPath != null ? hxmlPath.hashCode() : 0);
+    result = 31 * result + (useHxmlToBuild ? 1 : 0);
     return result;
   }
 }

@@ -11,6 +11,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -75,7 +76,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       public void actionPerformed(ActionEvent e) {
         final VirtualFile file = FileChooser.chooseFile(component, new FileChooserDescriptor(true, false, false, true, false, false));
         if (file != null) {
-          customPathToFile = file.getPath();
+          customPathToFile = FileUtil.toSystemIndependentName(file.getPath());
           updateCustomFilePath();
         }
       }
@@ -95,8 +96,8 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(getSelectedModule());
       final CompilerModuleExtension model = CompilerModuleExtension.getInstance(getSelectedModule());
       assert model != null;
-      final String url = model.getCompilerOutputPath() + "/" + settings.getOutputFileName();
-      myPathToFileTextField.setText(FileUtil.toSystemDependentName(url));
+      final String url = model.getCompilerOutputUrl() + "/" + settings.getOutputFileName();
+      myPathToFileTextField.setText(FileUtil.toSystemDependentName(VfsUtil.urlToPath(url)));
     }
     else {
       myPathToFileTextField.setText("");

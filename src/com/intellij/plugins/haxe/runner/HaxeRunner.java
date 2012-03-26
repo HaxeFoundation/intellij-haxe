@@ -74,7 +74,12 @@ public class HaxeRunner extends DefaultProgramRunner {
 
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
-    if(configuration.isCustomFileToLaunch()){
+    if (configuration.isCustomFileToLaunch() && "n".equalsIgnoreCase(FileUtil.getExtension(configuration.getCustomFileToLaunchPath()))) {
+      final HaxeRunningState haxeRunningState = new HaxeRunningState(env, module);
+      return super.doExecute(project, executor, haxeRunningState, contentToReuse, env);
+    }
+
+    if (configuration.isCustomFileToLaunch()) {
       launchUrl(configuration.getCustomFileToLaunchPath());
       return null;
     }
