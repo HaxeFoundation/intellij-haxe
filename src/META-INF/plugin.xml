@@ -55,6 +55,8 @@
     <moduleConfigurationEditorProvider
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
     <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
+    <fileTypeFactory implementation="com.intellij.plugins.haxe.nmml.NMMLFileTypeFactory"/>
+    <xml.schemaProvider implementation="com.intellij.plugins.haxe.nmml.NMMLSchemaProvider"/>
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
 

@@ -26,6 +26,7 @@
     <orderEntry type="module" module-name="java-impl" />
     <orderEntry type="module" module-name="xdebugger-api" />
     <orderEntry type="module" module-name="flex" />
+    <orderEntry type="module" module-name="xml" />
   </component>
 </module>
 

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="project" type="projectType"/>
+    <xs:complexType name="projectType">
+        <xs:choice>
+            <xs:element type="appType" name="meta"/>
+            <xs:element type="appType" name="app"/>
+            <xs:element type="windowType" name="window"/>
+            <xs:element type="setType" name="set"/>
+            <xs:element type="nameType" name="unset"/>
+            <xs:element type="nameType" name="classpath"/>
+            <xs:element type="nameType" name="source"/>
+            <xs:element type="nameType" name="haxelib"/>
+            <xs:element type="iconType" name="icon"/>
+            <xs:element type="assetsType" name="assets"/>
+            <xs:element type="ndllType" name="ndll"/>
+            <xs:element type="extensionType" name="extension"/>
+            <xs:element type="pathType" name="include"/>
+            <xs:element type="projectType" name="section"/>
+            <xs:element type="haxeflagType" name="haxeflag"/>
+            <xs:element type="haxeflagType" name="compilerflag"/>
+            <xs:element type="nameType" name="haxedef"/>
+            <xs:element type="setenvType" name="setenv"/>
+
+            <xs:element type="valueType" name="path"/>
+            <xs:element type="templateType" name="template"/>
+            <xs:element type="pathType" name="library"/>
+            <xs:element type="pathType" name="java"/>
+            <xs:element type="certificateType" name="certificate"/>
+            <xs:element type="nameType" name="dependency"/>
+            <xs:element type="valueType" name="error"/>
+        </xs:choice>
+    </xs:complexType>
+    <xs:complexType name="appType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="title"/>
+                <xs:attribute type="xs:string" name="main"/>
+                <xs:attribute type="xs:string" name="file"/>
+                <xs:attribute type="xs:string" name="package"/>
+                <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:string" name="preloader"/>
+                <xs:attribute type="xs:string" name="version"/>
+                <xs:attribute type="xs:string" name="company"/>
+                <xs:attribute type="xs:byte" name="swf-version"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="windowType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:short" name="width"/>
+                <xs:attribute type="xs:short" name="height"/>
+                <xs:attribute type="xs:string" name="background"/>
+                <xs:attribute type="xs:byte" name="fps"/>
+                <xs:attribute type="xs:boolean" name="resizable"/>
+                <xs:attribute type="xs:boolean" name="hardware"/>
+                <xs:attribute type="xs:string" name="borderless"/>
+                <xs:attribute type="xs:string" name="vsync"/>
+                <xs:attribute type="xs:string" name="fullscreen"/>
+                <xs:attribute type="xs:byte" name="antialiasing"/>
+                <xs:attribute type="xs:string" name="unless"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+                <xs:attribute name="orientation">
+                    <xs:simpleType>
+                        <xs:restriction>
+                            <xs:enumeration value="portrait"/>
+                            <xs:enumeration value="landscape"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="setType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="value"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="setenvType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="value"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="templateType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:string" name="rename"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="haxeflagType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="value"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="ndllType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="haxelib"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="extensionType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="haxelib"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="iconType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:byte" name="size"/>
+                <xs:attribute type="xs:byte" name="width"/>
+                <xs:attribute type="xs:byte" name="height"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="certificateType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:short" name="password"/>
+                <xs:attribute type="xs:string" name="alias"/>
+                <xs:attribute type="xs:short" name="alias-password"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="nameType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="valueType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="value"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="assetsType" mixed="true">
+        <xs:sequence>
+            <xs:element type="assetsType" name="assets"/>
+            <xs:element type="assetsType" name="sound"/>
+            <xs:element type="assetsType" name="music"/>
+            <xs:element type="assetsType" name="font"/>
+            <xs:element type="assetsType" name="image"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="path"/>
+        <xs:attribute type="xs:string" name="name"/>
+        <xs:attribute type="xs:string" name="rename"/>
+        <xs:attribute type="xs:string" name="include"/>
+        <xs:attribute type="xs:string" name="exclude"/>
+        <xs:attribute type="xs:string" name="type">
+            <xs:simpleType>
+                <xs:restriction>
+                    <xs:enumeration value="sound"/>
+                    <xs:enumeration value="music"/>
+                    <xs:enumeration value="font"/>
+                    <xs:enumeration value="image"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="pathType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="path"/>
+                <xs:attribute type="xs:string" name="if"/>
+                <xs:attribute type="xs:string" name="unless"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+</xs:schema>
