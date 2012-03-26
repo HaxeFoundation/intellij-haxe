@@ -21,7 +21,7 @@
         <li>Icons for haXe files</li>
         <li>Search for usages</li>
         <li>Highlight symbol occurencies</li>
-        <li>Debugger for Flash target ("Flex Support" plugin required)</li>
+        <li>Debugger for Flash target ("Flash/Flex Support" plugin required)</li>
       </ul>
       <p>0.1:</p>
       <ul>
