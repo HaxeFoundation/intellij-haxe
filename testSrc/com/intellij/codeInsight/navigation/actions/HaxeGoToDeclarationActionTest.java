@@ -153,4 +153,8 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
   public void testNewExpression2() {
     doTest(myFixture.configureByFiles("NewExpression2.hx", "com/bar/Foo.hx"), 1);
   }
+
+  public void testCallFunction() {
+    doTest(myFixture.configureByFiles("CallFunction.hx", "std/String.hx", "std/Array.hx"), 1);
+  }
 }

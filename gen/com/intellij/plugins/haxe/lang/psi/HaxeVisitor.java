@@ -68,7 +68,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitCallExpression(@NotNull HaxeCallExpression o) {
-    visitExpression(o);
+    visitReference(o);
+    // visitExpression(o);
   }
 
   public void visitCaseStatement(@NotNull HaxeCaseStatement o) {

@@ -433,6 +433,7 @@ private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression 
 private callOrArrayAccess ::= (referenceExpression | thisExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 left callExpression ::= '(' expressionList? ')'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 left arrayAccessExpression ::= '[' expression? ']'
 
 referenceExpression ::= identifier

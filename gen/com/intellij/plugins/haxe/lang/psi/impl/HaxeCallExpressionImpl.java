@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeCallExpressionImpl extends HaxeExpressionImpl implements HaxeCallExpression {
+public class HaxeCallExpressionImpl extends HaxeReferenceImpl implements HaxeCallExpression {
 
   public HaxeCallExpressionImpl(ASTNode node) {
     super(node);
