@@ -7,9 +7,9 @@
       <p>0.2.2:</p>
       <ul>
         <li>Type resolving improvements</li>
-        <li>Bug fixes</li>
+        <li>Rename refactoring</li>
         <li>NMML scheme</li>
-        <li>Build with HXML</li>
+        <li>HXML support</li>
       </ul>
       <p>0.2.1:</p>
       <ul>
