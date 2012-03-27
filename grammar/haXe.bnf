@@ -360,7 +360,9 @@ caseStatement ::= 'case' expressionList ':'
 
 switchStatement ::= 'switch' '(' expression ')' blockStatement
 switchExpression ::= 'switch' '(' expression ')' blockStatement
+tryExpression ::= 'try' expression catchExpression*
 tryStatement ::= 'try' blockStatement catchStatement*
+catchExpression ::= 'catch' '(' parameter ')' expression
 catchStatement ::= 'catch' '(' parameter ')' blockStatement
 
 /*
@@ -406,9 +408,11 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
-private value ::= (literalExpression qualifiedReferenceTail?)
+private value ::= 'untyped' value
+                | (literalExpression qualifiedReferenceTail?)
                 | ifExpression
                 | switchExpression
+                | tryExpression
                 | ppIfValue
                 | castExpression
                 | newExpressionOrCall

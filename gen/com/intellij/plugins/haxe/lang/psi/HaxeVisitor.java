@@ -80,6 +80,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitCatchExpression(@NotNull HaxeCatchExpression o) {
+    visitExpression(o);
+  }
+
   public void visitCatchStatement(@NotNull HaxeCatchStatement o) {
     visitPsiCompositeElement(o);
   }
@@ -402,6 +406,10 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitThrowStatement(@NotNull HaxeThrowStatement o) {
     visitPsiCompositeElement(o);
+  }
+
+  public void visitTryExpression(@NotNull HaxeTryExpression o) {
+    visitExpression(o);
   }
 
   public void visitTryStatement(@NotNull HaxeTryStatement o) {

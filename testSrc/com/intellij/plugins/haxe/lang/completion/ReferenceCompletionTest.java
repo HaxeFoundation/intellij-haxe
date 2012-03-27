@@ -48,4 +48,23 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     myFixture.configureByFiles("ClassName.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("ClassName.txt");
   }
+
+  public void testPrivateMethod() throws Throwable {
+    myFixture.configureByFiles("PrivateMethod.hx", "com/util/ClassFactory.hx");
+    doTestVariantsInner("PrivateMethod.txt");
+  }
+
+  public void testSelfPrivateMethod() throws Throwable {
+    doTest();
+  }
+
+  public void testStdType1() throws Throwable {
+    myFixture.configureByFiles("StdType1.hx", "std/String.hx");
+    doTestVariantsInner("StdType1.txt");
+  }
+
+  public void testStdType2() throws Throwable {
+    myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
+    doTestVariantsInner("StdType2.txt");
+  }
 }

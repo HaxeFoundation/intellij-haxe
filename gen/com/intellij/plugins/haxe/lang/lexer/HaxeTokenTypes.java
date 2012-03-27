@@ -26,6 +26,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_CALLEXPRESSION = new HaxeElementType("HAXE_CALLEXPRESSION");
   IElementType HAXE_CASESTATEMENT = new HaxeElementType("HAXE_CASESTATEMENT");
   IElementType HAXE_CASTEXPRESSION = new HaxeElementType("HAXE_CASTEXPRESSION");
+  IElementType HAXE_CATCHEXPRESSION = new HaxeElementType("HAXE_CATCHEXPRESSION");
   IElementType HAXE_CATCHSTATEMENT = new HaxeElementType("HAXE_CATCHSTATEMENT");
   IElementType HAXE_CLASSBODY = new HaxeElementType("HAXE_CLASSBODY");
   IElementType HAXE_CLASSDECLARATION = new HaxeElementType("HAXE_CLASSDECLARATION");
@@ -106,6 +107,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TERNARYEXPRESSION = new HaxeElementType("HAXE_TERNARYEXPRESSION");
   IElementType HAXE_THISEXPRESSION = new HaxeElementType("HAXE_THISEXPRESSION");
   IElementType HAXE_THROWSTATEMENT = new HaxeElementType("HAXE_THROWSTATEMENT");
+  IElementType HAXE_TRYEXPRESSION = new HaxeElementType("HAXE_TRYEXPRESSION");
   IElementType HAXE_TRYSTATEMENT = new HaxeElementType("HAXE_TRYSTATEMENT");
   IElementType HAXE_TYPE = new HaxeElementType("HAXE_TYPE");
   IElementType HAXE_TYPECONSTRAINT = new HaxeElementType("HAXE_TYPECONSTRAINT");
@@ -294,6 +296,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_CASTEXPRESSION) {
         return new HaxeCastExpressionImpl(node);
+      }
+      else if (type == HAXE_CATCHEXPRESSION) {
+        return new HaxeCatchExpressionImpl(node);
       }
       else if (type == HAXE_CATCHSTATEMENT) {
         return new HaxeCatchStatementImpl(node);
@@ -534,6 +539,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_THROWSTATEMENT) {
         return new HaxeThrowStatementImpl(node);
+      }
+      else if (type == HAXE_TRYEXPRESSION) {
+        return new HaxeTryExpressionImpl(node);
       }
       else if (type == HAXE_TRYSTATEMENT) {
         return new HaxeTryStatementImpl(node);

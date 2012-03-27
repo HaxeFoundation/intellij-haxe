@@ -18,6 +18,7 @@ import com.intellij.util.IncorrectOperationException;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.tools.tree.ThisExpression;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -211,7 +212,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // foo.bar.baz
     final HaxeReference referenceExpression = PsiTreeUtil.getPrevSiblingOfType(this, HaxeReference.class);
     if (referenceExpression != null && getParent() instanceof HaxeReference) {
-      addClassVariants(suggestedVariants, referenceExpression.getHaxeClass());
+      addClassVariants(suggestedVariants, referenceExpression.getHaxeClass(), !(referenceExpression instanceof HaxeThisExpression));
     }
     else {
       // if chain
@@ -222,7 +223,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
       else {
         PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
-        addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class));
+        addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
         addUsingVariants(suggestedVariants, HaxeResolveUtil.findUsingClasses(getContainingFile()));
       }
     }
@@ -233,19 +234,20 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private static void addUsingVariants(Set<HaxeComponentName> variants, List<HaxeClass> classes) {
     for (HaxeClass haxeClass : classes) {
       for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
-        if (haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName()!= null) {
+        if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName()!= null) {
           variants.add(haxeNamedComponent.getComponentName());
         }
       }
     }
   }
 
-  private static void addClassVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass) {
+  private static void addClassVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
     if (haxeClass == null) {
       return;
     }
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
-      if (namedComponent.getComponentName() != null) {
+      final boolean needFilter = filterByAccess && !namedComponent.isPublic();
+      if (!needFilter && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
       }
     }
