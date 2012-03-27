@@ -54,6 +54,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("PrivateMethod.txt");
   }
 
+  public void testPublicGetter() throws Throwable {
+    myFixture.configureByFiles("PublicGetter.hx", "com/util/ClassFactory.hx");
+    doTestVariantsInner("PublicGetter.txt");
+  }
+
   public void testSelfPrivateMethod() throws Throwable {
     doTest();
   }

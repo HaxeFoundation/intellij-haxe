@@ -92,14 +92,19 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public boolean isPublic() {
-    if(PsiTreeUtil.getParentOfType(this, HaxeExternClassDeclaration.class) != null){
+    if (PsiTreeUtil.getParentOfType(this, HaxeExternClassDeclaration.class) != null) {
       // in extern classes default access is public
       return true;
     }
-    if (UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.KPUBLIC) != null) {
+    final PsiElement parent = getParent();
+    return hasPublicAccessor(this) || (parent instanceof HaxePsiCompositeElement && hasPublicAccessor((HaxePsiCompositeElement)parent));
+  }
+
+  private static boolean hasPublicAccessor(HaxePsiCompositeElement element) {
+    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
       return true;
     }
-    final HaxeDeclarationAttributeList declarationAttributeList = PsiTreeUtil.getChildOfType(this, HaxeDeclarationAttributeList.class);
+    final HaxeDeclarationAttributeList declarationAttributeList = PsiTreeUtil.getChildOfType(element, HaxeDeclarationAttributeList.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KPUBLIC);
   }
 

@@ -1,7 +1,8 @@
 package com.util;
 
 class ClassFactory {
-  function getClass(){
+  public var globalValue(nmeGetGraphics, null):Graphics;
+  public function getClass(){
   }
 
   function getClassPrivate(){
