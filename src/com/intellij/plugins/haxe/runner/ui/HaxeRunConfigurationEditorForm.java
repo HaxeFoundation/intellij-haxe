@@ -76,21 +76,24 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       public void actionPerformed(ActionEvent e) {
         final VirtualFile file = FileChooser.chooseFile(component, new FileChooserDescriptor(true, false, false, true, false, false));
         if (file != null) {
-          customPathToFile = FileUtil.toSystemIndependentName(file.getPath());
+          customPathToFile = file.getPath();
           updateCustomFilePath();
         }
       }
     });
 
     myCustomPathCheckBox.setSelected(configuration.isCustomFileToLaunch());
-    customPathToFile = configuration.getCustomFileToLaunchPath();
+    String launchPath = configuration.getCustomFileToLaunchPath();
+    launchPath = launchPath.indexOf("://") == -1 ? FileUtil.toSystemDependentName(launchPath) : launchPath;
+    customPathToFile = launchPath;
+
 
     updateCustomFilePath();
   }
 
   private void updateCustomFilePath() {
     if (myCustomPathCheckBox.isSelected()) {
-      myPathToFileTextField.setText(FileUtil.toSystemDependentName(customPathToFile));
+      myPathToFileTextField.setText(customPathToFile);
     }
     else if (getSelectedModule() != null) {
       final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(getSelectedModule());
@@ -110,7 +113,9 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     configuration.setModule(getSelectedModule());
     configuration.setCustomFileToLaunch(myCustomPathCheckBox.isSelected());
     if (myCustomPathCheckBox.isSelected()) {
-      configuration.setCustomFileToLaunchPath(customPathToFile);
+      String fileName = myPathToFileTextField.getText();
+      fileName = fileName.indexOf("://") == -1 ? FileUtil.toSystemIndependentName(fileName) : fileName;
+      configuration.setCustomFileToLaunchPath(fileName);
     }
   }
 

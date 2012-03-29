@@ -2,7 +2,6 @@ haXe File
   HAXE_CLASSDECLARATION
     PsiElement(@:final)('@:final')
     PsiElement(@:hack)('@:hack')
-    PsiElement(@:build)('@:build')
     HAXE_NATIVEMETA
       PsiElement(@:native)('@:native')
       PsiElement(()('(')
@@ -33,6 +32,21 @@ haXe File
       PsiElement(@:bitmap)('@:bitmap')
       PsiElement(()('(')
       PsiElement(LITSTRING)('"myfile.png"')
+      PsiElement())(')')
+    HAXE_BUILDMACRO
+      PsiElement(@:build)('@:build')
+      PsiElement(()('(')
+      HAXE_CALLEXPRESSION
+        HAXE_REFERENCEEXPRESSION
+          HAXE_REFERENCEEXPRESSION
+            HAXE_IDENTIFIER
+              PsiElement(ID)('MacroGenerator')
+          PsiElement(.)('.')
+          HAXE_REFERENCEEXPRESSION
+            HAXE_IDENTIFIER
+              PsiElement(ID)('build')
+        PsiElement(()('(')
+        PsiElement())(')')
       PsiElement())(')')
     HAXE_CUSTOMMETA
       PsiElement(MACRO_ID)('@superClass')

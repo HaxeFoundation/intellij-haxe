@@ -18,7 +18,6 @@ import com.intellij.util.IncorrectOperationException;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.tools.tree.ThisExpression;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +84,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     if (this instanceof HaxeCallExpression) {
       final HaxeExpression expression = ((HaxeCallExpression)this).getExpression();
-      if(expression instanceof HaxeReference){
+      if (expression instanceof HaxeReference) {
         return HaxeResolveUtil.getHaxeClass(((HaxeReference)expression).resolve());
       }
     }
@@ -185,10 +184,16 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-    final HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(this, HaxeIdentifier.class);
+    PsiElement element = this;
+    if (getText().indexOf('.') != -1) {
+      // qName
+      final PsiElement lastChild = getLastChild();
+      element = lastChild == null ? this : lastChild;
+    }
+    final HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(element, HaxeIdentifier.class);
     final HaxeIdentifier identifierNew = HaxeElementGenerator.createIdentifierFromText(getProject(), newElementName);
     if (identifier != null && identifierNew != null) {
-      getNode().replaceChild(identifier.getNode(), identifierNew.getNode());
+      element.getNode().replaceChild(identifier.getNode(), identifierNew.getNode());
     }
     return this;
   }
@@ -234,7 +239,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private static void addUsingVariants(Set<HaxeComponentName> variants, List<HaxeClass> classes) {
     for (HaxeClass haxeClass : classes) {
       for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
-        if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName()!= null) {
+        if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName() != null) {
           variants.add(haxeNamedComponent.getComponentName());
         }
       }

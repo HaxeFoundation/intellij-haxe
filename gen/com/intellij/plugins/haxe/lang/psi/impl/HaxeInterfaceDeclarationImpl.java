@@ -18,8 +18,20 @@ public class HaxeInterfaceDeclarationImpl extends AbstractHaxePsiClass implement
 
   @Override
   @NotNull
+  public List<HaxeAutoBuildMacro> getAutoBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeAutoBuildMacro.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeBitmapMeta> getBitmapMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBitmapMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeBuildMacro> getBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBuildMacro.class);
   }
 
   @Override

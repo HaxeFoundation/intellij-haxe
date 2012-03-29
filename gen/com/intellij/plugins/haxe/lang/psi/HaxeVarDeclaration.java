@@ -8,6 +8,12 @@ import com.intellij.psi.PsiElement;
 public interface HaxeVarDeclaration extends HaxePsiCompositeElement {
 
   @NotNull
+  List<HaxeAutoBuildMacro> getAutoBuildMacroList();
+
+  @NotNull
+  List<HaxeBuildMacro> getBuildMacroList();
+
+  @NotNull
   List<HaxeCustomMeta> getCustomMetaList();
 
   @Nullable

@@ -121,6 +121,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "@:native"                                {  return KNATIVE;  }
 "@:macro"                                 {  return KMACRO;  }
 "@:build"                                 {  return KBUILD;  }
+"@:autoBuild"                             {  return KAUTOBUILD;  }
 "@:keep"                                  {  return KKEEP;  }
 "@:require"                               {  return KREQUIRE;  }
 "@:fakeEnum"                              {  return KFAKEENUM;  }

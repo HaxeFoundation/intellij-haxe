@@ -18,6 +18,18 @@ public class HaxeVarDeclarationImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @NotNull
+  public List<HaxeAutoBuildMacro> getAutoBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeAutoBuildMacro.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeBuildMacro> getBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBuildMacro.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeCustomMeta> getCustomMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCustomMeta.class);
   }

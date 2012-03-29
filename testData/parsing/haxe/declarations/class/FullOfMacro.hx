@@ -1,8 +1,9 @@
-@:final @:hack @:build
+@:final @:hack
 @:native("my.real.Path")
 @:ns("namespace")
 @:meta(Event(name="test",type="Foo"))
 @:bitmap("myfile.png")
+@:build(MacroGenerator.build())
 @superClass("user name", {name:"user"})
 class FullOfMacro {
   @customUser

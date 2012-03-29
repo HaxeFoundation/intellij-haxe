@@ -82,6 +82,7 @@ public interface HaxeTokenTypeSets {
     KNATIVE,
     KMACRO,
     KBUILD,
+    KAUTOBUILD,
     KKEEP,
     KREQUIRE,
     KFAKEENUM,

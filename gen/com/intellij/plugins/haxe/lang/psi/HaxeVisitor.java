@@ -47,6 +47,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitAutoBuildMacro(@NotNull HaxeAutoBuildMacro o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitBitOperation(@NotNull HaxeBitOperation o) {
     visitPsiCompositeElement(o);
   }
@@ -64,6 +68,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitBreakStatement(@NotNull HaxeBreakStatement o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitBuildMacro(@NotNull HaxeBuildMacro o) {
     visitPsiCompositeElement(o);
   }
 

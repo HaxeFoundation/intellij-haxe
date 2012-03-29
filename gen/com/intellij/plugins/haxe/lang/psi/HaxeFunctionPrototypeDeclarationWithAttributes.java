@@ -7,6 +7,12 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComponent {
 
+  @NotNull
+  List<HaxeAutoBuildMacro> getAutoBuildMacroList();
+
+  @NotNull
+  List<HaxeBuildMacro> getBuildMacroList();
+
   @Nullable
   HaxeComponentName getComponentName();
 

@@ -8,7 +8,13 @@ import com.intellij.psi.PsiElement;
 public interface HaxeEnumDeclaration extends HaxeClass {
 
   @NotNull
+  List<HaxeAutoBuildMacro> getAutoBuildMacroList();
+
+  @NotNull
   List<HaxeBitmapMeta> getBitmapMetaList();
+
+  @NotNull
+  List<HaxeBuildMacro> getBuildMacroList();
 
   @Nullable
   HaxeComponentName getComponentName();

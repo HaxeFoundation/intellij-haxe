@@ -18,11 +18,13 @@ public interface HaxeTokenTypes {
   IElementType HAXE_ARRAYLITERAL = new HaxeElementType("HAXE_ARRAYLITERAL");
   IElementType HAXE_ASSIGNEXPRESSION = new HaxeElementType("HAXE_ASSIGNEXPRESSION");
   IElementType HAXE_ASSIGNOPERATION = new HaxeElementType("HAXE_ASSIGNOPERATION");
+  IElementType HAXE_AUTOBUILDMACRO = new HaxeElementType("HAXE_AUTOBUILDMACRO");
   IElementType HAXE_BITMAPMETA = new HaxeElementType("HAXE_BITMAPMETA");
   IElementType HAXE_BITOPERATION = new HaxeElementType("HAXE_BITOPERATION");
   IElementType HAXE_BITWISEEXPRESSION = new HaxeElementType("HAXE_BITWISEEXPRESSION");
   IElementType HAXE_BLOCKSTATEMENT = new HaxeElementType("HAXE_BLOCKSTATEMENT");
   IElementType HAXE_BREAKSTATEMENT = new HaxeElementType("HAXE_BREAKSTATEMENT");
+  IElementType HAXE_BUILDMACRO = new HaxeElementType("HAXE_BUILDMACRO");
   IElementType HAXE_CALLEXPRESSION = new HaxeElementType("HAXE_CALLEXPRESSION");
   IElementType HAXE_CASESTATEMENT = new HaxeElementType("HAXE_CASESTATEMENT");
   IElementType HAXE_CASTEXPRESSION = new HaxeElementType("HAXE_CASTEXPRESSION");
@@ -124,6 +126,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_WHILESTATEMENT = new HaxeElementType("HAXE_WHILESTATEMENT");
 
   IElementType ID = new HaxeElementType("ID");
+  IElementType KAUTOBUILD = new HaxeElementType("@:autoBuild");
   IElementType KBIND = new HaxeElementType("@:bind");
   IElementType KBITMAP = new HaxeElementType("@:bitmap");
   IElementType KBREAK = new HaxeElementType("break");
@@ -273,6 +276,9 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_ASSIGNOPERATION) {
         return new HaxeAssignOperationImpl(node);
       }
+      else if (type == HAXE_AUTOBUILDMACRO) {
+        return new HaxeAutoBuildMacroImpl(node);
+      }
       else if (type == HAXE_BITMAPMETA) {
         return new HaxeBitmapMetaImpl(node);
       }
@@ -287,6 +293,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_BREAKSTATEMENT) {
         return new HaxeBreakStatementImpl(node);
+      }
+      else if (type == HAXE_BUILDMACRO) {
+        return new HaxeBuildMacroImpl(node);
       }
       else if (type == HAXE_CALLEXPRESSION) {
         return new HaxeCallExpressionImpl(node);

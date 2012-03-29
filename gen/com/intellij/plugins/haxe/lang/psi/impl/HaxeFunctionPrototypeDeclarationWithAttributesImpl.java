@@ -17,6 +17,18 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends Abstract
   }
 
   @Override
+  @NotNull
+  public List<HaxeAutoBuildMacro> getAutoBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeAutoBuildMacro.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeBuildMacro> getBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBuildMacro.class);
+  }
+
+  @Override
   @Nullable
   public HaxeComponentName getComponentName() {
     return findChildByClass(HaxeComponentName.class);

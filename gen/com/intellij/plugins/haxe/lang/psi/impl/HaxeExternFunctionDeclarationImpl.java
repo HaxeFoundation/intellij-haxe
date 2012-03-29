@@ -17,9 +17,21 @@ public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponen
   }
 
   @Override
+  @NotNull
+  public List<HaxeAutoBuildMacro> getAutoBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeAutoBuildMacro.class);
+  }
+
+  @Override
   @Nullable
   public HaxeBlockStatement getBlockStatement() {
     return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeBuildMacro> getBuildMacroList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBuildMacro.class);
   }
 
   @Override
