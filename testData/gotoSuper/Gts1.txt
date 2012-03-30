@@ -1,0 +1,8 @@
+class Gts1 extends Resizable {
+}
+private class <caret>Resizable implements IResizable {
+  public function resize() {}
+}
+private interface IResizable {
+  function resize();
+}

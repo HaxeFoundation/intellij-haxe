@@ -10,17 +10,17 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeClassInfo {
-  @NotNull private final String packageName;
+  @NotNull private final String value;
   @Nullable private final HaxeComponentType type;
 
   public HaxeClassInfo(@NotNull String name, @Nullable HaxeComponentType type) {
-    packageName = name;
+    value = name;
     this.type = type;
   }
 
   @NotNull
-  public String getPackageName() {
-    return packageName;
+  public String getValue() {
+    return value;
   }
 
   @Nullable

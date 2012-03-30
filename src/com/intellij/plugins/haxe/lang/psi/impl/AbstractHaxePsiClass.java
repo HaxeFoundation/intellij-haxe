@@ -28,6 +28,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return this;
   }
 
+  @NotNull
   @Override
   public String getQualifiedName() {
     final String packageName = HaxeResolveUtil.getPackageName(getContainingFile());

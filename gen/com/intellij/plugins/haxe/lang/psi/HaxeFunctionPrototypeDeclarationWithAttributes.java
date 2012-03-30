@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComponent {
+public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComponentWithDeclarationList {
 
   @NotNull
   List<HaxeAutoBuildMacro> getAutoBuildMacroList();

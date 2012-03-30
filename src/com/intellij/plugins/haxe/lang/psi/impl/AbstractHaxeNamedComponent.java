@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -61,12 +62,15 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
       @Override
       public String getLocationString() {
-        final PsiFile file = AbstractHaxeNamedComponent.this.getContainingFile();
-        final String packageName = HaxeResolveUtil.getPackageName(file);
-        if (!packageName.isEmpty()) {
-          return "(" + packageName + ")";
+        final HaxeClass haxeClass = AbstractHaxeNamedComponent.this instanceof HaxeClass
+                                    ? (HaxeClass)AbstractHaxeNamedComponent.this
+                                    : PsiTreeUtil.getParentOfType(AbstractHaxeNamedComponent.this, HaxeClass.class);
+        assert haxeClass != null;
+        final Pair<String, String> qName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
+        if (haxeClass == AbstractHaxeNamedComponent.this) {
+          return "(" + qName.getFirst() + ")";
         }
-        return packageName;
+        return haxeClass.getQualifiedName();
       }
 
       @Override
@@ -93,7 +97,9 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Override
   public boolean isPublic() {
     if (PsiTreeUtil.getParentOfType(this, HaxeExternClassDeclaration.class) != null) {
-      // in extern classes default access is public
+      return true;
+    }
+    if (PsiTreeUtil.getParentOfType(this, HaxeInterfaceDeclaration.class) != null) {
       return true;
     }
     final PsiElement parent = getParent();

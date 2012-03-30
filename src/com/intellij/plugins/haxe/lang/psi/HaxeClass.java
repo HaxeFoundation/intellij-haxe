@@ -12,7 +12,7 @@ import java.util.List;
 public interface HaxeClass extends HaxeComponent {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
-  @Nullable
+  @NotNull
   @NonNls
   String getQualifiedName();
 

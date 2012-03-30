@@ -173,7 +173,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitExternFunctionDeclaration(@NotNull HaxeExternFunctionDeclaration o) {
-    visitComponent(o);
+    visitComponentWithDeclarationList(o);
   }
 
   public void visitExternOrPrivate(@NotNull HaxeExternOrPrivate o) {
@@ -189,7 +189,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitFunctionDeclarationWithAttributes(@NotNull HaxeFunctionDeclarationWithAttributes o) {
-    visitComponent(o);
+    visitComponentWithDeclarationList(o);
   }
 
   public void visitFunctionLiteral(@NotNull HaxeFunctionLiteral o) {
@@ -197,7 +197,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitFunctionPrototypeDeclarationWithAttributes(@NotNull HaxeFunctionPrototypeDeclarationWithAttributes o) {
-    visitComponent(o);
+    visitComponentWithDeclarationList(o);
   }
 
   public void visitFunctionType(@NotNull HaxeFunctionType o) {
@@ -481,6 +481,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitComponent(@NotNull HaxeComponent o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitComponentWithDeclarationList(@NotNull HaxeComponentWithDeclarationList o) {
     visitPsiCompositeElement(o);
   }
 

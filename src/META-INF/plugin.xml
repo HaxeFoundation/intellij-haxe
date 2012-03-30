@@ -4,6 +4,11 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.3:</p>
+      <ul>
+        <li>Implementation(s) action</li>
+        <li>Super Method action</li>
+      </ul>
       <p>0.2.3:</p>
       <ul>
         <li>Completion fixes</li>
@@ -43,9 +48,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.2.3</version>
+  <version>0.3</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
-  <idea-version since-build="117.84" until-build="118.1"/>
+  <idea-version since-build="117.105" until-build="118.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
 
@@ -81,6 +86,9 @@
     <lang.documentationProvider language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeDocumentationProvider"/>
     <lang.commenter language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCommenter"/>
 
+    <codeInsight.lineMarkerProvider language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLineMarkerProvider"/>
+    <codeInsight.gotoSuper language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeGotoSuperHandler"/>
+
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
 
     <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>
@@ -101,6 +109,7 @@
     <internalFileTemplate name="haXe Enum"/>
 
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex"/>
     <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeClassContributor"/>
 

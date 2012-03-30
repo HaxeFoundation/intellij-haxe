@@ -149,19 +149,31 @@ public class HaxeResolveUtil {
   }
 
   @NotNull
-  public static List<HaxeNamedComponent> findNamedSubComponents(@NotNull HaxeClass rootHaxeClass) {
-    final Map<String, HaxeNamedComponent> result = new HashMap<String, HaxeNamedComponent>();
+  public static List<HaxeNamedComponent> findNamedSubComponents(@NotNull HaxeClass... rootHaxeClasses) {
+    return findNamedSubComponents(true, rootHaxeClasses);
+  }
+
+  @NotNull
+  public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @NotNull HaxeClass... rootHaxeClasses) {
+    final List<HaxeNamedComponent> unfilteredResult = new ArrayList<HaxeNamedComponent>();
     final LinkedList<HaxeClass> classes = new LinkedList<HaxeClass>();
-    classes.add(rootHaxeClass);
+    classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
       for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
-        if (namedComponent.getName() != null && !result.containsKey(namedComponent.getName())) {
-          result.put(namedComponent.getName(), namedComponent);
+        if (namedComponent.getName() != null) {
+          unfilteredResult.add(namedComponent);
         }
       }
       classes.addAll(resolveClasses(haxeClass.getExtendsList()));
       classes.addAll(resolveClasses(haxeClass.getImplementsList()));
+    }
+    if (!unique) {
+      return unfilteredResult;
+    }
+    final Map<String, HaxeNamedComponent> result = new HashMap<String, HaxeNamedComponent>();
+    for (HaxeNamedComponent haxeNamedComponent : unfilteredResult) {
+      result.put(haxeNamedComponent.getName(), haxeNamedComponent);
     }
     return new ArrayList<HaxeNamedComponent>(result.values());
   }
@@ -328,5 +340,15 @@ public class HaxeResolveUtil {
       }
     }
     return result;
+  }
+
+  @NotNull
+  public static List<HaxeComponentName> getComponentNames(List<? extends  HaxeNamedComponent> components) {
+    return ContainerUtil.map(components, new Function<HaxeNamedComponent, HaxeComponentName>() {
+      @Override
+      public HaxeComponentName fun(HaxeNamedComponent component) {
+        return component.getComponentName();
+      }
+    });
   }
 }

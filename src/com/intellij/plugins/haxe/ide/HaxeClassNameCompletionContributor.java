@@ -94,7 +94,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     }
 
     private void add(String name, HaxeClassInfo info) {
-      final String qName = HaxeResolveUtil.joinQName(info.getPackageName(), name);
+      final String qName = HaxeResolveUtil.joinQName(info.getValue(), name);
       //todo: move to stubs
       final PsiElement lazyElement = new LazyPsiElement(new Function<Void, PsiElement>() {
         @Override
@@ -104,7 +104,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       });
       myResultSet.addElement(LookupElementBuilder.create(lazyElement, name)
                                .setIcon(info.getIcon())
-                               .setTailText(" " + info.getPackageName(), true)
+                               .setTailText(" " + info.getValue(), true)
                                .setInsertHandler(myInsertHandler));
     }
   }

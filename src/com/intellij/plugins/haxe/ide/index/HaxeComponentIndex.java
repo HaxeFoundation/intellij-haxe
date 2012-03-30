@@ -33,7 +33,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
   public static final ID<String, HaxeClassInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeComponentIndex");
   private static final int INDEX_VERSION = 1;
   private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
-  private final DataExternalizer<HaxeClassInfo> myExternalizer = new MyDataExternalizer();
+  private final DataExternalizer<HaxeClassInfo> myExternalizer = new HaxeClassInfoExternalizer();
 
   @NotNull
   @Override
@@ -109,23 +109,6 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
           return;
         }
       }
-    }
-  }
-
-  private static class MyDataExternalizer implements DataExternalizer<HaxeClassInfo> {
-    @Override
-    public void save(DataOutput out, HaxeClassInfo value) throws IOException {
-      out.writeUTF(value.getPackageName());
-      final HaxeComponentType haxeComponentType = value.getType();
-      final int key = haxeComponentType == null ? -1 : haxeComponentType.getKey();
-      out.writeInt(key);
-    }
-
-    @Override
-    public HaxeClassInfo read(DataInput in) throws IOException {
-      final String packageName = in.readUTF();
-      final int key = in.readInt();
-      return new HaxeClassInfo(packageName, HaxeComponentType.valueOf(key));
     }
   }
 

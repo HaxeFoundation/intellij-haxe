@@ -280,11 +280,11 @@ propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
 private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression
 
 externFunctionDeclaration ::= macroMember* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
-{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
 functionDeclarationWithAttributes ::= macroMember* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
-{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
 functionPrototypeDeclarationWithAttributes ::= macroMember* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
-{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
 localFunctionDeclaration ::= 'function' componentName typeParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
