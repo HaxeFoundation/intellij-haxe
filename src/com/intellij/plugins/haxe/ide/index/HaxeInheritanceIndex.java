@@ -1,8 +1,6 @@
 package com.intellij.plugins.haxe.ide.index;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeFileType;
@@ -118,76 +116,74 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
     return result;
   }
 
-  static {
-    DefinitionsSearch.INSTANCE.registerExecutor(new QueryExecutor<PsiElement, PsiElement>() {
-      @Override
-      public boolean execute(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
-        final PsiElement queryParametersParent = queryParameters.getParent();
-        HaxeNamedComponent haxeNamedComponent = null;
-        if (queryParameters instanceof HaxeClass) {
-          haxeNamedComponent = (HaxeClass)queryParameters;
-        }
-        else if (queryParametersParent instanceof HaxeNamedComponent && queryParameters instanceof HaxeComponentName) {
-          haxeNamedComponent = (HaxeNamedComponent)queryParametersParent;
-        }
-        else {
-          return false;
-        }
-
-        final HaxeNamedComponent finalHaxeNamedComponent = haxeNamedComponent;
-        return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-          @Override
-          public Boolean compute() {
-            if (finalHaxeNamedComponent instanceof HaxeClass) {
-              return processInheritors(((HaxeClass)finalHaxeNamedComponent).getQualifiedName(), queryParameters, consumer);
-            }
-            else if (HaxeComponentType.typeOf(finalHaxeNamedComponent) == HaxeComponentType.METHOD) {
-              final String nameToFind = finalHaxeNamedComponent.getName();
-              if (nameToFind == null) return false;
-
-              HaxeClass haxeClass = PsiTreeUtil.getParentOfType(finalHaxeNamedComponent, HaxeClass.class);
-              assert haxeClass != null;
-
-              return processInheritors(haxeClass.getQualifiedName(), queryParameters, new Processor<PsiElement>() {
-                @Override
-                public boolean process(PsiElement element) {
-                  for (HaxeNamedComponent subHaxeNamedComponent : HaxeResolveUtil.getNamedSubComponents((HaxeClass)element)) {
-                    if (nameToFind.equals(subHaxeNamedComponent.getName())) {
-                      consumer.process(subHaxeNamedComponent);
-                    }
-                  }
-                  return true;
-                }
-              });
-            }
-            return false;
-          }
-        });
+  public static class DefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
+    @Override
+    public boolean execute(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
+      final PsiElement queryParametersParent = queryParameters.getParent();
+      HaxeNamedComponent haxeNamedComponent;
+      if (queryParameters instanceof HaxeClass) {
+        haxeNamedComponent = (HaxeClass)queryParameters;
       }
-
-      private boolean processInheritors(final String qName, final PsiElement context, final Processor<PsiElement> consumer) {
-        final Set<String> namesSet = new THashSet<String>();
-        final LinkedList<String> namesQueue = new LinkedList<String>();
-        namesQueue.add(qName);
-        while (!namesQueue.isEmpty()) {
-          final String name = namesQueue.pollFirst();
-          if (!namesSet.add(name)) {
-            continue;
-          }
-          List<HaxeClassInfo> files =
-            FileBasedIndex.getInstance().getValues(HAXE_COMPONENT_INDEX, name, GlobalSearchScope.allScope(context.getProject()));
-          for (HaxeClassInfo subClassInfo : files) {
-            final HaxeClass subClass = HaxeResolveUtil.findClassByQName(subClassInfo.getValue(), context);
-            if (subClass != null) {
-              if (!consumer.process(subClass)) {
-                return true;
-              }
-              namesQueue.add(subClass.getQualifiedName());
-            }
-          }
-        }
+      else if (queryParametersParent instanceof HaxeNamedComponent && queryParameters instanceof HaxeComponentName) {
+        haxeNamedComponent = (HaxeNamedComponent)queryParametersParent;
+      }
+      else {
         return true;
       }
-    });
+
+      final HaxeNamedComponent finalHaxeNamedComponent = haxeNamedComponent;
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        public void run() {
+          if (finalHaxeNamedComponent instanceof HaxeClass) {
+            processInheritors(((HaxeClass)finalHaxeNamedComponent).getQualifiedName(), queryParameters, consumer);
+          }
+          else if (HaxeComponentType.typeOf(finalHaxeNamedComponent) == HaxeComponentType.METHOD) {
+            final String nameToFind = finalHaxeNamedComponent.getName();
+            if (nameToFind == null) return;
+
+            HaxeClass haxeClass = PsiTreeUtil.getParentOfType(finalHaxeNamedComponent, HaxeClass.class);
+            assert haxeClass != null;
+
+            processInheritors(haxeClass.getQualifiedName(), queryParameters, new Processor<PsiElement>() {
+              @Override
+              public boolean process(PsiElement element) {
+                for (HaxeNamedComponent subHaxeNamedComponent : HaxeResolveUtil.getNamedSubComponents((HaxeClass)element)) {
+                  if (nameToFind.equals(subHaxeNamedComponent.getName())) {
+                    consumer.process(subHaxeNamedComponent);
+                  }
+                }
+                return true;
+              }
+            });
+          }
+        }
+      });
+
+      return true;
+    }
+
+    private static boolean processInheritors(final String qName, final PsiElement context, final Processor<PsiElement> consumer) {
+      final Set<String> namesSet = new THashSet<String>();
+      final LinkedList<String> namesQueue = new LinkedList<String>();
+      namesQueue.add(qName);
+      while (!namesQueue.isEmpty()) {
+        final String name = namesQueue.pollFirst();
+        if (!namesSet.add(name)) {
+          continue;
+        }
+        List<HaxeClassInfo> files =
+          FileBasedIndex.getInstance().getValues(HAXE_COMPONENT_INDEX, name, GlobalSearchScope.allScope(context.getProject()));
+        for (HaxeClassInfo subClassInfo : files) {
+          final HaxeClass subClass = HaxeResolveUtil.findClassByQName(subClassInfo.getValue(), context);
+          if (subClass != null) {
+            if (!consumer.process(subClass)) {
+              return true;
+            }
+            namesQueue.add(subClass.getQualifiedName());
+          }
+        }
+      }
+      return true;
+    }
   }
 }

@@ -113,6 +113,8 @@
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex"/>
     <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeClassContributor"/>
 
+    <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex$DefinitionsSearchExecutor"/>
+
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <!--<annotator language="haXe" implementationClass="com.intellij.plugins.ide.lang.annotator.HaxeReferenceAnnotator"/>-->
   </extensions>
