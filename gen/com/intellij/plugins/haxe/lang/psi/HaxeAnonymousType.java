@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeAnonymousType extends HaxePsiCompositeElement {
+public interface HaxeAnonymousType extends HaxeClass {
 
   @NotNull
   HaxeAnonymousTypeBody getAnonymousTypeBody();

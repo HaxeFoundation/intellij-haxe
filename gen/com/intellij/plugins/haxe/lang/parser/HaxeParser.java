@@ -521,17 +521,21 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "anonymousType")) return false;
     if (!nextTokenIs(builder_, PLCURLY)) return false;
     boolean result_ = false;
+    boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, PLCURLY);
     result_ = result_ && anonymousTypeBody(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRCURLY);
-    if (result_) {
+    pinned_ = result_; // pin = 3
+    if (result_ || pinned_) {
       marker_.done(HAXE_ANONYMOUSTYPE);
     }
     else {
       marker_.rollbackTo();
     }
-    return result_;
+    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
@@ -553,15 +557,14 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // identifier ':' functionTypeWrapper
+  // componentName typeTag
   public static boolean anonymousTypeField(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "anonymousTypeField")) return false;
     if (!nextTokenIs(builder_, ID)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = identifier(builder_, level_ + 1);
-    result_ = result_ && consumeToken(builder_, OCOLON);
-    result_ = result_ && functionTypeWrapper(builder_, level_ + 1);
+    result_ = componentName(builder_, level_ + 1);
+    result_ = result_ && typeTag(builder_, level_ + 1);
     if (result_) {
       marker_.done(HAXE_ANONYMOUSTYPEFIELD);
     }

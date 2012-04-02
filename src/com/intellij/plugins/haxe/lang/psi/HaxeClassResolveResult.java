@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.containers.hash.HashMap;
+import gnu.trove.THashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -14,10 +14,15 @@ public class HaxeClassResolveResult {
   public static final HaxeClassResolveResult EMPTY = new HaxeClassResolveResult(null);
   @Nullable
   private final HaxeClass haxeClass;
-  private final Map<String, HaxeClassResolveResult> specializations = new HashMap<String, HaxeClassResolveResult>();
+  private final Map<String, HaxeClassResolveResult> specializations;
 
   public HaxeClassResolveResult(@Nullable HaxeClass aClass) {
+    this(aClass, new THashMap<String, HaxeClassResolveResult>());
+  }
+
+  public HaxeClassResolveResult(@Nullable HaxeClass aClass, Map<String, HaxeClassResolveResult> specialization) {
     haxeClass = aClass;
+    this.specializations = specialization;
   }
 
   @Nullable
@@ -49,7 +54,7 @@ public class HaxeClassResolveResult {
       HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
       final HaxeType specializedType = typeList.getTypeListPartList().get(i).getType();
       if (haxeGenericListPart.getText() == null || specializedType == null) continue;
-      specializations.put(haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClass(specializedType));
+      specializations.put(haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClass(specializedType, specializations));
     }
   }
 }

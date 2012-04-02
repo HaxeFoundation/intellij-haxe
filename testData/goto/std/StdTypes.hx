@@ -1,6 +1,7 @@
 extern enum Void { }
 extern class Float { }
 extern class Int extends Float { }
+typedef Null<T> = T
 extern enum Bool {
 	true;
 	false;

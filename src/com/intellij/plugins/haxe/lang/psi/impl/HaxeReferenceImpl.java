@@ -86,9 +86,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     if (this instanceof HaxeCallExpression) {
       final HaxeExpression expression = ((HaxeCallExpression)this).getExpression();
-      final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
-      final HaxeReference leftReference = childReferences != null ? childReferences[0] : null;
-      final HaxeClassResolveResult leftResult = leftReference == null ? HaxeClassResolveResult.EMPTY : leftReference.resolveHaxeClass();
+      final HaxeClassResolveResult leftResult = tryGetLeftResolveResult(expression);
       if (expression instanceof HaxeReference) {
         final HaxeClassResolveResult result =
           HaxeResolveUtil.getHaxeClass(((HaxeReference)expression).resolve(), leftResult.getSpecializations());
@@ -96,11 +94,18 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return result;
       }
     }
-    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClass(resolve());
+    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClass(resolve(), tryGetLeftResolveResult(this).getSpecializations());
     if (result.getHaxeClass() == null) {
       result = new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getText(), this));
     }
     return result;
+  }
+
+  @NotNull
+  private static HaxeClassResolveResult tryGetLeftResolveResult(HaxeExpression expression) {
+    final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
+    final HaxeReference leftReference = childReferences != null ? childReferences[0] : null;
+    return leftReference == null ? HaxeClassResolveResult.EMPTY : leftReference.resolveHaxeClass();
   }
 
   @Nullable

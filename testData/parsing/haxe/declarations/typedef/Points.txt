@@ -72,13 +72,15 @@ haXe File
                     PsiElement(,)(',')
                     HAXE_ANONYMOUSTYPEFIELDLIST
                       HAXE_ANONYMOUSTYPEFIELD
-                        HAXE_IDENTIFIER
-                          PsiElement(ID)('z')
-                        PsiElement(:)(':')
-                        HAXE_TYPE
-                          HAXE_REFERENCEEXPRESSION
-                            HAXE_IDENTIFIER
-                              PsiElement(ID)('Int')
+                        HAXE_COMPONENTNAME
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('z')
+                        HAXE_TYPETAG
+                          PsiElement(:)(':')
+                          HAXE_TYPE
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('Int')
                   PsiElement(})('}')
           HAXE_ASSIGNEXPRESSION
             HAXE_REFERENCEEXPRESSION

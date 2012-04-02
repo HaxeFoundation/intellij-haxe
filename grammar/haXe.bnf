@@ -222,7 +222,7 @@ private topLevelDeclaration ::= classDeclaration
 externOrPrivate ::= 'extern' | 'private'
 
 typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= macroClass* 'extern' 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -467,6 +467,7 @@ inheritList ::= inherit (',' inherit)*
 inherit ::= ('extends' | 'implements') type {pin=1}
 
 anonymousType ::= '{' anonymousTypeBody '}'
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBody
 private extendedAnonymousTypeBody ::= typeExtends (',' anonymousTypeFieldList)? (',' interfaceBody)?
@@ -476,7 +477,8 @@ typeExtends ::= '>' functionTypeWrapper
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 
-anonymousTypeField ::= identifier ':' functionTypeWrapper
+anonymousTypeField ::= componentName typeTag
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 objectLiteral ::= '{' objectLiteralElementList? '}'
 

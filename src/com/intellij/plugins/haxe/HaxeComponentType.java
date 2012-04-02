@@ -120,7 +120,9 @@ public enum HaxeComponentType {
         element instanceof HaxeFunctionLiteral) {
       return FUNCTION;
     }
-    if (element instanceof HaxeVarDeclarationPart || element instanceof HaxeEnumValueDeclaration) {
+    if (element instanceof HaxeVarDeclarationPart ||
+        element instanceof HaxeEnumValueDeclaration ||
+        element instanceof HaxeAnonymousTypeField) {
       return FIELD;
     }
     if (element instanceof HaxeLocalVarDeclarationPart ||

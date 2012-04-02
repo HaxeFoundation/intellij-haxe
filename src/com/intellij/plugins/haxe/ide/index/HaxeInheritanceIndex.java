@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.ide.index;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeFileType;
@@ -119,29 +120,27 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
   public static class DefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
     @Override
     public boolean execute(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
-      final PsiElement queryParametersParent = queryParameters.getParent();
-      HaxeNamedComponent haxeNamedComponent;
-      if (queryParameters instanceof HaxeClass) {
-        haxeNamedComponent = (HaxeClass)queryParameters;
-      }
-      else if (queryParametersParent instanceof HaxeNamedComponent && queryParameters instanceof HaxeComponentName) {
-        haxeNamedComponent = (HaxeNamedComponent)queryParametersParent;
-      }
-      else {
-        return true;
-      }
-
-      final HaxeNamedComponent finalHaxeNamedComponent = haxeNamedComponent;
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        public void run() {
-          if (finalHaxeNamedComponent instanceof HaxeClass) {
-            processInheritors(((HaxeClass)finalHaxeNamedComponent).getQualifiedName(), queryParameters, consumer);
+      return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+        public Boolean compute() {
+          final PsiElement queryParametersParent = queryParameters.getParent();
+          HaxeNamedComponent haxeNamedComponent;
+          if (queryParameters instanceof HaxeClass) {
+            haxeNamedComponent = (HaxeClass)queryParameters;
           }
-          else if (HaxeComponentType.typeOf(finalHaxeNamedComponent) == HaxeComponentType.METHOD) {
-            final String nameToFind = finalHaxeNamedComponent.getName();
-            if (nameToFind == null) return;
+          else if (queryParametersParent instanceof HaxeNamedComponent && queryParameters instanceof HaxeComponentName) {
+            haxeNamedComponent = (HaxeNamedComponent)queryParametersParent;
+          }
+          else {
+            return true;
+          }
+          if (haxeNamedComponent instanceof HaxeClass) {
+            processInheritors(((HaxeClass)haxeNamedComponent).getQualifiedName(), queryParameters, consumer);
+          }
+          else if (HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.METHOD) {
+            final String nameToFind = haxeNamedComponent.getName();
+            if (nameToFind == null) return true;
 
-            HaxeClass haxeClass = PsiTreeUtil.getParentOfType(finalHaxeNamedComponent, HaxeClass.class);
+            HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
             assert haxeClass != null;
 
             processInheritors(haxeClass.getQualifiedName(), queryParameters, new Processor<PsiElement>() {
@@ -156,10 +155,9 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
               }
             });
           }
+          return true;
         }
       });
-
-      return true;
     }
 
     private static boolean processInheritors(final String qName, final PsiElement context, final Processor<PsiElement> consumer) {

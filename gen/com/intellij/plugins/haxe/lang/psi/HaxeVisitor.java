@@ -15,7 +15,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitAnonymousType(@NotNull HaxeAnonymousType o) {
-    visitPsiCompositeElement(o);
+    visitClass(o);
   }
 
   public void visitAnonymousTypeBody(@NotNull HaxeAnonymousTypeBody o) {
@@ -23,7 +23,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitAnonymousTypeField(@NotNull HaxeAnonymousTypeField o) {
-    visitPsiCompositeElement(o);
+    visitComponent(o);
   }
 
   public void visitAnonymousTypeFieldList(@NotNull HaxeAnonymousTypeFieldList o) {

@@ -67,7 +67,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         assert haxeClass != null;
         final Pair<String, String> qName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
         if (haxeClass == AbstractHaxeNamedComponent.this) {
-          return "(" + qName.getFirst() + ")";
+          return qName.getFirst().isEmpty() ? "" : "(" + qName.getFirst() + ")";
         }
         return haxeClass.getQualifiedName();
       }
@@ -99,6 +99,9 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
       return true;
     }
     if (PsiTreeUtil.getParentOfType(this, HaxeInterfaceDeclaration.class) != null) {
+      return true;
+    }
+    if (PsiTreeUtil.getParentOfType(this, HaxeAnonymousType.class) != null) {
       return true;
     }
     final PsiElement parent = getParent();

@@ -9,6 +9,8 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -18,6 +20,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
+import gnu.trove.THashMap;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -191,13 +194,20 @@ public class HaxeResolveUtil {
     if (type == HaxeComponentType.ENUM) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
     }
+
+    final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
+    if (haxeClass instanceof HaxeAnonymousType){
+      final HaxeAnonymousTypeFieldList typeFieldList = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getAnonymousTypeFieldList();
+      if(typeFieldList != null){
+        result.addAll(typeFieldList.getAnonymousTypeFieldList());
+      }
+      body = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getInterfaceBody();
+    }
     if (body == null) {
-      return Collections.emptyList();
+      return result;
     }
     final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(body, HaxeNamedComponent.class);
     final HaxeVarDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeVarDeclaration.class);
-
-    final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
     if (namedComponents != null) {
       ContainerUtil.addAll(result, namedComponents);
     }
@@ -231,7 +241,7 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element) {
-    return getHaxeClass(element, Collections.<String, HaxeClassResolveResult>emptyMap());
+    return getHaxeClass(element, new THashMap<String, HaxeClassResolveResult>());
   }
 
   @NotNull
@@ -242,20 +252,32 @@ public class HaxeResolveUtil {
     if (element instanceof HaxeComponentName) {
       return getHaxeClass(element.getParent(), specialization);
     }
+    if (element instanceof AbstractHaxeTypeDefImpl) {
+      final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
+      return typeDef.getTargetClass(specialization);
+    }
     if (element instanceof HaxeClass) {
       return new HaxeClassResolveResult((HaxeClass)element);
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag != null ? typeTag.getType() :
                           element instanceof HaxeType ? (HaxeType)element : null;
-    final HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
-    HaxeClassResolveResult result = getHaxeClass(typeComponent);
+
+    HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
+    if(typeComponent == null && type != null && specialization.containsKey(type.getText())){
+      return specialization.get(type.getText());
+    }
+
+    HaxeClassResolveResult result = getHaxeClass(typeComponent, specialization);
     if (result.getHaxeClass() != null) {
       result.specializeByParameters(type == null ? null : type.getTypeParam());
       return result;
     }
     if (type != null && specialization.containsKey(type.getText())) {
       return specialization.get(type.getText());
+    }
+    if (specialization.containsKey(element.getText())) {
+      return specialization.get(element.getText());
     }
     final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
     final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
