@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
  * @author: Fedor.Korotkov
  */
 public interface HaxeNamedComponent extends HaxePsiCompositeElement {
+  @Nullable
   HaxeComponentName getComponentName();
 
   @Nullable

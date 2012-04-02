@@ -204,6 +204,14 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitGenericListPart(@NotNull HaxeGenericListPart o) {
+    visitComponent(o);
+  }
+
+  public void visitGenericParam(@NotNull HaxeGenericParam o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitGetterMeta(@NotNull HaxeGetterMeta o) {
     visitPsiCompositeElement(o);
   }
@@ -428,15 +436,15 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
-  public void visitTypeConstraint(@NotNull HaxeTypeConstraint o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitTypeExtends(@NotNull HaxeTypeExtends o) {
     visitPsiCompositeElement(o);
   }
 
   public void visitTypeList(@NotNull HaxeTypeList o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitTypeListPart(@NotNull HaxeTypeListPart o) {
     visitPsiCompositeElement(o);
   }
 

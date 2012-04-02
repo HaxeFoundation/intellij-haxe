@@ -21,18 +21,20 @@ haXe File
               HAXE_TYPEPARAM
                 PsiElement(<)('<')
                 HAXE_TYPELIST
-                  HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('Array')
-                    HAXE_TYPEPARAM
-                      PsiElement(<)('<')
-                      HAXE_TYPELIST
-                        HAXE_TYPE
-                          HAXE_REFERENCEEXPRESSION
-                            HAXE_IDENTIFIER
-                              PsiElement(ID)('Int')
-                      PsiElement(>)('>')
+                  HAXE_TYPELISTPART
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Array')
+                      HAXE_TYPEPARAM
+                        PsiElement(<)('<')
+                        HAXE_TYPELIST
+                          HAXE_TYPELISTPART
+                            HAXE_TYPE
+                              HAXE_REFERENCEEXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('Int')
+                        PsiElement(>)('>')
                 PsiElement(>)('>')
           HAXE_VARINIT
             PsiElement(=)('=')

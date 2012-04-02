@@ -169,6 +169,12 @@ public class HaxeParser implements PsiParser {
     else if (root_ == HAXE_FUNCTIONTYPE) {
       result_ = functionType(builder_, level_ + 1);
     }
+    else if (root_ == HAXE_GENERICLISTPART) {
+      result_ = genericListPart(builder_, level_ + 1);
+    }
+    else if (root_ == HAXE_GENERICPARAM) {
+      result_ = genericParam(builder_, level_ + 1);
+    }
     else if (root_ == HAXE_GETTERMETA) {
       result_ = getterMeta(builder_, level_ + 1);
     }
@@ -334,14 +340,14 @@ public class HaxeParser implements PsiParser {
     else if (root_ == HAXE_TYPE) {
       result_ = type(builder_, level_ + 1);
     }
-    else if (root_ == HAXE_TYPECONSTRAINT) {
-      result_ = typeConstraint(builder_, level_ + 1);
-    }
     else if (root_ == HAXE_TYPEEXTENDS) {
       result_ = typeExtends(builder_, level_ + 1);
     }
     else if (root_ == HAXE_TYPELIST) {
       result_ = typeList(builder_, level_ + 1);
+    }
+    else if (root_ == HAXE_TYPELISTPART) {
+      result_ = typeListPart(builder_, level_ + 1);
     }
     else if (root_ == HAXE_TYPEPARAM) {
       result_ = typeParam(builder_, level_ + 1);
@@ -1384,7 +1390,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* 'private'? 'class' componentName typeParam? inheritList? '{' classBody '}'
+  // macroClass* 'private'? 'class' componentName genericParam? inheritList? '{' classBody '}'
   public static boolean classDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classDeclaration")) return false;
     if (!nextTokenIs(builder_, KBIND) && !nextTokenIs(builder_, KMETA)
@@ -1442,10 +1448,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean classDeclaration_4(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classDeclaration_4")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -1937,7 +1943,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* externOrPrivate? 'enum' componentName typeParam? '{' enumBody '}'
+  // macroClass* externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
   public static boolean enumDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumDeclaration")) return false;
     if (!nextTokenIs(builder_, KBIND) && !nextTokenIs(builder_, KMETA)
@@ -1995,10 +2001,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean enumDeclaration_4(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumDeclaration_4")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -2251,7 +2257,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* 'extern' 'class' componentName typeParam? inheritList? '{' externClassDeclarationBody '}'
+  // macroClass* 'extern' 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration")) return false;
     if (!nextTokenIs(builder_, KBIND) && !nextTokenIs(builder_, KMETA)
@@ -2302,10 +2308,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean externClassDeclaration_4(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration_4")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -2356,7 +2362,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroMember* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
+  // macroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
   public static boolean externFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KBUILD) && !nextTokenIs(builder_, KDYNAMIC)
@@ -2417,13 +2423,13 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ('new' | componentName typeParam?)
+  // ('new' | componentName genericParam?)
   private static boolean externFunctionDeclaration_3(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_3")) return false;
     return externFunctionDeclaration_3_0(builder_, level_ + 1);
   }
 
-  // 'new' | componentName typeParam?
+  // 'new' | componentName genericParam?
   private static boolean externFunctionDeclaration_3_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_3_0")) return false;
     boolean result_ = false;
@@ -2439,7 +2445,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // componentName typeParam?
+  // componentName genericParam?
   private static boolean externFunctionDeclaration_3_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_3_0_1")) return false;
     boolean result_ = false;
@@ -2455,10 +2461,10 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean externFunctionDeclaration_3_0_1_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_3_0_1_1")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -2666,7 +2672,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroMember* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+  // macroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
   public static boolean functionDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KBUILD) && !nextTokenIs(builder_, KDYNAMIC)
@@ -2727,13 +2733,13 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ('new' | componentName typeParam?)
+  // ('new' | componentName genericParam?)
   private static boolean functionDeclarationWithAttributes_3(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_3")) return false;
     return functionDeclarationWithAttributes_3_0(builder_, level_ + 1);
   }
 
-  // 'new' | componentName typeParam?
+  // 'new' | componentName genericParam?
   private static boolean functionDeclarationWithAttributes_3_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_3_0")) return false;
     boolean result_ = false;
@@ -2749,7 +2755,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // componentName typeParam?
+  // componentName genericParam?
   private static boolean functionDeclarationWithAttributes_3_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_3_0_1")) return false;
     boolean result_ = false;
@@ -2765,10 +2771,10 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean functionDeclarationWithAttributes_3_0_1_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_3_0_1_1")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -2847,7 +2853,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroMember* declarationAttributeList? 'function' ('new' | componentName typeParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
+  // macroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
   public static boolean functionPrototypeDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KBUILD) && !nextTokenIs(builder_, KDYNAMIC)
@@ -2908,13 +2914,13 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ('new' | componentName typeParam?)
+  // ('new' | componentName genericParam?)
   private static boolean functionPrototypeDeclarationWithAttributes_3(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_3")) return false;
     return functionPrototypeDeclarationWithAttributes_3_0(builder_, level_ + 1);
   }
 
-  // 'new' | componentName typeParam?
+  // 'new' | componentName genericParam?
   private static boolean functionPrototypeDeclarationWithAttributes_3_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_3_0")) return false;
     boolean result_ = false;
@@ -2930,7 +2936,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // componentName typeParam?
+  // componentName genericParam?
   private static boolean functionPrototypeDeclarationWithAttributes_3_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_3_0_1")) return false;
     boolean result_ = false;
@@ -2946,10 +2952,10 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean functionPrototypeDeclarationWithAttributes_3_0_1_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_3_0_1_1")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -3027,6 +3033,113 @@ public class HaxeParser implements PsiParser {
       offset_ = next_offset_;
     }
     return true;
+  }
+
+  /* ********************************************************** */
+  // componentName (':' '(' typeList ')')?
+  public static boolean genericListPart(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericListPart")) return false;
+    if (!nextTokenIs(builder_, ID)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = componentName(builder_, level_ + 1);
+    result_ = result_ && genericListPart_1(builder_, level_ + 1);
+    if (result_) {
+      marker_.done(HAXE_GENERICLISTPART);
+    }
+    else {
+      marker_.rollbackTo();
+    }
+    return result_;
+  }
+
+  // (':' '(' typeList ')')?
+  private static boolean genericListPart_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericListPart_1")) return false;
+    genericListPart_1_0(builder_, level_ + 1);
+    return true;
+  }
+
+  // (':' '(' typeList ')')
+  private static boolean genericListPart_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericListPart_1_0")) return false;
+    return genericListPart_1_0_0(builder_, level_ + 1);
+  }
+
+  // ':' '(' typeList ')'
+  private static boolean genericListPart_1_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericListPart_1_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, OCOLON);
+    result_ = result_ && consumeToken(builder_, PLPAREN);
+    result_ = result_ && typeList(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // '<' genericListPart (',' genericListPart)* '>'
+  public static boolean genericParam(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericParam")) return false;
+    if (!nextTokenIs(builder_, OLESS)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, OLESS);
+    result_ = result_ && genericListPart(builder_, level_ + 1);
+    result_ = result_ && genericParam_2(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, OGREATER);
+    if (result_) {
+      marker_.done(HAXE_GENERICPARAM);
+    }
+    else {
+      marker_.rollbackTo();
+    }
+    return result_;
+  }
+
+  // (',' genericListPart)*
+  private static boolean genericParam_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericParam_2")) return false;
+    int offset_ = builder_.getCurrentOffset();
+    while (true) {
+      if (!genericParam_2_0(builder_, level_ + 1)) break;
+      int next_offset_ = builder_.getCurrentOffset();
+      if (offset_ == next_offset_) {
+        empty_element_parsed_guard_(builder_, offset_, "genericParam_2");
+        break;
+      }
+      offset_ = next_offset_;
+    }
+    return true;
+  }
+
+  // (',' genericListPart)
+  private static boolean genericParam_2_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericParam_2_0")) return false;
+    return genericParam_2_0_0(builder_, level_ + 1);
+  }
+
+  // ',' genericListPart
+  private static boolean genericParam_2_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericParam_2_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, OCOMMA);
+    result_ = result_ && genericListPart(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   /* ********************************************************** */
@@ -3386,7 +3499,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* externOrPrivate? 'interface' componentName typeParam? inheritList? '{' interfaceBody '}'
+  // macroClass* externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
   public static boolean interfaceDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "interfaceDeclaration")) return false;
     if (!nextTokenIs(builder_, KBIND) && !nextTokenIs(builder_, KMETA)
@@ -3445,10 +3558,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean interfaceDeclaration_4(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "interfaceDeclaration_4")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -3624,7 +3737,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'function' componentName typeParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+  // 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
   public static boolean localFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "localFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KFUNCTION)) return false;
@@ -3652,10 +3765,10 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean localFunctionDeclaration_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_2")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 
@@ -6324,31 +6437,6 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // identifier ':' '(' typeList ')'
-  public static boolean typeConstraint(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "typeConstraint")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
-    boolean result_ = false;
-    boolean pinned_ = false;
-    final Marker marker_ = builder_.mark();
-    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
-    result_ = identifier(builder_, level_ + 1);
-    result_ = result_ && consumeToken(builder_, OCOLON);
-    result_ = result_ && consumeToken(builder_, PLPAREN);
-    pinned_ = result_; // pin = 3
-    result_ = result_ && report_error_(builder_, typeList(builder_, level_ + 1));
-    result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
-    if (result_ || pinned_) {
-      marker_.done(HAXE_TYPECONSTRAINT);
-    }
-    else {
-      marker_.rollbackTo();
-    }
-    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
-    return result_ || pinned_;
-  }
-
-  /* ********************************************************** */
   // '>' functionTypeWrapper
   public static boolean typeExtends(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typeExtends")) return false;
@@ -6367,13 +6455,13 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (typeConstraint | functionTypeWrapper) (',' typeList)*
+  // typeListPart (',' typeListPart)*
   public static boolean typeList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typeList")) return false;
     if (!nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, ID)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = typeList_0(builder_, level_ + 1);
+    result_ = typeListPart(builder_, level_ + 1);
     result_ = result_ && typeList_1(builder_, level_ + 1);
     if (result_) {
       marker_.done(HAXE_TYPELIST);
@@ -6384,29 +6472,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (typeConstraint | functionTypeWrapper)
-  private static boolean typeList_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "typeList_0")) return false;
-    return typeList_0_0(builder_, level_ + 1);
-  }
-
-  // typeConstraint | functionTypeWrapper
-  private static boolean typeList_0_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "typeList_0_0")) return false;
-    boolean result_ = false;
-    final Marker marker_ = builder_.mark();
-    result_ = typeConstraint(builder_, level_ + 1);
-    if (!result_) result_ = functionTypeWrapper(builder_, level_ + 1);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
-  }
-
-  // (',' typeList)*
+  // (',' typeListPart)*
   private static boolean typeList_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typeList_1")) return false;
     int offset_ = builder_.getCurrentOffset();
@@ -6422,24 +6488,41 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // (',' typeList)
+  // (',' typeListPart)
   private static boolean typeList_1_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typeList_1_0")) return false;
     return typeList_1_0_0(builder_, level_ + 1);
   }
 
-  // ',' typeList
+  // ',' typeListPart
   private static boolean typeList_1_0_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typeList_1_0_0")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OCOMMA);
-    result_ = result_ && typeList(builder_, level_ + 1);
+    result_ = result_ && typeListPart(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
     else {
       marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // functionTypeWrapper
+  public static boolean typeListPart(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "typeListPart")) return false;
+    if (!nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, ID)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = functionTypeWrapper(builder_, level_ + 1);
+    if (result_) {
+      marker_.done(HAXE_TYPELISTPART);
+    }
+    else {
+      marker_.rollbackTo();
     }
     return result_;
   }
@@ -6500,7 +6583,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // externOrPrivate? 'typedef' componentName typeParam? '=' functionTypeWrapper ';'?
+  // externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
   public static boolean typedefDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typedefDeclaration")) return false;
     if (!nextTokenIs(builder_, KEXTERN) && !nextTokenIs(builder_, KPRIVATE)
@@ -6534,10 +6617,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // typeParam?
+  // genericParam?
   private static boolean typedefDeclaration_3(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "typedefDeclaration_3")) return false;
-    typeParam(builder_, level_ + 1);
+    genericParam(builder_, level_ + 1);
     return true;
   }
 

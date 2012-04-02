@@ -73,7 +73,8 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
       }
     });
     if (!filteredSuperItems.isEmpty()) {
-      PsiElementListNavigator.openTargets(editor, HaxeResolveUtil.getComponentNames(filteredSuperItems).toArray(new NavigatablePsiElement[filteredSuperItems.size()]),
+      PsiElementListNavigator.openTargets(editor, HaxeResolveUtil.getComponentNames(filteredSuperItems)
+        .toArray(new NavigatablePsiElement[filteredSuperItems.size()]),
                                           DaemonBundle.message("navigation.title.super.method", methodName),
                                           new DefaultPsiElementCellRenderer());
     }

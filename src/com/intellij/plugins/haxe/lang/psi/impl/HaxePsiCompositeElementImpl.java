@@ -58,6 +58,10 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     if (parameterList != null) {
       result.addAll(parameterList.getParameterList());
     }
+    final HaxeGenericParam tygenericParameParam = PsiTreeUtil.getChildOfType(this, HaxeGenericParam.class);
+    if (tygenericParameParam != null) {
+      result.addAll(tygenericParameParam.getGenericListPartList());
+    }
 
     if (this instanceof HaxeForStatement) {
       result.add(this);

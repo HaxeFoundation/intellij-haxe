@@ -12,10 +12,11 @@ haXe File
       HAXE_TYPEPARAM
         PsiElement(<)('<')
         HAXE_TYPELIST
-          HAXE_TYPE
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('Int')
+          HAXE_TYPELISTPART
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('Int')
         PsiElement(>)('>')
     PsiElement(;)(';')
   HAXE_CLASSDECLARATION

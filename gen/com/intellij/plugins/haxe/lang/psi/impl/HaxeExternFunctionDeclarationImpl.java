@@ -59,6 +59,12 @@ public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponen
   }
 
   @Override
+  @Nullable
+  public HaxeGenericParam getGenericParam() {
+    return findChildByClass(HaxeGenericParam.class);
+  }
+
+  @Override
   @NotNull
   public List<HaxeGetterMeta> getGetterMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeGetterMeta.class);
@@ -92,12 +98,6 @@ public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponen
   @NotNull
   public List<HaxeSetterMeta> getSetterMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSetterMeta.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeTypeParam getTypeParam() {
-    return findChildByClass(HaxeTypeParam.class);
   }
 
   @Override

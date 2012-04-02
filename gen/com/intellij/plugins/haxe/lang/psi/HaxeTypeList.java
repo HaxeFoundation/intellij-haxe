@@ -7,16 +7,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeTypeList extends HaxePsiCompositeElement {
 
-  @Nullable
-  HaxeAnonymousType getAnonymousType();
-
-  @Nullable
-  HaxeType getType();
-
-  @Nullable
-  HaxeTypeConstraint getTypeConstraint();
-
   @NotNull
-  List<HaxeTypeList> getTypeListList();
+  List<HaxeTypeListPart> getTypeListPartList();
 
 }

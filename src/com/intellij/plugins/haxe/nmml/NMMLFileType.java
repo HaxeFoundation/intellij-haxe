@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.nmml;
 
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.ide.highlighter.XmlLikeFileType;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeIcons;
 import org.jetbrains.annotations.NotNull;

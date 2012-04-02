@@ -22,7 +22,7 @@ public class NMMLSchemaProvider extends XmlSchemaProvider {
     final URL resource = NMMLSchemaProvider.class.getResource("/nmml.xsd");
     final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
     PsiFile result = baseFile.getManager().findFile(fileByURL);
-    if(result instanceof XmlFile){
+    if (result instanceof XmlFile) {
       return (XmlFile)result.copy();
     }
     return null;

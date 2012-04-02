@@ -22,6 +22,9 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComp
   @Nullable
   HaxeDeclarationAttributeList getDeclarationAttributeList();
 
+  @Nullable
+  HaxeGenericParam getGenericParam();
+
   @NotNull
   List<HaxeGetterMeta> getGetterMetaList();
 
@@ -36,9 +39,6 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComp
 
   @NotNull
   List<HaxeSetterMeta> getSetterMetaList();
-
-  @Nullable
-  HaxeTypeParam getTypeParam();
 
   @Nullable
   HaxeTypeTag getTypeTag();

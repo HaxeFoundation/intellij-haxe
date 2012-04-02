@@ -65,32 +65,40 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
            !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public HaxeClass getHaxeClass() {
+  public HaxeClassResolveResult resolveHaxeClass() {
     if (this instanceof HaxeThisExpression) {
-      return PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+      return new HaxeClassResolveResult(PsiTreeUtil.getParentOfType(this, HaxeClass.class));
     }
     if (this instanceof HaxeLiteralExpression) {
       final LeafPsiElement child = (LeafPsiElement)getFirstChild();
       final IElementType childTokenType = child == null ? null : child.getElementType();
-      return HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this);
+      return new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
     }
     if (this instanceof HaxeArrayLiteral) {
-      return HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this);
+      return new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
     }
     if (this instanceof HaxeNewExpression) {
-      return HaxeResolveUtil.resolveClass(((HaxeNewExpression)this).getType());
+      final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.resolveClass(((HaxeNewExpression)this).getType()));
+      result.specialize(this);
+      return result;
     }
     if (this instanceof HaxeCallExpression) {
       final HaxeExpression expression = ((HaxeCallExpression)this).getExpression();
+      final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
+      final HaxeReference leftReference = childReferences != null ? childReferences[0] : null;
+      final HaxeClassResolveResult leftResult = leftReference == null ? HaxeClassResolveResult.EMPTY : leftReference.resolveHaxeClass();
       if (expression instanceof HaxeReference) {
-        return HaxeResolveUtil.getHaxeClass(((HaxeReference)expression).resolve());
+        final HaxeClassResolveResult result =
+          HaxeResolveUtil.getHaxeClass(((HaxeReference)expression).resolve(), leftResult.getSpecializations());
+        result.specialize(this);
+        return result;
       }
     }
-    HaxeClass result = HaxeResolveUtil.getHaxeClass(resolve());
-    if (result == null) {
-      result = HaxeResolveUtil.findClassByQName(getText(), this);
+    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClass(resolve());
+    if (result.getHaxeClass() == null) {
+      result = new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getText(), this));
     }
     return result;
   }
@@ -116,16 +124,16 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public ResolveResult[] multiResolve(boolean incompleteCode) {
     final HaxeType type = PsiTreeUtil.getParentOfType(this, HaxeType.class);
-    if (type != null) {
-      final HaxeClass haxeClass = HaxeResolveUtil.resolveClass(type);
-      return toCandidateInfoArray(haxeClass == null ? null : haxeClass.getComponentName());
+    final HaxeClass haxeClassInType = HaxeResolveUtil.resolveClass(type);
+    if (type != null && haxeClassInType != null) {
+      return toCandidateInfoArray(haxeClassInType.getComponentName());
     }
 
     // if not first in chain
     // foo.bar.baz
     final HaxeReference referenceExpression = PsiTreeUtil.getPrevSiblingOfType(this, HaxeReference.class);
     if (referenceExpression != null && getParent() instanceof HaxeReference) {
-      return resolveByClassAndSymbol(referenceExpression.getHaxeClass(), getText());
+      return resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), getText());
     }
 
     // Maybe this is class name
@@ -138,7 +146,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // node(foo.node(bar)).node(baz)
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
-      return resolveByClassAndSymbol(childReferences[0].getHaxeClass(), childReferences[1].getText());
+      return resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1].getText());
     }
 
     final List<PsiElement> result = new ArrayList<PsiElement>();
@@ -156,6 +164,10 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     // try super field
     return resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(this, HaxeClass.class), getText());
+  }
+
+  private static ResolveResult[] resolveByClassAndSymbol(@Nullable HaxeClassResolveResult resolveResult, @NotNull String symbolName) {
+    return resolveResult == null ? ResolveResult.EMPTY_ARRAY : resolveByClassAndSymbol(resolveResult.getHaxeClass(), symbolName);
   }
 
   private static ResolveResult[] resolveByClassAndSymbol(@Nullable HaxeClass referenceClass, @NotNull String symbolName) {
@@ -217,14 +229,15 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // foo.bar.baz
     final HaxeReference referenceExpression = PsiTreeUtil.getPrevSiblingOfType(this, HaxeReference.class);
     if (referenceExpression != null && getParent() instanceof HaxeReference) {
-      addClassVariants(suggestedVariants, referenceExpression.getHaxeClass(), !(referenceExpression instanceof HaxeThisExpression));
+      addClassVariants(suggestedVariants, referenceExpression.resolveHaxeClass().getHaxeClass(),
+                       !(referenceExpression instanceof HaxeThisExpression));
     }
     else {
       // if chain
       // node(foo.node(bar)).node(baz)
       final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
       if (childReferences != null && childReferences.length == 2) {
-        return resolveByClassAndSymbol(childReferences[0].getHaxeClass(), childReferences[1].getText());
+        return resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1].getText());
       }
       else {
         PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());

@@ -5,21 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeTypedefDeclaration extends HaxeClass {
+public interface HaxeGenericListPart extends HaxeComponent {
 
-  @Nullable
-  HaxeAnonymousType getAnonymousType();
-
-  @Nullable
+  @NotNull
   HaxeComponentName getComponentName();
 
   @Nullable
-  HaxeExternOrPrivate getExternOrPrivate();
-
-  @Nullable
-  HaxeGenericParam getGenericParam();
-
-  @Nullable
-  HaxeType getType();
+  HaxeTypeList getTypeList();
 
 }

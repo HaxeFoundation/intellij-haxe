@@ -10,26 +10,26 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypeConstraintImpl extends HaxePsiCompositeElementImpl implements HaxeTypeConstraint {
+public class HaxeTypeListPartImpl extends HaxePsiCompositeElementImpl implements HaxeTypeListPart {
 
-  public HaxeTypeConstraintImpl(ASTNode node) {
+  public HaxeTypeListPartImpl(ASTNode node) {
     super(node);
   }
 
   @Override
-  @NotNull
-  public HaxeIdentifier getIdentifier() {
-    return findNotNullChildByClass(HaxeIdentifier.class);
+  @Nullable
+  public HaxeAnonymousType getAnonymousType() {
+    return findChildByClass(HaxeAnonymousType.class);
   }
 
   @Override
   @Nullable
-  public HaxeTypeList getTypeList() {
-    return findChildByClass(HaxeTypeList.class);
+  public HaxeType getType() {
+    return findChildByClass(HaxeType.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeConstraint(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeListPart(this);
     else super.accept(visitor);
   }
 

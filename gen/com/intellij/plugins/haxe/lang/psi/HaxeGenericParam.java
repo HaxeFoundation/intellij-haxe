@@ -5,12 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeTypeConstraint extends HaxePsiCompositeElement {
+public interface HaxeGenericParam extends HaxePsiCompositeElement {
 
   @NotNull
-  HaxeIdentifier getIdentifier();
-
-  @Nullable
-  HaxeTypeList getTypeList();
+  List<HaxeGenericListPart> getGenericListPartList();
 
 }

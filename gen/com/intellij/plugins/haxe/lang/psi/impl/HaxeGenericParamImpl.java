@@ -10,20 +10,20 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypeListImpl extends HaxePsiCompositeElementImpl implements HaxeTypeList {
+public class HaxeGenericParamImpl extends HaxePsiCompositeElementImpl implements HaxeGenericParam {
 
-  public HaxeTypeListImpl(ASTNode node) {
+  public HaxeGenericParamImpl(ASTNode node) {
     super(node);
   }
 
   @Override
   @NotNull
-  public List<HaxeTypeListPart> getTypeListPartList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeListPart.class);
+  public List<HaxeGenericListPart> getGenericListPartList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeGenericListPart.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeList(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitGenericParam(this);
     else super.accept(visitor);
   }
 

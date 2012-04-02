@@ -36,14 +36,14 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxePsiClass implements 
 
   @Override
   @Nullable
-  public HaxeType getType() {
-    return findChildByClass(HaxeType.class);
+  public HaxeGenericParam getGenericParam() {
+    return findChildByClass(HaxeGenericParam.class);
   }
 
   @Override
   @Nullable
-  public HaxeTypeParam getTypeParam() {
-    return findChildByClass(HaxeTypeParam.class);
+  public HaxeType getType() {
+    return findChildByClass(HaxeType.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

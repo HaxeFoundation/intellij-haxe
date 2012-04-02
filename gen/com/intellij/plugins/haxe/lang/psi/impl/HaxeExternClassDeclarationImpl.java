@@ -60,6 +60,12 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
 
   @Override
   @Nullable
+  public HaxeGenericParam getGenericParam() {
+    return findChildByClass(HaxeGenericParam.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeInheritList getInheritList() {
     return findChildByClass(HaxeInheritList.class);
   }
@@ -86,12 +92,6 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   @NotNull
   public List<HaxeRequireMeta> getRequireMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeRequireMeta.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeTypeParam getTypeParam() {
-    return findChildByClass(HaxeTypeParam.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

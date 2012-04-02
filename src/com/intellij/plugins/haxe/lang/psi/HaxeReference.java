@@ -1,12 +1,12 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiReference;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
 public interface HaxeReference extends HaxeExpression, PsiReference {
-  @Nullable
-  HaxeClass getHaxeClass();
+  @NotNull
+  HaxeClassResolveResult resolveHaxeClass();
 }

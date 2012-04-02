@@ -88,16 +88,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public HaxeNamedComponent findMethodBySignature(@NotNull final String name, final List<HaxeType> parameterTypes) {
-    return ContainerUtil.find(getMethods(), new Condition<HaxeNamedComponent>() {
-      @Override
-      public boolean value(HaxeNamedComponent component) {
-        if (!name.equals(component.getName())) {
-          return false;
-        }
-        final List<HaxeType> componentParameterTypes = HaxeResolveUtil.getFunctionParameters(component);
-        return componentParameterTypes != null && parameterTypes.size() != componentParameterTypes.size();
-      }
-    });
+  public boolean isGeneric() {
+    return getGenericParam() != null;
   }
 }

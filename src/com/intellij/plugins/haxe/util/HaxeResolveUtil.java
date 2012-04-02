@@ -228,28 +228,41 @@ public class HaxeResolveUtil {
     });
   }
 
-  @Nullable
-  public static HaxeClass getHaxeClass(@Nullable PsiElement element) {
+
+  @NotNull
+  public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element) {
+    return getHaxeClass(element, Collections.<String, HaxeClassResolveResult>emptyMap());
+  }
+
+  @NotNull
+  public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element, Map<String, HaxeClassResolveResult> specialization) {
     if (element == null) {
-      return null;
+      return new HaxeClassResolveResult(null);
     }
     if (element instanceof HaxeComponentName) {
-      return getHaxeClass(element.getParent());
+      return getHaxeClass(element.getParent(), specialization);
     }
     if (element instanceof HaxeClass) {
-      return (HaxeClass)element;
+      return new HaxeClassResolveResult((HaxeClass)element);
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeType type = typeTag == null ? null : typeTag.getType();
+    final HaxeType type = typeTag != null ? typeTag.getType() :
+                          element instanceof HaxeType ? (HaxeType)element : null;
     final HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
-    final HaxeClass result = getHaxeClass(typeComponent);
-    if (result != null) {
+    HaxeClassResolveResult result = getHaxeClass(typeComponent);
+    if (result.getHaxeClass() != null) {
+      result.specializeByParameters(type == null ? null : type.getTypeParam());
       return result;
+    }
+    if (type != null && specialization.containsKey(type.getText())) {
+      return specialization.get(type.getText());
     }
     final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
     final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
     if (initExpression instanceof HaxeReference) {
-      return ((HaxeReference)initExpression).getHaxeClass();
+      result = ((HaxeReference)initExpression).resolveHaxeClass();
+      result.specialize(initExpression);
+      return result;
     }
     return getHaxeClass(initExpression);
   }
@@ -343,7 +356,7 @@ public class HaxeResolveUtil {
   }
 
   @NotNull
-  public static List<HaxeComponentName> getComponentNames(List<? extends  HaxeNamedComponent> components) {
+  public static List<HaxeComponentName> getComponentNames(List<? extends HaxeNamedComponent> components) {
     return ContainerUtil.map(components, new Function<HaxeNamedComponent, HaxeComponentName>() {
       @Override
       public HaxeComponentName fun(HaxeNamedComponent component) {

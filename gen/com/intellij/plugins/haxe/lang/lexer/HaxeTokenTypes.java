@@ -57,6 +57,8 @@ public interface HaxeTokenTypes {
   IElementType HAXE_FUNCTIONLITERAL = new HaxeElementType("HAXE_FUNCTIONLITERAL");
   IElementType HAXE_FUNCTIONPROTOTYPEDECLARATIONWITHATTRIBUTES = new HaxeElementType("HAXE_FUNCTIONPROTOTYPEDECLARATIONWITHATTRIBUTES");
   IElementType HAXE_FUNCTIONTYPE = new HaxeElementType("HAXE_FUNCTIONTYPE");
+  IElementType HAXE_GENERICLISTPART = new HaxeElementType("HAXE_GENERICLISTPART");
+  IElementType HAXE_GENERICPARAM = new HaxeElementType("HAXE_GENERICPARAM");
   IElementType HAXE_GETTERMETA = new HaxeElementType("HAXE_GETTERMETA");
   IElementType HAXE_IDENTIFIER = new HaxeElementType("HAXE_IDENTIFIER");
   IElementType HAXE_IFEXPRESSION = new HaxeElementType("HAXE_IFEXPRESSION");
@@ -112,10 +114,10 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TRYEXPRESSION = new HaxeElementType("HAXE_TRYEXPRESSION");
   IElementType HAXE_TRYSTATEMENT = new HaxeElementType("HAXE_TRYSTATEMENT");
   IElementType HAXE_TYPE = new HaxeElementType("HAXE_TYPE");
-  IElementType HAXE_TYPECONSTRAINT = new HaxeElementType("HAXE_TYPECONSTRAINT");
   IElementType HAXE_TYPEDEFDECLARATION = new HaxeElementType("HAXE_TYPEDEFDECLARATION");
   IElementType HAXE_TYPEEXTENDS = new HaxeElementType("HAXE_TYPEEXTENDS");
   IElementType HAXE_TYPELIST = new HaxeElementType("HAXE_TYPELIST");
+  IElementType HAXE_TYPELISTPART = new HaxeElementType("HAXE_TYPELISTPART");
   IElementType HAXE_TYPEPARAM = new HaxeElementType("HAXE_TYPEPARAM");
   IElementType HAXE_TYPETAG = new HaxeElementType("HAXE_TYPETAG");
   IElementType HAXE_UNSIGNEDSHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_UNSIGNEDSHIFTRIGHTOPERATOR");
@@ -393,6 +395,12 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_FUNCTIONTYPE) {
         return new HaxeFunctionTypeImpl(node);
       }
+      else if (type == HAXE_GENERICLISTPART) {
+        return new HaxeGenericListPartImpl(node);
+      }
+      else if (type == HAXE_GENERICPARAM) {
+        return new HaxeGenericParamImpl(node);
+      }
       else if (type == HAXE_GETTERMETA) {
         return new HaxeGetterMetaImpl(node);
       }
@@ -558,9 +566,6 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_TYPE) {
         return new HaxeTypeImpl(node);
       }
-      else if (type == HAXE_TYPECONSTRAINT) {
-        return new HaxeTypeConstraintImpl(node);
-      }
       else if (type == HAXE_TYPEDEFDECLARATION) {
         return new HaxeTypedefDeclarationImpl(node);
       }
@@ -569,6 +574,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_TYPELIST) {
         return new HaxeTypeListImpl(node);
+      }
+      else if (type == HAXE_TYPELISTPART) {
+        return new HaxeTypeListPartImpl(node);
       }
       else if (type == HAXE_TYPEPARAM) {
         return new HaxeTypeParamImpl(node);

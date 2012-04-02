@@ -17,13 +17,13 @@ public interface HaxeLocalFunctionDeclaration extends HaxeComponent {
   HaxeExpression getExpression();
 
   @Nullable
+  HaxeGenericParam getGenericParam();
+
+  @Nullable
   HaxeParameterList getParameterList();
 
   @Nullable
   HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
-
-  @Nullable
-  HaxeTypeParam getTypeParam();
 
   @Nullable
   HaxeTypeTag getTypeTag();

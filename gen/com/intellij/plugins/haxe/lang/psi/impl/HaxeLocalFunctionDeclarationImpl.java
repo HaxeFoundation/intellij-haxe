@@ -36,6 +36,12 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
 
   @Override
   @Nullable
+  public HaxeGenericParam getGenericParam() {
+    return findChildByClass(HaxeGenericParam.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);
   }
@@ -44,12 +50,6 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
   @Nullable
   public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
     return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeTypeParam getTypeParam() {
-    return findChildByClass(HaxeTypeParam.class);
   }
 
   @Override

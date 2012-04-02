@@ -31,6 +31,9 @@ public interface HaxeEnumDeclaration extends HaxeClass {
   @NotNull
   List<HaxeFakeEnumMeta> getFakeEnumMetaList();
 
+  @Nullable
+  HaxeGenericParam getGenericParam();
+
   @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
 
@@ -42,8 +45,5 @@ public interface HaxeEnumDeclaration extends HaxeClass {
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
-
-  @Nullable
-  HaxeTypeParam getTypeParam();
 
 }

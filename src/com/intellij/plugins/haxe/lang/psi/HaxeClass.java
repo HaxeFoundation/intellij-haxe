@@ -36,6 +36,8 @@ public interface HaxeClass extends HaxeComponent {
   @Nullable
   HaxeNamedComponent findMethodByName(@NotNull final String name);
 
+  boolean isGeneric();
+
   @Nullable
-  HaxeNamedComponent findMethodBySignature(@NotNull final String name, List<HaxeType> parameterTypes);
+  HaxeGenericParam getGenericParam();
 }

@@ -98,7 +98,8 @@ public enum HaxeComponentType {
   @Nullable
   public static HaxeComponentType typeOf(PsiElement element) {
     if (element instanceof HaxeClassDeclaration ||
-        element instanceof HaxeExternClassDeclaration) {
+        element instanceof HaxeExternClassDeclaration ||
+        element instanceof HaxeGenericListPart) {
       return CLASS;
     }
     if (element instanceof HaxeEnumDeclaration) {

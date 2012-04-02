@@ -11,13 +11,12 @@ haXe File
         HAXE_COMPONENTNAME
           HAXE_IDENTIFIER
             PsiElement(ID)('f')
-        HAXE_TYPEPARAM
+        HAXE_GENERICPARAM
           PsiElement(<)('<')
-          HAXE_TYPELIST
-            HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('T')
+          HAXE_GENERICLISTPART
+            HAXE_COMPONENTNAME
+              HAXE_IDENTIFIER
+                PsiElement(ID)('T')
           PsiElement(>)('>')
         PsiElement(()('(')
         HAXE_PARAMETERLIST
@@ -34,10 +33,11 @@ haXe File
                 HAXE_TYPEPARAM
                   PsiElement(<)('<')
                   HAXE_TYPELIST
-                    HAXE_TYPE
-                      HAXE_REFERENCEEXPRESSION
-                        HAXE_IDENTIFIER
-                          PsiElement(ID)('T')
+                    HAXE_TYPELISTPART
+                      HAXE_TYPE
+                        HAXE_REFERENCEEXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('T')
                   PsiElement(>)('>')
         PsiElement())(')')
         HAXE_TYPETAG

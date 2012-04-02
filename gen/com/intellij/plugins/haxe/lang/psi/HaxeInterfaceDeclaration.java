@@ -29,6 +29,9 @@ public interface HaxeInterfaceDeclaration extends HaxeClass {
   List<HaxeFakeEnumMeta> getFakeEnumMetaList();
 
   @Nullable
+  HaxeGenericParam getGenericParam();
+
+  @Nullable
   HaxeInheritList getInheritList();
 
   @Nullable
@@ -45,8 +48,5 @@ public interface HaxeInterfaceDeclaration extends HaxeClass {
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
-
-  @Nullable
-  HaxeTypeParam getTypeParam();
 
 }

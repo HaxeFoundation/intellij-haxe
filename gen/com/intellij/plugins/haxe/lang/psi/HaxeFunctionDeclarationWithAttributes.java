@@ -28,6 +28,9 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponentWith
   @Nullable
   HaxeExpression getExpression();
 
+  @Nullable
+  HaxeGenericParam getGenericParam();
+
   @NotNull
   List<HaxeGetterMeta> getGetterMetaList();
 
@@ -45,9 +48,6 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponentWith
 
   @NotNull
   List<HaxeSetterMeta> getSetterMetaList();
-
-  @Nullable
-  HaxeTypeParam getTypeParam();
 
   @Nullable
   HaxeTypeTag getTypeTag();

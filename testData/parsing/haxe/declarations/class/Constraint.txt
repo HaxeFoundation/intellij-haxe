@@ -4,26 +4,27 @@ haXe File
     HAXE_COMPONENTNAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Constraint')
-    HAXE_TYPEPARAM
+    HAXE_GENERICPARAM
       PsiElement(<)('<')
-      HAXE_TYPELIST
-        HAXE_TYPECONSTRAINT
+      HAXE_GENERICLISTPART
+        HAXE_COMPONENTNAME
           HAXE_IDENTIFIER
             PsiElement(ID)('T')
-          PsiElement(:)(':')
-          PsiElement(()('(')
-          HAXE_TYPELIST
+        PsiElement(:)(':')
+        PsiElement(()('(')
+        HAXE_TYPELIST
+          HAXE_TYPELISTPART
             HAXE_TYPE
               HAXE_REFERENCEEXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('Event')
-            PsiElement(,)(',')
-            HAXE_TYPELIST
-              HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('EventDispatcher')
-          PsiElement())(')')
+          PsiElement(,)(',')
+          HAXE_TYPELISTPART
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('EventDispatcher')
+        PsiElement())(')')
       PsiElement(>)('>')
     PsiElement({)('{')
     HAXE_CLASSBODY
