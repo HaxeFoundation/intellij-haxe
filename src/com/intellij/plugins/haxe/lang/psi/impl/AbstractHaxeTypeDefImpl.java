@@ -18,10 +18,10 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   public HaxeClassResolveResult getTargetClass() {
-    return getTargetClass(Collections.<String, HaxeClassResolveResult>emptyMap());
+    return getTargetClass(new HaxeGenericSpecialization());
   }
 
-  public HaxeClassResolveResult getTargetClass(Map<String, HaxeClassResolveResult> specialization) {
+  public HaxeClassResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
     if (getAnonymousType() != null) {
       return new HaxeClassResolveResult(getAnonymousType(), specialization);
     }

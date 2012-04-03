@@ -105,7 +105,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private static HaxeClassResolveResult tryGetLeftResolveResult(HaxeExpression expression) {
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
     final HaxeReference leftReference = childReferences != null ? childReferences[0] : null;
-    return leftReference == null ? HaxeClassResolveResult.EMPTY : leftReference.resolveHaxeClass();
+    return leftReference != null
+           ? leftReference.resolveHaxeClass()
+           : new HaxeClassResolveResult(PsiTreeUtil.getParentOfType(expression, HaxeClass.class));
   }
 
   @Nullable

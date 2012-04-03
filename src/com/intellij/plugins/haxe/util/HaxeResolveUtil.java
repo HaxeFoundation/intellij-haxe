@@ -241,11 +241,11 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element) {
-    return getHaxeClass(element, new THashMap<String, HaxeClassResolveResult>());
+    return getHaxeClass(element, new HaxeGenericSpecialization());
   }
 
   @NotNull
-  public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element, Map<String, HaxeClassResolveResult> specialization) {
+  public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element, @NotNull HaxeGenericSpecialization specialization) {
     if (element == null) {
       return new HaxeClassResolveResult(null);
     }
@@ -264,20 +264,18 @@ public class HaxeResolveUtil {
                           element instanceof HaxeType ? (HaxeType)element : null;
 
     HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
-    if(typeComponent == null && type != null && specialization.containsKey(type.getText())){
-      return specialization.get(type.getText());
+    if(typeComponent == null && type != null && specialization.containsKey(element, type.getText())){
+      return specialization.get(element, type.getText());
     }
 
-    HaxeClassResolveResult result = getHaxeClass(typeComponent, specialization);
+    HaxeClassResolveResult result = getHaxeClass(typeComponent, specialization.getInnerSpecialization(element));
     if (result.getHaxeClass() != null) {
       result.specializeByParameters(type == null ? null : type.getTypeParam());
       return result;
     }
-    if (type != null && specialization.containsKey(type.getText())) {
-      return specialization.get(type.getText());
-    }
-    if (specialization.containsKey(element.getText())) {
-      return specialization.get(element.getText());
+
+    if (specialization.containsKey(null, element.getText())) {
+      return specialization.get(null, element.getText());
     }
     final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
     final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
