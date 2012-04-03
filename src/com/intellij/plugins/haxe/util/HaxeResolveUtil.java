@@ -10,7 +10,6 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -20,7 +19,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
-import gnu.trove.THashMap;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -258,6 +256,29 @@ public class HaxeResolveUtil {
     }
     if (element instanceof HaxeClass) {
       return new HaxeClassResolveResult((HaxeClass)element);
+    }
+    if (element instanceof HaxeForStatement) {
+      final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
+      assert iterable != null;
+      final HaxeExpression expression = iterable.getExpression();
+      if (expression instanceof HaxeReference) {
+        final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
+        final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+        // try next
+        HaxeClassResolveResult result =
+          getHaxeClass(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
+                       resolveResult.getSpecializations());
+        if (result.getHaxeClass() != null) {
+          return result;
+        }
+        // try iterator
+        result = getHaxeClass(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
+                              resolveResult.getSpecializations());
+        return result.getSpecializations().containsKey(null, "T")
+               ? result.getSpecializations().get(null, "T")
+               : HaxeClassResolveResult.EMPTY;
+      }
+      return new HaxeClassResolveResult(null);
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag != null ? typeTag.getType() :

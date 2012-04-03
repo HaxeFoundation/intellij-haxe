@@ -202,6 +202,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == HAXE_INTERFACEDECLARATION) {
       result_ = interfaceDeclaration(builder_, level_ + 1);
     }
+    else if (root_ == HAXE_ITERABLE) {
+      result_ = iterable(builder_, level_ + 1);
+    }
     else if (root_ == HAXE_ITERATOREXPRESSION) {
       result_ = iteratorExpression(builder_, level_ + 1);
     }
@@ -2616,7 +2619,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'for' '(' componentName 'in' expression ')' statement
+  // 'for' '(' componentName 'in' iterable')' statement
   public static boolean forStatement(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "forStatement")) return false;
     if (!nextTokenIs(builder_, KFOR)) return false;
@@ -2629,7 +2632,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
     result_ = pinned_ && report_error_(builder_, componentName(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, OIN)) && result_;
-    result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, iterable(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && statement(builder_, level_ + 1) && result_;
     if (result_ || pinned_) {
@@ -3630,6 +3633,36 @@ public class HaxeParser implements PsiParser {
     }
     else {
       marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // expression
+  public static boolean iterable(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "iterable")) return false;
+    if (!nextTokenIs(builder_, LITOCT) && !nextTokenIs(builder_, LITHEX)
+        && !nextTokenIs(builder_, KCAST) && !nextTokenIs(builder_, OMINUS_MINUS)
+        && !nextTokenIs(builder_, LITCHAR) && !nextTokenIs(builder_, KTRUE)
+        && !nextTokenIs(builder_, KSWITCH) && !nextTokenIs(builder_, OPLUS_PLUS)
+        && !nextTokenIs(builder_, KIF) && !nextTokenIs(builder_, ONOT)
+        && !nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, LITFLOAT)
+        && !nextTokenIs(builder_, PLPAREN) && !nextTokenIs(builder_, ID)
+        && !nextTokenIs(builder_, LITSTRING) && !nextTokenIs(builder_, PPIF)
+        && !nextTokenIs(builder_, ONEW) && !nextTokenIs(builder_, LITINT)
+        && !nextTokenIs(builder_, KTHIS) && !nextTokenIs(builder_, KNULL)
+        && !nextTokenIs(builder_, KTRY) && !nextTokenIs(builder_, KFALSE)
+        && !nextTokenIs(builder_, OMINUS) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, OCOMPLEMENT)
+        && !nextTokenIs(builder_, KUNTYPED)) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = expression(builder_, level_ + 1);
+    if (result_) {
+      marker_.done(HAXE_ITERABLE);
+    }
+    else {
+      marker_.rollbackTo();
     }
     return result_;
   }

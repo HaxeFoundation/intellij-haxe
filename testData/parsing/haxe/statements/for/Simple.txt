@@ -28,12 +28,13 @@ haXe File
               HAXE_IDENTIFIER
                 PsiElement(ID)('i')
             PsiElement(in)('in')
-            HAXE_ITERATOREXPRESSION
-              HAXE_LITERALEXPRESSION
-                PsiElement(LITINT)('1')
-              PsiElement(...)('...')
-              HAXE_LITERALEXPRESSION
-                PsiElement(LITINT)('11')
+            HAXE_ITERABLE
+              HAXE_ITERATOREXPRESSION
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITINT)('1')
+                PsiElement(...)('...')
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITINT)('11')
             PsiElement())(')')
             HAXE_BLOCKSTATEMENT
               PsiElement({)('{')

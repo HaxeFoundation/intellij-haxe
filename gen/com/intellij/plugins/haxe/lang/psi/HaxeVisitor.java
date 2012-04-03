@@ -31,7 +31,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitArrayAccessExpression(@NotNull HaxeArrayAccessExpression o) {
-    visitExpression(o);
+    visitReference(o);
+    // visitExpression(o);
   }
 
   public void visitArrayLiteral(@NotNull HaxeArrayLiteral o) {
@@ -246,6 +247,10 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitInterfaceDeclaration(@NotNull HaxeInterfaceDeclaration o) {
     visitClass(o);
+  }
+
+  public void visitIterable(@NotNull HaxeIterable o) {
+    visitPsiCompositeElement(o);
   }
 
   public void visitIteratorExpression(@NotNull HaxeIteratorExpression o) {

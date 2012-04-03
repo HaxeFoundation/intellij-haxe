@@ -348,8 +348,10 @@ private notBlockStatement ::= ('untyped' statement)
 ifStatement ::= 'if' '(' expression ')' statement ('else' statement)?
 ifExpression ::= 'if' '(' expression ')' expression ('else' expression)?
 
-forStatement ::= 'for' '(' componentName 'in' expression ')' statement
+forStatement ::= 'for' '(' componentName 'in' iterable')' statement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+
+iterable ::= expression
 
 whileStatement ::= 'while' '(' expression ')' statement
 doWhileStatement ::= 'do' statement 'while' '(' expression ')'
@@ -445,6 +447,7 @@ private callOrArrayAccess ::= (referenceExpression | thisExpression) (callExpres
 left callExpression ::= '(' expressionList? ')'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 left arrayAccessExpression ::= '[' expression? ']'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 referenceExpression ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}

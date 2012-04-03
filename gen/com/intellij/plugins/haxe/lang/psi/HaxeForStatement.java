@@ -28,14 +28,17 @@ public interface HaxeForStatement extends HaxeComponent {
   @Nullable
   HaxeDoWhileStatement getDoWhileStatement();
 
-  @NotNull
-  List<HaxeExpression> getExpressionList();
+  @Nullable
+  HaxeExpression getExpression();
 
   @Nullable
   HaxeForStatement getForStatement();
 
   @Nullable
   HaxeIfStatement getIfStatement();
+
+  @Nullable
+  HaxeIterable getIterable();
 
   @Nullable
   HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();

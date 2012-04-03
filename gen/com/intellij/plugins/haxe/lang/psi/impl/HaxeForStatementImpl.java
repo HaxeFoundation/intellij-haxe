@@ -59,9 +59,9 @@ public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements 
   }
 
   @Override
-  @NotNull
-  public List<HaxeExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
+  @Nullable
+  public HaxeExpression getExpression() {
+    return findChildByClass(HaxeExpression.class);
   }
 
   @Override
@@ -74,6 +74,12 @@ public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements 
   @Nullable
   public HaxeIfStatement getIfStatement() {
     return findChildByClass(HaxeIfStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeIterable getIterable() {
+    return findChildByClass(HaxeIterable.class);
   }
 
   @Override

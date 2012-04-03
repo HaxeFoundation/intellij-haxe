@@ -68,6 +68,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_INHERITLIST = new HaxeElementType("HAXE_INHERITLIST");
   IElementType HAXE_INTERFACEBODY = new HaxeElementType("HAXE_INTERFACEBODY");
   IElementType HAXE_INTERFACEDECLARATION = new HaxeElementType("HAXE_INTERFACEDECLARATION");
+  IElementType HAXE_ITERABLE = new HaxeElementType("HAXE_ITERABLE");
   IElementType HAXE_ITERATOREXPRESSION = new HaxeElementType("HAXE_ITERATOREXPRESSION");
   IElementType HAXE_LITERALEXPRESSION = new HaxeElementType("HAXE_LITERALEXPRESSION");
   IElementType HAXE_LOCALFUNCTIONDECLARATION = new HaxeElementType("HAXE_LOCALFUNCTIONDECLARATION");
@@ -427,6 +428,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_INTERFACEDECLARATION) {
         return new HaxeInterfaceDeclarationImpl(node);
+      }
+      else if (type == HAXE_ITERABLE) {
+        return new HaxeIterableImpl(node);
       }
       else if (type == HAXE_ITERATOREXPRESSION) {
         return new HaxeIteratorExpressionImpl(node);

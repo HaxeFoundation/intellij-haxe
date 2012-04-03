@@ -94,6 +94,23 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return result;
       }
     }
+    if (this instanceof HaxeArrayAccessExpression) {
+      // wrong generation. see HaxeCallExpression
+      final HaxeReference reference = PsiTreeUtil.getChildOfType(this, HaxeReference.class);
+      if (reference != null) {
+        final HaxeClassResolveResult resolveResult = reference.resolveHaxeClass();
+        final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+        if (resolveResultHaxeClass == null) {
+          return resolveResult;
+        }
+        // std Array
+        if ("Array".equalsIgnoreCase(resolveResultHaxeClass.getQualifiedName())) {
+          return resolveResult.getSpecializations().get(resolveResultHaxeClass, "T");
+        }
+        // __get method
+        return HaxeResolveUtil.getHaxeClass(resolveResultHaxeClass.findMethodByName("__get"), resolveResult.getSpecializations());
+      }
+    }
     HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClass(resolve(), tryGetLeftResolveResult(this).getSpecializations());
     if (result.getHaxeClass() == null) {
       result = new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getText(), this));

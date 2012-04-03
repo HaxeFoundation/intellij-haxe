@@ -10,20 +10,20 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeArrayAccessExpressionImpl extends HaxeReferenceImpl implements HaxeArrayAccessExpression {
+public class HaxeIterableImpl extends HaxePsiCompositeElementImpl implements HaxeIterable {
 
-  public HaxeArrayAccessExpressionImpl(ASTNode node) {
+  public HaxeIterableImpl(ASTNode node) {
     super(node);
   }
 
   @Override
   @NotNull
-  public List<HaxeExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
+  public HaxeExpression getExpression() {
+    return findNotNullChildByClass(HaxeExpression.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitArrayAccessExpression(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitIterable(this);
     else super.accept(visitor);
   }
 
