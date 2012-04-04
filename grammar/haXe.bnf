@@ -102,6 +102,7 @@
     kTRUE ="true"
     kFALSE ="false"
     kTHIS ="this"
+    kSUPER ="super"
 
     kIF ="if"
     kFOR ="for"
@@ -275,7 +276,7 @@ private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#e
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
-propertyAccessor ::= identifier | 'null' | 'default' | 'dynamic'
+propertyAccessor ::= referenceExpression | 'null' | 'default' | 'dynamic'
 
 private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression
 
@@ -442,7 +443,7 @@ parenthesizedExpression ::= '(' (expression | statement) ')'
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
-private callOrArrayAccess ::= (referenceExpression | thisExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
+private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 left callExpression ::= '(' expressionList? ')'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
@@ -458,6 +459,9 @@ componentName ::= identifier
 identifier ::= ID
 
 thisExpression ::= 'this'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 newExpression ::= 'new' type '(' expressionList? ')'
@@ -476,7 +480,7 @@ anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | inte
 private extendedAnonymousTypeBody ::= typeExtends (',' anonymousTypeFieldList)? (',' interfaceBody)?
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBody)?
 
-typeExtends ::= '>' functionTypeWrapper
+typeExtends ::= '>' type
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 

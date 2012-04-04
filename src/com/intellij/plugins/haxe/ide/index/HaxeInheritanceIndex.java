@@ -5,10 +5,8 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -90,13 +88,29 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
       final Map<String, HaxeClassInfo> result = new THashMap<String, HaxeClassInfo>(classes.size());
       for (HaxeClass haxeClass : classes) {
         final HaxeClassInfo value = new HaxeClassInfo(haxeClass.getQualifiedName(), HaxeComponentType.typeOf(haxeClass));
-        for (HaxeType haxeType : haxeClass.getExtendsList()) {
-          final String key = HaxeResolveUtil.getQName(haxeType, true);
+        if (haxeClass instanceof AbstractHaxeTypeDefImpl) {
+          final HaxeType type = ((AbstractHaxeTypeDefImpl)haxeClass).getType();
+          final HaxeAnonymousType anonymousType = ((AbstractHaxeTypeDefImpl)haxeClass).getAnonymousType();
+          if (anonymousType != null) {
+            final HaxeTypeExtends typeExtends = anonymousType.getAnonymousTypeBody().getTypeExtends();
+            if(typeExtends != null){
+              final String key = HaxeResolveUtil.getQName(typeExtends.getType(), true);
+              result.put(key, value);
+            }
+          }
+          else if (type != null) {
+            result.put(HaxeResolveUtil.getQName(type, true), value);
+          }
+        }
+        else {
+          for (HaxeType haxeType : haxeClass.getExtendsList()) {
+            final String key = HaxeResolveUtil.getQName(haxeType, true);
           result.put(key, value);
         }
         for (HaxeType haxeType : haxeClass.getImplementsList()) {
           final String key = HaxeResolveUtil.getQName(haxeType, true);
           result.put(key, value);
+        }
         }
       }
       return result;

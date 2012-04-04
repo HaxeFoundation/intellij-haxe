@@ -107,6 +107,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_SHIFTOPERATOR = new HaxeElementType("HAXE_SHIFTOPERATOR");
   IElementType HAXE_SHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_SHIFTRIGHTOPERATOR");
   IElementType HAXE_SUFFIXEXPRESSION = new HaxeElementType("HAXE_SUFFIXEXPRESSION");
+  IElementType HAXE_SUPEREXPRESSION = new HaxeElementType("HAXE_SUPEREXPRESSION");
   IElementType HAXE_SWITCHEXPRESSION = new HaxeElementType("HAXE_SWITCHEXPRESSION");
   IElementType HAXE_SWITCHSTATEMENT = new HaxeElementType("HAXE_SWITCHSTATEMENT");
   IElementType HAXE_TERNARYEXPRESSION = new HaxeElementType("HAXE_TERNARYEXPRESSION");
@@ -176,6 +177,7 @@ public interface HaxeTokenTypes {
   IElementType KRETURN = new HaxeElementType("return");
   IElementType KSETTER = new HaxeElementType("@:setter");
   IElementType KSTATIC = new HaxeElementType("static");
+  IElementType KSUPER = new HaxeElementType("super");
   IElementType KSWITCH = new HaxeElementType("switch");
   IElementType KTHIS = new HaxeElementType("this");
   IElementType KTHROW = new HaxeElementType("throw");
@@ -545,6 +547,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_SUFFIXEXPRESSION) {
         return new HaxeSuffixExpressionImpl(node);
+      }
+      else if (type == HAXE_SUPEREXPRESSION) {
+        return new HaxeSuperExpressionImpl(node);
       }
       else if (type == HAXE_SWITCHEXPRESSION) {
         return new HaxeSwitchExpressionImpl(node);

@@ -91,6 +91,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "true"                                    {  return KTRUE ;  }
 "false"                                   {  return KFALSE ;  }
 "this"                                    {  return KTHIS ;  }
+"super"                                   {  return KSUPER ;  }
 
 "for"                                     {  return KFOR ;  }
 "do"                                      {  return KDO ;  }

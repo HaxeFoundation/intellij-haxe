@@ -71,6 +71,19 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (this instanceof HaxeThisExpression) {
       return new HaxeClassResolveResult(PsiTreeUtil.getParentOfType(this, HaxeClass.class));
     }
+    if (this instanceof HaxeSuperExpression) {
+      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+      assert haxeClass != null;
+      if (haxeClass.getExtendsList().isEmpty()) {
+        return new HaxeClassResolveResult(null);
+      }
+      final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getExpression();
+      final HaxeClassResolveResult superClassResolveResult = superExpression instanceof HaxeReference
+                                                             ? ((HaxeReference)superExpression).resolveHaxeClass()
+                                                             : new HaxeClassResolveResult(null);
+      superClassResolveResult.specializeByParameters(haxeClass.getExtendsList().get(0).getTypeParam());
+      return superClassResolveResult;
+    }
     if (this instanceof HaxeLiteralExpression) {
       final LeafPsiElement child = (LeafPsiElement)getFirstChild();
       final IElementType childTokenType = child == null ? null : child.getElementType();
@@ -171,6 +184,18 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
       return resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1].getText());
+    }
+    if (this instanceof HaxeSuperExpression) {
+      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+      assert haxeClass != null;
+      if (!haxeClass.getExtendsList().isEmpty()) {
+        final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getExpression();
+        final HaxeClass superClass = superExpression instanceof HaxeReference
+                                     ? ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass()
+                                     : null;
+        final HaxeNamedComponent constructor = superClass == null ? null : superClass.findMethodByName("new");
+        return toCandidateInfoArray(constructor != null ? constructor : superClass);
+      }
     }
 
     final List<PsiElement> result = new ArrayList<PsiElement>();

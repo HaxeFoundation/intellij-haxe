@@ -15,6 +15,7 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
  * @author fedor.korotkov
  */
 public class HaxeSyntaxHighlighterColors {
+  public static final String HAXE_KEYWORD = "HAXE_KEYWORD";
   public static final String HAXE_CLASS = "HAXE_CLASS";
   public static final String HAXE_INTERFACE = "HAXE_INTERFACE";
   public static final String HAXE_STATIC_MEMBER_FUNCTION = "HAXE_STATIC_MEMBER_FUNCTION";

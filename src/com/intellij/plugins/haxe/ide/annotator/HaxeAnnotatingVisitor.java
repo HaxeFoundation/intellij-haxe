@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
@@ -39,6 +40,13 @@ public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
     if (referenceTarget != null) {
       return; // OK
     }
+
+    if ("trace".equals(reference.getText()) &&
+        reference.getParent() instanceof HaxeCallExpression &&
+        !(reference.getParent().getParent() instanceof HaxeReference)) {
+      return;
+    }
+
     if (!(reference.getParent() instanceof HaxeReference) && !(reference.getParent() instanceof HaxePackageStatement)) {
       // whole reference expression
       myHolder.createErrorAnnotation(reference, HaxeBundle.message("cannot.resolve.reference"));

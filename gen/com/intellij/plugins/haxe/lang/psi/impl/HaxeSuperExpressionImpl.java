@@ -10,20 +10,14 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxePropertyAccessorImpl extends HaxePsiCompositeElementImpl implements HaxePropertyAccessor {
+public class HaxeSuperExpressionImpl extends HaxeReferenceImpl implements HaxeSuperExpression {
 
-  public HaxePropertyAccessorImpl(ASTNode node) {
+  public HaxeSuperExpressionImpl(ASTNode node) {
     super(node);
   }
 
-  @Override
-  @Nullable
-  public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
-  }
-
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitPropertyAccessor(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSuperExpression(this);
     else super.accept(visitor);
   }
 

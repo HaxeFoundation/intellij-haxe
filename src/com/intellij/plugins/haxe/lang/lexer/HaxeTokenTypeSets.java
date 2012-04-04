@@ -96,7 +96,8 @@ public interface HaxeTokenTypeSets {
     KDEBUG,
     KNODEBUG,
     KMETA,
-    KUSING
+    KUSING,
+    KSUPER
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(

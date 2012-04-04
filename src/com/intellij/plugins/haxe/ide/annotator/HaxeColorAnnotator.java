@@ -5,10 +5,8 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -37,6 +35,15 @@ public class HaxeColorAnnotator implements Annotator {
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
       }
     }
+
+    if (isNewOperator(node)) {
+      holder.createInfoAnnotation(node, null).setTextAttributes(TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD));
+    }
+  }
+
+  private static boolean isNewOperator(PsiElement element) {
+    return HaxeTokenTypes.ONEW.toString().equals(element.getText()) &&
+           element.getParent() instanceof HaxeNewExpression;
   }
 
   private static void tryAnnotateQName(PsiElement node, AnnotationHolder holder) {
