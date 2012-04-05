@@ -114,7 +114,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     configuration.setCustomFileToLaunch(myCustomPathCheckBox.isSelected());
     if (myCustomPathCheckBox.isSelected()) {
       String fileName = myPathToFileTextField.getText();
-      fileName = fileName.indexOf("://") == -1 ? FileUtil.toSystemIndependentName(fileName) : fileName;
+      fileName = !fileName.contains("://") ? FileUtil.toSystemIndependentName(fileName) : fileName;
       configuration.setCustomFileToLaunchPath(fileName);
     }
   }

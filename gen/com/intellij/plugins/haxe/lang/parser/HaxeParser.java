@@ -3951,7 +3951,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
+  // !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
   static boolean local_var_declaration_part_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "local_var_declaration_part_recover")) return false;
     boolean result_ = false;
@@ -3963,13 +3963,13 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
+  // (';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
   private static boolean local_var_declaration_part_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "local_var_declaration_part_recover_0")) return false;
     return local_var_declaration_part_recover_0_0(builder_, level_ + 1);
   }
 
-  // ';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
+  // ';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
   private static boolean local_var_declaration_part_recover_0_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "local_var_declaration_part_recover_0_0")) return false;
     boolean result_ = false;
@@ -4001,6 +4001,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KRETURN);
     if (!result_) result_ = consumeToken(builder_, KSWITCH);
     if (!result_) result_ = consumeToken(builder_, KTHIS);
+    if (!result_) result_ = consumeToken(builder_, KSUPER);
     if (!result_) result_ = consumeToken(builder_, KTHROW);
     if (!result_) result_ = consumeToken(builder_, KTRY);
     if (!result_) result_ = consumeToken(builder_, KUNTYPED);
@@ -5860,7 +5861,7 @@ public class HaxeParser implements PsiParser {
   /* ********************************************************** */
   // !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '('
   //   | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for'
-  //   | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped'
+  //   | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped'
   //   | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
   //   | ';' | '}' | ')' | 'else')
   static boolean statement_recovery(PsiBuilder builder_, int level_) {
@@ -5876,7 +5877,7 @@ public class HaxeParser implements PsiParser {
 
   // ('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '('
   //   | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for'
-  //   | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped'
+  //   | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped'
   //   | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
   //   | ';' | '}' | ')' | 'else')
   private static boolean statement_recovery_0(PsiBuilder builder_, int level_) {
@@ -5886,7 +5887,7 @@ public class HaxeParser implements PsiParser {
 
   // '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '('
   //   | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for'
-  //   | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped'
+  //   | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped'
   //   | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
   //   | ';' | '}' | ')' | 'else'
   private static boolean statement_recovery_0_0(PsiBuilder builder_, int level_) {
@@ -5918,6 +5919,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KRETURN);
     if (!result_) result_ = consumeToken(builder_, KSWITCH);
     if (!result_) result_ = consumeToken(builder_, KTHIS);
+    if (!result_) result_ = consumeToken(builder_, KSUPER);
     if (!result_) result_ = consumeToken(builder_, KTHROW);
     if (!result_) result_ = consumeToken(builder_, KTRY);
     if (!result_) result_ = consumeToken(builder_, KUNTYPED);

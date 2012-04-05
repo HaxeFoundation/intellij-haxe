@@ -199,7 +199,11 @@ public class HaxeConfigurationEditor {
     result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
     result = result || (settings.isUseHxmlToBuild() ^ myHxmlFileCheckBox.isSelected());
     result = result || !settings.getOutputFileName().equals(myFileNameTextField.getText());
-    result = result || (myHxmlFileCheckBox.isSelected() && !settings.getHxmlPath().equals(customPathToHxmlFile));
+
+    String hxmlPath = myHxmlTextField.getText();
+    hxmlPath = hxmlPath.contains("://") ? hxmlPath : FileUtil.toSystemIndependentName(hxmlPath);
+
+    result = result || (myHxmlFileCheckBox.isSelected() && !settings.getHxmlPath().equals(hxmlPath));
     for (UnnamedConfigurable configurable : cofigurables) {
       result = result || configurable.isModified();
     }
@@ -236,7 +240,9 @@ public class HaxeConfigurationEditor {
     settings.setTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());
     settings.setOutputFileName(myFileNameTextField.getText());
-    settings.setHxmlPath(myHxmlTextField.getText());
+    String hxmlPath = myHxmlTextField.getText();
+    hxmlPath = hxmlPath.contains("://") ? hxmlPath : FileUtil.toSystemIndependentName(hxmlPath);
+    settings.setHxmlPath(hxmlPath);
     settings.setUseHxmlToBuild(myHxmlFileCheckBox.isSelected());
     for (UnnamedConfigurable configurable : cofigurables) {
       try {

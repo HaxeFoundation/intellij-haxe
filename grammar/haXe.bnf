@@ -272,7 +272,7 @@ localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1 }
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
 localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverUntil="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
+private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
@@ -324,7 +324,7 @@ private statementList ::= (statement ';'?)+
 private statement ::= blockStatement | notBlockStatement {recoverUntil="statement_recovery"}
 private statement_recovery ::= !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '('
   | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for'
-  | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'untyped'
+  | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped'
   | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
   | ';' | '}' | ')' | 'else')
 
