@@ -1,3 +1,8 @@
 haXe File
-  PsiElement(package)('package')
-  PsiElement(ID)('error')
+  HAXE_PACKAGESTATEMENT
+    PsiElement(package)('package')
+    HAXE_REFERENCEEXPRESSION
+      HAXE_IDENTIFIER
+        PsiElement(ID)('error')
+  PsiErrorElement:'.' or ';' expected, unexpected end of file
+    <empty list>

@@ -1,3 +1,4 @@
 haXe File
-  PsiElement(package)('package')
-  PsiElement(;)(';')
+  HAXE_PACKAGESTATEMENT
+    PsiElement(package)('package')
+    PsiElement(;)(';')

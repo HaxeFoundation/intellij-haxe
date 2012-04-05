@@ -3,11 +3,15 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
@@ -166,17 +170,19 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return toCandidateInfoArray(haxeClassInType.getComponentName());
     }
 
-    // if not first in chain
-    // foo.bar.baz
-    final HaxeReference referenceExpression = PsiTreeUtil.getPrevSiblingOfType(this, HaxeReference.class);
-    if (referenceExpression != null && getParent() instanceof HaxeReference) {
-      return resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), getText());
-    }
-
     // Maybe this is class name
     final HaxeClass resultClass = HaxeResolveUtil.resolveClass(this);
     if (resultClass != null) {
       return toCandidateInfoArray(resultClass.getComponentName());
+    }
+
+
+
+    // if not first in chain
+    // foo.bar.baz
+    final HaxeReference referenceExpression = HaxeResolveUtil.getLeftReference(this);
+    if (referenceExpression != null && getParent() instanceof HaxeReference) {
+      return resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), getText());
     }
 
     // then maybe chain
@@ -261,12 +267,64 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+    if (element instanceof HaxeFile) {
+      bindToFile(element);
+    }
     return this;
+  }
+
+  private void bindToFile(PsiElement element) {
+    String destinationPackage = element.getUserData(HaxeFileMoveHandler.destinationPackageKey);
+    if (destinationPackage == null) {
+      destinationPackage = "";
+    }
+    final String importPath = (destinationPackage.isEmpty() ? "" : destinationPackage + ".") +
+                              FileUtil.getNameWithoutExtension(((HaxeFile)element).getName());
+
+    if (resolve() == null) {
+      if (getParent() instanceof HaxeImportStatement && !destinationPackage.isEmpty()) {
+        final HaxeImportStatement importStatement =
+          HaxeElementGenerator.createImportStatementFromPath(getProject(), importPath);
+        assert importStatement != null;
+        getParent().replace(importStatement);
+      }
+      else if (getParent() instanceof HaxeImportStatement && destinationPackage.isEmpty()) {
+        // need remove, empty destination
+        getParent().getParent().deleteChildRange(getParent(), getParent());
+      }
+      else if (getText().indexOf('.') != -1) {
+        // qName
+        final String newQName = destinationPackage.equals(HaxeResolveUtil.getPackageName(getContainingFile())) ?
+                                FileUtil.getNameWithoutExtension(((HaxeFile)element).getName()) :
+                                importPath;
+        final HaxeImportStatement importStatement =
+          HaxeElementGenerator.createImportStatementFromPath(getProject(), newQName);
+        assert importStatement != null;
+        replace(importStatement.getExpression());
+      }
+      else if (UsefulPsiTreeUtil.findImportByClass(this, getText()) == null && !destinationPackage.isEmpty()) {
+        // need add import
+        HaxeAddImportHelper.addImport(importPath, getContainingFile());
+      }
+    }
+    else {
+      final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(this, getText());
+      if (importStatement != null && !importPath.equals(importStatement.getExpression().getText())) {
+        // need remove, cause can resolve without
+        importStatement.getParent().deleteChildRange(importStatement, importStatement);
+      }
+    }
   }
 
   @Override
   public boolean isReferenceTo(PsiElement element) {
-    return resolve() == element;
+    final PsiElement resolve = resolve();
+    if (element instanceof HaxeFile &&
+        resolve instanceof HaxeComponentName &&
+        resolve.getParent() instanceof HaxeClass) {
+      return element == resolve.getContainingFile();
+    }
+    return resolve == element;
   }
 
   @NotNull
@@ -276,7 +334,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     // if not first in chain
     // foo.bar.baz
-    final HaxeReference referenceExpression = PsiTreeUtil.getPrevSiblingOfType(this, HaxeReference.class);
+    final HaxeReference referenceExpression = HaxeResolveUtil.getLeftReference(this);
     if (referenceExpression != null && getParent() instanceof HaxeReference) {
       addClassVariants(suggestedVariants, referenceExpression.resolveHaxeClass().getHaxeClass(),
                        !(referenceExpression instanceof HaxeThisExpression));

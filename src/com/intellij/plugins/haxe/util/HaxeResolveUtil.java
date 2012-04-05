@@ -30,6 +30,18 @@ import java.util.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeResolveUtil {
+  @Nullable
+  public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
+    if (node == null) return null;
+    for (PsiElement sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(node);
+         sibling != null;
+         sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling)) {
+      if (".".equals(sibling.getText())) continue;
+      return sibling instanceof HaxeReference ? (HaxeReference)sibling : null;
+    }
+    return null;
+  }
+
   @NotNull
   public static Pair<String, String> splitQName(@NotNull String qName) {
     final int dotIndex = qName.lastIndexOf('.');
@@ -68,10 +80,10 @@ public class HaxeResolveUtil {
     }
     final Project project = context.getProject();
 
+    final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     final List<VirtualFile> classFiles = HaxeComponentFileNameIndex.
-      getFilesNameByQName(qName, GlobalSearchScope.allScope(project));
+      getFilesNameByQName(qName, scope);
     final Pair<String, String> qNamePair = splitQName(qName);
-
     for (VirtualFile classFile : classFiles) {
       final HaxeClass componentPsiElement = findComponentDeclaration(context.getManager().findFile(classFile), qNamePair.getSecond());
       if (componentPsiElement != null) {

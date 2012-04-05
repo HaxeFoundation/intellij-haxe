@@ -3183,20 +3183,6 @@ public class HaxeParser implements PsiParser {
   // packageStatement? topLevelList
   static boolean haxeFile(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "haxeFile")) return false;
-    if (!nextTokenIs(builder_, KBIND) && !nextTokenIs(builder_, KMETA)
-        && !nextTokenIs(builder_, PPERROR) && !nextTokenIs(builder_, PPEND)
-        && !nextTokenIs(builder_, KENUM) && !nextTokenIs(builder_, KFINAL)
-        && !nextTokenIs(builder_, KEXTERN) && !nextTokenIs(builder_, KPACKAGE)
-        && !nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KNATIVE)
-        && !nextTokenIs(builder_, KBUILD) && !nextTokenIs(builder_, KTYPEDEF)
-        && !nextTokenIs(builder_, MACRO_ID) && !nextTokenIs(builder_, PPELSE)
-        && !nextTokenIs(builder_, KIMPORT) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, PPIF) && !nextTokenIs(builder_, KUSING)
-        && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KNS)
-        && !nextTokenIs(builder_, KCOREAPI) && !nextTokenIs(builder_, KCLASS)
-        && !nextTokenIs(builder_, KBITMAP) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KINTERFACE) && !nextTokenIs(builder_, KAUTOBUILD)
-        && !nextTokenIs(builder_, PPELSEIF) && !nextTokenIs(builder_, KHACK)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = haxeFile_0(builder_, level_ + 1);
@@ -6282,28 +6268,11 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // topLevel+
+  // topLevel*
   static boolean topLevelList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "topLevelList")) return false;
-    if (!nextTokenIs(builder_, KBIND) && !nextTokenIs(builder_, KMETA)
-        && !nextTokenIs(builder_, PPERROR) && !nextTokenIs(builder_, PPEND)
-        && !nextTokenIs(builder_, KFINAL) && !nextTokenIs(builder_, KEXTERN)
-        && !nextTokenIs(builder_, KBUILD) && !nextTokenIs(builder_, KMACRO)
-        && !nextTokenIs(builder_, KNATIVE) && !nextTokenIs(builder_, KENUM)
-        && !nextTokenIs(builder_, KTYPEDEF) && !nextTokenIs(builder_, MACRO_ID)
-        && !nextTokenIs(builder_, PPELSE) && !nextTokenIs(builder_, KIMPORT)
-        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, PPIF)
-        && !nextTokenIs(builder_, KUSING) && !nextTokenIs(builder_, KFAKEENUM)
-        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KCOREAPI)
-        && !nextTokenIs(builder_, KCLASS) && !nextTokenIs(builder_, KBITMAP)
-        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KINTERFACE)
-        && !nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, PPELSEIF)
-        && !nextTokenIs(builder_, KHACK)) return false;
-    boolean result_ = false;
-    final Marker marker_ = builder_.mark();
-    result_ = topLevel(builder_, level_ + 1);
     int offset_ = builder_.getCurrentOffset();
-    while (result_) {
+    while (true) {
       if (!topLevel(builder_, level_ + 1)) break;
       int next_offset_ = builder_.getCurrentOffset();
       if (offset_ == next_offset_) {
@@ -6312,13 +6281,7 @@ public class HaxeParser implements PsiParser {
       }
       offset_ = next_offset_;
     }
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
+    return true;
   }
 
   /* ********************************************************** */

@@ -200,7 +200,7 @@ unsignedShiftRightOperator ::= '>' '>' '>'
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
-private topLevelList ::= topLevel+
+private topLevelList ::= topLevel*
 private topLevel ::= importStatement | usingStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
 private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
 

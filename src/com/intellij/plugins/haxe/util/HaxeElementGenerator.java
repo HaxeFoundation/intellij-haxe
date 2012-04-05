@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExpressionCodeFragmentImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeElementGenerator {
   @Nullable
   public static HaxeIdentifier createIdentifierFromText(Project myProject, String name) {
-    final HaxeImportStatement importStatement = createImportStatementFromText(myProject, "import " + name + ";");
+    final HaxeImportStatement importStatement = createImportStatementFromPath(myProject, name);
     if (importStatement == null) {
       return null;
     }
@@ -28,10 +29,17 @@ public class HaxeElementGenerator {
   }
 
   @Nullable
-  public static HaxeImportStatement createImportStatementFromText(Project myProject, String text) {
-    final PsiFile dummyFile = createDummyFile(myProject, text);
+  public static HaxeImportStatement createImportStatementFromPath(Project myProject, String path) {
+    final PsiFile dummyFile = createDummyFile(myProject, "import " + path + ";");
     return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatement.class);
   }
+
+  @Nullable
+  public static HaxePackageStatement createPackageStatementFromPath(Project myProject, String path) {
+    final PsiFile dummyFile = createDummyFile(myProject, "package " + path + ";");
+    return PsiTreeUtil.getChildOfType(dummyFile, HaxePackageStatement.class);
+  }
+
 
   public static PsiFile createDummyFile(Project myProject, String text) {
     final PsiFileFactory factory = PsiFileFactory.getInstance(myProject);

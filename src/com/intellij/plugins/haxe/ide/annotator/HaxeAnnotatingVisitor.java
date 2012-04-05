@@ -8,8 +8,8 @@ import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,7 +35,7 @@ public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
     if (reference.getTokenType() != HaxeTokenTypes.HAXE_REFERENCEEXPRESSION) {
       return; // call, array access, this, literal, etc
     }
-    final HaxeReference leftSiblingReference = PsiTreeUtil.getPrevSiblingOfType(reference, HaxeReference.class);
+    final HaxeReference leftSiblingReference = HaxeResolveUtil.getLeftReference(reference);
     final PsiElement referenceTarget = reference.resolve();
     if (referenceTarget != null) {
       return; // OK

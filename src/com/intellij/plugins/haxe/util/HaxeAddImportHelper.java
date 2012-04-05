@@ -25,7 +25,7 @@ public class HaxeAddImportHelper {
 
   private static void insertImportBefore(String path, PsiFile file, PsiElement child) {
     final HaxeImportStatement importStatement =
-      HaxeElementGenerator.createImportStatementFromText(file.getProject(), "import " + path + ";");
+      HaxeElementGenerator.createImportStatementFromPath(file.getProject(), path);
     if (importStatement == null) {
       return;
     }

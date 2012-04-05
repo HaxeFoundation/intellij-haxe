@@ -7,6 +7,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
@@ -70,7 +71,8 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       @Override
       protected void run(Result result) throws Throwable {
         final LazyPsiElement psiElement = (LazyPsiElement)item.getObject();
-        final String importPath = HaxeResolveUtil.getPackageName(psiElement.getContainingFile()) + "." + item.getLookupString();
+        final String fileName = FileUtil.getNameWithoutExtension(psiElement.getContainingFile().getName());
+        final String importPath = HaxeResolveUtil.getPackageName(psiElement.getContainingFile()) + "." + fileName;
         HaxeAddImportHelper.addImport(importPath, context.getFile());
       }
     }.execute();
