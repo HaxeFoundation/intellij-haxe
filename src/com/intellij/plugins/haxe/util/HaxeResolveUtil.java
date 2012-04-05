@@ -13,6 +13,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
@@ -256,7 +257,7 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element, @NotNull HaxeGenericSpecialization specialization) {
-    if (element == null) {
+    if (element == null || element instanceof PsiPackage) {
       return new HaxeClassResolveResult(null);
     }
     if (element instanceof HaxeComponentName) {

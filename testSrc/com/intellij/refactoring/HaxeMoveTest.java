@@ -85,4 +85,8 @@ public class HaxeMoveTest extends MultiFileTestCase {
   public void testMoveFile2() throws Exception {
     doTest("util/ArrayUtils.hx", "");
   }
+
+  public void testMovePackage() throws Exception {
+    doTest("util", "foo");
+  }
 }

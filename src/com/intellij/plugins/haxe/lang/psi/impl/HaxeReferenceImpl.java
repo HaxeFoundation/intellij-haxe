@@ -4,8 +4,8 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
+import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
@@ -176,7 +176,10 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return toCandidateInfoArray(resultClass.getComponentName());
     }
 
-
+    final PsiPackage psiPackage = JavaPsiFacade.getInstance(getProject()).findPackage(getText());
+    if (psiPackage != null) {
+      return toCandidateInfoArray(psiPackage);
+    }
 
     // if not first in chain
     // foo.bar.baz
@@ -270,7 +273,17 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (element instanceof HaxeFile) {
       bindToFile(element);
     }
+    else if (element instanceof PsiPackage) {
+      bindToPackage((PsiPackage)element);
+    }
     return this;
+  }
+
+  private void bindToPackage(PsiPackage element) {
+    final HaxeImportStatement importStatement =
+      HaxeElementGenerator.createImportStatementFromPath(getProject(), element.getQualifiedName());
+    assert importStatement != null;
+    replace(importStatement.getExpression());
   }
 
   private void bindToFile(PsiElement element) {
