@@ -7,9 +7,8 @@
       <p>0.3:</p>
       <ul>
         <li>Type resolving improvements</li>
-        <li>Implementation(s) action</li>
-        <li>Super Method action</li>
-        <li>Generics support</li>
+        <li>Goto Implementation(s) action</li>
+        <li>Goto Super Method action</li>
         <li>Move refactoring</li>
       </ul>
       <p>0.2.3:</p>

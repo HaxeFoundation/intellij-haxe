@@ -187,6 +187,8 @@ public class HaxeResolveUtil {
     }
     final Map<String, HaxeNamedComponent> result = new HashMap<String, HaxeNamedComponent>();
     for (HaxeNamedComponent haxeNamedComponent : unfilteredResult) {
+      // need order
+      if(result.containsKey(haxeNamedComponent.getName())) continue;
       result.put(haxeNamedComponent.getName(), haxeNamedComponent);
     }
     return new ArrayList<HaxeNamedComponent>(result.values());
