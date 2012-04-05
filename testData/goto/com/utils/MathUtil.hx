@@ -5,3 +5,7 @@ class MathUtil {
     return n > 0 ? n : -n;
   }
 }
+
+class AbsHelper {
+
+}

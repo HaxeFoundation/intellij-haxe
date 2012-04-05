@@ -29,4 +29,8 @@ public class ClassNameCompletionTest extends HaxeCompletionTestBase {
   public void testTypeParameter() throws Throwable {
     doTest();
   }
+
+  public void testClassHelper() throws Throwable {
+    doTest();
+  }
 }

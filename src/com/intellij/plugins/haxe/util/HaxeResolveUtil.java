@@ -207,9 +207,9 @@ public class HaxeResolveUtil {
     }
 
     final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
-    if (haxeClass instanceof HaxeAnonymousType){
+    if (haxeClass instanceof HaxeAnonymousType) {
       final HaxeAnonymousTypeFieldList typeFieldList = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getAnonymousTypeFieldList();
-      if(typeFieldList != null){
+      if (typeFieldList != null) {
         result.addAll(typeFieldList.getAnonymousTypeFieldList());
       }
       body = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getInterfaceBody();
@@ -298,7 +298,7 @@ public class HaxeResolveUtil {
                           element instanceof HaxeType ? (HaxeType)element : null;
 
     HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
-    if(typeComponent == null && type != null && specialization.containsKey(element, type.getText())){
+    if (typeComponent == null && type != null && specialization.containsKey(element, type.getText())) {
       return specialization.get(element, type.getText());
     }
 
@@ -339,8 +339,15 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    final HaxeClass result = findClassByQName(getQName(type, true), type.getContext());
-    return result != null ? result : findClassByQName(getQName(type, false), type.getContext());
+    HaxeClass result = findClassByQName(getQName(type, true), type.getContext());
+    result = result != null ? result : findClassByQName(getQName(type, false), type.getContext());
+    result = result != null ? result : tryFindHelper(type);
+    return result;
+  }
+
+  private static HaxeClass tryFindHelper(PsiElement element) {
+    final HaxeClass ownerClass = findClassByQName(UsefulPsiTreeUtil.findHelperOwnerQName(element, element.getText()), element);
+    return ownerClass == null ? null : HaxeResolveUtil.findComponentDeclaration(ownerClass.getContainingFile(), element.getText());
   }
 
   public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {

@@ -101,6 +101,19 @@ public class UsefulPsiTreeUtil {
     return null;
   }
 
+  @Nullable
+  public static String findHelperOwnerQName(PsiElement context, String className) {
+    for (HaxeImportStatement importStatement : getAllImportStatements(context)) {
+      final HaxeExpression expression = importStatement.getExpression();
+      final String qName = expression == null ? null : expression.getText();
+      final PsiElement resolve = HaxeResolveUtil.findClassByQName(qName, context);
+      if (resolve != null && HaxeResolveUtil.findComponentDeclaration(resolve.getContainingFile(), className) != null) {
+        return qName;
+      }
+    }
+    return null;
+  }
+
   private static List<HaxeImportStatement> getAllImportStatements(PsiElement element) {
     final HaxeImportStatement[] haxeImportStatements =
       PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatement.class);
