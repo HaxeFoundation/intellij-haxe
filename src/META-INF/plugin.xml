@@ -120,7 +120,7 @@
     <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex$DefinitionsSearchExecutor"/>
 
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
-    <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor"/>
+    <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor"/>-->
   </extensions>
 
   <actions>

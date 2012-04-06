@@ -29,15 +29,17 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
   public PsiElement setName(@NonNls @NotNull String newElementName) throws IncorrectOperationException {
     final HaxeIdentifier identifier = getIdentifier();
     final HaxeIdentifier identifierNew = HaxeElementGenerator.createIdentifierFromText(getProject(), newElementName);
-    if (getParent() instanceof HaxeClass) {
-      final HaxeFile haxeFile = (HaxeFile)getParent().getParent();
-      final String currentName = getName();
-      if (currentName != null && currentName.equals(FileUtil.getNameWithoutExtension(haxeFile.getName()))) {
-        haxeFile.setName(newElementName + "." + FileUtil.getExtension(haxeFile.getName()));
-      }
-    }
+
+    final String oldName = getName();
     if (identifierNew != null) {
       getNode().replaceChild(identifier.getNode(), identifierNew.getNode());
+    }
+
+    if (getParent() instanceof HaxeClass) {
+      final HaxeFile haxeFile = (HaxeFile)getParent().getParent();
+      if (oldName != null && oldName.equals(FileUtil.getNameWithoutExtension(haxeFile.getName()))) {
+        haxeFile.setName(newElementName + "." + FileUtil.getExtension(haxeFile.getName()));
+      }
     }
     return this;
   }

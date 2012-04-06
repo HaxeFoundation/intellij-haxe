@@ -42,6 +42,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
+    final HaxeComponentName componentName = getComponentName();
+    if (componentName != null) {
+      componentName.setName(name);
+    }
     return this;
   }
 

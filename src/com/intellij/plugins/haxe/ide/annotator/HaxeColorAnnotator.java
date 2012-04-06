@@ -2,8 +2,6 @@ package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
@@ -25,12 +23,6 @@ public class HaxeColorAnnotator implements Annotator {
       holder.createInfoAnnotation(node, null).setTextAttributes(TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD));
     }
 
-    if(ApplicationManager.getApplication().isInternal()){
-      annotateInternal(node, holder);
-    }
-  }
-
-  private void annotateInternal(PsiElement node, AnnotationHolder holder) {
     PsiElement element = node;
     if (element instanceof HaxeReference) {
       final boolean chain = PsiTreeUtil.getChildOfType(element, HaxeReference.class) != null;
