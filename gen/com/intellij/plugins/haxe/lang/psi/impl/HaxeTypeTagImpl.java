@@ -24,6 +24,12 @@ public class HaxeTypeTagImpl extends HaxePsiCompositeElementImpl implements Haxe
 
   @Override
   @Nullable
+  public HaxeFunctionType getFunctionType() {
+    return findChildByClass(HaxeFunctionType.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeType getType() {
     return findChildByClass(HaxeType.class);
   }

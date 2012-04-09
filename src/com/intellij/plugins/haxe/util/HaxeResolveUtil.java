@@ -137,8 +137,9 @@ public class HaxeResolveUtil {
     for (HaxeInherit inherit : extendsList.getInheritList()) {
       final PsiElement firstChild = inherit.getFirstChild();
       final IElementType childType = firstChild instanceof ASTNode ? ((ASTNode)firstChild).getElementType() : null;
-      if (childType == expectedKeyword) {
-        result.add(inherit.getType());
+      final HaxeType inheritType = inherit.getType();
+      if (childType == expectedKeyword && inheritType != null) {
+        result.add(inheritType);
       }
     }
     return result;
@@ -188,7 +189,7 @@ public class HaxeResolveUtil {
     final Map<String, HaxeNamedComponent> result = new HashMap<String, HaxeNamedComponent>();
     for (HaxeNamedComponent haxeNamedComponent : unfilteredResult) {
       // need order
-      if(result.containsKey(haxeNamedComponent.getName())) continue;
+      if (result.containsKey(haxeNamedComponent.getName())) continue;
       result.put(haxeNamedComponent.getName(), haxeNamedComponent);
     }
     return new ArrayList<HaxeNamedComponent>(result.values());
@@ -296,6 +297,28 @@ public class HaxeResolveUtil {
       }
       return HaxeClassResolveResult.EMPTY;
     }
+
+    HaxeClassResolveResult result = tryResolveClassByTypeTag(element, specialization);
+    if (result.getHaxeClass() != null) {
+      return result;
+    }
+
+    if (specialization.containsKey(null, element.getText())) {
+      return specialization.get(null, element.getText());
+    }
+    final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
+    final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
+    if (initExpression instanceof HaxeReference) {
+      result = ((HaxeReference)initExpression).resolveHaxeClass();
+      result.specialize(initExpression);
+      return result;
+    }
+    return getHaxeClassResolveResult(initExpression);
+  }
+
+  @NotNull
+  private static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
+                                                                     HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag != null ? typeTag.getType() :
                           element instanceof HaxeType ? (HaxeType)element : null;
@@ -311,17 +334,28 @@ public class HaxeResolveUtil {
       return result;
     }
 
-    if (specialization.containsKey(null, element.getText())) {
-      return specialization.get(null, element.getText());
+    if (typeTag != null) {
+      return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
     }
-    final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
-    final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
-    if (initExpression instanceof HaxeReference) {
-      result = ((HaxeReference)initExpression).resolveHaxeClass();
-      result.specialize(initExpression);
-      return result;
+
+    return HaxeClassResolveResult.EMPTY;
+  }
+
+  private static HaxeClassResolveResult tryResolveFunctionType(HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
+    final HaxeClassResolveResult result = tryResolveClassByTypeTag(functionType.getType(), specialization);
+    functionType = functionType.getFunctionType();
+    while (functionType != null) {
+      // todo: anonymous types :(
+      final HaxeType[] types = PsiTreeUtil.getChildrenOfType(functionType, HaxeType.class);
+      if (types != null) {
+        for (int i = types.length - 1; i >= 0; --i) {
+          result.getFunctionTypes().add(tryResolveClassByTypeTag(types[i], specialization));
+        }
+      }
+      functionType = functionType.getFunctionType();
     }
-    return getHaxeClassResolveResult(initExpression);
+    Collections.reverse(result.getFunctionTypes());
+    return result;
   }
 
   @NotNull

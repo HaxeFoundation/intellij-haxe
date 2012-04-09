@@ -13,7 +13,7 @@ public interface HaxeFunctionType extends HaxePsiCompositeElement {
   @Nullable
   HaxeFunctionType getFunctionType();
 
-  @NotNull
-  List<HaxeType> getTypeList();
+  @Nullable
+  HaxeType getType();
 
 }

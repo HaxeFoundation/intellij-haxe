@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -65,9 +64,31 @@ public class HaxePresentableUtil {
     if (anonymousType != null) {
       return anonymousType.getText();
     }
-
     final HaxeType haxeType = typeTag.getType();
-    return buildTypeText(element, haxeType, specialization);
+    if (haxeType != null) {
+      return buildTypeText(element, haxeType, specialization);
+    }
+    final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
+    return buildTypeText(element, haxeFunctionType, specialization);
+  }
+
+  private static String buildTypeText(HaxeNamedComponent element,
+                                      @Nullable HaxeFunctionType functionType,
+                                      HaxeGenericSpecialization specialization) {
+    if (functionType == null) {
+      return "";
+    }
+
+    final HaxeType[] types = PsiTreeUtil.getChildrenOfType(functionType, HaxeType.class);
+    assert types != null;
+    if (types.length == 2) {
+      return buildTypeText(element, types[0], specialization) +
+             "->" +
+             buildTypeText(element, types[1], specialization);
+    }
+    return buildTypeText(element, functionType.getFunctionType(), specialization) +
+           "->" +
+           buildTypeText(element, functionType.getType(), specialization);
   }
 
   public static String buildTypeText(HaxeNamedComponent element, @Nullable HaxeType type) {

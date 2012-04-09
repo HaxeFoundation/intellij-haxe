@@ -2994,7 +2994,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '->' typeOrAnonymous
+  // '->' (type | anonymousType)
   public static boolean functionType(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionType")) return false;
     if (!nextTokenIs(builder_, OARROW)) return false;
@@ -3003,7 +3003,7 @@ public class HaxeParser implements PsiParser {
     if (!invalid_left_marker_guard_(builder_, left_marker_, "functionType")) return false;
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OARROW);
-    result_ = result_ && typeOrAnonymous(builder_, level_ + 1);
+    result_ = result_ && functionType_1(builder_, level_ + 1);
     if (result_) {
       marker_.drop();
       left_marker_.precede().done(HAXE_FUNCTIONTYPE);
@@ -3014,15 +3014,59 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
+  // (type | anonymousType)
+  private static boolean functionType_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionType_1")) return false;
+    return functionType_1_0(builder_, level_ + 1);
+  }
+
+  // type | anonymousType
+  private static boolean functionType_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionType_1_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = type(builder_, level_ + 1);
+    if (!result_) result_ = anonymousType(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
   /* ********************************************************** */
-  // typeOrAnonymous functionType*
+  // (type | anonymousType) functionType*
   static boolean functionTypeWrapper(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionTypeWrapper")) return false;
     if (!nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, ID)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = typeOrAnonymous(builder_, level_ + 1);
+    result_ = functionTypeWrapper_0(builder_, level_ + 1);
     result_ = result_ && functionTypeWrapper_1(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  // (type | anonymousType)
+  private static boolean functionTypeWrapper_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionTypeWrapper_0")) return false;
+    return functionTypeWrapper_0_0(builder_, level_ + 1);
+  }
+
+  // type | anonymousType
+  private static boolean functionTypeWrapper_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionTypeWrapper_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = type(builder_, level_ + 1);
+    if (!result_) result_ = anonymousType(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -6558,24 +6602,6 @@ public class HaxeParser implements PsiParser {
     }
     else {
       marker_.rollbackTo();
-    }
-    return result_;
-  }
-
-  /* ********************************************************** */
-  // type | anonymousType
-  static boolean typeOrAnonymous(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "typeOrAnonymous")) return false;
-    if (!nextTokenIs(builder_, PLCURLY) && !nextTokenIs(builder_, ID)) return false;
-    boolean result_ = false;
-    final Marker marker_ = builder_.mark();
-    result_ = type(builder_, level_ + 1);
-    if (!result_) result_ = anonymousType(builder_, level_ + 1);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
     }
     return result_;
   }

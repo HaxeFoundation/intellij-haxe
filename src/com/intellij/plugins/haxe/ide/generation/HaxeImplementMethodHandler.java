@@ -23,8 +23,6 @@ public class HaxeImplementMethodHandler extends BaseHaxeGenerateHandler {
   void collectCandidates(HaxeClass haxeClass, Collection<HaxeNamedComponent> candidates) {
     for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       if (!(haxeNamedComponent instanceof HaxeFunctionPrototypeDeclarationWithAttributes)) continue;
-      // already
-      if ( PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class) == haxeClass) continue;
 
       candidates.add(haxeNamedComponent);
     }

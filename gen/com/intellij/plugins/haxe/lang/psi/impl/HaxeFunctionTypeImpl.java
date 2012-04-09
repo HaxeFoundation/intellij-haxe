@@ -29,9 +29,9 @@ public class HaxeFunctionTypeImpl extends HaxePsiCompositeElementImpl implements
   }
 
   @Override
-  @NotNull
-  public List<HaxeType> getTypeList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
+  @Nullable
+  public HaxeType getType() {
+    return findChildByClass(HaxeType.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

@@ -305,8 +305,8 @@ functionLiteral ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? functi
 arrayLiteral ::= '[' expressionList? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private functionTypeWrapper ::= typeOrAnonymous functionType*
-left functionType ::= '->' typeOrAnonymous
+private functionTypeWrapper ::= (type | anonymousType) functionType*
+left functionType ::= '->' (type | anonymousType)
 
 typeTag ::= ':' functionTypeWrapper
 typeParam ::= '<' typeList '>'
@@ -316,7 +316,6 @@ genericListPart ::= componentName (':' '(' typeList ')')?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 typeListPart ::= functionTypeWrapper
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
-private typeOrAnonymous ::= type | anonymousType
 
 blockStatement ::= '{' statementList? '}'
 private statementList ::= (statement ';'?)+

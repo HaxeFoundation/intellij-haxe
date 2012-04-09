@@ -29,7 +29,7 @@ public class HaxeNamedElementNode extends PsiElementMemberChooserObject implemen
       result.append(haxeNamedComponent.getName());
       final String location = presentation.getLocationString();
       if (location != null && !location.isEmpty()) {
-        result.append(" (").append(location).append(")");
+        result.append(" ").append(location);
       }
     }
     else {

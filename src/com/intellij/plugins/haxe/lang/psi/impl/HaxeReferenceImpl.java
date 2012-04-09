@@ -350,7 +350,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // if not first in chain
     // foo.bar.baz
     final HaxeReference referenceExpression = HaxeResolveUtil.getLeftReference(this);
-    if (referenceExpression != null && getParent() instanceof HaxeReference) {
+    if (referenceExpression != null && getParent() instanceof HaxeReference && !referenceExpression.resolveHaxeClass().isFunctionType()) {
       addClassVariants(suggestedVariants, referenceExpression.resolveHaxeClass().getHaxeClass(),
                        !(referenceExpression instanceof HaxeThisExpression));
     }

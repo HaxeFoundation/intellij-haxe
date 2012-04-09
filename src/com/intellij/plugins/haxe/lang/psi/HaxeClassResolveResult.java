@@ -4,6 +4,9 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -12,6 +15,7 @@ public class HaxeClassResolveResult {
   @Nullable
   private final HaxeClass haxeClass;
   private final HaxeGenericSpecialization specializations;
+  private final List<HaxeClassResolveResult> functionTypes = new ArrayList<HaxeClassResolveResult>();
 
   public HaxeClassResolveResult(@Nullable HaxeClass aClass) {
     this(aClass, new HaxeGenericSpecialization());
@@ -35,8 +39,12 @@ public class HaxeClassResolveResult {
     }
   }
 
+  public List<HaxeClassResolveResult> getFunctionTypes() {
+    return functionTypes;
+  }
+
   private void merge(HaxeGenericSpecialization otherSpecializations) {
-    for (String key : otherSpecializations.map.keySet()){
+    for (String key : otherSpecializations.map.keySet()) {
       specializations.map.put(key, otherSpecializations.map.get(key));
     }
   }
@@ -73,5 +81,9 @@ public class HaxeClassResolveResult {
       specializations.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType,
                                                                                                               specializations));
     }
+  }
+
+  public boolean isFunctionType() {
+    return !functionTypes.isEmpty();
   }
 }
