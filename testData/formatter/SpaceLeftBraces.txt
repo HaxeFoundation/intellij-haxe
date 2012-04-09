@@ -31,5 +31,6 @@ class Foo {
     function fThree(strA, strB, strC, strD, strE){
         return strA + strB + strC + strD + strE;
     }
+
     public function new(){}
 }

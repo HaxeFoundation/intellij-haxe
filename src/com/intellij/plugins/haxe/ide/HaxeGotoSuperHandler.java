@@ -41,8 +41,8 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
     final HaxeNamedComponent namedComponent = componentName == null ? haxeClass : (HaxeNamedComponent)componentName.getParent();
     if (at == null || haxeClass == null || namedComponent == null) return;
 
-    final List<HaxeClass> supers = HaxeResolveUtil.resolveClasses(haxeClass.getExtendsList());
-    supers.addAll(HaxeResolveUtil.resolveClasses(haxeClass.getImplementsList()));
+    final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getExtendsList());
+    supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getImplementsList()));
     final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(false, supers.toArray(new HaxeClass[supers.size()]));
 
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);

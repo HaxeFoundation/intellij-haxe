@@ -5,7 +5,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.util.HaxeDocumentationUtil;
+import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
@@ -50,7 +50,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     final PsiComment comment = HaxeResolveUtil.findDocumentation(namedComponent);
     if (comment != null) {
       builder.append("<br/>");
-      builder.append(HaxeDocumentationUtil.unwrapCommentDelimiters(comment.getText()));
+      builder.append(HaxePresentableUtil.unwrapCommentDelimiters(comment.getText()));
     }
     return builder.toString();
   }

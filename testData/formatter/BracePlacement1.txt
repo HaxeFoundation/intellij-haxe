@@ -40,6 +40,7 @@ class Foo
     {
         return strA + strB + strC + strD + strE;
     }
+
     public function new()
     {}
     }

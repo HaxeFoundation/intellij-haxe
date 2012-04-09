@@ -93,7 +93,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
           final HaxeAnonymousType anonymousType = ((AbstractHaxeTypeDefImpl)haxeClass).getAnonymousType();
           if (anonymousType != null) {
             final HaxeTypeExtends typeExtends = anonymousType.getAnonymousTypeBody().getTypeExtends();
-            if(typeExtends != null){
+            if (typeExtends != null) {
               final String key = HaxeResolveUtil.getQName(typeExtends.getType(), true);
               result.put(key, value);
             }
@@ -104,13 +104,15 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
         }
         else {
           for (HaxeType haxeType : haxeClass.getExtendsList()) {
+            if(haxeType == null) continue;
             final String key = HaxeResolveUtil.getQName(haxeType, true);
-          result.put(key, value);
-        }
-        for (HaxeType haxeType : haxeClass.getImplementsList()) {
-          final String key = HaxeResolveUtil.getQName(haxeType, true);
-          result.put(key, value);
-        }
+            result.put(key, value);
+          }
+          for (HaxeType haxeType : haxeClass.getImplementsList()) {
+            if(haxeType == null) continue;
+            final String key = HaxeResolveUtil.getQName(haxeType, true);
+            result.put(key, value);
+          }
         }
       }
       return result;

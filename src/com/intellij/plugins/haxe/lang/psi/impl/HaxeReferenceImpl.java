@@ -73,13 +73,13 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public ResolveResult[] multiResolve(boolean incompleteCode) {
     final HaxeType type = PsiTreeUtil.getParentOfType(this, HaxeType.class);
-    final HaxeClass haxeClassInType = HaxeResolveUtil.resolveClass(type);
+    final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
     if (type != null && haxeClassInType != null) {
       return toCandidateInfoArray(haxeClassInType.getComponentName());
     }
 
     // Maybe this is class name
-    final HaxeClass resultClass = HaxeResolveUtil.resolveClass(this);
+    final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(this);
     if (resultClass != null) {
       return toCandidateInfoArray(resultClass.getComponentName());
     }
@@ -160,7 +160,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
     }
     if (this instanceof HaxeNewExpression) {
-      final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.resolveClass(((HaxeNewExpression)this).getType()));
+      final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(
+        ((HaxeNewExpression)this).getType()));
       result.specialize(this);
       return result;
     }
@@ -169,7 +170,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final HaxeClassResolveResult leftResult = tryGetLeftResolveResult(expression);
       if (expression instanceof HaxeReference) {
         final HaxeClassResolveResult result =
-          HaxeResolveUtil.getHaxeClass(((HaxeReference)expression).resolve(), leftResult.getSpecializations());
+          HaxeResolveUtil.getHaxeClassResolveResult(((HaxeReference)expression).resolve(), leftResult.getSpecializations());
         result.specialize(this);
         return result;
       }
@@ -188,10 +189,11 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           return resolveResult.getSpecializations().get(resolveResultHaxeClass, "T");
         }
         // __get method
-        return HaxeResolveUtil.getHaxeClass(resolveResultHaxeClass.findMethodByName("__get"), resolveResult.getSpecializations());
+        return HaxeResolveUtil.getHaxeClassResolveResult(resolveResultHaxeClass.findMethodByName("__get"),
+                                                         resolveResult.getSpecializations());
       }
     }
-    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClass(resolve(), tryGetLeftResolveResult(this).getSpecializations());
+    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve(), tryGetLeftResolveResult(this).getSpecializations());
     if (result.getHaxeClass() == null) {
       result = new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getText(), this));
     }

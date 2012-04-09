@@ -24,12 +24,12 @@ public class HaxeClassResolveResult {
       return;
     }
     for (HaxeType haxeType : haxeClass.getExtendsList()) {
-      final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.resolveClass(haxeType));
+      final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(haxeType));
       result.specializeByParameters(haxeType.getTypeParam());
       merge(result.getSpecializations());
     }
     for (HaxeType haxeType : haxeClass.getImplementsList()) {
-      final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.resolveClass(haxeType));
+      final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(haxeType));
       result.specializeByParameters(haxeType.getTypeParam());
       merge(result.getSpecializations());
     }
@@ -70,7 +70,8 @@ public class HaxeClassResolveResult {
       HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
       final HaxeType specializedType = typeList.getTypeListPartList().get(i).getType();
       if (haxeGenericListPart.getText() == null || specializedType == null) continue;
-      specializations.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClass(specializedType, specializations));
+      specializations.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType,
+                                                                                                              specializations));
     }
   }
 }

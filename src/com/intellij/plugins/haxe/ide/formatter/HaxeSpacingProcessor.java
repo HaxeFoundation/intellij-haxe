@@ -40,8 +40,14 @@ public class HaxeSpacingProcessor {
     final ASTNode nodeNode2 = node2 == null ? null : node2.getFirstChildNode();
     final IElementType typeType2 = nodeNode2 == null ? null : nodeNode2.getElementType();
 
-    if (type1 == HAXE_IMPORTSTATEMENT || type1 == HAXE_PACKAGESTATEMENT || type1 == HAXE_USINGSTATEMENT) {
+    if (type1 == HAXE_IMPORTSTATEMENT ||
+        type1 == HAXE_PACKAGESTATEMENT ||
+        type1 == HAXE_USINGSTATEMENT) {
       return addSingleSpaceIf(false, true);
+    }
+
+    if(type2 == HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES){
+      return Spacing.createSpacing(0, 0, 2, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (type2 == PLPAREN) {

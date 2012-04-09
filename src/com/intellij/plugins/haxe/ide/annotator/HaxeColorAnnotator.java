@@ -48,7 +48,7 @@ public class HaxeColorAnnotator implements Annotator {
 
   private static void tryAnnotateQName(PsiElement node, AnnotationHolder holder) {
     // Maybe this is class name
-    final HaxeClass resultClass = HaxeResolveUtil.resolveClass(node);
+    final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(node);
     if (resultClass != null) {
       final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(resultClass), false);
       if (attribute != null) {

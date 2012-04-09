@@ -6,6 +6,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -60,7 +61,18 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     return new ItemPresentation() {
       @Override
       public String getPresentableText() {
-        return getComponentName().getText();
+        final StringBuilder result = new StringBuilder();
+        result.append(getComponentName().getText());
+        if (HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this) == HaxeComponentType.METHOD) {
+          final String parameterList = HaxePresentableUtil.getPresentableParameterList(AbstractHaxeNamedComponent.this);
+          result.append(" (").append(parameterList).append(")");
+          final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
+          if(typeTag != null){
+            result.append(":");
+            result.append(HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeTag.getType()));
+          }
+        }
+        return result.toString();
       }
 
       @Override

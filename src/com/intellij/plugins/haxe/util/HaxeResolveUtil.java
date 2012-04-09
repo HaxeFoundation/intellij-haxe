@@ -179,8 +179,8 @@ public class HaxeResolveUtil {
           unfilteredResult.add(namedComponent);
         }
       }
-      classes.addAll(resolveClasses(haxeClass.getExtendsList()));
-      classes.addAll(resolveClasses(haxeClass.getImplementsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getExtendsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getImplementsList()));
     }
     if (!unique) {
       return unfilteredResult;
@@ -253,17 +253,18 @@ public class HaxeResolveUtil {
 
 
   @NotNull
-  public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element) {
-    return getHaxeClass(element, new HaxeGenericSpecialization());
+  public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element) {
+    return getHaxeClassResolveResult(element, new HaxeGenericSpecialization());
   }
 
   @NotNull
-  public static HaxeClassResolveResult getHaxeClass(@Nullable PsiElement element, @NotNull HaxeGenericSpecialization specialization) {
+  public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element,
+                                                                 @NotNull HaxeGenericSpecialization specialization) {
     if (element == null || element instanceof PsiPackage) {
       return new HaxeClassResolveResult(null);
     }
     if (element instanceof HaxeComponentName) {
-      return getHaxeClass(element.getParent(), specialization);
+      return getHaxeClassResolveResult(element.getParent(), specialization);
     }
     if (element instanceof AbstractHaxeTypeDefImpl) {
       final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
@@ -281,30 +282,30 @@ public class HaxeResolveUtil {
         final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
         // try next
         HaxeClassResolveResult result =
-          getHaxeClass(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
-                       resolveResult.getSpecializations());
+          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
+                                    resolveResult.getSpecializations());
         if (result.getHaxeClass() != null) {
           return result;
         }
         // try iterator
-        result = getHaxeClass(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
-                              resolveResult.getSpecializations());
+        result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
+                                           resolveResult.getSpecializations());
         return result.getSpecializations().containsKey(null, "T")
                ? result.getSpecializations().get(null, "T")
                : HaxeClassResolveResult.EMPTY;
       }
-      return new HaxeClassResolveResult(null);
+      return HaxeClassResolveResult.EMPTY;
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag != null ? typeTag.getType() :
                           element instanceof HaxeType ? (HaxeType)element : null;
 
-    HaxeNamedComponent typeComponent = type == null ? null : resolveClass(type);
+    HaxeNamedComponent typeComponent = type == null ? null : tryResolveClassByQName(type);
     if (typeComponent == null && type != null && specialization.containsKey(element, type.getText())) {
       return specialization.get(element, type.getText());
     }
 
-    HaxeClassResolveResult result = getHaxeClass(typeComponent, specialization.getInnerSpecialization(element));
+    HaxeClassResolveResult result = getHaxeClassResolveResult(typeComponent, specialization.getInnerSpecialization(element));
     if (result.getHaxeClass() != null) {
       result.specializeByParameters(type == null ? null : type.getTypeParam());
       return result;
@@ -320,14 +321,14 @@ public class HaxeResolveUtil {
       result.specialize(initExpression);
       return result;
     }
-    return getHaxeClass(initExpression);
+    return getHaxeClassResolveResult(initExpression);
   }
 
   @NotNull
-  public static List<HaxeClass> resolveClasses(@NotNull List<HaxeType> types) {
+  public static List<HaxeClass> tyrResolveClassesByQName(@NotNull List<HaxeType> types) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     for (HaxeType haxeType : types) {
-      final HaxeClass haxeClass = resolveClass(haxeType);
+      final HaxeClass haxeClass = tryResolveClassByQName(haxeType);
       if (haxeClass != null) {
         result.add(haxeClass);
       }
@@ -336,7 +337,7 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeClass resolveClass(@Nullable PsiElement type) {
+  public static HaxeClass tryResolveClassByQName(@Nullable PsiElement type) {
     if (type == null || type.getContext() == null) {
       return null;
     }
@@ -347,9 +348,10 @@ public class HaxeResolveUtil {
     return result;
   }
 
+  @Nullable
   private static HaxeClass tryFindHelper(PsiElement element) {
     final HaxeClass ownerClass = findClassByQName(UsefulPsiTreeUtil.findHelperOwnerQName(element, element.getText()), element);
-    return ownerClass == null ? null : HaxeResolveUtil.findComponentDeclaration(ownerClass.getContainingFile(), element.getText());
+    return ownerClass == null ? null : findComponentDeclaration(ownerClass.getContainingFile(), element.getText());
   }
 
   public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {

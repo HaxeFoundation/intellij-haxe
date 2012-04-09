@@ -93,6 +93,11 @@
     <codeInsight.lineMarkerProvider language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLineMarkerProvider"/>
     <codeInsight.gotoSuper language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeGotoSuperHandler"/>
 
+    <codeInsight.overrideMethod language="haXe"
+                                implementationClass="com.intellij.plugins.haxe.ide.generation.HaxeOverrideMethodHandler"/>
+    <codeInsight.implementMethod language="haXe"
+                                implementationClass="com.intellij.plugins.haxe.ide.generation.HaxeImplementMethodHandler"/>
+
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
 
     <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>

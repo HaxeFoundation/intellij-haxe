@@ -3,9 +3,7 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExpressionCodeFragmentImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -19,6 +17,13 @@ import org.jetbrains.annotations.Nullable;
  * @author: Fedor.Korotkov
  */
 public class HaxeElementGenerator {
+  public static HaxeNamedComponent createFuctionFromText(Project myProject, String text) {
+    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
+    assert haxeClass != null;
+    return haxeClass.getMethods().get(0);
+  }
+
   @Nullable
   public static HaxeIdentifier createIdentifierFromText(Project myProject, String name) {
     final HaxeImportStatement importStatement = createImportStatementFromPath(myProject, name);

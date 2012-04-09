@@ -41,11 +41,12 @@ public class HaxeLookupElement extends LookupElement {
 
   @Override
   public void renderElement(LookupElementPresentation presentation) {
-    presentation.setItemText(getLookupString());
     final ItemPresentation myComponentNamePresentation = myComponentName.getPresentation();
     if (myComponentNamePresentation == null) {
+      presentation.setItemText(getLookupString());
       return;
     }
+    presentation.setItemText(myComponentNamePresentation.getPresentableText());
     presentation.setIcon(myComponentNamePresentation.getIcon(true));
     final String pkg = myComponentNamePresentation.getLocationString();
     if (StringUtil.isNotEmpty(pkg)) {

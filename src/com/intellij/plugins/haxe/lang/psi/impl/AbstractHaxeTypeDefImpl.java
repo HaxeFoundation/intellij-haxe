@@ -5,9 +5,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author: Fedor.Korotkov
@@ -25,7 +23,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     if (getAnonymousType() != null) {
       return new HaxeClassResolveResult(getAnonymousType(), specialization);
     }
-    return HaxeResolveUtil.getHaxeClass(getType(), specialization);
+    return HaxeResolveUtil.getHaxeClassResolveResult(getType(), specialization);
   }
 
   @NotNull
