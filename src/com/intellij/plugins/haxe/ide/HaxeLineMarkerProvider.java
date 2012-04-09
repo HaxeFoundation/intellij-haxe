@@ -21,6 +21,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -40,12 +41,12 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
   protected static final Icon IMPLEMENTED_METHOD_MARKER_RENDERER = IconLoader.getIcon("/gutter/implementedMethod.png");
 
   @Override
-  public LineMarkerInfo getLineMarkerInfo(PsiElement element) {
+  public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {
     return null;
   }
 
   @Override
-  public void collectSlowLineMarkers(List<PsiElement> elements, Collection<LineMarkerInfo> result) {
+  public void collectSlowLineMarkers(@NotNull List<PsiElement> elements, @NotNull Collection<LineMarkerInfo> result) {
     for (PsiElement element : elements) {
       if (element instanceof HaxeClass) {
         collectClassMarkers(result, (HaxeClass)element);
