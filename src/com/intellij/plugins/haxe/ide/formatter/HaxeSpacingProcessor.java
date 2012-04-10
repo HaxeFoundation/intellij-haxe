@@ -46,7 +46,11 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(false, true);
     }
 
-    if(type2 == HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES){
+    if (type1 == HAXE_CLASSBODY || type1 == HAXE_EXTERNCLASSDECLARATIONBODY || type1 == HAXE_ENUMBODY || type1 == HAXE_INTERFACEBODY) {
+      return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (type2 == HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES) {
       return Spacing.createSpacing(0, 0, 2, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 

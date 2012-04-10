@@ -165,6 +165,7 @@ public interface HaxeTokenTypes {
   IElementType KMACRO = new HaxeElementType("@:macro");
   IElementType KMETA = new HaxeElementType("@:meta");
   IElementType KNATIVE = new HaxeElementType("@:native");
+  IElementType KNEVER = new HaxeElementType("never");
   IElementType KNODEBUG = new HaxeElementType("@:nodebug");
   IElementType KNS = new HaxeElementType("@:ns");
   IElementType KNULL = new HaxeElementType("null");

@@ -7,7 +7,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -19,7 +19,7 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
   }
 
   @Override
-  void collectCandidates(HaxeClass haxeClass, Collection<HaxeNamedComponent> candidates) {
+  void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
     for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       if (!(haxeNamedComponent instanceof HaxeFunctionDeclarationWithAttributes)) continue;
       if (!haxeNamedComponent.isPublic() || haxeNamedComponent.isStatic()) continue;

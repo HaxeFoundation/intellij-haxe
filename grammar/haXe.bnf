@@ -121,6 +121,7 @@
     kPUBLIC="public"
     kPRIVATE="private"
     kDYNAMIC="dynamic"
+    kNEVER="never"
     kOVERRIDE="override"
     kINLINE="inline"
 
@@ -276,7 +277,7 @@ private local_var_declaration_part_recover ::= !(';' | ',' | '!' | '#else' | '#e
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
-propertyAccessor ::= referenceExpression | 'null' | 'default' | 'dynamic'
+propertyAccessor ::= referenceExpression | 'null' | 'default' | 'dynamic' | 'never'
 
 private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression
 

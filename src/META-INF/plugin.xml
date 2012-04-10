@@ -96,7 +96,7 @@
     <codeInsight.overrideMethod language="haXe"
                                 implementationClass="com.intellij.plugins.haxe.ide.generation.HaxeOverrideMethodHandler"/>
     <codeInsight.implementMethod language="haXe"
-                                implementationClass="com.intellij.plugins.haxe.ide.generation.HaxeImplementMethodHandler"/>
+                                 implementationClass="com.intellij.plugins.haxe.ide.generation.HaxeImplementMethodHandler"/>
 
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
 
@@ -132,6 +132,18 @@
     <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"
             text="haXe Class" description="Create new haXe class/interface/enum">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+    </action>
+    <action id="Generate.GetAccessor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateGetterAction"
+            text="Getter">
+      <add-to-group anchor="first" group-id="GenerateGroup"/>
+    </action>
+    <action id="Generate.SetAccessor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateSetterAction"
+            text="Setter">
+      <add-to-group anchor="after" relative-to-action="Generate.GetAccessor.Haxe" group-id="GenerateGroup"/>
+    </action>
+    <action id="Generate.GetSetAccessor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateGetterSetterAction"
+            text="Getter and Setter">
+      <add-to-group anchor="after" relative-to-action="Generate.SetAccessor.Haxe" group-id="GenerateGroup"/>
     </action>
   </actions>
 </idea-plugin>

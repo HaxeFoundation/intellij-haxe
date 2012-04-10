@@ -1,0 +1,24 @@
+class GetterSetter1 {
+  var foo(getFoo, setFoo):Int, bar(getBar, setBar):String;
+
+    @:getter(foo)
+    public function getFoo():Int {
+        return foo;
+    }
+
+    @:setter(foo)
+    public function setFoo(value:Int) {
+        this.foo = value;
+    }
+
+    @:setter(bar)
+    public function setBar(value:String) {
+        this.bar = value;
+    }
+
+    @:getter(bar)
+    public function getBar():String {
+        return bar;
+    }
+
+}

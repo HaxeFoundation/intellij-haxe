@@ -46,11 +46,19 @@ public abstract class BaseHaxeGenerateHandler implements LanguageCodeInsightActi
       PsiTreeUtil.getParentOfType(file.findElementAt(editor.getCaretModel().getOffset()), HaxeClassDeclaration.class);
     if (haxeClass == null) return;
 
-    final Collection<HaxeNamedComponent> candidates = new ArrayList<HaxeNamedComponent>();
+    final List<HaxeNamedComponent> candidates = new ArrayList<HaxeNamedComponent>();
     collectCandidates(haxeClass, candidates);
 
     List<HaxeNamedElementNode> selectedElements = Collections.emptyList();
-    if (!candidates.isEmpty()) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      selectedElements = ContainerUtil.map(candidates, new Function<HaxeNamedComponent, HaxeNamedElementNode>(){
+        @Override
+        public HaxeNamedElementNode fun(HaxeNamedComponent namedComponent) {
+          return new HaxeNamedElementNode(namedComponent);
+        }
+      });
+    }
+    else if (!candidates.isEmpty()) {
       final MemberChooser<HaxeNamedElementNode> chooser =
         createMemberChooserDialog(project, haxeClass, candidates, getTitle());
       chooser.show();
@@ -96,7 +104,7 @@ public abstract class BaseHaxeGenerateHandler implements LanguageCodeInsightActi
 
   protected abstract String getTitle();
 
-  abstract void collectCandidates(HaxeClass aClass, Collection<HaxeNamedComponent> candidates);
+  abstract void collectCandidates(HaxeClass aClass, List<HaxeNamedComponent> candidates);
 
   @Nullable
   protected JComponent getOptionsComponent(HaxeClass jsClass, final Collection<HaxeNamedComponent> candidates) {

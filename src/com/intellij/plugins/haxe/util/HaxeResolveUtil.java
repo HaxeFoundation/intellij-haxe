@@ -186,13 +186,17 @@ public class HaxeResolveUtil {
     if (!unique) {
       return unfilteredResult;
     }
+    return new ArrayList<HaxeNamedComponent>(namedComponentToMap(unfilteredResult).values());
+  }
+
+  public static Map<String, HaxeNamedComponent> namedComponentToMap(List<HaxeNamedComponent> unfilteredResult) {
     final Map<String, HaxeNamedComponent> result = new HashMap<String, HaxeNamedComponent>();
     for (HaxeNamedComponent haxeNamedComponent : unfilteredResult) {
       // need order
       if (result.containsKey(haxeNamedComponent.getName())) continue;
       result.put(haxeNamedComponent.getName(), haxeNamedComponent);
     }
-    return new ArrayList<HaxeNamedComponent>(result.values());
+    return result;
   }
 
   @NotNull

@@ -1,0 +1,9 @@
+class Setter1 {
+  var foo(null, setFoo):Int;
+
+    @:setter(foo)
+    public function setFoo(value:Int) {
+        this.foo = value;
+    }
+
+}

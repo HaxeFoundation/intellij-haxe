@@ -11,9 +11,8 @@ public interface HaxeTypeTag extends HaxePsiCompositeElement {
   HaxeAnonymousType getAnonymousType();
 
   @Nullable
-  HaxeFunctionType getFunctionType();
-
-  @Nullable
   HaxeType getType();
 
+  @Nullable
+  HaxeFunctionType getFunctionType();
 }

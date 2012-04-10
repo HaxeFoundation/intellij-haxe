@@ -109,6 +109,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "private"                                 {  return KPRIVATE;  }
 "static"                                  {  return KSTATIC;  }
 "dynamic"                                 {  return KDYNAMIC;  }
+"never"                                   {  return KNEVER;  }
 "override"                                {  return KOVERRIDE;  }
 "inline"                                  {  return KINLINE;  }
 

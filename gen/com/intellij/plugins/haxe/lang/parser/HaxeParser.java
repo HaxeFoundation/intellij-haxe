@@ -5363,17 +5363,19 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // referenceExpression | 'null' | 'default' | 'dynamic'
+  // referenceExpression | 'null' | 'default' | 'dynamic' | 'never'
   public static boolean propertyAccessor(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "propertyAccessor")) return false;
-    if (!nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KDEFAULT)
-        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, KNEVER) && !nextTokenIs(builder_, KNULL)
+        && !nextTokenIs(builder_, KDEFAULT) && !nextTokenIs(builder_, KDYNAMIC)
+        && !nextTokenIs(builder_, ID)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = referenceExpression(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, KNULL);
     if (!result_) result_ = consumeToken(builder_, KDEFAULT);
     if (!result_) result_ = consumeToken(builder_, KDYNAMIC);
+    if (!result_) result_ = consumeToken(builder_, KNEVER);
     if (result_) {
       marker_.done(HAXE_PROPERTYACCESSOR);
     }

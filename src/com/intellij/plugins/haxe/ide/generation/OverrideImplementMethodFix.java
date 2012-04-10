@@ -18,7 +18,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
   }
 
   @Override
-  protected String buildFunctionText(HaxeNamedComponent element) {
+  protected String buildFunctionsText(HaxeNamedComponent element) {
     final StringBuilder result = new StringBuilder();
     if (override && !element.isOverride()) {
       result.append("override ");
@@ -27,6 +27,9 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     if (declarationAttributeList != null) {
       result.append(declarationAttributeList.getText());
       result.append(" ");
+    }
+    if(!result.toString().contains("public")){
+      result.insert(0, "public ");
     }
     result.append("function ");
     result.append(element.getName());
@@ -38,7 +41,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(":");
       result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getType(), specializations));
     }
-    result.append("{}");
+    result.append("{\n}\n");
     return result.toString();
   }
 }

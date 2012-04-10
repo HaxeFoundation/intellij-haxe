@@ -8,7 +8,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.source.tree.PsiWhiteSpaceImpl;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,20 +57,25 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
 
   protected void processElements(Project project, Set<T> elementsToProcess) {
     for (T e : elementsToProcess) {
-      anchor = doAddOneMethod(project, buildFunctionText(e), anchor);
+      anchor = doAddMethodsForOne(project, buildFunctionsText(e), anchor);
+      modifyElement(e);
     }
   }
 
-  protected abstract String buildFunctionText(T e);
+  protected void modifyElement(T element) {
+  }
 
-  public PsiElement doAddOneMethod(final Project project, final String functionText, PsiElement anchor) throws IncorrectOperationException {
-    if (functionText != null && functionText.length() > 0) {
-      PsiElement element = HaxeElementGenerator.createFuctionFromText(project, functionText);
-      assert element != null;
+  protected abstract String buildFunctionsText(T e);
+
+  public PsiElement doAddMethodsForOne(final Project project, final String functionsText, PsiElement anchor) throws IncorrectOperationException {
+    if (functionsText != null && functionsText.length() > 0) {
+      List<HaxeNamedComponent> elements = HaxeElementGenerator.createFunctionsFromText(project, functionsText);
       final PsiElement insert = myHaxeClass instanceof HaxeClassDeclaration ?
                                 ((HaxeClassDeclaration)myHaxeClass).getClassBody() : myHaxeClass;
       assert insert != null;
-      anchor = insert.addAfter(element, anchor);
+      for (HaxeNamedComponent element : elements) {
+        anchor = insert.addAfter(element, anchor);
+      }
     }
     return anchor;
   }

@@ -13,15 +13,24 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeElementGenerator {
-  public static HaxeNamedComponent createFuctionFromText(Project myProject, String text) {
+  public static HaxeVarDeclarationPart createVarDeclarationPart(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return haxeClass.getMethods().get(0);
+    return (HaxeVarDeclarationPart)haxeClass.getFields().iterator().next();
+  }
+
+  public static List<HaxeNamedComponent> createFunctionsFromText(Project myProject, String text) {
+    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
+    assert haxeClass != null;
+    return haxeClass.getMethods();
   }
 
   @Nullable

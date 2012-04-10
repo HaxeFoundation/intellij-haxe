@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,6 +12,21 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxePresentableUtil {
+  public static String setterName(@NotNull @Nls String name) {
+    return "set" + startsWithUpperCase(name);
+  }
+
+  public static String getterName(@NotNull @Nls String name) {
+    return "get" + startsWithUpperCase(name);
+  }
+
+  public static String startsWithUpperCase(@NotNull @Nls String name) {
+    if (name.length() == 1) {
+      return String.valueOf(Character.toUpperCase(name.charAt(0)));
+    }
+    return Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  }
+
   @NotNull
   public static String unwrapCommentDelimiters(@NotNull String text) {
     if (text.startsWith("/**")) text = text.substring("/**".length());
@@ -59,6 +75,10 @@ public class HaxePresentableUtil {
     return buildTypeText(element, haxeType, specializations);
   }
 
+  public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag) {
+    return buildTypeText(element, typeTag, new HaxeGenericSpecialization());
+  }
+
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
     final HaxeAnonymousType anonymousType = typeTag.getAnonymousType();
     if (anonymousType != null) {
@@ -103,8 +123,7 @@ public class HaxePresentableUtil {
     final String typeText = type.getExpression().getText();
     if (specializations.containsKey(element, typeText)) {
       final HaxeClass haxeClass = specializations.get(element, typeText).getHaxeClass();
-      assert haxeClass != null;
-      result.append(haxeClass.getName());
+      result.append(haxeClass == null ? typeText : haxeClass.getName());
     }
     else {
       result.append(typeText);

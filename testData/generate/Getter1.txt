@@ -1,0 +1,9 @@
+class Getter1 {
+  var foo(getFoo, null):Int;
+
+    @:getter(foo)
+    public function getFoo():Int {
+        return foo;
+    }
+
+}
