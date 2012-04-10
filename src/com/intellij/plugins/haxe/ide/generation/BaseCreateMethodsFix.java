@@ -25,7 +25,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
 
   public BaseCreateMethodsFix(final HaxeClass haxeClass) {
     myHaxeClass = haxeClass;
-    specializations = new HaxeClassResolveResult(haxeClass).getSpecializations();
+    specializations = new HaxeClassResolveResult(haxeClass).getSpecialization();
   }
 
   protected void evalAnchor(@Nullable Editor editor, PsiFile file) {

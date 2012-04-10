@@ -1,0 +1,141 @@
+package com.intellij.plugins.haxe.ide.info;
+
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.lang.parameterInfo.*;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.ArrayUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * @author: Fedor.Korotkov
+ */
+public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement, HaxeFunctionDescription> {
+  String myParametersListPresentableText = "";
+
+  @Override
+  public boolean couldShowInLookup() {
+    return true;
+  }
+
+  @Override
+  public Object[] getParametersForLookup(LookupElement item, ParameterInfoContext context) {
+    final Object o = item.getObject();
+    if (o instanceof PsiElement) {
+      final PsiElement element = (PsiElement)o;
+      final HaxeComponentType type = HaxeComponentType.typeOf(element.getParent());
+      if (type == HaxeComponentType.METHOD) {
+        return new Object[]{element.getParent()};
+      }
+    }
+    return ArrayUtil.EMPTY_OBJECT_ARRAY;
+  }
+
+  @Override
+  public Object[] getParametersForDocumentation(HaxeFunctionDescription p, ParameterInfoContext context) {
+    return p.getParameters();
+  }
+
+  @Override
+  public PsiElement findElementForParameterInfo(CreateParameterInfoContext context) {
+    final PsiElement at = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+    return PsiTreeUtil.getParentOfType(at, HaxeCallExpression.class);
+  }
+
+  @Override
+  public PsiElement findElementForUpdatingParameterInfo(UpdateParameterInfoContext context) {
+    final PsiElement at = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+    return PsiTreeUtil.getParentOfType(at, HaxeParameterList.class) != null ? at : UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(at);
+  }
+
+  @Override
+  public void showParameterInfo(@NotNull PsiElement element, CreateParameterInfoContext context) {
+    assert element instanceof HaxeCallExpression;
+    final HaxeFunctionDescription functionDescription = tryGetDescription((HaxeCallExpression)element);
+    if (functionDescription != null && functionDescription.getParameters().length > 0) {
+      context.setItemsToShow(new Object[]{functionDescription});
+      context.showHint(element, element.getTextRange().getStartOffset(), this);
+    }
+  }
+
+  @Nullable
+  private static HaxeFunctionDescription tryGetDescription(HaxeCallExpression callExpression) {
+    final PsiElement target = ((HaxeReference)callExpression.getExpression()).resolve();
+    final PsiElement targetParent = target == null ? null : target.getParent();
+    if (target instanceof HaxeComponentName && targetParent instanceof HaxeNamedComponent) {
+      final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(callExpression.getExpression(), HaxeReference.class);
+      final HaxeClassResolveResult resolveResult = (references != null && references.length == 2)
+                                                   ? references[0].resolveHaxeClass()
+                                                   : new HaxeClassResolveResult(
+                                                     PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class));
+      return HaxeFunctionDescription.createDescription((HaxeNamedComponent)targetParent, resolveResult);
+    }
+    return null;
+  }
+
+  @Override
+  public void updateParameterInfo(@NotNull PsiElement place, UpdateParameterInfoContext context) {
+    final HaxeExpressionList expressionList = PsiTreeUtil.getParentOfType(place, HaxeExpressionList.class, false);
+    int parameterIndex = 0;
+    if (place == expressionList) {
+      assert expressionList != null;
+      final HaxeFunctionDescription functionDescription = tryGetDescription((HaxeCallExpression)expressionList.getParent());
+      // the last one
+      parameterIndex = functionDescription == null ? -1 : functionDescription.getParameters().length - 1;
+    }
+    else if (expressionList != null) {
+      for (HaxeExpression expression : expressionList.getExpressionList()) {
+        ++parameterIndex;
+        if (expression.getTextRange().getEndOffset() > place.getTextOffset()) {
+          break;
+        }
+      }
+    }
+    context.setCurrentParameter(parameterIndex);
+
+    if (context.getParameterOwner() == null) {
+      context.setParameterOwner(place);
+    }
+    else if (context.getParameterOwner() != PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class)) {
+      context.removeHint();
+      return;
+    }
+    final Object[] objects = context.getObjectsToView();
+
+    for (int i = 0; i < objects.length; i++) {
+      context.setUIComponentEnabled(i, true);
+    }
+  }
+
+  @Override
+  public String getParameterCloseChars() {
+    return ",){}";
+  }
+
+  @Override
+  public boolean tracksParameterIndex() {
+    return true;
+  }
+
+  @Override
+  public void updateUI(HaxeFunctionDescription p, ParameterInfoUIContext context) {
+    if (p == null) {
+      context.setUIComponentEnabled(false);
+      return;
+    }
+    myParametersListPresentableText = p.getParametersListPresentableText();
+    context.setupUIComponentPresentation(
+      myParametersListPresentableText,
+      p.getParameterRange(context.getCurrentParameterIndex()).getStartOffset(),
+      p.getParameterRange(context.getCurrentParameterIndex()).getEndOffset(),
+      !context.isUIComponentEnabled(),
+      false,
+      false,
+      context.getDefaultParameterColor()
+    );
+  }
+}

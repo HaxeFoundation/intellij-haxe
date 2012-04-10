@@ -2091,23 +2091,10 @@ public class HaxeParser implements PsiParser {
   // assignExpressionWrapper
   public static boolean expression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "expression")) return false;
-    if (!nextTokenIs(builder_, KSUPER) && !nextTokenIs(builder_, LITOCT)
-        && !nextTokenIs(builder_, LITHEX) && !nextTokenIs(builder_, KCAST)
-        && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
-        && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KSWITCH)
-        && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, PPIF) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KTHIS)
-        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KTRY)
-        && !nextTokenIs(builder_, KFALSE) && !nextTokenIs(builder_, OMINUS)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KUNTYPED)) return false;
     boolean result_ = false;
     final int start_ = builder_.getCurrentOffset();
     final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_);
     result_ = assignExpressionWrapper(builder_, level_ + 1);
     LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
     if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_EXPRESSION)) {
@@ -2119,6 +2106,7 @@ public class HaxeParser implements PsiParser {
     else {
       marker_.rollbackTo();
     }
+    result_ = exitErrorRecordingSection(builder_, result_, level_, false, _SECTION_RECOVER_, expression_recover_parser_);
     return result_;
   }
 
@@ -2126,22 +2114,9 @@ public class HaxeParser implements PsiParser {
   // expression (',' expression)*
   public static boolean expressionList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "expressionList")) return false;
-    if (!nextTokenIs(builder_, KSUPER) && !nextTokenIs(builder_, LITOCT)
-        && !nextTokenIs(builder_, LITHEX) && !nextTokenIs(builder_, KCAST)
-        && !nextTokenIs(builder_, OMINUS_MINUS) && !nextTokenIs(builder_, LITCHAR)
-        && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, KSWITCH)
-        && !nextTokenIs(builder_, OPLUS_PLUS) && !nextTokenIs(builder_, KIF)
-        && !nextTokenIs(builder_, ONOT) && !nextTokenIs(builder_, PLBRACK)
-        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, PLPAREN)
-        && !nextTokenIs(builder_, ID) && !nextTokenIs(builder_, LITSTRING)
-        && !nextTokenIs(builder_, PPIF) && !nextTokenIs(builder_, ONEW)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, KTHIS)
-        && !nextTokenIs(builder_, KNULL) && !nextTokenIs(builder_, KTRY)
-        && !nextTokenIs(builder_, KFALSE) && !nextTokenIs(builder_, OMINUS)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, OCOMPLEMENT) && !nextTokenIs(builder_, KUNTYPED)) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_);
     result_ = expression(builder_, level_ + 1);
     result_ = result_ && expressionList_1(builder_, level_ + 1);
     if (result_) {
@@ -2150,6 +2125,7 @@ public class HaxeParser implements PsiParser {
     else {
       marker_.rollbackTo();
     }
+    result_ = exitErrorRecordingSection(builder_, result_, level_, false, _SECTION_RECOVER_, expression_list_recover_parser_);
     return result_;
   }
 
@@ -2182,6 +2158,189 @@ public class HaxeParser implements PsiParser {
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OCOMMA);
     result_ = result_ && expression(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // !(')' | ':' | ']')
+  static boolean expression_list_recover(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expression_list_recover")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_NOT_);
+    result_ = !expression_list_recover_0(builder_, level_ + 1);
+    marker_.rollbackTo();
+    result_ = exitErrorRecordingSection(builder_, result_, level_, false, _SECTION_NOT_, null);
+    return result_;
+  }
+
+  // (')' | ':' | ']')
+  private static boolean expression_list_recover_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expression_list_recover_0")) return false;
+    return expression_list_recover_0_0(builder_, level_ + 1);
+  }
+
+  // ')' | ':' | ']'
+  private static boolean expression_list_recover_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expression_list_recover_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, PRPAREN);
+    if (!result_) result_ = consumeToken(builder_, OCOLON);
+    if (!result_) result_ = consumeToken(builder_, PRBRACK);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // !('!' | '!=' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:bind' | '@:bitmap' | '@:build' | '@:core_api' | '@:debug' | '@:fakeEnum' | '@:final' | '@:getter' | '@:hack' | '@:keep' | '@:macro' | '@:meta' | '@:native' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'class' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'enum' | 'extern' | 'false' | 'for' | 'function' | 'if' | 'import' | 'inline' | 'interface' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typedef' | 'untyped' | 'using' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | MACRO_ID)
+  static boolean expression_recover(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expression_recover")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_NOT_);
+    result_ = !expression_recover_0(builder_, level_ + 1);
+    marker_.rollbackTo();
+    result_ = exitErrorRecordingSection(builder_, result_, level_, false, _SECTION_NOT_, null);
+    return result_;
+  }
+
+  // ('!' | '!=' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:bind' | '@:bitmap' | '@:build' | '@:core_api' | '@:debug' | '@:fakeEnum' | '@:final' | '@:getter' | '@:hack' | '@:keep' | '@:macro' | '@:meta' | '@:native' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'class' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'enum' | 'extern' | 'false' | 'for' | 'function' | 'if' | 'import' | 'inline' | 'interface' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typedef' | 'untyped' | 'using' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | MACRO_ID)
+  private static boolean expression_recover_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expression_recover_0")) return false;
+    return expression_recover_0_0(builder_, level_ + 1);
+  }
+
+  // '!' | '!=' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:bind' | '@:bitmap' | '@:build' | '@:core_api' | '@:debug' | '@:fakeEnum' | '@:final' | '@:getter' | '@:hack' | '@:keep' | '@:macro' | '@:meta' | '@:native' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'class' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'enum' | 'extern' | 'false' | 'for' | 'function' | 'if' | 'import' | 'inline' | 'interface' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typedef' | 'untyped' | 'using' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | MACRO_ID
+  private static boolean expression_recover_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expression_recover_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, ONOT);
+    if (!result_) result_ = consumeToken(builder_, ONOT_EQ);
+    if (!result_) result_ = consumeToken(builder_, PPELSE);
+    if (!result_) result_ = consumeToken(builder_, PPELSEIF);
+    if (!result_) result_ = consumeToken(builder_, PPEND);
+    if (!result_) result_ = consumeToken(builder_, PPERROR);
+    if (!result_) result_ = consumeToken(builder_, PPIF);
+    if (!result_) result_ = consumeToken(builder_, OREMAINDER);
+    if (!result_) result_ = consumeToken(builder_, OREMAINDER_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, OCOND_AND);
+    if (!result_) result_ = consumeToken(builder_, OBIT_AND);
+    if (!result_) result_ = consumeToken(builder_, OBIT_AND_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, PLPAREN);
+    if (!result_) result_ = consumeToken(builder_, PRPAREN);
+    if (!result_) result_ = consumeToken(builder_, OMUL);
+    if (!result_) result_ = consumeToken(builder_, OMUL_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, OPLUS);
+    if (!result_) result_ = consumeToken(builder_, OPLUS_PLUS);
+    if (!result_) result_ = consumeToken(builder_, OPLUS_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, OCOMMA);
+    if (!result_) result_ = consumeToken(builder_, OMINUS);
+    if (!result_) result_ = consumeToken(builder_, OMINUS_MINUS);
+    if (!result_) result_ = consumeToken(builder_, OMINUS_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, ODOT);
+    if (!result_) result_ = consumeToken(builder_, OTRIPLE_DOT);
+    if (!result_) result_ = consumeToken(builder_, OQUOTIENT);
+    if (!result_) result_ = consumeToken(builder_, OQUOTIENT_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, OCOLON);
+    if (!result_) result_ = consumeToken(builder_, OSEMI);
+    if (!result_) result_ = consumeToken(builder_, OLESS);
+    if (!result_) result_ = consumeToken(builder_, OSHIFT_LEFT);
+    if (!result_) result_ = consumeToken(builder_, OSHIFT_LEFT_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, OLESS_OR_EQUAL);
+    if (!result_) result_ = consumeToken(builder_, OASSIGN);
+    if (!result_) result_ = consumeToken(builder_, OEQ);
+    if (!result_) result_ = consumeToken(builder_, OGREATER);
+    if (!result_) result_ = consumeToken(builder_, OGREATER_OR_EQUAL);
+    if (!result_) result_ = consumeToken(builder_, OSHIFT_RIGHT_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, ">>>=");
+    if (!result_) result_ = consumeToken(builder_, OQUEST);
+    if (!result_) result_ = consumeToken(builder_, KAUTOBUILD);
+    if (!result_) result_ = consumeToken(builder_, KBIND);
+    if (!result_) result_ = consumeToken(builder_, KBITMAP);
+    if (!result_) result_ = consumeToken(builder_, KBUILD);
+    if (!result_) result_ = consumeToken(builder_, KCOREAPI);
+    if (!result_) result_ = consumeToken(builder_, KDEBUG);
+    if (!result_) result_ = consumeToken(builder_, KFAKEENUM);
+    if (!result_) result_ = consumeToken(builder_, KFINAL);
+    if (!result_) result_ = consumeToken(builder_, KGETTER);
+    if (!result_) result_ = consumeToken(builder_, KHACK);
+    if (!result_) result_ = consumeToken(builder_, KKEEP);
+    if (!result_) result_ = consumeToken(builder_, KMACRO);
+    if (!result_) result_ = consumeToken(builder_, KMETA);
+    if (!result_) result_ = consumeToken(builder_, KNATIVE);
+    if (!result_) result_ = consumeToken(builder_, KNODEBUG);
+    if (!result_) result_ = consumeToken(builder_, KNS);
+    if (!result_) result_ = consumeToken(builder_, KPROTECTED);
+    if (!result_) result_ = consumeToken(builder_, KREQUIRE);
+    if (!result_) result_ = consumeToken(builder_, KSETTER);
+    if (!result_) result_ = consumeToken(builder_, PLBRACK);
+    if (!result_) result_ = consumeToken(builder_, PRBRACK);
+    if (!result_) result_ = consumeToken(builder_, OBIT_XOR);
+    if (!result_) result_ = consumeToken(builder_, OBIT_XOR_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, KBREAK);
+    if (!result_) result_ = consumeToken(builder_, KCASE);
+    if (!result_) result_ = consumeToken(builder_, KCAST);
+    if (!result_) result_ = consumeToken(builder_, KCATCH);
+    if (!result_) result_ = consumeToken(builder_, KCLASS);
+    if (!result_) result_ = consumeToken(builder_, KCONTINUE);
+    if (!result_) result_ = consumeToken(builder_, KDEFAULT);
+    if (!result_) result_ = consumeToken(builder_, KDO);
+    if (!result_) result_ = consumeToken(builder_, KDYNAMIC);
+    if (!result_) result_ = consumeToken(builder_, KELSE);
+    if (!result_) result_ = consumeToken(builder_, KENUM);
+    if (!result_) result_ = consumeToken(builder_, KEXTERN);
+    if (!result_) result_ = consumeToken(builder_, KFALSE);
+    if (!result_) result_ = consumeToken(builder_, KFOR);
+    if (!result_) result_ = consumeToken(builder_, KFUNCTION);
+    if (!result_) result_ = consumeToken(builder_, KIF);
+    if (!result_) result_ = consumeToken(builder_, KIMPORT);
+    if (!result_) result_ = consumeToken(builder_, KINLINE);
+    if (!result_) result_ = consumeToken(builder_, KINTERFACE);
+    if (!result_) result_ = consumeToken(builder_, ONEW);
+    if (!result_) result_ = consumeToken(builder_, KNULL);
+    if (!result_) result_ = consumeToken(builder_, KOVERRIDE);
+    if (!result_) result_ = consumeToken(builder_, KPRIVATE);
+    if (!result_) result_ = consumeToken(builder_, KPUBLIC);
+    if (!result_) result_ = consumeToken(builder_, KRETURN);
+    if (!result_) result_ = consumeToken(builder_, KSTATIC);
+    if (!result_) result_ = consumeToken(builder_, KSUPER);
+    if (!result_) result_ = consumeToken(builder_, KSWITCH);
+    if (!result_) result_ = consumeToken(builder_, KTHIS);
+    if (!result_) result_ = consumeToken(builder_, KTHROW);
+    if (!result_) result_ = consumeToken(builder_, KTRUE);
+    if (!result_) result_ = consumeToken(builder_, KTRY);
+    if (!result_) result_ = consumeToken(builder_, KTYPEDEF);
+    if (!result_) result_ = consumeToken(builder_, KUNTYPED);
+    if (!result_) result_ = consumeToken(builder_, KUSING);
+    if (!result_) result_ = consumeToken(builder_, KVAR);
+    if (!result_) result_ = consumeToken(builder_, KWHILE);
+    if (!result_) result_ = consumeToken(builder_, PLCURLY);
+    if (!result_) result_ = consumeToken(builder_, OBIT_OR);
+    if (!result_) result_ = consumeToken(builder_, OBIT_OR_ASSIGN);
+    if (!result_) result_ = consumeToken(builder_, OCOND_OR);
+    if (!result_) result_ = consumeToken(builder_, PRCURLY);
+    if (!result_) result_ = consumeToken(builder_, OCOMPLEMENT);
+    if (!result_) result_ = consumeToken(builder_, ID);
+    if (!result_) result_ = consumeToken(builder_, LITCHAR);
+    if (!result_) result_ = consumeToken(builder_, LITFLOAT);
+    if (!result_) result_ = consumeToken(builder_, LITHEX);
+    if (!result_) result_ = consumeToken(builder_, LITINT);
+    if (!result_) result_ = consumeToken(builder_, LITOCT);
+    if (!result_) result_ = consumeToken(builder_, LITSTRING);
+    if (!result_) result_ = consumeToken(builder_, MACRO_ID);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -7072,6 +7231,16 @@ public class HaxeParser implements PsiParser {
   final static Parser enum_value_declaration_recovery_parser_ = new Parser() {
       public boolean parse(PsiBuilder builder_, int level_) {
         return enum_value_declaration_recovery(builder_, level_ + 1);
+      }
+    };
+  final static Parser expression_list_recover_parser_ = new Parser() {
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return expression_list_recover(builder_, level_ + 1);
+      }
+    };
+  final static Parser expression_recover_parser_ = new Parser() {
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return expression_recover(builder_, level_ + 1);
       }
     };
   final static Parser extern_class_body_part_recover_parser_ = new Parser() {

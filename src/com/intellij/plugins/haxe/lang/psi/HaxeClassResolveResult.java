@@ -14,7 +14,7 @@ public class HaxeClassResolveResult {
   public static final HaxeClassResolveResult EMPTY = new HaxeClassResolveResult(null);
   @Nullable
   private final HaxeClass haxeClass;
-  private final HaxeGenericSpecialization specializations;
+  private final HaxeGenericSpecialization specialization;
   private final List<HaxeClassResolveResult> functionTypes = new ArrayList<HaxeClassResolveResult>();
 
   public HaxeClassResolveResult(@Nullable HaxeClass aClass) {
@@ -23,19 +23,19 @@ public class HaxeClassResolveResult {
 
   public HaxeClassResolveResult(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
     haxeClass = aClass;
-    this.specializations = specialization;
+    this.specialization = specialization;
     if (haxeClass == null) {
       return;
     }
     for (HaxeType haxeType : haxeClass.getExtendsList()) {
       final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(haxeType));
       result.specializeByParameters(haxeType.getTypeParam());
-      merge(result.getSpecializations());
+      merge(result.getSpecialization());
     }
     for (HaxeType haxeType : haxeClass.getImplementsList()) {
       final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(haxeType));
       result.specializeByParameters(haxeType.getTypeParam());
-      merge(result.getSpecializations());
+      merge(result.getSpecialization());
     }
   }
 
@@ -45,7 +45,7 @@ public class HaxeClassResolveResult {
 
   private void merge(HaxeGenericSpecialization otherSpecializations) {
     for (String key : otherSpecializations.map.keySet()) {
-      specializations.map.put(key, otherSpecializations.map.get(key));
+      specialization.map.put(key, otherSpecializations.map.get(key));
     }
   }
 
@@ -54,8 +54,8 @@ public class HaxeClassResolveResult {
     return haxeClass;
   }
 
-  public HaxeGenericSpecialization getSpecializations() {
-    return specializations;
+  public HaxeGenericSpecialization getSpecialization() {
+    return specialization;
   }
 
   public void specialize(@Nullable PsiElement element) {
@@ -78,8 +78,8 @@ public class HaxeClassResolveResult {
       HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
       final HaxeType specializedType = typeList.getTypeListPartList().get(i).getType();
       if (haxeGenericListPart.getText() == null || specializedType == null) continue;
-      specializations.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType,
-                                                                                                              specializations));
+      specialization.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType,
+                                                                                                             specialization));
     }
   }
 

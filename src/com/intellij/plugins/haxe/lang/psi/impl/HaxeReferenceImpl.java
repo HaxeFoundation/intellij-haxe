@@ -170,7 +170,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final HaxeClassResolveResult leftResult = tryGetLeftResolveResult(expression);
       if (expression instanceof HaxeReference) {
         final HaxeClassResolveResult result =
-          HaxeResolveUtil.getHaxeClassResolveResult(((HaxeReference)expression).resolve(), leftResult.getSpecializations());
+          HaxeResolveUtil.getHaxeClassResolveResult(((HaxeReference)expression).resolve(), leftResult.getSpecialization());
         result.specialize(this);
         return result;
       }
@@ -186,14 +186,14 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
         // std Array
         if ("Array".equalsIgnoreCase(resolveResultHaxeClass.getQualifiedName())) {
-          return resolveResult.getSpecializations().get(resolveResultHaxeClass, "T");
+          return resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
         }
         // __get method
         return HaxeResolveUtil.getHaxeClassResolveResult(resolveResultHaxeClass.findMethodByName("__get"),
-                                                         resolveResult.getSpecializations());
+                                                         resolveResult.getSpecialization());
       }
     }
-    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve(), tryGetLeftResolveResult(this).getSpecializations());
+    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve(), tryGetLeftResolveResult(this).getSpecialization());
     if (result.getHaxeClass() == null) {
       result = new HaxeClassResolveResult(HaxeResolveUtil.findClassByQName(getText(), this));
     }

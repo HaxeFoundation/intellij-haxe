@@ -288,15 +288,15 @@ public class HaxeResolveUtil {
         // try next
         HaxeClassResolveResult result =
           getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
-                                    resolveResult.getSpecializations());
+                                    resolveResult.getSpecialization());
         if (result.getHaxeClass() != null) {
           return result;
         }
         // try iterator
         result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
-                                           resolveResult.getSpecializations());
-        return result.getSpecializations().containsKey(null, "T")
-               ? result.getSpecializations().get(null, "T")
+                                           resolveResult.getSpecialization());
+        return result.getSpecialization().containsKey(null, "T")
+               ? result.getSpecialization().get(null, "T")
                : HaxeClassResolveResult.EMPTY;
       }
       return HaxeClassResolveResult.EMPTY;
