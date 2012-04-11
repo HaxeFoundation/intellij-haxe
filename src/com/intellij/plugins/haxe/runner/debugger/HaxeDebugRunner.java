@@ -61,7 +61,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
-    if (settings.getTarget() != HaxeTarget.FLASH) {
+    if (settings.getHaxeTarget() != HaxeTarget.FLASH) {
       throw new ExecutionException(HaxeBundle.message("haxe.cannot.debug.not.flash"));
     }
 

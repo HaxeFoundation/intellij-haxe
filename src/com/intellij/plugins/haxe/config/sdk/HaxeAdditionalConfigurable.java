@@ -5,7 +5,8 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.plugins.haxe.config.sdk.ui.NekoConfigurablePanel;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.config.sdk.ui.HaxeAdditionalConfigurablePanel;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -13,12 +14,12 @@ import javax.swing.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class NekoConfigurable implements AdditionalDataConfigurable {
-  private final NekoConfigurablePanel myNekoConfigurablePanel;
+public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
+  private final HaxeAdditionalConfigurablePanel myHaxeAdditionalConfigurablePanel;
   private Sdk mySdk;
 
-  public NekoConfigurable() {
-    myNekoConfigurablePanel = new NekoConfigurablePanel();
+  public HaxeAdditionalConfigurable() {
+    myHaxeAdditionalConfigurablePanel = new HaxeAdditionalConfigurablePanel();
   }
 
   @Override
@@ -28,13 +29,15 @@ public class NekoConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public JComponent createComponent() {
-    return myNekoConfigurablePanel.getPanel();
+    return myHaxeAdditionalConfigurablePanel.getPanel();
   }
 
   @Override
   public boolean isModified() {
     final HaxeSdkData haxeSdkData = getHaxeSdkData();
-    return haxeSdkData == null || !myNekoConfigurablePanel.getNekoBinPath().equals(haxeSdkData.getNekoBinPath());
+    return haxeSdkData == null ||
+           !myHaxeAdditionalConfigurablePanel.getNekoBinPath().equals(haxeSdkData.getNekoBinPath()) ||
+           !myHaxeAdditionalConfigurablePanel.getHaxelibPath().equals(haxeSdkData.getHaxelibPath());
   }
 
   @Override
@@ -45,7 +48,8 @@ public class NekoConfigurable implements AdditionalDataConfigurable {
     }
 
     final HaxeSdkData newData = new HaxeSdkData(haxeSdkData.getHomePath(), haxeSdkData.getVersion());
-    newData.setNekoBinPath(myNekoConfigurablePanel.getNekoBinPath());
+    newData.setNekoBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNekoBinPath()));
+    newData.setHaxelibPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHaxelibPath()));
 
     final SdkModificator modificator = mySdk.getSdkModificator();
     modificator.setSdkAdditionalData(newData);
@@ -63,10 +67,14 @@ public class NekoConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public void reset() {
-    if (getHaxeSdkData() != null) {
-      myNekoConfigurablePanel.setNekoBinPath(getHaxeSdkData().getNekoBinPath());
+    final HaxeSdkData haxeSdkData = getHaxeSdkData();
+    if (haxeSdkData != null) {
+      final String nekoBinPath = haxeSdkData.getNekoBinPath();
+      myHaxeAdditionalConfigurablePanel.setNekoBinPath(FileUtil.toSystemDependentName(nekoBinPath == null ? "" : nekoBinPath));
+      final String haxelibPath = haxeSdkData.getHaxelibPath();
+      myHaxeAdditionalConfigurablePanel.setHaxelibPath(FileUtil.toSystemDependentName(haxelibPath == null ? "" : haxelibPath));
     }
-    myNekoConfigurablePanel.getPanel().repaint();
+    myHaxeAdditionalConfigurablePanel.getPanel().repaint();
   }
 
   @Override

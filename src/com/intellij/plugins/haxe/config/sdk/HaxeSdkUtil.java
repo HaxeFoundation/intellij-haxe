@@ -9,6 +9,7 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -24,6 +25,7 @@ public class HaxeSdkUtil {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
   private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
   private static final String COMPILER_EXECUTABLE_NAME = "haxe";
+  private static final String HAXELIB_EXECUTABLE_NAME = "haxelib";
 
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
@@ -54,6 +56,7 @@ public class HaxeSdkUtil {
       final Matcher matcher = VERSION_MATCHER.matcher(outputString);
       if (matcher.find()) {
         final HaxeSdkData haxeSdkData = new HaxeSdkData(path, matcher.group(1));
+        haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
         haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
         return haxeSdkData;
       }
@@ -93,7 +96,7 @@ public class HaxeSdkUtil {
     if (result == null && !SystemInfo.isWindows) {
       final VirtualFile candidate = VirtualFileManager.getInstance().findFileByUrl("/usr/bin/neko");
       if (candidate != null && candidate.exists()) {
-        return candidate.getPath();
+        return FileUtil.toSystemIndependentName(candidate.getPath());
       }
     }
     if (result == null) {
@@ -104,24 +107,34 @@ public class HaxeSdkUtil {
       result = new File(result, getExecutableName("neko")).getAbsolutePath();
     }
     if (result != null && new File(result).exists()) {
-      return result;
+      return FileUtil.toSystemIndependentName(result);
     }
     return null;
   }
 
   @Nullable
   public static String getCompilerPathByFolderPath(String folderPath) {
+    return getExecutablePathByFolderPath(folderPath, COMPILER_EXECUTABLE_NAME);
+  }
+
+  @Nullable
+  public static String getHaxelibPathByFolderPath(String folderPath) {
+    return getExecutablePathByFolderPath(folderPath, HAXELIB_EXECUTABLE_NAME);
+  }
+
+  @Nullable
+  private static String getExecutablePathByFolderPath(String folderPath, String name) {
     final String folderUrl = VfsUtil.pathToUrl(folderPath);
     if (!SystemInfo.isLinux) {
-      final String candidate = folderUrl + "/bin/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
+      final String candidate = folderUrl + "/bin/" + getExecutableName(name);
       if (fileExists(candidate)) {
-        return VfsUtil.urlToPath(candidate);
+        return FileUtil.toSystemIndependentName(VfsUtil.urlToPath(candidate));
       }
     }
 
-    final String resultUrl = folderUrl + "/" + getExecutableName(COMPILER_EXECUTABLE_NAME);
+    final String resultUrl = folderUrl + "/" + getExecutableName(name);
     if (fileExists(resultUrl)) {
-      return VfsUtil.urlToPath(resultUrl);
+      return FileUtil.toSystemIndependentName(VfsUtil.urlToPath(resultUrl));
     }
 
     return null;

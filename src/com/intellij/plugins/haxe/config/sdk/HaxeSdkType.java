@@ -60,7 +60,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public AdditionalDataConfigurable createAdditionalDataConfigurable(SdkModel sdkModel, SdkModificator sdkModificator) {
-    return new NekoConfigurable();
+    return new HaxeAdditionalConfigurable();
   }
 
   @Override

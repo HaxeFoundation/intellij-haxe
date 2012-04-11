@@ -21,10 +21,10 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxeRunningState extends CommandLineState {
+public class NekoRunningState extends CommandLineState {
   private final Module module;
 
-  public HaxeRunningState(ExecutionEnvironment env, Module module) {
+  public NekoRunningState(ExecutionEnvironment env, Module module) {
     super(env);
     this.module = module;
   }
@@ -35,7 +35,7 @@ public class HaxeRunningState extends CommandLineState {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     assert sdk != null;
-    assert settings.getTarget() == HaxeTarget.NEKO;
+    assert settings.getHaxeTarget() == HaxeTarget.NEKO;
     final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
 
     GeneralCommandLine commandLine = getCommandForNeko(sdkData, settings);

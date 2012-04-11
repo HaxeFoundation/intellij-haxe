@@ -80,7 +80,6 @@ public class HaxeResolveUtil {
       return null;
     }
     final Project project = context.getProject();
-
     final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     final List<VirtualFile> classFiles = HaxeComponentFileNameIndex.
       getFilesNameByQName(qName, scope);
@@ -345,7 +344,10 @@ public class HaxeResolveUtil {
     return HaxeClassResolveResult.EMPTY;
   }
 
-  private static HaxeClassResolveResult tryResolveFunctionType(HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
+  private static HaxeClassResolveResult tryResolveFunctionType(@Nullable HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
+    if(functionType == null){
+      return HaxeClassResolveResult.EMPTY;
+    }
     final HaxeClassResolveResult result = tryResolveClassByTypeTag(functionType.getType(), specialization);
     functionType = functionType.getFunctionType();
     while (functionType != null) {

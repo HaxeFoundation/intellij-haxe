@@ -74,9 +74,14 @@ public class HaxeRunner extends DefaultProgramRunner {
 
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
+    if(settings.isUseNmmlToBuild()){
+      final NMERunningState nmeRunningState = new NMERunningState(env, module);
+      return super.doExecute(project, executor, nmeRunningState, contentToReuse, env);
+    }
+
     if (configuration.isCustomFileToLaunch() && "n".equalsIgnoreCase(FileUtil.getExtension(configuration.getCustomFileToLaunchPath()))) {
-      final HaxeRunningState haxeRunningState = new HaxeRunningState(env, module);
-      return super.doExecute(project, executor, haxeRunningState, contentToReuse, env);
+      final NekoRunningState nekoRunningState = new NekoRunningState(env, module);
+      return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
     }
 
     if (configuration.isCustomFileToLaunch()) {
@@ -84,7 +89,7 @@ public class HaxeRunner extends DefaultProgramRunner {
       return null;
     }
 
-    if (settings.getTarget() == HaxeTarget.FLASH) {
+    if (settings.getHaxeTarget() == HaxeTarget.FLASH) {
       FileDocumentManager.getInstance().saveAllDocuments();
       final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
       assert model != null;
@@ -94,12 +99,12 @@ public class HaxeRunner extends DefaultProgramRunner {
       return null;
     }
 
-    if (settings.getTarget() != HaxeTarget.NEKO) {
-      throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", settings.getTarget()));
+    if (settings.getHaxeTarget() != HaxeTarget.NEKO) {
+      throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", settings.getHaxeTarget()));
     }
 
-    final HaxeRunningState haxeRunningState = new HaxeRunningState(env, module);
-    return super.doExecute(project, executor, haxeRunningState, contentToReuse, env);
+    final NekoRunningState nekoRunningState = new NekoRunningState(env, module);
+    return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
   }
 
   public static void launchUrl(String urlOrPath) {

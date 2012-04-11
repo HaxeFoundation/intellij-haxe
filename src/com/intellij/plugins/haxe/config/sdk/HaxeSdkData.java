@@ -11,8 +11,9 @@ public class HaxeSdkData implements SdkAdditionalData, PersistentStateComponent<
   private String homePath = "";
   private String version = "";
 
-  @Nullable
-  private String nekoBinPath = null;
+  private String nekoBinPath = "";
+
+  private String haxelibPath = "";
 
   public HaxeSdkData() {
   }
@@ -30,13 +31,20 @@ public class HaxeSdkData implements SdkAdditionalData, PersistentStateComponent<
     return version;
   }
 
-  @Nullable
   public String getNekoBinPath() {
     return nekoBinPath;
   }
 
-  public void setNekoBinPath(@Nullable String nekoBinPath) {
+  public void setNekoBinPath( String nekoBinPath) {
     this.nekoBinPath = nekoBinPath;
+  }
+
+  public String getHaxelibPath() {
+    return haxelibPath;
+  }
+
+  public void setHaxelibPath(String haxelibPath) {
+    this.haxelibPath = haxelibPath;
   }
 
   @SuppressWarnings({"CloneDoesntCallSuperClone"})
