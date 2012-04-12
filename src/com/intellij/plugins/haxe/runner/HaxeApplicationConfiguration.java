@@ -64,6 +64,9 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
     if (settings.isUseHxmlToBuild() && !customFileToLaunch) {
       throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.select.custom.file"));
     }
+    if (settings.isUseNmmlToBuild() && !customFileToLaunch) {
+      throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.select.custom.file"));
+    }
   }
 
   public boolean isCustomFileToLaunch() {

@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
@@ -173,9 +174,15 @@ public class HaxeCompiler implements SourceProcessingCompiler {
         return false;
       }
       setupNME(commandLine, settings, haxelibPath);
-    } else if (settings.isUseHxmlToBuild()) {
+    }
+    else if (settings.isUseHxmlToBuild()) {
       commandLine.setExePath(sdkExePath);
       commandLine.addParameter(FileUtil.toSystemDependentName(settings.getHxmlPath()));
+      if (settings.getNmeTarget() == NMETarget.FLASH) {
+        commandLine.addParameter("-debug");
+        commandLine.addParameter("-D");
+        commandLine.addParameter("fdb");
+      }
     }
     else {
       setupUserProperties(module, mainClass, fileName, target, settings, sdkExePath, commandLine);
@@ -237,6 +244,10 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     commandLine.addParameter("build");
     commandLine.addParameter(settings.getNmmlPath());
     commandLine.addParameter(settings.getNmeTarget().getTargetFlag());
+
+    if (settings.getNmeTarget() == NMETarget.FLASH) {
+      commandLine.addParameter("-debug");
+    }
   }
 
   private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {

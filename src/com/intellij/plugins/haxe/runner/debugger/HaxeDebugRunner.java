@@ -19,6 +19,7 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.xdebugger.XDebugProcess;
@@ -61,13 +62,14 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
-    if (settings.getHaxeTarget() != HaxeTarget.FLASH) {
+    if (settings.getHaxeTarget() != HaxeTarget.FLASH && settings.getNmeTarget() != NMETarget.FLASH) {
       throw new ExecutionException(HaxeBundle.message("haxe.cannot.debug.not.flash"));
     }
 
     FileDocumentManager.getInstance().saveAllDocuments();
     final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
     assert model != null;
+
     String urlToLaunch = model.getCompilerOutputUrl() + "/" + settings.getOutputFileName();
     if (configuration.isCustomFileToLaunch()) {
       urlToLaunch = configuration.getCustomFileToLaunchPath();
