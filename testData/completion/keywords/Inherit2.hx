@@ -1,0 +1,1 @@
+class Inherit2 extends Foo, <caret>{}

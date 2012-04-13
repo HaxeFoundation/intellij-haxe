@@ -473,7 +473,8 @@ castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expre
 
 inheritList ::= inherit (',' inherit)*
 
-inherit ::= ('extends' | 'implements') type {pin=1}
+inherit ::= ('extends' | 'implements') type {pin=1 recoverUntil="inherit_recover"}
+private inherit_recover ::= !(',' | '{')
 
 anonymousType ::= '{' anonymousTypeBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}

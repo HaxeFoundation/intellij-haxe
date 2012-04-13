@@ -6,6 +6,7 @@
     <![CDATA[
       <p>0.4:</p>
       <ul>
+        <li>NME Support</li>
         <li>Override/Implement method action</li>
         <li>Generate getter/setter action</li>
         <li>Parameter info action</li>
@@ -78,6 +79,9 @@
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <moduleConfigurationEditorProvider
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
+
+    <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
+
     <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
     <fileTypeFactory implementation="com.intellij.plugins.haxe.nmml.NMMLFileTypeFactory"/>
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.nmml.NMMLSchemaProvider"/>
@@ -113,7 +117,7 @@
 
     <quoteHandler fileType="haXe" className="com.intellij.plugins.haxe.ide.HaxeQuoteHandler"/>
 
-    <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
+    <completion.contributor language="any" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
     <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
@@ -124,6 +128,7 @@
     <internalFileTemplate name="haXe Class"/>
     <internalFileTemplate name="haXe Interface"/>
     <internalFileTemplate name="haXe Enum"/>
+    <internalFileTemplate name="NMML Project File"/>
 
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex"/>
@@ -140,6 +145,10 @@
     <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"
             text="haXe Class" description="Create new haXe class/interface/enum">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+    </action>
+    <action id="Haxe.NewNMMLFile" class="com.intellij.plugins.haxe.ide.actions.CreateNMMLFileAction"
+            text="NMML file" description="Create new NMML file">
+      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
     </action>
     <action id="Generate.GetAccessor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateGetterAction"
             text="Getter">

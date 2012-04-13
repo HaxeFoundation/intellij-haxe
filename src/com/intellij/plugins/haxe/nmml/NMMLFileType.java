@@ -13,6 +13,7 @@ import javax.swing.*;
  */
 public class NMMLFileType extends XmlLikeFileType {
   public static final NMMLFileType INSTANCE = new NMMLFileType();
+  public static final String DEFAULT_EXTENSION = "nmml";
 
   public NMMLFileType() {
     super(XMLLanguage.INSTANCE);
@@ -33,7 +34,7 @@ public class NMMLFileType extends XmlLikeFileType {
   @NotNull
   @Override
   public String getDefaultExtension() {
-    return "nmml";
+    return DEFAULT_EXTENSION;
   }
 
   @Override

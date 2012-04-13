@@ -35,4 +35,12 @@ public class KeywordCompletionTest extends HaxeCompletionTestBase {
   public void testReference() throws Throwable {
     doTest();
   }
+
+  public void testInherit1() throws Throwable {
+    doTest();
+  }
+
+  public void testInherit2() throws Throwable {
+    doTest();
+  }
 }

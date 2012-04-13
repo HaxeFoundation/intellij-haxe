@@ -5,6 +5,7 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeIcons;
+import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -19,15 +20,25 @@ public class HaxeFileTemplateUtil {
   private final static String HAXE_TEMPLATE_PREFIX = "haXe ";
 
   public static List<FileTemplate> getApplicableTemplates() {
-    List<FileTemplate> applicableTemplates = new SmartList<FileTemplate>();
-
-    Condition<FileTemplate> filter = new Condition<FileTemplate>() {
+    return getApplicableTemplates(new Condition<FileTemplate>() {
       @Override
       public boolean value(FileTemplate fileTemplate) {
         return HaxeFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension());
       }
-    };
+    });
+  }
 
+  public static List<FileTemplate> getNMMLTemplates() {
+    return getApplicableTemplates(new Condition<FileTemplate>() {
+      @Override
+      public boolean value(FileTemplate fileTemplate) {
+        return NMMLFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension());
+      }
+    });
+  }
+
+  public static List<FileTemplate> getApplicableTemplates(Condition<FileTemplate> filter) {
+    List<FileTemplate> applicableTemplates = new SmartList<FileTemplate>();
     applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance().getInternalTemplates(), filter));
     applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance().getAllTemplates(), filter));
     return applicableTemplates;

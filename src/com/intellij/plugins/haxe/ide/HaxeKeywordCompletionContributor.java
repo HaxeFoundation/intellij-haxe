@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeCodeGenerateUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.source.tree.TreeUtil;
@@ -45,10 +46,27 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
     final PsiElementPattern.Capture<PsiElement> idInExpression =
       psiElement().withSuperParent(1, HaxeIdentifier.class).withSuperParent(2, HaxeReference.class);
     final PsiElementPattern.Capture<PsiElement> inComplexExpression = psiElement().withSuperParent(3, HaxeReference.class);
+
+    final PsiElementPattern.Capture<PsiElement> inheritPattern =
+      psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).withSuperParent(1, PsiErrorElement.class).
+        and(psiElement().withSuperParent(2, HaxeInheritList.class));
+    extend(CompletionType.BASIC,
+           psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).withSuperParent(1, PsiErrorElement.class).
+                   andOr(psiElement().withSuperParent(2, HaxeClassBody.class), psiElement().withSuperParent(2, HaxeInheritList.class)),
+           new CompletionProvider<CompletionParameters>() {
+             @Override
+             protected void addCompletions(@NotNull CompletionParameters parameters,
+                                           ProcessingContext context,
+                                           @NotNull CompletionResultSet result) {
+               result.addElement(LookupElementBuilder.create("extends"));
+               result.addElement(LookupElementBuilder.create("implements"));
+             }
+           });
     // foo.b<caret> - bad
     // i<caret> - good
     extend(CompletionType.BASIC,
-           psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).andNot(idInExpression.and(inComplexExpression)),
+           psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).andNot(idInExpression.and(inComplexExpression))
+             .andNot(inheritPattern),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,

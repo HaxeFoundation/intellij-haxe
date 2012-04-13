@@ -3565,11 +3565,10 @@ public class HaxeParser implements PsiParser {
   // ('extends' | 'implements') type
   public static boolean inherit(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "inherit")) return false;
-    if (!nextTokenIs(builder_, KIMPLEMENTS) && !nextTokenIs(builder_, KEXTENDS)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
-    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
+    enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_);
     result_ = inherit_0(builder_, level_ + 1);
     pinned_ = result_; // pin = 1
     result_ = result_ && type(builder_, level_ + 1);
@@ -3579,7 +3578,7 @@ public class HaxeParser implements PsiParser {
     else {
       marker_.rollbackTo();
     }
-    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
+    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_RECOVER_, inherit_recover_parser_);
     return result_ || pinned_;
   }
 
@@ -3652,6 +3651,41 @@ public class HaxeParser implements PsiParser {
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OCOMMA);
     result_ = result_ && inherit(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // !(',' | '{')
+  static boolean inherit_recover(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "inherit_recover")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_NOT_);
+    result_ = !inherit_recover_0(builder_, level_ + 1);
+    marker_.rollbackTo();
+    result_ = exitErrorRecordingSection(builder_, result_, level_, false, _SECTION_NOT_, null);
+    return result_;
+  }
+
+  // (',' | '{')
+  private static boolean inherit_recover_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "inherit_recover_0")) return false;
+    return inherit_recover_0_0(builder_, level_ + 1);
+  }
+
+  // ',' | '{'
+  private static boolean inherit_recover_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "inherit_recover_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, OCOMMA);
+    if (!result_) result_ = consumeToken(builder_, PLCURLY);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -7246,6 +7280,11 @@ public class HaxeParser implements PsiParser {
   final static Parser extern_class_body_part_recover_parser_ = new Parser() {
       public boolean parse(PsiBuilder builder_, int level_) {
         return extern_class_body_part_recover(builder_, level_ + 1);
+      }
+    };
+  final static Parser inherit_recover_parser_ = new Parser() {
+      public boolean parse(PsiBuilder builder_, int level_) {
+        return inherit_recover(builder_, level_ + 1);
       }
     };
   final static Parser interface_body_part_recover_parser_ = new Parser() {

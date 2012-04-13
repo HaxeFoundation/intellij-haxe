@@ -232,6 +232,10 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       commandLine.addParameter("-cp");
       commandLine.addParameter(sourceRoot.getPath());
     }
+    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).librariesOnly().getSourceRoots()) {
+      commandLine.addParameter("-cp");
+      commandLine.addParameter(sourceRoot.getPath());
+    }
     commandLine.addParameter(target.getCompilerFlag());
     final String outputUrl = CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
     commandLine.addParameter(VfsUtil.urlToPath(outputUrl + "/" + fileName));

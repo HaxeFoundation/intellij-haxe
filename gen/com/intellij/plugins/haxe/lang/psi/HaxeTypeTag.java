@@ -13,6 +13,8 @@ public interface HaxeTypeTag extends HaxePsiCompositeElement {
   @Nullable
   HaxeType getType();
 
+
   @Nullable
   HaxeFunctionType getFunctionType();
+
 }

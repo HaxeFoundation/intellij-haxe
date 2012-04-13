@@ -75,8 +75,13 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
   }
 
   public static Collection<NavigationItem> getItemsByName(final String name, Project project) {
+    final GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
+    return getItemsByName(name, project, searchScope);
+  }
+
+  public static Collection<NavigationItem> getItemsByName(String name, Project project, GlobalSearchScope searchScope) {
     Collection<VirtualFile> files =
-      FileBasedIndex.getInstance().getContainingFiles(HAXE_COMPONENT_INDEX, name, GlobalSearchScope.allScope(project));
+      FileBasedIndex.getInstance().getContainingFiles(HAXE_COMPONENT_INDEX, name, searchScope);
     final Collection<NavigationItem> result = new ArrayList<NavigationItem>();
     for (VirtualFile vFile : files) {
       PsiFile file = PsiManager.getInstance(project).findFile(vFile);
@@ -91,12 +96,11 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
     return result;
   }
 
-  public static Collection<String> getNames(Project project) {
-    return FileBasedIndex.getInstance().getAllKeys(HAXE_COMPONENT_INDEX, project);
+  public static void processAll(Project project, @NotNull Processor<Pair<String, HaxeClassInfo>> processor) {
+    processAll(project, processor, GlobalSearchScope.allScope(project));
   }
 
-  public static void processAll(final Project project, final @NotNull Processor<Pair<String, HaxeClassInfo>> processor) {
-    final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+  public static void processAll(Project project, Processor<Pair<String, HaxeClassInfo>> processor, GlobalSearchScope scope) {
     final Collection<String> keys = getNames(project);
     for (String key : keys) {
       final List<HaxeClassInfo> values = FileBasedIndex.getInstance().getValues(HAXE_COMPONENT_INDEX, key, scope);
@@ -107,6 +111,10 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
         }
       }
     }
+  }
+
+  public static Collection<String> getNames(Project project) {
+    return FileBasedIndex.getInstance().getAllKeys(HAXE_COMPONENT_INDEX, project);
   }
 
   private static class MyDataIndexer implements DataIndexer<String, HaxeClassInfo, FileContent> {
