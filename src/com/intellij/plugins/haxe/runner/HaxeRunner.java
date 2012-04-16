@@ -80,7 +80,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     }
 
     if (configuration.isCustomFileToLaunch() && "n".equalsIgnoreCase(FileUtil.getExtension(configuration.getCustomFileToLaunchPath()))) {
-      final NekoRunningState nekoRunningState = new NekoRunningState(env, module);
+      final NekoRunningState nekoRunningState = new NekoRunningState(env, module, configuration.getCustomFileToLaunchPath());
       return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
     }
 
@@ -103,7 +103,7 @@ public class HaxeRunner extends DefaultProgramRunner {
       throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", settings.getHaxeTarget()));
     }
 
-    final NekoRunningState nekoRunningState = new NekoRunningState(env, module);
+    final NekoRunningState nekoRunningState = new NekoRunningState(env, module, null);
     return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
   }
 

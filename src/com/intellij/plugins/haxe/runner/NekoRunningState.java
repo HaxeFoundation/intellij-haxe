@@ -18,15 +18,19 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NekoRunningState extends CommandLineState {
   private final Module module;
+  @Nullable
+  private final String customFileToLaunch;
 
-  public NekoRunningState(ExecutionEnvironment env, Module module) {
+  public NekoRunningState(ExecutionEnvironment env, Module module, @Nullable String fileToLaunch) {
     super(env);
     this.module = module;
+    customFileToLaunch = fileToLaunch;
   }
 
   @NotNull
@@ -51,11 +55,16 @@ public class NekoRunningState extends CommandLineState {
     GeneralCommandLine commandLine = new GeneralCommandLine();
 
     commandLine.setExePath(sdkData.getNekoBinPath());
-    commandLine.addParameter(FileUtil.getNameWithoutExtension(settings.getOutputFileName()));
+    commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
 
-    final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
-    if (outputDirectory != null) {
-      commandLine.setWorkDirectory(outputDirectory.getPath());
+    if(customFileToLaunch != null){
+      commandLine.addParameter(customFileToLaunch);
+    } else {
+      final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
+      final VirtualFile fileToLaunch = outputDirectory != null ? outputDirectory.findChild(settings.getOutputFileName()) : null;
+      if (fileToLaunch != null) {
+        commandLine.addParameter(fileToLaunch.getPath());
+      }
     }
 
     final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
