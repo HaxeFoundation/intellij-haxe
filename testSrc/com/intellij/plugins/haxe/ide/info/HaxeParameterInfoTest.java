@@ -35,6 +35,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
     // index check
     MockUpdateParameterInfoContext updateContext = new MockUpdateParameterInfoContext(myEditor, myFile);
     final PsiElement element = parameterInfoHandler.findElementForUpdatingParameterInfo(updateContext);
+    assertNotNull(element);
     parameterInfoHandler.updateParameterInfo(element, updateContext);
     assertEquals(highlightedParameterIndex, updateContext.getCurrentParameter());
   }
@@ -45,5 +46,21 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
 
   public void testParamInfo2() throws Throwable {
     doTest("p1:Int, p2, p3:Node", 2);
+  }
+
+  public void testParamInfo3() throws Throwable {
+    doTest("x:Int, y:Int", 0);
+  }
+
+  public void testParamInfo4() throws Throwable {
+    doTest("x:Int, y:Int", 0);
+  }
+
+  public void testParamInfo5() throws Throwable {
+    doTest("x:Int, y:Int", 1);
+  }
+
+  public void testParamInfo6() throws Throwable {
+    doTest("x:Int, y:Int = 239", 1);
   }
 }

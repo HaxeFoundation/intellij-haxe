@@ -48,8 +48,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   @Override
   public PsiElement findElementForUpdatingParameterInfo(UpdateParameterInfoContext context) {
-    final PsiElement at = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
-    return PsiTreeUtil.getParentOfType(at, HaxeParameterList.class) != null ? at : UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(at);
+    return context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
   }
 
   @Override
@@ -80,7 +79,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   @Override
   public void updateParameterInfo(@NotNull PsiElement place, UpdateParameterInfoContext context) {
     final HaxeExpressionList expressionList = PsiTreeUtil.getParentOfType(place, HaxeExpressionList.class, false);
-    int parameterIndex = 0;
+    int parameterIndex = -1;
     if (place == expressionList) {
       assert expressionList != null;
       final HaxeFunctionDescription functionDescription = tryGetDescription((HaxeCallExpression)expressionList.getParent());
@@ -90,10 +89,19 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
     else if (expressionList != null) {
       for (HaxeExpression expression : expressionList.getExpressionList()) {
         ++parameterIndex;
-        if (expression.getTextRange().getEndOffset() > place.getTextOffset()) {
+        if (expression.getTextRange().getEndOffset() >= place.getTextOffset()) {
           break;
         }
       }
+    } else if (UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(place, true) instanceof HaxeExpressionList){
+      // seems foo(param1, param2<caret>)
+      final PsiElement prevSibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(place, true);
+      assert prevSibling != null;
+      final HaxeFunctionDescription functionDescription = tryGetDescription((HaxeCallExpression)prevSibling.getParent());
+      parameterIndex = functionDescription == null ? -1 : functionDescription.getParameters().length - 1;
+    } else if (PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, true) != null){
+      // seems foo(<caret>)
+      parameterIndex = 0;
     }
     context.setCurrentParameter(parameterIndex);
 

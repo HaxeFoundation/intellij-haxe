@@ -118,16 +118,20 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       return true;
     }
     final String mainClass = settings.getMainClass();
-    if (mainClass == null || mainClass.length() == 0) {
-      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.main.class.for.module", module.getName()), null, -1, -1);
-      return false;
-    }
     final String fileName = settings.getOutputFileName();
-    if (fileName == null || fileName.length() == 0) {
-      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.output.file.name.for.module", module.getName()), null, -1,
-                         -1);
-      return false;
+
+    if (settings.isUseUserPropertiesToBuild()) {
+      if (mainClass == null || mainClass.length() == 0) {
+        context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.main.class.for.module", module.getName()), null, -1, -1);
+        return false;
+      }
+      if (fileName == null || fileName.length() == 0) {
+        context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.output.file.name.for.module", module.getName()), null, -1,
+                           -1);
+        return false;
+      }
     }
+
     final HaxeTarget target = settings.getHaxeTarget();
     if (target == null) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.target.for.module", module.getName()), null, -1, -1);

@@ -110,7 +110,7 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
     final List<String> result = new ArrayList<String>();
     if (pathToBlockStatement != null && pathToBlockStatement.size() > 1) {
       final PsiElement blockChild = pathToBlockStatement.get(pathToBlockStatement.size() - 2);
-      result.addAll(suggestBySibling(UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(blockChild)));
+      result.addAll(suggestBySibling(UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(blockChild, true)));
     }
 
     PsiFile file = PsiFileFactory.getInstance(posFile.getProject()).createFileFromText("a.hx", HaxeLanguage.INSTANCE, text, true, false);

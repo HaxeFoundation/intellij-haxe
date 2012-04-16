@@ -1,9 +1,6 @@
 package com.intellij.plugins.haxe.ide.info;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 
@@ -15,10 +12,12 @@ import java.util.List;
 public class HaxeParameterDescription {
   private final String name;
   private final String typeText;
+  private final String varInitValue;
 
-  public HaxeParameterDescription(String name, String text) {
+  public HaxeParameterDescription(String name, String text, String varInitText) {
     this.name = name;
     typeText = text;
+    varInitValue = varInitText;
   }
 
 
@@ -35,16 +34,27 @@ public class HaxeParameterDescription {
       if (parameter.getTypeTag() != null) {
         typeText = HaxePresentableUtil.buildTypeText(element, parameter.getTypeTag(), specialization);
       }
-      result[i] = new HaxeParameterDescription(parameter.getName(), typeText);
+      String varInitText = "";
+      HaxeVarInit varInit = parameter.getVarInit();
+      if (varInit != null) {
+        final HaxeExpression varInitExpression = varInit.getExpression();
+        varInitText = varInitExpression == null ? "" : varInitExpression.getText();
+      }
+      result[i] = new HaxeParameterDescription(parameter.getName(), typeText, varInitText);
     }
     return result;
   }
 
   @Override
   public String toString() {
-    if (typeText.isEmpty()) {
-      return name;
+    final StringBuilder result = new StringBuilder();
+    result.append(name);
+    if (!typeText.isEmpty()) {
+      result.append(":").append(typeText);
     }
-    return name + ":" + typeText;
+    if (!varInitValue.isEmpty()) {
+      result.append(" = ").append(varInitValue);
+    }
+    return result.toString();
   }
 }

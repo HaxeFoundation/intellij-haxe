@@ -34,11 +34,11 @@ public class HaxeResolveUtil {
   @Nullable
   public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
     if (node == null) return null;
-    for (PsiElement sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(node);
+    for (PsiElement sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(node, true);
          sibling != null;
-         sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling)) {
+         sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling, true)) {
       if (".".equals(sibling.getText())) continue;
-      return sibling instanceof HaxeReference ? (HaxeReference)sibling : null;
+      return sibling instanceof HaxeReference && sibling != node ? (HaxeReference)sibling : null;
     }
     return null;
   }
@@ -417,7 +417,7 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiComment findDocumentation(HaxeNamedComponent element) {
-    final PsiElement candidate = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(element);
+    final PsiElement candidate = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(element, true);
     if (candidate instanceof PsiComment) {
       return (PsiComment)candidate;
     }

@@ -42,29 +42,29 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static PsiElement getPrevSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement sibling) {
+  public static PsiElement getPrevSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement sibling, boolean strictly) {
     return getPrevSiblingSkipingCondition(sibling, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
         return isWhitespaceOrComment(element);
       }
-    });
+    }, strictly);
   }
 
   @Nullable
-  public static PsiElement getPrevSiblingSkipWhiteSpaces(@Nullable PsiElement sibling) {
+  public static PsiElement getPrevSiblingSkipWhiteSpaces(@Nullable PsiElement sibling, boolean strictly) {
     return getPrevSiblingSkipingCondition(sibling, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
         return element instanceof PsiWhiteSpace;
       }
-    });
+    }, strictly);
   }
 
   @Nullable
-  public static PsiElement getPrevSiblingSkipingCondition(@Nullable PsiElement sibling, Condition<PsiElement> condition) {
+  public static PsiElement getPrevSiblingSkipingCondition(@Nullable PsiElement sibling, Condition<PsiElement> condition, boolean strictly) {
     if (sibling == null) return null;
-    PsiElement result = sibling.getPrevSibling();
+    PsiElement result = strictly ? sibling.getPrevSibling() : sibling;
     while (result != null && condition.value(result)) {
       result = result.getPrevSibling();
     }
