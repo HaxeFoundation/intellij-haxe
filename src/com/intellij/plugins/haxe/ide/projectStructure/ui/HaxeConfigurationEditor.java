@@ -112,7 +112,7 @@ public class HaxeConfigurationEditor {
       @Override
       public void actionPerformed(ActionEvent e) {
         final VirtualFile folder =
-          FileChooser.chooseFile(myModule.getProject(), FileChooserDescriptorFactory.createSingleFolderDescriptor());
+          FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(), myModule.getProject(), null);
         if (folder != null) {
           myFolderTextField.setText(FileUtil.toSystemDependentName(folder.getPath()));
         }
@@ -157,13 +157,13 @@ public class HaxeConfigurationEditor {
         final VirtualFile moduleFile = myModule.getModuleFile();
         assert moduleFile != null;
         final boolean isNMML = myNmmlFileRadioButton.isSelected();
-        final VirtualFile file = FileChooser.chooseFile(getMainPanel(), new FileChooserDescriptor(true, false, false, true, false, false) {
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false) {
           public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
-
             return super.isFileVisible(file, showHiddenFiles) &&
                    (file.isDirectory() || (isNMML ? "nmml" : "hxml").equalsIgnoreCase(file.getExtension()));
           }
-        }, moduleFile.getParent());
+        };
+        final VirtualFile file = FileChooser.chooseFile(descriptor, getMainPanel(), null, moduleFile.getParent());
         if (file != null) {
           if (isNMML) {
             customPathToNmmlFile = FileUtil.toSystemIndependentName(file.getPath());

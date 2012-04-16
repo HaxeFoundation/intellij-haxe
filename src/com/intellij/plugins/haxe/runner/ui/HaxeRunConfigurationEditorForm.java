@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.ui;
 
+import com.intellij.ide.ui.ListCellRendererWrapper;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.Module;
@@ -19,7 +20,6 @@ import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -49,15 +49,13 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     }
     myComboModules.setSelectedItem(configuration.getConfigurationModule().getModule());
 
-    myComboModules.setRenderer(new DefaultListCellRenderer() {
+    myComboModules.setRenderer(new ListCellRendererWrapper(myComboModules.getRenderer()) {
       @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        final Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof Module) {
           final Module module = (Module)value;
           setText(module.getName());
         }
-        return comp;
       }
     });
 
@@ -74,7 +72,8 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     myPathToFileTextField.getButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final VirtualFile file = FileChooser.chooseFile(component, new FileChooserDescriptor(true, false, false, true, false, false));
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false);
+        final VirtualFile file = FileChooser.chooseFile(descriptor, component, null, null);
         if (file != null) {
           customPathToFile = file.getPath();
           updateCustomFilePath();

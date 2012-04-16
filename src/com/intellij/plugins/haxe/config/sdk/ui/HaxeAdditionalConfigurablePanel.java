@@ -24,7 +24,8 @@ public class HaxeAdditionalConfigurablePanel {
     myNekoTextField.getButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final VirtualFile file = FileChooser.chooseFile(myPanel, new FileChooserDescriptor(true, false, false, false, false, false));
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
+        final VirtualFile file = FileChooser.chooseFile(descriptor, myPanel, null, null);
         if (file != null) {
           setNekoBinPath(FileUtil.toSystemIndependentName(file.getPath()));
         }
@@ -34,7 +35,8 @@ public class HaxeAdditionalConfigurablePanel {
     myHaxelibTextField.getButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final VirtualFile file = FileChooser.chooseFile(myPanel, new FileChooserDescriptor(true, false, false, false, false, false));
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
+        final VirtualFile file = FileChooser.chooseFile(descriptor, myPanel, null, null);
         if (file != null) {
           setHaxelibPath(FileUtil.toSystemIndependentName(file.getPath()));
         }
