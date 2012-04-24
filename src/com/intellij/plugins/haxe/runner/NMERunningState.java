@@ -47,7 +47,7 @@ public class NMERunningState extends CommandLineState {
     commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
     assert sdkData != null;
     final String haxelibPath = sdkData.getHaxelibPath();
-    if (haxelibPath == null) {
+    if (haxelibPath == null || haxelibPath.isEmpty()) {
       throw new ExecutionException(HaxeBundle.message("no.haxelib.for.sdk", sdk.getName()));
     }
     commandLine.setExePath(haxelibPath);

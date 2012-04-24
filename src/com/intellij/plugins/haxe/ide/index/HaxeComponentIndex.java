@@ -74,15 +74,15 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
     return myIndexer;
   }
 
-  public static Collection<NavigationItem> getItemsByName(final String name, Project project) {
+  public static List<HaxeComponent> getItemsByName(final String name, Project project) {
     final GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
     return getItemsByName(name, project, searchScope);
   }
 
-  public static Collection<NavigationItem> getItemsByName(String name, Project project, GlobalSearchScope searchScope) {
+  public static List<HaxeComponent> getItemsByName(String name, Project project, GlobalSearchScope searchScope) {
     Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(HAXE_COMPONENT_INDEX, name, searchScope);
-    final Collection<NavigationItem> result = new ArrayList<NavigationItem>();
+    final List<HaxeComponent> result = new ArrayList<HaxeComponent>();
     for (VirtualFile vFile : files) {
       PsiFile file = PsiManager.getInstance(project).findFile(vFile);
       if (file == null || file.getFileType() != HaxeFileType.HAXE_FILE_TYPE) {

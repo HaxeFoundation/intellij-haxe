@@ -1,7 +1,6 @@
 class Setter2 {
   var foo(never, null):Int;
 
-    @:setter(foo)
     public function setFoo(value:Int) {
         this.foo = value;
     }

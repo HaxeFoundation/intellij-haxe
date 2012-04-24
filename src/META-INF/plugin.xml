@@ -4,6 +4,11 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.4.1:</p>
+      <ul>
+        <li>Bug fixes</li>
+        <li>Unresolved type inspection</li>
+      </ul>
       <p>0.4:</p>
       <ul>
         <li>NME Support</li>
@@ -57,7 +62,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.4</version>
+  <version>0.4.1</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
   <idea-version since-build="117.105" until-build="118.1"/>
   <depends>com.intellij.modules.ultimate</depends>
@@ -138,6 +143,7 @@
     <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex$DefinitionsSearchExecutor"/>
 
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
+    <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
     <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor"/>-->
   </extensions>
 

@@ -133,7 +133,12 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     }
 
     final HaxeTarget target = settings.getHaxeTarget();
-    if (target == null) {
+    final NMETarget nmeTarget = settings.getNmeTarget();
+    if (target == null && !settings.isUseNmmlToBuild()) {
+      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.target.for.module", module.getName()), null, -1, -1);
+      return false;
+    }
+    if (nmeTarget == null && settings.isUseNmmlToBuild()) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.target.for.module", module.getName()), null, -1, -1);
       return false;
     }
@@ -161,7 +166,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
 
     final String sdkExePath = HaxeSdkUtil.getCompilerPathByFolderPath(sdk.getHomePath());
 
-    if (sdkExePath == null) {
+    if (sdkExePath == null || sdkExePath.isEmpty()) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("invalid.haxe.sdk.for.module", module.getName()), null, -1, -1);
       return false;
     }
@@ -173,7 +178,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     if (settings.isUseNmmlToBuild()) {
       final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
       final String haxelibPath = sdkData == null ? null : sdkData.getHaxelibPath();
-      if (haxelibPath == null) {
+      if (haxelibPath == null || haxelibPath.isEmpty()) {
         context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.haxelib.for.sdk", sdk.getName()), null, -1, -1);
         return false;
       }

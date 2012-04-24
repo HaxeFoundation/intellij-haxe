@@ -6,12 +6,10 @@ class GetterSetter2 {
     return foo;
   }
 
-    @:setter(bar)
     public function setBar(value:String) {
         this.bar = value;
     }
 
-    @:getter(bar)
     public function getBar():String {
         return bar;
     }

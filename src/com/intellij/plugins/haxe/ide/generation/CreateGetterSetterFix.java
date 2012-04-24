@@ -108,10 +108,6 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
   }
 
   private static void build(StringBuilder result, String name, String typeText, boolean isGetter) {
-    result.append(isGetter ? "@:getter" : "@:setter");
-    result.append("(");
-    result.append(name);
-    result.append(")\n");
     result.append("public function ");
     result.append(isGetter ? HaxePresentableUtil.getterName(name) : HaxePresentableUtil.setterName(name));
     result.append("(");
