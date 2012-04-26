@@ -65,6 +65,12 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends Abstract
   }
 
   @Override
+  @NotNull
+  public List<HaxeOverloadMeta> getOverloadMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeOverloadMeta.class);
+  }
+
+  @Override
   @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);

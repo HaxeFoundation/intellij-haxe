@@ -34,10 +34,11 @@ haXe File
                   PsiElement(ID)('v')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Int')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Int')
           PsiElement())(')')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
@@ -53,10 +54,11 @@ haXe File
                   PsiElement(ID)('r')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Int')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Int')
             PsiElement(,)(',')
             HAXE_PARAMETER
               HAXE_COMPONENTNAME
@@ -64,10 +66,11 @@ haXe File
                   PsiElement(ID)('g')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Int')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Int')
             PsiElement(,)(',')
             HAXE_PARAMETER
               HAXE_COMPONENTNAME
@@ -75,10 +78,11 @@ haXe File
                   PsiElement(ID)('b')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Int')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Int')
           PsiElement())(')')
         PsiElement(;)(';')
       HAXE_ENUMVALUEDECLARATION
@@ -94,10 +98,11 @@ haXe File
                   PsiElement(ID)('a')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Int')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Int')
             PsiElement(,)(',')
             HAXE_PARAMETER
               HAXE_COMPONENTNAME
@@ -105,10 +110,11 @@ haXe File
                   PsiElement(ID)('col')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Color3')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Color3')
           PsiElement())(')')
         PsiElement(;)(';')
     PsiElement(})('}')

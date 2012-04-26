@@ -76,7 +76,7 @@ public class HaxeClassResolveResult {
     final HaxeTypeList typeList = param.getTypeList();
     for (int i = 0, size = genericParam.getGenericListPartList().size(); i < size; i++) {
       HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
-      final HaxeType specializedType = typeList.getTypeListPartList().get(i).getType();
+      final HaxeType specializedType = typeList.getTypeListPartList().get(i).getTypeOrAnonymous().getType();
       if (haxeGenericListPart.getText() == null || specializedType == null) continue;
       specialization.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType,
                                                                                                              specialization));

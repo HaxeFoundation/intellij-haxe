@@ -250,7 +250,7 @@ public class HaxeResolveUtil {
       @Override
       public HaxeType fun(HaxeParameter parameter) {
         final HaxeTypeTag typeTag = parameter.getTypeTag();
-        return typeTag == null ? null : typeTag.getType();
+        return typeTag == null ? null : typeTag.getTypeOrAnonymous().getType();
       }
     });
   }
@@ -321,9 +321,9 @@ public class HaxeResolveUtil {
 
   @NotNull
   private static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
-                                                                     HaxeGenericSpecialization specialization) {
+                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeType type = typeTag != null ? typeTag.getType() :
+    final HaxeType type = typeTag != null ? typeTag.getTypeOrAnonymous().getType() :
                           element instanceof HaxeType ? (HaxeType)element : null;
 
     HaxeNamedComponent typeComponent = type == null ? null : tryResolveClassByQName(type);
@@ -344,19 +344,20 @@ public class HaxeResolveUtil {
     return HaxeClassResolveResult.EMPTY;
   }
 
-  private static HaxeClassResolveResult tryResolveFunctionType(@Nullable HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
-    if(functionType == null){
+  private static HaxeClassResolveResult tryResolveFunctionType(@Nullable HaxeFunctionType functionType,
+                                                               HaxeGenericSpecialization specialization) {
+    if (functionType == null) {
       return HaxeClassResolveResult.EMPTY;
     }
-    final HaxeClassResolveResult result = tryResolveClassByTypeTag(functionType.getType(), specialization);
+    final HaxeTypeOrAnonymous returnTypeOrAnonymous = functionType.getTypeOrAnonymousList().get(functionType.getTypeOrAnonymousList().size() - 1);
+    final HaxeClassResolveResult result = tryResolveClassByTypeTag(returnTypeOrAnonymous.getType(), specialization);
     functionType = functionType.getFunctionType();
     while (functionType != null) {
       // todo: anonymous types :(
-      final HaxeType[] types = PsiTreeUtil.getChildrenOfType(functionType, HaxeType.class);
-      if (types != null) {
-        for (int i = types.length - 1; i >= 0; --i) {
-          result.getFunctionTypes().add(tryResolveClassByTypeTag(types[i], specialization));
-        }
+      final List<HaxeTypeOrAnonymous> typeList = functionType.getTypeOrAnonymousList();
+      Collections.reverse(typeList);
+      for (HaxeTypeOrAnonymous typeOrAnonymous : typeList) {
+        result.getFunctionTypes().add(tryResolveClassByTypeTag(typeOrAnonymous.getType(), specialization));
       }
       functionType = functionType.getFunctionType();
     }

@@ -149,6 +149,7 @@
     kDEBUG="@:debug"
     kNODEBUG="@:nodebug"
     kMETA="@:meta"
+    kOVERLOAD="@:overload"
 
     kTRY="try"
     kCATCH="catch"
@@ -173,6 +174,7 @@ haxeFile ::= packageStatement? topLevelList
 private macroClass ::= '@:final' | '@:core_api' | '@:bind' | '@:macro' | '@:hack'
                       | requireMeta | fakeEnumMeta | nativeMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
+private functionMacroMember ::= macroMember | overloadMeta
 private macroMember ::= '@:macro' | '@:keep' | '@:protected' | '@:debug' | '@:nodebug'
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | buildMacro | autoBuildMacro
 
@@ -185,6 +187,7 @@ bitmapMeta ::= '@:bitmap' '(' LITSTRING ')'
 nsMeta ::= '@:ns' '(' LITSTRING ')'
 getterMeta ::= '@:getter' '(' referenceExpression ')'
 setterMeta ::= '@:setter' '(' referenceExpression ')'
+overloadMeta ::= '@:overload' '(' anonymousFunctionDeclaration ')'
 customMeta ::= MACRO_ID ('(' customMetaLiterals ')')?
 private customMetaLiterals ::= literalExpression (',' literalExpression)*
 metaMeta ::= '@:meta' '(' ID '(' metaPartList ')' ')'
@@ -203,7 +206,7 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel*
 private topLevel ::= importStatement | usingStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
-private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
+private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:overload' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
@@ -230,19 +233,19 @@ externClassDeclaration ::= macroClass* 'extern' 'class' componentName genericPar
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration | pp {recoverUntil="extern_class_body_part_recover"}
-private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
+private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
 
 classDeclaration ::= macroClass* 'private'? 'class' componentName genericParam? inheritList? '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
-private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
+private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
 
 interfaceDeclaration ::= macroClass* externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
-private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
+private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
 
 enumDeclaration ::= macroClass* externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -281,15 +284,15 @@ propertyAccessor ::= referenceExpression | 'null' | 'default' | 'dynamic' | 'nev
 
 private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression
 
-externFunctionDeclaration ::= macroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
+externFunctionDeclaration ::= functionMacroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
-functionDeclarationWithAttributes ::= macroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+functionDeclarationWithAttributes ::= functionMacroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
-functionPrototypeDeclarationWithAttributes ::= macroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
+functionPrototypeDeclarationWithAttributes ::= functionMacroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
 localFunctionDeclaration ::= 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-
+anonymousFunctionDeclaration ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? '{' '}' {pin=2}
 /*
  *
  */
@@ -306,8 +309,8 @@ functionLiteral ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? functi
 arrayLiteral ::= '[' expressionList? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private functionTypeWrapper ::= (type | anonymousType) functionType*
-left functionType ::= '->' (type | anonymousType)
+private functionTypeWrapper ::= typeOrAnonymous functionType*
+left functionType ::= '->' typeOrAnonymous
 
 typeTag ::= ':' functionTypeWrapper
 typeParam ::= '<' typeList '>'
@@ -317,6 +320,7 @@ genericListPart ::= componentName (':' '(' typeList ')')?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 typeListPart ::= functionTypeWrapper
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
+typeOrAnonymous ::= type | anonymousType
 
 blockStatement ::= '{' statementList? '}'
 private statementList ::= (statement ';'?)+
@@ -382,7 +386,7 @@ expressionList ::= expression (',' expression)* {recoverUntil="expression_list_r
 private expression_list_recover ::= !(')' | ':' | ']')
 
 expression ::= assignExpressionWrapper {recoverUntil="expression_recover"}
-private expression_recover ::= !('!' | '!=' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:bind' | '@:bitmap' | '@:build' | '@:core_api' | '@:debug' | '@:fakeEnum' | '@:final' | '@:getter' | '@:hack' | '@:keep' | '@:macro' | '@:meta' | '@:native' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'class' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'enum' | 'extern' | 'false' | 'for' | 'function' | 'if' | 'import' | 'inline' | 'interface' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typedef' | 'untyped' | 'using' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | MACRO_ID)
+private expression_recover ::= !('!' | '!=' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:bind' | '@:bitmap' | '@:build' | '@:core_api' | '@:debug' | '@:fakeEnum' | '@:final' | '@:getter' | '@:hack' | '@:keep' | '@:overload' | '@:macro' | '@:meta' | '@:native' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'class' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'enum' | 'extern' | 'false' | 'for' | 'function' | 'if' | 'import' | 'inline' | 'interface' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typedef' | 'untyped' | 'using' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | MACRO_ID)
 
 private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression*
 left assignExpression ::= assignOperation iteratorExpressionWrapper {pin=1 extends="expression"}

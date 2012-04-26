@@ -1,7 +1,11 @@
 package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.*;
+import com.intellij.lang.impl.PsiBuilderAdapter;
+import com.intellij.lang.impl.PsiBuilderImpl;
+import com.intellij.lexer.Lexer;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringHash;
@@ -122,15 +126,16 @@ public class GeneratedParserUtilBase {
     if (!state.suppressErrors && state.predicateCount < 2) {
       addVariant(state, builder_, text);
     }
-    return consumeTokenInner(builder_, text);
+    return consumeTokenInner(builder_, text, state.caseSensitive);
   }
 
-  public static boolean consumeTokenInner(PsiBuilder builder_, String text) {
+  public static boolean consumeTokenInner(PsiBuilder builder_, String text, boolean caseSensitive) {
     final CharSequence sequence = builder_.getOriginalText();
     final int offset = builder_.getCurrentOffset();
     final int endOffset = offset + text.length();
     CharSequence tokenText = sequence.subSequence(offset, Math.min(endOffset, sequence.length()));
-    if (text.equals(tokenText)) {
+
+    if (Comparing.equal(text, tokenText, caseSensitive)) {
       int count = 0;
       while (true) {
         final int nextOffset = builder_.rawTokenTypeStart(++count);
@@ -154,8 +159,9 @@ public class GeneratedParserUtilBase {
                                            int offset) {
     boolean add = false;
     int diff = completionState.offset - offset;
-    String text = o.toString();
-    int length = text.length();
+    String text = completionState.convertItem(o);
+    int length = text == null ? 0 : text.length();
+    if (length == 0) return;
     if (diff == 0) {
       add = true;
     }
@@ -242,7 +248,8 @@ public class GeneratedParserUtilBase {
       boolean eatMoreFlag = eatMoreFlagOnce || frame.offset == initialOffset && lastErrorPos > frame.offset;
 
       final LighterASTNode latestDoneMarker =
-        (pinned || result) && lastErrorPos > initialOffset && eatMoreFlagOnce ? builder_.getLatestDoneMarker() : null;
+        (pinned || result) && (state.altMode || lastErrorPos > initialOffset) &&
+        eatMoreFlagOnce ? builder_.getLatestDoneMarker() : null;
       PsiBuilder.Marker extensionMarker = null;
       IElementType extensionTokenType = null;
       if (latestDoneMarker instanceof PsiBuilder.Marker) {
@@ -347,7 +354,6 @@ public class GeneratedParserUtilBase {
   }
 
 
-  private static final Key<ErrorState> ERROR_STATE_KEY = Key.create("ERROR_STATE_KEY");
   public static final Key<CompletionState> COMPLETION_STATE_KEY = Key.create("COMPLETION_STATE_KEY");
 
   public static class CompletionState {
@@ -357,6 +363,32 @@ public class GeneratedParserUtilBase {
     public CompletionState(int offset) {
       this.offset = offset;
     }
+
+    @Nullable
+    public String convertItem(Object o) {
+      return o.toString();
+    }
+  }
+
+  public static class Builder extends PsiBuilderAdapter {
+    final ErrorState state;
+    final PsiParser parser;
+
+    public Builder(PsiBuilder builder, ErrorState state, PsiParser parser) {
+      super(builder);
+      this.state = state;
+      this.parser = parser;
+    }
+
+    public Lexer getLexer() {
+      return ((PsiBuilderImpl)myDelegate).getLexer();
+    }
+  }
+
+  public static PsiBuilder adapt_builder_(IElementType root, PsiBuilder builder, PsiParser parser) {
+    ErrorState state = new ErrorState();
+    ErrorState.initState(root, builder, state);
+    return new Builder(builder, state, parser);
   }
 
   public static class ErrorState {
@@ -366,9 +398,11 @@ public class GeneratedParserUtilBase {
     final LinkedList<Frame> levelCheck = new LinkedList<Frame>();
     CompletionState completionState;
 
-    private BracePair[] braces;
+    private boolean caseSensitive;
     private TokenSet whitespaceTokens = TokenSet.EMPTY;
     private TokenSet commentTokens = TokenSet.EMPTY;
+    public BracePair[] braces;
+    public boolean altMode;
 
     private int lastExpectedVariantOffset = -1;
     ArrayList<Variant> variants = new ArrayList<Variant>();
@@ -383,24 +417,22 @@ public class GeneratedParserUtilBase {
 
 
     public static ErrorState get(PsiBuilder builder) {
-      ErrorState state = builder.getUserDataUnprotected(ERROR_STATE_KEY);
-      if (state == null) {
-        builder.putUserDataUnprotected(ERROR_STATE_KEY, state = new ErrorState());
-        PsiFile file = builder.getUserDataUnprotected(FileContextUtil.CONTAINING_FILE_KEY);
-        state.completionState = file == null ? null : file.getUserData(COMPLETION_STATE_KEY);
-        if (file != null) {
-          Language language = file.getLanguage();
-          PairedBraceMatcher matcher = LanguageBraceMatching.INSTANCE.forLanguage(language);
-          state.braces = matcher == null ? null : matcher.getPairs();
-          if (state.braces != null && state.braces.length == 0) state.braces = null;
-          ParserDefinition parserDefinition = LanguageParserDefinitions.INSTANCE.forLanguage(language);
-          if (parserDefinition != null) {
-            state.commentTokens = parserDefinition.getCommentTokens();
-            state.whitespaceTokens = parserDefinition.getWhitespaceTokens();
-          }
-        }
+      return ((Builder)builder).state;
+    }
+
+    private static void initState(IElementType root, PsiBuilder builder, ErrorState state) {
+      PsiFile file = builder.getUserDataUnprotected(FileContextUtil.CONTAINING_FILE_KEY);
+      state.completionState = file == null ? null : file.getUserData(COMPLETION_STATE_KEY);
+      Language language = file == null ? root.getLanguage() : file.getLanguage();
+      state.caseSensitive = language.isCaseSensitive();
+      ParserDefinition parserDefinition = LanguageParserDefinitions.INSTANCE.forLanguage(language);
+      if (parserDefinition != null) {
+        state.commentTokens = parserDefinition.getCommentTokens();
+        state.whitespaceTokens = parserDefinition.getWhitespaceTokens();
       }
-      return state;
+      PairedBraceMatcher matcher = LanguageBraceMatching.INSTANCE.forLanguage(language);
+      state.braces = matcher == null ? null : matcher.getPairs();
+      if (state.braces != null && state.braces.length == 0) state.braces = null;
     }
 
     public String getExpectedText(PsiBuilder builder_) {
@@ -608,7 +640,8 @@ public class GeneratedParserUtilBase {
         if (marker == null) {
           marker = builder_.mark();
         }
-        final boolean result = eatMoreCondition.parse(builder_, level + 1) && parser.parse(builder_, level + 1);
+        final boolean result =
+          (state.altMode && !parenList.isEmpty() || eatMoreCondition.parse(builder_, level + 1)) && parser.parse(builder_, level + 1);
         if (result) {
           tokenCount++;
           totalCount++;
@@ -665,6 +698,12 @@ public class GeneratedParserUtilBase {
     @Override
     public boolean canNavigate() {
       return false;
+    }
+
+    @NotNull
+    @Override
+    public Language getLanguage() {
+      return getParent().getLanguage();
     }
   }
 }

@@ -57,7 +57,8 @@ public class HaxeGenericSpecialization {
     else if (namedComponent != null) {
       HaxeClass haxeClass = PsiTreeUtil.getParentOfType(namedComponent, HaxeClass.class);
       if (haxeClass instanceof HaxeAnonymousType) {
-        final PsiElement parent = haxeClass.getParent();
+        // class -> typeOrAnonymous -> anonymous
+        final PsiElement parent = haxeClass.getParent().getParent();
         haxeClass = parent instanceof HaxeClass ? (HaxeClass)parent : haxeClass;
       }
       if (haxeClass != null) {

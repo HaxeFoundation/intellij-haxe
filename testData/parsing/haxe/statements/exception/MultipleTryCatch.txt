@@ -36,10 +36,11 @@ haXe File
                     PsiElement(ID)('e')
                 HAXE_TYPETAG
                   PsiElement(:)(':')
-                  HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('String')
+                  HAXE_TYPEORANONYMOUS
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('String')
               PsiElement())(')')
               HAXE_BLOCKSTATEMENT
                 PsiElement({)('{')
@@ -63,10 +64,11 @@ haXe File
                     PsiElement(ID)('e')
                 HAXE_TYPETAG
                   PsiElement(:)(':')
-                  HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('Error')
+                  HAXE_TYPEORANONYMOUS
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Error')
               PsiElement())(')')
               HAXE_BLOCKSTATEMENT
                 PsiElement({)('{')
@@ -90,10 +92,11 @@ haXe File
                     PsiElement(ID)('e')
                 HAXE_TYPETAG
                   PsiElement(:)(':')
-                  HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('Dynamic')
+                  HAXE_TYPEORANONYMOUS
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Dynamic')
               PsiElement())(')')
               HAXE_BLOCKSTATEMENT
                 PsiElement({)('{')

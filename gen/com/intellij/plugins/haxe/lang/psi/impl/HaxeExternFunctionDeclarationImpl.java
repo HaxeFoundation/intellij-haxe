@@ -77,6 +77,12 @@ public class HaxeExternFunctionDeclarationImpl extends AbstractHaxeNamedComponen
   }
 
   @Override
+  @NotNull
+  public List<HaxeOverloadMeta> getOverloadMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeOverloadMeta.class);
+  }
+
+  @Override
   @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);

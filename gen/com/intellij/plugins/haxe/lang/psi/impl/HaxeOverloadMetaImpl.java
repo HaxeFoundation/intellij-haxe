@@ -10,26 +10,20 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeFunctionTypeImpl extends HaxePsiCompositeElementImpl implements HaxeFunctionType {
+public class HaxeOverloadMetaImpl extends HaxePsiCompositeElementImpl implements HaxeOverloadMeta {
 
-  public HaxeFunctionTypeImpl(ASTNode node) {
+  public HaxeOverloadMetaImpl(ASTNode node) {
     super(node);
   }
 
   @Override
   @Nullable
-  public HaxeFunctionType getFunctionType() {
-    return findChildByClass(HaxeFunctionType.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeTypeOrAnonymous> getTypeOrAnonymousList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeOrAnonymous.class);
+  public HaxeAnonymousFunctionDeclaration getAnonymousFunctionDeclaration() {
+    return findChildByClass(HaxeAnonymousFunctionDeclaration.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitFunctionType(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitOverloadMeta(this);
     else super.accept(visitor);
   }
 

@@ -23,17 +23,19 @@ haXe File
                 PsiElement(ID)('x')
             HAXE_TYPETAG
               PsiElement(:)(':')
-              HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('Int')
+              HAXE_TYPEORANONYMOUS
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Int')
         PsiElement())(')')
         HAXE_TYPETAG
           PsiElement(:)(':')
-          HAXE_TYPE
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('Bool')
+          HAXE_TYPEORANONYMOUS
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('Bool')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
           HAXE_IFSTATEMENT

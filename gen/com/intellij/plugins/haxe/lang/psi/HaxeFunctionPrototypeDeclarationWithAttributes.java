@@ -31,6 +31,9 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComp
   @NotNull
   List<HaxeNsMeta> getNsMetaList();
 
+  @NotNull
+  List<HaxeOverloadMeta> getOverloadMetaList();
+
   @Nullable
   HaxeParameterList getParameterList();
 

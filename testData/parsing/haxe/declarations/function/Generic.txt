@@ -26,26 +26,29 @@ haXe File
                 PsiElement(ID)('p')
             HAXE_TYPETAG
               PsiElement(:)(':')
-              HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('Class')
-                HAXE_TYPEPARAM
-                  PsiElement(<)('<')
-                  HAXE_TYPELIST
-                    HAXE_TYPELISTPART
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('T')
-                  PsiElement(>)('>')
+              HAXE_TYPEORANONYMOUS
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Class')
+                  HAXE_TYPEPARAM
+                    PsiElement(<)('<')
+                    HAXE_TYPELIST
+                      HAXE_TYPELISTPART
+                        HAXE_TYPEORANONYMOUS
+                          HAXE_TYPE
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('T')
+                    PsiElement(>)('>')
         PsiElement())(')')
         HAXE_TYPETAG
           PsiElement(:)(':')
-          HAXE_TYPE
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('T')
+          HAXE_TYPEORANONYMOUS
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('T')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
           PsiElement(})('}')

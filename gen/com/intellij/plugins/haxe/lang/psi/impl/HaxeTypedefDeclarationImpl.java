@@ -18,12 +18,6 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
 
   @Override
   @Nullable
-  public HaxeAnonymousType getAnonymousType() {
-    return findChildByClass(HaxeAnonymousType.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeComponentName getComponentName() {
     return findChildByClass(HaxeComponentName.class);
   }
@@ -36,14 +30,20 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
 
   @Override
   @Nullable
+  public HaxeFunctionType getFunctionType() {
+    return findChildByClass(HaxeFunctionType.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeGenericParam getGenericParam() {
     return findChildByClass(HaxeGenericParam.class);
   }
 
   @Override
   @Nullable
-  public HaxeType getType() {
-    return findChildByClass(HaxeType.class);
+  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
+    return findChildByClass(HaxeTypeOrAnonymous.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

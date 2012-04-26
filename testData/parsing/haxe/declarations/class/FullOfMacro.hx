@@ -14,4 +14,7 @@ class FullOfMacro {
   @:setter(_value) function setValue(value) {
     _value = value;
   }
+
+  @:overload(function(name:String,value:String):js.JQuery{})
+  function attr( name : String ) : String {}
 }

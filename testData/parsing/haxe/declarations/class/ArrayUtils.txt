@@ -32,19 +32,21 @@ haXe File
                 PsiElement(ID)('array')
             HAXE_TYPETAG
               PsiElement(:)(':')
-              HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('Array')
-                HAXE_TYPEPARAM
-                  PsiElement(<)('<')
-                  HAXE_TYPELIST
-                    HAXE_TYPELISTPART
-                      HAXE_TYPE
-                        HAXE_REFERENCEEXPRESSION
-                          HAXE_IDENTIFIER
-                            PsiElement(ID)('T')
-                  PsiElement(>)('>')
+              HAXE_TYPEORANONYMOUS
+                HAXE_TYPE
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('Array')
+                  HAXE_TYPEPARAM
+                    PsiElement(<)('<')
+                    HAXE_TYPELIST
+                      HAXE_TYPELISTPART
+                        HAXE_TYPEORANONYMOUS
+                          HAXE_TYPE
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('T')
+                    PsiElement(>)('>')
           PsiElement(,)(',')
           HAXE_PARAMETER
             HAXE_COMPONENTNAME
@@ -53,31 +55,35 @@ haXe File
             HAXE_TYPETAG
               PsiElement(:)(':')
               HAXE_FUNCTIONTYPE
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('T')
-                PsiElement(->)('->')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Bool')
-        PsiElement())(')')
-        HAXE_TYPETAG
-          PsiElement(:)(':')
-          HAXE_TYPE
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('Array')
-            HAXE_TYPEPARAM
-              PsiElement(<)('<')
-              HAXE_TYPELIST
-                HAXE_TYPELISTPART
+                HAXE_TYPEORANONYMOUS
                   HAXE_TYPE
                     HAXE_REFERENCEEXPRESSION
                       HAXE_IDENTIFIER
                         PsiElement(ID)('T')
-              PsiElement(>)('>')
+                PsiElement(->)('->')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Bool')
+        PsiElement())(')')
+        HAXE_TYPETAG
+          PsiElement(:)(':')
+          HAXE_TYPEORANONYMOUS
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('Array')
+              HAXE_TYPEPARAM
+                PsiElement(<)('<')
+                HAXE_TYPELIST
+                  HAXE_TYPELISTPART
+                    HAXE_TYPEORANONYMOUS
+                      HAXE_TYPE
+                        HAXE_REFERENCEEXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('T')
+                PsiElement(>)('>')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
           PsiElement(})('}')

@@ -5,15 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeCastExpression extends HaxeExpression {
+public interface HaxeTypeOrAnonymous extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeExpression getExpression();
+  HaxeAnonymousType getAnonymousType();
 
   @Nullable
-  HaxeFunctionType getFunctionType();
-
-  @Nullable
-  HaxeTypeOrAnonymous getTypeOrAnonymous();
+  HaxeType getType();
 
 }

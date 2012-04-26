@@ -18,19 +18,14 @@ public class HaxeTypeTagImpl extends HaxePsiCompositeElementImpl implements Haxe
 
   @Override
   @Nullable
-  public HaxeAnonymousType getAnonymousType() {
-    return findChildByClass(HaxeAnonymousType.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeType getType() {
-    return findChildByClass(HaxeType.class);
-  }
-
-  @Override
   public HaxeFunctionType getFunctionType() {
     return findChildByClass(HaxeFunctionType.class);
+  }
+
+  @Override
+  @NotNull
+  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
+    return findNotNullChildByClass(HaxeTypeOrAnonymous.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

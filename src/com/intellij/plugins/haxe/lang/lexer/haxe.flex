@@ -138,6 +138,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "@:debug"                                 {  return KDEBUG;  }
 "@:nodebug"                               {  return KNODEBUG;  }
 "@:meta"                                  {  return KMETA;  }
+"@:overload"                              {  return KOVERLOAD;  }
 
 "try"                                     {  return KTRY;  }
 "catch"                                   {  return KCATCH;  }

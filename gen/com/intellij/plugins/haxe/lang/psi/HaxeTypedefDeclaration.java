@@ -8,18 +8,18 @@ import com.intellij.psi.PsiElement;
 public interface HaxeTypedefDeclaration extends HaxeClass {
 
   @Nullable
-  HaxeAnonymousType getAnonymousType();
-
-  @Nullable
   HaxeComponentName getComponentName();
 
   @Nullable
   HaxeExternOrPrivate getExternOrPrivate();
 
   @Nullable
+  HaxeFunctionType getFunctionType();
+
+  @Nullable
   HaxeGenericParam getGenericParam();
 
   @Nullable
-  HaxeType getType();
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

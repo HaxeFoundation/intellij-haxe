@@ -14,10 +14,11 @@ haXe File
               PsiElement(ID)('foo')
           HAXE_TYPETAG
             PsiElement(:)(':')
-            HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('Boolean')
+            HAXE_TYPEORANONYMOUS
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('Boolean')
           HAXE_VARINIT
             PsiElement(=)('=')
             HAXE_LOGICOREXPRESSION

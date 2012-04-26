@@ -39,7 +39,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     if(typeTag != null){
       result.append(":");
-      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getType(), specializations));
+      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymous().getType(), specializations));
     }
     result.append("{\n}\n");
     return result.toString();

@@ -10,6 +10,7 @@ public interface HaxeTokenTypes {
 
   IElementType HAXE_ACCESS = new HaxeElementType("HAXE_ACCESS");
   IElementType HAXE_ADDITIVEEXPRESSION = new HaxeElementType("HAXE_ADDITIVEEXPRESSION");
+  IElementType HAXE_ANONYMOUSFUNCTIONDECLARATION = new HaxeElementType("HAXE_ANONYMOUSFUNCTIONDECLARATION");
   IElementType HAXE_ANONYMOUSTYPE = new HaxeElementType("HAXE_ANONYMOUSTYPE");
   IElementType HAXE_ANONYMOUSTYPEBODY = new HaxeElementType("HAXE_ANONYMOUSTYPEBODY");
   IElementType HAXE_ANONYMOUSTYPEFIELD = new HaxeElementType("HAXE_ANONYMOUSTYPEFIELD");
@@ -84,6 +85,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_NSMETA = new HaxeElementType("HAXE_NSMETA");
   IElementType HAXE_OBJECTLITERAL = new HaxeElementType("HAXE_OBJECTLITERAL");
   IElementType HAXE_OBJECTLITERALELEMENT = new HaxeElementType("HAXE_OBJECTLITERALELEMENT");
+  IElementType HAXE_OVERLOADMETA = new HaxeElementType("HAXE_OVERLOADMETA");
   IElementType HAXE_PACKAGESTATEMENT = new HaxeElementType("HAXE_PACKAGESTATEMENT");
   IElementType HAXE_PARAMETER = new HaxeElementType("HAXE_PARAMETER");
   IElementType HAXE_PARAMETERLIST = new HaxeElementType("HAXE_PARAMETERLIST");
@@ -120,6 +122,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_TYPEEXTENDS = new HaxeElementType("HAXE_TYPEEXTENDS");
   IElementType HAXE_TYPELIST = new HaxeElementType("HAXE_TYPELIST");
   IElementType HAXE_TYPELISTPART = new HaxeElementType("HAXE_TYPELISTPART");
+  IElementType HAXE_TYPEORANONYMOUS = new HaxeElementType("HAXE_TYPEORANONYMOUS");
   IElementType HAXE_TYPEPARAM = new HaxeElementType("HAXE_TYPEPARAM");
   IElementType HAXE_TYPETAG = new HaxeElementType("HAXE_TYPETAG");
   IElementType HAXE_UNSIGNEDSHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_UNSIGNEDSHIFTRIGHTOPERATOR");
@@ -169,6 +172,7 @@ public interface HaxeTokenTypes {
   IElementType KNODEBUG = new HaxeElementType("@:nodebug");
   IElementType KNS = new HaxeElementType("@:ns");
   IElementType KNULL = new HaxeElementType("null");
+  IElementType KOVERLOAD = new HaxeElementType("@:overload");
   IElementType KOVERRIDE = new HaxeElementType("override");
   IElementType KPACKAGE = new HaxeElementType("package");
   IElementType KPRIVATE = new HaxeElementType("private");
@@ -257,6 +261,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_ADDITIVEEXPRESSION) {
         return new HaxeAdditiveExpressionImpl(node);
+      }
+      else if (type == HAXE_ANONYMOUSFUNCTIONDECLARATION) {
+        return new HaxeAnonymousFunctionDeclarationImpl(node);
       }
       else if (type == HAXE_ANONYMOUSTYPE) {
         return new HaxeAnonymousTypeImpl(node);
@@ -480,6 +487,9 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_OBJECTLITERALELEMENT) {
         return new HaxeObjectLiteralElementImpl(node);
       }
+      else if (type == HAXE_OVERLOADMETA) {
+        return new HaxeOverloadMetaImpl(node);
+      }
       else if (type == HAXE_PACKAGESTATEMENT) {
         return new HaxePackageStatementImpl(node);
       }
@@ -587,6 +597,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_TYPELISTPART) {
         return new HaxeTypeListPartImpl(node);
+      }
+      else if (type == HAXE_TYPEORANONYMOUS) {
+        return new HaxeTypeOrAnonymousImpl(node);
       }
       else if (type == HAXE_TYPEPARAM) {
         return new HaxeTypeParamImpl(node);

@@ -14,6 +14,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitAnonymousFunctionDeclaration(@NotNull HaxeAnonymousFunctionDeclaration o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitAnonymousType(@NotNull HaxeAnonymousType o) {
     visitClass(o);
   }
@@ -315,6 +319,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitOverloadMeta(@NotNull HaxeOverloadMeta o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitPackageStatement(@NotNull HaxePackageStatement o) {
     visitPsiCompositeElement(o);
   }
@@ -455,6 +463,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitTypeListPart(@NotNull HaxeTypeListPart o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous o) {
     visitPsiCompositeElement(o);
   }
 

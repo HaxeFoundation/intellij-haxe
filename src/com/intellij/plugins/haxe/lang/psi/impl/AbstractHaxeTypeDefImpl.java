@@ -20,10 +20,12 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   public HaxeClassResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
-    if (getAnonymousType() != null) {
-      return new HaxeClassResolveResult(getAnonymousType(), specialization);
+    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
+    assert haxeTypeOrAnonymous != null;
+    if (haxeTypeOrAnonymous.getAnonymousType() != null) {
+      return new HaxeClassResolveResult(haxeTypeOrAnonymous.getAnonymousType(), specialization);
     }
-    return HaxeResolveUtil.getHaxeClassResolveResult(getType(), specialization);
+    return HaxeResolveUtil.getHaxeClassResolveResult(haxeTypeOrAnonymous.getType(), specialization);
   }
 
   @NotNull

@@ -14,16 +14,18 @@ haXe File
         PsiElement(()('(')
         HAXE_TYPELIST
           HAXE_TYPELISTPART
-            HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('Event')
+            HAXE_TYPEORANONYMOUS
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('Event')
           PsiElement(,)(',')
           HAXE_TYPELISTPART
-            HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('EventDispatcher')
+            HAXE_TYPEORANONYMOUS
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('EventDispatcher')
         PsiElement())(')')
       PsiElement(>)('>')
     PsiElement({)('{')
@@ -36,9 +38,10 @@ haXe File
               PsiElement(ID)('evt')
           HAXE_TYPETAG
             PsiElement(:)(':')
-            HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('T')
+            HAXE_TYPEORANONYMOUS
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('T')
         PsiElement(;)(';')
     PsiElement(})('}')

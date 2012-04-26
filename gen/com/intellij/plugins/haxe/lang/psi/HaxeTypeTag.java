@@ -8,13 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeTypeTag extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeAnonymousType getAnonymousType();
-
-  @Nullable
-  HaxeType getType();
-
-
-  @Nullable
   HaxeFunctionType getFunctionType();
+
+  @NotNull
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

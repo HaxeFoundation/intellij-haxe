@@ -14,18 +14,20 @@ haXe File
               PsiElement(ID)('foo')
           HAXE_TYPETAG
             PsiElement(:)(':')
-            HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('Bar')
-              HAXE_TYPEPARAM
-                PsiElement(<)('<')
-                HAXE_TYPELIST
-                  HAXE_TYPELISTPART
-                    HAXE_TYPE
-                      HAXE_REFERENCEEXPRESSION
-                        HAXE_IDENTIFIER
-                          PsiElement(ID)('int')
-                PsiElement(>)('>')
+            HAXE_TYPEORANONYMOUS
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('Bar')
+                HAXE_TYPEPARAM
+                  PsiElement(<)('<')
+                  HAXE_TYPELIST
+                    HAXE_TYPELISTPART
+                      HAXE_TYPEORANONYMOUS
+                        HAXE_TYPE
+                          HAXE_REFERENCEEXPRESSION
+                            HAXE_IDENTIFIER
+                              PsiElement(ID)('int')
+                  PsiElement(>)('>')
         PsiElement(;)(';')
     PsiElement(})('}')

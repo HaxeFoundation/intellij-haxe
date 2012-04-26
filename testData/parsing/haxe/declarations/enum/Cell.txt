@@ -31,10 +31,11 @@ haXe File
                   PsiElement(ID)('item')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('T')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('T')
             PsiElement(,)(',')
             HAXE_PARAMETER
               HAXE_COMPONENTNAME
@@ -42,19 +43,21 @@ haXe File
                   PsiElement(ID)('next')
               HAXE_TYPETAG
                 PsiElement(:)(':')
-                HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
-                    HAXE_IDENTIFIER
-                      PsiElement(ID)('Cell')
-                  HAXE_TYPEPARAM
-                    PsiElement(<)('<')
-                    HAXE_TYPELIST
-                      HAXE_TYPELISTPART
-                        HAXE_TYPE
-                          HAXE_REFERENCEEXPRESSION
-                            HAXE_IDENTIFIER
-                              PsiElement(ID)('T')
-                    PsiElement(>)('>')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('Cell')
+                    HAXE_TYPEPARAM
+                      PsiElement(<)('<')
+                      HAXE_TYPELIST
+                        HAXE_TYPELISTPART
+                          HAXE_TYPEORANONYMOUS
+                            HAXE_TYPE
+                              HAXE_REFERENCEEXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('T')
+                      PsiElement(>)('>')
           PsiElement())(')')
         PsiElement(;)(';')
     PsiElement(})('}')

@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeTypeListPart extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeAnonymousType getAnonymousType();
+  HaxeFunctionType getFunctionType();
 
-  @Nullable
-  HaxeType getType();
+  @NotNull
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

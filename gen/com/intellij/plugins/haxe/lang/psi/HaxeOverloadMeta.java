@@ -8,9 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeOverloadMeta extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeParameterList getParameterList();
-
-  @Nullable
-  HaxeTypeTag getTypeTag();
+  HaxeAnonymousFunctionDeclaration getAnonymousFunctionDeclaration();
 
 }

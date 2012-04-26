@@ -18,20 +18,20 @@ public class HaxeCastExpressionImpl extends HaxeExpressionImpl implements HaxeCa
 
   @Override
   @Nullable
-  public HaxeAnonymousType getAnonymousType() {
-    return findChildByClass(HaxeAnonymousType.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
   }
 
   @Override
   @Nullable
-  public HaxeType getType() {
-    return findChildByClass(HaxeType.class);
+  public HaxeFunctionType getFunctionType() {
+    return findChildByClass(HaxeFunctionType.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
+    return findChildByClass(HaxeTypeOrAnonymous.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

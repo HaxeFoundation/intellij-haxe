@@ -39,10 +39,11 @@ haXe File
                     PsiElement({)('{')
                     PsiElement(})('}')
                   PsiElement(,)(',')
-                  HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
-                      HAXE_IDENTIFIER
-                        PsiElement(ID)('Test7')
+                  HAXE_TYPEORANONYMOUS
+                    HAXE_TYPE
+                      HAXE_REFERENCEEXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Test7')
                   PsiElement())(')')
                 PsiElement(;)(';')
                 HAXE_DEFAULTSTATEMENT

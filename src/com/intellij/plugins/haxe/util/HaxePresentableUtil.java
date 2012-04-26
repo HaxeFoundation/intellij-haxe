@@ -66,12 +66,12 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeListPart typeTag, HaxeGenericSpecialization specializations) {
-    final HaxeAnonymousType anonymousType = typeTag.getAnonymousType();
+    final HaxeAnonymousType anonymousType = typeTag.getTypeOrAnonymous().getAnonymousType();
     if (anonymousType != null) {
       return anonymousType.getText();
     }
 
-    final HaxeType haxeType = typeTag.getType();
+    final HaxeType haxeType = typeTag.getTypeOrAnonymous().getType();
     return buildTypeText(element, haxeType, specializations);
   }
 
@@ -80,16 +80,21 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
-    final HaxeAnonymousType anonymousType = typeTag.getAnonymousType();
+    final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
+    if (haxeFunctionType != null) {
+      return buildTypeText(element, haxeFunctionType, specialization);
+    }
+
+    final HaxeAnonymousType anonymousType = typeTag.getTypeOrAnonymous().getAnonymousType();
     if (anonymousType != null) {
       return anonymousType.getText();
     }
-    final HaxeType haxeType = typeTag.getType();
+
+    final HaxeType haxeType = typeTag.getTypeOrAnonymous().getType();
     if (haxeType != null) {
       return buildTypeText(element, haxeType, specialization);
     }
-    final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
-    return buildTypeText(element, haxeFunctionType, specialization);
+    return "";
   }
 
   private static String buildTypeText(HaxeNamedComponent element,
@@ -99,16 +104,16 @@ public class HaxePresentableUtil {
       return "";
     }
 
-    final HaxeType[] types = PsiTreeUtil.getChildrenOfType(functionType, HaxeType.class);
-    assert types != null;
-    if (types.length == 2) {
-      return buildTypeText(element, types[0], specialization) +
+    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = functionType.getTypeOrAnonymousList();
+
+    if (typeOrAnonymousList.size() == 2) {
+      return buildTypeText(element, typeOrAnonymousList.get(0).getType(), specialization) +
              "->" +
-             buildTypeText(element, types[1], specialization);
+             buildTypeText(element, typeOrAnonymousList.get(1).getType(), specialization);
     }
     return buildTypeText(element, functionType.getFunctionType(), specialization) +
            "->" +
-           buildTypeText(element, functionType.getType(), specialization);
+           buildTypeText(element, typeOrAnonymousList.get(0).getType(), specialization);
   }
 
   public static String buildTypeText(HaxeNamedComponent element, @Nullable HaxeType type) {

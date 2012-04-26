@@ -15,10 +15,11 @@ haXe File
         PsiElement())(')')
         HAXE_TYPETAG
           PsiElement(:)(':')
-          HAXE_TYPE
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('void')
+          HAXE_TYPEORANONYMOUS
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('void')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
           HAXE_FORSTATEMENT
