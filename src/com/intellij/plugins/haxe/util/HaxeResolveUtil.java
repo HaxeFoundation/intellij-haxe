@@ -204,12 +204,15 @@ public class HaxeResolveUtil {
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
     if (type == HaxeComponentType.CLASS) {
       body = PsiTreeUtil.getChildOfAnyType(haxeClass, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
-    }
-    if (type == HaxeComponentType.INTERFACE) {
+    } else if (type == HaxeComponentType.INTERFACE) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeInterfaceBody.class);
-    }
-    if (type == HaxeComponentType.ENUM) {
+    } else if (type == HaxeComponentType.ENUM) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
+    } else if (haxeClass instanceof HaxeTypedefDeclaration) {
+      final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+      if (typeOrAnonymous != null) {
+        haxeClass = typeOrAnonymous.getAnonymousType();
+      }
     }
 
     final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();

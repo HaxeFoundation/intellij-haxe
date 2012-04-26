@@ -4,6 +4,11 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.4.2:</p>
+      <ul>
+        <li>Bug fixes</li>
+        <li>Structure view</li>
+      </ul>
       <p>0.4.1:</p>
       <ul>
         <li>Bug fixes</li>
@@ -62,7 +67,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.4.1</version>
+  <version>0.4.2</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
   <idea-version since-build="117.105" until-build="118.1"/>
   <depends>com.intellij.modules.ultimate</depends>
@@ -102,6 +107,7 @@
                                         implementationClass="com.intellij.plugins.haxe.ide.HaxeImplementationTextSelectioner"/>
     <lang.documentationProvider language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeDocumentationProvider"/>
     <lang.commenter language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCommenter"/>
+    <lang.psiStructureViewFactory language="haXe" implementationClass="com.intellij.plugins.haxe.ide.structure.HaxeStructureViewFactory"/>
 
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
 

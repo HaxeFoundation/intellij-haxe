@@ -80,13 +80,19 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
       @Override
       public String getLocationString() {
-        final HaxeClass haxeClass = AbstractHaxeNamedComponent.this instanceof HaxeClass
-                                    ? (HaxeClass)AbstractHaxeNamedComponent.this
-                                    : PsiTreeUtil.getParentOfType(AbstractHaxeNamedComponent.this, HaxeClass.class);
+        HaxeClass haxeClass = AbstractHaxeNamedComponent.this instanceof HaxeClass
+                              ? (HaxeClass)AbstractHaxeNamedComponent.this
+                              : PsiTreeUtil.getParentOfType(AbstractHaxeNamedComponent.this, HaxeClass.class);
+        if (haxeClass instanceof HaxeAnonymousType) {
+          final HaxeTypedefDeclaration typedefDeclaration = PsiTreeUtil.getParentOfType(haxeClass, HaxeTypedefDeclaration.class);
+          if (typedefDeclaration != null) {
+            haxeClass = typedefDeclaration;
+          }
+        }
         assert haxeClass != null;
         final Pair<String, String> qName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
         if (haxeClass == AbstractHaxeNamedComponent.this) {
-          return qName.getFirst().isEmpty() ? "" : "(" + qName.getFirst() + ")";
+          return qName.getFirst();
         }
         return haxeClass.getQualifiedName();
       }
