@@ -174,6 +174,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     final GeneralCommandLine commandLine = new GeneralCommandLine();
 
     commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
+    commandLine.setPassParentEnvs(true);
 
     if (settings.isUseNmmlToBuild()) {
       final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;

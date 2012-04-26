@@ -1,6 +1,8 @@
 package com.intellij.plugins.haxe.compilation;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.Nullable;
@@ -54,11 +56,15 @@ public class HaxeCompilerError {
       errorMessage = message.substring(semicolonIndex2 + 1);
     }
 
-    final String url = VfsUtil.pathToUrl(rootPath) + "/" + FileUtil.toSystemIndependentName(path);
-    if (VirtualFileManager.getInstance().findFileByUrl(url) == null) {
+    String url = FileUtil.toSystemIndependentName(path);
+    if(!path.startsWith(rootPath)){
+      url = rootPath + "/" + url;
+    }
+    url = VfsUtil.pathToUrl(url);
+    if (!ApplicationManager.getApplication().isUnitTestMode() && VirtualFileManager.getInstance().findFileByUrl(url) == null) {
       return null;
     }
 
-    return new HaxeCompilerError(errorMessage, url, line);
+    return new HaxeCompilerError(StringUtil.trimLeading(StringUtil.trimTrailing(errorMessage)), url, line);
   }
 }
