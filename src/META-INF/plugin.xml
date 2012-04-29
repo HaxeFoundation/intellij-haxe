@@ -4,7 +4,7 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.4.2:</p>
+      <p>0.4.3:</p>
       <ul>
         <li>Bug fixes</li>
         <li>Structure view</li>
@@ -67,7 +67,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.4.2</version>
+  <version>0.4.3</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
   <idea-version since-build="117.105" until-build="118.1"/>
   <depends>com.intellij.modules.ultimate</depends>
