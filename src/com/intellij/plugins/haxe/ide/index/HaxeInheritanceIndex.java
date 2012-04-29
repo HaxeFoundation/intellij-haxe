@@ -90,9 +90,8 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
         final HaxeClassInfo value = new HaxeClassInfo(haxeClass.getQualifiedName(), HaxeComponentType.typeOf(haxeClass));
         if (haxeClass instanceof AbstractHaxeTypeDefImpl) {
           final HaxeTypeOrAnonymous haxeTypeOrAnonymous = ((AbstractHaxeTypeDefImpl)haxeClass).getTypeOrAnonymous();
-          assert haxeTypeOrAnonymous != null;
-          final HaxeType type = haxeTypeOrAnonymous.getType();
-          final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous.getAnonymousType();
+          final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
+          final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
           if (anonymousType != null) {
             final HaxeTypeExtends typeExtends = anonymousType.getAnonymousTypeBody().getTypeExtends();
             if (typeExtends != null) {

@@ -44,7 +44,7 @@ public abstract class BaseHaxeGenerateAction extends AnAction {
     final PsiFile psiFile = editorAndPsiFile.second;
 
     final int caretOffset = editor.getCaretModel().getOffset();
-    final boolean inClass = PsiTreeUtil.getParentOfType(psiFile.findElementAt(caretOffset), HaxeClass.class) != null;
+    final boolean inClass = psiFile != null && PsiTreeUtil.getParentOfType(psiFile.findElementAt(caretOffset), HaxeClass.class) != null;
 
     e.getPresentation().setEnabled(inClass);
     e.getPresentation().setVisible(inClass);
