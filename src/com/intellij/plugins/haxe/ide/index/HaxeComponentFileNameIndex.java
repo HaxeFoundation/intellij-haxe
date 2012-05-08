@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.ide.index;
 
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -55,13 +54,8 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
   }
 
   @Override
-  public FileBasedIndex.InputFilter getInputFilter() {
-    return new FileBasedIndex.InputFilter() {
-      @Override
-      public boolean acceptInput(VirtualFile file) {
-        return file.getFileType() == HaxeFileType.HAXE_FILE_TYPE;
-      }
-    };
+  public InputFilter getInputFilter() {
+    return HaxeInheritanceIndex.HAXE_INPUT_FILTER;
   }
 
   @NotNull

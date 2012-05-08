@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide.index;
 
-import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,13 +58,8 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
   }
 
   @Override
-  public FileBasedIndex.InputFilter getInputFilter() {
-    return new FileBasedIndex.InputFilter() {
-      @Override
-      public boolean acceptInput(VirtualFile file) {
-        return file.getFileType() == HaxeFileType.HAXE_FILE_TYPE;
-      }
-    };
+  public InputFilter getInputFilter() {
+    return HaxeInheritanceIndex.HAXE_INPUT_FILTER;
   }
 
   @NotNull
