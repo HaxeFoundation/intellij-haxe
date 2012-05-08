@@ -53,10 +53,6 @@ public class HaxeSdkData implements SdkAdditionalData, PersistentStateComponent<
     return super.clone();
   }
 
-  public void checkValid(SdkModel sdkModel) throws ConfigurationException {
-
-  }
-
   public HaxeSdkData getState() {
     return this;
   }
