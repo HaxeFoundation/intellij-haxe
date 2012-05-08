@@ -1,11 +1,8 @@
 package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.projectRoots.SdkModel;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.jetbrains.annotations.Nullable;
 
 public class HaxeSdkData implements SdkAdditionalData, PersistentStateComponent<HaxeSdkData> {
   private String homePath = "";
