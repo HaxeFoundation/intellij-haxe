@@ -154,10 +154,7 @@
     kTRY="try"
     kCATCH="catch"
 
-    elementTypeHolderClass="org.intellij.grammar.psi.HaxeTypes"
     elementTypePrefix="HAXE_"
-    elementTypeClass="org.intellij.grammar.psi.HaxeCompositeElementType"
-    tokenTypeClass="org.intellij.grammar.psi.HaxeTokenType"
 
     extends(".*(Expression|Literal)")="expression"
     pin(".*Expression")=1
