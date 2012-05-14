@@ -58,7 +58,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
   }
 
   @Override
-  public InputFilter getInputFilter() {
+  public FileBasedIndex.InputFilter getInputFilter() {
     return HaxeInheritanceIndex.HAXE_INPUT_FILTER;
   }
 

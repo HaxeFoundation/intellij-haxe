@@ -54,7 +54,7 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
   }
 
   @Override
-  public InputFilter getInputFilter() {
+  public FileBasedIndex.InputFilter getInputFilter() {
     return HaxeInheritanceIndex.HAXE_INPUT_FILTER;
   }
 

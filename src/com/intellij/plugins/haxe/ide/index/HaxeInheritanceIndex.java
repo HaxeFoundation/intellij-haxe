@@ -33,7 +33,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
   private static final int INDEX_VERSION = 2;
   private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<HaxeClassInfo> myExternalizer = new HaxeClassInfoExternalizer();
-  public static final InputFilter HAXE_INPUT_FILTER = new InputFilter() {
+  public static final FileBasedIndex.InputFilter HAXE_INPUT_FILTER = new FileBasedIndex.InputFilter() {
     @Override
     public boolean acceptInput(VirtualFile file) {
       return file.getFileType() == HaxeFileType.HAXE_FILE_TYPE;
@@ -67,7 +67,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
   }
 
   @Override
-  public InputFilter getInputFilter() {
+  public FileBasedIndex.InputFilter getInputFilter() {
     return HAXE_INPUT_FILTER;
   }
 
