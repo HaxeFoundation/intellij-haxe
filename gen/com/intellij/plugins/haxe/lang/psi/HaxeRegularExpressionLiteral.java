@@ -5,9 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeCustomMeta extends HaxePsiCompositeElement {
-
-  @NotNull
-  List<HaxeLiteralExpression> getLiteralExpressionList();
+public interface HaxeRegularExpressionLiteral extends HaxeRegularExpression, HaxeLiteralExpression {
 
 }

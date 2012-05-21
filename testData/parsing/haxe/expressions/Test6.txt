@@ -40,5 +40,49 @@ haXe File
                       PsiElement(LITSTRING)('"Tom"')
                   PsiElement(})('}')
             PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('regExp')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_REGULAREXPRESSIONLITERAL
+                  PsiElement(REG_EXP)('~/Hello/i')
+            PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('mail')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_REGULAREXPRESSIONLITERAL
+                  PsiElement(REG_EXP)('~/[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z][A-Z][A-Z]?/i')
+            PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('example1')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_REGULAREXPRESSIONLITERAL
+                  PsiElement(REG_EXP)('~/([A-Za-z]+) is ([0-9]+) years old/')
+            PsiElement(;)(';')
+          HAXE_LOCALVARDECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCALVARDECLARATIONPART
+              HAXE_COMPONENTNAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('example2')
+              HAXE_VARINIT
+                PsiElement(=)('=')
+                HAXE_REGULAREXPRESSIONLITERAL
+                  PsiElement(REG_EXP)('~/(.+)Test/ig')
+            PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

@@ -27,6 +27,7 @@
     <orderEntry type="module" module-name="xdebugger-api" />
     <orderEntry type="module" module-name="flex" />
     <orderEntry type="module" module-name="xml" />
+    <orderEntry type="module" module-name="RegExpSupport" />
   </component>
 </module>
 

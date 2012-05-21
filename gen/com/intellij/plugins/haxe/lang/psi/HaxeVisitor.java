@@ -384,6 +384,11 @@ public class HaxeVisitor extends PsiElementVisitor {
     // visitExpression(o);
   }
 
+  public void visitRegularExpressionLiteral(@NotNull HaxeRegularExpressionLiteral o) {
+    visitRegularExpression(o);
+    // visitLiteralExpression(o);
+  }
+
   public void visitRequireMeta(@NotNull HaxeRequireMeta o) {
     visitPsiCompositeElement(o);
   }
@@ -523,6 +528,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitReference(@NotNull HaxeReference o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitRegularExpression(@NotNull HaxeRegularExpression o) {
     visitPsiCompositeElement(o);
   }
 

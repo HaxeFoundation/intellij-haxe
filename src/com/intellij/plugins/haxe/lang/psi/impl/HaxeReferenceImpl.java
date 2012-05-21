@@ -220,6 +220,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     else if (type == HaxeTokenTypes.LITFLOAT) {
       return "Float";
     }
+    else if (type == HaxeTokenTypes.REG_EXP) {
+      return "EReg";
+    }
     else if (type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITOCT) {
       return "Int";
     }

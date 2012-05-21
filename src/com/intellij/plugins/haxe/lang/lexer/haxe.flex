@@ -41,6 +41,8 @@ mNUM_INT = "0" | ([1-9] {mINT_DIGIT}*)
 mNUM_HEX = ("0x" | "0X") {mHEX_DIGIT}+
 mNUM_OCT = "0" {mOCT_DIGIT}+
 
+mREG_EXP = "~/" [^"/"]* "/" [igmsu]*
+
 mFLOAT_EXPONENT = [eE] [+-]? {mDIGIT}+
 mNUM_FLOAT = ( ({mDIGIT}* "." {mDIGIT}+) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
 
@@ -67,6 +69,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 {mNUM_OCT}                                {  return LITOCT; }
 {mNUM_HEX}                                {  return LITHEX; }
 {mNUM_INT}                                {  return LITINT; }
+{mREG_EXP}                                {  return REG_EXP; }
 
 "new"                                     { return ONEW; }
 "in"                                      { return OIN; }
@@ -169,7 +172,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 
 "!="                                      { return ONOT_EQ; }
 "!"                                       { return ONOT; }
-"~"                                       { return OCOMPLEMENT; }
+"~" / [^"/"]                              { return OCOMPLEMENT; }
 
 "?"                                       { return OQUEST;}
 

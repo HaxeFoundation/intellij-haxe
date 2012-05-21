@@ -1,5 +1,6 @@
-package com.intellij.codeInsight.navigation.actions;
+package com.intellij.plugins.haxe.actions;
 
+import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
@@ -19,7 +20,8 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
 
   protected void doTest(PsiFile[] files, int expectedSize) {
     final PsiFile myFile = files[0];
-    final Collection<PsiElement> elements = GotoDeclarationAction.suggestCandidates(myFile.findReferenceAt(myFixture.getCaretOffset()));
+    final Collection<PsiElement> elements = TargetElementUtilBase
+      .getInstance().getTargetCandidates(myFile.findReferenceAt(myFixture.getCaretOffset()));
     assertNotNull(elements);
     assertEquals(expectedSize, elements.size());
   }
@@ -126,6 +128,10 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
 
   public void testReferenceExpression5() {
     doTest(myFixture.configureByFiles("ReferenceExpression5.hx", "com/bar/Foo.hx"), 1);
+  }
+
+  public void testRegularExpression() {
+    doTest(myFixture.configureByFiles("RegularExpression.hx", "std/EReg.hx"), 1);
   }
 
   public void testStringLiteral() {

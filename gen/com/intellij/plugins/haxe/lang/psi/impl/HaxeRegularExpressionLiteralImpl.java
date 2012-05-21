@@ -10,20 +10,14 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeCustomMetaImpl extends HaxePsiCompositeElementImpl implements HaxeCustomMeta {
+public class HaxeRegularExpressionLiteralImpl extends HaxeRegularExpressionImpl implements HaxeRegularExpressionLiteral {
 
-  public HaxeCustomMetaImpl(ASTNode node) {
+  public HaxeRegularExpressionLiteralImpl(ASTNode node) {
     super(node);
   }
 
-  @Override
-  @NotNull
-  public List<HaxeLiteralExpression> getLiteralExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeLiteralExpression.class);
-  }
-
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitCustomMeta(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitRegularExpressionLiteral(this);
     else super.accept(visitor);
   }
 

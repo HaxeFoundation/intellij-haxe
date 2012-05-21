@@ -101,6 +101,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_PROPERTYACCESSOR = new HaxeElementType("HAXE_PROPERTYACCESSOR");
   IElementType HAXE_PROPERTYDECLARATION = new HaxeElementType("HAXE_PROPERTYDECLARATION");
   IElementType HAXE_REFERENCEEXPRESSION = new HaxeElementType("HAXE_REFERENCEEXPRESSION");
+  IElementType HAXE_REGULAREXPRESSIONLITERAL = new HaxeElementType("HAXE_REGULAREXPRESSIONLITERAL");
   IElementType HAXE_REQUIREMETA = new HaxeElementType("HAXE_REQUIREMETA");
   IElementType HAXE_RETURNSTATEMENT = new HaxeElementType("HAXE_RETURNSTATEMENT");
   IElementType HAXE_RETURNSTATEMENTWITHOUTSEMICOLON = new HaxeElementType("HAXE_RETURNSTATEMENTWITHOUTSEMICOLON");
@@ -252,6 +253,7 @@ public interface HaxeTokenTypes {
   IElementType PRBRACK = new HaxeElementType("]");
   IElementType PRCURLY = new HaxeElementType("}");
   IElementType PRPAREN = new HaxeElementType(")");
+  IElementType REG_EXP = new HaxeElementType("REG_EXP");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
@@ -534,6 +536,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_REFERENCEEXPRESSION) {
         return new HaxeReferenceExpressionImpl(node);
+      }
+      else if (type == HAXE_REGULAREXPRESSIONLITERAL) {
+        return new HaxeRegularExpressionLiteralImpl(node);
       }
       else if (type == HAXE_REQUIREMETA) {
         return new HaxeRequireMetaImpl(node);

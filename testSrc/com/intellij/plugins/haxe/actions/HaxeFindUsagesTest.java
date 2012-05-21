@@ -1,4 +1,4 @@
-package com.intellij.codeInsight.navigation.actions;
+package com.intellij.plugins.haxe.actions;
 
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.PathManager;

@@ -434,11 +434,15 @@ private value ::= 'untyped' value
 ppIfValue ::= ppIf expression (ppElseIf expression)* ppElse expression ppEnd {pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
+                    | regularExpressionLiteral
                     | 'null' | 'true' | 'false'
                     | functionLiteral
                     | arrayLiteral
                     | objectLiteral
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+regularExpressionLiteral ::= REG_EXP
+{extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
 parenthesizedExpression ::= '(' (expression | statement) ')'
