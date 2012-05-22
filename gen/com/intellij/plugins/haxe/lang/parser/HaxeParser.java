@@ -3479,7 +3479,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'if' '(' expression ')' expression ('else' expression)?
+  // 'if' '(' expression ')' expression (';'? 'else' expression)?
   public static boolean ifExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "ifExpression")) return false;
     if (!nextTokenIs(builder_, KIF)) return false;
@@ -3509,25 +3509,26 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // ('else' expression)?
+  // (';'? 'else' expression)?
   private static boolean ifExpression_5(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "ifExpression_5")) return false;
     ifExpression_5_0(builder_, level_ + 1);
     return true;
   }
 
-  // ('else' expression)
+  // (';'? 'else' expression)
   private static boolean ifExpression_5_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "ifExpression_5_0")) return false;
     return ifExpression_5_0_0(builder_, level_ + 1);
   }
 
-  // 'else' expression
+  // ';'? 'else' expression
   private static boolean ifExpression_5_0_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "ifExpression_5_0_0")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = consumeToken(builder_, KELSE);
+    result_ = ifExpression_5_0_0_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, KELSE);
     result_ = result_ && expression(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
@@ -3536,6 +3537,13 @@ public class HaxeParser implements PsiParser {
       marker_.drop();
     }
     return result_;
+  }
+
+  // ';'?
+  private static boolean ifExpression_5_0_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ifExpression_5_0_0_0")) return false;
+    consumeToken(builder_, OSEMI);
+    return true;
   }
 
   /* ********************************************************** */

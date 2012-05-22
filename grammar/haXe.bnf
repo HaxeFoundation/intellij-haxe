@@ -348,7 +348,7 @@ private notBlockStatement ::= ('untyped' statement)
                             | pp
 
 ifStatement ::= 'if' '(' expression ')' statement ('else' statement)?
-ifExpression ::= 'if' '(' expression ')' expression ('else' expression)?
+ifExpression ::= 'if' '(' expression ')' expression (';'? 'else' expression)?
 
 forStatement ::= 'for' '(' componentName 'in' iterable')' statement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
