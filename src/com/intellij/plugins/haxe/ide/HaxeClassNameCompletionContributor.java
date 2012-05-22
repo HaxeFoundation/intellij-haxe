@@ -105,9 +105,9 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
         }
       });
       myResultSet.addElement(LookupElementBuilder.create(lazyElement, name)
-                               .setIcon(info.getIcon())
-                               .setTailText(" " + info.getValue(), true)
-                               .setInsertHandler(myInsertHandler));
+                               .withIcon(info.getIcon())
+                               .withTailText(" " + info.getValue(), true)
+                               .withInsertHandler(myInsertHandler));
     }
   }
 }
