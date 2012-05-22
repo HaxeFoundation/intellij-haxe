@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -29,12 +30,12 @@ public class HaxeClassResolveResult {
     }
     for (HaxeType haxeType : haxeClass.getExtendsList()) {
       final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(haxeType));
-      result.specializeByParameters(haxeType.getTypeParam());
+      result.specializeByParameters(this, haxeType.getTypeParam());
       merge(result.getSpecialization());
     }
     for (HaxeType haxeType : haxeClass.getImplementsList()) {
       final HaxeClassResolveResult result = new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(haxeType));
-      result.specializeByParameters(haxeType.getTypeParam());
+      result.specializeByParameters(this, haxeType.getTypeParam());
       merge(result.getSpecialization());
     }
   }
@@ -63,11 +64,11 @@ public class HaxeClassResolveResult {
       return;
     }
     if (element instanceof HaxeNewExpression) {
-      specializeByParameters(((HaxeNewExpression)element).getType().getTypeParam());
+      specializeByParameters(EMPTY, ((HaxeNewExpression)element).getType().getTypeParam());
     }
   }
 
-  public void specializeByParameters(@Nullable HaxeTypeParam param) {
+  public void specializeByParameters(@NotNull HaxeClassResolveResult initializer, @Nullable HaxeTypeParam param) {
     if (param == null || haxeClass == null || !haxeClass.isGeneric()) {
       return;
     }
@@ -78,7 +79,8 @@ public class HaxeClassResolveResult {
       HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
       final HaxeType specializedType = typeList.getTypeListPartList().get(i).getTypeOrAnonymous().getType();
       if (haxeGenericListPart.getText() == null || specializedType == null) continue;
-      specialization.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType,
+      specialization.put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(initializer,
+                                                                                                             specializedType,
                                                                                                              specialization));
     }
   }

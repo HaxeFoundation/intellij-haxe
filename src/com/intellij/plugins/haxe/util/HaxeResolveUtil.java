@@ -204,11 +204,14 @@ public class HaxeResolveUtil {
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
     if (type == HaxeComponentType.CLASS) {
       body = PsiTreeUtil.getChildOfAnyType(haxeClass, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
-    } else if (type == HaxeComponentType.INTERFACE) {
+    }
+    else if (type == HaxeComponentType.INTERFACE) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeInterfaceBody.class);
-    } else if (type == HaxeComponentType.ENUM) {
+    }
+    else if (type == HaxeComponentType.ENUM) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
-    } else if (haxeClass instanceof HaxeTypedefDeclaration) {
+    }
+    else if (haxeClass instanceof HaxeTypedefDeclaration) {
       final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
       if (typeOrAnonymous != null) {
         haxeClass = typeOrAnonymous.getAnonymousType();
@@ -267,18 +270,26 @@ public class HaxeResolveUtil {
   @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element,
                                                                  @NotNull HaxeGenericSpecialization specialization) {
+    return getHaxeClassResolveResult(HaxeClassResolveResult.EMPTY, element, specialization);
+  }
+
+  @NotNull
+  public static HaxeClassResolveResult getHaxeClassResolveResult(@NotNull HaxeClassResolveResult initializer,
+                                                                 @Nullable PsiElement element,
+                                                                 @NotNull HaxeGenericSpecialization specialization) {
     if (element == null || element instanceof PsiPackage) {
       return new HaxeClassResolveResult(null);
     }
     if (element instanceof HaxeComponentName) {
-      return getHaxeClassResolveResult(element.getParent(), specialization);
+      return getHaxeClassResolveResult(initializer, element.getParent(), specialization);
     }
     if (element instanceof AbstractHaxeTypeDefImpl) {
       final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
       return typeDef.getTargetClass(specialization);
     }
     if (element instanceof HaxeClass) {
-      return new HaxeClassResolveResult((HaxeClass)element);
+      final HaxeClass haxeClass = (HaxeClass)element;
+      return haxeClass == initializer.getHaxeClass() ? initializer : new HaxeClassResolveResult(haxeClass);
     }
     if (element instanceof HaxeForStatement) {
       final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
@@ -289,13 +300,15 @@ public class HaxeResolveUtil {
         final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
         // try next
         HaxeClassResolveResult result =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
+          getHaxeClassResolveResult(initializer,
+                                    resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
                                     resolveResult.getSpecialization());
         if (result.getHaxeClass() != null) {
           return result;
         }
         // try iterator
-        result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
+        result = getHaxeClassResolveResult(initializer,
+                                           resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
                                            resolveResult.getSpecialization());
         return result.getSpecialization().containsKey(null, "T")
                ? result.getSpecialization().get(null, "T")
@@ -304,7 +317,7 @@ public class HaxeResolveUtil {
       return HaxeClassResolveResult.EMPTY;
     }
 
-    HaxeClassResolveResult result = tryResolveClassByTypeTag(element, specialization);
+    HaxeClassResolveResult result = tryResolveClassByTypeTag(initializer, element, specialization);
     if (result.getHaxeClass() != null) {
       return result;
     }
@@ -325,18 +338,28 @@ public class HaxeResolveUtil {
   @NotNull
   private static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                                  HaxeGenericSpecialization specialization) {
+    return tryResolveClassByTypeTag(HaxeClassResolveResult.EMPTY, element, specialization);
+  }
+
+  @NotNull
+  private static HaxeClassResolveResult tryResolveClassByTypeTag(@NotNull HaxeClassResolveResult initializer,
+                                                                 PsiElement element,
+                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag != null ? typeTag.getTypeOrAnonymous().getType() :
                           element instanceof HaxeType ? (HaxeType)element : null;
 
-    HaxeNamedComponent typeComponent = type == null ? null : tryResolveClassByQName(type);
-    if (typeComponent == null && type != null && specialization.containsKey(element, type.getText())) {
+    HaxeClass haxeClass = type == null ? null : tryResolveClassByQName(type);
+    if (haxeClass == null && type != null && specialization.containsKey(element, type.getText())) {
       return specialization.get(element, type.getText());
     }
 
-    HaxeClassResolveResult result = getHaxeClassResolveResult(typeComponent, specialization.getInnerSpecialization(element));
+    if (haxeClass != null && haxeClass == initializer.getHaxeClass()) {
+      return initializer;
+    }
+    HaxeClassResolveResult result = getHaxeClassResolveResult(initializer, haxeClass, specialization.getInnerSpecialization(element));
     if (result.getHaxeClass() != null) {
-      result.specializeByParameters(type == null ? null : type.getTypeParam());
+      result.specializeByParameters(initializer, type == null ? null : type.getTypeParam());
       return result;
     }
 
@@ -352,7 +375,8 @@ public class HaxeResolveUtil {
     if (functionType == null) {
       return HaxeClassResolveResult.EMPTY;
     }
-    final HaxeTypeOrAnonymous returnTypeOrAnonymous = functionType.getTypeOrAnonymousList().get(functionType.getTypeOrAnonymousList().size() - 1);
+    final HaxeTypeOrAnonymous returnTypeOrAnonymous =
+      functionType.getTypeOrAnonymousList().get(functionType.getTypeOrAnonymousList().size() - 1);
     final HaxeClassResolveResult result = tryResolveClassByTypeTag(returnTypeOrAnonymous.getType(), specialization);
     functionType = functionType.getFunctionType();
     while (functionType != null) {

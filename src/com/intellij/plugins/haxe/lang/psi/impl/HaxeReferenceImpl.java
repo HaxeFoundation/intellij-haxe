@@ -148,7 +148,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final HaxeClassResolveResult superClassResolveResult = superExpression instanceof HaxeReference
                                                              ? ((HaxeReference)superExpression).resolveHaxeClass()
                                                              : new HaxeClassResolveResult(null);
-      superClassResolveResult.specializeByParameters(haxeClass.getExtendsList().get(0).getTypeParam());
+      superClassResolveResult.specializeByParameters(HaxeClassResolveResult.EMPTY, haxeClass.getExtendsList().get(0).getTypeParam());
       return superClassResolveResult;
     }
     if (this instanceof HaxeLiteralExpression) {
