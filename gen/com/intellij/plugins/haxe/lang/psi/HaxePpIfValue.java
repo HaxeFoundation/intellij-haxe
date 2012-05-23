@@ -10,7 +10,7 @@ public interface HaxePpIfValue extends HaxePsiCompositeElement {
   @NotNull
   List<HaxeExpression> getExpressionList();
 
-  @Nullable
+  @NotNull
   HaxePpElse getPpElse();
 
   @NotNull

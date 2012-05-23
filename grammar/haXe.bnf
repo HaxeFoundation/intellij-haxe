@@ -209,11 +209,11 @@ importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 pp ::= ppIf | ppElseIf | ppElse | ppEnd | ppError
-ppIf ::= '#if' ternaryExpressionWrapper {pin=1}
-ppElseIf ::= '#elseif' ternaryExpressionWrapper {pin=1}
-ppElse ::= '#else' {pin=1}
-ppEnd  ::= '#end' {pin=1}
-ppError ::= '#error' {pin=1}
+ppIf ::= '#if' logicOrExpressionWrapper {pin=1}
+ppElseIf ::= '#elseif' logicOrExpressionWrapper {pin=1}
+ppElse ::= '#else'
+ppEnd  ::= '#end'
+ppError ::= '#error'
 
 private topLevelDeclaration ::= classDeclaration
                               | externClassDeclaration
@@ -431,7 +431,7 @@ private value ::= 'untyped' value
                 | parenthesizedExpressionOrCall
                 | callOrArrayAccess
 
-ppIfValue ::= ppIf expression (ppElseIf expression)* ppElse expression ppEnd {pin=2}
+ppIfValue ::= ppIf expression (ppElseIf expression)* ppElse expression ppEnd {pin=4}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
                     | regularExpressionLiteral

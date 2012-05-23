@@ -5410,23 +5410,19 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "ppElse")) return false;
     if (!nextTokenIs(builder_, PPELSE)) return false;
     boolean result_ = false;
-    boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
-    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, PPELSE);
-    pinned_ = result_; // pin = 1
-    if (result_ || pinned_) {
+    if (result_) {
       marker_.done(HAXE_PPELSE);
     }
     else {
       marker_.rollbackTo();
     }
-    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
-    return result_ || pinned_;
+    return result_;
   }
 
   /* ********************************************************** */
-  // '#elseif' ternaryExpressionWrapper
+  // '#elseif' logicOrExpressionWrapper
   public static boolean ppElseIf(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "ppElseIf")) return false;
     if (!nextTokenIs(builder_, PPELSEIF)) return false;
@@ -5436,7 +5432,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, PPELSEIF);
     pinned_ = result_; // pin = 1
-    result_ = result_ && ternaryExpressionWrapper(builder_, level_ + 1);
+    result_ = result_ && logicOrExpressionWrapper(builder_, level_ + 1);
     if (result_ || pinned_) {
       marker_.done(HAXE_PPELSEIF);
     }
@@ -5453,19 +5449,15 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "ppEnd")) return false;
     if (!nextTokenIs(builder_, PPEND)) return false;
     boolean result_ = false;
-    boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
-    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, PPEND);
-    pinned_ = result_; // pin = 1
-    if (result_ || pinned_) {
+    if (result_) {
       marker_.done(HAXE_PPEND);
     }
     else {
       marker_.rollbackTo();
     }
-    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
-    return result_ || pinned_;
+    return result_;
   }
 
   /* ********************************************************** */
@@ -5474,23 +5466,19 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "ppError")) return false;
     if (!nextTokenIs(builder_, PPERROR)) return false;
     boolean result_ = false;
-    boolean pinned_ = false;
     final Marker marker_ = builder_.mark();
-    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, PPERROR);
-    pinned_ = result_; // pin = 1
-    if (result_ || pinned_) {
+    if (result_) {
       marker_.done(HAXE_PPERROR);
     }
     else {
       marker_.rollbackTo();
     }
-    result_ = exitErrorRecordingSection(builder_, result_, level_, pinned_, _SECTION_GENERAL_, null);
-    return result_ || pinned_;
+    return result_;
   }
 
   /* ********************************************************** */
-  // '#if' ternaryExpressionWrapper
+  // '#if' logicOrExpressionWrapper
   public static boolean ppIf(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "ppIf")) return false;
     if (!nextTokenIs(builder_, PPIF)) return false;
@@ -5500,7 +5488,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = consumeToken(builder_, PPIF);
     pinned_ = result_; // pin = 1
-    result_ = result_ && ternaryExpressionWrapper(builder_, level_ + 1);
+    result_ = result_ && logicOrExpressionWrapper(builder_, level_ + 1);
     if (result_ || pinned_) {
       marker_.done(HAXE_PPIF);
     }
@@ -5522,10 +5510,10 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_);
     result_ = ppIf(builder_, level_ + 1);
     result_ = result_ && expression(builder_, level_ + 1);
-    pinned_ = result_; // pin = 2
-    result_ = result_ && report_error_(builder_, ppIfValue_2(builder_, level_ + 1));
-    result_ = pinned_ && report_error_(builder_, ppElse(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
+    result_ = result_ && ppIfValue_2(builder_, level_ + 1);
+    result_ = result_ && ppElse(builder_, level_ + 1);
+    pinned_ = result_; // pin = 4
+    result_ = result_ && report_error_(builder_, expression(builder_, level_ + 1));
     result_ = pinned_ && ppEnd(builder_, level_ + 1) && result_;
     if (result_ || pinned_) {
       marker_.done(HAXE_PPIFVALUE);

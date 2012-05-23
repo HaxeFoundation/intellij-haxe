@@ -23,9 +23,9 @@ public class HaxePpIfValueImpl extends HaxePsiCompositeElementImpl implements Ha
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxePpElse getPpElse() {
-    return findChildByClass(HaxePpElse.class);
+    return findNotNullChildByClass(HaxePpElse.class);
   }
 
   @Override

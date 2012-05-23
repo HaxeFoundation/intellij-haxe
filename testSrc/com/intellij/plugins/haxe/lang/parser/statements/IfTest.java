@@ -20,4 +20,8 @@ public class IfTest extends StatementTestBase {
   public void testCondition() throws Throwable {
     doTest(true);
   }
+
+  public void testConditionalCompilation() throws Throwable {
+    doTest(true);
+  }
 }
