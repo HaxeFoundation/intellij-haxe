@@ -94,6 +94,7 @@
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <moduleConfigurationEditorProvider
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
+    <projectStructureDetector implementation="com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector"/>
 
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
