@@ -6,10 +6,10 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.codeInsight.daemon.impl.PsiElementListNavigator;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex;
@@ -34,11 +34,11 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeLineMarkerProvider implements LineMarkerProvider {
-  protected static final Icon OVERRIDING_METHOD_ICON = IconLoader.getIcon("/gutter/overridingMethod.png");
-  protected static final Icon IMPLEMENTING_METHOD_ICON = IconLoader.getIcon("/gutter/implementingMethod.png");
+  protected static final Icon OVERRIDING_METHOD_ICON = AllIcons.Gutter.OverridingMethod;
+  protected static final Icon IMPLEMENTING_METHOD_ICON = AllIcons.Gutter.ImplementingMethod;
 
-  protected static final Icon OVERRIDEN_METHOD_MARKER_RENDERER = IconLoader.getIcon("/gutter/overridenMethod.png");
-  protected static final Icon IMPLEMENTED_METHOD_MARKER_RENDERER = IconLoader.getIcon("/gutter/implementedMethod.png");
+  protected static final Icon OVERRIDEN_METHOD_MARKER_RENDERER = AllIcons.Gutter.OverridenMethod;
+  protected static final Icon IMPLEMENTED_METHOD_MARKER_RENDERER = AllIcons.Gutter.ImplementedMethod;
 
   @Override
   public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 
 import javax.swing.*;
@@ -12,11 +13,11 @@ public interface HaxeIcons {
   Icon CLASS_ICON = IconLoader.getIcon("/icons/C_haXe.png");
   Icon ENUM_ICON = IconLoader.getIcon("/icons/E_haXe.png");
   Icon INTERFACE_ICON = IconLoader.getIcon("/icons/I_haXe.png");
-  Icon TYPEDEF_ICON = IconLoader.getIcon("/nodes/annotationtype.png");
+  Icon TYPEDEF_ICON = AllIcons.Nodes.Annotationtype;
 
-  Icon FUNCTION = IconLoader.getIcon("/nodes/function.png");
-  Icon METHOD = IconLoader.getIcon("/nodes/method.png");
-  Icon VARIABLE = IconLoader.getIcon("/nodes/variable.png");
-  Icon FIELD = IconLoader.getIcon("/nodes/field.png");
-  Icon PARAMETER = IconLoader.getIcon("/nodes/parameter.png");
+  Icon FUNCTION = AllIcons.Nodes.Function;
+  Icon METHOD = AllIcons.Nodes.Method;
+  Icon VARIABLE = AllIcons.Nodes.Variable;
+  Icon FIELD = AllIcons.Nodes.Field;
+  Icon PARAMETER = AllIcons.Nodes.Parameter;
 }
