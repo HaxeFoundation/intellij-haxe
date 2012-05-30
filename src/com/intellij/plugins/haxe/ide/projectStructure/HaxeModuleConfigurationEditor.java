@@ -5,7 +5,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationState;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.plugins.haxe.ide.projectStructure.ui.HaxeConfigurationEditor;
 import org.jetbrains.annotations.Nls;
 
@@ -34,11 +33,6 @@ public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor 
   @Override
   public String getDisplayName() {
     return HaxeBundle.message("haxe.module.editor.haxe");
-  }
-
-  @Override
-  public Icon getIcon() {
-    return HaxeIcons.HAXE_ICON_16x16;
   }
 
   @Override
