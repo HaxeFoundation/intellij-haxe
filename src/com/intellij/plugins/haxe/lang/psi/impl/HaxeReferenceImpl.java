@@ -404,7 +404,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     @Override
-    public boolean execute(PsiElement element, ResolveState state) {
+    public boolean execute(@NotNull PsiElement element, ResolveState state) {
       if (element instanceof HaxeNamedComponent) {
         final String name = getCanonicalText();
         final HaxeComponentName componentName = ((HaxeNamedComponent)element).getComponentName();
@@ -417,7 +417,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     @Override
-    public <T> T getHint(Key<T> hintKey) {
+    public <T> T getHint(@NotNull Key<T> hintKey) {
       return null;
     }
 
@@ -434,7 +434,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     @Override
-    public boolean execute(PsiElement element, ResolveState state) {
+    public boolean execute(@NotNull PsiElement element, ResolveState state) {
       if (element instanceof HaxeNamedComponent) {
         final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
         if (haxeNamedComponent.getComponentName() != null) {
@@ -445,7 +445,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     @Override
-    public <T> T getHint(Key<T> hintKey) {
+    public <T> T getHint(@NotNull Key<T> hintKey) {
       return null;
     }
 
