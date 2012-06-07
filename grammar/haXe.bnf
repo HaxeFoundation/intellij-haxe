@@ -426,7 +426,7 @@ private value ::= 'untyped' value
                 | switchExpression
                 | tryExpression
                 | ppIfValue
-                | castExpression
+                | castExpression qualifiedReferenceExpression?
                 | newExpressionOrCall
                 | parenthesizedExpressionOrCall
                 | callOrArrayAccess
@@ -475,6 +475,7 @@ newExpression ::= 'new' type '(' expressionList? ')'
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (',' inherit)*
 

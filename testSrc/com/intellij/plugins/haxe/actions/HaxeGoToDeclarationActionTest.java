@@ -223,4 +223,8 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
   public void testHelperClass() {
     doTest(myFixture.configureByFiles("HelperClass.hx", "com/utils/MathUtil.hx"), 1);
   }
+
+  public void testCastExpression1() {
+    doTest(myFixture.configureByFiles("CastExpression1.hx"), 1);
+  }
 }

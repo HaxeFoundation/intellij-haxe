@@ -90,7 +90,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitCastExpression(@NotNull HaxeCastExpression o) {
-    visitExpression(o);
+    visitReference(o);
+    // visitExpression(o);
   }
 
   public void visitCatchExpression(@NotNull HaxeCatchExpression o) {

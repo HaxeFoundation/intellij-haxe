@@ -7066,7 +7066,7 @@ public class HaxeParser implements PsiParser {
   //                 | switchExpression
   //                 | tryExpression
   //                 | ppIfValue
-  //                 | castExpression
+  //                 | castExpression qualifiedReferenceExpression?
   //                 | newExpressionOrCall
   //                 | parenthesizedExpressionOrCall
   //                 | callOrArrayAccess
@@ -7092,7 +7092,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = switchExpression(builder_, level_ + 1);
     if (!result_) result_ = tryExpression(builder_, level_ + 1);
     if (!result_) result_ = ppIfValue(builder_, level_ + 1);
-    if (!result_) result_ = castExpression(builder_, level_ + 1);
+    if (!result_) result_ = value_6(builder_, level_ + 1);
     if (!result_) result_ = newExpressionOrCall(builder_, level_ + 1);
     if (!result_) result_ = parenthesizedExpressionOrCall(builder_, level_ + 1);
     if (!result_) result_ = callOrArrayAccess(builder_, level_ + 1);
@@ -7147,6 +7147,29 @@ public class HaxeParser implements PsiParser {
   private static boolean value_1_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "value_1_0_1")) return false;
     qualifiedReferenceTail(builder_, level_ + 1);
+    return true;
+  }
+
+  // castExpression qualifiedReferenceExpression?
+  private static boolean value_6(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "value_6")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = castExpression(builder_, level_ + 1);
+    result_ = result_ && value_6_1(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  // qualifiedReferenceExpression?
+  private static boolean value_6_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "value_6_1")) return false;
+    qualifiedReferenceExpression(builder_, level_ + 1);
     return true;
   }
 
