@@ -12,6 +12,7 @@ import java.util.Map;
  * @author: Fedor.Korotkov
  */
 public class HaxeGenericSpecialization {
+  public static final HaxeGenericSpecialization EMPTY = new HaxeGenericSpecialization();
   final Map<String, HaxeClassResolveResult> map;
 
   public HaxeGenericSpecialization() {

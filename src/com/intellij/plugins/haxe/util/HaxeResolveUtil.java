@@ -336,15 +336,15 @@ public class HaxeResolveUtil {
   }
 
   @NotNull
-  private static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
-                                                                 HaxeGenericSpecialization specialization) {
+  public static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
+                                                                HaxeGenericSpecialization specialization) {
     return tryResolveClassByTypeTag(HaxeClassResolveResult.EMPTY, element, specialization);
   }
 
   @NotNull
-  private static HaxeClassResolveResult tryResolveClassByTypeTag(@NotNull HaxeClassResolveResult initializer,
-                                                                 PsiElement element,
-                                                                 HaxeGenericSpecialization specialization) {
+  public static HaxeClassResolveResult tryResolveClassByTypeTag(@NotNull HaxeClassResolveResult initializer,
+                                                                PsiElement element,
+                                                                HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     final HaxeType type = typeTag != null ? typeTag.getTypeOrAnonymous().getType() :
                           element instanceof HaxeType ? (HaxeType)element : null;

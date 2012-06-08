@@ -1,0 +1,2 @@
+SMART 1 INCLUDES
+MyEnum.BAR

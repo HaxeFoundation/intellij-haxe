@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.4.5:</p>
+      <ul>
+        <li>Smart completion</li>
+      </ul>
       <p>0.4.4:</p>
       <ul>
         <li>Bug fixes</li>
@@ -72,7 +76,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.4.4</version>
+  <version>0.4.5</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
   <idea-version since-build="117.105" until-build="118.1"/>
   <depends>com.intellij.modules.ultimate</depends>
@@ -138,6 +142,7 @@
 
     <completion.contributor language="any" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
     <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
+    <completion.contributor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 

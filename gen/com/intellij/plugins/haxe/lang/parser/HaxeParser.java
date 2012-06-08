@@ -4257,7 +4257,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !(';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
+  // !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | REG_EXP)
   static boolean local_var_declaration_part_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "local_var_declaration_part_recover")) return false;
     boolean result_ = false;
@@ -4269,29 +4269,30 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING)
+  // ('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | REG_EXP)
   private static boolean local_var_declaration_part_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "local_var_declaration_part_recover_0")) return false;
     return local_var_declaration_part_recover_0_0(builder_, level_ + 1);
   }
 
-  // ';' | ',' | '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | '++' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'switch' | 'this' | 'super' | 'throw' | 'try' | 'untyped' | 'var' | 'while' | '{' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING
+  // '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | REG_EXP
   private static boolean local_var_declaration_part_recover_0_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "local_var_declaration_part_recover_0_0")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
-    result_ = consumeToken(builder_, OSEMI);
-    if (!result_) result_ = consumeToken(builder_, OCOMMA);
-    if (!result_) result_ = consumeToken(builder_, ONOT);
+    result_ = consumeToken(builder_, ONOT);
     if (!result_) result_ = consumeToken(builder_, PPELSE);
     if (!result_) result_ = consumeToken(builder_, PPELSEIF);
     if (!result_) result_ = consumeToken(builder_, PPEND);
     if (!result_) result_ = consumeToken(builder_, PPERROR);
     if (!result_) result_ = consumeToken(builder_, PPIF);
     if (!result_) result_ = consumeToken(builder_, PLPAREN);
+    if (!result_) result_ = consumeToken(builder_, PRPAREN);
     if (!result_) result_ = consumeToken(builder_, OPLUS_PLUS);
+    if (!result_) result_ = consumeToken(builder_, OCOMMA);
     if (!result_) result_ = consumeToken(builder_, OMINUS);
     if (!result_) result_ = consumeToken(builder_, OMINUS_MINUS);
+    if (!result_) result_ = consumeToken(builder_, OSEMI);
     if (!result_) result_ = consumeToken(builder_, PLBRACK);
     if (!result_) result_ = consumeToken(builder_, KBREAK);
     if (!result_) result_ = consumeToken(builder_, KCASE);
@@ -4299,21 +4300,25 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KCONTINUE);
     if (!result_) result_ = consumeToken(builder_, KDEFAULT);
     if (!result_) result_ = consumeToken(builder_, KDO);
+    if (!result_) result_ = consumeToken(builder_, KELSE);
+    if (!result_) result_ = consumeToken(builder_, KFALSE);
     if (!result_) result_ = consumeToken(builder_, KFOR);
     if (!result_) result_ = consumeToken(builder_, KFUNCTION);
     if (!result_) result_ = consumeToken(builder_, KIF);
     if (!result_) result_ = consumeToken(builder_, ONEW);
     if (!result_) result_ = consumeToken(builder_, KNULL);
     if (!result_) result_ = consumeToken(builder_, KRETURN);
+    if (!result_) result_ = consumeToken(builder_, KSUPER);
     if (!result_) result_ = consumeToken(builder_, KSWITCH);
     if (!result_) result_ = consumeToken(builder_, KTHIS);
-    if (!result_) result_ = consumeToken(builder_, KSUPER);
     if (!result_) result_ = consumeToken(builder_, KTHROW);
+    if (!result_) result_ = consumeToken(builder_, KTRUE);
     if (!result_) result_ = consumeToken(builder_, KTRY);
     if (!result_) result_ = consumeToken(builder_, KUNTYPED);
     if (!result_) result_ = consumeToken(builder_, KVAR);
     if (!result_) result_ = consumeToken(builder_, KWHILE);
     if (!result_) result_ = consumeToken(builder_, PLCURLY);
+    if (!result_) result_ = consumeToken(builder_, PRCURLY);
     if (!result_) result_ = consumeToken(builder_, OCOMPLEMENT);
     if (!result_) result_ = consumeToken(builder_, ID);
     if (!result_) result_ = consumeToken(builder_, LITCHAR);
@@ -4322,6 +4327,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, LITINT);
     if (!result_) result_ = consumeToken(builder_, LITOCT);
     if (!result_) result_ = consumeToken(builder_, LITSTRING);
+    if (!result_) result_ = consumeToken(builder_, REG_EXP);
     if (!result_) {
       marker_.rollbackTo();
     }
