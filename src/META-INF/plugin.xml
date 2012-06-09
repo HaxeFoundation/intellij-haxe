@@ -7,6 +7,7 @@
       <p>0.4.5:</p>
       <ul>
         <li>Smart completion</li>
+        <li>Goto Test Action</li>
       </ul>
       <p>0.4.4:</p>
       <ul>
@@ -90,6 +91,7 @@
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
+    <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
 
