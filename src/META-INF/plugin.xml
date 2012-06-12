@@ -156,6 +156,13 @@
     <internalFileTemplate name="haXe Enum"/>
     <internalFileTemplate name="NMML Project File"/>
 
+    <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeArrayVariableMacro"/>
+    <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestIndexNameMacro"/>
+    <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestVariableNameMacro"/>
+
+    <liveTemplateContext implementation="com.intellij.plugins.haxe.ide.template.HaxeTemplateContextType"/>
+    <defaultLiveTemplatesProvider implementation="com.intellij.plugins.haxe.ide.template.HaxeDefaultLiveTemplatesProvider"/>
+
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex"/>

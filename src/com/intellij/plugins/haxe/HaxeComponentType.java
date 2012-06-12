@@ -69,6 +69,10 @@ public enum HaxeComponentType {
 
   public abstract Icon getIcon();
 
+  public static boolean isVariable(@Nullable HaxeComponentType type) {
+    return type == VARIABLE || type == PARAMETER || type == FIELD;
+  }
+
 
   @Nullable
   public static HaxeComponentType valueOf(int key) {

@@ -116,7 +116,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     final List<PsiElement> result = new ArrayList<PsiElement>();
-    PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result), getParent(), null, new ResolveState());
+    PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result), this, null, new ResolveState());
     if (result.size() > 0) {
       return toCandidateInfoArray(result);
     }

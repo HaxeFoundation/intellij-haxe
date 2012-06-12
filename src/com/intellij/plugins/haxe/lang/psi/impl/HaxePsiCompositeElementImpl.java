@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -42,12 +43,13 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   }
 
   private List<PsiElement> getDeclarationElementToProcess(PsiElement lastParent) {
+    final PsiElement stopper = this instanceof HaxeBlockStatement ? lastParent : null;
     final List<PsiElement> result = new ArrayList<PsiElement>();
     addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeVarDeclaration.class));
-    addLocalVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclaration.class));
+    addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclaration.class, stopper));
 
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFunctionDeclarationWithAttributes.class));
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclaration.class));
+    addDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclaration.class, stopper));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeClassDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeExternClassDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeEnumDeclaration.class));
@@ -69,7 +71,8 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     return result;
   }
 
-  private static void addLocalVarDeclarations(@NotNull List<PsiElement> result, @Nullable HaxeLocalVarDeclaration[] items) {
+  private static void addLocalVarDeclarations(@NotNull List<PsiElement> result,
+                                              @Nullable HaxeLocalVarDeclaration[] items) {
     if (items == null) {
       return;
     }

@@ -12,6 +12,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -162,5 +164,25 @@ public class UsefulPsiTreeUtil {
       }
     }
     return null;
+  }
+
+  @Nullable
+  public static <T extends PsiElement> T[] getChildrenOfType(@Nullable PsiElement element,
+                                                             @NotNull Class<T> aClass,
+                                                             @Nullable PsiElement lastParent) {
+    if (element == null) return null;
+
+    List<T> result = null;
+    for (PsiElement child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (lastParent == child) {
+        break;
+      }
+      if (aClass.isInstance(child)) {
+        if (result == null) result = new SmartList<T>();
+        //noinspection unchecked
+        result.add((T)child);
+      }
+    }
+    return result == null ? null : ArrayUtil.toObjectArray(result, aClass);
   }
 }
