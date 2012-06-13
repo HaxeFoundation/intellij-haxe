@@ -199,6 +199,17 @@ public class HaxeResolveUtil {
   }
 
   @NotNull
+  public static List<HaxeNamedComponent> getNamedSubComponentsInOrder(HaxeClass haxeClass) {
+    final List<HaxeNamedComponent> result = getNamedSubComponents(haxeClass);
+    Collections.sort(result, new Comparator<HaxeNamedComponent>() {
+      @Override
+      public int compare(HaxeNamedComponent o1, HaxeNamedComponent o2) {
+        return o1.getTextOffset() - o2.getTextOffset();
+      }
+    });
+    return result;
+  }
+
   public static List<HaxeNamedComponent> getNamedSubComponents(HaxeClass haxeClass) {
     PsiElement body = null;
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);

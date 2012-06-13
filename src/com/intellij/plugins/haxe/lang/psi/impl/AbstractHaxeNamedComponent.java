@@ -62,11 +62,18 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
       @Override
       public String getPresentableText() {
         final StringBuilder result = new StringBuilder();
-        result.append(getComponentName().getText());
+        final HaxeComponentName componentName = getComponentName();
+        if (componentName != null) {
+          result.append(componentName.getText());
+        }
+        else if (HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this) == HaxeComponentType.METHOD) {
+          // constructor
+          result.append("new");
+        }
         final HaxeComponentType type = HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this);
         if (type == HaxeComponentType.METHOD) {
           final String parameterList = HaxePresentableUtil.getPresentableParameterList(AbstractHaxeNamedComponent.this);
-          result.append(" (").append(parameterList).append(")");
+          result.append("(").append(parameterList).append(")");
         }
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
           final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
