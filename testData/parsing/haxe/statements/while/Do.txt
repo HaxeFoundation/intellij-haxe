@@ -62,6 +62,6 @@ haXe File
               HAXE_LITERALEXPRESSION
                 PsiElement(LITINT)('11')
             PsiElement())(')')
-          PsiElement(;)(';')
+            PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

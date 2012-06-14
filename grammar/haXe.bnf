@@ -356,7 +356,7 @@ forStatement ::= 'for' '(' componentName 'in' iterable')' statement
 iterable ::= expression
 
 whileStatement ::= 'while' '(' expression ')' statement
-doWhileStatement ::= 'do' statement 'while' '(' expression ')'
+doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
 
 returnStatement ::= 'return' expression? ';'
 returnStatementWithoutSemicolon ::= 'return' expression

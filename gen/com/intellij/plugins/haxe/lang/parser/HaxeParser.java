@@ -1931,7 +1931,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'do' statement 'while' '(' expression ')'
+  // 'do' statement 'while' '(' expression ')' ';'
   public static boolean doWhileStatement(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "doWhileStatement")) return false;
     if (!nextTokenIs(builder_, KDO)) return false;
@@ -1945,7 +1945,8 @@ public class HaxeParser implements PsiParser {
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, KWHILE)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
+    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
+    result_ = pinned_ && consumeToken(builder_, OSEMI) && result_;
     if (result_ || pinned_) {
       marker_.done(HAXE_DOWHILESTATEMENT);
     }

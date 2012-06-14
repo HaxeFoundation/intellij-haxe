@@ -19,6 +19,17 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeElementGenerator {
+  public static PsiElement createStatementFromText(Project myProject, String text) {
+    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapStatement(text).getFirst());
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
+    assert haxeClass != null;
+    final HaxeFunctionDeclarationWithAttributes mainMethod =
+      (HaxeFunctionDeclarationWithAttributes)haxeClass.getMethods().iterator().next();
+    final HaxeBlockStatement statement = mainMethod.getBlockStatement();
+    assert statement != null;
+    return statement.getChildren()[0];
+  }
+
   public static HaxeVarDeclarationPart createVarDeclarationPart(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);

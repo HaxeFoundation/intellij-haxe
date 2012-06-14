@@ -6,6 +6,8 @@
     <![CDATA[
       <p>0.4.5:</p>
       <ul>
+        <li>Live Templates</li>
+        <li>Surround With Action</li>
         <li>Smart completion</li>
         <li>Goto Test Action</li>
       </ul>
@@ -120,6 +122,7 @@
     <lang.documentationProvider language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeDocumentationProvider"/>
     <lang.commenter language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCommenter"/>
     <lang.psiStructureViewFactory language="haXe" implementationClass="com.intellij.plugins.haxe.ide.structure.HaxeStructureViewFactory"/>
+    <lang.surroundDescriptor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.surroundWith.HaxeSurroundDescriptor"/>
 
     <languageInjector implementation="com.intellij.plugins.haxe.lang.RegexLanguageInjector"/>
 
