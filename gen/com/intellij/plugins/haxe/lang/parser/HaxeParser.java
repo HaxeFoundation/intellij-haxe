@@ -7073,7 +7073,7 @@ public class HaxeParser implements PsiParser {
   //                 | switchExpression
   //                 | tryExpression
   //                 | ppIfValue
-  //                 | castExpression qualifiedReferenceExpression?
+  //                 | castExpression qualifiedReferenceTail?
   //                 | newExpressionOrCall
   //                 | parenthesizedExpressionOrCall
   //                 | callOrArrayAccess
@@ -7157,7 +7157,7 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // castExpression qualifiedReferenceExpression?
+  // castExpression qualifiedReferenceTail?
   private static boolean value_6(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "value_6")) return false;
     boolean result_ = false;
@@ -7173,10 +7173,10 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // qualifiedReferenceExpression?
+  // qualifiedReferenceTail?
   private static boolean value_6_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "value_6_1")) return false;
-    qualifiedReferenceExpression(builder_, level_ + 1);
+    qualifiedReferenceTail(builder_, level_ + 1);
     return true;
   }
 

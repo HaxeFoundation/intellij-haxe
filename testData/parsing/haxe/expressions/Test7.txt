@@ -54,5 +54,26 @@ haXe File
                 PsiElement(;)(';')
                 PsiElement(})('}')
             PsiElement(;)(';')
+          HAXE_CALLEXPRESSION
+            HAXE_REFERENCEEXPRESSION
+              HAXE_CASTEXPRESSION
+                PsiElement(cast)('cast')
+                PsiElement(()('(')
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITSTRING)('""')
+                PsiElement(,)(',')
+                HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('ITest')
+                PsiElement())(')')
+              PsiElement(.)('.')
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('test')
+            PsiElement(()('(')
+            PsiElement())(')')
+          PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')

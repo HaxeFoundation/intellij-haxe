@@ -5,5 +5,6 @@ class Test7{
         case 0: cast({}, Test7);
         default: "NotZero";
       };
+      cast("", ITest).test();
     }
 }

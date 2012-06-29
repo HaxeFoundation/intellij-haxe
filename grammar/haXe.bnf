@@ -426,7 +426,7 @@ private value ::= 'untyped' value
                 | switchExpression
                 | tryExpression
                 | ppIfValue
-                | castExpression qualifiedReferenceExpression?
+                | castExpression qualifiedReferenceTail?
                 | newExpressionOrCall
                 | parenthesizedExpressionOrCall
                 | callOrArrayAccess
