@@ -66,7 +66,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
   }
 
   @Override
-  protected PsiFile doCreate(PsiDirectory dir, String className, String templateName) throws IncorrectOperationException {
+  protected PsiFile doCreate(@NotNull PsiDirectory dir, String className, String templateName) throws IncorrectOperationException {
     String packageName = DirectoryIndex.getInstance(dir.getProject()).getPackageName(dir.getVirtualFile());
     try {
       return createClass(className, packageName, dir, templateName).getContainingFile();
@@ -76,9 +76,9 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
     }
   }
 
-  private static PsiElement createClass(String className, String packageName, PsiDirectory directory, final String templateName)
+  private static PsiElement createClass(String className, String packageName, @NotNull PsiDirectory directory, final String templateName)
     throws Exception {
-    final Properties props = new Properties(FileTemplateManager.getInstance().getDefaultProperties());
+    final Properties props = new Properties(FileTemplateManager.getInstance().getDefaultProperties(directory.getProject()));
     props.setProperty(FileTemplate.ATTRIBUTE_NAME, className);
     props.setProperty(FileTemplate.ATTRIBUTE_PACKAGE_NAME, packageName);
 
