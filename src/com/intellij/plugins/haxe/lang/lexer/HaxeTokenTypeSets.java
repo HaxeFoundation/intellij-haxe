@@ -22,10 +22,27 @@ public interface HaxeTokenTypeSets {
     TokenType.NEW_LINE_INDENT
   );
 
-  TokenSet COMMENTS = TokenSet.create(
+  TokenSet ONLY_COMMENTS = TokenSet.create(
     MML_COMMENT,
     MSL_COMMENT,
     DOC_COMMENT
+  );
+
+  TokenSet COMMENTS = TokenSet.create(
+    MML_COMMENT,
+    MSL_COMMENT,
+    DOC_COMMENT,
+    PPIF,
+    PPEND,
+    PPELSE,
+    PPERROR
+  );
+
+  TokenSet CONDITIONALLY_NOT_COMPILED = TokenSet.create(
+    PPIF,
+    PPEND,
+    PPELSE,
+    PPERROR
   );
 
   TokenSet BAD_TOKENS = TokenSet.create(

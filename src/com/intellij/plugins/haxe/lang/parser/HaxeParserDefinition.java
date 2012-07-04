@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 public class HaxeParserDefinition implements ParserDefinition {
   @NotNull
   public Lexer createLexer(Project project) {
-    return new HaxeLexer();
+    return new HaxeLexer(project);
   }
 
   public PsiParser createParser(Project project) {

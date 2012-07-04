@@ -202,18 +202,11 @@ unsignedShiftRightOperator ::= '>' '>' '>'
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel*
-private topLevel ::= importStatement | usingStatement | pp | topLevelDeclaration {recoverUntil="top_level_recover"}
+private topLevel ::= importStatement | usingStatement | topLevelDeclaration {recoverUntil="top_level_recover"}
 private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:overload' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
-
-pp ::= ppIf | ppElseIf | ppElse | ppEnd | ppError
-ppIf ::= '#if' logicOrExpressionWrapper {pin=1}
-ppElseIf ::= '#elseif' logicOrExpressionWrapper {pin=1}
-ppElse ::= '#else'
-ppEnd  ::= '#end'
-ppError ::= '#error'
 
 private topLevelDeclaration ::= classDeclaration
                               | externClassDeclaration
@@ -229,24 +222,24 @@ typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=
 externClassDeclaration ::= macroClass* 'extern' 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
-private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration | pp {recoverUntil="extern_class_body_part_recover"}
+private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverUntil="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
 
 classDeclaration ::= macroClass* 'private'? 'class' componentName genericParam? inheritList? '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 classBody ::= classBodyPart*
-private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes | pp {recoverUntil="class_body_part_recover"}
+private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverUntil="class_body_part_recover"}
 private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
 
 interfaceDeclaration ::= macroClass* externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= interfaceBodyPart*
-private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes | pp {recoverUntil="interface_body_part_recover"}
+private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes {recoverUntil="interface_body_part_recover"}
 private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
 
 enumDeclaration ::= macroClass* externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
-enumBody ::= (pp | enumValueDeclaration)*
+enumBody ::= enumValueDeclaration*
 
 /*
  *  declarations
@@ -345,7 +338,6 @@ private notBlockStatement ::= ('untyped' statement)
                             | throwStatement
                             | tryStatement
                             | (expression ';'?)
-                            | pp
 
 ifStatement ::= 'if' '(' expression ')' statement ('else' statement)?
 ifExpression ::= 'if' '(' expression ')' expression (';'? 'else' expression)?
@@ -420,18 +412,15 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
-private value ::= 'untyped' value
+private value ::= 'untyped' expression
                 | (literalExpression qualifiedReferenceTail?)
                 | ifExpression
                 | switchExpression
                 | tryExpression
-                | ppIfValue
                 | castExpression qualifiedReferenceTail?
                 | newExpressionOrCall
                 | parenthesizedExpressionOrCall
                 | callOrArrayAccess
-
-ppIfValue ::= ppIf expression (ppElseIf expression)* ppElse expression ppEnd {pin=4}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
                     | regularExpressionLiteral

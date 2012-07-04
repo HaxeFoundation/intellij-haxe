@@ -340,34 +340,6 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
-  public void visitPp(@NotNull HaxePp o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitPpElse(@NotNull HaxePpElse o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitPpElseIf(@NotNull HaxePpElseIf o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitPpEnd(@NotNull HaxePpEnd o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitPpError(@NotNull HaxePpError o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitPpIf(@NotNull HaxePpIf o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitPpIfValue(@NotNull HaxePpIfValue o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitPrefixExpression(@NotNull HaxePrefixExpression o) {
     visitExpression(o);
   }

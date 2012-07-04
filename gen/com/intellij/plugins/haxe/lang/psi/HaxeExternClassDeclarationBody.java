@@ -11,9 +11,6 @@ public interface HaxeExternClassDeclarationBody extends HaxePsiCompositeElement 
   List<HaxeExternFunctionDeclaration> getExternFunctionDeclarationList();
 
   @NotNull
-  List<HaxePp> getPpList();
-
-  @NotNull
   List<HaxeVarDeclaration> getVarDeclarationList();
 
 }

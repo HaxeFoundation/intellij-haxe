@@ -47,9 +47,6 @@ public interface HaxeForStatement extends HaxeComponent {
   HaxeLocalVarDeclaration getLocalVarDeclaration();
 
   @Nullable
-  HaxePp getPp();
-
-  @Nullable
   HaxeReturnStatement getReturnStatement();
 
   @Nullable

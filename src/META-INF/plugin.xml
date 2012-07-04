@@ -173,6 +173,10 @@
 
     <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex$DefinitionsSearchExecutor"/>
 
+    <projectService serviceInterface="com.intellij.plugins.haxe.config.HaxeProjectSettings"
+                    serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
+    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeSettingsConfigurable"/>
+
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
     <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor"/>-->

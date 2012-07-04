@@ -13,6 +13,6 @@ public class HaxeSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
   @NotNull
   @Override
   public SyntaxHighlighter getSyntaxHighlighter(Project project, VirtualFile virtualFile) {
-    return new HaxeSyntaxHighlighter();
+    return new HaxeSyntaxHighlighter(project);
   }
 }

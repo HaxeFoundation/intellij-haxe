@@ -52,7 +52,7 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
         and(psiElement().withSuperParent(2, HaxeInheritList.class));
     extend(CompletionType.BASIC,
            psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).withSuperParent(1, PsiErrorElement.class).
-                   andOr(psiElement().withSuperParent(2, HaxeClassBody.class), psiElement().withSuperParent(2, HaxeInheritList.class)),
+             andOr(psiElement().withSuperParent(2, HaxeClassBody.class), psiElement().withSuperParent(2, HaxeInheritList.class)),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
@@ -118,6 +118,12 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
     file.putUserData(GeneratedParserUtilBase.COMPLETION_STATE_KEY, state);
     TreeUtil.ensureParsed(file.getNode());
     result.addAll(state.items);
+
+    // always
+    result.add(HaxeTokenTypes.PPIF.toString());
+    result.add(HaxeTokenTypes.PPELSE.toString());
+    result.add(HaxeTokenTypes.PPELSEIF.toString());
+    result.add(HaxeTokenTypes.PPERROR.toString());
     return result;
   }
 

@@ -7,10 +7,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeSuffixExpression extends HaxeExpression {
 
-  @Nullable
+  @NotNull
   HaxeExpression getExpression();
-
-  @Nullable
-  HaxePpIfValue getPpIfValue();
 
 }

@@ -96,12 +96,6 @@ public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements 
 
   @Override
   @Nullable
-  public HaxePp getPp() {
-    return findChildByClass(HaxePp.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeReturnStatement getReturnStatement() {
     return findChildByClass(HaxeReturnStatement.class);
   }

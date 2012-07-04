@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import com.intellij.plugins.haxe.lang.lexer.HaxeLexer;
+
 public class IfTest extends StatementTestBase {
   public IfTest() {
     super("if");
@@ -22,6 +24,7 @@ public class IfTest extends StatementTestBase {
   }
 
   public void testConditionalCompilation() throws Throwable {
+    myProject.putUserData(HaxeLexer.DEFINES_KEY, "neko,mydebug");
     doTest(true);
   }
 }

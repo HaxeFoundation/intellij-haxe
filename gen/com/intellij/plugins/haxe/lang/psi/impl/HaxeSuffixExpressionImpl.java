@@ -17,15 +17,9 @@ public class HaxeSuffixExpressionImpl extends HaxeExpressionImpl implements Haxe
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxePpIfValue getPpIfValue() {
-    return findChildByClass(HaxePpIfValue.class);
+    return findNotNullChildByClass(HaxeExpression.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

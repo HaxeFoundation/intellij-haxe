@@ -24,12 +24,6 @@ public class HaxeInterfaceBodyImpl extends HaxePsiCompositeElementImpl implement
 
   @Override
   @NotNull
-  public List<HaxePp> getPpList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePp.class);
-  }
-
-  @Override
-  @NotNull
   public List<HaxeVarDeclaration> getVarDeclarationList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeVarDeclaration.class);
   }

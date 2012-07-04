@@ -24,6 +24,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.line.comment"), LINE_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.block.comment"), BLOCK_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.doc.comment"), DOC_COMMENT),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation"), CONDITIONALLY_NOT_COMPILED),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.keyword"), KEYWORD),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.number"), NUMBER),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.string"), STRING),
@@ -51,6 +52,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     ourTags.put("parameter", PARAMETER);
     ourTags.put("local.variable", LOCAL_VARIABLE);
     ourTags.put("class", CLASS);
+    ourTags.put("compilation", CONDITIONALLY_NOT_COMPILED);
     ourTags.put("interface", INTERFACE);
     ourTags.put("instance.member.function", INSTANCE_MEMBER_FUNCTION);
     ourTags.put("static.member.function", STATIC_MEMBER_FUNCTION);
@@ -78,7 +80,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
   @NotNull
   @Override
   public SyntaxHighlighter getHighlighter() {
-    return new HaxeSyntaxHighlighter();
+    return new HaxeSyntaxHighlighter(null);
   }
 
   @Override
@@ -95,9 +97,13 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
   @NotNull
   @Override
   public String getDemoText() {
-    return "/* Block comment */\n" +
+    return "<compilation>#if falseExpression\n" +
+           "#error \"Error!!\"\n" +
+           "#else</compilation>\n" +
            "import <class>util.Date</class>;\n" +
+           "<compilation>#end</compilation>\n" +
            "\n" +
+           "/* Block comment */\n" +
            "/**\n" +
            " Document comment\n" +
            "**/\n" +

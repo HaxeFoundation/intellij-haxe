@@ -1,5 +1,10 @@
 package com.intellij.plugins.haxe.lang.parser.expressions;
 
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.util.Key;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.config.HaxeSettingsConfigurable;
+import com.intellij.plugins.haxe.lang.lexer.HaxeLexer;
 import com.intellij.plugins.haxe.lang.parser.HaxeParsingTestBase;
 
 /**

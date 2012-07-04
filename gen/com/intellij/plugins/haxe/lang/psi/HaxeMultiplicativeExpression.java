@@ -10,7 +10,4 @@ public interface HaxeMultiplicativeExpression extends HaxeExpression {
   @NotNull
   List<HaxeExpression> getExpressionList();
 
-  @Nullable
-  HaxePpIfValue getPpIfValue();
-
 }

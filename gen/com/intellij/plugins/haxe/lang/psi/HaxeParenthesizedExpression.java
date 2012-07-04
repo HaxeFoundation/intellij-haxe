@@ -41,9 +41,6 @@ public interface HaxeParenthesizedExpression extends HaxeExpression {
   HaxeLocalVarDeclaration getLocalVarDeclaration();
 
   @Nullable
-  HaxePp getPp();
-
-  @Nullable
   HaxeReturnStatement getReturnStatement();
 
   @Nullable

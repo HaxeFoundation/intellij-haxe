@@ -41,9 +41,6 @@ public interface HaxeDoWhileStatement extends HaxePsiCompositeElement {
   HaxeLocalVarDeclaration getLocalVarDeclaration();
 
   @Nullable
-  HaxePp getPp();
-
-  @Nullable
   HaxeReturnStatement getReturnStatement();
 
   @Nullable

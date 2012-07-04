@@ -41,9 +41,6 @@ public interface HaxeIfStatement extends HaxePsiCompositeElement {
   List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
   @NotNull
-  List<HaxePp> getPpList();
-
-  @NotNull
   List<HaxeReturnStatement> getReturnStatementList();
 
   @NotNull

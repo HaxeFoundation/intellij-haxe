@@ -22,12 +22,6 @@ public class HaxeEnumBodyImpl extends HaxePsiCompositeElementImpl implements Hax
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeEnumValueDeclaration.class);
   }
 
-  @Override
-  @NotNull
-  public List<HaxePp> getPpList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePp.class);
-  }
-
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitEnumBody(this);
     else super.accept(visitor);

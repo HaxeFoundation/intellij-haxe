@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.projectStructure.ui;
 
+import com.intellij.find.actions.ShowUsagesAction;
 import com.intellij.ide.util.TreeFileChooser;
 import com.intellij.ide.util.TreeFileChooserFactory;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -7,15 +8,18 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.UnnamedConfigurable;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -57,6 +61,8 @@ public class HaxeConfigurationEditor {
   private JPanel myCompilerOptions;
   private JPanel myCommonPanel;
   private JPanel myFileChooserPanel;
+  private JTextField myDefinedMacroses;
+  private JButton myEditMacrosesButton;
   private String customPathToHxmlFile = "";
   private String customPathToNmmlFile = "";
 
@@ -175,6 +181,14 @@ public class HaxeConfigurationEditor {
         }
       }
     });
+
+    myEditMacrosesButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ShowSettingsUtil.getInstance().showSettingsDialog(myModule.getProject(), HaxeBundle.message("haxe.settings.name"));
+        updateMacroses();
+      }
+    });
   }
 
   private void updateComponents() {
@@ -190,6 +204,12 @@ public class HaxeConfigurationEditor {
 
     updateUserProperties();
     updateFileChooser();
+    updateMacroses();
+  }
+
+  private void updateMacroses() {
+    final String[] userCompilerDefinitions = HaxeProjectSettings.getInstance(myModule.getProject()).getUserCompilerDefinitions();
+    myDefinedMacroses.setText(StringUtil.join(userCompilerDefinitions, ","));
   }
 
   private void updateFileChooser() {

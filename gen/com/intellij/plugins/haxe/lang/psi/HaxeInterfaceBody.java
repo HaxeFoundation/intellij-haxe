@@ -11,9 +11,6 @@ public interface HaxeInterfaceBody extends HaxePsiCompositeElement {
   List<HaxeFunctionPrototypeDeclarationWithAttributes> getFunctionPrototypeDeclarationWithAttributesList();
 
   @NotNull
-  List<HaxePp> getPpList();
-
-  @NotNull
   List<HaxeVarDeclaration> getVarDeclarationList();
 
 }

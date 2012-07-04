@@ -84,12 +84,6 @@ public class HaxeIfStatementImpl extends HaxePsiCompositeElementImpl implements 
 
   @Override
   @NotNull
-  public List<HaxePp> getPpList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePp.class);
-  }
-
-  @Override
-  @NotNull
   public List<HaxeReturnStatement> getReturnStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeReturnStatement.class);
   }
