@@ -14,13 +14,7 @@ public interface HaxeParenthesizedExpression extends HaxeExpression {
   HaxeBreakStatement getBreakStatement();
 
   @Nullable
-  HaxeCaseStatement getCaseStatement();
-
-  @Nullable
   HaxeContinueStatement getContinueStatement();
-
-  @Nullable
-  HaxeDefaultStatement getDefaultStatement();
 
   @Nullable
   HaxeDoWhileStatement getDoWhileStatement();

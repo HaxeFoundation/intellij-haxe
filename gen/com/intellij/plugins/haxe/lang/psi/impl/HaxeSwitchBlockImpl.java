@@ -10,20 +10,26 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeIfExpressionImpl extends HaxeExpressionImpl implements HaxeIfExpression {
+public class HaxeSwitchBlockImpl extends HaxePsiCompositeElementImpl implements HaxeSwitchBlock {
 
-  public HaxeIfExpressionImpl(ASTNode node) {
+  public HaxeSwitchBlockImpl(ASTNode node) {
     super(node);
   }
 
   @Override
+  @Nullable
+  public HaxeDefaultCase getDefaultCase() {
+    return findChildByClass(HaxeDefaultCase.class);
+  }
+
+  @Override
   @NotNull
-  public List<HaxeExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
+  public List<HaxeSwitchCase> getSwitchCaseList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSwitchCase.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitIfExpression(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSwitchBlock(this);
     else super.accept(visitor);
   }
 

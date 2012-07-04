@@ -39,5 +39,16 @@ import com.Foo;using com.utils.MathUtil;class Foo{
     function fThree ( strA , strB, strC, strD, strE ){
         return strA + strB + strC + strD + strE;
     }
-    public function new ( ) {}
-}
+    public function new ( ) {
+      switch( v ) {
+              case 0:
+              e1();
+    case foo(1):
+                   break;
+              case 65, 90:
+    e3();
+              default:
+            return;
+              }
+   }
+    }

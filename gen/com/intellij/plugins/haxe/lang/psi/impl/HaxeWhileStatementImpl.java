@@ -30,20 +30,8 @@ public class HaxeWhileStatementImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @Nullable
-  public HaxeCaseStatement getCaseStatement() {
-    return findChildByClass(HaxeCaseStatement.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeContinueStatement getContinueStatement() {
     return findChildByClass(HaxeContinueStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeDefaultStatement getDefaultStatement() {
-    return findChildByClass(HaxeDefaultStatement.class);
   }
 
   @Override

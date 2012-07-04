@@ -72,7 +72,7 @@ public class HaxeWrappingProcessor {
     //
     // If
     //
-    if ((elementType == HAXE_IFEXPRESSION || elementType == HAXE_IFSTATEMENT) && childType == KELSE) {
+    if (elementType == HAXE_IFSTATEMENT && childType == KELSE) {
       return createWrap(mySettings.ELSE_ON_NEW_LINE);
     }
 

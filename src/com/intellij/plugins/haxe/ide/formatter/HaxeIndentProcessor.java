@@ -102,6 +102,8 @@ public class HaxeIndentProcessor {
     result = result || type == HAXE_CLASSBODY;
     result = result || type == HAXE_ENUMBODY;
     result = result || type == HAXE_INTERFACEBODY;
+    result = result || type == HAXE_SWITCHBLOCK;
+    result = result || type == HAXE_SWITCHCASEBLOCK;
     return result;
   }
 }

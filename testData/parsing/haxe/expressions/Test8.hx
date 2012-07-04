@@ -5,4 +5,10 @@ class Test8 {
       else
           noFlagExample;
   }
+
+  public function example2():Something {
+    return try example() catch(e:String) {
+      null;
+    }
+  }
 }

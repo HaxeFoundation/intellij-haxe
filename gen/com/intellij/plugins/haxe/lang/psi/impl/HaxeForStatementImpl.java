@@ -30,12 +30,6 @@ public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements 
 
   @Override
   @Nullable
-  public HaxeCaseStatement getCaseStatement() {
-    return findChildByClass(HaxeCaseStatement.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeComponentName getComponentName() {
     return findChildByClass(HaxeComponentName.class);
   }
@@ -44,12 +38,6 @@ public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements 
   @Nullable
   public HaxeContinueStatement getContinueStatement() {
     return findChildByClass(HaxeContinueStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeDefaultStatement getDefaultStatement() {
-    return findChildByClass(HaxeDefaultStatement.class);
   }
 
   @Override

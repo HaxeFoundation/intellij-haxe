@@ -17,42 +17,45 @@ haXe File
           PsiElement({)('{')
           HAXE_RETURNSTATEMENT
             PsiElement(return)('return')
-            HAXE_SWITCHEXPRESSION
-              PsiElement(switch)('switch')
-              PsiElement(()('(')
-              HAXE_REFERENCEEXPRESSION
-                HAXE_IDENTIFIER
-                  PsiElement(ID)('obj')
-              PsiElement())(')')
-              HAXE_BLOCKSTATEMENT
-                PsiElement({)('{')
-                HAXE_CASESTATEMENT
-                  PsiElement(case)('case')
-                  HAXE_EXPRESSIONLIST
+            HAXE_PREFIXEXPRESSION
+              HAXE_SWITCHSTATEMENT
+                PsiElement(switch)('switch')
+                HAXE_PARENTHESIZEDEXPRESSION
+                  PsiElement(()('(')
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('obj')
+                  PsiElement())(')')
+                HAXE_SWITCHBLOCK
+                  PsiElement({)('{')
+                  HAXE_SWITCHCASE
+                    PsiElement(case)('case')
                     HAXE_LITERALEXPRESSION
                       PsiElement(LITINT)('0')
-                  PsiElement(:)(':')
-                HAXE_CASTEXPRESSION
-                  PsiElement(cast)('cast')
-                  PsiElement(()('(')
-                  HAXE_OBJECTLITERAL
-                    PsiElement({)('{')
-                    PsiElement(})('}')
-                  PsiElement(,)(',')
-                  HAXE_TYPEORANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCEEXPRESSION
-                        HAXE_IDENTIFIER
-                          PsiElement(ID)('Test7')
-                  PsiElement())(')')
-                PsiElement(;)(';')
-                HAXE_DEFAULTSTATEMENT
-                  PsiElement(default)('default')
-                  PsiElement(:)(':')
-                HAXE_LITERALEXPRESSION
-                  PsiElement(LITSTRING)('"NotZero"')
-                PsiElement(;)(';')
-                PsiElement(})('}')
+                    PsiElement(:)(':')
+                    HAXE_SWITCHCASEBLOCK
+                      HAXE_CASTEXPRESSION
+                        PsiElement(cast)('cast')
+                        PsiElement(()('(')
+                        HAXE_OBJECTLITERAL
+                          PsiElement({)('{')
+                          PsiElement(})('}')
+                        PsiElement(,)(',')
+                        HAXE_TYPEORANONYMOUS
+                          HAXE_TYPE
+                            HAXE_REFERENCEEXPRESSION
+                              HAXE_IDENTIFIER
+                                PsiElement(ID)('Test7')
+                        PsiElement())(')')
+                      PsiElement(;)(';')
+                  HAXE_DEFAULTCASE
+                    PsiElement(default)('default')
+                    PsiElement(:)(':')
+                    HAXE_SWITCHCASEBLOCK
+                      HAXE_LITERALEXPRESSION
+                        PsiElement(LITSTRING)('"NotZero"')
+                      PsiElement(;)(';')
+                  PsiElement(})('}')
             PsiElement(;)(';')
           HAXE_CALLEXPRESSION
             HAXE_REFERENCEEXPRESSION
@@ -60,7 +63,7 @@ haXe File
                 PsiElement(cast)('cast')
                 PsiElement(()('(')
                 HAXE_LITERALEXPRESSION
-                  PsiElement(LITSTRING)('""')
+                  PsiElement(LITFLOAT)('0.')
                 PsiElement(,)(',')
                 HAXE_TYPEORANONYMOUS
                   HAXE_TYPE

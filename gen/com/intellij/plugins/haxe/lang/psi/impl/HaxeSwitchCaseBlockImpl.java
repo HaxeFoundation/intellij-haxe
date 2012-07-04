@@ -10,9 +10,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeIfStatementImpl extends HaxePsiCompositeElementImpl implements HaxeIfStatement {
+public class HaxeSwitchCaseBlockImpl extends HaxePsiCompositeElementImpl implements HaxeSwitchCaseBlock {
 
-  public HaxeIfStatementImpl(ASTNode node) {
+  public HaxeSwitchCaseBlockImpl(ASTNode node) {
     super(node);
   }
 
@@ -101,7 +101,7 @@ public class HaxeIfStatementImpl extends HaxePsiCompositeElementImpl implements 
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitIfStatement(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSwitchCaseBlock(this);
     else super.accept(visitor);
   }
 

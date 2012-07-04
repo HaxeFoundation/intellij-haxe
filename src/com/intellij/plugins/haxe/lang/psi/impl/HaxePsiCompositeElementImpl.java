@@ -65,7 +65,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       result.addAll(tygenericParameParam.getGenericListPartList());
     }
 
-    if (this instanceof HaxeForStatement) {
+    if (this instanceof HaxeForStatement && ((HaxeForStatement)this).getIterable() != lastParent) {
       result.add(this);
     }
     return result;

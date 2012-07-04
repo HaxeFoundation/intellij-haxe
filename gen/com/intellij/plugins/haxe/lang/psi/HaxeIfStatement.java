@@ -14,13 +14,7 @@ public interface HaxeIfStatement extends HaxePsiCompositeElement {
   List<HaxeBreakStatement> getBreakStatementList();
 
   @NotNull
-  List<HaxeCaseStatement> getCaseStatementList();
-
-  @NotNull
   List<HaxeContinueStatement> getContinueStatementList();
-
-  @NotNull
-  List<HaxeDefaultStatement> getDefaultStatementList();
 
   @NotNull
   List<HaxeDoWhileStatement> getDoWhileStatementList();

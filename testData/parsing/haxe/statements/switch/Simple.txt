@@ -17,64 +17,66 @@ haXe File
           PsiElement({)('{')
           HAXE_SWITCHSTATEMENT
             PsiElement(switch)('switch')
-            PsiElement(()('(')
-            HAXE_REFERENCEEXPRESSION
-              HAXE_IDENTIFIER
-                PsiElement(ID)('v')
-            PsiElement())(')')
-            HAXE_BLOCKSTATEMENT
+            HAXE_PARENTHESIZEDEXPRESSION
+              PsiElement(()('(')
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('v')
+              PsiElement())(')')
+            HAXE_SWITCHBLOCK
               PsiElement({)('{')
-              HAXE_CASESTATEMENT
+              HAXE_SWITCHCASE
                 PsiElement(case)('case')
-                HAXE_EXPRESSIONLIST
-                  HAXE_LITERALEXPRESSION
-                    PsiElement(LITINT)('0')
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITINT)('0')
                 PsiElement(:)(':')
-              HAXE_CALLEXPRESSION
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('e1')
-                PsiElement(()('(')
-                PsiElement())(')')
-              PsiElement(;)(';')
-              HAXE_CASESTATEMENT
-                PsiElement(case)('case')
-                HAXE_EXPRESSIONLIST
+                HAXE_SWITCHCASEBLOCK
                   HAXE_CALLEXPRESSION
                     HAXE_REFERENCEEXPRESSION
                       HAXE_IDENTIFIER
-                        PsiElement(ID)('foo')
+                        PsiElement(ID)('e1')
                     PsiElement(()('(')
-                    HAXE_EXPRESSIONLIST
-                      HAXE_LITERALEXPRESSION
-                        PsiElement(LITINT)('1')
                     PsiElement())(')')
-                PsiElement(:)(':')
-              HAXE_BREAKSTATEMENT
-                PsiElement(break)('break')
-                PsiElement(;)(';')
-              HAXE_CASESTATEMENT
+                  PsiElement(;)(';')
+              HAXE_SWITCHCASE
                 PsiElement(case)('case')
-                HAXE_EXPRESSIONLIST
-                  HAXE_LITERALEXPRESSION
-                    PsiElement(LITINT)('65')
-                  PsiElement(,)(',')
-                  HAXE_LITERALEXPRESSION
-                    PsiElement(LITINT)('90')
+                HAXE_CALLEXPRESSION
+                  HAXE_REFERENCEEXPRESSION
+                    HAXE_IDENTIFIER
+                      PsiElement(ID)('foo')
+                  PsiElement(()('(')
+                  HAXE_EXPRESSIONLIST
+                    HAXE_LITERALEXPRESSION
+                      PsiElement(LITINT)('1')
+                  PsiElement())(')')
                 PsiElement(:)(':')
-              HAXE_CALLEXPRESSION
-                HAXE_REFERENCEEXPRESSION
-                  HAXE_IDENTIFIER
-                    PsiElement(ID)('e3')
-                PsiElement(()('(')
-                PsiElement())(')')
-              PsiElement(;)(';')
-              HAXE_DEFAULTSTATEMENT
+                HAXE_SWITCHCASEBLOCK
+                  HAXE_BREAKSTATEMENT
+                    PsiElement(break)('break')
+                    PsiElement(;)(';')
+              HAXE_SWITCHCASE
+                PsiElement(case)('case')
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITINT)('65')
+                PsiElement(,)(',')
+                HAXE_LITERALEXPRESSION
+                  PsiElement(LITINT)('90')
+                PsiElement(:)(':')
+                HAXE_SWITCHCASEBLOCK
+                  HAXE_CALLEXPRESSION
+                    HAXE_REFERENCEEXPRESSION
+                      HAXE_IDENTIFIER
+                        PsiElement(ID)('e3')
+                    PsiElement(()('(')
+                    PsiElement())(')')
+                  PsiElement(;)(';')
+              HAXE_DEFAULTCASE
                 PsiElement(default)('default')
                 PsiElement(:)(':')
-              HAXE_RETURNSTATEMENT
-                PsiElement(return)('return')
-                PsiElement(;)(';')
+                HAXE_SWITCHCASEBLOCK
+                  HAXE_RETURNSTATEMENT
+                    PsiElement(return)('return')
+                    PsiElement(;)(';')
               PsiElement(})('}')
           PsiElement(})('}')
     PsiElement(})('}')

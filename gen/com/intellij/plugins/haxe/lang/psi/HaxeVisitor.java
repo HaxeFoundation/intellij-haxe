@@ -85,17 +85,9 @@ public class HaxeVisitor extends PsiElementVisitor {
     // visitExpression(o);
   }
 
-  public void visitCaseStatement(@NotNull HaxeCaseStatement o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitCastExpression(@NotNull HaxeCastExpression o) {
     visitReference(o);
     // visitExpression(o);
-  }
-
-  public void visitCatchExpression(@NotNull HaxeCatchExpression o) {
-    visitExpression(o);
   }
 
   public void visitCatchStatement(@NotNull HaxeCatchStatement o) {
@@ -138,7 +130,7 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
-  public void visitDefaultStatement(@NotNull HaxeDefaultStatement o) {
+  public void visitDefaultCase(@NotNull HaxeDefaultCase o) {
     visitPsiCompositeElement(o);
   }
 
@@ -224,10 +216,6 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitIdentifier(@NotNull HaxeIdentifier o) {
     visitPsiCompositeElement(o);
-  }
-
-  public void visitIfExpression(@NotNull HaxeIfExpression o) {
-    visitExpression(o);
   }
 
   public void visitIfStatement(@NotNull HaxeIfStatement o) {
@@ -399,8 +387,16 @@ public class HaxeVisitor extends PsiElementVisitor {
     // visitExpression(o);
   }
 
-  public void visitSwitchExpression(@NotNull HaxeSwitchExpression o) {
-    visitExpression(o);
+  public void visitSwitchBlock(@NotNull HaxeSwitchBlock o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitSwitchCase(@NotNull HaxeSwitchCase o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitSwitchCaseBlock(@NotNull HaxeSwitchCaseBlock o) {
+    visitPsiCompositeElement(o);
   }
 
   public void visitSwitchStatement(@NotNull HaxeSwitchStatement o) {
@@ -418,10 +414,6 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitThrowStatement(@NotNull HaxeThrowStatement o) {
     visitPsiCompositeElement(o);
-  }
-
-  public void visitTryExpression(@NotNull HaxeTryExpression o) {
-    visitExpression(o);
   }
 
   public void visitTryStatement(@NotNull HaxeTryStatement o) {

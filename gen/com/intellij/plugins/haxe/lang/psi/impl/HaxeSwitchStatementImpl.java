@@ -18,14 +18,14 @@ public class HaxeSwitchStatementImpl extends HaxePsiCompositeElementImpl impleme
 
   @Override
   @Nullable
-  public HaxeBlockStatement getBlockStatement() {
-    return findChildByClass(HaxeBlockStatement.class);
+  public HaxeExpression getExpression() {
+    return findChildByClass(HaxeExpression.class);
   }
 
   @Override
   @Nullable
-  public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
+  public HaxeSwitchBlock getSwitchBlock() {
+    return findChildByClass(HaxeSwitchBlock.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

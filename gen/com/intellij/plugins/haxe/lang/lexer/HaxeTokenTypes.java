@@ -27,9 +27,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_BREAKSTATEMENT = new HaxeElementType("HAXE_BREAKSTATEMENT");
   IElementType HAXE_BUILDMACRO = new HaxeElementType("HAXE_BUILDMACRO");
   IElementType HAXE_CALLEXPRESSION = new HaxeElementType("HAXE_CALLEXPRESSION");
-  IElementType HAXE_CASESTATEMENT = new HaxeElementType("HAXE_CASESTATEMENT");
   IElementType HAXE_CASTEXPRESSION = new HaxeElementType("HAXE_CASTEXPRESSION");
-  IElementType HAXE_CATCHEXPRESSION = new HaxeElementType("HAXE_CATCHEXPRESSION");
   IElementType HAXE_CATCHSTATEMENT = new HaxeElementType("HAXE_CATCHSTATEMENT");
   IElementType HAXE_CLASSBODY = new HaxeElementType("HAXE_CLASSBODY");
   IElementType HAXE_CLASSDECLARATION = new HaxeElementType("HAXE_CLASSDECLARATION");
@@ -40,7 +38,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_CUSTOMMETA = new HaxeElementType("HAXE_CUSTOMMETA");
   IElementType HAXE_DECLARATIONATTRIBUTE = new HaxeElementType("HAXE_DECLARATIONATTRIBUTE");
   IElementType HAXE_DECLARATIONATTRIBUTELIST = new HaxeElementType("HAXE_DECLARATIONATTRIBUTELIST");
-  IElementType HAXE_DEFAULTSTATEMENT = new HaxeElementType("HAXE_DEFAULTSTATEMENT");
+  IElementType HAXE_DEFAULTCASE = new HaxeElementType("HAXE_DEFAULTCASE");
   IElementType HAXE_DOWHILESTATEMENT = new HaxeElementType("HAXE_DOWHILESTATEMENT");
   IElementType HAXE_ENUMBODY = new HaxeElementType("HAXE_ENUMBODY");
   IElementType HAXE_ENUMCONSTRUCTORPARAMETERS = new HaxeElementType("HAXE_ENUMCONSTRUCTORPARAMETERS");
@@ -62,7 +60,6 @@ public interface HaxeTokenTypes {
   IElementType HAXE_GENERICPARAM = new HaxeElementType("HAXE_GENERICPARAM");
   IElementType HAXE_GETTERMETA = new HaxeElementType("HAXE_GETTERMETA");
   IElementType HAXE_IDENTIFIER = new HaxeElementType("HAXE_IDENTIFIER");
-  IElementType HAXE_IFEXPRESSION = new HaxeElementType("HAXE_IFEXPRESSION");
   IElementType HAXE_IFSTATEMENT = new HaxeElementType("HAXE_IFSTATEMENT");
   IElementType HAXE_IMPORTSTATEMENT = new HaxeElementType("HAXE_IMPORTSTATEMENT");
   IElementType HAXE_INHERIT = new HaxeElementType("HAXE_INHERIT");
@@ -104,12 +101,13 @@ public interface HaxeTokenTypes {
   IElementType HAXE_SHIFTRIGHTOPERATOR = new HaxeElementType("HAXE_SHIFTRIGHTOPERATOR");
   IElementType HAXE_SUFFIXEXPRESSION = new HaxeElementType("HAXE_SUFFIXEXPRESSION");
   IElementType HAXE_SUPEREXPRESSION = new HaxeElementType("HAXE_SUPEREXPRESSION");
-  IElementType HAXE_SWITCHEXPRESSION = new HaxeElementType("HAXE_SWITCHEXPRESSION");
+  IElementType HAXE_SWITCHBLOCK = new HaxeElementType("HAXE_SWITCHBLOCK");
+  IElementType HAXE_SWITCHCASE = new HaxeElementType("HAXE_SWITCHCASE");
+  IElementType HAXE_SWITCHCASEBLOCK = new HaxeElementType("HAXE_SWITCHCASEBLOCK");
   IElementType HAXE_SWITCHSTATEMENT = new HaxeElementType("HAXE_SWITCHSTATEMENT");
   IElementType HAXE_TERNARYEXPRESSION = new HaxeElementType("HAXE_TERNARYEXPRESSION");
   IElementType HAXE_THISEXPRESSION = new HaxeElementType("HAXE_THISEXPRESSION");
   IElementType HAXE_THROWSTATEMENT = new HaxeElementType("HAXE_THROWSTATEMENT");
-  IElementType HAXE_TRYEXPRESSION = new HaxeElementType("HAXE_TRYEXPRESSION");
   IElementType HAXE_TRYSTATEMENT = new HaxeElementType("HAXE_TRYSTATEMENT");
   IElementType HAXE_TYPE = new HaxeElementType("HAXE_TYPE");
   IElementType HAXE_TYPEDEFDECLARATION = new HaxeElementType("HAXE_TYPEDEFDECLARATION");
@@ -127,6 +125,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_WHILESTATEMENT = new HaxeElementType("HAXE_WHILESTATEMENT");
 
   IElementType ID = new HaxeElementType("ID");
+  IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
   IElementType KAUTOBUILD = new HaxeElementType("@:autoBuild");
   IElementType KBIND = new HaxeElementType("@:bind");
   IElementType KBITMAP = new HaxeElementType("@:bitmap");
@@ -308,14 +307,8 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_CALLEXPRESSION) {
         return new HaxeCallExpressionImpl(node);
       }
-      else if (type == HAXE_CASESTATEMENT) {
-        return new HaxeCaseStatementImpl(node);
-      }
       else if (type == HAXE_CASTEXPRESSION) {
         return new HaxeCastExpressionImpl(node);
-      }
-      else if (type == HAXE_CATCHEXPRESSION) {
-        return new HaxeCatchExpressionImpl(node);
       }
       else if (type == HAXE_CATCHSTATEMENT) {
         return new HaxeCatchStatementImpl(node);
@@ -347,8 +340,8 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_DECLARATIONATTRIBUTELIST) {
         return new HaxeDeclarationAttributeListImpl(node);
       }
-      else if (type == HAXE_DEFAULTSTATEMENT) {
-        return new HaxeDefaultStatementImpl(node);
+      else if (type == HAXE_DEFAULTCASE) {
+        return new HaxeDefaultCaseImpl(node);
       }
       else if (type == HAXE_DOWHILESTATEMENT) {
         return new HaxeDoWhileStatementImpl(node);
@@ -412,9 +405,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_IDENTIFIER) {
         return new HaxeIdentifierImpl(node);
-      }
-      else if (type == HAXE_IFEXPRESSION) {
-        return new HaxeIfExpressionImpl(node);
       }
       else if (type == HAXE_IFSTATEMENT) {
         return new HaxeIfStatementImpl(node);
@@ -539,8 +529,14 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_SUPEREXPRESSION) {
         return new HaxeSuperExpressionImpl(node);
       }
-      else if (type == HAXE_SWITCHEXPRESSION) {
-        return new HaxeSwitchExpressionImpl(node);
+      else if (type == HAXE_SWITCHBLOCK) {
+        return new HaxeSwitchBlockImpl(node);
+      }
+      else if (type == HAXE_SWITCHCASE) {
+        return new HaxeSwitchCaseImpl(node);
+      }
+      else if (type == HAXE_SWITCHCASEBLOCK) {
+        return new HaxeSwitchCaseBlockImpl(node);
       }
       else if (type == HAXE_SWITCHSTATEMENT) {
         return new HaxeSwitchStatementImpl(node);
@@ -553,9 +549,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_THROWSTATEMENT) {
         return new HaxeThrowStatementImpl(node);
-      }
-      else if (type == HAXE_TRYEXPRESSION) {
-        return new HaxeTryExpressionImpl(node);
       }
       else if (type == HAXE_TRYSTATEMENT) {
         return new HaxeTryStatementImpl(node);

@@ -55,7 +55,7 @@ public class HaxeSpacingProcessor {
     }
 
     if (type2 == PLPAREN) {
-      if ((elementType == HAXE_IFEXPRESSION || elementType == HAXE_IFSTATEMENT)) {
+      if (elementType == HAXE_IFSTATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_IF_PARENTHESES);
       }
       else if (elementType == HAXE_WHILESTATEMENT || elementType == HAXE_DOWHILESTATEMENT) {
@@ -117,7 +117,7 @@ public class HaxeSpacingProcessor {
     }
 
     if (type1 == PLPAREN || type2 == PRPAREN) {
-      if ((elementType == HAXE_IFEXPRESSION || elementType == HAXE_IFSTATEMENT)) {
+      if (elementType == HAXE_IFSTATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_IF_PARENTHESES);
       }
       else if (elementType == HAXE_WHILESTATEMENT || elementType == HAXE_DOWHILESTATEMENT) {
@@ -249,7 +249,7 @@ public class HaxeSpacingProcessor {
     //Other
     //
 
-    if (type1 == KELSE && (type2 == HAXE_IFEXPRESSION || type2 == HAXE_IFSTATEMENT)) {
+    if (type1 == KELSE && type2 == HAXE_IFSTATEMENT) {
       return Spacing.createSpacing(1, 1, mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 

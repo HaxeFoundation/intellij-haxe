@@ -22,6 +22,24 @@ public class HaxeMultiplicativeExpressionImpl extends HaxeExpressionImpl impleme
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
   }
 
+  @Override
+  @Nullable
+  public HaxeIfStatement getIfStatement() {
+    return findChildByClass(HaxeIfStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeSwitchStatement getSwitchStatement() {
+    return findChildByClass(HaxeSwitchStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeTryStatement getTryStatement() {
+    return findChildByClass(HaxeTryStatement.class);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitMultiplicativeExpression(this);
     else super.accept(visitor);

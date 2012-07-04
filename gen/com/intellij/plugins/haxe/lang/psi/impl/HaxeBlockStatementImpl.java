@@ -30,20 +30,8 @@ public class HaxeBlockStatementImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @NotNull
-  public List<HaxeCaseStatement> getCaseStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCaseStatement.class);
-  }
-
-  @Override
-  @NotNull
   public List<HaxeContinueStatement> getContinueStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeContinueStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeDefaultStatement> getDefaultStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDefaultStatement.class);
   }
 
   @Override

@@ -10,4 +10,13 @@ public interface HaxeMultiplicativeExpression extends HaxeExpression {
   @NotNull
   List<HaxeExpression> getExpressionList();
 
+  @Nullable
+  HaxeIfStatement getIfStatement();
+
+  @Nullable
+  HaxeSwitchStatement getSwitchStatement();
+
+  @Nullable
+  HaxeTryStatement getTryStatement();
+
 }

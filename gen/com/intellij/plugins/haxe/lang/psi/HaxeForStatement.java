@@ -14,16 +14,10 @@ public interface HaxeForStatement extends HaxeComponent {
   HaxeBreakStatement getBreakStatement();
 
   @Nullable
-  HaxeCaseStatement getCaseStatement();
-
-  @Nullable
   HaxeComponentName getComponentName();
 
   @Nullable
   HaxeContinueStatement getContinueStatement();
-
-  @Nullable
-  HaxeDefaultStatement getDefaultStatement();
 
   @Nullable
   HaxeDoWhileStatement getDoWhileStatement();

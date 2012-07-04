@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeSwitchStatement extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeBlockStatement getBlockStatement();
+  HaxeExpression getExpression();
 
   @Nullable
-  HaxeExpression getExpression();
+  HaxeSwitchBlock getSwitchBlock();
 
 }

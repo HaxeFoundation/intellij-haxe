@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeBlockStatement extends HaxePsiCompositeElement {
+public interface HaxeSwitchCaseBlock extends HaxePsiCompositeElement {
 
   @NotNull
   List<HaxeBlockStatement> getBlockStatementList();

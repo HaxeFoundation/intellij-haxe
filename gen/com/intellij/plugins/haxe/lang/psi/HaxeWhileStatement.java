@@ -14,13 +14,7 @@ public interface HaxeWhileStatement extends HaxePsiCompositeElement {
   HaxeBreakStatement getBreakStatement();
 
   @Nullable
-  HaxeCaseStatement getCaseStatement();
-
-  @Nullable
   HaxeContinueStatement getContinueStatement();
-
-  @Nullable
-  HaxeDefaultStatement getDefaultStatement();
 
   @Nullable
   HaxeDoWhileStatement getDoWhileStatement();

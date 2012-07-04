@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeCaseStatement extends HaxePsiCompositeElement {
+public interface HaxeSwitchBlock extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeExpressionList getExpressionList();
+  HaxeDefaultCase getDefaultCase();
+
+  @NotNull
+  List<HaxeSwitchCase> getSwitchCaseList();
 
 }

@@ -77,11 +77,20 @@ public class HaxeLexer extends LookAheadLexer {
   protected static IElementType eatUntil(Lexer baseLexer, IElementType... types) {
     final Set<IElementType> typeSet = new THashSet<IElementType>(Arrays.asList(types));
     IElementType type = null;
+    int counter = 0;
     do {
       baseLexer.advance();
       type = baseLexer.getTokenType();
+      if (type == PPIF) {
+        ++counter;
+      }
+      if (counter > 0 && type == PPEND) {
+        --counter;
+        baseLexer.advance();
+        type = baseLexer.getTokenType();
+      }
     }
-    while (type != null && !typeSet.contains(type));
+    while (type != null && (!typeSet.contains(type) || counter > 0));
     return type;
   }
 

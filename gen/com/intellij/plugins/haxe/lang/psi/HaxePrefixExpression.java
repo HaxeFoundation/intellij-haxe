@@ -10,4 +10,13 @@ public interface HaxePrefixExpression extends HaxeExpression {
   @Nullable
   HaxeExpression getExpression();
 
+  @Nullable
+  HaxeIfStatement getIfStatement();
+
+  @Nullable
+  HaxeSwitchStatement getSwitchStatement();
+
+  @Nullable
+  HaxeTryStatement getTryStatement();
+
 }

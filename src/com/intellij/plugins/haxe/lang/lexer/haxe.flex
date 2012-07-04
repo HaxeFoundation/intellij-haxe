@@ -24,8 +24,9 @@ WHITE_SPACE_CHAR=[\ \n\r\t\f]
 
 mLETTER = [:letter:] | "_"
 mDIGIT = [:digit:]
+ESCAPE_SEQUENCE=\\[^\r\n]
 
-IDENTIFIER={mLETTER} ({mDIGIT} | {mLETTER})*
+IDENTIFIER="$"? {mLETTER} ({mDIGIT} | {mLETTER})*
 MACRO_IDENTIFIER="@" {IDENTIFIER}
 
 C_STYLE_COMMENT=("/*"[^"*"]{COMMENT_TAIL})|"/*"
@@ -41,10 +42,10 @@ mNUM_INT = "0" | ([1-9] {mINT_DIGIT}*)
 mNUM_HEX = ("0x" | "0X") {mHEX_DIGIT}+
 mNUM_OCT = "0" {mOCT_DIGIT}+
 
-mREG_EXP = "~/" [^"/"]* "/" [igmsu]*
+mREG_EXP = "~/" ([^"/"] | {ESCAPE_SEQUENCE})* "/" [igmsu]*
 
 mFLOAT_EXPONENT = [eE] [+-]? {mDIGIT}+
-mNUM_FLOAT = ( ({mDIGIT}* "." {mDIGIT}+) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
+mNUM_FLOAT = ( (({mDIGIT}* "." {mDIGIT}+) | ({mDIGIT}+ "." {mDIGIT}*)) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
 
 CHARACTER_LITERAL="'"([^\\\'\r\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
 STRING_LITERAL=\"([^\\\"\r\n]|{ESCAPE_SEQUENCE})*(\"|\\)?
@@ -65,7 +66,7 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 
 "..."                                     { return OTRIPLE_DOT; }
 
-{mNUM_FLOAT}                              {  return LITFLOAT; }
+{mNUM_FLOAT} / [^"."]                     {  return LITFLOAT; }
 {mNUM_OCT}                                {  return LITOCT; }
 {mNUM_HEX}                                {  return LITHEX; }
 {mNUM_INT}                                {  return LITINT; }
