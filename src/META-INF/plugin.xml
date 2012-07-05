@@ -4,6 +4,11 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.4.6:</p>
+      <ul>
+        <li>Conditional Compilation Support</li>
+        <li>Bug fixes</li>
+      </ul>
       <p>0.4.5:</p>
       <ul>
         <li>Live Templates</li>
@@ -79,7 +84,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.4.5</version>
+  <version>0.4.6</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
   <idea-version since-build="117.105" until-build="118.1"/>
   <depends>com.intellij.modules.ultimate</depends>

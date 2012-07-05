@@ -27,7 +27,7 @@ mDIGIT = [:digit:]
 ESCAPE_SEQUENCE=\\[^\r\n]
 
 IDENTIFIER="$"? {mLETTER} ({mDIGIT} | {mLETTER})*
-MACRO_IDENTIFIER="@" {IDENTIFIER}
+MACRO_IDENTIFIER="@" ":"? {IDENTIFIER}
 
 C_STYLE_COMMENT=("/*"[^"*"]{COMMENT_TAIL})|"/*"
 DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?

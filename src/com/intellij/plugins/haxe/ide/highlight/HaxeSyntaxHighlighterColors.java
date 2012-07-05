@@ -25,7 +25,7 @@ public class HaxeSyntaxHighlighterColors {
   public static final String HAXE_LOCAL_VARIABLE = "HAXE_LOCAL_VARIABLE";
   public static final String HAXE_PARAMETER = "HAXE_PARAMETER";
   public static final String HAXE_DEFINED_VAR = "HAXE_DEFINED_VAR";
-  public static final String HAXE_UNDEFINED_VAR = "HAXE_DEFINED_VAR";
+  public static final String HAXE_UNDEFINED_VAR = "HAXE_UNDEFINED_VAR";
 
   public static final TextAttributesKey LINE_COMMENT =
     createTextAttributesKey("HAXE_LINE_COMMENT", SyntaxHighlighterColors.LINE_COMMENT.getDefaultAttributes());

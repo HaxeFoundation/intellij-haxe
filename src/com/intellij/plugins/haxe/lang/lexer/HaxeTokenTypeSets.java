@@ -121,7 +121,8 @@ public interface HaxeTokenTypeSets {
     KNODEBUG,
     KMETA,
     KUSING,
-    KSUPER
+    KSUPER,
+    MACRO_ID
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(

@@ -28,6 +28,12 @@ public class HaxeGenericListPartImpl extends AbstractHaxeNamedComponent implemen
     return findChildByClass(HaxeTypeList.class);
   }
 
+  @Override
+  @Nullable
+  public HaxeTypeListPart getTypeListPart() {
+    return findChildByClass(HaxeTypeListPart.class);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitGenericListPart(this);
     else super.accept(visitor);

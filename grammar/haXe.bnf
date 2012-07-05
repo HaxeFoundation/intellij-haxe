@@ -172,6 +172,7 @@ private macroClass ::= '@:final' | '@:core_api' | '@:bind' | '@:macro' | '@:hack
                       | requireMeta | fakeEnumMeta | nativeMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 private functionMacroMember ::= macroMember | overloadMeta
+private functionMacroMember ::= macroMember | overloadMeta
 private macroMember ::= '@:macro' | '@:keep' | '@:protected' | '@:debug' | '@:nodebug'
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | buildMacro | autoBuildMacro
 
@@ -305,7 +306,7 @@ typeTag ::= ':' functionTypeWrapper
 typeParam ::= '<' typeList '>'
 typeList ::= typeListPart (',' typeListPart)*
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
-genericListPart ::= componentName (':' '(' typeList ')')?
+genericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 typeListPart ::= functionTypeWrapper
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?

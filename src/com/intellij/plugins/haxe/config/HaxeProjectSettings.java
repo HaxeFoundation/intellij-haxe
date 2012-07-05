@@ -42,7 +42,7 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element> {
     this.userCompilerDefinitions = StringUtil.join(ContainerUtil.filter(userCompilerDefinitions, new Condition<String>() {
       @Override
       public boolean value(String s) {
-        return s == null || s.isEmpty();
+        return s != null && !s.isEmpty();
       }
     }), ",");
   }

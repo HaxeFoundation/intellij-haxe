@@ -13,4 +13,7 @@ public interface HaxeGenericListPart extends HaxeComponent {
   @Nullable
   HaxeTypeList getTypeList();
 
+  @Nullable
+  HaxeTypeListPart getTypeListPart();
+
 }

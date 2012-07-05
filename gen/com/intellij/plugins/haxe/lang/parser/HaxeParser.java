@@ -3175,7 +3175,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // componentName (':' '(' typeList ')')?
+  // componentName (':' ('(' typeList ')' | typeListPart))?
   public static boolean genericListPart(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "genericListPart")) return false;
     if (!nextTokenIs(builder_, ID)) return false;
@@ -3192,26 +3192,63 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (':' '(' typeList ')')?
+  // (':' ('(' typeList ')' | typeListPart))?
   private static boolean genericListPart_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "genericListPart_1")) return false;
     genericListPart_1_0(builder_, level_ + 1);
     return true;
   }
 
-  // (':' '(' typeList ')')
+  // (':' ('(' typeList ')' | typeListPart))
   private static boolean genericListPart_1_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "genericListPart_1_0")) return false;
     return genericListPart_1_0_0(builder_, level_ + 1);
   }
 
-  // ':' '(' typeList ')'
+  // ':' ('(' typeList ')' | typeListPart)
   private static boolean genericListPart_1_0_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "genericListPart_1_0_0")) return false;
     boolean result_ = false;
     final Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OCOLON);
-    result_ = result_ && consumeToken(builder_, PLPAREN);
+    result_ = result_ && genericListPart_1_0_0_1(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  // ('(' typeList ')' | typeListPart)
+  private static boolean genericListPart_1_0_0_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericListPart_1_0_0_1")) return false;
+    return genericListPart_1_0_0_1_0(builder_, level_ + 1);
+  }
+
+  // '(' typeList ')' | typeListPart
+  private static boolean genericListPart_1_0_0_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericListPart_1_0_0_1_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = genericListPart_1_0_0_1_0_0(builder_, level_ + 1);
+    if (!result_) result_ = typeListPart(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  // '(' typeList ')'
+  private static boolean genericListPart_1_0_0_1_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "genericListPart_1_0_0_1_0_0")) return false;
+    boolean result_ = false;
+    final Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, PLPAREN);
     result_ = result_ && typeList(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRPAREN);
     if (!result_) {

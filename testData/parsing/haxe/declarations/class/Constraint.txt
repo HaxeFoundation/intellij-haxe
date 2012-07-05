@@ -45,3 +45,39 @@ haXe File
                     PsiElement(ID)('T')
         PsiElement(;)(';')
     PsiElement(})('}')
+  HAXE_CLASSDECLARATION
+    PsiElement(class)('class')
+    HAXE_COMPONENTNAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Constraint')
+    HAXE_GENERICPARAM
+      PsiElement(<)('<')
+      HAXE_GENERICLISTPART
+        HAXE_COMPONENTNAME
+          HAXE_IDENTIFIER
+            PsiElement(ID)('T')
+        PsiElement(:)(':')
+        HAXE_TYPELISTPART
+          HAXE_TYPEORANONYMOUS
+            HAXE_TYPE
+              HAXE_REFERENCEEXPRESSION
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('EventDispatcher')
+      PsiElement(>)('>')
+    PsiElement({)('{')
+    HAXE_CLASSBODY
+      HAXE_VARDECLARATION
+        PsiElement(var)('var')
+        HAXE_VARDECLARATIONPART
+          HAXE_COMPONENTNAME
+            HAXE_IDENTIFIER
+              PsiElement(ID)('evt')
+          HAXE_TYPETAG
+            PsiElement(:)(':')
+            HAXE_TYPEORANONYMOUS
+              HAXE_TYPE
+                HAXE_REFERENCEEXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('T')
+        PsiElement(;)(';')
+    PsiElement(})('}')
