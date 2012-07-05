@@ -24,7 +24,8 @@ public class HaxeSyntaxHighlighterColors {
   public static final String HAXE_STATIC_MEMBER_VARIABLE = "HAXE_STATIC_MEMBER_VARIABLE";
   public static final String HAXE_LOCAL_VARIABLE = "HAXE_LOCAL_VARIABLE";
   public static final String HAXE_PARAMETER = "HAXE_PARAMETER";
-  public static final String HAXE_CONDITIONALLY_NOT_COMPILED = "HAXE_CONDITIONALLY_NOT_COMPILED";
+  public static final String HAXE_DEFINED_VAR = "HAXE_DEFINED_VAR";
+  public static final String HAXE_UNDEFINED_VAR = "HAXE_DEFINED_VAR";
 
   public static final TextAttributesKey LINE_COMMENT =
     createTextAttributesKey("HAXE_LINE_COMMENT", SyntaxHighlighterColors.LINE_COMMENT.getDefaultAttributes());
@@ -35,6 +36,10 @@ public class HaxeSyntaxHighlighterColors {
   private static final Color NOT_COMPILED_COLOR = new Color(56, 73, 46);
   public static final TextAttributesKey CONDITIONALLY_NOT_COMPILED =
     createTextAttributesKey("HAXE_CONDITIONALLY_NOT_COMPILED", new TextAttributes(NOT_COMPILED_COLOR, null, null, null, Font.PLAIN));
+  public static final TextAttributesKey DEFINED_VAR =
+      createTextAttributesKey("HAXE_DEFINED_VAR", new TextAttributes(NOT_COMPILED_COLOR, null, null, null, Font.BOLD));
+  public static final TextAttributesKey UNDEFINED_VAR =
+      createTextAttributesKey("HAXE_UNDEFINED_VAR", new TextAttributes(NOT_COMPILED_COLOR, null, null, null, Font.PLAIN));
   public static final TextAttributesKey KEYWORD =
     createTextAttributesKey("HAXE_KEYWORD", SyntaxHighlighterColors.KEYWORD.getDefaultAttributes());
   public static final TextAttributesKey NUMBER =

@@ -1,13 +1,11 @@
 package com.intellij.plugins.haxe.config.ui;
 
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.util.HaxeUtil;
 import com.intellij.ui.AddDeleteListPanel;
-import com.intellij.util.containers.ContainerUtil;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +30,6 @@ public class HaxeSettingsForm {
 
   public void applyEditorTo(HaxeProjectSettings settings) {
     settings.setUserCompilerDefinitions(myAddDeleteListPanel.getItems());
-
   }
 
   public void resetEditorFrom(HaxeProjectSettings settings) {
@@ -43,7 +40,7 @@ public class HaxeSettingsForm {
   }
 
   private void createUIComponents() {
-    myAddDeleteListPanel = new MyAddDeleteListPanel(HaxeBundle.message("haxe.conditional.compilation.macroses"));
+    myAddDeleteListPanel = new MyAddDeleteListPanel(HaxeBundle.message("haxe.conditional.compilation.defined.macros"));
   }
 
   private class MyAddDeleteListPanel extends AddDeleteListPanel<String>{

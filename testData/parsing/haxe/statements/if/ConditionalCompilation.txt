@@ -1,10 +1,18 @@
 haXe File
-  PsiComment(#if)('#if flash8\n// Haxe code specific for flash player 8\n#elseif flash\n// Haxe code specific for flash platform (any version)\n#elseif js\n// Haxe code specific for javascript plaform\n#else')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' flash8\n// Haxe code specific for flash player 8\n')
+  PsiComment(PPBODY)('#elseif')
+  PsiComment(PPEXPRESSION)(' flash\n// Haxe code specific for flash platform (any version)\n')
+  PsiComment(PPBODY)('#elseif')
+  PsiComment(PPEXPRESSION)(' js\n// Haxe code specific for javascript plaform\n')
+  PsiComment(PPBODY)('#else')
+  PsiComment(PPEXPRESSION)('\n')
   PsiComment(MSL_COMMENT)('// do something else')
   PsiComment(#error)('#error // will display an error "Not implemented on this platform"\n  #error "Custom error message" ')
   PsiComment(MSL_COMMENT)('// will display an error "Custom error message"')
   PsiComment(#end)('#end')
-  PsiComment(#if)('#if mydebug\n')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' mydebug\n')
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
     HAXE_COMPONENTNAME
@@ -22,7 +30,8 @@ haXe File
       HAXE_IDENTIFIER
         PsiElement(ID)('ConditionalCompilation')
     PsiElement({)('{')
-    PsiComment(#if)('#if !debug ')
+    PsiComment(#if)('#if')
+    PsiComment(PPEXPRESSION)(' !debug ')
     HAXE_CLASSBODY
       HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
         HAXE_DECLARATIONATTRIBUTELIST
@@ -42,7 +51,8 @@ haXe File
           PsiElement({)('{')
           PsiElement(})('}')
     PsiElement(})('}')
-  PsiComment(#if)('#if (neko && mydebug)\n')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' (neko && mydebug)\n')
   HAXE_CLASSDECLARATION
     PsiElement(class)('class')
     HAXE_COMPONENTNAME
@@ -54,8 +64,12 @@ haXe File
     PsiElement(})('}')
   PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
   PsiComment(#end)('#end')
-  PsiComment(#if)('#if (flash || php)\n// Code that works for either flash or PHP\nclass FooFlash {\n\n}\n#end')
-  PsiComment(#if)('#if (neko && mydebug)\n')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' (flash || php)\n// Code that works for either flash or PHP\n')
+  PsiComment(PPBODY)('class FooFlash {\n\n}\n#end')
+  PsiComment(PPEXPRESSION)('\n\n')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' (neko && mydebug)\n')
   HAXE_TYPEDEFDECLARATION
     PsiElement(typedef)('typedef')
     HAXE_COMPONENTNAME
@@ -96,7 +110,8 @@ haXe File
         PsiElement())(')')
         HAXE_BLOCKSTATEMENT
           PsiElement({)('{')
-          PsiComment(#if)('#if (neko && php) || (neko && mydebug)\n    ')
+          PsiComment(#if)('#if')
+          PsiComment(PPEXPRESSION)(' (neko && php) || (neko && mydebug)\n    ')
           HAXE_CALLEXPRESSION
             HAXE_REFERENCEEXPRESSION
               HAXE_IDENTIFIER

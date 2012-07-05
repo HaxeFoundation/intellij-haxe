@@ -55,14 +55,18 @@ public class HaxeLexer extends LookAheadLexer {
       advanceAs(baseLexer, PPERROR);
     }
     else if (baseLexer.getTokenType() == PPIF || baseLexer.getTokenType() == PPELSEIF) {
+      advanceAs(baseLexer, PPIF);
       while (!lookAheadExpressionIsTrue(baseLexer)) {
+        advanceAs(baseLexer, PPEXPRESSION);
         IElementType elementType = eatUntil(baseLexer, PPEND, PPELSE, PPELSEIF);
         if (elementType == PPELSEIF) {
+          advanceAs(baseLexer, PPBODY);
           continue;
         }
+        advanceAs(baseLexer, PPBODY);
         break;
       }
-      advanceAs(baseLexer, PPIF);
+      advanceAs(baseLexer, PPEXPRESSION);
     }
     else if (baseLexer.getTokenType() == PPELSE) {
       eatUntil(baseLexer, PPEND);

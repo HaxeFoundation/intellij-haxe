@@ -30,4 +30,9 @@ public class StringValueDialog extends DialogWrapper{
   public String getStringValue() {
     return myTextField.getText();
   }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myTextField;
+  }
 }

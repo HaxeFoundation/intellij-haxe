@@ -1,20 +1,28 @@
 package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
+import com.intellij.plugins.haxe.ide.intention.HaxeDefineIntention;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
@@ -41,6 +49,30 @@ public class HaxeColorAnnotator implements Annotator {
       if (attribute != null) {
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
       }
+    }
+    final ASTNode astNode = node.getNode();
+    if (astNode != null) {
+      IElementType tt = astNode.getElementType();
+
+      if (tt == HaxeTokenTypeSets.PPEXPRESSION) {
+        annotateCompilationExpression(node, holder);
+      }
+    }
+  }
+
+  private static void annotateCompilationExpression(PsiElement node, AnnotationHolder holder) {
+    final Set<String> definitions = HaxeProjectSettings.getInstance(node.getProject()).getUserCompilerDefinitionsAsSet();
+    final String nodeText = node.getText();
+    for (Pair<String, Integer> pair : HaxeStringUtil.getWordsWithOffset(nodeText)) {
+      final String word = pair.getFirst();
+      final int offset = pair.getSecond();
+      final int absoluteOffset = node.getTextOffset() + offset;
+      final TextRange range = new TextRange(absoluteOffset, absoluteOffset + word.length());
+      final Annotation annotation = holder.createInfoAnnotation(range, null);
+      final String attributeName = definitions.contains(word) ? HaxeSyntaxHighlighterColors.HAXE_DEFINED_VAR
+                                                              : HaxeSyntaxHighlighterColors.HAXE_UNDEFINED_VAR;
+      annotation.setTextAttributes(TextAttributesKey.find(attributeName));
+      annotation.registerFix(new HaxeDefineIntention(word, definitions.contains(word)), new TextRange(offset, offset + word.length()));
     }
   }
 

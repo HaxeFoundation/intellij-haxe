@@ -6,7 +6,7 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.ui.HaxeSettingsForm;
-import org.jetbrains.annotations.Nls;
+import com.intellij.plugins.haxe.util.HaxeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,7 +49,11 @@ public class HaxeSettingsConfigurable implements SearchableConfigurable, NonDefa
 
   public void apply() throws ConfigurationException {
     if (mySettingsPane != null) {
+      final boolean modified = isModified();
       mySettingsPane.applyEditorTo(getSettings());
+      if (modified) {
+        HaxeUtil.reparseProjectFiles(myProject);
+      }
     }
   }
 
@@ -59,7 +63,7 @@ public class HaxeSettingsConfigurable implements SearchableConfigurable, NonDefa
     }
   }
 
-  private HaxeProjectSettings getSettings(){
+  private HaxeProjectSettings getSettings() {
     return HaxeProjectSettings.getInstance(myProject);
   }
 

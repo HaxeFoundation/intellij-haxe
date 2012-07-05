@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.ide.projectStructure.ui;
 
-import com.intellij.find.actions.ShowUsagesAction;
+import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.ide.util.TreeFileChooser;
 import com.intellij.ide.util.TreeFileChooserFactory;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -8,8 +8,9 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.UnnamedConfigurable;
+import com.intellij.openapi.options.ex.SingleConfigurableEditor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -20,6 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.config.HaxeSettingsConfigurable;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -185,7 +187,15 @@ public class HaxeConfigurationEditor {
     myEditMacrosesButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ShowSettingsUtil.getInstance().showSettingsDialog(myModule.getProject(), HaxeBundle.message("haxe.settings.name"));
+        final Project project = myModule.getProject();
+        final HaxeSettingsConfigurable configurable = new HaxeSettingsConfigurable(project);
+        final SingleConfigurableEditor editor = new SingleConfigurableEditor(
+          project,
+          configurable,
+          ShowSettingsUtilImpl.createDimensionKey(configurable),
+          false
+        );
+        editor.show();
         updateMacroses();
       }
     });

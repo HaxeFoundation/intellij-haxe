@@ -14,6 +14,9 @@ public interface HaxeTokenTypeSets {
   IElementType MML_COMMENT = new HaxeElementType("MML_COMMENT");
   IElementType DOC_COMMENT = new HaxeElementType("DOC_COMMENT");
 
+  IElementType PPEXPRESSION = new HaxeElementType("PPEXPRESSION");
+  IElementType PPBODY = new HaxeElementType("PPBODY");
+
   IElementType WSNLS = new HaxeElementType("WSNLS");
 
   TokenSet WHITESPACES = TokenSet.create(
@@ -35,14 +38,18 @@ public interface HaxeTokenTypeSets {
     PPIF,
     PPEND,
     PPELSE,
-    PPERROR
+    PPERROR,
+    PPBODY,
+    PPEXPRESSION
   );
 
   TokenSet CONDITIONALLY_NOT_COMPILED = TokenSet.create(
     PPIF,
     PPEND,
     PPELSE,
-    PPERROR
+    PPERROR,
+    PPBODY,
+    PPEXPRESSION
   );
 
   TokenSet BAD_TOKENS = TokenSet.create(

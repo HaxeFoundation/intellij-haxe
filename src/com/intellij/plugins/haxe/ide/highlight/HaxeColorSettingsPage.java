@@ -25,6 +25,8 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.block.comment"), BLOCK_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.doc.comment"), DOC_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation"), CONDITIONALLY_NOT_COMPILED),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation.defined.flag"), DEFINED_VAR),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation.undefined.flag"), UNDEFINED_VAR),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.keyword"), KEYWORD),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.number"), NUMBER),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.string"), STRING),
@@ -53,6 +55,8 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     ourTags.put("local.variable", LOCAL_VARIABLE);
     ourTags.put("class", CLASS);
     ourTags.put("compilation", CONDITIONALLY_NOT_COMPILED);
+    ourTags.put("defined.flag", DEFINED_VAR);
+    ourTags.put("undefined.flag", UNDEFINED_VAR);
     ourTags.put("interface", INTERFACE);
     ourTags.put("instance.member.function", INSTANCE_MEMBER_FUNCTION);
     ourTags.put("static.member.function", STATIC_MEMBER_FUNCTION);
@@ -97,7 +101,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
   @NotNull
   @Override
   public String getDemoText() {
-    return "<compilation>#if falseExpression\n" +
+    return "<compilation>#if <defined.flag>definedFlag</defined.flag> && <undefined.flag>undefinedFlag</undefined.flag>\n" +
            "#error \"Error!!\"\n" +
            "#else</compilation>\n" +
            "import <class>util.Date</class>;\n" +
