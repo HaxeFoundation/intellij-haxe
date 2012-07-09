@@ -357,7 +357,8 @@ public class HaxeResolveUtil {
                                                                 PsiElement element,
                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeType type = typeTag != null ? typeTag.getTypeOrAnonymous().getType() :
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag == null ? null : typeTag.getTypeOrAnonymous();
+    final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() :
                           element instanceof HaxeType ? (HaxeType)element : null;
 
     HaxeClass haxeClass = type == null ? null : tryResolveClassByQName(type);

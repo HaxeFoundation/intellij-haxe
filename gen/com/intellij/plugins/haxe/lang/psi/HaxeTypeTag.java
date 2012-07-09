@@ -10,7 +10,7 @@ public interface HaxeTypeTag extends HaxePsiCompositeElement {
   @Nullable
   HaxeFunctionType getFunctionType();
 
-  @NotNull
+  @Nullable
   HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

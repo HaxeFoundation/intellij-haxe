@@ -23,9 +23,9 @@ public class HaxeTypeListPartImpl extends HaxePsiCompositeElementImpl implements
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeTypeOrAnonymous getTypeOrAnonymous() {
-    return findNotNullChildByClass(HaxeTypeOrAnonymous.class);
+    return findChildByClass(HaxeTypeOrAnonymous.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

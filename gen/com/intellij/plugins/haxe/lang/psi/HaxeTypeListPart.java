@@ -10,7 +10,7 @@ public interface HaxeTypeListPart extends HaxePsiCompositeElement {
   @Nullable
   HaxeFunctionType getFunctionType();
 
-  @NotNull
+  @Nullable
   HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }
