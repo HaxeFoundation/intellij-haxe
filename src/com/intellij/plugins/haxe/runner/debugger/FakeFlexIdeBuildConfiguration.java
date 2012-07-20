@@ -90,6 +90,12 @@ public class FakeFlexIdeBuildConfiguration implements FlexIdeBuildConfiguration 
 
   @NotNull
   @Override
+  public Collection<RLMInfo> getRLMs() {
+    return null;
+  }
+
+  @NotNull
+  @Override
   public Collection<String> getCssFilesToCompile() {
     return null;
   }
