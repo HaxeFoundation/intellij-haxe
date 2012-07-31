@@ -48,7 +48,7 @@ public class HaxeFindUsagesTest extends JavaCodeInsightFixtureTestCase {
 
   public void testLocalFunctionParameter() throws Throwable {
     myFixture.configureByFiles("LocalFunctionParameter.hx", "com/bar/Foo.hx");
-    doTest(3 + 1); // qName in import
+    doTest(3);
   }
 
   public void testForDeclaration() throws Throwable {
@@ -73,6 +73,6 @@ public class HaxeFindUsagesTest extends JavaCodeInsightFixtureTestCase {
 
   public void testClassDeclaration() throws Throwable {
     myFixture.configureByFiles("com/bar/ClassToFind.hx", "ClassDeclaration.hx");
-    doTest(7 + 1); // qName in import
+    doTest(7);
   }
 }

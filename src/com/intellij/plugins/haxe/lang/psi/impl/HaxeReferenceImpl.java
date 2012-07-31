@@ -342,7 +342,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         resolve.getParent() instanceof HaxeClass) {
       return element == resolve.getContainingFile();
     }
-    return resolve == element;
+    final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
+    final boolean chain = references != null && references.length == 2;
+    return !chain && resolve == element;
   }
 
   @NotNull

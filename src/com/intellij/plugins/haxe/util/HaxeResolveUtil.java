@@ -224,8 +224,13 @@ public class HaxeResolveUtil {
     }
     else if (haxeClass instanceof HaxeTypedefDeclaration) {
       final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
-      if (typeOrAnonymous != null) {
-        haxeClass = typeOrAnonymous.getAnonymousType();
+      if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
+        typeOrAnonymous.getAnonymousType();
+      }
+      else if (typeOrAnonymous != null) {
+        final HaxeClass typeClass = getHaxeClassResolveResult(typeOrAnonymous.getType()).getHaxeClass();
+        assert typeClass != haxeClass;
+        return getNamedSubComponents(typeClass);
       }
     }
 

@@ -97,4 +97,6 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     }
     return super.findMethodByName(name);
   }
+
+
 }
