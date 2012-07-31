@@ -56,7 +56,7 @@ public class HaxeIndentProcessor {
           return Indent.getNoneIndent();
       }
     }
-    if (parentType == HAXE_PARENTHESIZEDEXPRESSION) {
+    if (parentType == HAXE_PARENTHESIZED_EXPRESSION) {
       if (elementType == PLPAREN || elementType == PRPAREN) {
         return Indent.getNoneIndent();
       }
@@ -69,26 +69,26 @@ public class HaxeIndentProcessor {
       }
       return Indent.getNormalIndent();
     }
-    if (FUNCTION_DEFINITION.contains(parentType) || parentType == HAXE_CALLEXPRESSION) {
-      if (elementType == HAXE_PARAMETERLIST || elementType == HAXE_EXPRESSIONLIST) {
+    if (FUNCTION_DEFINITION.contains(parentType) || parentType == HAXE_CALL_EXPRESSION) {
+      if (elementType == HAXE_PARAMETER_LIST || elementType == HAXE_EXPRESSION_LIST) {
         return Indent.getNormalIndent();
       }
     }
-    if (parentType == HAXE_FORSTATEMENT && prevSiblingType == PRPAREN && elementType != HAXE_BLOCKSTATEMENT) {
+    if (parentType == HAXE_FOR_STATEMENT && prevSiblingType == PRPAREN && elementType != HAXE_BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if (parentType == HAXE_WHILESTATEMENT && prevSiblingType == PRPAREN && elementType != HAXE_BLOCKSTATEMENT) {
+    if (parentType == HAXE_WHILE_STATEMENT && prevSiblingType == PRPAREN && elementType != HAXE_BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if (parentType == HAXE_DOWHILESTATEMENT && prevSiblingType == KDO && elementType != HAXE_BLOCKSTATEMENT) {
+    if (parentType == HAXE_DO_WHILE_STATEMENT && prevSiblingType == KDO && elementType != HAXE_BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if ((parentType == HAXE_RETURNSTATEMENT || parentType == HAXE_RETURNSTATEMENTWITHOUTSEMICOLON) &&
+    if ((parentType == HAXE_RETURN_STATEMENT || parentType == HAXE_RETURN_STATEMENT_WITHOUT_SEMICOLON) &&
         prevSiblingType == KRETURN &&
-        elementType != HAXE_BLOCKSTATEMENT) {
+        elementType != HAXE_BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if (parentType == HAXE_IFSTATEMENT && (prevSiblingType == PRPAREN || prevSiblingType == KELSE) && elementType != HAXE_BLOCKSTATEMENT) {
+    if (parentType == HAXE_IF_STATEMENT && (prevSiblingType == PRPAREN || prevSiblingType == KELSE) && elementType != HAXE_BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
     return Indent.getNoneIndent();
@@ -98,12 +98,12 @@ public class HaxeIndentProcessor {
     if (type == null) {
       return false;
     }
-    boolean result = type == HAXE_BLOCKSTATEMENT;
-    result = result || type == HAXE_CLASSBODY;
-    result = result || type == HAXE_ENUMBODY;
-    result = result || type == HAXE_INTERFACEBODY;
-    result = result || type == HAXE_SWITCHBLOCK;
-    result = result || type == HAXE_SWITCHCASEBLOCK;
+    boolean result = type == HAXE_BLOCK_STATEMENT;
+    result = result || type == HAXE_CLASS_BODY;
+    result = result || type == HAXE_ENUM_BODY;
+    result = result || type == HAXE_INTERFACE_BODY;
+    result = result || type == HAXE_SWITCH_BLOCK;
+    result = result || type == HAXE_SWITCH_CASE_BLOCK;
     return result;
   }
 }

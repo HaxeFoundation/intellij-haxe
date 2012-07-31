@@ -13,53 +13,53 @@ haXe File
   PsiComment(#end)('#end')
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' mydebug\n')
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Crazy')
     PsiElement({)('{')
     PsiComment(#else)('#else\n  interface Crazy {\n  #end')
     PsiComment(MSL_COMMENT)('// yep')
-    HAXE_CLASSBODY
+    HAXE_CLASS_BODY
       <empty list>
     PsiElement(})('}')
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('ConditionalCompilation')
     PsiElement({)('{')
     PsiComment(#if)('#if')
     PsiComment(PPEXPRESSION)(' !debug ')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-        HAXE_DECLARATIONATTRIBUTELIST
-          HAXE_DECLARATIONATTRIBUTE
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        HAXE_DECLARATION_ATTRIBUTE_LIST
+          HAXE_DECLARATION_ATTRIBUTE
             PsiElement(inline)('inline')
           PsiComment(#end)('#end')
-          HAXE_DECLARATIONATTRIBUTE
+          HAXE_DECLARATION_ATTRIBUTE
             HAXE_ACCESS
               PsiElement(public)('public')
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('abc')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
           PsiElement(})('}')
     PsiElement(})('}')
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' (neko && mydebug)\n')
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('FooNeko')
     PsiElement({)('{')
-    HAXE_CLASSBODY
+    HAXE_CLASS_BODY
       <empty list>
     PsiElement(})('}')
   PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
@@ -70,55 +70,55 @@ haXe File
   PsiComment(PPEXPRESSION)('\n\n')
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' (neko && mydebug)\n')
-  HAXE_TYPEDEFDECLARATION
+  HAXE_TYPEDEF_DECLARATION
     PsiElement(typedef)('typedef')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Vector')
     PsiElement(=)('=')
-    HAXE_TYPEORANONYMOUS
+    HAXE_TYPE_OR_ANONYMOUS
       HAXE_TYPE
-        HAXE_REFERENCEEXPRESSION
-          HAXE_REFERENCEEXPRESSION
-            HAXE_REFERENCEEXPRESSION
+        HAXE_REFERENCE_EXPRESSION
+          HAXE_REFERENCE_EXPRESSION
+            HAXE_REFERENCE_EXPRESSION
               HAXE_IDENTIFIER
                 PsiElement(ID)('com')
             PsiElement(.)('.')
-            HAXE_REFERENCEEXPRESSION
+            HAXE_REFERENCE_EXPRESSION
               HAXE_IDENTIFIER
                 PsiElement(ID)('foo')
           PsiElement(.)('.')
-          HAXE_REFERENCEEXPRESSION
+          HAXE_REFERENCE_EXPRESSION
             HAXE_IDENTIFIER
               PsiElement(ID)('SuperArray')
     PsiElement(;)(';')
   PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
   PsiComment(#end)('#end')
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('ConditionalCompilation')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
           PsiComment(#if)('#if')
           PsiComment(PPEXPRESSION)(' (neko && php) || (neko && mydebug)\n    ')
-          HAXE_CALLEXPRESSION
-            HAXE_REFERENCEEXPRESSION
+          HAXE_CALL_EXPRESSION
+            HAXE_REFERENCE_EXPRESSION
               HAXE_IDENTIFIER
                 PsiElement(ID)('trace')
             PsiElement(()('(')
-            HAXE_EXPRESSIONLIST
-              HAXE_LITERALEXPRESSION
+            HAXE_EXPRESSION_LIST
+              HAXE_LITERAL_EXPRESSION
                 PsiElement(LITSTRING)('"Debug infos for all debug compiles"')
             PsiElement())(')')
           PsiElement(;)(';')

@@ -122,7 +122,7 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
       final PsiBuilder builder = factory.createBuilder(getProject(), chameleon);
 
       final PsiBuilder.Marker marker = builder.mark();
-      enterErrorRecordingSection(builder, 0, _SECTION_GENERAL_);
+      enterErrorRecordingSection(builder, 0, _SECTION_GENERAL_, "<code fragment>");
       HaxeParser.expression(builder, 1);
       marker.done(HaxeTokenTypes.HAXE_EXPRESSION);
       return builder.getTreeBuilt();

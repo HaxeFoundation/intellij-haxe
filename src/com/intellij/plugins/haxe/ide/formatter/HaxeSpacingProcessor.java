@@ -40,43 +40,43 @@ public class HaxeSpacingProcessor {
     final ASTNode nodeNode2 = node2 == null ? null : node2.getFirstChildNode();
     final IElementType typeType2 = nodeNode2 == null ? null : nodeNode2.getElementType();
 
-    if (type1 == HAXE_IMPORTSTATEMENT ||
-        type1 == HAXE_PACKAGESTATEMENT ||
-        type1 == HAXE_USINGSTATEMENT) {
+    if (type1 == HAXE_IMPORT_STATEMENT ||
+        type1 == HAXE_PACKAGE_STATEMENT ||
+        type1 == HAXE_USING_STATEMENT) {
       return addSingleSpaceIf(false, true);
     }
 
-    if (type1 == HAXE_CLASSBODY || type1 == HAXE_EXTERNCLASSDECLARATIONBODY || type1 == HAXE_ENUMBODY || type1 == HAXE_INTERFACEBODY) {
+    if (type1 == HAXE_CLASS_BODY || type1 == HAXE_EXTERN_CLASS_DECLARATION_BODY || type1 == HAXE_ENUM_BODY || type1 == HAXE_INTERFACE_BODY) {
       return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type2 == HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES) {
+    if (type2 == HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES) {
       return Spacing.createSpacing(0, 0, 2, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (type2 == PLPAREN) {
-      if (elementType == HAXE_IFSTATEMENT) {
+      if (elementType == HAXE_IF_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_IF_PARENTHESES);
       }
-      else if (elementType == HAXE_WHILESTATEMENT || elementType == HAXE_DOWHILESTATEMENT) {
+      else if (elementType == HAXE_WHILE_STATEMENT || elementType == HAXE_DO_WHILE_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_WHILE_PARENTHESES);
       }
-      else if (elementType == HAXE_FORSTATEMENT) {
+      else if (elementType == HAXE_FOR_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_FOR_PARENTHESES);
       }
-      else if (elementType == HAXE_SWITCHSTATEMENT) {
+      else if (elementType == HAXE_SWITCH_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_SWITCH_PARENTHESES);
       }
-      else if (elementType == HAXE_TRYSTATEMENT) {
+      else if (elementType == HAXE_TRY_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_TRY_PARENTHESES);
       }
-      else if (elementType == HAXE_CATCHSTATEMENT) {
+      else if (elementType == HAXE_CATCH_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_CATCH_PARENTHESES);
       }
       else if (FUNCTION_DEFINITION.contains(elementType)) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_METHOD_PARENTHESES);
       }
-      else if (elementType == HAXE_CALLEXPRESSION) {
+      else if (elementType == HAXE_CALL_EXPRESSION) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES);
       }
     }
@@ -84,26 +84,26 @@ public class HaxeSpacingProcessor {
     //
     //Spacing before left braces
     //
-    if (type2 == HAXE_BLOCKSTATEMENT) {
-      if (elementType == HAXE_IFSTATEMENT && type1 != KELSE) {
+    if (type2 == HAXE_BLOCK_STATEMENT) {
+      if (elementType == HAXE_IF_STATEMENT && type1 != KELSE) {
         return setBraceSpace(mySettings.SPACE_BEFORE_IF_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
-      else if (elementType == HAXE_IFSTATEMENT && type1 == KELSE) {
+      else if (elementType == HAXE_IF_STATEMENT && type1 == KELSE) {
         return setBraceSpace(mySettings.SPACE_BEFORE_ELSE_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
-      else if (elementType == HAXE_WHILESTATEMENT || elementType == HAXE_DOWHILESTATEMENT) {
+      else if (elementType == HAXE_WHILE_STATEMENT || elementType == HAXE_DO_WHILE_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_WHILE_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
-      else if (elementType == HAXE_FORSTATEMENT) {
+      else if (elementType == HAXE_FOR_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_FOR_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
-      else if (elementType == HAXE_SWITCHSTATEMENT) {
+      else if (elementType == HAXE_SWITCH_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_SWITCH_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
-      else if (elementType == HAXE_TRYSTATEMENT) {
+      else if (elementType == HAXE_TRY_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_TRY_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
-      else if (elementType == HAXE_CATCHSTATEMENT) {
+      else if (elementType == HAXE_CATCH_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_CATCH_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
       else if (FUNCTION_DEFINITION.contains(elementType)) {
@@ -111,28 +111,28 @@ public class HaxeSpacingProcessor {
       }
     }
 
-    if ((elementType == HAXE_CLASSDECLARATION || elementType == HAXE_ENUMDECLARATION || elementType == HAXE_INTERFACEDECLARATION) &&
+    if ((elementType == HAXE_CLASS_DECLARATION || elementType == HAXE_ENUM_DECLARATION || elementType == HAXE_INTERFACE_DECLARATION) &&
         type2 == PLCURLY) {
       return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
     }
 
     if (type1 == PLPAREN || type2 == PRPAREN) {
-      if (elementType == HAXE_IFSTATEMENT) {
+      if (elementType == HAXE_IF_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_IF_PARENTHESES);
       }
-      else if (elementType == HAXE_WHILESTATEMENT || elementType == HAXE_DOWHILESTATEMENT) {
+      else if (elementType == HAXE_WHILE_STATEMENT || elementType == HAXE_DO_WHILE_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_WHILE_PARENTHESES);
       }
-      else if (elementType == HAXE_FORSTATEMENT) {
+      else if (elementType == HAXE_FOR_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_FOR_PARENTHESES);
       }
-      else if (elementType == HAXE_SWITCHSTATEMENT) {
+      else if (elementType == HAXE_SWITCH_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_SWITCH_PARENTHESES);
       }
-      else if (elementType == HAXE_TRYSTATEMENT) {
+      else if (elementType == HAXE_TRY_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_TRY_PARENTHESES);
       }
-      else if (elementType == HAXE_CATCHSTATEMENT) {
+      else if (elementType == HAXE_CATCH_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_CATCH_PARENTHESES);
       }
       else if (FUNCTION_DEFINITION.contains(elementType)) {
@@ -141,13 +141,13 @@ public class HaxeSpacingProcessor {
                                       mySettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE;
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_METHOD_PARENTHESES, newLineNeeded);
       }
-      else if (elementType == HAXE_CALLEXPRESSION) {
+      else if (elementType == HAXE_CALL_EXPRESSION) {
         final boolean newLineNeeded = type1 == PLPAREN ?
                                       mySettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE :
                                       mySettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE;
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_METHOD_CALL_PARENTHESES, newLineNeeded);
       }
-      else if (mySettings.BINARY_OPERATION_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP && elementType == HAXE_PARENTHESIZEDEXPRESSION) {
+      else if (mySettings.BINARY_OPERATION_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP && elementType == HAXE_PARENTHESIZED_EXPRESSION) {
         final boolean newLineNeeded = type1 == PLPAREN ?
                                       mySettings.PARENTHESES_EXPRESSION_LPAREN_WRAP :
                                       mySettings.PARENTHESES_EXPRESSION_RPAREN_WRAP;
@@ -155,7 +155,7 @@ public class HaxeSpacingProcessor {
       }
     }
 
-    if (elementType == HAXE_TERNARYEXPRESSION) {
+    if (elementType == HAXE_TERNARY_EXPRESSION) {
       if (type2 == OQUEST) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_QUEST);
       }
@@ -175,7 +175,7 @@ public class HaxeSpacingProcessor {
     //
 
     if (ASSIGN_OPERATORS.contains(type1) || ASSIGN_OPERATORS.contains(type2) ||
-        type2 == HAXE_VARINIT) {
+        type2 == HAXE_VAR_INIT) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
     }
 
@@ -188,15 +188,15 @@ public class HaxeSpacingProcessor {
     //
     // Spacing around  equality operators (==, != etc.)
     //
-    if ((type1 == HAXE_COMPAREOPERATION && EQUALITY_OPERATORS.contains(typeType1)) ||
-        (type2 == HAXE_COMPAREOPERATION && EQUALITY_OPERATORS.contains(typeType2))) {
+    if ((type1 == HAXE_COMPARE_OPERATION && EQUALITY_OPERATORS.contains(typeType1)) ||
+        (type2 == HAXE_COMPARE_OPERATION && EQUALITY_OPERATORS.contains(typeType2))) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_EQUALITY_OPERATORS);
     }
     //
     // Spacing around  relational operators (<, <= etc.)
     //
-    if ((type1 == HAXE_COMPAREOPERATION && RELATIONAL_OPERATORS.contains(typeType1)) ||
-        (type2 == HAXE_COMPAREOPERATION && RELATIONAL_OPERATORS.contains(typeType2))) {
+    if ((type1 == HAXE_COMPARE_OPERATION && RELATIONAL_OPERATORS.contains(typeType1)) ||
+        (type2 == HAXE_COMPARE_OPERATION && RELATIONAL_OPERATORS.contains(typeType2))) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_RELATIONAL_OPERATORS);
     }
     //
@@ -209,7 +209,7 @@ public class HaxeSpacingProcessor {
     // Spacing around  additive operators ( +, -, etc.)
     //
     if ((ADDITIVE_OPERATORS.contains(type1) || ADDITIVE_OPERATORS.contains(type2)) &&
-        elementType != HAXE_PREFIXEXPRESSION) {
+        elementType != HAXE_PREFIX_EXPRESSION) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_ADDITIVE_OPERATORS);
     }
     //
@@ -222,7 +222,7 @@ public class HaxeSpacingProcessor {
     // Spacing around  unary operators ( NOT, ++, etc.)
     //
     if ((UNARY_OPERATORS.contains(type1) || UNARY_OPERATORS.contains(type2)) &&
-        elementType == HAXE_PREFIXEXPRESSION) {
+        elementType == HAXE_PREFIX_EXPRESSION) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_UNARY_OPERATOR);
     }
     //
@@ -241,7 +241,7 @@ public class HaxeSpacingProcessor {
     if (type2 == KWHILE) {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_WHILE_KEYWORD, mySettings.WHILE_ON_NEW_LINE);
     }
-    if (type2 == HAXE_CATCHSTATEMENT) {
+    if (type2 == HAXE_CATCH_STATEMENT) {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_CATCH_KEYWORD, mySettings.CATCH_ON_NEW_LINE);
     }
 
@@ -249,13 +249,13 @@ public class HaxeSpacingProcessor {
     //Other
     //
 
-    if (type1 == KELSE && type2 == HAXE_IFSTATEMENT) {
+    if (type1 == KELSE && type2 == HAXE_IF_STATEMENT) {
       return Spacing.createSpacing(1, 1, mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type1 == OCOMMA && (elementType == HAXE_PARAMETERLIST || elementType == HAXE_EXPRESSIONLIST) &&
-        (parentType == HAXE_CALLEXPRESSION ||
-         parentType == HAXE_NEWEXPRESSION ||
+    if (type1 == OCOMMA && (elementType == HAXE_PARAMETER_LIST || elementType == HAXE_EXPRESSION_LIST) &&
+        (parentType == HAXE_CALL_EXPRESSION ||
+         parentType == HAXE_NEW_EXPRESSION ||
          FUNCTION_DEFINITION.contains(parentType))) {
       return addSingleSpaceIf(mySettings.SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS);
     }
@@ -269,11 +269,11 @@ public class HaxeSpacingProcessor {
     }
 
     //todo: customize in settings
-    if (type1 == OCOLON && elementType == HAXE_TYPETAG) {
+    if (type1 == OCOLON && elementType == HAXE_TYPE_TAG) {
       return addSingleSpaceIf(false);
     }
 
-    if (type2 == HAXE_TYPETAG) {
+    if (type2 == HAXE_TYPE_TAG) {
       return addSingleSpaceIf(false);
     }
 

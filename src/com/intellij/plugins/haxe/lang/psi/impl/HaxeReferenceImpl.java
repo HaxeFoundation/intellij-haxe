@@ -214,7 +214,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (type == HaxeTokenTypes.LITSTRING || type == HaxeTokenTypes.LITCHAR) {
       return "String";
     }
-    else if (type == HaxeTokenTypes.HAXE_ARRAYLITERAL) {
+    else if (type == HaxeTokenTypes.HAXE_ARRAY_LITERAL) {
       return "Array";
     }
     else if (type == HaxeTokenTypes.LITFLOAT) {

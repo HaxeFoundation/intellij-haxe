@@ -1,67 +1,67 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Value')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-        HAXE_DECLARATIONATTRIBUTELIST
-          HAXE_DECLARATIONATTRIBUTE
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        HAXE_DECLARATION_ATTRIBUTE_LIST
+          HAXE_DECLARATION_ATTRIBUTE
             HAXE_ACCESS
               PsiElement(public)('public')
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('odd')
         PsiElement(()('(')
-        HAXE_PARAMETERLIST
+        HAXE_PARAMETER_LIST
           HAXE_PARAMETER
-            HAXE_COMPONENTNAME
+            HAXE_COMPONENT_NAME
               HAXE_IDENTIFIER
                 PsiElement(ID)('x')
-            HAXE_TYPETAG
+            HAXE_TYPE_TAG
               PsiElement(:)(':')
-              HAXE_TYPEORANONYMOUS
+              HAXE_TYPE_OR_ANONYMOUS
                 HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
+                  HAXE_REFERENCE_EXPRESSION
                     HAXE_IDENTIFIER
                       PsiElement(ID)('Int')
         PsiElement())(')')
-        HAXE_TYPETAG
+        HAXE_TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_OR_ANONYMOUS
             HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('Bool')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_IFSTATEMENT
+          HAXE_IF_STATEMENT
             PsiElement(if)('if')
             PsiElement(()('(')
-            HAXE_COMPAREEXPRESSION
-              HAXE_MULTIPLICATIVEEXPRESSION
-                HAXE_REFERENCEEXPRESSION
+            HAXE_COMPARE_EXPRESSION
+              HAXE_MULTIPLICATIVE_EXPRESSION
+                HAXE_REFERENCE_EXPRESSION
                   HAXE_IDENTIFIER
                     PsiElement(ID)('x')
                 PsiElement(%)('%')
-                HAXE_LITERALEXPRESSION
+                HAXE_LITERAL_EXPRESSION
                   PsiElement(LITINT)('2')
-              HAXE_COMPAREOPERATION
+              HAXE_COMPARE_OPERATION
                 PsiElement(!=)('!=')
-              HAXE_LITERALEXPRESSION
+              HAXE_LITERAL_EXPRESSION
                 PsiElement(LITINT)('0')
             PsiElement())(')')
-            HAXE_RETURNSTATEMENT
+            HAXE_RETURN_STATEMENT
               PsiElement(return)('return')
-              HAXE_LITERALEXPRESSION
+              HAXE_LITERAL_EXPRESSION
                 PsiElement(true)('true')
               PsiElement(;)(';')
-          HAXE_RETURNSTATEMENT
+          HAXE_RETURN_STATEMENT
             PsiElement(return)('return')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(false)('false')
             PsiElement(;)(';')
           PsiElement(})('}')

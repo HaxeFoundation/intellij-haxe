@@ -33,13 +33,13 @@ public class HaxeWrappingProcessor {
     //
     // Function definition/call
     //
-    if (elementType == HAXE_PARAMETERLIST || elementType == HAXE_EXPRESSIONLIST) {
+    if (elementType == HAXE_PARAMETER_LIST || elementType == HAXE_EXPRESSION_LIST) {
       final ASTNode parent = myNode.getTreeParent();
       if (parent == null) {
         return defaultWrap;
       }
       final IElementType parentType = parent.getElementType();
-      if (parentType == HAXE_CALLEXPRESSION &&
+      if (parentType == HAXE_CALL_EXPRESSION &&
           mySettings.CALL_PARAMETERS_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP) {
         if (myNode.getFirstChildNode() == child) {
           return createWrap(mySettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE);
@@ -61,7 +61,7 @@ public class HaxeWrappingProcessor {
       }
     }
 
-    if (elementType == HAXE_CALLEXPRESSION) {
+    if (elementType == HAXE_CALL_EXPRESSION) {
       if (mySettings.CALL_PARAMETERS_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP) {
         if (childType == PRPAREN) {
           return createWrap(mySettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE);
@@ -72,7 +72,7 @@ public class HaxeWrappingProcessor {
     //
     // If
     //
-    if (elementType == HAXE_IFSTATEMENT && childType == KELSE) {
+    if (elementType == HAXE_IF_STATEMENT && childType == KELSE) {
       return createWrap(mySettings.ELSE_ON_NEW_LINE);
     }
 
@@ -89,9 +89,9 @@ public class HaxeWrappingProcessor {
     //
     // Assignment
     //
-    if (elementType == HAXE_ASSIGNEXPRESSION && mySettings.ASSIGNMENT_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP) {
-      if (childType != HAXE_ASSIGNOPERATION) {
-        if (FormatterUtil.isPrecededBy(child, HAXE_ASSIGNOPERATION) &&
+    if (elementType == HAXE_ASSIGN_EXPRESSION && mySettings.ASSIGNMENT_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP) {
+      if (childType != HAXE_ASSIGN_OPERATION) {
+        if (FormatterUtil.isPrecededBy(child, HAXE_ASSIGN_OPERATION) &&
             mySettings.PLACE_ASSIGNMENT_SIGN_ON_NEXT_LINE) {
           return Wrap.createWrap(WrapType.NONE, true);
         }
@@ -105,7 +105,7 @@ public class HaxeWrappingProcessor {
     //
     // Ternary expressions
     //
-    if (elementType == HAXE_TERNARYEXPRESSION) {
+    if (elementType == HAXE_TERNARY_EXPRESSION) {
       if (myNode.getFirstChildNode() != child) {
         if (mySettings.TERNARY_OPERATION_SIGNS_ON_NEXT_LINE) {
           if (!FormatterUtil.isPrecededBy(child, OQUEST) &&

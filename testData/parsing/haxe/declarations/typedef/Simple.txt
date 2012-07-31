@@ -1,32 +1,32 @@
 haXe File
-  HAXE_TYPEDEFDECLARATION
+  HAXE_TYPEDEF_DECLARATION
     PsiElement(typedef)('typedef')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('vi')
     PsiElement(=)('=')
-    HAXE_TYPEORANONYMOUS
+    HAXE_TYPE_OR_ANONYMOUS
       HAXE_TYPE
-        HAXE_REFERENCEEXPRESSION
+        HAXE_REFERENCE_EXPRESSION
           HAXE_IDENTIFIER
             PsiElement(ID)('Array')
-        HAXE_TYPEPARAM
+        HAXE_TYPE_PARAM
           PsiElement(<)('<')
-          HAXE_TYPELIST
-            HAXE_TYPELISTPART
-              HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_LIST
+            HAXE_TYPE_LIST_PART
+              HAXE_TYPE_OR_ANONYMOUS
                 HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
+                  HAXE_REFERENCE_EXPRESSION
                     HAXE_IDENTIFIER
                       PsiElement(ID)('Int')
           PsiElement(>)('>')
     PsiElement(;)(';')
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Simple')
     PsiElement({)('{')
-    HAXE_CLASSBODY
+    HAXE_CLASS_BODY
       <empty list>
     PsiElement(})('}')

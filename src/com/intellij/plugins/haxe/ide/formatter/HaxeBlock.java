@@ -53,7 +53,7 @@ public class HaxeBlock extends TemplateLanguageBlock {
   @Override
   @Nullable
   protected Alignment createChildAlignment(ASTNode child) {
-    if (child.getElementType() != HaxeTokenTypes.PLPAREN && child.getElementType() != HaxeTokenTypes.HAXE_BLOCKSTATEMENT) {
+    if (child.getElementType() != HaxeTokenTypes.PLPAREN && child.getElementType() != HaxeTokenTypes.HAXE_BLOCK_STATEMENT) {
       return myAlignmentProcessor.createChildAlignment();
     }
     return null;
@@ -113,8 +113,8 @@ public class HaxeBlock extends TemplateLanguageBlock {
 
   private static boolean isEndsWithRPAREN(IElementType elementType, IElementType prevType) {
     return prevType == HaxeTokenTypes.PRPAREN &&
-           (elementType == HaxeTokenTypes.HAXE_IFSTATEMENT ||
-            elementType == HaxeTokenTypes.HAXE_FORSTATEMENT ||
-            elementType == HaxeTokenTypes.HAXE_WHILESTATEMENT);
+           (elementType == HaxeTokenTypes.HAXE_IF_STATEMENT ||
+            elementType == HaxeTokenTypes.HAXE_FOR_STATEMENT ||
+            elementType == HaxeTokenTypes.HAXE_WHILE_STATEMENT);
   }
 }

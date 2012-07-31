@@ -1,55 +1,55 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Generic')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('f')
-        HAXE_GENERICPARAM
+        HAXE_GENERIC_PARAM
           PsiElement(<)('<')
-          HAXE_GENERICLISTPART
-            HAXE_COMPONENTNAME
+          HAXE_GENERIC_LIST_PART
+            HAXE_COMPONENT_NAME
               HAXE_IDENTIFIER
                 PsiElement(ID)('T')
           PsiElement(>)('>')
         PsiElement(()('(')
-        HAXE_PARAMETERLIST
+        HAXE_PARAMETER_LIST
           HAXE_PARAMETER
-            HAXE_COMPONENTNAME
+            HAXE_COMPONENT_NAME
               HAXE_IDENTIFIER
                 PsiElement(ID)('p')
-            HAXE_TYPETAG
+            HAXE_TYPE_TAG
               PsiElement(:)(':')
-              HAXE_TYPEORANONYMOUS
+              HAXE_TYPE_OR_ANONYMOUS
                 HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
+                  HAXE_REFERENCE_EXPRESSION
                     HAXE_IDENTIFIER
                       PsiElement(ID)('Class')
-                  HAXE_TYPEPARAM
+                  HAXE_TYPE_PARAM
                     PsiElement(<)('<')
-                    HAXE_TYPELIST
-                      HAXE_TYPELISTPART
-                        HAXE_TYPEORANONYMOUS
+                    HAXE_TYPE_LIST
+                      HAXE_TYPE_LIST_PART
+                        HAXE_TYPE_OR_ANONYMOUS
                           HAXE_TYPE
-                            HAXE_REFERENCEEXPRESSION
+                            HAXE_REFERENCE_EXPRESSION
                               HAXE_IDENTIFIER
                                 PsiElement(ID)('T')
                     PsiElement(>)('>')
         PsiElement())(')')
-        HAXE_TYPETAG
+        HAXE_TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_OR_ANONYMOUS
             HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('T')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
           PsiElement(})('}')
     PsiElement(})('}')

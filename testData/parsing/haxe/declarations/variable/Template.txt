@@ -1,31 +1,31 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Template')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_VARDECLARATION
+    HAXE_CLASS_BODY
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('foo')
-          HAXE_TYPETAG
+          HAXE_TYPE_TAG
             PsiElement(:)(':')
-            HAXE_TYPEORANONYMOUS
+            HAXE_TYPE_OR_ANONYMOUS
               HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
+                HAXE_REFERENCE_EXPRESSION
                   HAXE_IDENTIFIER
                     PsiElement(ID)('Bar')
-                HAXE_TYPEPARAM
+                HAXE_TYPE_PARAM
                   PsiElement(<)('<')
-                  HAXE_TYPELIST
-                    HAXE_TYPELISTPART
-                      HAXE_TYPEORANONYMOUS
+                  HAXE_TYPE_LIST
+                    HAXE_TYPE_LIST_PART
+                      HAXE_TYPE_OR_ANONYMOUS
                         HAXE_TYPE
-                          HAXE_REFERENCEEXPRESSION
+                          HAXE_REFERENCE_EXPRESSION
                             HAXE_IDENTIFIER
                               PsiElement(ID)('int')
                   PsiElement(>)('>')

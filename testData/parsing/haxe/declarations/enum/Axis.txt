@@ -1,23 +1,23 @@
 haXe File
-  HAXE_ENUMDECLARATION
+  HAXE_ENUM_DECLARATION
     PsiElement(enum)('enum')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Axis')
     PsiElement({)('{')
-    HAXE_ENUMBODY
-      HAXE_ENUMVALUEDECLARATION
-        HAXE_COMPONENTNAME
+    HAXE_ENUM_BODY
+      HAXE_ENUM_VALUE_DECLARATION
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('x')
         PsiElement(;)(';')
-      HAXE_ENUMVALUEDECLARATION
-        HAXE_COMPONENTNAME
+      HAXE_ENUM_VALUE_DECLARATION
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('y')
         PsiElement(;)(';')
-      HAXE_ENUMVALUEDECLARATION
-        HAXE_COMPONENTNAME
+      HAXE_ENUM_VALUE_DECLARATION
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('z')
         PsiElement(;)(';')

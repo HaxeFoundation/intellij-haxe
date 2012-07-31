@@ -1,86 +1,86 @@
 haXe File
-  HAXE_EXTERNCLASSDECLARATION
+  HAXE_EXTERN_CLASS_DECLARATION
     PsiElement(@:final)('@:final')
     PsiElement(extern)('extern')
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('NativeRandom')
     PsiElement({)('{')
-    HAXE_EXTERNCLASSDECLARATIONBODY
-      HAXE_EXTERNFUNCTIONDECLARATION
-        HAXE_DECLARATIONATTRIBUTELIST
-          HAXE_DECLARATIONATTRIBUTE
+    HAXE_EXTERN_CLASS_DECLARATION_BODY
+      HAXE_EXTERN_FUNCTION_DECLARATION
+        HAXE_DECLARATION_ATTRIBUTE_LIST
+          HAXE_DECLARATION_ATTRIBUTE
             HAXE_ACCESS
               PsiElement(public)('public')
-          HAXE_DECLARATIONATTRIBUTE
+          HAXE_DECLARATION_ATTRIBUTE
             PsiElement(static)('static')
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('rand')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPETAG
+        HAXE_TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_OR_ANONYMOUS
             HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('Int')
         PsiElement(;)(';')
-      HAXE_EXTERNFUNCTIONDECLARATION
+      HAXE_EXTERN_FUNCTION_DECLARATION
         PsiElement(@:macro)('@:macro')
-        HAXE_REQUIREMETA
+        HAXE_REQUIRE_META
           PsiElement(@:require)('@:require')
           PsiElement(()('(')
           HAXE_IDENTIFIER
             PsiElement(ID)('something')
           PsiElement())(')')
-        HAXE_DECLARATIONATTRIBUTELIST
-          HAXE_DECLARATIONATTRIBUTE
+        HAXE_DECLARATION_ATTRIBUTE_LIST
+          HAXE_DECLARATION_ATTRIBUTE
             HAXE_ACCESS
               PsiElement(public)('public')
-          HAXE_DECLARATIONATTRIBUTE
+          HAXE_DECLARATION_ATTRIBUTE
             PsiElement(static)('static')
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('rand')
         PsiElement(()('(')
-        HAXE_PARAMETERLIST
+        HAXE_PARAMETER_LIST
           HAXE_PARAMETER
-            HAXE_COMPONENTNAME
+            HAXE_COMPONENT_NAME
               HAXE_IDENTIFIER
                 PsiElement(ID)('n')
-            HAXE_TYPETAG
+            HAXE_TYPE_TAG
               PsiElement(:)(':')
-              HAXE_TYPEORANONYMOUS
+              HAXE_TYPE_OR_ANONYMOUS
                 HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
+                  HAXE_REFERENCE_EXPRESSION
                     HAXE_IDENTIFIER
                       PsiElement(ID)('Int')
         PsiElement())(')')
-        HAXE_TYPETAG
+        HAXE_TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_OR_ANONYMOUS
             HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('Int')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_RETURNSTATEMENT
+          HAXE_RETURN_STATEMENT
             PsiElement(return)('return')
-            HAXE_MULTIPLICATIVEEXPRESSION
-              HAXE_CALLEXPRESSION
-                HAXE_REFERENCEEXPRESSION
+            HAXE_MULTIPLICATIVE_EXPRESSION
+              HAXE_CALL_EXPRESSION
+                HAXE_REFERENCE_EXPRESSION
                   HAXE_IDENTIFIER
                     PsiElement(ID)('rand')
                 PsiElement(()('(')
                 PsiElement())(')')
               PsiElement(%)('%')
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('n')
             PsiElement(;)(';')

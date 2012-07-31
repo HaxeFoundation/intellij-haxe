@@ -1,31 +1,31 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Simple')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_THROWSTATEMENT
+          HAXE_THROW_STATEMENT
             PsiElement(throw)('throw')
-            HAXE_NEWEXPRESSION
+            HAXE_NEW_EXPRESSION
               PsiElement(new)('new')
               HAXE_TYPE
-                HAXE_REFERENCEEXPRESSION
+                HAXE_REFERENCE_EXPRESSION
                   HAXE_IDENTIFIER
                     PsiElement(ID)('Error')
               PsiElement(()('(')
-              HAXE_EXPRESSIONLIST
-                HAXE_LITERALEXPRESSION
+              HAXE_EXPRESSION_LIST
+                HAXE_LITERAL_EXPRESSION
                   PsiElement(LITSTRING)('"invalid foo"')
               PsiElement())(')')
             PsiElement(;)(';')

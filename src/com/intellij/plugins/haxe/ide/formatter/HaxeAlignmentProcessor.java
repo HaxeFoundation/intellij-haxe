@@ -35,16 +35,16 @@ public class HaxeAlignmentProcessor {
       return myBaseAlignment;
     }
 
-    if (elementType == HAXE_TERNARYEXPRESSION && mySettings.ALIGN_MULTILINE_TERNARY_OPERATION) {
+    if (elementType == HAXE_TERNARY_EXPRESSION && mySettings.ALIGN_MULTILINE_TERNARY_OPERATION) {
       return myBaseAlignment;
     }
 
-    if (elementType == HAXE_PARAMETERLIST || elementType == HAXE_EXPRESSIONLIST) {
+    if (elementType == HAXE_PARAMETER_LIST || elementType == HAXE_EXPRESSION_LIST) {
       boolean doAlign = false;
       if (FUNCTION_DEFINITION.contains(parentType)) {
         doAlign = mySettings.ALIGN_MULTILINE_PARAMETERS;
       }
-      else if (parentType == HAXE_CALLEXPRESSION) {
+      else if (parentType == HAXE_CALL_EXPRESSION) {
         doAlign = mySettings.ALIGN_MULTILINE_PARAMETERS_IN_CALLS;
       }
       if (doAlign) {

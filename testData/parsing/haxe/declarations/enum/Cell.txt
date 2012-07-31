@@ -1,60 +1,60 @@
 haXe File
-  HAXE_ENUMDECLARATION
+  HAXE_ENUM_DECLARATION
     PsiElement(enum)('enum')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Cell')
-    HAXE_GENERICPARAM
+    HAXE_GENERIC_PARAM
       PsiElement(<)('<')
-      HAXE_GENERICLISTPART
-        HAXE_COMPONENTNAME
+      HAXE_GENERIC_LIST_PART
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('T')
       PsiElement(>)('>')
     PsiElement({)('{')
-    HAXE_ENUMBODY
-      HAXE_ENUMVALUEDECLARATION
-        HAXE_COMPONENTNAME
+    HAXE_ENUM_BODY
+      HAXE_ENUM_VALUE_DECLARATION
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('empty')
         PsiElement(;)(';')
-      HAXE_ENUMVALUEDECLARATION
-        HAXE_COMPONENTNAME
+      HAXE_ENUM_VALUE_DECLARATION
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('cons')
-        HAXE_ENUMCONSTRUCTORPARAMETERS
+        HAXE_ENUM_CONSTRUCTOR_PARAMETERS
           PsiElement(()('(')
-          HAXE_PARAMETERLIST
+          HAXE_PARAMETER_LIST
             HAXE_PARAMETER
-              HAXE_COMPONENTNAME
+              HAXE_COMPONENT_NAME
                 HAXE_IDENTIFIER
                   PsiElement(ID)('item')
-              HAXE_TYPETAG
+              HAXE_TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPEORANONYMOUS
+                HAXE_TYPE_OR_ANONYMOUS
                   HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
+                    HAXE_REFERENCE_EXPRESSION
                       HAXE_IDENTIFIER
                         PsiElement(ID)('T')
             PsiElement(,)(',')
             HAXE_PARAMETER
-              HAXE_COMPONENTNAME
+              HAXE_COMPONENT_NAME
                 HAXE_IDENTIFIER
                   PsiElement(ID)('next')
-              HAXE_TYPETAG
+              HAXE_TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPEORANONYMOUS
+                HAXE_TYPE_OR_ANONYMOUS
                   HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
+                    HAXE_REFERENCE_EXPRESSION
                       HAXE_IDENTIFIER
                         PsiElement(ID)('Cell')
-                    HAXE_TYPEPARAM
+                    HAXE_TYPE_PARAM
                       PsiElement(<)('<')
-                      HAXE_TYPELIST
-                        HAXE_TYPELISTPART
-                          HAXE_TYPEORANONYMOUS
+                      HAXE_TYPE_LIST
+                        HAXE_TYPE_LIST_PART
+                          HAXE_TYPE_OR_ANONYMOUS
                             HAXE_TYPE
-                              HAXE_REFERENCEEXPRESSION
+                              HAXE_REFERENCE_EXPRESSION
                                 HAXE_IDENTIFIER
                                   PsiElement(ID)('T')
                       PsiElement(>)('>')

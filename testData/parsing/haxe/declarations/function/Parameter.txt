@@ -1,42 +1,42 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Parameter')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
-        HAXE_DECLARATIONATTRIBUTELIST
-          HAXE_DECLARATIONATTRIBUTE
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        HAXE_DECLARATION_ATTRIBUTE_LIST
+          HAXE_DECLARATION_ATTRIBUTE
             HAXE_ACCESS
               PsiElement(public)('public')
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
-        HAXE_PARAMETERLIST
+        HAXE_PARAMETER_LIST
           HAXE_PARAMETER
-            HAXE_COMPONENTNAME
+            HAXE_COMPONENT_NAME
               HAXE_IDENTIFIER
                 PsiElement(ID)('param1')
-            HAXE_TYPETAG
+            HAXE_TYPE_TAG
               PsiElement(:)(':')
-              HAXE_TYPEORANONYMOUS
+              HAXE_TYPE_OR_ANONYMOUS
                 HAXE_TYPE
-                  HAXE_REFERENCEEXPRESSION
+                  HAXE_REFERENCE_EXPRESSION
                     HAXE_IDENTIFIER
                       PsiElement(ID)('int')
         PsiElement())(')')
-        HAXE_TYPETAG
+        HAXE_TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_OR_ANONYMOUS
             HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('void')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
           PsiElement(})('}')
     PsiElement(})('}')

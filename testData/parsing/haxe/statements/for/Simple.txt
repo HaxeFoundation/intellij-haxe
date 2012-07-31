@@ -1,51 +1,51 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Simple')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPETAG
+        HAXE_TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_OR_ANONYMOUS
             HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('void')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_FORSTATEMENT
+          HAXE_FOR_STATEMENT
             PsiElement(for)('for')
             PsiElement(()('(')
-            HAXE_COMPONENTNAME
+            HAXE_COMPONENT_NAME
               HAXE_IDENTIFIER
                 PsiElement(ID)('i')
             PsiElement(in)('in')
             HAXE_ITERABLE
-              HAXE_ITERATOREXPRESSION
-                HAXE_LITERALEXPRESSION
+              HAXE_ITERATOR_EXPRESSION
+                HAXE_LITERAL_EXPRESSION
                   PsiElement(LITINT)('1')
                 PsiElement(...)('...')
-                HAXE_LITERALEXPRESSION
+                HAXE_LITERAL_EXPRESSION
                   PsiElement(LITINT)('11')
             PsiElement())(')')
-            HAXE_BLOCKSTATEMENT
+            HAXE_BLOCK_STATEMENT
               PsiElement({)('{')
-              HAXE_CALLEXPRESSION
-                HAXE_REFERENCEEXPRESSION
+              HAXE_CALL_EXPRESSION
+                HAXE_REFERENCE_EXPRESSION
                   HAXE_IDENTIFIER
                     PsiElement(ID)('trace')
                 PsiElement(()('(')
-                HAXE_EXPRESSIONLIST
-                  HAXE_REFERENCEEXPRESSION
+                HAXE_EXPRESSION_LIST
+                  HAXE_REFERENCE_EXPRESSION
                     HAXE_IDENTIFIER
                       PsiElement(ID)('i')
                 PsiElement())(')')

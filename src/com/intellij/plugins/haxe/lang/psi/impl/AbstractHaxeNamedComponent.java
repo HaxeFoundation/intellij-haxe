@@ -96,7 +96,9 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             haxeClass = typedefDeclaration;
           }
         }
-        assert haxeClass != null;
+        if(haxeClass == null) {
+          return "";
+        }
         final Pair<String, String> qName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
         if (haxeClass == AbstractHaxeNamedComponent.this) {
           return qName.getFirst();

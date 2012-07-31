@@ -1,17 +1,17 @@
 haXe File
-  HAXE_PACKAGESTATEMENT
+  HAXE_PACKAGE_STATEMENT
     PsiElement(package)('package')
-    HAXE_REFERENCEEXPRESSION
-      HAXE_REFERENCEEXPRESSION
-        HAXE_REFERENCEEXPRESSION
+    HAXE_REFERENCE_EXPRESSION
+      HAXE_REFERENCE_EXPRESSION
+        HAXE_REFERENCE_EXPRESSION
           HAXE_IDENTIFIER
             PsiElement(ID)('com')
         PsiElement(.)('.')
-        HAXE_REFERENCEEXPRESSION
+        HAXE_REFERENCE_EXPRESSION
           HAXE_IDENTIFIER
             PsiElement(ID)('fedor')
       PsiElement(.)('.')
-      HAXE_REFERENCEEXPRESSION
+      HAXE_REFERENCE_EXPRESSION
         HAXE_IDENTIFIER
           PsiElement(ID)('test')
     PsiElement(;)(';')

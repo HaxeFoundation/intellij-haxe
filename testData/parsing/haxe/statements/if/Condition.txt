@@ -1,58 +1,58 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Condition')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPETAG
+        HAXE_TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPEORANONYMOUS
+          HAXE_TYPE_OR_ANONYMOUS
             HAXE_TYPE
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('void')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_IFSTATEMENT
+          HAXE_IF_STATEMENT
             PsiElement(if)('if')
             PsiElement(()('(')
-            HAXE_LOGICANDEXPRESSION
-              HAXE_CALLEXPRESSION
-                HAXE_REFERENCEEXPRESSION
+            HAXE_LOGIC_AND_EXPRESSION
+              HAXE_CALL_EXPRESSION
+                HAXE_REFERENCE_EXPRESSION
                   HAXE_IDENTIFIER
                     PsiElement(ID)('isPrime')
                 PsiElement(()('(')
-                HAXE_EXPRESSIONLIST
-                  HAXE_LITERALEXPRESSION
+                HAXE_EXPRESSION_LIST
+                  HAXE_LITERAL_EXPRESSION
                     PsiElement(LITINT)('239')
                 PsiElement())(')')
               PsiElement(&&)('&&')
-              HAXE_PARENTHESIZEDEXPRESSION
+              HAXE_PARENTHESIZED_EXPRESSION
                 PsiElement(()('(')
-                HAXE_COMPAREEXPRESSION
-                  HAXE_BITWISEEXPRESSION
-                    HAXE_LITERALEXPRESSION
+                HAXE_COMPARE_EXPRESSION
+                  HAXE_BITWISE_EXPRESSION
+                    HAXE_LITERAL_EXPRESSION
                       PsiElement(LITINT)('3')
-                    HAXE_BITOPERATION
+                    HAXE_BIT_OPERATION
                       PsiElement(^)('^')
-                    HAXE_LITERALEXPRESSION
+                    HAXE_LITERAL_EXPRESSION
                       PsiElement(LITINT)('5')
-                  HAXE_COMPAREOPERATION
+                  HAXE_COMPARE_OPERATION
                     PsiElement(==)('==')
-                  HAXE_LITERALEXPRESSION
+                  HAXE_LITERAL_EXPRESSION
                     PsiElement(LITINT)('6')
                 PsiElement())(')')
             PsiElement())(')')
-            HAXE_BLOCKSTATEMENT
+            HAXE_BLOCK_STATEMENT
               PsiElement({)('{')
               PsiElement(})('}')
           PsiElement(})('}')

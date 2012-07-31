@@ -1,145 +1,145 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Constants')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_VARDECLARATION
+    HAXE_CLASS_BODY
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a1')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(LITINT)('0')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a2')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_PREFIXEXPRESSION
+            HAXE_PREFIX_EXPRESSION
               PsiElement(-)('-')
-              HAXE_LITERALEXPRESSION
+              HAXE_LITERAL_EXPRESSION
                 PsiElement(LITINT)('134')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a3')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(LITHEX)('0xFF00')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a4')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(LITFLOAT)('123.0')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a5')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(null)('null')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a6')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(LITFLOAT)('13e50')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a7')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_PREFIXEXPRESSION
+            HAXE_PREFIX_EXPRESSION
               PsiElement(-)('-')
-              HAXE_LITERALEXPRESSION
+              HAXE_LITERAL_EXPRESSION
                 PsiElement(LITFLOAT)('1e-99')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a8')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(LITSTRING)('"hello"')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a9')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(LITSTRING)('"hello \"world\" !"')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a10')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(LITCHAR)(''hello "world" !'')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a11')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(true)('true')
         PsiElement(;)(';')
-      HAXE_VARDECLARATION
+      HAXE_VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VARDECLARATIONPART
-          HAXE_COMPONENTNAME
+        HAXE_VAR_DECLARATION_PART
+          HAXE_COMPONENT_NAME
             HAXE_IDENTIFIER
               PsiElement(ID)('a12')
-          HAXE_VARINIT
+          HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERALEXPRESSION
+            HAXE_LITERAL_EXPRESSION
               PsiElement(false)('false')
         PsiElement(;)(';')
     PsiElement(})('}')

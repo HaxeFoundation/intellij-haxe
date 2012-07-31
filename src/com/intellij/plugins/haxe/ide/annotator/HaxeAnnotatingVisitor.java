@@ -33,7 +33,7 @@ public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
 
   @Override
   public void visitReference(@NotNull HaxeReference reference) {
-    if (reference.getTokenType() != HaxeTokenTypes.HAXE_REFERENCEEXPRESSION) {
+    if (reference.getTokenType() != HaxeTokenTypes.HAXE_REFERENCE_EXPRESSION) {
       return; // call, array access, this, literal, etc
     }
     final HaxeReference leftSiblingReference = HaxeResolveUtil.getLeftReference(reference);

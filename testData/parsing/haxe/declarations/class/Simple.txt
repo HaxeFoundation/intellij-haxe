@@ -1,10 +1,10 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Simple')
     PsiElement({)('{')
-    HAXE_CLASSBODY
+    HAXE_CLASS_BODY
       <empty list>
     PsiElement(})('}')

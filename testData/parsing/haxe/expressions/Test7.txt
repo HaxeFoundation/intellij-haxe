@@ -1,78 +1,78 @@
 haXe File
-  HAXE_CLASSDECLARATION
+  HAXE_CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENTNAME
+    HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
         PsiElement(ID)('Test7')
     PsiElement({)('{')
-    HAXE_CLASSBODY
-      HAXE_FUNCTIONDECLARATIONWITHATTRIBUTES
+    HAXE_CLASS_BODY
+      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENTNAME
+        HAXE_COMPONENT_NAME
           HAXE_IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCKSTATEMENT
+        HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_RETURNSTATEMENT
+          HAXE_RETURN_STATEMENT
             PsiElement(return)('return')
-            HAXE_PREFIXEXPRESSION
-              HAXE_SWITCHSTATEMENT
+            HAXE_PREFIX_EXPRESSION
+              HAXE_SWITCH_STATEMENT
                 PsiElement(switch)('switch')
-                HAXE_PARENTHESIZEDEXPRESSION
+                HAXE_PARENTHESIZED_EXPRESSION
                   PsiElement(()('(')
-                  HAXE_REFERENCEEXPRESSION
+                  HAXE_REFERENCE_EXPRESSION
                     HAXE_IDENTIFIER
                       PsiElement(ID)('obj')
                   PsiElement())(')')
-                HAXE_SWITCHBLOCK
+                HAXE_SWITCH_BLOCK
                   PsiElement({)('{')
-                  HAXE_SWITCHCASE
+                  HAXE_SWITCH_CASE
                     PsiElement(case)('case')
-                    HAXE_LITERALEXPRESSION
+                    HAXE_LITERAL_EXPRESSION
                       PsiElement(LITINT)('0')
                     PsiElement(:)(':')
-                    HAXE_SWITCHCASEBLOCK
-                      HAXE_CASTEXPRESSION
+                    HAXE_SWITCH_CASE_BLOCK
+                      HAXE_CAST_EXPRESSION
                         PsiElement(cast)('cast')
                         PsiElement(()('(')
-                        HAXE_OBJECTLITERAL
+                        HAXE_OBJECT_LITERAL
                           PsiElement({)('{')
                           PsiElement(})('}')
                         PsiElement(,)(',')
-                        HAXE_TYPEORANONYMOUS
+                        HAXE_TYPE_OR_ANONYMOUS
                           HAXE_TYPE
-                            HAXE_REFERENCEEXPRESSION
+                            HAXE_REFERENCE_EXPRESSION
                               HAXE_IDENTIFIER
                                 PsiElement(ID)('Test7')
                         PsiElement())(')')
                       PsiElement(;)(';')
-                  HAXE_DEFAULTCASE
+                  HAXE_DEFAULT_CASE
                     PsiElement(default)('default')
                     PsiElement(:)(':')
-                    HAXE_SWITCHCASEBLOCK
-                      HAXE_LITERALEXPRESSION
+                    HAXE_SWITCH_CASE_BLOCK
+                      HAXE_LITERAL_EXPRESSION
                         PsiElement(LITSTRING)('"NotZero"')
                       PsiElement(;)(';')
                   PsiElement(})('}')
             PsiElement(;)(';')
-          HAXE_CALLEXPRESSION
-            HAXE_REFERENCEEXPRESSION
-              HAXE_CASTEXPRESSION
+          HAXE_CALL_EXPRESSION
+            HAXE_REFERENCE_EXPRESSION
+              HAXE_CAST_EXPRESSION
                 PsiElement(cast)('cast')
                 PsiElement(()('(')
-                HAXE_LITERALEXPRESSION
+                HAXE_LITERAL_EXPRESSION
                   PsiElement(LITFLOAT)('0.')
                 PsiElement(,)(',')
-                HAXE_TYPEORANONYMOUS
+                HAXE_TYPE_OR_ANONYMOUS
                   HAXE_TYPE
-                    HAXE_REFERENCEEXPRESSION
+                    HAXE_REFERENCE_EXPRESSION
                       HAXE_IDENTIFIER
                         PsiElement(ID)('ITest')
                 PsiElement())(')')
               PsiElement(.)('.')
-              HAXE_REFERENCEEXPRESSION
+              HAXE_REFERENCE_EXPRESSION
                 HAXE_IDENTIFIER
                   PsiElement(ID)('test')
             PsiElement(()('(')
