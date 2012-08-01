@@ -81,6 +81,6 @@ public class HaxeClassReferenceImpl extends HaxeExpressionImpl implements HaxeRe
       typeOrAnonymous = functionType.getTypeOrAnonymousList().iterator().next();
     }
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : PsiTreeUtil.getChildOfType(this, HaxeType.class);
-    return new HaxeClassResolveResult(HaxeResolveUtil.tryResolveClassByQName(type));
+    return HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
   }
 }

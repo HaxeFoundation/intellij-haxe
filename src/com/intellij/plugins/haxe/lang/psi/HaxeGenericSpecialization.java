@@ -11,12 +11,21 @@ import java.util.Map;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeGenericSpecialization {
+public class HaxeGenericSpecialization implements Cloneable {
   public static final HaxeGenericSpecialization EMPTY = new HaxeGenericSpecialization();
   final Map<String, HaxeClassResolveResult> map;
 
   public HaxeGenericSpecialization() {
     this(new THashMap<String, HaxeClassResolveResult>());
+  }
+
+  @Override
+  protected HaxeGenericSpecialization clone() {
+    final Map<String, HaxeClassResolveResult> clonedMap = new THashMap<String, HaxeClassResolveResult>();
+    for (String key : map.keySet()) {
+      clonedMap.put(key, map.get(key));
+    }
+    return new HaxeGenericSpecialization(clonedMap);
   }
 
   protected HaxeGenericSpecialization(Map<String, HaxeClassResolveResult> map) {

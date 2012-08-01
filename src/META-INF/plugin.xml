@@ -180,6 +180,8 @@
 
     <projectService serviceInterface="com.intellij.plugins.haxe.config.HaxeProjectSettings"
                     serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
+    <projectService serviceInterface="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"
+                    serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeSettingsConfigurable"/>
 
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>

@@ -69,8 +69,8 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(callExpression.getExpression(), HaxeReference.class);
       final HaxeClassResolveResult resolveResult = (references != null && references.length == 2)
                                                    ? references[0].resolveHaxeClass()
-                                                   : new HaxeClassResolveResult(
-                                                     PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class));
+                                                   : HaxeClassResolveResult
+                                                     .create(PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class));
       return HaxeFunctionDescription.createDescription((HaxeNamedComponent)targetParent, resolveResult);
     }
     return null;
@@ -93,13 +93,15 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
           break;
         }
       }
-    } else if (UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(place, true) instanceof HaxeExpressionList){
+    }
+    else if (UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(place, true) instanceof HaxeExpressionList) {
       // seems foo(param1, param2<caret>)
       final PsiElement prevSibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(place, true);
       assert prevSibling != null;
       final HaxeFunctionDescription functionDescription = tryGetDescription((HaxeCallExpression)prevSibling.getParent());
       parameterIndex = functionDescription == null ? -1 : functionDescription.getParameters().length - 1;
-    } else if (PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, true) != null){
+    }
+    else if (PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, true) != null) {
       // seems foo(<caret>)
       parameterIndex = 0;
     }

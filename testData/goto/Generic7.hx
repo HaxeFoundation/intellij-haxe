@@ -1,5 +1,16 @@
-typedef Foo<T> = {>A<A<Foo>>}
+class A extends B<C> {}
 
-class A<T> {
-  function get():T {}
+class C extends D<A> {}
+
+class B<U> {
+  function foo(){}
+}
+
+class D<V> {}
+
+class Generic7 {
+  function test(){
+    var tmp = new A();
+    tmp.fo<caret>o();
+  }
 }

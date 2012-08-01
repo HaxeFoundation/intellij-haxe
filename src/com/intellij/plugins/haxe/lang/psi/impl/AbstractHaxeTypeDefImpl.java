@@ -23,10 +23,10 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
     if (haxeTypeOrAnonymous == null) {
       // cause parse error
-      return new HaxeClassResolveResult(null);
+      return HaxeClassResolveResult.create(null);
     }
     if (haxeTypeOrAnonymous.getAnonymousType() != null) {
-      return new HaxeClassResolveResult(haxeTypeOrAnonymous.getAnonymousType(), specialization);
+      return HaxeClassResolveResult.create(haxeTypeOrAnonymous.getAnonymousType(), specialization);
     }
     return HaxeResolveUtil.getHaxeClassResolveResult(haxeTypeOrAnonymous.getType(), specialization);
   }
@@ -97,6 +97,4 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     }
     return super.findMethodByName(name);
   }
-
-
 }

@@ -25,7 +25,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
 
   public BaseCreateMethodsFix(final HaxeClass haxeClass) {
     myHaxeClass = haxeClass;
-    specializations = new HaxeClassResolveResult(haxeClass).getSpecialization();
+    specializations = HaxeClassResolveResult.create(haxeClass).getSpecialization();
   }
 
   protected void evalAnchor(@Nullable Editor editor, PsiFile file) {
@@ -67,7 +67,8 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
 
   protected abstract String buildFunctionsText(T e);
 
-  public PsiElement doAddMethodsForOne(final Project project, final String functionsText, PsiElement anchor) throws IncorrectOperationException {
+  public PsiElement doAddMethodsForOne(final Project project, final String functionsText, PsiElement anchor)
+    throws IncorrectOperationException {
     if (functionsText != null && functionsText.length() > 0) {
       List<HaxeNamedComponent> elements = HaxeElementGenerator.createFunctionsFromText(project, functionsText);
       final PsiElement insert = myHaxeClass instanceof HaxeClassDeclaration ?
