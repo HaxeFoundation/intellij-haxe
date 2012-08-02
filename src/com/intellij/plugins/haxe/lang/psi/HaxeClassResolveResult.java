@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -31,10 +32,12 @@ public class HaxeClassResolveResult implements Cloneable {
     return new HaxeClassResolveResult(haxeClass, specialization.clone());
   }
 
+  @NotNull
   public static HaxeClassResolveResult create(@Nullable HaxeClass aClass) {
     return create(aClass, new HaxeGenericSpecialization());
   }
 
+  @NotNull
   public static HaxeClassResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
     if (aClass == null) {
       return new HaxeClassResolveResult(null);
@@ -107,7 +110,8 @@ public class HaxeClassResolveResult implements Cloneable {
     final HaxeTypeList typeList = param.getTypeList();
     for (int i = 0, size = genericParam.getGenericListPartList().size(); i < size; i++) {
       HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
-      final HaxeType specializedType = typeList.getTypeListPartList().get(i).getTypeOrAnonymous().getType();
+      final HaxeTypeOrAnonymous typeOrAnonymous = typeList.getTypeListPartList().get(i).getTypeOrAnonymous();
+      final HaxeType specializedType = typeOrAnonymous == null ? null : typeOrAnonymous.getType();
       if (haxeGenericListPart.getText() == null || specializedType == null) continue;
       specialization
         .put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization));

@@ -43,7 +43,8 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   }
 
   private List<PsiElement> getDeclarationElementToProcess(PsiElement lastParent) {
-    final PsiElement stopper = this instanceof HaxeBlockStatement ? lastParent : null;
+    final boolean isBlock = this instanceof HaxeBlockStatement || this instanceof HaxeSwitchCaseBlock;
+    final PsiElement stopper = isBlock ? lastParent : null;
     final List<PsiElement> result = new ArrayList<PsiElement>();
     addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeVarDeclaration.class));
     addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclaration.class, stopper));
