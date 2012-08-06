@@ -8,7 +8,6 @@ import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -27,7 +26,7 @@ import java.util.*;
  */
 public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClassInfo> {
   public static final ID<String, HaxeClassInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeComponentIndex");
-  private static final int INDEX_VERSION = 1;
+  private static final int INDEX_VERSION = 2;
   private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<HaxeClassInfo> myExternalizer = new HaxeClassInfoExternalizer();
 
@@ -120,14 +119,14 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
-      final String packageName = UsefulPsiTreeUtil.findPackageName(psiFile);
       final Map<String, HaxeClassInfo> result = new THashMap<String, HaxeClassInfo>(classes.size());
       for (HaxeClass haxeClass : classes) {
-        final String name = haxeClass.getName();
-        final HaxeClassInfo info = new HaxeClassInfo(packageName, HaxeComponentType.typeOf(haxeClass));
-        if (name != null) {
-          result.put(name, info);
+        if (haxeClass.getName() == null) {
+          continue;
         }
+        final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
+        final HaxeClassInfo info = new HaxeClassInfo(packageAndName.getFirst(), HaxeComponentType.typeOf(haxeClass));
+        result.put(packageAndName.getSecond(), info);
       }
       return result;
     }

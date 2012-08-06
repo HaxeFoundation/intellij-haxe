@@ -4,6 +4,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
@@ -56,7 +57,10 @@ public class HaxeResolveUtil {
   public static String joinQName(@Nullable String packageName, @Nullable String className) {
     String result = "";
     if (packageName != null && !packageName.isEmpty()) {
-      result = packageName + ".";
+      result = packageName;
+      if (className != null) {
+        result += ".";
+      }
     }
     if (className != null) {
       result += className;
@@ -428,14 +432,22 @@ public class HaxeResolveUtil {
     if (result.indexOf('.') == -1) {
       final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(type, result);
       final HaxeExpression expression = importStatement == null ? null : importStatement.getExpression();
+      final PsiFile psiFile = type.getContainingFile();
+      final String packageName = getPackageName(psiFile);
+
+      final String fileName = FileUtil.getNameWithoutExtension(psiFile.getName());
+      final boolean hasDeclarationInTheSameFile = findComponentDeclaration(psiFile, result) != null;
+      final boolean fileHasDeclaration = findComponentDeclaration(psiFile, fileName) != null;
+
       if (importStatement != null && expression != null) {
         result = expression.getText();
       }
-      else if (searchInSamePackage) {
-        final String packageName = getPackageName(type.getContainingFile());
-        if (!packageName.isEmpty()) {
-          result = packageName + "." + result;
-        }
+      else if (hasDeclarationInTheSameFile && fileHasDeclaration) {
+        final String packageNameForClass = joinQName(packageName, fileName.equals(result) ? null : fileName);
+        result = joinQName(packageNameForClass, result);
+      }
+      else if (searchInSamePackage && !packageName.isEmpty()) {
+        result = packageName + "." + result;
       }
     }
     return result;

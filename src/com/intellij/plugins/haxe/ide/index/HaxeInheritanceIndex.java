@@ -30,7 +30,7 @@ import java.util.*;
  */
 public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeClassInfo> {
   public static final ID<String, HaxeClassInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeInheritanceIndex");
-  private static final int INDEX_VERSION = 2;
+  private static final int INDEX_VERSION = 3;
   private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<HaxeClassInfo> myExternalizer = new HaxeClassInfoExternalizer();
   public static final FileBasedIndex.InputFilter HAXE_INPUT_FILTER = new FileBasedIndex.InputFilter() {
@@ -106,12 +106,12 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
         }
         else {
           for (HaxeType haxeType : haxeClass.getExtendsList()) {
-            if(haxeType == null) continue;
+            if (haxeType == null) continue;
             final String key = HaxeResolveUtil.getQName(haxeType, true);
             result.put(key, value);
           }
           for (HaxeType haxeType : haxeClass.getImplementsList()) {
-            if(haxeType == null) continue;
+            if (haxeType == null) continue;
             final String key = HaxeResolveUtil.getQName(haxeType, true);
             result.put(key, value);
           }

@@ -2,11 +2,9 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -32,11 +30,22 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public String getQualifiedName() {
     final String name = getName();
-    if(getParent() == null) {
+    if (getParent() == null) {
       return name == null ? "" : name;
     }
-    final String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
+    final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
+    String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
+    if (notPublicClass(name, fileName)) {
+      packageName = HaxeResolveUtil.joinQName(packageName, fileName);
+    }
     return HaxeResolveUtil.joinQName(packageName, name);
+  }
+
+  private boolean notPublicClass(String name, String fileName) {
+    if (this instanceof HaxeExternClassDeclaration) {
+      return false;
+    }
+    return !fileName.equals(name) && HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null;
   }
 
   @Override

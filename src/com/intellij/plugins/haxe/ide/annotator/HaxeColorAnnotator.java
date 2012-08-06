@@ -68,7 +68,7 @@ public class HaxeColorAnnotator implements Annotator {
       final int offset = pair.getSecond();
       final int absoluteOffset = node.getTextOffset() + offset;
       final TextRange range = new TextRange(absoluteOffset, absoluteOffset + word.length());
-      final Annotation annotation = holder.createWarningAnnotation(range, null);
+      final Annotation annotation = holder.createInfoAnnotation(range, null);
       final String attributeName = definitions.contains(word) ? HaxeSyntaxHighlighterColors.HAXE_DEFINED_VAR
                                                               : HaxeSyntaxHighlighterColors.HAXE_UNDEFINED_VAR;
       annotation.setTextAttributes(TextAttributesKey.find(attributeName));

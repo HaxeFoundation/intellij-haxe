@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.ide.index;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Processor;
@@ -23,7 +22,7 @@ import java.util.Map;
  */
 public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
   public static final ID<String, Void> HAXE_COMPONENT_FILE_NAME_INDEX = ID.create("HaxeComponentFileNameIndex");
-  private static final int INDEX_VERSION = 0;
+  private static final int INDEX_VERSION = 1;
   private DataIndexer<String, Void, FileContent> myDataIndexer = new MyDataIndexer();
 
   @NotNull
@@ -87,12 +86,11 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
-      final String packageName = UsefulPsiTreeUtil.findPackageName(psiFile);
       final Map<String, Void> result = new THashMap<String, Void>(classes.size());
       for (HaxeClass haxeClass : classes) {
         final String className = haxeClass.getName();
         if (className != null) {
-          result.put(HaxeResolveUtil.joinQName(packageName, className), null);
+          result.put(haxeClass.getQualifiedName(), null);
         }
       }
       return result;

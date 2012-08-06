@@ -1,4 +1,4 @@
 import com.utils.MathUtil;
-class HelperClass {
+class HelperClass1 {
   var helper:Abs<caret>Helper;
 }
