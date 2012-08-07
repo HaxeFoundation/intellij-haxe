@@ -46,14 +46,21 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // foo.bar.baz
     final HaxeReference referenceExpression = HaxeResolveUtil.getLeftReference(reference);
     if (referenceExpression != null && reference.getParent() instanceof HaxeReference) {
-      return resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), reference.getText());
+      final HaxeComponentName componentName = tryResolveHelperClass(referenceExpression, reference.getText());
+      return componentName != null
+             ? Arrays.asList(componentName)
+             : resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), reference.getText());
     }
 
     // then maybe chain
     // node(foo.node(bar)).node(baz)
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
-      return resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1].getText());
+      final HaxeComponentName componentName = tryResolveHelperClass(childReferences[0], childReferences[1].getText());
+      // try member
+      return componentName != null
+             ? Arrays.asList(componentName)
+             : resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1].getText());
     }
     if (this instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
@@ -83,6 +90,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     // try super field
     return resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference.getText());
+  }
+
+  @Nullable
+  private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
+    HaxeComponentName componentName = null;
+    final HaxeClass leftResultClass = HaxeResolveUtil.tryResolveClassByQName(leftReference);
+    if (leftResultClass != null) {
+      // helper reference via class com.bar.FooClass.HelperClass
+      final HaxeClass componentDeclaration =
+        HaxeResolveUtil.findComponentDeclaration(leftResultClass.getContainingFile(), helperName);
+      componentName = componentDeclaration == null ? null : componentDeclaration.getComponentName();
+    }
+    return componentName;
   }
 
   private static List<? extends PsiElement> toCandidateInfoArray(@Nullable PsiElement element) {

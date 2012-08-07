@@ -42,6 +42,12 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
 
   @Override
   @Nullable
+  public HaxeThrowStatement getThrowStatement() {
+    return findChildByClass(HaxeThrowStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
   }

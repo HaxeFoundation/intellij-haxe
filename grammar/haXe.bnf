@@ -220,8 +220,8 @@ externOrPrivate ::= 'extern' | 'private'
 typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-externClassDeclaration ::= macroClass* 'extern' 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+externClassDeclaration ::= macroClass* 'private'? 'extern' 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverUntil="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
@@ -273,7 +273,7 @@ propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= referenceExpression | 'null' | 'default' | 'dynamic' | 'never'
 
-private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression
+private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression | throwStatement
 
 externFunctionDeclaration ::= functionMacroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
@@ -319,7 +319,7 @@ private statement_recovery ::= !('case' | 'default' | '}')
 private statement ::= blockStatement | notBlockStatement
 
 
-private notBlockStatement ::= ('untyped' statement)
+private notBlockStatement ::= ('untyped' statement ';'?)
                             | localVarDeclaration
                             | localFunctionDeclaration
                             | ifStatement
@@ -332,16 +332,16 @@ private notBlockStatement ::= ('untyped' statement)
                             | switchStatement
                             | throwStatement
                             | tryStatement
-                            | (expression ';'?)
+                            | expression
 
-ifStatement ::= 'if' '(' expression ')' statement ('else' statement)?
+ifStatement ::= 'if' '(' expression ')' statement ';'? ('else' statement ';'?)?
 
-forStatement ::= 'for' '(' componentName 'in' iterable')' statement
+forStatement ::= 'for' '(' componentName 'in' iterable')' statement ';'?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 iterable ::= expression
 
-whileStatement ::= 'while' '(' expression ')' statement
+whileStatement ::= 'while' '(' expression ')' statement ';'?
 doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
 
 returnStatement ::= 'return' expression? ';'?
@@ -357,10 +357,10 @@ switchBlock ::= '{'  switchCase* defaultCase? '}' {pin=1}
 switchCaseBlock ::= (literalExpression ";") | statementList
 switchCase ::= ('case' expression (',' expression)* ':')+ switchCaseBlock {pin=1 recoverUntil="switch_case_recover"}
 private switch_case_recover ::= !('case' | 'default' | '}' | IDENTIFIER)
-defaultCase::= 'default' ':' switchCaseBlock {pin=1}
+defaultCase::= 'default' ':' switchCaseBlock? {pin=1}
 
-tryStatement ::= 'try' statement catchStatement*
-catchStatement ::= 'catch' '(' parameter ')' statement
+tryStatement ::= 'try' statement ';'? catchStatement*
+catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 
 /*
  * expressions

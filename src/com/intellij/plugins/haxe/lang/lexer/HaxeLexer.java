@@ -29,6 +29,10 @@ public class HaxeLexer extends LookAheadLexer {
     WSNLS
   );
 
+  private final static Set<String> SDK_DEFINES = new THashSet<String>(Arrays.asList(
+    "macro"
+  ));
+
   @Nullable
   private Project myProject;
 
@@ -57,7 +61,7 @@ public class HaxeLexer extends LookAheadLexer {
     else if (baseLexer.getTokenType() == PPIF || baseLexer.getTokenType() == PPELSEIF) {
       advanceAs(baseLexer, PPIF);
       while (!lookAheadExpressionIsTrue(baseLexer)) {
-        advanceAs(baseLexer, PPEXPRESSION);
+        addToken(PPEXPRESSION);
         IElementType elementType = eatUntil(baseLexer, PPEND, PPELSE, PPELSEIF);
         if (elementType == PPELSEIF) {
           advanceAs(baseLexer, PPBODY);
@@ -66,7 +70,7 @@ public class HaxeLexer extends LookAheadLexer {
         advanceAs(baseLexer, PPBODY);
         break;
       }
-      advanceAs(baseLexer, PPEXPRESSION);
+      addToken(PPEXPRESSION);
     }
     else if (baseLexer.getTokenType() == PPELSE) {
       eatUntil(baseLexer, PPEND);
@@ -202,8 +206,11 @@ public class HaxeLexer extends LookAheadLexer {
   }
 
   protected boolean isDefined(String name) {
-    if (myProject == null || name == null) {
+    if (name == null) {
       return false;
+    }
+    if (myProject == null) {
+      return SDK_DEFINES.contains(name);
     }
     String[] definitions = null;
     if (ApplicationManager.getApplication().isUnitTestMode()) {

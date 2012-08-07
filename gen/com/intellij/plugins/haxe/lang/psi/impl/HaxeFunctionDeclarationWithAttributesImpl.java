@@ -108,6 +108,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
 
   @Override
   @Nullable
+  public HaxeThrowStatement getThrowStatement() {
+    return findChildByClass(HaxeThrowStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
   }

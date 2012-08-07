@@ -98,8 +98,12 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("com/bar/Baz.hx", "com/bar/Foo.hx"), 1);
   }
 
-  public void testExternClass() {
-    doTest(myFixture.configureByFiles("ExternClass.hx", "com/bar/Foo.hx"), 1);
+  public void testExternClass1() {
+    doTest(myFixture.configureByFiles("ExternClass1.hx", "com/bar/Foo.hx"), 1);
+  }
+
+  public void testExternClass2() {
+    doTest(myFixture.configureByFiles("ExternClass2.hx"), 1);
   }
 
   public void testSuperField() {
@@ -258,6 +262,10 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
 
   public void testHelperClass3() {
     doTest(myFixture.configureByFiles("HelperClass3.hx", "com/utils/MathUtil.hx"), 1);
+  }
+
+  public void testHelperClass4() {
+    doTest(myFixture.configureByFiles("HelperClass4.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   public void testCastExpression1() {

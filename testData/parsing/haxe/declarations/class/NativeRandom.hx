@@ -5,3 +5,5 @@
     return rand() % n;
   }
 }
+
+private extern class RandomImpl {}

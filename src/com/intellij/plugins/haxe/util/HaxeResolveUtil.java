@@ -435,16 +435,13 @@ public class HaxeResolveUtil {
       final PsiFile psiFile = type.getContainingFile();
       final String packageName = getPackageName(psiFile);
 
-      final String fileName = FileUtil.getNameWithoutExtension(psiFile.getName());
-      final boolean hasDeclarationInTheSameFile = findComponentDeclaration(psiFile, result) != null;
-      final boolean fileHasDeclaration = findComponentDeclaration(psiFile, fileName) != null;
+      final HaxeClass classForType = findComponentDeclaration(psiFile, result);
 
-      if (importStatement != null && expression != null) {
-        result = expression.getText();
+      if (classForType != null) {
+        result = classForType.getQualifiedName();
       }
-      else if (hasDeclarationInTheSameFile && fileHasDeclaration) {
-        final String packageNameForClass = joinQName(packageName, fileName.equals(result) ? null : fileName);
-        result = joinQName(packageNameForClass, result);
+      else if (importStatement != null && expression != null) {
+        result = expression.getText();
       }
       else if (searchInSamePackage && !packageName.isEmpty()) {
         result = packageName + "." + result;

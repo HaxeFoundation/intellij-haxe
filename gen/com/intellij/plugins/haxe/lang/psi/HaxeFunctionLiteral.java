@@ -20,6 +20,9 @@ public interface HaxeFunctionLiteral extends HaxeExpression {
   HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
 
   @Nullable
+  HaxeThrowStatement getThrowStatement();
+
+  @Nullable
   HaxeTypeTag getTypeTag();
 
 }

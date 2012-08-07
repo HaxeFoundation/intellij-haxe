@@ -86,3 +86,14 @@ haXe File
             PsiElement(;)(';')
           PsiElement(})('}')
     PsiElement(})('}')
+  HAXE_EXTERN_CLASS_DECLARATION
+    PsiElement(private)('private')
+    PsiElement(extern)('extern')
+    PsiElement(class)('class')
+    HAXE_COMPONENT_NAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('RandomImpl')
+    PsiElement({)('{')
+    HAXE_EXTERN_CLASS_DECLARATION_BODY
+      <empty list>
+    PsiElement(})('}')

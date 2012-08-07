@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
@@ -11,12 +10,19 @@ import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
+  private static final Set<String> BUILTIN = new THashSet<String>(Arrays.asList(
+    "trace", "__call__", "__vmem_set__", "__vmem_get__", "__vmem_sign__", "__global__", "_global", "__foreach__"
+  ));
   private AnnotationHolder myHolder = null;
 
   @Override
@@ -42,7 +48,7 @@ public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
       return; // OK
     }
 
-    if ("trace".equals(reference.getText()) &&
+    if (BUILTIN.contains(reference.getText()) &&
         reference.getParent() instanceof HaxeCallExpression &&
         !(reference.getParent().getParent() instanceof HaxeReference)) {
       return;

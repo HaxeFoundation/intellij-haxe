@@ -26,6 +26,9 @@ public interface HaxeLocalFunctionDeclaration extends HaxeComponent {
   HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon();
 
   @Nullable
+  HaxeThrowStatement getThrowStatement();
+
+  @Nullable
   HaxeTypeTag getTypeTag();
 
 }

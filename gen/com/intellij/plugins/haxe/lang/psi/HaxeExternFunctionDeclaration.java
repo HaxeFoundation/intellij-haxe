@@ -53,6 +53,9 @@ public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarat
   List<HaxeSetterMeta> getSetterMetaList();
 
   @Nullable
+  HaxeThrowStatement getThrowStatement();
+
+  @Nullable
   HaxeTypeTag getTypeTag();
 
 }
