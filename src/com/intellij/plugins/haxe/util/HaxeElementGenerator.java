@@ -19,6 +19,7 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeElementGenerator {
+
   public static PsiElement createStatementFromText(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapStatement(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
@@ -37,6 +38,7 @@ public class HaxeElementGenerator {
     return (HaxeVarDeclarationPart)haxeClass.getFields().iterator().next();
   }
 
+
   public static List<HaxeNamedComponent> createFunctionsFromText(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
@@ -46,11 +48,21 @@ public class HaxeElementGenerator {
 
   @Nullable
   public static HaxeIdentifier createIdentifierFromText(Project myProject, String name) {
+    return createImportAndFindChild(myProject, name, HaxeIdentifier.class);
+  }
+
+  @Nullable
+  public static HaxeReference createReferenceFromText(Project myProject, String name) {
+    return createImportAndFindChild(myProject, name, HaxeReference.class);
+  }
+
+  @Nullable
+  private static <T extends PsiElement> T createImportAndFindChild(Project myProject, String name, Class<T> aClass) {
     final HaxeImportStatement importStatement = createImportStatementFromPath(myProject, name);
     if (importStatement == null) {
       return null;
     }
-    return PsiTreeUtil.findChildOfType(importStatement.getExpression(), HaxeIdentifier.class);
+    return PsiTreeUtil.findChildOfType(importStatement, aClass);
   }
 
   @Nullable
@@ -64,7 +76,6 @@ public class HaxeElementGenerator {
     final PsiFile dummyFile = createDummyFile(myProject, "package " + path + ";");
     return PsiTreeUtil.getChildOfType(dummyFile, HaxePackageStatement.class);
   }
-
 
   public static PsiFile createDummyFile(Project myProject, String text) {
     final PsiFileFactory factory = PsiFileFactory.getInstance(myProject);

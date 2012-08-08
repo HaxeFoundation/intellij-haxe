@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
@@ -16,7 +15,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
-import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -340,34 +338,6 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (!needFilter && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
       }
-    }
-  }
-
-  private static class ComponentNameScopeProcessor implements PsiScopeProcessor {
-    private final Set<HaxeComponentName> result;
-
-    private ComponentNameScopeProcessor(Set<HaxeComponentName> result) {
-      this.result = result;
-    }
-
-    @Override
-    public boolean execute(@NotNull PsiElement element, ResolveState state) {
-      if (element instanceof HaxeNamedComponent) {
-        final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
-        if (haxeNamedComponent.getComponentName() != null) {
-          result.add(haxeNamedComponent.getComponentName());
-        }
-      }
-      return true;
-    }
-
-    @Override
-    public <T> T getHint(@NotNull Key<T> hintKey) {
-      return null;
-    }
-
-    @Override
-    public void handleEvent(Event event, @Nullable Object associated) {
     }
   }
 }

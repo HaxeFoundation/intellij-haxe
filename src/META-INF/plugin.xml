@@ -128,6 +128,8 @@
     <lang.commenter language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCommenter"/>
     <lang.psiStructureViewFactory language="haXe" implementationClass="com.intellij.plugins.haxe.ide.structure.HaxeStructureViewFactory"/>
     <lang.surroundDescriptor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.surroundWith.HaxeSurroundDescriptor"/>
+    <lang.refactoringSupport language="haXe"
+                             implementationClass="com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringSupportProvider"/>
 
     <languageInjector implementation="com.intellij.plugins.haxe.lang.RegexLanguageInjector"/>
 

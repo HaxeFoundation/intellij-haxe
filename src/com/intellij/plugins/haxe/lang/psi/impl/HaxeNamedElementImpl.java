@@ -4,12 +4,13 @@ import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.search.LocalSearchScope;
+import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,25 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
   @Override
   public String getName() {
     return getIdentifier().getText();
+  }
+
+  @Override
+  public PsiElement getNameIdentifier() {
+    return this;
+  }
+
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    final HaxeComponentType type = HaxeComponentType.typeOf(getParent());
+    final HaxeComponent component = PsiTreeUtil.getParentOfType(getParent(), HaxeComponent.class, true);
+    if (type == null || component == null) {
+      return super.getUseScope();
+    }
+    if (type == HaxeComponentType.FUNCTION || type == HaxeComponentType.PARAMETER || type == HaxeComponentType.VARIABLE) {
+      return new LocalSearchScope(component);
+    }
+    return super.getUseScope();
   }
 
   @Nullable
