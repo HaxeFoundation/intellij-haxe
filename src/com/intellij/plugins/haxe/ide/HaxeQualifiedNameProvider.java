@@ -1,0 +1,73 @@
+package com.intellij.plugins.haxe.ide;
+
+import com.intellij.ide.actions.QualifiedNameProvider;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorModificationUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * @author: Fedor.Korotkov
+ */
+public class HaxeQualifiedNameProvider implements QualifiedNameProvider {
+  @Override
+  public PsiElement adjustElementToCopy(PsiElement element) {
+    if (element instanceof HaxeCallExpression) {
+      element = ((HaxeCallExpression)element).getExpression();
+    }
+    if (element instanceof HaxeReference) {
+      element = ((HaxeReference)element).resolve();
+    }
+    if (element instanceof HaxeComponentName) {
+      return element.getParent();
+    }
+    return element;
+  }
+
+  @Override
+  public String getQualifiedName(PsiElement element) {
+    if (element instanceof HaxeClass) {
+      return ((HaxeClass)element).getQualifiedName();
+    }
+    final HaxeComponentType componentType = HaxeComponentType.typeOf(element);
+    if (componentType == HaxeComponentType.METHOD || componentType == HaxeComponentType.FIELD) {
+      final String name = ((HaxeComponent)element).getName();
+      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class, true);
+      if (name != null && haxeClass != null) {
+        return haxeClass.getQualifiedName() + "#" + name;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiElement qualifiedNameToElement(String fqn, Project project) {
+    final int index = fqn.indexOf("#");
+    if (index == -1) {
+      final HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(fqn, project, PsiManager.getInstance(project));
+      return haxeClass == null ? null : haxeClass.getComponentName();
+    }
+    final HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(fqn.substring(0, index), project, PsiManager.getInstance(project));
+    if (haxeClass == null) {
+      return null;
+    }
+    final String memberName = fqn.substring(index + 1);
+    HaxeNamedComponent namedComponent = haxeClass.findMethodByName(memberName);
+    if (namedComponent == null) {
+      namedComponent = haxeClass.findFieldByName(memberName);
+    }
+    return namedComponent == null ? null : namedComponent.getComponentName();
+  }
+
+  @Override
+  public void insertQualifiedName(String fqn, PsiElement element, Editor editor, Project project) {
+    EditorModificationUtil.insertStringAtCaret(editor, fqn);
+  }
+}

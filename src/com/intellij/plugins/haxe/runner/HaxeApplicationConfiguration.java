@@ -28,6 +28,8 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
   implements RunConfigurationWithSuppressedDefaultRunAction {
   private boolean customFileToLaunch = false;
   private String customFileToLaunchPath = "";
+  private String customExecutablePath = "";
+  private boolean customExecutable = false;
 
   public HaxeApplicationConfiguration(String name, Project project, HaxeRunConfigurationType configurationType) {
     super(name, new HaxeApplicationModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
@@ -64,8 +66,11 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
     if (settings.isUseHxmlToBuild() && !customFileToLaunch) {
       throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.select.custom.file"));
     }
-    if (settings.isUseNmmlToBuild() && !customFileToLaunch) {
-      throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.select.custom.file"));
+    if (settings.isUseNmmlToBuild() && customFileToLaunch) {
+      throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.do.not.select.custom.file"));
+    }
+    if (settings.isUseNmmlToBuild() && customExecutable) {
+      throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.do.not.select.custom.executable"));
     }
   }
 
@@ -77,12 +82,28 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
     this.customFileToLaunch = customFileToLaunch;
   }
 
+  public boolean isCustomExecutable() {
+    return customExecutable;
+  }
+
+  public void setCustomExecutable(boolean customExecutable) {
+    this.customExecutable = customExecutable;
+  }
+
   public String getCustomFileToLaunchPath() {
     return customFileToLaunchPath;
   }
 
   public void setCustomFileToLaunchPath(String customFileToLaunchPath) {
     this.customFileToLaunchPath = customFileToLaunchPath;
+  }
+
+  public String getCustomExecutablePath() {
+    return customExecutablePath;
+  }
+
+  public void setCustomExecutablePath(String customExecutablePath) {
+    this.customExecutablePath = customExecutablePath;
   }
 
   public void writeExternal(final Element element) throws WriteExternalException {

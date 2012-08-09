@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.runner.ui;
 
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.Module;
@@ -17,6 +16,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
+import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,8 +28,11 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
   private JComboBox myComboModules;
   private JCheckBox myCustomPathCheckBox;
   private TextFieldWithBrowseButton myPathToFileTextField;
+  private JCheckBox myAlternativeExecutable;
+  private TextFieldWithBrowseButton myExecutableField;
 
   private String customPathToFile = "";
+  private String customPathToExecutable = "";
 
   private final Project project;
 
@@ -65,7 +68,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
         if (!myCustomPathCheckBox.isSelected()) {
           customPathToFile = myPathToFileTextField.getText();
         }
-        updateCustomFilePath();
+        updateComponents();
       }
     });
 
@@ -75,24 +78,57 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false);
         final VirtualFile file = FileChooser.chooseFile(descriptor, component, null, null);
         if (file != null) {
-          customPathToFile = file.getPath();
-          updateCustomFilePath();
+          customPathToFile = FileUtil.toSystemIndependentName(file.getPath());
+          updateComponents();
+        }
+      }
+    });
+
+    myAlternativeExecutable.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (!myAlternativeExecutable.isSelected()) {
+          customPathToExecutable = myExecutableField.getText();
+        }
+        updateComponents();
+      }
+    });
+
+    myExecutableField.getButton().addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false);
+        final VirtualFile file = FileChooser.chooseFile(descriptor, component, null, null);
+        if (file != null) {
+          customPathToExecutable = FileUtil.toSystemIndependentName(file.getPath());
+          updateComponents();
         }
       }
     });
 
     myCustomPathCheckBox.setSelected(configuration.isCustomFileToLaunch());
+    myAlternativeExecutable.setSelected(configuration.isCustomExecutable());
+
     String launchPath = configuration.getCustomFileToLaunchPath();
     launchPath = launchPath.indexOf("://") == -1 ? FileUtil.toSystemDependentName(launchPath) : launchPath;
     customPathToFile = launchPath;
 
+    launchPath = configuration.getCustomExecutablePath();
+    launchPath = launchPath.indexOf("://") == -1 ? FileUtil.toSystemDependentName(launchPath) : launchPath;
+    customPathToExecutable = launchPath;
 
-    updateCustomFilePath();
+
+    updateComponents();
   }
 
-  private void updateCustomFilePath() {
+  private void updateComponents() {
+    updateCustomPathToFile();
+    updateCustomPathToExecutable();
+  }
+
+  private void updateCustomPathToFile() {
     if (myCustomPathCheckBox.isSelected()) {
-      myPathToFileTextField.setText(customPathToFile);
+      myPathToFileTextField.setText(FileUtil.toSystemDependentName(customPathToFile));
     }
     else if (getSelectedModule() != null) {
       final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(getSelectedModule());
@@ -107,14 +143,25 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     myPathToFileTextField.setEnabled(myCustomPathCheckBox.isSelected());
   }
 
+  private void updateCustomPathToExecutable() {
+    myExecutableField.setText(myAlternativeExecutable.isSelected() ? FileUtil.toSystemDependentName(customPathToExecutable) : "");
+    myExecutableField.setEnabled(myAlternativeExecutable.isSelected());
+  }
+
   @Override
   protected void applyEditorTo(HaxeApplicationConfiguration configuration) throws ConfigurationException {
     configuration.setModule(getSelectedModule());
     configuration.setCustomFileToLaunch(myCustomPathCheckBox.isSelected());
+    configuration.setCustomExecutable(myAlternativeExecutable.isSelected());
     if (myCustomPathCheckBox.isSelected()) {
       String fileName = myPathToFileTextField.getText();
       fileName = !fileName.contains("://") ? FileUtil.toSystemIndependentName(fileName) : fileName;
       configuration.setCustomFileToLaunchPath(fileName);
+    }
+    if (myAlternativeExecutable.isSelected()) {
+      String fileName = myExecutableField.getText();
+      fileName = !fileName.contains("://") ? FileUtil.toSystemIndependentName(fileName) : fileName;
+      configuration.setCustomExecutablePath(fileName);
     }
   }
 

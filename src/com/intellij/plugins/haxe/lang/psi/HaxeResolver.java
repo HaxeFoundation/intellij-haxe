@@ -49,7 +49,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       final HaxeComponentName componentName = tryResolveHelperClass(referenceExpression, reference.getText());
       return componentName != null
              ? Arrays.asList(componentName)
-             : resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), reference.getText());
+             : resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), reference);
     }
 
     // then maybe chain
@@ -60,7 +60,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // try member
       return componentName != null
              ? Arrays.asList(componentName)
-             : resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1].getText());
+             : resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1]);
     }
     if (this instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
@@ -81,15 +81,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return result;
     }
 
-    for (HaxeClass haxeClass : HaxeResolveUtil.findUsingClasses(reference.getContainingFile())) {
-      final HaxeNamedComponent namedSubComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, reference.getCanonicalText());
-      if (namedSubComponent != null) {
-        return toCandidateInfoArray(namedSubComponent);
-      }
-    }
-
     // try super field
-    return resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference.getText());
+    return resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
   }
 
   @Nullable
@@ -110,15 +103,32 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClassResolveResult resolveResult,
-                                                                    @NotNull String symbolName) {
-    return resolveResult == null ? Collections.<PsiElement>emptyList() : resolveByClassAndSymbol(resolveResult.getHaxeClass(), symbolName);
+                                                                    @NotNull HaxeReference reference) {
+    return resolveResult == null ? Collections.<PsiElement>emptyList() : resolveByClassAndSymbol(resolveResult.getHaxeClass(), reference);
   }
 
-  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass referenceClass, @NotNull String symbolName) {
+  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass, @NotNull HaxeReference reference) {
     final HaxeNamedComponent namedSubComponent =
-      HaxeResolveUtil.findNamedSubComponent(referenceClass, symbolName);
+      HaxeResolveUtil.findNamedSubComponent(leftClass, reference.getText());
     final HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
-    return toCandidateInfoArray(componentName);
+    if (componentName != null) {
+      return toCandidateInfoArray(componentName);
+    }
+    // try find using
+    for (HaxeClass haxeClass : HaxeResolveUtil.findUsingClasses(reference.getContainingFile())) {
+      final HaxeNamedComponent haxeNamedComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, reference.getCanonicalText());
+      if (haxeNamedComponent != null &&
+          haxeNamedComponent.isPublic() &&
+          haxeNamedComponent.isStatic() &&
+          haxeNamedComponent.getComponentName() != null) {
+        final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
+        final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == leftClass;
+        if (needToAdd) {
+          return toCandidateInfoArray(haxeNamedComponent.getComponentName());
+        }
+      }
+    }
+    return Collections.emptyList();
   }
 
   private class ResolveScopeProcessor implements PsiScopeProcessor {

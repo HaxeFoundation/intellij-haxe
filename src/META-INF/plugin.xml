@@ -4,6 +4,12 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.4.7:</p>
+      <ul>
+        <li>Introduce Variable Refactoring</li>
+        <li>Using Completion</li>
+        <li>Bug fixes</li>
+      </ul>
       <p>0.4.6:</p>
       <ul>
         <li>Conditional Compilation Support</li>
@@ -84,9 +90,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.4.6</version>
+  <version>0.4.7</version>
   <vendor logo="/general/ijLogo.png">JetBrains</vendor>
-  <idea-version since-build="117.105" until-build="118.1"/>
+  <idea-version since-build="122.1" until-build="123.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
 
@@ -101,6 +107,7 @@
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
+    <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompiler"/>

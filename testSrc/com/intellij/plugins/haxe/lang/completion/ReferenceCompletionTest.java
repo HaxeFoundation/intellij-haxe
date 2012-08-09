@@ -72,4 +72,14 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
     doTestVariantsInner("StdType2.txt");
   }
+
+  public void testUsingUtil1() throws Throwable {
+    myFixture.configureByFiles("UsingUtil1.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
+    doTestVariantsInner("UsingUtil1.txt");
+  }
+
+  public void testUsingUtil2() throws Throwable {
+    myFixture.configureByFiles("UsingUtil2.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
+    doTestVariantsInner("UsingUtil2.txt");
+  }
 }

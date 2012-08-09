@@ -11,10 +11,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiPackage;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
@@ -84,12 +81,18 @@ public class HaxeResolveUtil {
       return null;
     }
     final Project project = context.getProject();
+    final PsiManager psiManager = context.getManager();
+    return findClassByQName(qName, project, psiManager);
+  }
+
+  @Nullable
+  public static HaxeClass findClassByQName(String qName, Project project, PsiManager psiManager) {
     final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     final List<VirtualFile> classFiles = HaxeComponentFileNameIndex.
       getFilesNameByQName(qName, scope);
     final Pair<String, String> qNamePair = splitQName(qName);
     for (VirtualFile classFile : classFiles) {
-      final HaxeClass componentPsiElement = findComponentDeclaration(context.getManager().findFile(classFile), qNamePair.getSecond());
+      final HaxeClass componentPsiElement = findComponentDeclaration(psiManager.findFile(classFile), qNamePair.getSecond());
       if (componentPsiElement != null) {
         return componentPsiElement;
       }
@@ -503,5 +506,19 @@ public class HaxeResolveUtil {
         return component.getComponentName();
       }
     });
+  }
+
+  @NotNull
+  public static HaxeClassResolveResult findFirstParameterClass(HaxeNamedComponent haxeNamedComponent) {
+    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterList.class);
+    if(parameterList == null) {
+      return HaxeClassResolveResult.EMPTY;
+    }
+    final List<HaxeParameter> parameters = parameterList.getParameterList();
+    if(!parameters.isEmpty()) {
+      final HaxeParameter parameter = parameters.iterator().next();
+      return getHaxeClassResolveResult(parameter, HaxeGenericSpecialization.EMPTY);
+    }
+    return HaxeClassResolveResult.EMPTY;
   }
 }

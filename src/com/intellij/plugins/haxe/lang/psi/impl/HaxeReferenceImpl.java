@@ -301,29 +301,32 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (referenceExpression != null && getParent() instanceof HaxeReference && !referenceExpression.resolveHaxeClass().isFunctionType()) {
       addClassVariants(suggestedVariants, referenceExpression.resolveHaxeClass().getHaxeClass(),
                        !(referenceExpression instanceof HaxeThisExpression));
+      addUsingVariants(suggestedVariants, referenceExpression.resolveHaxeClass().getHaxeClass(),
+                       HaxeResolveUtil.findUsingClasses(getContainingFile()));
     }
     else {
       // if chain
       // node(foo.node(bar)).node(baz)
       final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
-      if (childReferences != null && childReferences.length == 2) {
-        return resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1].getText());
-      }
-      else {
+      final boolean isChain = childReferences != null && childReferences.length == 2;
+      if (!isChain) {
         PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
-        addUsingVariants(suggestedVariants, HaxeResolveUtil.findUsingClasses(getContainingFile()));
       }
     }
 
     return HaxeLookupElement.convert(suggestedVariants).toArray();
   }
 
-  private static void addUsingVariants(Set<HaxeComponentName> variants, List<HaxeClass> classes) {
+  private static void addUsingVariants(Set<HaxeComponentName> variants, @Nullable HaxeClass ourClass, List<HaxeClass> classes) {
     for (HaxeClass haxeClass : classes) {
       for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
         if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName() != null) {
-          variants.add(haxeNamedComponent.getComponentName());
+          final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
+          final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == ourClass;
+          if (needToAdd) {
+            variants.add(haxeNamedComponent.getComponentName());
+          }
         }
       }
     }
