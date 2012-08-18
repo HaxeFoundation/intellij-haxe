@@ -115,6 +115,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   private static boolean compileModule(CompileContext context, @NotNull Module module) {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     if (settings.isExcludeFromCompilation()) {
+      LOG.debug("Module " + module.getName() + " is excluded from compilation.");
       return true;
     }
     final String mainClass = settings.getMainClass();
@@ -198,6 +199,8 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       setupUserProperties(module, mainClass, fileName, target, settings, sdkExePath, commandLine);
     }
 
+    LOG.debug(commandLine.getCommandLineString());
+
     ProcessOutput output = null;
     try {
       output = new CapturingProcessHandler(
@@ -210,8 +213,9 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       return false;
     }
 
-    if (output.getExitCode() != 0) {
-      HaxeCompilerUtil.fillContext(module, context, output.getStderrLines());
+    final List<String> stderrLines = output.getStderrLines();
+    if (!stderrLines.isEmpty()) {
+      HaxeCompilerUtil.fillContext(module, context, stderrLines);
       return false;
     }
     return true;
