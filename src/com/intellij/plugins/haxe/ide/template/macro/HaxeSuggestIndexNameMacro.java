@@ -34,7 +34,7 @@ public class HaxeSuggestIndexNameMacro extends Macro {
 
   @Override
   public Result calculateResult(@NotNull Expression[] params, ExpressionContext context) {
-    final PsiElement at = HaxeMacroUtil.findElementAt(context);
+    final PsiElement at = context.getPsiElementAtStartOffset();
     final Set<HaxeComponentName> variables = HaxeMacroUtil.findVariables(at);
     final Set<String> names = new THashSet<String>(ContainerUtil.map(variables, new Function<HaxeComponentName, String>() {
       @Override

@@ -1,14 +1,10 @@
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.codeInsight.template.ExpressionContext;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -52,15 +48,4 @@ public class HaxeMacroUtil {
     return result;
   }
 
-  @Nullable
-  public static PsiElement findElementAt(ExpressionContext context) {
-    final Project project = context.getProject();
-    final int templateStartOffset = context.getTemplateStartOffset();
-    final int offset = templateStartOffset > 0 ? context.getTemplateStartOffset() - 1 : context.getTemplateStartOffset();
-
-    PsiDocumentManager.getInstance(project).commitAllDocuments();
-
-    final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(context.getEditor().getDocument());
-    return file == null ? null : file.findElementAt(offset);
-  }
 }

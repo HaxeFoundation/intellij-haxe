@@ -31,7 +31,7 @@ public class HaxeArrayVariableMacro extends Macro {
 
   @Override
   public Result calculateResult(@NotNull Expression[] params, ExpressionContext context) {
-    final PsiElement at = HaxeMacroUtil.findElementAt(context);
+    final PsiElement at = context.getPsiElementAtStartOffset();
     final Set<HaxeComponentName> variables = HaxeMacroUtil.findVariables(at);
     final List<HaxeComponentName> filtered = ContainerUtil.filter(variables, new Condition<HaxeComponentName>() {
       @Override
