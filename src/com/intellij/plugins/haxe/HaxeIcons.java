@@ -14,10 +14,4 @@ public interface HaxeIcons {
   Icon ENUM_ICON = IconLoader.getIcon("/icons/E_haXe.png");
   Icon INTERFACE_ICON = IconLoader.getIcon("/icons/I_haXe.png");
   Icon TYPEDEF_ICON = AllIcons.Nodes.Annotationtype;
-
-  Icon FUNCTION = AllIcons.Nodes.Function;
-  Icon METHOD = AllIcons.Nodes.Method;
-  Icon VARIABLE = AllIcons.Nodes.Variable;
-  Icon FIELD = AllIcons.Nodes.Field;
-  Icon PARAMETER = AllIcons.Nodes.Parameter;
 }

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
@@ -28,27 +29,27 @@ public enum HaxeComponentType {
   }, FUNCTION(3) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.FUNCTION;
+      return AllIcons.Nodes.Function;
     }
   }, METHOD(4) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.METHOD;
+      return AllIcons.Nodes.Method;
     }
   }, VARIABLE(5) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.VARIABLE;
+      return AllIcons.Nodes.Variable;
     }
   }, FIELD(6) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.FIELD;
+      return AllIcons.Nodes.Field;
     }
   }, PARAMETER(7) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.PARAMETER;
+      return AllIcons.Nodes.Parameter;
     }
   }, TYPEDEF(8) {
     @Override

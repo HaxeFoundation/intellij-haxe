@@ -34,11 +34,6 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeLineMarkerProvider implements LineMarkerProvider {
-  protected static final Icon OVERRIDING_METHOD_ICON = AllIcons.Gutter.OverridingMethod;
-  protected static final Icon IMPLEMENTING_METHOD_ICON = AllIcons.Gutter.ImplementingMethod;
-
-  protected static final Icon OVERRIDEN_METHOD_MARKER_RENDERER = AllIcons.Gutter.OverridenMethod;
-  protected static final Icon IMPLEMENTED_METHOD_MARKER_RENDERER = AllIcons.Gutter.ImplementedMethod;
 
   @Override
   public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {
@@ -105,7 +100,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     final PsiElement element = componentWithDeclarationList.getComponentName();
     final boolean overrides =
       HaxeResolveUtil.getDeclarationTypes(componentWithDeclarationList.getDeclarationAttributeList()).contains(HaxeTokenTypes.KOVERRIDE);
-    final Icon icon = overrides ? OVERRIDING_METHOD_ICON : IMPLEMENTING_METHOD_ICON;
+    final Icon icon = overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
     assert element != null;
     return new LineMarkerInfo<PsiElement>(
       element,
@@ -158,7 +153,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     return new LineMarkerInfo<PsiElement>(
       componentName,
       componentName.getTextRange(),
-      isInterface ? IMPLEMENTED_METHOD_MARKER_RENDERER : OVERRIDEN_METHOD_MARKER_RENDERER,
+      isInterface ? AllIcons.Gutter.ImplementedMethod : AllIcons.Gutter.OverridenMethod,
       Pass.UPDATE_ALL,
       new Function<PsiElement, String>() {
         @Override
@@ -192,8 +187,8 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
       componentName,
       componentName.getTextRange(),
       componentWithDeclarationList instanceof HaxeInterfaceDeclaration
-      ? IMPLEMENTED_METHOD_MARKER_RENDERER
-      : OVERRIDEN_METHOD_MARKER_RENDERER,
+      ? AllIcons.Gutter.ImplementedMethod
+      : AllIcons.Gutter.OverridenMethod,
       Pass.UPDATE_ALL,
       new Function<PsiElement, String>() {
         @Override
