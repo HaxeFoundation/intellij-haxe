@@ -108,7 +108,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
       @Override
       public Icon getIcon(boolean open) {
-        return AbstractHaxeNamedComponent.this.getIcon(open ? ICON_FLAG_OPEN : ICON_FLAG_CLOSED);
+        return AbstractHaxeNamedComponent.this.getIcon(0);
       }
     };
   }
