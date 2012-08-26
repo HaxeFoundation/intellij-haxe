@@ -4,7 +4,9 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.ui.RootDetector;
 import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
 import org.jetbrains.annotations.NotNull;
@@ -30,39 +32,43 @@ public class HaxeLibRootDetector extends RootDetector {
     return result;
   }
 
-  public static void collectRoots(VirtualFile file, List<VirtualFile> result, @Nullable ProgressIndicator progressIndicator) {
-    if (progressIndicator != null) {
-      progressIndicator.checkCanceled();
-    }
-    if (!file.isDirectory() || file.getFileSystem() instanceof JarFileSystem) return;
-    if (progressIndicator != null) {
-      progressIndicator.setText2(file.getPresentableUrl());
-    }
-
-    if (file.findChild(".current") != null) {
-      for (VirtualFile child : file.getChildren()) {
-        if (child.isDirectory() && containsHaxeFiles(child)) {
-          result.add(child);
-        }
-      }
+  public static void collectRoots(VirtualFile file, final List<VirtualFile> result, @Nullable final ProgressIndicator progressIndicator) {
+    if (file.getFileSystem() instanceof JarFileSystem) {
       return;
     }
+    VfsUtilCore.visitChildrenRecursively(file, new VirtualFileVisitor() {
+      @Override
+      public boolean visitFile(@NotNull VirtualFile file) {
+        if (progressIndicator != null) {
+          progressIndicator.checkCanceled();
+        }
+        if (!file.isDirectory()) return false;
+        if (progressIndicator != null) {
+          progressIndicator.setText2(file.getPresentableUrl());
+        }
 
-    for (VirtualFile child : file.getChildren()) {
-      collectRoots(child, result, progressIndicator);
-    }
+        if (file.findChild(".current") != null) {
+          for (VirtualFile child : file.getChildren()) {
+            if (child.isDirectory() && containsHaxeFiles(child)) {
+              result.add(child);
+            }
+          }
+          return false;
+        }
+
+        return true;
+      }
+    });
   }
 
-  private static boolean containsHaxeFiles(VirtualFile file) {
-    boolean result = false;
-    for (VirtualFile child : file.getChildren()) {
-      if (child.isDirectory()) {
-        result = result || containsHaxeFiles(child);
+  private static boolean containsHaxeFiles(final VirtualFile dir) {
+    final VirtualFileVisitor.Result result = VfsUtilCore.visitChildrenRecursively(dir, new VirtualFileVisitor() {
+      @NotNull
+      @Override
+      public Result visitFileEx(@NotNull VirtualFile file) {
+        return !file.isDirectory() && HaxeFileType.DEFAULT_EXTENSION.equalsIgnoreCase(file.getExtension()) ? skipTo(dir) : CONTINUE;
       }
-      else {
-        result = result || HaxeFileType.DEFAULT_EXTENSION.equalsIgnoreCase(child.getExtension());
-      }
-    }
-    return result;
+    });
+    return result.skipToParent != null;
   }
 }
