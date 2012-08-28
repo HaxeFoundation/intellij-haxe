@@ -20,7 +20,7 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeLibraryType extends LibraryType<DummyLibraryProperties> {
-  public static final PersistentLibraryKind<DummyLibraryProperties> HAXE_LIBRARY = new PersistentLibraryKind<DummyLibraryProperties>("haXe", false) {
+  public static final PersistentLibraryKind<DummyLibraryProperties> HAXE_LIBRARY = new PersistentLibraryKind<DummyLibraryProperties>("haXe") {
     @NotNull
     @Override
     public DummyLibraryProperties createDefaultProperties() {
