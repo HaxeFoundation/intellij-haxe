@@ -9,10 +9,14 @@ import javax.swing.*;
  * Don't repeat mistakes of others ;-)
  */
 public class HaxeIcons {
-  public static final Icon C_haXe = IconLoader.getIcon("/icons/C_haXe.png"); // 16x16
-  public static final Icon E_haXe = IconLoader.getIcon("/icons/E_haXe.png"); // 16x16
-  public static final Icon HaXe_16 = IconLoader.getIcon("/icons/haXe_16.png"); // 16x16
-  public static final Icon HaXe_24 = IconLoader.getIcon("/icons/haXe_24.png"); // 24x24
-  public static final Icon I_haXe = IconLoader.getIcon("/icons/I_haXe.png"); // 16x16
-  public static final Icon Nmml_16 = IconLoader.getIcon("/icons/nmml_16.png"); // 16x16
+  private static Icon load(String path) {
+    return IconLoader.getIcon(path, HaxeIcons.class);
+  }
+
+  public static final Icon C_haXe = load("/icons/C_haXe.png"); // 16x16
+  public static final Icon E_haXe = load("/icons/E_haXe.png"); // 16x16
+  public static final Icon HaXe_16 = load("/icons/haXe_16.png"); // 16x16
+  public static final Icon HaXe_24 = load("/icons/haXe_24.png"); // 24x24
+  public static final Icon I_haXe = load("/icons/I_haXe.png"); // 16x16
+  public static final Icon Nmml_16 = load("/icons/nmml_16.png"); // 16x16
 }
