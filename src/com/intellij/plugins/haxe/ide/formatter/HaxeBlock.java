@@ -65,7 +65,7 @@ public class HaxeBlock extends TemplateLanguageBlock {
   }
 
   @Override
-  public Spacing getSpacing(Block child1, Block child2) {
+  public Spacing getSpacing(Block child1, @NotNull Block child2) {
     return mySpacingProcessor.getSpacing(child1, child2);
   }
 
