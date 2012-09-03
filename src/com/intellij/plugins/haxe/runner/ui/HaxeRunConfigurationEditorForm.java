@@ -52,7 +52,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     }
     myComboModules.setSelectedItem(configuration.getConfigurationModule().getModule());
 
-    myComboModules.setRenderer(new ListCellRendererWrapper(myComboModules.getRenderer()) {
+    myComboModules.setRenderer(new ListCellRendererWrapper() {
       @Override
       public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof Module) {
