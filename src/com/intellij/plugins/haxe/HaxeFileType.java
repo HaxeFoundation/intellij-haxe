@@ -37,7 +37,7 @@ public class HaxeFileType extends LanguageFileType {
   }
 
   public Icon getIcon() {
-    return HaxeIcons.HAXE_ICON_16x16;
+    return icons.HaxeIcons.HaXe_16;
   }
 
   @Override

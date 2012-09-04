@@ -4,7 +4,6 @@ import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
@@ -55,14 +54,14 @@ public class HaxeFileTemplateUtil {
   public static Icon getTemplateIcon(String name) {
     name = getTemplateShortName(name);
     if ("Class".equals(name)) {
-      return HaxeIcons.CLASS_ICON;
+      return icons.HaxeIcons.C_haXe;
     }
     else if ("Interface".equals(name)) {
-      return HaxeIcons.INTERFACE_ICON;
+      return icons.HaxeIcons.I_haXe;
     }
     else if ("Enum".equals(name)) {
-      return HaxeIcons.ENUM_ICON;
+      return icons.HaxeIcons.E_haXe;
     }
-    return HaxeIcons.HAXE_ICON_16x16;
+    return icons.HaxeIcons.HaXe_16;
   }
 }

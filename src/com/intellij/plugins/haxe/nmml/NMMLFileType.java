@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.nmml;
 import com.intellij.ide.highlighter.XmlLikeFileType;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,6 +38,6 @@ public class NMMLFileType extends XmlLikeFileType {
 
   @Override
   public Icon getIcon() {
-    return HaxeIcons.NMML_ICON_16x16;
+    return icons.HaxeIcons.Nmml_16;
   }
 }

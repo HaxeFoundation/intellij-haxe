@@ -7,7 +7,6 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleTypeManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 
 import javax.swing.*;
@@ -35,12 +34,12 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
 
   @Override
   public Icon getBigIcon() {
-    return HaxeIcons.HAXE_ICON_24x24;
+    return icons.HaxeIcons.HaXe_24;
   }
 
   @Override
   public Icon getNodeIcon(boolean isOpened) {
-    return HaxeIcons.HAXE_ICON_16x16;
+    return icons.HaxeIcons.HaXe_16;
   }
 
   @Override

@@ -7,7 +7,6 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 
@@ -20,12 +19,12 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public Icon getIcon() {
-    return HaxeIcons.HAXE_ICON_16x16;
+    return icons.HaxeIcons.HaXe_16;
   }
 
   @Override
   public Icon getIconForAddAction() {
-    return HaxeIcons.HAXE_ICON_16x16;
+    return icons.HaxeIcons.HaXe_16;
   }
 
   public static HaxeSdkType getInstance() {

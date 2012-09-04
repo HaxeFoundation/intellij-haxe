@@ -9,7 +9,6 @@ import com.intellij.openapi.roots.libraries.ui.LibraryPropertiesEditor;
 import com.intellij.openapi.roots.libraries.ui.LibraryRootsComponentDescriptor;
 import com.intellij.openapi.roots.ui.configuration.FacetsProvider;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +64,7 @@ public class HaxeLibraryType extends LibraryType<DummyLibraryProperties> {
 
   @Override
   public Icon getIcon() {
-    return HaxeIcons.HAXE_ICON_16x16;
+    return icons.HaxeIcons.HaXe_16;
   }
 
   public static HaxeLibraryType getInstance() {

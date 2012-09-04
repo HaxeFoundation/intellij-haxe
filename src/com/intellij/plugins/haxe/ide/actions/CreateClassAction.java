@@ -13,7 +13,6 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeIcons;
 import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.PsiDirectory;
@@ -30,7 +29,7 @@ import java.util.Properties;
  */
 public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
   public CreateClassAction() {
-    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), HaxeIcons.HAXE_ICON_16x16, true);
+    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), icons.HaxeIcons.HaXe_16, true);
   }
 
   @Override

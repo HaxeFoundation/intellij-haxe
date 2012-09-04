@@ -14,17 +14,17 @@ public enum HaxeComponentType {
   CLASS(0) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.CLASS_ICON;
+      return icons.HaxeIcons.C_haXe;
     }
   }, ENUM(1) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.ENUM_ICON;
+      return icons.HaxeIcons.E_haXe;
     }
   }, INTERFACE(2) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.INTERFACE_ICON;
+      return icons.HaxeIcons.I_haXe;
     }
   }, FUNCTION(3) {
     @Override
@@ -54,7 +54,7 @@ public enum HaxeComponentType {
   }, TYPEDEF(8) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.TYPEDEF_ICON;
+      return AllIcons.Nodes.Annotationtype;
     }
   };
 
