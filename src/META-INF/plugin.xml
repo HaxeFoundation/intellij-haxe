@@ -91,7 +91,7 @@
       ]]>
   </change-notes>
   <version>0.4.7</version>
-  <vendor logo="/general/ijLogo.png">JetBrains</vendor>
+  <vendor>JetBrains</vendor>
   <idea-version since-build="122.1" until-build="123.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
