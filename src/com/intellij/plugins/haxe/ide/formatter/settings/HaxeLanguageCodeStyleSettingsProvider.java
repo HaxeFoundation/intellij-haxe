@@ -29,11 +29,6 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
   }
 
   @Override
-  public boolean usesSharedPreview() {
-    return false;
-  }
-
-  @Override
   public void customizeSettings(@NotNull CodeStyleSettingsCustomizable consumer, @NotNull SettingsType settingsType) {
     if (settingsType == SettingsType.SPACING_SETTINGS) {
       consumer.showStandardOptions("SPACE_BEFORE_METHOD_CALL_PARENTHESES",
