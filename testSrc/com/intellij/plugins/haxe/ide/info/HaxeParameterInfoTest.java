@@ -7,11 +7,13 @@ import com.intellij.testFramework.LightCodeInsightTestCase;
 import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoContext;
 import com.intellij.testFramework.utils.parameterInfo.MockParameterInfoUIContext;
 import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoContext;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
+  @NotNull
   @Override
   protected String getTestDataPath() {
     return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/paramInfo/");

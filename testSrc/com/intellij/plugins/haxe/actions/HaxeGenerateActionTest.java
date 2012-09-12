@@ -4,11 +4,13 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.generation.*;
 import com.intellij.testFramework.LightCodeInsightTestCase;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeGenerateActionTest extends LightCodeInsightTestCase {
+  @NotNull
   @Override
   protected String getTestDataPath() {
     return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/generate/");
