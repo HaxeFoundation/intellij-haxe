@@ -28,7 +28,7 @@
             toReformat="true" toShortenFQNames="true">
     <variable name="NAME" expression="" defaultValue="&quot;name&quot;" alwaysStopAt="true"/>
     <variable name="ARGS" expression="" defaultValue="" alwaysStopAt="true"/>
-    <variable name="RETURN_TYPE" expression="&quot;void&quot;" defaultValue="&quot;void&quot;" alwaysStopAt="true"/>
+    <variable name="RETURN_TYPE" expression="&quot;Void&quot;" defaultValue="&quot;Void&quot;" alwaysStopAt="true"/>
     <context>
       <option name="HAXE" value="true"/>
     </context>
@@ -38,7 +38,7 @@
             toReformat="true" toShortenFQNames="true">
     <variable name="NAME" expression="" defaultValue="&quot;name&quot;" alwaysStopAt="true"/>
     <variable name="ARGS" expression="" defaultValue="" alwaysStopAt="true"/>
-    <variable name="RETURN_TYPE" expression="&quot;void&quot;" defaultValue="&quot;void&quot;" alwaysStopAt="true"/>
+    <variable name="RETURN_TYPE" expression="&quot;Void&quot;" defaultValue="&quot;Void&quot;" alwaysStopAt="true"/>
     <context>
       <option name="HAXE" value="true"/>
     </context>
@@ -48,7 +48,7 @@
             toReformat="true" toShortenFQNames="true">
     <variable name="NAME" expression="" defaultValue="&quot;name&quot;" alwaysStopAt="true"/>
     <variable name="ARGS" expression="" defaultValue="" alwaysStopAt="true"/>
-    <variable name="RETURN_TYPE" expression="&quot;void&quot;" defaultValue="&quot;void&quot;" alwaysStopAt="true"/>
+    <variable name="RETURN_TYPE" expression="&quot;Void&quot;" defaultValue="&quot;Void&quot;" alwaysStopAt="true"/>
     <context>
       <option name="HAXE" value="true"/>
     </context>
@@ -58,7 +58,7 @@
             description="private static function" toReformat="true" toShortenFQNames="true">
     <variable name="NAME" expression="" defaultValue="&quot;name&quot;" alwaysStopAt="true"/>
     <variable name="ARGS" expression="" defaultValue="" alwaysStopAt="true"/>
-    <variable name="RETURN_TYPE" expression="&quot;void&quot;" defaultValue="&quot;void&quot;" alwaysStopAt="true"/>
+    <variable name="RETURN_TYPE" expression="&quot;Void&quot;" defaultValue="&quot;Void&quot;" alwaysStopAt="true"/>
     <context>
       <option name="HAXE" value="true"/>
     </context>
