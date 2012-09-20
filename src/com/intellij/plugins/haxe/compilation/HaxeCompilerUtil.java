@@ -20,7 +20,8 @@ public class HaxeCompilerUtil {
   private static void addErrorToContext(Module module, String error, CompileContext context) {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(PathUtil.getParentPath(module.getModuleFilePath()), error);
     if (compilerError == null) {
-      context.addMessage(CompilerMessageCategory.ERROR, error, null, -1, -1);
+      final boolean isError = error.contains("error");
+      context.addMessage(isError ? CompilerMessageCategory.ERROR : CompilerMessageCategory.WARNING, error, null, -1, -1);
       return;
     }
 

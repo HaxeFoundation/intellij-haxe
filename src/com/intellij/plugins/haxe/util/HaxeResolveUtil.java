@@ -66,7 +66,7 @@ public class HaxeResolveUtil {
 
   @NotNull
   @NonNls
-  public static String getPackageName(final PsiFile file) {
+  public static String getPackageName(@Nullable final PsiFile file) {
     final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(file, HaxePackageStatement.class);
     if (packageStatement != null && packageStatement.getExpression() != null) {
       return packageStatement.getExpression().getText();
@@ -510,11 +510,11 @@ public class HaxeResolveUtil {
   @NotNull
   public static HaxeClassResolveResult findFirstParameterClass(HaxeNamedComponent haxeNamedComponent) {
     final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterList.class);
-    if(parameterList == null) {
+    if (parameterList == null) {
       return HaxeClassResolveResult.EMPTY;
     }
     final List<HaxeParameter> parameters = parameterList.getParameterList();
-    if(!parameters.isEmpty()) {
+    if (!parameters.isEmpty()) {
       final HaxeParameter parameter = parameters.iterator().next();
       return getHaxeClassResolveResult(parameter, HaxeGenericSpecialization.EMPTY);
     }

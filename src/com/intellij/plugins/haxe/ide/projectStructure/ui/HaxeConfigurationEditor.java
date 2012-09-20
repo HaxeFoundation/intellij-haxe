@@ -282,9 +282,11 @@ public class HaxeConfigurationEditor {
       final GridLayoutManager layoutManager = new GridLayoutManager(extensionPoints.length, 1);
       myAdditionalComponentPanel.setLayout(layoutManager);
     }
-    for (HaxeModuleConfigurationExtensionPoint extensionPoint : extensionPoints) {
+    for (int i = 0; i < extensionPoints.length; i++) {
+      HaxeModuleConfigurationExtensionPoint extensionPoint = extensionPoints[i];
       final GridConstraints gridConstraints = new GridConstraints();
       gridConstraints.setFill(GridConstraints.FILL_HORIZONTAL);
+      gridConstraints.setRow(i);
 
       final UnnamedConfigurable configurable = extensionPoint.createConfigurable(settings);
       cofigurables.add(configurable);

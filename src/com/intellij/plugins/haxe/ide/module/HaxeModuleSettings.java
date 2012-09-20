@@ -35,6 +35,7 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
   private String flexSdkName = "";
   private String hxmlPath = "";
   private String nmmlPath = "";
+  private String myHXCPPPort = "";
   private int buildConfig = 0;
 
   public HaxeModuleSettings() {
@@ -166,6 +167,14 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     this.buildConfig = buildConfig;
   }
 
+  public String getHXCPPPort() {
+    return myHXCPPPort;
+  }
+
+  public void setHXCPPPort(String value) {
+    myHXCPPPort = value;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -182,6 +191,7 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     if (outputFileName != null ? !outputFileName.equals(settings.outputFileName) : settings.outputFileName != null) return false;
     if (haxeTarget != settings.haxeTarget) return false;
     if (nmeTarget != settings.nmeTarget) return false;
+    if (myHXCPPPort != settings.myHXCPPPort) return false;
 
     return true;
   }
@@ -196,6 +206,7 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     result = 31 * result + (nmeTarget != null ? nmeTarget.hashCode() : 0);
     result = 31 * result + (flexSdkName != null ? flexSdkName.hashCode() : 0);
     result = 31 * result + (hxmlPath != null ? hxmlPath.hashCode() : 0);
+    result = 31 * result + (myHXCPPPort != null ? myHXCPPPort.hashCode() : 0);
     result = 31 * result + buildConfig;
     return result;
   }

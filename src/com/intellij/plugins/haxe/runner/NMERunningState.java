@@ -22,10 +22,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NMERunningState extends CommandLineState {
   private final Module module;
+  private final boolean myRunInTest;
 
-  public NMERunningState(ExecutionEnvironment env, Module module) {
+  public NMERunningState(ExecutionEnvironment env, Module module, boolean runInTest) {
     super(env);
     this.module = module;
+    myRunInTest = runInTest;
   }
 
   @NotNull
@@ -53,7 +55,7 @@ public class NMERunningState extends CommandLineState {
     commandLine.setExePath(haxelibPath);
     commandLine.addParameter("run");
     commandLine.addParameter("nme");
-    commandLine.addParameter("run");
+    commandLine.addParameter(myRunInTest ? "test" : "run");
     commandLine.addParameter(settings.getNmmlPath());
     for (String flag : settings.getNmeTarget().getFlags()) {
       commandLine.addParameter(flag);

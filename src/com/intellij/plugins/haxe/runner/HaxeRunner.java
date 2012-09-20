@@ -77,7 +77,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
     if (settings.isUseNmmlToBuild()) {
-      final NMERunningState nmeRunningState = new NMERunningState(env, module);
+      final NMERunningState nmeRunningState = new NMERunningState(env, module, false);
       return super.doExecute(project, executor, nmeRunningState, contentToReuse, env);
     }
 

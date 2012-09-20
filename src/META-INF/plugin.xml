@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.5:</p>
+      <ul>
+        <li>HXCPP Debugging</li>
+      </ul>
       <p>0.4.7:</p>
       <ul>
         <li>Introduce Variable Refactoring</li>
@@ -90,11 +94,12 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.4.7</version>
+  <version>0.5</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="122.1" until-build="123.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
+  <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
   <application-components>
     <!-- Add your application components here -->
