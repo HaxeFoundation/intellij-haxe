@@ -4,6 +4,7 @@ import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import javax.swing.*;
@@ -50,18 +51,18 @@ public class HaxeAdditionalConfigurablePanel {
   }
 
   public void setNekoBinPath(String path) {
-    myNekoTextField.setText(path);
+    myNekoTextField.setText(FileUtil.toSystemDependentName(path));
   }
 
   public String getNekoBinPath() {
-    return myNekoTextField.getText();
+    return FileUtil.toSystemIndependentName(myNekoTextField.getText());
   }
 
   public void setHaxelibPath(String path) {
-    myHaxelibTextField.setText(path);
+    myHaxelibTextField.setText(FileUtil.toSystemDependentName(path));
   }
 
   public String getHaxelibPath() {
-    return myHaxelibTextField.getText();
+    return FileUtil.toSystemIndependentName(myHaxelibTextField.getText());
   }
 }
