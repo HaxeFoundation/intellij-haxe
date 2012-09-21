@@ -2,12 +2,16 @@ package com.intellij.plugins.haxe.runner.debugger.hxcpp;
 
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.idea.LoggerFactory;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Pair;
+import com.intellij.plugins.haxe.runner.debugger.HXCPPRemoteDebugState;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerEditorsProvider;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.connection.HXCPPConnection;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.connection.HXCPPResponse;
@@ -15,6 +19,8 @@ import com.intellij.plugins.haxe.runner.debugger.hxcpp.frame.HXCPPStackFrame;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.frame.HXCPPSuspendContext;
 import com.intellij.util.io.socketConnection.AbstractResponseHandler;
 import com.intellij.util.io.socketConnection.AbstractResponseToRequestHandler;
+import com.intellij.util.io.socketConnection.ConnectionStatus;
+import com.intellij.util.io.socketConnection.SocketConnectionListener;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XSourcePosition;
@@ -30,7 +36,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public class HXCPPDebugProcess extends XDebugProcess {
+public class HXCPPDebugProcess extends XDebugProcess implements SocketConnectionListener {
   private static final Logger LOG = LoggerFactory.getInstance().getLoggerInstance(HXCPPDebugProcess.class.getName());
   private final ExecutionResult myExecutionResult;
   private final HXCPPConnection myConnection = new HXCPPConnection();
@@ -87,6 +93,10 @@ public class HXCPPDebugProcess extends XDebugProcess {
     throws IOException {
     super(session);
 
+    if (executionResult instanceof HXCPPRemoteDebugState.HXCPPRemoteDebugProcessHandler) {
+      ((HXCPPRemoteDebugState.HXCPPRemoteDebugProcessHandler)executionResult).setRemoteDebugProcess(this);
+    }
+
     myBreakpointsHandler = new HXCPPBreakpointsHandler(this);
     myExecutionResult = executionResult;
     myModule = module;
@@ -101,18 +111,15 @@ public class HXCPPDebugProcess extends XDebugProcess {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       public void run() {
         myConnection.connect(debuggingPort);
+        myConnection.addListener(HXCPPDebugProcess.this);
         myConnection.registerHandler(new AbstractResponseHandler<HXCPPResponse>() {
           @Override
           public void processResponse(HXCPPResponse response) {
             HXCPPDebugProcess.this.processResponse(response);
           }
         });
-
-        boolean connected = false;
-
         try {
           myConnection.open();
-          connected = true;
         }
         catch (IOException ignored) {
           LOG.debug(ignored);
@@ -172,6 +179,21 @@ public class HXCPPDebugProcess extends XDebugProcess {
 
   public XBreakpointHandler<?>[] getBreakpointHandlers() {
     return myBreakpointsHandler.getBreakpointHandlers();
+  }
+
+  @Override
+  public void statusChanged(ConnectionStatus status) {
+    printToConsole(status.getStatusText());
+    if (status == ConnectionStatus.DISCONNECTED) {
+      getSession().stop();
+    }
+  }
+
+  private void printToConsole(String msg) {
+    final ExecutionConsole console = myExecutionResult.getExecutionConsole();
+    if (console instanceof ConsoleView) {
+      ((ConsoleView)console).print(msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+    }
   }
 
   @Override

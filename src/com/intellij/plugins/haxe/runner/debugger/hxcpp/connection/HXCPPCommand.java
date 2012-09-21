@@ -32,7 +32,6 @@ public class HXCPPCommand implements AbstractRequest {
     }
     final String message = result.toString();
     LOG.debug("write for " + myId + ": " + message);
-    System.out.println("write for " + myId + ": " + message);
     writer.write(message + "\n");
     writer.flush();
   }

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.connection;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.util.io.socketConnection.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,8 +52,11 @@ public class HXCPPConnection {
     myConnection.open();
   }
 
-
   public void registerHandler(AbstractResponseHandler<HXCPPResponse> debugProcess) {
     myConnection.registerHandler(HXCPPResponse.class, debugProcess);
+  }
+
+  public void addListener(@NotNull SocketConnectionListener listener){
+    myConnection.addListener(listener, null);
   }
 }
