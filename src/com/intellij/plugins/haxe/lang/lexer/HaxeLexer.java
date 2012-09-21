@@ -109,10 +109,10 @@ public class HaxeLexer extends LookAheadLexer {
     final LinkedList<String> rpn = new LinkedList<String>();
     do {
       final LexerPosition position = baseLexer.getCurrentPosition();
-      baseLexer.advance();
       type = baseLexer.getTokenType();
-      if (HaxeTokenTypeSets.WHITESPACES.contains(type) || HaxeTokenTypeSets.ONLY_COMMENTS.contains(type)) {
-        continue;
+      while (HaxeTokenTypeSets.WHITESPACES.contains(type) || HaxeTokenTypeSets.ONLY_COMMENTS.contains(type)) {
+        baseLexer.advance();
+        type = baseLexer.getTokenType();
       }
       final String tokenText = baseLexer.getTokenText();
       if (type == ID) {
@@ -150,13 +150,18 @@ public class HaxeLexer extends LookAheadLexer {
         break;
       }
     }
-    while (true);
+    while (advanceAndContinue(baseLexer));
     try {
       return calculate(rpn, stack);
     }
     catch (CalculationException e) {
       return false;
     }
+  }
+
+  private static boolean advanceAndContinue(Lexer baseLexer) {
+    baseLexer.advance();
+    return true;
   }
 
   private boolean canCalculate(LinkedList<String> rpn, LinkedList<IElementType> stack) {
