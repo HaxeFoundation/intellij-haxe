@@ -14,13 +14,11 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.PsiElementProcessor;
@@ -116,12 +114,10 @@ public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAct
   }
 
   private void doImport(final Editor editor, final PsiElement component) {
-    final PsiFile file = component.getContainingFile();
-    final String importPath = HaxeResolveUtil.getPackageName(file) + "." + FileUtil.getNameWithoutExtension(file.getName());
     new WriteCommandAction(myType.getProject(), myType.getContainingFile()) {
       @Override
       protected void run(Result result) throws Throwable {
-        HaxeAddImportHelper.addImport(importPath, myType.getContainingFile());
+        HaxeAddImportHelper.addImport(((HaxeClass)component).getQualifiedName(), myType.getContainingFile());
       }
     }.execute();
   }

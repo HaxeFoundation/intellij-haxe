@@ -33,4 +33,9 @@ public class HaxeTypeAddImportIntentionActionTest extends JavaCodeInsightFixture
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Bar.hx");
     doTest();
   }
+
+  public void testHelper() throws Throwable {
+    myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Bar.hx");
+    doTest();
+  }
 }
