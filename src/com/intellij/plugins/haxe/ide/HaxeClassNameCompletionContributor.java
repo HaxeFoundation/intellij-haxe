@@ -52,7 +52,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                                            final PsiFile targetFile,
                                            final InsertHandler<LookupElement> insertHandler) {
     final Project project = targetFile.getProject();
-    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, targetFile, insertHandler));
+    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, insertHandler));
   }
 
   private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER = new InsertHandler<LookupElement>() {
@@ -70,9 +70,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     new WriteCommandAction(context.getProject(), context.getFile()) {
       @Override
       protected void run(Result result) throws Throwable {
-        final LazyPsiElement psiElement = (LazyPsiElement)item.getObject();
-        final String fileName = FileUtil.getNameWithoutExtension(psiElement.getContainingFile().getName());
-        final String importPath = HaxeResolveUtil.getPackageName(psiElement.getContainingFile()) + "." + fileName;
+        final String importPath = (String)item.getObject();
         HaxeAddImportHelper.addImport(importPath, context.getFile());
       }
     }.execute();
@@ -81,12 +79,10 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   private static class MyProcessor implements Processor<Pair<String, HaxeClassInfo>> {
     private final CompletionResultSet myResultSet;
     private final InsertHandler<LookupElement> myInsertHandler;
-    private final PsiElement myContext;
 
-    private MyProcessor(CompletionResultSet resultSet, PsiElement context, InsertHandler<LookupElement> insertHandler) {
+    private MyProcessor(CompletionResultSet resultSet, InsertHandler<LookupElement> insertHandler) {
       myResultSet = resultSet;
       myInsertHandler = insertHandler;
-      myContext = context;
     }
 
     @Override
@@ -97,14 +93,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
 
     private void add(String name, HaxeClassInfo info) {
       final String qName = HaxeResolveUtil.joinQName(info.getValue(), name);
-      //todo: move to stubs
-      final PsiElement lazyElement = new LazyPsiElement(new Function<Void, PsiElement>() {
-        @Override
-        public PsiElement fun(Void aVoid) {
-          return HaxeResolveUtil.findClassByQName(qName, myContext);
-        }
-      });
-      myResultSet.addElement(LookupElementBuilder.create(lazyElement, name)
+      myResultSet.addElement(LookupElementBuilder.create(qName, name)
                                .withIcon(info.getIcon())
                                .withTailText(" " + info.getValue(), true)
                                .withInsertHandler(myInsertHandler));
