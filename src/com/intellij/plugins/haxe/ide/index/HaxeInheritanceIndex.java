@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.ide.index;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
@@ -28,11 +29,11 @@ import java.util.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeClassInfo> {
-  public static final ID<String, HaxeClassInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeInheritanceIndex");
-  private static final int INDEX_VERSION = 3;
-  private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
-  private final DataExternalizer<HaxeClassInfo> myExternalizer = new HaxeClassInfoExternalizer();
+public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<HaxeClassInfo>> {
+  public static final ID<String, List<HaxeClassInfo>> HAXE_INHERITANCE_INDEX = ID.create("HaxeInheritanceIndex");
+  private static final int INDEX_VERSION = 4;
+  private final DataIndexer<String, List<HaxeClassInfo>, FileContent> myIndexer = new MyDataIndexer();
+  private final DataExternalizer<List<HaxeClassInfo>> myExternalizer = new HaxeClassInfoListExternalizer();
   public static final FileBasedIndex.InputFilter HAXE_INPUT_FILTER = new FileBasedIndex.InputFilter() {
     @Override
     public boolean acceptInput(VirtualFile file) {
@@ -42,8 +43,8 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
 
   @NotNull
   @Override
-  public ID<String, HaxeClassInfo> getName() {
-    return HAXE_COMPONENT_INDEX;
+  public ID<String, List<HaxeClassInfo>> getName() {
+    return HAXE_INHERITANCE_INDEX;
   }
 
   @Override
@@ -62,7 +63,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
   }
 
   @Override
-  public DataExternalizer<HaxeClassInfo> getValueExternalizer() {
+  public DataExternalizer<List<HaxeClassInfo>> getValueExternalizer() {
     return myExternalizer;
   }
 
@@ -73,20 +74,20 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
 
   @NotNull
   @Override
-  public DataIndexer<String, HaxeClassInfo, FileContent> getIndexer() {
+  public DataIndexer<String, List<HaxeClassInfo>, FileContent> getIndexer() {
     return myIndexer;
   }
 
-  private static class MyDataIndexer implements DataIndexer<String, HaxeClassInfo, FileContent> {
+  private static class MyDataIndexer implements DataIndexer<String, List<HaxeClassInfo>, FileContent> {
     @Override
     @NotNull
-    public Map<String, HaxeClassInfo> map(final FileContent inputData) {
+    public Map<String, List<HaxeClassInfo>> map(final FileContent inputData) {
       final PsiFile psiFile = inputData.getPsiFile();
       final List<HaxeClass> classes = HaxeResolveUtil.findComponentDeclarations(psiFile);
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
-      final Map<String, HaxeClassInfo> result = new THashMap<String, HaxeClassInfo>(classes.size());
+      final Map<String, List<HaxeClassInfo>> result = new THashMap<String, List<HaxeClassInfo>>(classes.size());
       for (HaxeClass haxeClass : classes) {
         final HaxeClassInfo value = new HaxeClassInfo(haxeClass.getQualifiedName(), HaxeComponentType.typeOf(haxeClass));
         if (haxeClass instanceof AbstractHaxeTypeDefImpl) {
@@ -97,27 +98,36 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
             final HaxeTypeExtends typeExtends = anonymousType.getAnonymousTypeBody().getTypeExtends();
             if (typeExtends != null) {
               final String key = HaxeResolveUtil.getQName(typeExtends.getType(), true);
-              result.put(key, value);
+              put(result, key, value);
             }
           }
           else if (type != null) {
-            result.put(HaxeResolveUtil.getQName(type, true), value);
+            put(result, HaxeResolveUtil.getQName(type, true), value);
           }
         }
         else {
           for (HaxeType haxeType : haxeClass.getExtendsList()) {
             if (haxeType == null) continue;
             final String key = HaxeResolveUtil.getQName(haxeType, true);
-            result.put(key, value);
+            put(result, key, value);
           }
           for (HaxeType haxeType : haxeClass.getImplementsList()) {
             if (haxeType == null) continue;
             final String key = HaxeResolveUtil.getQName(haxeType, true);
-            result.put(key, value);
+            put(result, key, value);
           }
         }
       }
       return result;
+    }
+
+    private static void put(Map<String, List<HaxeClassInfo>> map, String key, HaxeClassInfo value) {
+      List<HaxeClassInfo> infos = map.get(key);
+      if (infos == null) {
+        infos = new ArrayList<HaxeClassInfo>();
+        map.put(key, infos);
+      }
+      infos.add(value);
     }
   }
 
@@ -182,20 +192,23 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, HaxeCl
       final Set<String> namesSet = new THashSet<String>();
       final LinkedList<String> namesQueue = new LinkedList<String>();
       namesQueue.add(qName);
+      final Project project = context.getProject();
+      final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
       while (!namesQueue.isEmpty()) {
         final String name = namesQueue.pollFirst();
         if (!namesSet.add(name)) {
           continue;
         }
-        List<HaxeClassInfo> files =
-          FileBasedIndex.getInstance().getValues(HAXE_COMPONENT_INDEX, name, GlobalSearchScope.allScope(context.getProject()));
-        for (HaxeClassInfo subClassInfo : files) {
-          final HaxeClass subClass = HaxeResolveUtil.findClassByQName(subClassInfo.getValue(), context);
-          if (subClass != null) {
-            if (!consumer.process(subClass)) {
-              return true;
+        List<List<HaxeClassInfo>> files = FileBasedIndex.getInstance().getValues(HAXE_INHERITANCE_INDEX, name, scope);
+        for (List<HaxeClassInfo> subClassInfoList : files) {
+          for (HaxeClassInfo subClassInfo : subClassInfoList) {
+            final HaxeClass subClass = HaxeResolveUtil.findClassByQName(subClassInfo.getValue(), context.getManager(), scope);
+            if (subClass != null) {
+              if (!consumer.process(subClass)) {
+                return true;
+              }
+              namesQueue.add(subClass.getQualifiedName());
             }
-            namesQueue.add(subClass.getQualifiedName());
           }
         }
       }

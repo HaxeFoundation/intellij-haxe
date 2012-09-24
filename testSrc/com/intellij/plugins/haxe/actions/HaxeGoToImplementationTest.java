@@ -30,4 +30,8 @@ public class HaxeGoToImplementationTest extends JavaCodeInsightFixtureTestCase {
   public void testGti2() throws Throwable {
     doTest(1);
   }
+
+  public void testGti3() throws Throwable {
+    doTest(3);
+  }
 }

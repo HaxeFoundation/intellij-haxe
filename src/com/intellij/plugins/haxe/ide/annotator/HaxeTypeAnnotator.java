@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,7 +39,8 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
       return;
     }
 
-    final List<HaxeComponent> components = HaxeComponentIndex.getItemsByName(type.getExpression().getText(), type.getProject());
+    final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
+    final List<HaxeComponent> components = HaxeComponentIndex.getItemsByName(type.getExpression().getText(), type.getProject(), scope);
     if(!components.isEmpty()){
       myHolder.createErrorAnnotation(type, HaxeBundle.message("haxe.unresolved.type")).registerFix(new HaxeTypeAddImportIntentionAction(type, components));
     }

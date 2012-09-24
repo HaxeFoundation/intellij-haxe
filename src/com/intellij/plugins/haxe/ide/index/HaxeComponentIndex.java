@@ -67,11 +67,6 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
     return myIndexer;
   }
 
-  public static List<HaxeComponent> getItemsByName(final String name, Project project) {
-    final GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
-    return getItemsByName(name, project, searchScope);
-  }
-
   public static List<HaxeComponent> getItemsByName(String name, Project project, GlobalSearchScope searchScope) {
     Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(HAXE_COMPONENT_INDEX, name, searchScope);
@@ -87,10 +82,6 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
       }
     }
     return result;
-  }
-
-  public static void processAll(Project project, @NotNull Processor<Pair<String, HaxeClassInfo>> processor) {
-    processAll(project, processor, GlobalSearchScope.allScope(project));
   }
 
   public static void processAll(Project project, Processor<Pair<String, HaxeClassInfo>> processor, GlobalSearchScope scope) {

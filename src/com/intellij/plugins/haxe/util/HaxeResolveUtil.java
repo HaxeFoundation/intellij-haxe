@@ -1,6 +1,8 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
@@ -79,14 +81,20 @@ public class HaxeResolveUtil {
     if (context == null || qName == null) {
       return null;
     }
-    final Project project = context.getProject();
     final PsiManager psiManager = context.getManager();
-    return findClassByQName(qName, project, psiManager);
+    final GlobalSearchScope scope = getScopeForElement(context);
+    return findClassByQName(qName, psiManager, scope);
+  }
+
+  @NotNull
+  public static GlobalSearchScope getScopeForElement(@NotNull PsiElement context) {
+    final Project project = context.getProject();
+    final Module module = ModuleUtilCore.findModuleForPsiElement(context);
+    return module != null ? GlobalSearchScope.moduleScope(module) : GlobalSearchScope.allScope(project);
   }
 
   @Nullable
-  public static HaxeClass findClassByQName(String qName, Project project, PsiManager psiManager) {
-    final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+  public static HaxeClass findClassByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
     final List<VirtualFile> classFiles = HaxeComponentFileNameIndex.
       getFilesNameByQName(qName, scope);
     final Pair<String, String> qNamePair = splitQName(qName);

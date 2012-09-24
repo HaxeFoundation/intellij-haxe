@@ -5,8 +5,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
@@ -24,7 +26,8 @@ public class HaxeTypeAddImportIntentionActionTest extends JavaCodeInsightFixture
     assertNotNull(file);
     final HaxeType type = PsiTreeUtil.getParentOfType(file.findElementAt(myFixture.getCaretOffset()), HaxeType.class, false);
     assertNotNull(type);
-    new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex.getItemsByName(type.getExpression().getText(), type.getProject()))
+    final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
+    new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex.getItemsByName(type.getExpression().getText(), type.getProject(), scope))
       .execute();
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }

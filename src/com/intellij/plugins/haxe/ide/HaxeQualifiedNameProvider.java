@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,10 +52,12 @@ public class HaxeQualifiedNameProvider implements QualifiedNameProvider {
   public PsiElement qualifiedNameToElement(String fqn, Project project) {
     final int index = fqn.indexOf("#");
     if (index == -1) {
-      final HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(fqn, project, PsiManager.getInstance(project));
+      final HaxeClass haxeClass =
+        HaxeResolveUtil.findClassByQName(fqn, PsiManager.getInstance(project), GlobalSearchScope.projectScope(project));
       return haxeClass == null ? null : haxeClass.getComponentName();
     }
-    final HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(fqn.substring(0, index), project, PsiManager.getInstance(project));
+    final HaxeClass haxeClass =
+      HaxeResolveUtil.findClassByQName(fqn.substring(0, index), PsiManager.getInstance(project), GlobalSearchScope.projectScope(project));
     if (haxeClass == null) {
       return null;
     }

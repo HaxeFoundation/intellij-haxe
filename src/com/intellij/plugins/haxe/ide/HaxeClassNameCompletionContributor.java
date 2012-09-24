@@ -7,7 +7,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
@@ -15,13 +14,12 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.LazyPsiElement;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.util.Function;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +50,8 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                                            final PsiFile targetFile,
                                            final InsertHandler<LookupElement> insertHandler) {
     final Project project = targetFile.getProject();
-    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, insertHandler));
+    final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
+    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, insertHandler), scope);
   }
 
   private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER = new InsertHandler<LookupElement>() {
