@@ -88,7 +88,10 @@ public class HaxeIndentProcessor {
         elementType != HAXE_BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if (parentType == HAXE_IF_STATEMENT && (prevSiblingType == PRPAREN || prevSiblingType == KELSE) && elementType != HAXE_BLOCK_STATEMENT) {
+    if (parentType == HAXE_IF_STATEMENT &&
+        (prevSiblingType == PRPAREN || prevSiblingType == KELSE) &&
+        elementType != HAXE_BLOCK_STATEMENT &&
+        elementType != HAXE_IF_STATEMENT) {
       return Indent.getNormalIndent();
     }
     return Indent.getNoneIndent();

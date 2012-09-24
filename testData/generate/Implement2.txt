@@ -1,0 +1,10 @@
+class Implement2 implements IFoo<String> {
+
+    public function getFoo():T {
+    }
+}
+
+interface IFoo<T> {
+  function getFoo():T;
+  var varInInterface:T;
+}

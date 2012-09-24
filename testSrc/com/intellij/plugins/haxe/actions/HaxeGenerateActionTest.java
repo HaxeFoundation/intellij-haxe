@@ -44,6 +44,11 @@ public class HaxeGenerateActionTest extends LightCodeInsightTestCase {
     doImplementTest();
   }
 
+  public void testImplement2() throws Throwable {
+    configureByFile("Implement2.hx");
+    doImplementTest();
+  }
+
   public void testOverride1() throws Throwable {
     configureByFile("Override1.hx");
     doOverrideTest();

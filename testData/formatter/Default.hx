@@ -51,4 +51,41 @@ import com.Foo;using com.utils.MathUtil;class Foo{
             return;
               }
    }
+
+
+  static public function getBrowser(browserAgent:String):String {
+      if (browserAgent != null)
+      {
+          if (browserAgent.indexOf("Firefox")
+              >= 0) {
+
+            _browser = Browser_firefox;
+          }
+
+          else
+            if (browserAgent.indexOf("Safari") >= 0) {
+              _browser = Browser_safari;
+          }
+
+          else
+      if (browserAgent.indexOf("MSIE") >= 0) {
+                _browser = Browser_ie;
+          }
+
+          else if (browserAgent.indexOf("Opera") >= 0) {
+                _browser = Browser_opera;
+            }
+
+           else {
+                _browser = Browser_unknown;
+            }
+
+      }
+
+      else {
+          _browser = Browser_unknown;
+      }
+
+      return browser;
+  }
     }
