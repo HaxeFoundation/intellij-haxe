@@ -4,7 +4,9 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsProvider;
+import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -19,5 +21,11 @@ public class HaxeCodeStyleSettingsProvider extends CodeStyleSettingsProvider {
   @Override
   public Configurable createSettingsPage(CodeStyleSettings settings, CodeStyleSettings originalSettings) {
     return new HaxeCodeStyleConfigurable(settings, originalSettings);
+  }
+
+  @Nullable
+  @Override
+  public CustomCodeStyleSettings createCustomSettings(CodeStyleSettings settings) {
+    return new HaxeCodeStyleSettings(settings);
   }
 }

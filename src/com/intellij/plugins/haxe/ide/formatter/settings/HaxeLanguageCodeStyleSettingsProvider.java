@@ -71,6 +71,12 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
                                    "SPACE_BEFORE_COMMA",
                                    "SPACE_AROUND_UNARY_OPERATOR"
       );
+      consumer.showCustomOption(HaxeCodeStyleSettings.class, "SPACE_AROUND_ARROW", "Around ->",
+                                CodeStyleSettingsCustomizable.SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
+      consumer.showCustomOption(HaxeCodeStyleSettings.class, "SPACE_BEFORE_TYPE_REFERENCE_COLON", "Space before type reference colon ':'",
+                                CodeStyleSettingsCustomizable.SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
+      consumer.showCustomOption(HaxeCodeStyleSettings.class, "SPACE_AFTER_TYPE_REFERENCE_COLON", "Space after type reference colon ':'",
+                                CodeStyleSettingsCustomizable.SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
     }
     else if (settingsType == SettingsType.BLANK_LINES_SETTINGS) {
       consumer.showStandardOptions("KEEP_BLANK_LINES_IN_CODE");
@@ -112,6 +118,7 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
                                                    "            var value:Int = a + b;\n" +
                                                    "            return value > 0 ? value : -value;\n" +
                                                    "        }\n" +
+                                                   "        var increment:Int->Int = function(i:Int) {return ++i;}\n" +
                                                    "        var arr = [\"zero\", \"one\"];\n" +
                                                    "        var y = (x ^ 0x123) << 2;\n" +
                                                    "        for (i in 0...10) {\n" +

@@ -4,6 +4,7 @@ import com.intellij.formatting.Block;
 import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.common.AbstractBlock;
@@ -18,10 +19,12 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 public class HaxeSpacingProcessor {
   private final ASTNode myNode;
   private final CodeStyleSettings mySettings;
+  private final HaxeCodeStyleSettings myHaxeCodeStyleSettings;
 
-  public HaxeSpacingProcessor(ASTNode node, CodeStyleSettings settings) {
+  public HaxeSpacingProcessor(ASTNode node, CodeStyleSettings settings, HaxeCodeStyleSettings haxeCodeStyleSettings) {
     myNode = node;
     mySettings = settings;
+    myHaxeCodeStyleSettings = haxeCodeStyleSettings;
   }
 
   public Spacing getSpacing(Block child1, Block child2) {
@@ -268,17 +271,16 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_COMMA);
     }
 
-    //todo: customize in settings
     if (type1 == OCOLON && elementType == HAXE_TYPE_TAG) {
-      return addSingleSpaceIf(false);
+      return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_AFTER_TYPE_REFERENCE_COLON);
     }
 
     if (type2 == HAXE_TYPE_TAG) {
-      return addSingleSpaceIf(false);
+      return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_BEFORE_TYPE_REFERENCE_COLON);
     }
 
     if (type1 == OARROW || type2 == OARROW) {
-      return addSingleSpaceIf(true);
+      return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_AROUND_ARROW);
     }
 
     return Spacing.createSpacing(0, 1, 0, true, mySettings.KEEP_BLANK_LINES_IN_CODE);

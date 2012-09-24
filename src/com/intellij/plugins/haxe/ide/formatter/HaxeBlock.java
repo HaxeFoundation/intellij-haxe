@@ -6,6 +6,7 @@ import com.intellij.formatting.templateLanguages.DataLanguageBlockWrapper;
 import com.intellij.formatting.templateLanguages.TemplateLanguageBlock;
 import com.intellij.formatting.templateLanguages.TemplateLanguageBlockFactory;
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.PsiWhiteSpace;
@@ -34,8 +35,9 @@ public class HaxeBlock extends TemplateLanguageBlock {
                       @NotNull TemplateLanguageBlockFactory blockFactory,
                       @Nullable List<DataLanguageBlockWrapper> foreignChildren) {
     super(node, wrap, alignment, blockFactory, settings, foreignChildren);
+    final HaxeCodeStyleSettings haxeCodeStyleSettings = getSettings().getCustomSettings(HaxeCodeStyleSettings.class);
     muIndentProcessor = new HaxeIndentProcessor(settings);
-    mySpacingProcessor = new HaxeSpacingProcessor(node, settings);
+    mySpacingProcessor = new HaxeSpacingProcessor(node, settings, haxeCodeStyleSettings);
     myWrappingProcessor = new HaxeWrappingProcessor(node, settings);
     myAlignmentProcessor = new HaxeAlignmentProcessor(node, settings);
     myIndent = muIndentProcessor.getChildIndent(myNode);
