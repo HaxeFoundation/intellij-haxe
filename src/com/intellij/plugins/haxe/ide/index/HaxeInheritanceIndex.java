@@ -164,7 +164,8 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
           if (haxeNamedComponent instanceof HaxeClass) {
             processInheritors(((HaxeClass)haxeNamedComponent).getQualifiedName(), queryParameters, consumer);
           }
-          else if (HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.METHOD) {
+          else if (HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.METHOD ||
+                   HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.FIELD) {
             final String nameToFind = haxeNamedComponent.getName();
             if (nameToFind == null) return true;
 

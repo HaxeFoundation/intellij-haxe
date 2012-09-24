@@ -39,11 +39,11 @@ public class HaxeElementGenerator {
   }
 
 
-  public static List<HaxeNamedComponent> createFunctionsFromText(Project myProject, String text) {
+  public static List<HaxeNamedComponent> createNamedSubComponentsFromText(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return haxeClass.getMethods();
+    return HaxeResolveUtil.findNamedSubComponents(haxeClass);
   }
 
   @Nullable

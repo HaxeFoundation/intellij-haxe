@@ -1,10 +1,12 @@
 package com.intellij.plugins.haxe.ide.generation;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttributeList;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-
-import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -19,6 +21,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
 
   @Override
   protected String buildFunctionsText(HaxeNamedComponent element) {
+    final HaxeComponentType componentType = HaxeComponentType.typeOf(element);
     final StringBuilder result = new StringBuilder();
     if (override && !element.isOverride()) {
       result.append("override ");
@@ -28,20 +31,26 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(declarationAttributeList.getText());
       result.append(" ");
     }
-    if(!result.toString().contains("public")){
+    if (!result.toString().contains("public")) {
       result.insert(0, "public ");
     }
-    result.append("function ");
-    result.append(element.getName());
-    result.append(" (");
-    result.append(HaxePresentableUtil.getPresentableParameterList(element, specializations));
-    result.append(")");
+    if (componentType == HaxeComponentType.FIELD) {
+      result.append("var ");
+      result.append(element.getName());
+    }
+    else {
+      result.append("function ");
+      result.append(element.getName());
+      result.append(" (");
+      result.append(HaxePresentableUtil.getPresentableParameterList(element, specializations));
+      result.append(")");
+    }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    if(typeTag != null){
+    if (typeTag != null) {
       result.append(":");
       result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymous().getType(), specializations));
     }
-    result.append("{\n}\n");
+    result.append(componentType == HaxeComponentType.FIELD ? ";" : "{\n}");
     return result.toString();
   }
 }

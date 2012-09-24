@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiParserFacade;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,14 +71,25 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   public PsiElement doAddMethodsForOne(final Project project, final String functionsText, PsiElement anchor)
     throws IncorrectOperationException {
     if (functionsText != null && functionsText.length() > 0) {
-      List<HaxeNamedComponent> elements = HaxeElementGenerator.createFunctionsFromText(project, functionsText);
+      List<HaxeNamedComponent> elements = HaxeElementGenerator.createNamedSubComponentsFromText(project, functionsText);
       final PsiElement insert = myHaxeClass instanceof HaxeClassDeclaration ?
                                 ((HaxeClassDeclaration)myHaxeClass).getClassBody() : myHaxeClass;
       assert insert != null;
-      for (HaxeNamedComponent element : elements) {
+      for (PsiElement element : elements) {
+        if (element instanceof HaxeVarDeclarationPart) {
+          element = element.getParent();
+        }
         anchor = insert.addAfter(element, anchor);
+        anchor = afterAddHandler(element, anchor);
       }
     }
+    return anchor;
+  }
+
+  protected PsiElement afterAddHandler(PsiElement element, PsiElement anchor) {
+    final PsiElement newLineNode =
+      PsiParserFacade.SERVICE.getInstance(element.getProject()).createWhiteSpaceFromText("\n\n");
+    anchor.getParent().addBefore(newLineNode, anchor);
     return anchor;
   }
 

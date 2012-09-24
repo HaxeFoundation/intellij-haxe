@@ -1,9 +1,15 @@
-class Implement1 implements IFoo<String> {
+class Implement1 implements IFoo<Bar> {
 
-    public function getFoo():T {
+    public function getFoo1():Bar {
+    }
+
+    public function getFoo2():Bar {
     }
 }
 
 interface IFoo<T> {
-  function getFoo():T;
+  function getFoo1():T;
+  function getFoo2():T;
 }
+
+class Bar {}
