@@ -20,8 +20,8 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeLibRootDetector extends RootDetector {
-  protected HaxeLibRootDetector() {
-    super(OrderRootType.SOURCES, false, HaxeBundle.message("sources.root.detector.name"));
+  protected HaxeLibRootDetector(OrderRootType rootType) {
+    super(rootType, false, HaxeBundle.message("sources.root.detector.name"));
   }
 
   @NotNull

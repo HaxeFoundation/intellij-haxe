@@ -31,7 +31,7 @@ public class HaxeLibraryRootsComponentDescriptor extends LibraryRootsComponentDe
   @NotNull
   @Override
   public List<? extends RootDetector> getRootDetectors() {
-    return Arrays.asList(new HaxeLibRootDetector());
+    return Arrays.asList(new HaxeLibRootDetector(OrderRootType.SOURCES), new HaxeLibRootDetector(OrderRootType.CLASSES));
   }
 
   @NotNull

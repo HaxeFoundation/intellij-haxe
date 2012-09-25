@@ -90,7 +90,7 @@ public class HaxeResolveUtil {
   public static GlobalSearchScope getScopeForElement(@NotNull PsiElement context) {
     final Project project = context.getProject();
     final Module module = ModuleUtilCore.findModuleForPsiElement(context);
-    return module != null ? GlobalSearchScope.moduleScope(module) : GlobalSearchScope.allScope(project);
+    return module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) : GlobalSearchScope.allScope(project);
   }
 
   @Nullable
