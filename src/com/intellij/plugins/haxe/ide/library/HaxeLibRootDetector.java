@@ -7,7 +7,6 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
-import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +19,8 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeLibRootDetector extends RootDetector {
-  protected HaxeLibRootDetector(OrderRootType rootType) {
-    super(rootType, false, HaxeBundle.message("sources.root.detector.name"));
+  protected HaxeLibRootDetector(OrderRootType rootType, String presentableRootTypeName) {
+    super(rootType, false, presentableRootTypeName);
   }
 
   @NotNull

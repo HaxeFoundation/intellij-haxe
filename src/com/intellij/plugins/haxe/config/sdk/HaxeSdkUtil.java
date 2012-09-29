@@ -76,6 +76,7 @@ public class HaxeSdkUtil {
     final VirtualFile stdRoot = sdkRoot.findChild("std");
     if (stdRoot != null) {
       modificator.addRoot(stdRoot, OrderRootType.SOURCES);
+      modificator.addRoot(stdRoot, OrderRootType.CLASSES);
     }
     final VirtualFile docRoot = sdkRoot.findChild("doc");
     if (docRoot != null) {

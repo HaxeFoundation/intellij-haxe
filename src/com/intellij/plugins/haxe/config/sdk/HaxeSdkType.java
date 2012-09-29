@@ -64,7 +64,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public boolean isRootTypeApplicable(OrderRootType type) {
-    return type == OrderRootType.SOURCES || type == JavadocOrderRootType.getInstance();
+    return type == OrderRootType.SOURCES || type == OrderRootType.CLASSES || type == JavadocOrderRootType.getInstance();
   }
 
   @Override

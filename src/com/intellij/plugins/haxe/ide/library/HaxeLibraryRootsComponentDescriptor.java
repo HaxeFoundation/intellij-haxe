@@ -12,6 +12,7 @@ import com.intellij.openapi.roots.libraries.ui.RootDetector;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.DefaultLibraryRootsComponentDescriptor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditor;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +32,10 @@ public class HaxeLibraryRootsComponentDescriptor extends LibraryRootsComponentDe
   @NotNull
   @Override
   public List<? extends RootDetector> getRootDetectors() {
-    return Arrays.asList(new HaxeLibRootDetector(OrderRootType.SOURCES), new HaxeLibRootDetector(OrderRootType.CLASSES));
+    return Arrays.asList(
+      new HaxeLibRootDetector(OrderRootType.SOURCES, HaxeBundle.message("sources.root.detector.sources.name")),
+      new HaxeLibRootDetector(OrderRootType.CLASSES, HaxeBundle.message("sources.root.detector.classes.name"))
+    );
   }
 
   @NotNull

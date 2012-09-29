@@ -130,14 +130,14 @@ public class HaxeConfigurationEditor {
     myTargetComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (!myOutputFileNameTextField.getText().isEmpty()) {
-          myOutputFileNameTextField.setText(getCurrentExtension(FileUtil.getNameWithoutExtension(myOutputFileNameTextField.getText())));
-        }
         if (myTargetComboBox.getSelectedItem() instanceof HaxeTarget) {
           selectedHaxeTarget = (HaxeTarget)myTargetComboBox.getSelectedItem();
         }
         if (myTargetComboBox.getSelectedItem() instanceof NMETarget) {
           selectedNmeTarget = (NMETarget)myTargetComboBox.getSelectedItem();
+        }
+        if (!myOutputFileNameTextField.getText().isEmpty()) {
+          myOutputFileNameTextField.setText(getCurrentExtension(FileUtil.getNameWithoutExtension(myOutputFileNameTextField.getText())));
         }
       }
     });
