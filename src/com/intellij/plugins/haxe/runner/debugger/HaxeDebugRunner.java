@@ -95,7 +95,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       throw new ExecutionException(HaxeBundle.message("flex.sdk.not.specified"));
     }
 
-    return HaxeFlashDebuggingUtil.getDescriptor(this, project, contentToReuse, env, urlToLaunch, flexSdkName);
+    return HaxeFlashDebuggingUtil.getDescriptor(this, module, contentToReuse, env, urlToLaunch, flexSdkName);
   }
 
   private RunContentDescriptor runHXCPP(Project project,
