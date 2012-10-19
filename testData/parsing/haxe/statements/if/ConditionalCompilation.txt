@@ -6,7 +6,6 @@ haXe File
   PsiComment(PPBODY)('// Haxe code specific for flash platform (any version)\n#elseif')
   PsiComment(PPEXPRESSION)(' js\n')
   PsiComment(PPBODY)('// Haxe code specific for javascript plaform\n#else')
-  PsiComment(PPEXPRESSION)('\n')
   PsiComment(MSL_COMMENT)('// do something else')
   PsiComment(#error)('#error // will display an error "Not implemented on this platform"\n  #error "Custom error message" ')
   PsiComment(MSL_COMMENT)('// will display an error "Custom error message"')
@@ -67,7 +66,6 @@ haXe File
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' (flash || php)\n')
   PsiComment(PPBODY)('// Code that works for either flash or PHP\nclass FooFlash {\n\n}\n#end')
-  PsiComment(PPEXPRESSION)('\n\n')
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' (neko && mydebug)\n')
   HAXE_TYPEDEF_DECLARATION

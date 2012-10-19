@@ -61,7 +61,6 @@ public class HaxeLexer extends LookAheadLexer {
     else if (baseLexer.getTokenType() == PPIF || baseLexer.getTokenType() == PPELSEIF) {
       advanceAs(baseLexer, PPIF);
       while (!lookAheadExpressionIsTrue(baseLexer)) {
-        addToken(PPEXPRESSION);
         IElementType elementType = eatUntil(baseLexer, PPEND, PPELSE, PPELSEIF);
         if (elementType == PPELSEIF) {
           advanceAs(baseLexer, PPBODY);
@@ -70,7 +69,6 @@ public class HaxeLexer extends LookAheadLexer {
         advanceAs(baseLexer, PPBODY);
         break;
       }
-      addToken(PPEXPRESSION);
     }
     else if (baseLexer.getTokenType() == PPELSE) {
       eatUntil(baseLexer, PPEND);
@@ -107,6 +105,7 @@ public class HaxeLexer extends LookAheadLexer {
     // reverse polish notation
     final LinkedList<IElementType> stack = new LinkedList<IElementType>();
     final LinkedList<String> rpn = new LinkedList<String>();
+    final int expressionStartPosition = baseLexer.getTokenStart();
     do {
       final LexerPosition position = baseLexer.getCurrentPosition();
       type = baseLexer.getTokenType();
@@ -151,6 +150,10 @@ public class HaxeLexer extends LookAheadLexer {
       }
     }
     while (advanceAndContinue(baseLexer));
+    // not empty token
+    if (expressionStartPosition != baseLexer.getTokenStart()) {
+      addToken(PPEXPRESSION);
+    }
     try {
       return calculate(rpn, stack);
     }
