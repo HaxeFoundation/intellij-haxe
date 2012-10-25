@@ -3,7 +3,7 @@ package com.intellij.plugins.haxe.runner.debugger;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.lang.javascript.flex.projectStructure.model.FlexIdeBuildConfiguration;
+import com.intellij.lang.javascript.flex.projectStructure.model.FlexBuildConfiguration;
 import com.intellij.lang.javascript.flex.run.FlashRunnerParameters;
 import com.intellij.lang.javascript.flex.sdk.FlexSdkUtils;
 import com.intellij.openapi.module.Module;
@@ -32,7 +32,7 @@ public class HaxeFlashDebuggingUtil {
       throw new ExecutionException(HaxeBundle.message("flex.sdk.not.found", flexSdkName));
     }
 
-    final FlexIdeBuildConfiguration bc = new FakeFlexIdeBuildConfiguration(flexSdk, urlToLaunch);
+    final FlexBuildConfiguration bc = new FakeFlexBuildConfiguration(flexSdk, urlToLaunch);
 
     final XDebugSession debugSession =
       XDebuggerManager.getInstance(module.getProject()).startSession(runner, env, contentToReuse, new XDebugProcessStarter() {
