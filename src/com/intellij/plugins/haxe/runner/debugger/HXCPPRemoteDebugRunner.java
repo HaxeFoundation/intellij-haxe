@@ -57,6 +57,7 @@ public class HXCPPRemoteDebugRunner extends DefaultProgramRunner {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
     final boolean notHXCPP = settings.getNmeTarget() != NMETarget.WINDOWS &&
+                             settings.getNmeTarget() != NMETarget.MAC &&
                              settings.getNmeTarget() != NMETarget.LINUX &&
                              settings.getNmeTarget() != NMETarget.LINUX64 &&
                              settings.getNmeTarget() != NMETarget.ANDROID &&
