@@ -27,7 +27,7 @@ public class HaxeTypeAddImportIntentionActionTest extends JavaCodeInsightFixture
     final HaxeType type = PsiTreeUtil.getParentOfType(file.findElementAt(myFixture.getCaretOffset()), HaxeType.class, false);
     assertNotNull(type);
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
-    new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex.getItemsByName(type.getExpression().getText(), type.getProject(), scope))
+    new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex.getItemsByName(type.getReferenceExpression().getText(), type.getProject(), scope))
       .execute();
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }

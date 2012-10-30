@@ -23,15 +23,6 @@ import java.util.*;
  * @author: Fedor.Korotkov
  */
 public class UsefulPsiTreeUtil {
-  @NotNull
-  public static String findPackageName(PsiFile file) {
-    final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(file, HaxePackageStatement.class);
-    if (packageStatement == null || packageStatement.getExpression() == null) {
-      return "";
-    }
-    return packageStatement.getExpression().getText();
-  }
-
   @Nullable
   public static PsiElement getFirstChildSkipWhiteSpacesAndComments(@Nullable PsiElement root) {
     if (root == null) return null;
@@ -91,7 +82,7 @@ public class UsefulPsiTreeUtil {
   public static HaxeImportStatement findImportByClass(@NotNull PsiElement psiElement, String className) {
     final List<HaxeImportStatement> haxeImportStatementList = getAllImportStatements(psiElement);
     for (HaxeImportStatement importStatement : haxeImportStatementList) {
-      final HaxeExpression expression = importStatement.getExpression();
+      final HaxeExpression expression = importStatement.getReferenceExpression();
       if (expression == null) {
         continue;
       }
@@ -106,7 +97,7 @@ public class UsefulPsiTreeUtil {
   @Nullable
   public static String findHelperOwnerQName(PsiElement context, String className) {
     for (HaxeImportStatement importStatement : getAllImportStatements(context)) {
-      final HaxeExpression expression = importStatement.getExpression();
+      final HaxeExpression expression = importStatement.getReferenceExpression();
       final String qName = expression == null ? null : expression.getText();
       final PsiElement resolve = HaxeResolveUtil.findClassByQName(qName, context);
       if (resolve != null && HaxeResolveUtil.findComponentDeclaration(resolve.getContainingFile(), className) != null) {

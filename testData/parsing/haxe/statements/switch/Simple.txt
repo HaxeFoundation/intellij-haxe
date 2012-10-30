@@ -70,6 +70,13 @@ haXe File
                     PsiElement(()('(')
                     PsiElement())(')')
                   PsiElement(;)(';')
+              HAXE_SWITCH_CASE
+                PsiElement(case)('case')
+                HAXE_REFERENCE_EXPRESSION
+                  HAXE_IDENTIFIER
+                    PsiElement(ID)('bar')
+                PsiElement(:)(':')
+              PsiComment(MSL_COMMENT)('//<– haxe plugin says 'or case expected, got default'')
               HAXE_DEFAULT_CASE
                 PsiElement(default)('default')
                 PsiElement(:)(':')

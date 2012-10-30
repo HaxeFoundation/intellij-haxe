@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxePropertyAccessor extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeExpression getExpression();
+  HaxeReferenceExpression getReferenceExpression();
 
 }

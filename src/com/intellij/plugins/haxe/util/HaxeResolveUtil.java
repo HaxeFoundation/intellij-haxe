@@ -70,8 +70,9 @@ public class HaxeResolveUtil {
   @NonNls
   public static String getPackageName(@Nullable final PsiFile file) {
     final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(file, HaxePackageStatement.class);
-    if (packageStatement != null && packageStatement.getExpression() != null) {
-      return packageStatement.getExpression().getText();
+    HaxeReferenceExpression referenceExpression = packageStatement != null ? packageStatement.getReferenceExpression() : null;
+    if (referenceExpression != null) {
+      return referenceExpression.getText();
     }
     return "";
   }
@@ -436,12 +437,12 @@ public class HaxeResolveUtil {
 
   public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
     if (type instanceof HaxeType) {
-      type = ((HaxeType)type).getExpression();
+      type = ((HaxeType)type).getReferenceExpression();
     }
     String result = type.getText();
     if (result.indexOf('.') == -1) {
       final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(type, result);
-      final HaxeExpression expression = importStatement == null ? null : importStatement.getExpression();
+      final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpression();
       final PsiFile psiFile = type.getContainingFile();
       final String packageName = getPackageName(psiFile);
 
@@ -495,7 +496,7 @@ public class HaxeResolveUtil {
     }
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     for (HaxeUsingStatement usingStatement : usingStatements) {
-      final HaxeExpression usingStatementExpression = usingStatement.getExpression();
+      final HaxeExpression usingStatementExpression = usingStatement.getReferenceExpression();
       if (usingStatementExpression == null) continue;
       final HaxeClass haxeClass = findClassByQName(usingStatementExpression.getText(), file);
       if (haxeClass != null) {

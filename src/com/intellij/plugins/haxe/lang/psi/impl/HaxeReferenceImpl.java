@@ -87,7 +87,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (haxeClass.getExtendsList().isEmpty()) {
         return HaxeClassResolveResult.create(null);
       }
-      final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getExpression();
+      final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getReferenceExpression();
       final HaxeClassResolveResult superClassResolveResult = superExpression instanceof HaxeReference
                                                              ? ((HaxeReference)superExpression).resolveHaxeClass()
                                                              : HaxeClassResolveResult.create(null);
@@ -230,8 +230,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private void bindToPackage(PsiPackage element) {
     final HaxeImportStatement importStatement =
       HaxeElementGenerator.createImportStatementFromPath(getProject(), element.getQualifiedName());
-    assert importStatement != null;
-    replace(importStatement.getExpression());
+    HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
+    assert referenceExpression != null;
+    replace(referenceExpression);
   }
 
   private void bindToFile(PsiElement element) {
@@ -260,8 +261,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                 importPath;
         final HaxeImportStatement importStatement =
           HaxeElementGenerator.createImportStatementFromPath(getProject(), newQName);
-        assert importStatement != null;
-        replace(importStatement.getExpression());
+        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
+        assert referenceExpression != null;
+        replace(referenceExpression);
       }
       else if (UsefulPsiTreeUtil.findImportByClass(this, getText()) == null && !destinationPackage.isEmpty()) {
         // need add import
@@ -270,7 +272,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     else {
       final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(this, getText());
-      if (importStatement != null && !importPath.equals(importStatement.getExpression().getText())) {
+      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
+      if (referenceExpression != null && !importPath.equals(referenceExpression.getText())) {
         // need remove, cause can resolve without
         importStatement.getParent().deleteChildRange(importStatement, importStatement);
       }

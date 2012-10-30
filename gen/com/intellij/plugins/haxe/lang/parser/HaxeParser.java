@@ -721,16 +721,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "arrayLiteral")) return false;
     if (!nextTokenIs(builder_, PLBRACK)) return false;
     boolean result_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, PLBRACK);
     result_ = result_ && arrayLiteral_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRBRACK);
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_ARRAY_LITERAL)) {
-      marker_.drop();
-    }
-    else if (result_) {
+    if (result_) {
       marker_.done(HAXE_ARRAY_LITERAL);
     }
     else {
@@ -1266,17 +1261,12 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, KCAST)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, null);
     result_ = consumeToken(builder_, KCAST);
     pinned_ = result_; // pin = 1
     result_ = result_ && castExpression_1(builder_, level_ + 1);
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_CAST_EXPRESSION)) {
-      marker_.drop();
-    }
-    else if (result_ || pinned_) {
+    if (result_ || pinned_) {
       marker_.done(HAXE_CAST_EXPRESSION);
     }
     else {
@@ -2986,7 +2976,6 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, KFUNCTION)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, null);
     result_ = consumeToken(builder_, KFUNCTION);
@@ -2997,11 +2986,7 @@ public class HaxeParser implements PsiParser {
     result_ = pinned_ && report_error_(builder_, functionLiteral_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, functionLiteral_5(builder_, level_ + 1)) && result_;
     result_ = pinned_ && functionCommonBody(builder_, level_ + 1) && result_;
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_FUNCTION_LITERAL)) {
-      marker_.drop();
-    }
-    else if (result_ || pinned_) {
+    if (result_ || pinned_) {
       marker_.done(HAXE_FUNCTION_LITERAL);
     }
     else {
@@ -4729,7 +4714,6 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, ONEW)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, null);
     result_ = consumeToken(builder_, ONEW);
@@ -4738,11 +4722,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
     result_ = pinned_ && report_error_(builder_, newExpression_3(builder_, level_ + 1)) && result_;
     result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_NEW_EXPRESSION)) {
-      marker_.drop();
-    }
-    else if (result_ || pinned_) {
+    if (result_ || pinned_) {
       marker_.done(HAXE_NEW_EXPRESSION);
     }
     else {
@@ -4904,16 +4884,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "objectLiteral")) return false;
     if (!nextTokenIs(builder_, PLCURLY)) return false;
     boolean result_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, PLCURLY);
     result_ = result_ && objectLiteral_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRCURLY);
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_OBJECT_LITERAL)) {
-      marker_.drop();
-    }
-    else if (result_) {
+    if (result_) {
       marker_.done(HAXE_OBJECT_LITERAL);
     }
     else {
@@ -5244,18 +5219,13 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, PLPAREN)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, null);
     result_ = consumeToken(builder_, PLPAREN);
     pinned_ = result_; // pin = 1
     result_ = result_ && report_error_(builder_, parenthesizedExpression_1(builder_, level_ + 1));
     result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_PARENTHESIZED_EXPRESSION)) {
-      marker_.drop();
-    }
-    else if (result_ || pinned_) {
+    if (result_ || pinned_) {
       marker_.done(HAXE_PARENTHESIZED_EXPRESSION);
     }
     else {
@@ -5527,16 +5497,11 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, ID)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, null);
     result_ = identifier(builder_, level_ + 1);
     pinned_ = result_; // pin = 1
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_REFERENCE_EXPRESSION)) {
-      marker_.drop();
-    }
-    else if (result_ || pinned_) {
+    if (result_ || pinned_) {
       marker_.done(HAXE_REFERENCE_EXPRESSION);
     }
     else {
@@ -5552,14 +5517,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "regularExpressionLiteral")) return false;
     if (!nextTokenIs(builder_, REG_EXP)) return false;
     boolean result_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, REG_EXP);
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_REGULAR_EXPRESSION_LITERAL)) {
-      marker_.drop();
-    }
-    else if (result_) {
+    if (result_) {
       marker_.done(HAXE_REGULAR_EXPRESSION_LITERAL);
     }
     else {
@@ -6084,16 +6044,11 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, KSUPER)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, null);
     result_ = consumeToken(builder_, KSUPER);
     pinned_ = result_; // pin = 1
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_SUPER_EXPRESSION)) {
-      marker_.drop();
-    }
-    else if (result_ || pinned_) {
+    if (result_ || pinned_) {
       marker_.done(HAXE_SUPER_EXPRESSION);
     }
     else {
@@ -6151,7 +6106,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // ('case' expression (',' expression)* ':')+ switchCaseBlock
+  // ('case' expression (',' expression)* ':')+ switchCaseBlock?
   public static boolean switchCase(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "switchCase")) return false;
     boolean result_ = false;
@@ -6160,7 +6115,7 @@ public class HaxeParser implements PsiParser {
     enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_, "<switch case>");
     result_ = switchCase_0(builder_, level_ + 1);
     pinned_ = result_; // pin = 1
-    result_ = result_ && switchCaseBlock(builder_, level_ + 1);
+    result_ = result_ && switchCase_1(builder_, level_ + 1);
     if (result_ || pinned_) {
       marker_.done(HAXE_SWITCH_CASE);
     }
@@ -6256,6 +6211,13 @@ public class HaxeParser implements PsiParser {
       marker_.drop();
     }
     return result_;
+  }
+
+  // switchCaseBlock?
+  private static boolean switchCase_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "switchCase_1")) return false;
+    switchCaseBlock(builder_, level_ + 1);
+    return true;
   }
 
   /* ********************************************************** */
@@ -6450,16 +6412,11 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, KTHIS)) return false;
     boolean result_ = false;
     boolean pinned_ = false;
-    int start_ = builder_.getCurrentOffset();
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, null);
     result_ = consumeToken(builder_, KTHIS);
     pinned_ = result_; // pin = 1
-    LighterASTNode last_ = result_? builder_.getLatestDoneMarker() : null;
-    if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(), HAXE_THIS_EXPRESSION)) {
-      marker_.drop();
-    }
-    else if (result_ || pinned_) {
+    if (result_ || pinned_) {
       marker_.done(HAXE_THIS_EXPRESSION);
     }
     else {
@@ -7324,78 +7281,78 @@ public class HaxeParser implements PsiParser {
   }
 
   final static Parser class_body_part_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return class_body_part_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return class_body_part_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser enum_value_declaration_recovery_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return enum_value_declaration_recovery(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return enum_value_declaration_recovery(builder_, level_ + 1);
+    }
+  };
   final static Parser expression_list_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return expression_list_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return expression_list_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser expression_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return expression_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return expression_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser extern_class_body_part_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return extern_class_body_part_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return extern_class_body_part_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser inherit_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return inherit_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return inherit_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser interface_body_part_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return interface_body_part_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return interface_body_part_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser local_var_declaration_part_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return local_var_declaration_part_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return local_var_declaration_part_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser object_literal_list_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return object_literal_list_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return object_literal_list_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser object_literal_part_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return object_literal_part_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return object_literal_part_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser parameterListRecovery_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return parameterListRecovery(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return parameterListRecovery(builder_, level_ + 1);
+    }
+  };
   final static Parser statement_recovery_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return statement_recovery(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return statement_recovery(builder_, level_ + 1);
+    }
+  };
   final static Parser switch_case_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return switch_case_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return switch_case_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser top_level_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return top_level_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return top_level_recover(builder_, level_ + 1);
+    }
+  };
   final static Parser var_declaration_part_recover_parser_ = new Parser() {
-      public boolean parse(PsiBuilder builder_, int level_) {
-        return var_declaration_part_recover(builder_, level_ + 1);
-      }
-    };
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return var_declaration_part_recover(builder_, level_ + 1);
+    }
+  };
 }

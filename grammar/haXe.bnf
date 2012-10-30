@@ -355,7 +355,7 @@ throwStatement ::= 'throw' expression ';'?
 switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{'  switchCase* defaultCase? '}' {pin=1}
 switchCaseBlock ::= (literalExpression ";") | statementList
-switchCase ::= ('case' expression (',' expression)* ':')+ switchCaseBlock {pin=1 recoverUntil="switch_case_recover"}
+switchCase ::= ('case' expression (',' expression)* ':')+ switchCaseBlock? {pin=1 recoverUntil="switch_case_recover"}
 private switch_case_recover ::= !('case' | 'default' | '}' | IDENTIFIER)
 defaultCase::= 'default' ':' switchCaseBlock? {pin=1}
 

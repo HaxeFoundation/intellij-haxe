@@ -66,7 +66,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
       assert haxeClass != null;
       if (!haxeClass.getExtendsList().isEmpty()) {
-        final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getExpression();
+        final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getReferenceExpression();
         final HaxeClass superClass = superExpression instanceof HaxeReference
                                      ? ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass()
                                      : null;

@@ -8,7 +8,7 @@ import com.intellij.psi.PsiElement;
 public interface HaxeType extends HaxePsiCompositeElement {
 
   @NotNull
-  HaxeExpression getExpression();
+  HaxeReferenceExpression getReferenceExpression();
 
   @Nullable
   HaxeTypeParam getTypeParam();

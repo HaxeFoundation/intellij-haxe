@@ -5,7 +5,10 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -35,14 +38,16 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
   public void visitType(@NotNull HaxeType type) {
     super.visitType(type);
     final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
-    if(haxeClassInType != null) {
+    if (haxeClassInType != null) {
       return;
     }
 
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
-    final List<HaxeComponent> components = HaxeComponentIndex.getItemsByName(type.getExpression().getText(), type.getProject(), scope);
-    if(!components.isEmpty()){
-      myHolder.createErrorAnnotation(type, HaxeBundle.message("haxe.unresolved.type")).registerFix(new HaxeTypeAddImportIntentionAction(type, components));
+    final List<HaxeComponent> components =
+      HaxeComponentIndex.getItemsByName(type.getReferenceExpression().getText(), type.getProject(), scope);
+    if (!components.isEmpty()) {
+      myHolder.createErrorAnnotation(type, HaxeBundle.message("haxe.unresolved.type"))
+        .registerFix(new HaxeTypeAddImportIntentionAction(type, components));
     }
   }
 }

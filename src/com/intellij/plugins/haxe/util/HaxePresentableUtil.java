@@ -125,7 +125,7 @@ public class HaxePresentableUtil {
       return "";
     }
     final StringBuilder result = new StringBuilder();
-    final String typeText = type.getExpression().getText();
+    final String typeText = type.getReferenceExpression().getText();
     if (specializations.containsKey(element, typeText)) {
       final HaxeClass haxeClass = specializations.get(element, typeText).getHaxeClass();
       result.append(haxeClass == null ? typeText : haxeClass.getName());

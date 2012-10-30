@@ -18,8 +18,8 @@ public class HaxeImportStatementImpl extends HaxePsiCompositeElementImpl impleme
 
   @Override
   @Nullable
-  public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
+  public HaxeReferenceExpression getReferenceExpression() {
+    return findChildByClass(HaxeReferenceExpression.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

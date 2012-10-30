@@ -7,6 +7,7 @@ class Simple {
             break;
         case 65, 90:
             e3();
+        case bar: //<– haxe plugin says 'or case expected, got default'
         default:
             return;
         }
