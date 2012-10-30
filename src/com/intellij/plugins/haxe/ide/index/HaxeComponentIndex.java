@@ -26,7 +26,7 @@ import java.util.*;
  */
 public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClassInfo> {
   public static final ID<String, HaxeClassInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeComponentIndex");
-  private static final int INDEX_VERSION = 2;
+  private static final int INDEX_VERSION = 3;
   private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<HaxeClassInfo> myExternalizer = new HaxeClassInfoExternalizer();
 
@@ -58,7 +58,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
 
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return HaxeInheritanceIndex.HAXE_INPUT_FILTER;
+    return HaxeSdkInputFilter.INSTANCE;
   }
 
   @NotNull

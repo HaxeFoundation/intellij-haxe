@@ -3,9 +3,7 @@ package com.intellij.plugins.haxe.ide.index;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -31,15 +29,9 @@ import java.util.*;
  */
 public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<HaxeClassInfo>> {
   public static final ID<String, List<HaxeClassInfo>> HAXE_INHERITANCE_INDEX = ID.create("HaxeInheritanceIndex");
-  private static final int INDEX_VERSION = 4;
+  private static final int INDEX_VERSION = 5;
   private final DataIndexer<String, List<HaxeClassInfo>, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<List<HaxeClassInfo>> myExternalizer = new HaxeClassInfoListExternalizer();
-  public static final FileBasedIndex.InputFilter HAXE_INPUT_FILTER = new FileBasedIndex.InputFilter() {
-    @Override
-    public boolean acceptInput(VirtualFile file) {
-      return file.getFileType() == HaxeFileType.HAXE_FILE_TYPE;
-    }
-  };
 
   @NotNull
   @Override
@@ -69,7 +61,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
 
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return HAXE_INPUT_FILTER;
+    return HaxeSdkInputFilter.INSTANCE;
   }
 
   @NotNull

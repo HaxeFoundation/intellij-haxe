@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
   public static final ID<String, Void> HAXE_COMPONENT_FILE_NAME_INDEX = ID.create("HaxeComponentFileNameIndex");
-  private static final int INDEX_VERSION = 1;
+  private static final int INDEX_VERSION = 2;
   private DataIndexer<String, Void, FileContent> myDataIndexer = new MyDataIndexer();
 
   @NotNull
@@ -54,7 +54,7 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
 
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return HaxeInheritanceIndex.HAXE_INPUT_FILTER;
+    return HaxeSdkInputFilter.INSTANCE;
   }
 
   @NotNull
