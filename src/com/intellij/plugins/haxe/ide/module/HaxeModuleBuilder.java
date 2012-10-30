@@ -6,7 +6,7 @@ import com.intellij.ide.util.projectWizard.SourcePathsBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
@@ -25,8 +25,8 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
   }
 
   @Override
-  public boolean isSuitableSdk(Sdk sdk) {
-    return sdk.getSdkType() == HaxeSdkType.getInstance();
+  public boolean isSuitableSdkType(SdkTypeId sdk) {
+    return sdk == HaxeSdkType.getInstance();
   }
 
   @Override
