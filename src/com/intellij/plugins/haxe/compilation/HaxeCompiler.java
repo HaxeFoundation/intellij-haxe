@@ -2,9 +2,11 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.compiler.*;
@@ -27,6 +29,7 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
+import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.util.PathUtil;
 import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NonNls;
@@ -151,6 +154,8 @@ public class HaxeCompiler implements SourceProcessingCompiler {
                                        @NonNls String mainClass,
                                        @NonNls String fileName,
                                        @NotNull HaxeTarget target) {
+    boolean isDebug = ExecutorRegistry.getInstance()
+      .isStarting(context.getProject(), DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     final Sdk sdk = moduleRootManager.getSdk();
@@ -177,6 +182,10 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
     commandLine.setPassParentEnvs(true);
 
+    if (isDebug) {
+      commandLine.addParameter("-debug");
+    }
+
     if (settings.isUseNmmlToBuild()) {
       final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
       final String haxelibPath = sdkData == null ? null : sdkData.getHaxelibPath();
@@ -189,8 +198,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     else if (settings.isUseHxmlToBuild()) {
       commandLine.setExePath(sdkExePath);
       commandLine.addParameter(FileUtil.toSystemDependentName(settings.getHxmlPath()));
-      if (settings.getNmeTarget() == NMETarget.FLASH) {
-        commandLine.addParameter("-debug");
+      if (isDebug && settings.getNmeTarget() == NMETarget.FLASH) {
         commandLine.addParameter("-D");
         commandLine.addParameter("fdb");
       }

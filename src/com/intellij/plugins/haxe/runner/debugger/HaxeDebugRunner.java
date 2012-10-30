@@ -65,6 +65,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     final boolean notHXCPP = settings.getNmeTarget() != NMETarget.WINDOWS &&
                              settings.getNmeTarget() != NMETarget.LINUX &&
+                             settings.getNmeTarget() != NMETarget.MAC &&
                              settings.getNmeTarget() != NMETarget.LINUX64 &&
                              settings.getNmeTarget() != NMETarget.ANDROID &&
                              settings.getNmeTarget() != NMETarget.IOS;
