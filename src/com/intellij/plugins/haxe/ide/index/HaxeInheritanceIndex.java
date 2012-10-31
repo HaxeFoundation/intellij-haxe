@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<HaxeClassInfo>> {
   public static final ID<String, List<HaxeClassInfo>> HAXE_INHERITANCE_INDEX = ID.create("HaxeInheritanceIndex");
-  private static final int INDEX_VERSION = 5;
+  private static final int INDEX_VERSION = 6;
   private final DataIndexer<String, List<HaxeClassInfo>, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<List<HaxeClassInfo>> myExternalizer = new HaxeClassInfoListExternalizer();
 
