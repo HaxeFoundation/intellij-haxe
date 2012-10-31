@@ -4,7 +4,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
@@ -82,16 +81,20 @@ public class UsefulPsiTreeUtil {
   public static HaxeImportStatement findImportByClass(@NotNull PsiElement psiElement, String className) {
     final List<HaxeImportStatement> haxeImportStatementList = getAllImportStatements(psiElement);
     for (HaxeImportStatement importStatement : haxeImportStatementList) {
-      final HaxeExpression expression = importStatement.getReferenceExpression();
-      if (expression == null) {
-        continue;
-      }
-      final String qName = expression.getText();
-      if (qName.endsWith("." + className)) {
+      if (importStatementForClass(importStatement, className)) {
         return importStatement;
       }
     }
     return null;
+  }
+
+  public static boolean importStatementForClass(HaxeImportStatement importStatement, String className) {
+    final HaxeExpression expression = importStatement.getReferenceExpression();
+    if (expression == null) {
+      return false;
+    }
+    final String qName = expression.getText();
+    return qName.endsWith("." + className);
   }
 
   @Nullable

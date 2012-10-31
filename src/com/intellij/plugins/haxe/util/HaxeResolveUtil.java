@@ -70,6 +70,12 @@ public class HaxeResolveUtil {
   @NonNls
   public static String getPackageName(@Nullable final PsiFile file) {
     final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(file, HaxePackageStatement.class);
+    return getPackageName(packageStatement);
+  }
+
+  @NotNull
+  @NonNls
+  public static String getPackageName(@Nullable HaxePackageStatement packageStatement) {
     HaxeReferenceExpression referenceExpression = packageStatement != null ? packageStatement.getReferenceExpression() : null;
     if (referenceExpression != null) {
       return referenceExpression.getText();
@@ -439,24 +445,45 @@ public class HaxeResolveUtil {
     if (type instanceof HaxeType) {
       type = ((HaxeType)type).getReferenceExpression();
     }
-    String result = type.getText();
+    final String result = type.getText();
     if (result.indexOf('.') == -1) {
-      final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(type, result);
-      final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpression();
       final PsiFile psiFile = type.getContainingFile();
-      final String packageName = getPackageName(psiFile);
+      final PsiElement[] fileChildren = psiFile.getChildren();
+      return getQName(fileChildren, result, searchInSamePackage);
+    }
+    return result;
+  }
 
-      final HaxeClass classForType = findComponentDeclaration(psiFile, result);
+  public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
+    final HaxeImportStatement importStatement = (HaxeImportStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatement && UsefulPsiTreeUtil.importStatementForClass((HaxeImportStatement)element, result);
+      }
+    });
+    final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpression();
+    final String packageName = getPackageName((HaxePackageStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxePackageStatement;
+      }
+    }));
 
-      if (classForType != null) {
-        result = classForType.getQualifiedName();
+    final HaxeClass classForType = (HaxeClass)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeClass && result.equals(((HaxeClass)element).getName());
       }
-      else if (importStatement != null && expression != null) {
-        result = expression.getText();
-      }
-      else if (searchInSamePackage && !packageName.isEmpty()) {
-        result = packageName + "." + result;
-      }
+    });
+
+    if (classForType != null) {
+      return classForType.getQualifiedName();
+    }
+    else if (importStatement != null && expression != null) {
+      return expression.getText();
+    }
+    else if (searchInSamePackage && !packageName.isEmpty()) {
+      return packageName + "." + result;
     }
     return result;
   }

@@ -12,7 +12,7 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex;
+import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -54,7 +54,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getImplementsList()));
     final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(supers.toArray(new HaxeClass[supers.size()]));
 
-    final List<HaxeClass> subClasses = HaxeInheritanceIndex.getItemsByQName(haxeClass);
+    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(haxeClass);
     final List<HaxeNamedComponent> subItems = new ArrayList<HaxeNamedComponent>();
     for (HaxeClass subClass : subClasses) {
       subItems.addAll(HaxeResolveUtil.getNamedSubComponents(subClass));

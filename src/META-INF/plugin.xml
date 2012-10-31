@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.5.2:</p>
+      <ul>
+        <li>Bug fixes</li>
+      </ul>
       <p>0.5.1:</p>
       <ul>
         <li>Bug fixes</li>
@@ -99,9 +103,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.5.1</version>
+  <version>0.5.2</version>
   <vendor>JetBrains</vendor>
-  <idea-version since-build="122.1" until-build="123.1"/>
+  <idea-version since-build="122.666" until-build="123.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
@@ -193,10 +197,11 @@
 
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeTypeDefInheritanceIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex"/>
     <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeClassContributor"/>
 
-    <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex$DefinitionsSearchExecutor"/>
+    <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor"/>
 
     <projectService serviceInterface="com.intellij.plugins.haxe.config.HaxeProjectSettings"
                     serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
