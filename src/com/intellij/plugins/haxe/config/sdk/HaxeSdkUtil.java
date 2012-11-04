@@ -10,9 +10,9 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +21,7 @@ import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HaxeSdkUtil {
+public class HaxeSdkUtil extends HaxeSdkUtilBase {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
   private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
   private static final String COMPILER_EXECUTABLE_NAME = "haxe";
@@ -107,49 +107,6 @@ public class HaxeSdkUtil {
       return FileUtil.toSystemIndependentName(result);
     }
     return null;
-  }
-
-  @Nullable
-  public static String getCompilerPathByFolderPath(String folderPath) {
-    return getExecutablePathByFolderPath(folderPath, COMPILER_EXECUTABLE_NAME);
-  }
-
-  @Nullable
-  public static String getHaxelibPathByFolderPath(String folderPath) {
-    return getExecutablePathByFolderPath(folderPath, HAXELIB_EXECUTABLE_NAME);
-  }
-
-  @Nullable
-  private static String getExecutablePathByFolderPath(String folderPath, String name) {
-    final String folderUrl = VfsUtil.pathToUrl(folderPath);
-    if (!SystemInfo.isLinux) {
-      final String candidate = folderUrl + "/bin/" + getExecutableName(name);
-      if (fileExists(candidate)) {
-        return FileUtil.toSystemIndependentName(VfsUtil.urlToPath(candidate));
-      }
-    }
-
-    final String resultUrl = folderUrl + "/" + getExecutableName(name);
-    if (fileExists(resultUrl)) {
-      return FileUtil.toSystemIndependentName(VfsUtil.urlToPath(resultUrl));
-    }
-
-    return null;
-  }
-
-  private static String getExecutableName(String name) {
-    if (SystemInfo.isWindows) {
-      return name + ".exe";
-    }
-    return name;
-  }
-
-  private static boolean fileExists(@Nullable String filePath) {
-    return filePath != null && checkFileExists(VirtualFileManager.getInstance().findFileByUrl(filePath));
-  }
-
-  private static boolean checkFileExists(@Nullable VirtualFile file) {
-    return file != null && file.exists();
   }
 
   @Nullable

@@ -15,7 +15,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error);
 
     assertNotNull(compilerError);
-    assertEquals(VfsUtil.pathToUrl("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx"), compilerError.getUrl());
+    assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
     assertEquals("Class not found : StringTools212", compilerError.getErrorMessage());
     assertEquals(5, compilerError.getLine());
   }
@@ -26,7 +26,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error);
 
     assertNotNull(compilerError);
-    assertEquals(VfsUtil.pathToUrl("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx"), compilerError.getUrl());
+    assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
     assertEquals("Class not found : StringTools212", compilerError.getErrorMessage());
     assertEquals(5, compilerError.getLine());
   }

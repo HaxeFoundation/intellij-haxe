@@ -23,11 +23,17 @@ import org.jetbrains.annotations.NotNull;
 public class NMERunningState extends CommandLineState {
   private final Module module;
   private final boolean myRunInTest;
+  private final boolean myDebug;
 
   public NMERunningState(ExecutionEnvironment env, Module module, boolean runInTest) {
+    this(env, module, runInTest, false);
+  }
+
+  public NMERunningState(ExecutionEnvironment env, Module module, boolean runInTest, boolean debug) {
     super(env);
     this.module = module;
     myRunInTest = runInTest;
+    myDebug = debug;
   }
 
   @NotNull
@@ -59,6 +65,9 @@ public class NMERunningState extends CommandLineState {
     commandLine.addParameter(settings.getNmmlPath());
     for (String flag : settings.getNmeTarget().getFlags()) {
       commandLine.addParameter(flag);
+    }
+    if (myDebug) {
+      commandLine.addParameter("-Ddebug");
     }
 
     final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());

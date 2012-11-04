@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.5.3:</p>
+      <ul>
+        <li>New Compiler Mode</li>
+      </ul>
       <p>0.5.2:</p>
       <ul>
         <li>Bug fixes</li>
@@ -103,7 +107,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="122.666" until-build="123.1"/>
   <depends>com.intellij.modules.ultimate</depends>
@@ -117,6 +121,7 @@
     <extensionPoint name="module.config" interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
+    <compileServer.plugin classpath="haxe-jps-plugin.jar;haxe-common.jar"/>
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
@@ -213,6 +218,10 @@
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
     <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor"/>-->
+
+    <localInspection language="XML" shortName="NMEBuildDirectory" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"
+                     level="WARNING" implementationClass="com.intellij.plugins.haxe.codeInspection.NMEBuildDirectoryInspection"/>
   </extensions>
 
   <actions>

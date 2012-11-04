@@ -1,0 +1,177 @@
+package org.jetbrains.jps.haxe.build;
+
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.HaxeCommonBundle;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
+import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
+import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
+import com.intellij.util.Function;
+import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.ModuleChunk;
+import org.jetbrains.jps.builders.DirtyFilesHolder;
+import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
+import org.jetbrains.jps.haxe.model.module.JpsHaxeModuleSettings;
+import org.jetbrains.jps.haxe.model.sdk.JpsHaxeSdkAdditionalData;
+import org.jetbrains.jps.haxe.model.sdk.JpsHaxeSdkType;
+import org.jetbrains.jps.haxe.util.JpsHaxeUtil;
+import org.jetbrains.jps.incremental.*;
+import org.jetbrains.jps.incremental.messages.BuildMessage;
+import org.jetbrains.jps.incremental.messages.CompilerMessage;
+import org.jetbrains.jps.incremental.messages.ProgressMessage;
+import org.jetbrains.jps.model.java.JpsJavaExtensionService;
+import org.jetbrains.jps.model.library.sdk.JpsSdk;
+import org.jetbrains.jps.model.module.JpsModule;
+import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
+import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService;
+import org.jetbrains.jps.util.JpsPathUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * @author: Fedor.Korotkov
+ */
+public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
+  private static final Logger LOG = Logger.getInstance(HaxeModuleLevelBuilder.class);
+  @NonNls private static final String BUILDER_NAME = "haxe";
+  private final boolean myDebugBuilder;
+
+  protected HaxeModuleLevelBuilder(boolean debugBuilder) {
+    super(BuilderCategory.SOURCE_PROCESSOR);
+    myDebugBuilder = debugBuilder;
+  }
+
+  @Override
+  public ExitCode build(CompileContext context,
+                        ModuleChunk chunk,
+                        DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder)
+    throws ProjectBuildException, IOException {
+    boolean doneSomething = false;
+
+    for (final JpsModule module : chunk.getModules()) {
+      doneSomething |= processModule(context, dirtyFilesHolder, module);
+    }
+
+    return doneSomething ? ExitCode.OK : ExitCode.NOTHING_DONE;
+  }
+
+  private boolean processModule(final CompileContext context,
+                                final DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> holder,
+                                final JpsModule module) {
+    final boolean isDebugRunner = "HaxeDebugRunner".equals(context.getBuilderParameter("RUNNER_ID"));
+    if (isDebugRunner ^ myDebugBuilder) {
+      return false;
+    }
+    final JpsHaxeModuleSettings moduleSettings = JpsHaxeUtil.getModuleSettings(module);
+    if (moduleSettings == null) {
+      context.processMessage(new CompilerMessage(
+        BUILDER_NAME, BuildMessage.Kind.ERROR, "can't find module settings for " + module.getName())
+      );
+      return false;
+    }
+    final JpsSdk<JpsHaxeSdkAdditionalData> jpsSdk = module.getSdk(JpsHaxeSdkType.INSTANCE);
+    if (jpsSdk == null) {
+      context.processMessage(new CompilerMessage(
+        BUILDER_NAME, BuildMessage.Kind.ERROR, "can't find module sdk for " + module.getName())
+      );
+      return false;
+    }
+
+    context.processMessage(new ProgressMessage(HaxeCommonBundle.message("haxe.module.compilation.progress.message", module.getName())));
+
+    return HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+      @NotNull
+      @Override
+      public HaxeModuleSettingsBase getModuleSettings() {
+        return moduleSettings;
+      }
+
+      @Override
+      public String getModuleName() {
+        return module.getName();
+      }
+
+      @Override
+      public void errorHandler(String message) {
+        context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, message));
+      }
+
+      @Override
+      public void log(String message) {
+        LOG.debug(message);
+      }
+
+      @Override
+      public boolean isDebug() {
+        return isDebugRunner;
+      }
+
+      @Override
+      public String getSdkHomePath() {
+        return jpsSdk.getHomePath();
+      }
+
+      @Override
+      public String getSdkName() {
+        return jpsSdk.getVersionString();
+      }
+
+      @Override
+      public List<String> getSourceRoots() {
+        return ContainerUtil.map(module.getSourceRoots(), new Function<JpsModuleSourceRoot, String>() {
+          @Override
+          public String fun(JpsModuleSourceRoot root) {
+            return JpsPathUtil.urlToPath(root.getUrl());
+          }
+        });
+      }
+
+      @Nullable
+      public String getWorkingDirectoryPath() {
+        final File baseDirectory = JpsModelSerializationDataService.getBaseDirectory(module);
+        return baseDirectory != null ? baseDirectory.getPath() : null;
+      }
+
+      @Override
+      public String getCompileOutputPath() {
+        final String outputRootUrl = JpsJavaExtensionService.getInstance().getOutputUrl(module, false);
+        return JpsPathUtil.urlToPath(outputRootUrl);
+      }
+
+      @Override
+      public boolean handleOutput(String[] lines) {
+        boolean containsErrors = false;
+        for (String error : lines) {
+          final HaxeCompilerError compilerError = HaxeCompilerError.create(StringUtil.notNullize(getWorkingDirectoryPath()), error);
+          final boolean isError = error.contains("error");
+          context.processMessage(new CompilerMessage(
+            BUILDER_NAME,
+            isError ? BuildMessage.Kind.ERROR : BuildMessage.Kind.WARNING,
+            compilerError != null ? compilerError.getErrorMessage() : error,
+            compilerError != null ? compilerError.getPath() : null,
+            -1L, -1L, -1L,
+            compilerError != null ? (long)compilerError.getLine() : -1L,
+            -1L
+          ));
+          containsErrors = containsErrors || isError;
+        }
+        return containsErrors;
+      }
+    });
+  }
+
+  @Override
+  public String getName() {
+    return "Haxe";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Haxe module builder";
+  }
+}

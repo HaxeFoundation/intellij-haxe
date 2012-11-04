@@ -2,46 +2,16 @@ package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.plugins.haxe.config.sdk.impl.HaxeSdkAdditionalDataBaseImpl;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 
-public class HaxeSdkData implements SdkAdditionalData, PersistentStateComponent<HaxeSdkData> {
-  private String homePath = "";
-  private String version = "";
-
-  private String nekoBinPath = "";
-
-  private String haxelibPath = "";
-
+public class HaxeSdkData extends HaxeSdkAdditionalDataBaseImpl implements SdkAdditionalData, PersistentStateComponent<HaxeSdkData> {
   public HaxeSdkData() {
+    super();
   }
 
   public HaxeSdkData(String homePath, String version) {
-    this.homePath = homePath;
-    this.version = version;
-  }
-
-  public String getHomePath() {
-    return homePath;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public String getNekoBinPath() {
-    return nekoBinPath;
-  }
-
-  public void setNekoBinPath( String nekoBinPath) {
-    this.nekoBinPath = nekoBinPath;
-  }
-
-  public String getHaxelibPath() {
-    return haxelibPath;
-  }
-
-  public void setHaxelibPath(String haxelibPath) {
-    this.haxelibPath = haxelibPath;
+    super(homePath, version);
   }
 
   @SuppressWarnings({"CloneDoesntCallSuperClone"})

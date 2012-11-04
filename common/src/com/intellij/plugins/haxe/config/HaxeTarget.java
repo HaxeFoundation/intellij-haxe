@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.config;
 
-import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeCommonBundle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -9,19 +9,19 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public enum HaxeTarget {
-  NEKO("neko", HaxeBundle.message("haxe.target.neko")) {
+  NEKO("neko", HaxeCommonBundle.message("haxe.target.neko")) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".n";
     }
-  }, JAVA_SCRIPT("js", HaxeBundle.message("haxe.target.js")) {
+  }, JAVA_SCRIPT("js", HaxeCommonBundle.message("haxe.target.js")) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".js";
     }
-  }, FLASH("swf", HaxeBundle.message("haxe.target.swf")) {
+  }, FLASH("swf", HaxeCommonBundle.message("haxe.target.swf")) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {

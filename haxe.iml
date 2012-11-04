@@ -29,6 +29,7 @@
     <orderEntry type="module" module-name="xml" />
     <orderEntry type="module" module-name="RegExpSupport" />
     <orderEntry type="module" module-name="xdebugger-impl" />
+    <orderEntry type="module" module-name="haxe-common" />
   </component>
 </module>
 

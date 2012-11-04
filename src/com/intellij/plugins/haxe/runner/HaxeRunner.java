@@ -130,7 +130,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     FileDocumentManager.getInstance().saveAllDocuments();
     final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
     assert model != null;
-    return model.getCompilerOutputUrl() + "/" + settings.getOutputFileName();
+    return model.getCompilerOutputUrl() + "/release/" + settings.getOutputFileName();
   }
 
   public static void launchUrl(String urlOrPath) {

@@ -1,23 +1,23 @@
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeCompilerError {
   private final String errorMessage;
-  private final String url;
+  private final String path;
   private final int line;
 
-  public HaxeCompilerError(String errorMessage, String url, int line) {
+  public HaxeCompilerError(String errorMessage, String path, int line) {
     this.errorMessage = errorMessage;
-    this.url = url;
+    this.path = path;
     this.line = line;
   }
 
@@ -25,8 +25,8 @@ public class HaxeCompilerError {
     return errorMessage;
   }
 
-  public String getUrl() {
-    return url;
+  public String getPath() {
+    return path;
   }
 
   public int getLine() {
@@ -34,7 +34,12 @@ public class HaxeCompilerError {
   }
 
   @Nullable
-  public static HaxeCompilerError create(String rootPath, final String message) {
+  public static HaxeCompilerError create(@NotNull String rootPath, final String message) {
+    return create(rootPath, message, true);
+  }
+
+  @Nullable
+  public static HaxeCompilerError create(@NotNull String rootPath, final String message, boolean checkExistence) {
     final int index = message.indexOf(' ');
     if (index < 1) {
       return null;
@@ -56,15 +61,15 @@ public class HaxeCompilerError {
       errorMessage = message.substring(semicolonIndex2 + 1);
     }
 
-    String url = FileUtil.toSystemIndependentName(path);
-    if(!path.startsWith(rootPath)){
-      url = rootPath + "/" + url;
+    String filePath = FileUtil.toSystemIndependentName(path);
+    if (!path.startsWith(rootPath)) {
+      filePath = rootPath + "/" + filePath;
     }
-    url = VfsUtil.pathToUrl(url);
-    if (!ApplicationManager.getApplication().isUnitTestMode() && VirtualFileManager.getInstance().findFileByUrl(url) == null) {
+
+    if (checkExistence && !(new File(FileUtil.toSystemDependentName(filePath)).exists())) {
       return null;
     }
 
-    return new HaxeCompilerError(StringUtil.trimLeading(StringUtil.trimTrailing(errorMessage)), url, line);
+    return new HaxeCompilerError(StringUtil.trimLeading(StringUtil.trimTrailing(StringUtil.notNullize(errorMessage))), filePath, line);
   }
 }

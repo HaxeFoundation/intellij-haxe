@@ -110,11 +110,11 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     myAlternativeExecutable.setSelected(configuration.isCustomExecutable());
 
     String launchPath = configuration.getCustomFileToLaunchPath();
-    launchPath = launchPath.indexOf("://") == -1 ? FileUtil.toSystemDependentName(launchPath) : launchPath;
+    launchPath = !launchPath.contains("://") ? FileUtil.toSystemDependentName(launchPath) : launchPath;
     customPathToFile = launchPath;
 
     launchPath = configuration.getCustomExecutablePath();
-    launchPath = launchPath.indexOf("://") == -1 ? FileUtil.toSystemDependentName(launchPath) : launchPath;
+    launchPath = !launchPath.contains("://") ? FileUtil.toSystemDependentName(launchPath) : launchPath;
     customPathToExecutable = launchPath;
 
 

@@ -11,10 +11,8 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -77,15 +75,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       boolean runInTest = settings.getNmeTarget() == NMETarget.ANDROID || settings.getNmeTarget() == NMETarget.IOS;
       return runHXCPP(project, module, env, executor, contentToReuse, runInTest);
     }
-
-    FileDocumentManager.getInstance().saveAllDocuments();
-    final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
-    assert model != null;
-
-    String urlToLaunch = model.getCompilerOutputUrl() + "/" + settings.getOutputFileName();
-    if (configuration.isCustomFileToLaunch()) {
-      urlToLaunch = configuration.getCustomFileToLaunchPath();
-    }
+    // flash only
 
     if (!PluginManager.isPluginInstalled(PluginId.getId("com.intellij.flex"))) {
       throw new ExecutionException(HaxeBundle.message("install.flex.plugin"));
@@ -96,7 +86,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       throw new ExecutionException(HaxeBundle.message("flex.sdk.not.specified"));
     }
 
-    return HaxeFlashDebuggingUtil.getDescriptor(this, module, contentToReuse, env, urlToLaunch, flexSdkName);
+    return HaxeFlashDebuggingUtil.getNMEDescriptor(this, module, contentToReuse, env, executor, flexSdkName);
   }
 
   private RunContentDescriptor runHXCPP(Project project,

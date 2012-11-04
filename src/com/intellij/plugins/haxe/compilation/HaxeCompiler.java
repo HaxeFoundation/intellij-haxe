@@ -1,14 +1,10 @@
 package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.compiler.options.CompileStepBeforeRun;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutorRegistry;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.CapturingProcessHandler;
-import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -17,27 +13,19 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.config.HaxeTarget;
-import com.intellij.plugins.haxe.config.NMETarget;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
-import com.intellij.util.PathUtil;
-import com.intellij.util.text.StringTokenizer;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,165 +103,77 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     return result.toArray(new ProcessingItem[result.size()]);
   }
 
-  private static boolean compileModule(CompileContext context, @NotNull Module module) {
+  private static boolean compileModule(final CompileContext context, @NotNull final Module module) {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
-    if (settings.isExcludeFromCompilation()) {
-      LOG.debug("Module " + module.getName() + " is excluded from compilation.");
-      return true;
-    }
-    final String mainClass = settings.getMainClass();
-    final String fileName = settings.getOutputFileName();
-
-    if (settings.isUseUserPropertiesToBuild()) {
-      if (mainClass == null || mainClass.length() == 0) {
-        context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.main.class.for.module", module.getName()), null, -1, -1);
-        return false;
-      }
-      if (fileName == null || fileName.length() == 0) {
-        context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.output.file.name.for.module", module.getName()), null, -1,
-                           -1);
-        return false;
-      }
-    }
-
-    final HaxeTarget target = settings.getHaxeTarget();
-    final NMETarget nmeTarget = settings.getNmeTarget();
-    if (target == null && !settings.isUseNmmlToBuild()) {
-      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.target.for.module", module.getName()), null, -1, -1);
-      return false;
-    }
-    if (nmeTarget == null && settings.isUseNmmlToBuild()) {
-      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.target.for.module", module.getName()), null, -1, -1);
-      return false;
-    }
-    return compileModule(context, module, mainClass, fileName, target);
-  }
-
-  private static boolean compileModule(CompileContext context,
-                                       @NotNull Module module,
-                                       @NonNls String mainClass,
-                                       @NonNls String fileName,
-                                       @NotNull HaxeTarget target) {
-    boolean isDebug = ExecutorRegistry.getInstance()
+    final boolean isDebug = ExecutorRegistry.getInstance()
       .isStarting(context.getProject(), DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
-    final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     final Sdk sdk = moduleRootManager.getSdk();
-
     if (sdk == null) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.sdk.for.module", module.getName()), null, -1, -1);
       return false;
     }
-
-    if (sdk.getSdkType() != HaxeSdkType.getInstance()) {
-      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("not.haxe.sdk.for.module", module.getName()), null, -1, -1);
-      return false;
-    }
-
-    final String sdkExePath = HaxeSdkUtil.getCompilerPathByFolderPath(sdk.getHomePath());
-
-    if (sdkExePath == null || sdkExePath.isEmpty()) {
-      context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("invalid.haxe.sdk.for.module", module.getName()), null, -1, -1);
-      return false;
-    }
-
-    final GeneralCommandLine commandLine = new GeneralCommandLine();
-
-    commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
-    commandLine.setPassParentEnvs(true);
-
-    if (isDebug) {
-      commandLine.addParameter("-debug");
-    }
-
-    if (settings.isUseNmmlToBuild()) {
-      final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
-      final String haxelibPath = sdkData == null ? null : sdkData.getHaxelibPath();
-      if (haxelibPath == null || haxelibPath.isEmpty()) {
-        context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.haxelib.for.sdk", sdk.getName()), null, -1, -1);
-        return false;
+    return HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+      @NotNull
+      @Override
+      public HaxeModuleSettingsBase getModuleSettings() {
+        return settings;
       }
-      setupNME(commandLine, settings, haxelibPath);
-    }
-    else if (settings.isUseHxmlToBuild()) {
-      commandLine.setExePath(sdkExePath);
-      commandLine.addParameter(FileUtil.toSystemDependentName(settings.getHxmlPath()));
-      if (isDebug && settings.getNmeTarget() == NMETarget.FLASH) {
-        commandLine.addParameter("-D");
-        commandLine.addParameter("fdb");
+
+      @Override
+      public String getModuleName() {
+        return module.getName();
       }
-    }
-    else {
-      setupUserProperties(module, mainClass, fileName, target, settings, sdkExePath, commandLine);
-    }
 
-    LOG.debug(commandLine.getCommandLineString());
+      @Override
+      public void errorHandler(String message) {
+        context.addMessage(CompilerMessageCategory.ERROR, message, null, -1, -1);
+      }
 
-    ProcessOutput output = null;
-    try {
-      output = new CapturingProcessHandler(
-        commandLine.createProcess(),
-        Charset.defaultCharset(),
-        commandLine.getCommandLineString()).runProcess();
-    }
-    catch (ExecutionException e) {
-      context.addMessage(CompilerMessageCategory.ERROR, "process throw exception: " + e.getMessage(), null, -1, -1);
-      return false;
-    }
+      @Override
+      public void log(String message) {
+        LOG.debug(message);
+      }
 
-    final List<String> stderrLines = output.getStderrLines();
-    if (!stderrLines.isEmpty()) {
-      HaxeCompilerUtil.fillContext(module, context, stderrLines);
-      return false;
-    }
-    return true;
-  }
+      @Override
+      public String getSdkName() {
+        return sdk.getName();
+      }
 
-  private static void setupUserProperties(Module module,
-                                          String mainClass,
-                                          String fileName,
-                                          HaxeTarget target,
-                                          HaxeModuleSettings settings,
-                                          String sdkExePath, GeneralCommandLine commandLine) {
-    commandLine.setExePath(sdkExePath);
-    commandLine.addParameter("-main");
-    commandLine.addParameter(mainClass);
+      @Override
+      public String getSdkHomePath() {
+        return sdk.getHomePath();
+      }
 
-    final StringTokenizer argumentsTokenizer = new StringTokenizer(settings.getArguments());
-    while (argumentsTokenizer.hasMoreTokens()) {
-      commandLine.addParameter(argumentsTokenizer.nextToken());
-    }
+      @Override
+      public boolean isDebug() {
+        return isDebug;
+      }
 
-    if (target == HaxeTarget.FLASH) {
-      commandLine.addParameter("-debug");
-      commandLine.addParameter("-D");
-      commandLine.addParameter("fdb");
-    }
+      @Override
+      public List<String> getSourceRoots() {
+        final List<String> result = new ArrayList<String>();
+        for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().withoutSdk().exportedOnly().sources().getRoots()) {
+          result.add(sourceRoot.getPath());
+        }
+        for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).librariesOnly().getSourceRoots()) {
+          result.add(sourceRoot.getPath());
+        }
+        return result;
+      }
 
-    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).recursively().withoutSdk().exportedOnly().sources().getRoots()) {
-      commandLine.addParameter("-cp");
-      commandLine.addParameter(sourceRoot.getPath());
-    }
-    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(module).librariesOnly().getSourceRoots()) {
-      commandLine.addParameter("-cp");
-      commandLine.addParameter(sourceRoot.getPath());
-    }
-    commandLine.addParameter(target.getCompilerFlag());
-    final String outputUrl = CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
-    commandLine.addParameter(VfsUtil.urlToPath(outputUrl + "/" + fileName));
-  }
+      @Override
+      public String getCompileOutputPath() {
+        final CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+        final String outputUrl = moduleExtension != null ? moduleExtension.getCompilerOutputUrl() : null;
+        return VfsUtilCore.urlToPath(outputUrl);
+      }
 
-  private static void setupNME(GeneralCommandLine commandLine, HaxeModuleSettings settings, String haxelibPath) {
-    commandLine.setExePath(haxelibPath);
-    commandLine.addParameter("run");
-    commandLine.addParameter("nme");
-    commandLine.addParameter("build");
-    commandLine.addParameter(settings.getNmmlPath());
-    commandLine.addParameter(settings.getNmeTarget().getTargetFlag());
-
-    if (settings.getNmeTarget() == NMETarget.FLASH) {
-      commandLine.addParameter("-debug");
-    }
+      @Override
+      public boolean handleOutput(String[] lines) {
+        return HaxeCompilerUtil.fillContext(module, context, lines);
+      }
+    });
   }
 
   private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {

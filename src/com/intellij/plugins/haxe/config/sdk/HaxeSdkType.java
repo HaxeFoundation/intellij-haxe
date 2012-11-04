@@ -7,6 +7,7 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 
@@ -14,7 +15,7 @@ import javax.swing.*;
 
 public class HaxeSdkType extends SdkType {
   public HaxeSdkType() {
-    super(HaxeBundle.message("haxe.sdk.name"));
+    super(HaxeCommonBundle.message("haxe.sdk.name"));
   }
 
   @Override

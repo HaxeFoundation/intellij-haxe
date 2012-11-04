@@ -7,6 +7,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
+import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,22 +23,11 @@ import org.jetbrains.annotations.NotNull;
     )
   }
 )
-public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSettings> {
-  public static final int USE_PROPERTIES = 0;
-  public static final int USE_HXML = 1;
-  public static final int USE_NMML = 2;
+public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
+  implements PersistentStateComponent<HaxeModuleSettings>, HaxeModuleSettingsBase {
 
-  private String mainClass = "";
-  private String outputFileName = "";
-  private String arguments = "";
-  private boolean excludeFromCompilation = false;
-  private HaxeTarget haxeTarget = HaxeTarget.NEKO;
-  private NMETarget nmeTarget = NMETarget.FLASH;
   private String flexSdkName = "";
-  private String hxmlPath = "";
-  private String nmmlPath = "";
   private String myHXCPPPort = "";
-  private int buildConfig = 0;
 
   public HaxeModuleSettings() {
   }
@@ -49,16 +40,10 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
                             String outputFileName,
                             String flexSdkName,
                             int buildConfig,
-                            String hxmlPath) {
-    this.mainClass = mainClass;
-    this.arguments = arguments;
-    this.excludeFromCompilation = excludeFromCompilation;
-    this.haxeTarget = haxeTarget;
-    this.nmeTarget = nmeTarget;
-    this.outputFileName = outputFileName;
+                            String hxmlPath,
+                            String nmmlPath) {
+    super(mainClass, outputFileName, arguments, excludeFromCompilation, haxeTarget, nmeTarget, hxmlPath, nmmlPath, buildConfig);
     this.flexSdkName = flexSdkName;
-    this.buildConfig = buildConfig;
-    this.hxmlPath = hxmlPath;
   }
 
   @Override
@@ -79,92 +64,8 @@ public class HaxeModuleSettings implements PersistentStateComponent<HaxeModuleSe
     return flexSdkName;
   }
 
-  public void setNmeTarget(NMETarget nmeTarget) {
-    this.nmeTarget = nmeTarget;
-  }
-
-  public int getBuildConfig() {
-    return buildConfig;
-  }
-
   public static HaxeModuleSettings getInstance(@NotNull Module module) {
     return ModuleServiceManager.getService(module, HaxeModuleSettings.class);
-  }
-
-  public String getMainClass() {
-    return mainClass;
-  }
-
-  public void setMainClass(String mainClass) {
-    this.mainClass = mainClass;
-  }
-
-  public String getArguments() {
-    return arguments;
-  }
-
-  public void setArguments(String arguments) {
-    this.arguments = arguments;
-  }
-
-  public HaxeTarget getHaxeTarget() {
-    return haxeTarget;
-  }
-
-  public NMETarget getNmeTarget() {
-    return nmeTarget;
-  }
-
-  public void setHaxeTarget(HaxeTarget haxeTarget) {
-    this.haxeTarget = haxeTarget;
-  }
-
-  public boolean isExcludeFromCompilation() {
-    return excludeFromCompilation;
-  }
-
-  public void setExcludeFromCompilation(boolean excludeFromCompilation) {
-    this.excludeFromCompilation = excludeFromCompilation;
-  }
-
-  public String getOutputFileName() {
-    return outputFileName;
-  }
-
-  public void setOutputFileName(String outputFileName) {
-    this.outputFileName = outputFileName;
-  }
-
-  public String getHxmlPath() {
-    return hxmlPath;
-  }
-
-  public String getNmmlPath() {
-    return nmmlPath;
-  }
-
-  public void setHxmlPath(String hxmlPath) {
-    this.hxmlPath = hxmlPath;
-  }
-
-  public boolean isUseHxmlToBuild() {
-    return buildConfig == USE_HXML;
-  }
-
-  public boolean isUseNmmlToBuild() {
-    return buildConfig == USE_NMML;
-  }
-
-  public boolean isUseUserPropertiesToBuild() {
-    return buildConfig == USE_PROPERTIES;
-  }
-
-  public void setNmmlPath(String nmmlPath) {
-    this.nmmlPath = nmmlPath;
-  }
-
-  public void setBuildConfig(int buildConfig) {
-    this.buildConfig = buildConfig;
   }
 
   public String getHXCPPPort() {
