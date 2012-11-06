@@ -15,6 +15,7 @@ import org.jetbrains.jps.ModuleChunk;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.haxe.model.module.JpsHaxeModuleSettings;
+import org.jetbrains.jps.haxe.model.module.JpsHaxeModuleType;
 import org.jetbrains.jps.haxe.model.sdk.JpsHaxeSdkAdditionalData;
 import org.jetbrains.jps.haxe.model.sdk.JpsHaxeSdkType;
 import org.jetbrains.jps.haxe.util.JpsHaxeUtil;
@@ -60,7 +61,9 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     boolean doneSomething = false;
 
     for (final JpsModule module : chunk.getModules()) {
-      doneSomething |= processModule(context, dirtyFilesHolder, module);
+      if (module.getModuleType() == JpsHaxeModuleType.INSTANCE) {
+        doneSomething |= processModule(context, dirtyFilesHolder, module);
+      }
     }
 
     return doneSomething ? ExitCode.OK : ExitCode.NOTHING_DONE;
