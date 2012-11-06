@@ -46,6 +46,12 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     myDebugBuilder = debugBuilder;
   }
 
+  @NotNull
+  @Override
+  public String getPresentableName() {
+    return BUILDER_NAME;
+  }
+
   @Override
   public ExitCode build(CompileContext context,
                         ModuleChunk chunk,
@@ -163,15 +169,5 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
         return containsErrors;
       }
     });
-  }
-
-  @Override
-  public String getName() {
-    return "Haxe";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Haxe module builder";
   }
 }
