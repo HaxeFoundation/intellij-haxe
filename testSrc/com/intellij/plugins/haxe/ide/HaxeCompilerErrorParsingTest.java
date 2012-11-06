@@ -12,7 +12,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final String error =
       "C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx:5: characters 0-21 : Class not found : StringTools212";
     final String rootPath = "C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker";
-    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error);
+    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
 
     assertNotNull(compilerError);
     assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
@@ -23,7 +23,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
   public void testNMEErrorWin() {
     final String error = "src/Main.hx:5: characters 0-21 : Class not found : StringTools212";
     final String rootPath = "C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker";
-    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error);
+    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
 
     assertNotNull(compilerError);
     assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
