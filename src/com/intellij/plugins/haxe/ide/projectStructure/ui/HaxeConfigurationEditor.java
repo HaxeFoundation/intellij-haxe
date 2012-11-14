@@ -295,7 +295,8 @@ public class HaxeConfigurationEditor {
   }
 
   private void setChosenFile(VirtualFile virtualFile) {
-    String qualifier = DirectoryIndex.getInstance(myModule.getProject()).getPackageName(virtualFile.getParent());
+    VirtualFile parent = virtualFile.getParent();
+    String qualifier = parent == null ? null : DirectoryIndex.getInstance(myModule.getProject()).getPackageName(parent);
     qualifier = qualifier != null && qualifier.length() != 0 ? qualifier + '.' : "";
     myMainClassFieldWithButton.setText(qualifier + FileUtil.getNameWithoutExtension(virtualFile.getName()));
 
