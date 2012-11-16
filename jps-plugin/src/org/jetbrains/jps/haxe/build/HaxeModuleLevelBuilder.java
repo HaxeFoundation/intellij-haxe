@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
-import org.jetbrains.jps.builders.ChunkBuildOutputConsumer;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.haxe.model.module.JpsHaxeModuleSettings;
@@ -58,7 +57,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
   public ExitCode build(CompileContext context,
                         ModuleChunk chunk,
                         DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder,
-                        ChunkBuildOutputConsumer outputConsumer)
+                        OutputConsumer outputConsumer)
     throws ProjectBuildException, IOException {
     boolean doneSomething = false;
 
