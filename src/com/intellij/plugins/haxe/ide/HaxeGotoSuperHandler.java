@@ -64,7 +64,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
                                                HaxeComponentWithDeclarationList methodDeclaration,
                                                List<HaxeNamedComponent> superItems) {
     final String methodName = methodDeclaration.getName();
-    if (methodName == null || !methodDeclaration.isPublic()) {
+    if (methodName == null) {
       return;
     }
     final List<HaxeNamedComponent> filteredSuperItems = ContainerUtil.filter(superItems, new Condition<HaxeNamedComponent>() {

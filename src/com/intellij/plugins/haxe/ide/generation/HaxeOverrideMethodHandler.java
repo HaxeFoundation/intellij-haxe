@@ -22,7 +22,7 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
     for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       if (!(haxeNamedComponent instanceof HaxeFunctionDeclarationWithAttributes)) continue;
-      if (!haxeNamedComponent.isPublic() || haxeNamedComponent.isStatic()) continue;
+      if (haxeNamedComponent.isStatic()) continue;
       // already
       if (haxeNamedComponent.isOverride() && PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class) == haxeClass) continue;
       // constructor

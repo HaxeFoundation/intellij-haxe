@@ -84,7 +84,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
   private static LineMarkerInfo tryCreateOverrideMarker(final HaxeNamedComponent namedComponent,
                                                         List<HaxeNamedComponent> superItems) {
     final String methodName = namedComponent.getName();
-    if (methodName == null || !namedComponent.isPublic()) {
+    if (methodName == null) {
       return null;
     }
     final List<HaxeNamedComponent> filteredSuperItems = ContainerUtil.filter(superItems, new Condition<HaxeNamedComponent>() {
@@ -140,7 +140,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
                                                               final boolean isInterface) {
     final PsiElement componentName = namedComponent.getComponentName();
     final String methodName = namedComponent.getName();
-    if (methodName == null || !namedComponent.isPublic()) {
+    if (methodName == null) {
       return null;
     }
     final List<HaxeNamedComponent> filteredSubItems = ContainerUtil.filter(subItems, new Condition<HaxeNamedComponent>() {

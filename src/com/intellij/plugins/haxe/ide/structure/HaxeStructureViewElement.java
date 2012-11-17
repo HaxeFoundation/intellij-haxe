@@ -88,7 +88,7 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
     else if (myElement.getParent() instanceof HaxeNamedComponent) {
       namedComponent = (HaxeNamedComponent)myElement.getParent();
     }
-    return namedComponent == null || !namedComponent.isPublic() ? PsiUtil.ACCESS_LEVEL_PRIVATE : PsiUtil.ACCESS_LEVEL_PUBLIC;
+    return namedComponent == null || !namedComponent.isPublic() ? PsiUtil.ACCESS_LEVEL_PROTECTED : PsiUtil.ACCESS_LEVEL_PUBLIC;
   }
 
   @Override
