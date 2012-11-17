@@ -90,7 +90,7 @@ public class HaxeCommonCompilerUtil {
     }
 
     final String haxelibPath = HaxeSdkUtilBase.getHaxelibPathByFolderPath(context.getSdkHomePath());
-    if (haxelibPath == null || haxelibPath.isEmpty()) {
+    if (settings.isUseNmmlToBuild() && (haxelibPath == null || haxelibPath.isEmpty())) {
       context.errorHandler(HaxeCommonBundle.message("no.haxelib.for.sdk", context.getSdkName()));
       return false;
     }
@@ -104,12 +104,15 @@ public class HaxeCommonCompilerUtil {
       commandLine.add(sdkExePath);
     }
 
+    String workingPath = context.getCompileOutputPath() + "/" + (context.isDebug() ? "debug" : "release");
     if (settings.isUseNmmlToBuild()) {
       setupNME(commandLine, context);
     }
     else if (settings.isUseHxmlToBuild()) {
-      commandLine.add(FileUtil.toSystemDependentName(settings.getHxmlPath()));
-      if (context.isDebug() && settings.getNmeTarget() == NMETarget.FLASH) {
+      String hxmlPath = FileUtil.toSystemDependentName(settings.getHxmlPath());
+      commandLine.add(hxmlPath);
+      workingPath = hxmlPath.substring(0, hxmlPath.lastIndexOf('/'));
+      if (context.isDebug() && settings.getHaxeTarget() == HaxeTarget.FLASH) {
         commandLine.add("-D");
         commandLine.add("fdb");
         commandLine.add("-debug");
@@ -121,9 +124,8 @@ public class HaxeCommonCompilerUtil {
 
     final BooleanValueHolder hasErrors = new BooleanValueHolder(false);
 
-    final String compileOutputPath = context.getCompileOutputPath() + "/" + (context.isDebug() ? "debug" : "release");
     try {
-      final File workingDirectory = new File(FileUtil.toSystemDependentName(compileOutputPath));
+      final File workingDirectory = new File(FileUtil.toSystemDependentName(workingPath));
       if (!workingDirectory.exists()) {
         workingDirectory.mkdir();
       }

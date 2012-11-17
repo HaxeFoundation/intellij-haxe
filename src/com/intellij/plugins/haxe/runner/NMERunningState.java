@@ -11,7 +11,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.util.PathUtil;
@@ -56,7 +56,7 @@ public class NMERunningState extends CommandLineState {
     assert sdkData != null;
     final String haxelibPath = sdkData.getHaxelibPath();
     if (haxelibPath == null || haxelibPath.isEmpty()) {
-      throw new ExecutionException(HaxeBundle.message("no.haxelib.for.sdk", sdk.getName()));
+      throw new ExecutionException(HaxeCommonBundle.message("no.haxelib.for.sdk", sdk.getName()));
     }
     commandLine.setExePath(haxelibPath);
     commandLine.addParameter("run");
