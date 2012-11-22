@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.5.5:</p>
+      <ul>
+        <li>Bug fixes</li>
+      </ul>
       <p>0.5.4:</p>
       <ul>
         <li>New Compiler Mode</li>
@@ -107,9 +111,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.5.4</version>
+  <version>0.5.5</version>
   <vendor>JetBrains</vendor>
-  <idea-version since-build="122.700" until-build="123.1"/>
+  <idea-version since-build="123.1" until-build="124.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
