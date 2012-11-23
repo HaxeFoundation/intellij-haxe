@@ -109,9 +109,12 @@ public class HaxeCommonCompilerUtil {
       setupNME(commandLine, context);
     }
     else if (settings.isUseHxmlToBuild()) {
-      String hxmlPath = FileUtil.toSystemDependentName(settings.getHxmlPath());
-      commandLine.add(hxmlPath);
-      workingPath = hxmlPath.substring(0, hxmlPath.lastIndexOf('/'));
+      String hxmlPath = settings.getHxmlPath();
+      commandLine.add(FileUtil.toSystemDependentName(hxmlPath));
+      final int endIndex = hxmlPath.lastIndexOf('/');
+      if (endIndex > 0) {
+        workingPath = hxmlPath.substring(0, endIndex);
+      }
       if (context.isDebug() && settings.getHaxeTarget() == HaxeTarget.FLASH) {
         commandLine.add("-D");
         commandLine.add("fdb");
