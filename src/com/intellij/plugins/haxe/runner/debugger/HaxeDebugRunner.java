@@ -114,9 +114,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         @NotNull
         public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
           try {
+            final HXCPPDebugProcess debugProcess = new HXCPPDebugProcess(session, module, finalPort);
             NMERunningState runningState = new NMERunningState(env, module, runInTest);
-            final ExecutionResult executionResult = runningState.execute(executor, HaxeDebugRunner.this);
-            return new HXCPPDebugProcess(session, module, finalPort, executionResult);
+            debugProcess.setExecutionResult(runningState.execute(executor, HaxeDebugRunner.this));
+            return debugProcess;
           }
           catch (IOException e) {
             throw new ExecutionException(e.getMessage(), e);

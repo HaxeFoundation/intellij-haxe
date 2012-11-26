@@ -43,7 +43,7 @@ public class HaxeCommonCompilerUtil {
 
     String getCompileOutputPath();
 
-    boolean handleOutput(String[] lines);
+    void handleOutput(String[] lines);
   }
 
   public static boolean compile(final CompilationContext context) {
@@ -141,8 +141,13 @@ public class HaxeCommonCompilerUtil {
       handler.addProcessListener(new ProcessAdapter() {
         @Override
         public void onTextAvailable(ProcessEvent event, Key outputType) {
-          final boolean messageHasErrors = context.handleOutput(event.getText().split("\\n"));
-          hasErrors.setValue(hasErrors.getValue() || messageHasErrors);
+          context.handleOutput(event.getText().split("\\n"));
+        }
+
+        @Override
+        public void processTerminated(ProcessEvent event) {
+          hasErrors.setValue(event.getExitCode() != 0);
+          super.processTerminated(event);
         }
       });
 

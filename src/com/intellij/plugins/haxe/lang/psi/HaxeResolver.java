@@ -62,7 +62,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
              ? Arrays.asList(componentName)
              : resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1]);
     }
-    if (this instanceof HaxeSuperExpression) {
+    if (reference instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
       assert haxeClass != null;
       if (!haxeClass.getExtendsList().isEmpty()) {

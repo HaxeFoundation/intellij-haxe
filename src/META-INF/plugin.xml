@@ -4,6 +4,11 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.5.6:</p>
+      <ul>
+        <li>NME support improvements</li>
+        <li>HXCPP debugger improvements</li>
+      </ul>
       <p>0.5.5:</p>
       <ul>
         <li>Bug fixes</li>
@@ -111,7 +116,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.5.5</version>
+  <version>0.5.6</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="123.1" until-build="124.1"/>
   <depends>com.intellij.modules.ultimate</depends>

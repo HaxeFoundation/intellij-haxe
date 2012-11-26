@@ -80,9 +80,10 @@ public class HXCPPRemoteDebugRunner extends DefaultProgramRunner {
         @NotNull
         public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
           try {
+            final HXCPPDebugProcess debugProcess = new HXCPPDebugProcess(session, module, finalPort);
             HXCPPRemoteDebugState runningState = new HXCPPRemoteDebugState(project, env);
-            final ExecutionResult executionResult = runningState.execute(executor, HXCPPRemoteDebugRunner.this);
-            return new HXCPPDebugProcess(session, module, finalPort, executionResult);
+            debugProcess.setExecutionResult(runningState.execute(executor, HXCPPRemoteDebugRunner.this));
+            return debugProcess;
           }
           catch (IOException e) {
             throw new ExecutionException(e.getMessage(), e);

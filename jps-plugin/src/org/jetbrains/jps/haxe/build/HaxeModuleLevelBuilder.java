@@ -94,7 +94,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
 
     context.processMessage(new ProgressMessage(HaxeCommonBundle.message("haxe.module.compilation.progress.message", module.getName())));
 
-    return HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+    boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
       @NotNull
       @Override
       public HaxeModuleSettingsBase getModuleSettings() {
@@ -154,24 +154,26 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       }
 
       @Override
-      public boolean handleOutput(String[] lines) {
-        boolean containsErrors = false;
+      public void handleOutput(String[] lines) {
         for (String error : lines) {
           final HaxeCompilerError compilerError = HaxeCompilerError.create(StringUtil.notNullize(getWorkingDirectoryPath()), error);
-          final boolean isError = error.contains("error");
           context.processMessage(new CompilerMessage(
             BUILDER_NAME,
-            isError ? BuildMessage.Kind.ERROR : BuildMessage.Kind.WARNING,
+            BuildMessage.Kind.WARNING,
             compilerError != null ? compilerError.getErrorMessage() : error,
             compilerError != null ? compilerError.getPath() : null,
             -1L, -1L, -1L,
             compilerError != null ? (long)compilerError.getLine() : -1L,
             -1L
           ));
-          containsErrors = containsErrors || isError;
         }
-        return containsErrors;
       }
     });
+
+    if (!compiled) {
+      context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, "compilation failed"));
+    }
+
+    return compiled;
   }
 }

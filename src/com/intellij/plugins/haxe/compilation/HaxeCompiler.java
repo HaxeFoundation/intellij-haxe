@@ -113,7 +113,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.sdk.for.module", module.getName()), null, -1, -1);
       return false;
     }
-    return HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+    boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
       @NotNull
       @Override
       public HaxeModuleSettingsBase getModuleSettings() {
@@ -170,10 +170,16 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       }
 
       @Override
-      public boolean handleOutput(String[] lines) {
-        return HaxeCompilerUtil.fillContext(module, context, lines);
+      public void handleOutput(String[] lines) {
+        HaxeCompilerUtil.fillContext(module, context, lines);
       }
     });
+
+    if (!compiled) {
+      context.addMessage(CompilerMessageCategory.ERROR, "compilation failed", null, 0, 0);
+    }
+
+    return compiled;
   }
 
   private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {

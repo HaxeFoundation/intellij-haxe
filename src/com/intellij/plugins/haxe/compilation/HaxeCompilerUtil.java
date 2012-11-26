@@ -11,34 +11,29 @@ import com.intellij.util.PathUtil;
  * @author: Fedor.Korotkov
  */
 public class HaxeCompilerUtil {
-  public static boolean fillContext(Module module, CompileContext context, String[] errors) {
-    boolean hasErrors = false;
+  public static void fillContext(Module module, CompileContext context, String[] errors) {
     for (String error : errors) {
-      final boolean containsError = addErrorToContext(module, error, context);
-      hasErrors = hasErrors || containsError;
+      addErrorToContext(module, error, context);
     }
-    return hasErrors;
   }
 
-  private static boolean addErrorToContext(Module module, String error, CompileContext context) {
+  private static void addErrorToContext(Module module, String error, CompileContext context) {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(
       PathUtil.getParentPath(module.getModuleFilePath()),
       error,
       !ApplicationManager.getApplication().isUnitTestMode()
     );
-    final boolean isError = error.contains("error");
     if (compilerError == null) {
-      context.addMessage(isError ? CompilerMessageCategory.ERROR : CompilerMessageCategory.WARNING, error, null, -1, -1);
-      return isError;
+      context.addMessage(CompilerMessageCategory.WARNING, error, null, -1, -1);
+      return;
     }
 
     context.addMessage(
-      isError ? CompilerMessageCategory.ERROR : CompilerMessageCategory.WARNING,
+      CompilerMessageCategory.WARNING,
       compilerError.getErrorMessage(),
       VfsUtilCore.pathToUrl(compilerError.getPath()),
       compilerError.getLine(),
       -1
     );
-    return isError;
   }
 }

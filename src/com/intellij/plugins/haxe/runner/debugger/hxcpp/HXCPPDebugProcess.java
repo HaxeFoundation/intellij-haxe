@@ -9,7 +9,6 @@ import com.intellij.idea.LoggerFactory;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.runner.debugger.HXCPPRemoteDebugState;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerEditorsProvider;
@@ -38,7 +37,7 @@ import java.util.List;
  */
 public class HXCPPDebugProcess extends XDebugProcess implements SocketConnectionListener {
   private static final Logger LOG = LoggerFactory.getInstance().getLoggerInstance(HXCPPDebugProcess.class.getName());
-  private final ExecutionResult myExecutionResult;
+  @Nullable private ExecutionResult myExecutionResult;
   private final HXCPPConnection myConnection = new HXCPPConnection();
   private final HXCPPBreakpointsHandler myBreakpointsHandler;
   private final Module myModule;
@@ -75,6 +74,13 @@ public class HXCPPDebugProcess extends XDebugProcess implements SocketConnection
       }
     };
 
+  public void setExecutionResult(ExecutionResult executionResult) {
+    if (executionResult instanceof HXCPPRemoteDebugState.HXCPPRemoteDebugProcessHandler) {
+      ((HXCPPRemoteDebugState.HXCPPRemoteDebugProcessHandler)executionResult).setRemoteDebugProcess(this);
+    }
+    myExecutionResult = executionResult;
+  }
+
   @Override
   protected ProcessHandler doGetProcessHandler() {
     return myExecutionResult != null ? myExecutionResult.getProcessHandler() : null;
@@ -89,16 +95,11 @@ public class HXCPPDebugProcess extends XDebugProcess implements SocketConnection
     return super.createConsole();
   }
 
-  public HXCPPDebugProcess(@NotNull XDebugSession session, Module module, int debuggingPort, ExecutionResult executionResult)
+  public HXCPPDebugProcess(@NotNull XDebugSession session, Module module, int debuggingPort)
     throws IOException {
     super(session);
 
-    if (executionResult instanceof HXCPPRemoteDebugState.HXCPPRemoteDebugProcessHandler) {
-      ((HXCPPRemoteDebugState.HXCPPRemoteDebugProcessHandler)executionResult).setRemoteDebugProcess(this);
-    }
-
     myBreakpointsHandler = new HXCPPBreakpointsHandler(this);
-    myExecutionResult = executionResult;
     myModule = module;
     startCommandProcessingThread(debuggingPort);
   }
@@ -122,7 +123,8 @@ public class HXCPPDebugProcess extends XDebugProcess implements SocketConnection
           myConnection.open();
         }
         catch (IOException ignored) {
-          LOG.debug(ignored);
+          LOG.warn(ignored);
+          return;
         }
 
         while (true) {
@@ -190,9 +192,11 @@ public class HXCPPDebugProcess extends XDebugProcess implements SocketConnection
   }
 
   private void printToConsole(String msg) {
-    final ExecutionConsole console = myExecutionResult.getExecutionConsole();
-    if (console instanceof ConsoleView) {
-      ((ConsoleView)console).print(msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+    if (myExecutionResult != null) {
+      ExecutionConsole console = myExecutionResult.getExecutionConsole();
+      if (console instanceof ConsoleView) {
+        ((ConsoleView)console).print(msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+      }
     }
   }
 
