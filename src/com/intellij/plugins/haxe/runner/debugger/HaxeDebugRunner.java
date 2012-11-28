@@ -71,7 +71,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       throw new ExecutionException(HaxeBundle.message("haxe.proper.debug.targets"));
     }
 
-    if (settings.getHaxeTarget() != HaxeTarget.FLASH && settings.getNmeTarget() != NMETarget.FLASH) {
+    if (settings.isUseNmmlToBuild() && settings.getNmeTarget() != NMETarget.FLASH) {
       boolean runInTest = settings.getNmeTarget() == NMETarget.ANDROID || settings.getNmeTarget() == NMETarget.IOS;
       return runHXCPP(project, module, env, executor, contentToReuse, runInTest);
     }
@@ -86,7 +86,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       throw new ExecutionException(HaxeBundle.message("flex.sdk.not.specified"));
     }
 
-    if (settings.isUseNmmlToBuild()) {
+    if (settings.isUseNmmlToBuild() && settings.getNmeTarget() == NMETarget.FLASH) {
       return HaxeFlashDebuggingUtil.getNMEDescriptor(this, module, contentToReuse, env, executor, flexSdkName);
     }
 

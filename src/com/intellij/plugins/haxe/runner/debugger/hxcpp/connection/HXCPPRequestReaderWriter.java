@@ -45,11 +45,9 @@ public class HXCPPRequestReaderWriter implements RequestWriter<HXCPPCommand>, Re
     // "stopped." only on breaks. It isn't response.
     if (!result.contains("stopped.") && allowedIds.remove(id)) {
       LOG.debug("read response " + id + ":\n" + result);
-      System.out.println("read response " + id + ":\n" + result);
       return new HXCPPResponseToRequest(id++, result);
     }
     LOG.debug("read response :\n" + result);
-    System.out.println("read response :\n" + result);
     return new HXCPPResponse(result);
   }
 
