@@ -77,9 +77,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
           final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
-          if (typeTag != null) {
+          final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+          if (typeOrAnonymous != null) {
             result.append(":");
-            result.append(HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeTag.getTypeOrAnonymous().getType()));
+            result.append(HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeOrAnonymous.getType()));
           }
         }
         return result.toString();
