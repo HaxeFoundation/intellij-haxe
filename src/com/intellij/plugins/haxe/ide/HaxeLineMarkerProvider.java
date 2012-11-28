@@ -49,7 +49,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     }
   }
 
-  private static void collectClassMarkers(Collection<LineMarkerInfo> result, HaxeClass haxeClass) {
+  private static void collectClassMarkers(Collection<LineMarkerInfo> result, @NotNull HaxeClass haxeClass) {
     final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getExtendsList());
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getImplementsList()));
     final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(supers.toArray(new HaxeClass[supers.size()]));
@@ -76,7 +76,10 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     }
 
     if (!subClasses.isEmpty()) {
-      result.add(createImplementationMarker(haxeClass, subClasses));
+      final LineMarkerInfo marker = createImplementationMarker(haxeClass, subClasses);
+      if (marker != null) {
+        result.add(marker);
+      }
     }
   }
 
@@ -182,9 +185,13 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     );
   }
 
+  @Nullable
   private static LineMarkerInfo createImplementationMarker(final HaxeClass componentWithDeclarationList,
                                                            final List<HaxeClass> items) {
     final HaxeComponentName componentName = componentWithDeclarationList.getComponentName();
+    if (componentName == null) {
+      return null;
+    }
     return new LineMarkerInfo<PsiElement>(
       componentName,
       componentName.getTextRange(),
