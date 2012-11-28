@@ -108,7 +108,8 @@ public class HaxeClassResolveResult implements Cloneable {
     final HaxeGenericParam genericParam = haxeClass.getGenericParam();
     assert genericParam != null;
     final HaxeTypeList typeList = param.getTypeList();
-    for (int i = 0, size = genericParam.getGenericListPartList().size(); i < size; i++) {
+    int size = Math.min(genericParam.getGenericListPartList().size(), typeList.getTypeListPartList().size());
+    for (int i = 0; i < size; i++) {
       HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
       final HaxeTypeOrAnonymous typeOrAnonymous = typeList.getTypeListPartList().get(i).getTypeOrAnonymous();
       final HaxeType specializedType = typeOrAnonymous == null ? null : typeOrAnonymous.getType();
