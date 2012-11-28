@@ -66,12 +66,16 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeListPart typeTag, HaxeGenericSpecialization specializations) {
-    final HaxeAnonymousType anonymousType = typeTag.getTypeOrAnonymous().getAnonymousType();
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+    if (typeOrAnonymous == null) {
+      return "";
+    }
+    final HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
     if (anonymousType != null) {
       return anonymousType.getText();
     }
 
-    final HaxeType haxeType = typeTag.getTypeOrAnonymous().getType();
+    final HaxeType haxeType = typeOrAnonymous.getType();
     return buildTypeText(element, haxeType, specializations);
   }
 
