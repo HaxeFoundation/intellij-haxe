@@ -130,6 +130,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
             e,
             HaxeResolveUtil.getComponentNames(filteredSuperItems).toArray(new NavigatablePsiElement[filteredSuperItems.size()]),
             DaemonBundle.message("navigation.title.super.method", namedComponent.getName()),
+            DaemonBundle.message("navigation.findUsages.title.super.method", namedComponent.getName()),
             new DefaultPsiElementCellRenderer());
         }
       },
@@ -177,6 +178,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
             DaemonBundle.message("navigation.title.implementation.method", namedComponent.getName(), filteredSubItems.size())
                         :
             DaemonBundle.message("navigation.title.overrider.method", namedComponent.getName(), filteredSubItems.size()),
+            "Implementations of " + namedComponent.getName(),
             new DefaultPsiElementCellRenderer()
           );
         }
@@ -211,6 +213,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
           PsiElementListNavigator.openTargets(
             e, HaxeResolveUtil.getComponentNames(items).toArray(new NavigatablePsiElement[items.size()]),
             DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size()),
+            "Subclasses of " + componentWithDeclarationList.getName(),
             new DefaultPsiElementCellRenderer()
           );
         }
