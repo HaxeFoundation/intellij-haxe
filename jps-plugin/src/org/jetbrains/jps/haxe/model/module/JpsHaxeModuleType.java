@@ -23,7 +23,13 @@ public class JpsHaxeModuleType extends JpsModuleType<JpsHaxeModuleSettings> {
     return new JpsModulePropertiesSerializer<JpsHaxeModuleSettings>(INSTANCE, ID, "HaxeModuleSettingsStorage") {
       @Override
       public JpsHaxeModuleSettings loadProperties(@Nullable final Element componentElement) {
-        final HaxeModuleSettingsBaseImpl moduleSettingsBase = XmlSerializer.deserialize(componentElement, HaxeModuleSettingsBaseImpl.class);
+        final HaxeModuleSettingsBaseImpl moduleSettingsBase;
+        if (componentElement != null) {
+          moduleSettingsBase = XmlSerializer.deserialize(componentElement, HaxeModuleSettingsBaseImpl.class);
+        }
+        else {
+          moduleSettingsBase = new HaxeModuleSettingsBaseImpl();
+        }
         return new JpsHaxeModuleSettingsImpl(moduleSettingsBase);
       }
 
