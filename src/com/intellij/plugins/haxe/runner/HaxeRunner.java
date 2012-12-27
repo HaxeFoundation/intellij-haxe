@@ -25,11 +25,6 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 /**
  * @author: Fedor.Korotkov
  */
@@ -108,13 +103,12 @@ public class HaxeRunner extends DefaultProgramRunner {
     }
 
     if (configuration.isCustomFileToLaunch()) {
-      launchUrl(configuration.getCustomFileToLaunchPath());
+      BrowserUtil.open(configuration.getCustomFileToLaunchPath());
       return null;
     }
 
     if (settings.getHaxeTarget() == HaxeTarget.FLASH) {
-      final String url = getOutputFilePath(module, settings);
-      launchUrl(url);
+      BrowserUtil.open(getOutputFilePath(module, settings));
       return null;
     }
 
@@ -126,38 +120,10 @@ public class HaxeRunner extends DefaultProgramRunner {
     return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
   }
 
-  private String getOutputFilePath(Module module, HaxeModuleSettings settings) {
+  private static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
     FileDocumentManager.getInstance().saveAllDocuments();
     final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
     assert model != null;
     return model.getCompilerOutputUrl() + "/release/" + settings.getOutputFileName();
-  }
-
-  public static void launchUrl(String urlOrPath) {
-    if (Desktop.isDesktopSupported()) {
-      final Desktop desktop = Desktop.getDesktop();
-      if (BrowserUtil.isAbsoluteURL(urlOrPath)) {
-        if (desktop.isSupported(Desktop.Action.BROWSE)) {
-          try {
-            desktop.browse(BrowserUtil.getURL(urlOrPath).toURI());
-            return;
-          }
-          catch (IOException ignored) {/*ignored*/}
-          catch (URISyntaxException ignored) {/*ignored*/}
-        }
-      }
-      else {
-        if (desktop.isSupported(Desktop.Action.OPEN)) {
-          try {
-            desktop.open(new File(urlOrPath));
-            return;
-          }
-          catch (IOException ignored) {/*ignored*/}
-          catch (IllegalArgumentException ignored) {/*ignored*/}
-        }
-      }
-    }
-
-    BrowserUtil.launchBrowser(urlOrPath);
   }
 }
