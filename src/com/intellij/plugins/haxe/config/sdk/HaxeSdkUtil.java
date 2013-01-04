@@ -53,15 +53,15 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
 
       final String outputString = output.getStdout();
 
+      String haxeVersion = "NA";
       final Matcher matcher = VERSION_MATCHER.matcher(outputString);
       if (matcher.find()) {
-        final HaxeSdkData haxeSdkData = new HaxeSdkData(path, matcher.group(1));
-        haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
-        haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
-        return haxeSdkData;
+        haxeVersion = matcher.group(1);
       }
-
-      return null;
+      final HaxeSdkData haxeSdkData = new HaxeSdkData(path, haxeVersion);
+      haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
+      haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
+      return haxeSdkData;
     }
     catch (ExecutionException e) {
       LOG.info("Exception while executing the process:", e);
