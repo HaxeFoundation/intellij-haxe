@@ -1,3 +1,4 @@
+@:keep
 @:final @:hack
 @:native("my.real.Path")
 @:ns("namespace")

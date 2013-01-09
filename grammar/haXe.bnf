@@ -15,7 +15,7 @@
     elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
     tokenTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
 
-    generateFirstCheck=50
+    generateFirstCheck=100
 
     pLCURLY="{"
     pRCURLY="}"
@@ -168,12 +168,11 @@ haxeFile ::= packageStatement? topLevelList
   http://haxe.org/manual/metadata
   http://haxe.org/manual/tips_and_tricks
 */
-private macroClass ::= '@:final' | '@:core_api' | '@:bind' | '@:macro' | '@:hack'
+private macroClass ::= '@:final' | '@:keep' | '@:core_api' | '@:bind' | '@:macro' | '@:hack'
                       | requireMeta | fakeEnumMeta | nativeMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 private functionMacroMember ::= macroMember | overloadMeta
-private functionMacroMember ::= macroMember | overloadMeta
-private macroMember ::= '@:macro' | '@:keep' | '@:protected' | '@:debug' | '@:nodebug'
+private macroMember ::= '@:macro' | '@:protected' | '@:debug' | '@:nodebug'
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | buildMacro | autoBuildMacro
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
@@ -204,7 +203,7 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel*
 private topLevel ::= importStatement | usingStatement | topLevelDeclaration {recoverUntil="top_level_recover"}
-private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:overload' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
+private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:keep' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:overload' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}

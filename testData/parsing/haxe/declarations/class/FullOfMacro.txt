@@ -1,5 +1,6 @@
 haXe File
   HAXE_CLASS_DECLARATION
+    PsiElement(@:keep)('@:keep')
     PsiElement(@:final)('@:final')
     PsiElement(@:hack)('@:hack')
     HAXE_NATIVE_META
