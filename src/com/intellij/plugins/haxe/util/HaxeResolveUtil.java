@@ -429,10 +429,32 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    HaxeClass result = findClassByQName(getQName(type, true), type.getContext());
-    result = result != null ? result : findClassByQName(getQName(type, false), type.getContext());
+    HaxeClass result = findClassByQName(getQName(type, false), type.getContext());
     result = result != null ? result : tryFindHelper(type);
+    result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
+  }
+
+  @Nullable
+  private static HaxeClass findClassByQNameInSuperPackages(PsiElement type) {
+    HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(type.getContainingFile(), HaxePackageStatement.class);
+    String packageName = getPackageName(packageStatement);
+    String[] packages = packageName.split("\\.");
+    String typeName = type.getText();
+    for (int i = packages.length - 1; i >= 0; --i) {
+      StringBuilder qNameBuilder = new StringBuilder();
+      for (int j = 0; j <= i; ++j) {
+        if (!packages[j].isEmpty()) {
+          qNameBuilder.append(packages[j]).append('.');
+        }
+      }
+      qNameBuilder.append(typeName);
+      HaxeClass haxeClass = findClassByQName(qNameBuilder.toString(), type);
+      if (haxeClass != null) {
+        return haxeClass;
+      }
+    }
+    return null;
   }
 
   @Nullable
