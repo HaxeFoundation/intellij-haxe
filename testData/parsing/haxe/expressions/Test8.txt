@@ -66,6 +66,70 @@ haXe File
                   PsiElement(ID)('Something')
         HAXE_BLOCK_STATEMENT
           PsiElement({)('{')
+          HAXE_LOCAL_VAR_DECLARATION
+            PsiElement(var)('var')
+            HAXE_LOCAL_VAR_DECLARATION_PART
+              HAXE_COMPONENT_NAME
+                HAXE_IDENTIFIER
+                  PsiElement(ID)('f')
+              HAXE_TYPE_TAG
+                PsiElement(:)(':')
+                PsiElement(()('(')
+                HAXE_FUNCTION_TYPE
+                  HAXE_FUNCTION_TYPE
+                    HAXE_TYPE_OR_ANONYMOUS
+                      HAXE_TYPE
+                        HAXE_REFERENCE_EXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('Void')
+                    PsiElement(->)('->')
+                    HAXE_TYPE_OR_ANONYMOUS
+                      HAXE_TYPE
+                        HAXE_REFERENCE_EXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('Void')
+                  PsiElement())(')')
+                  PsiElement(->)('->')
+                  HAXE_TYPE_OR_ANONYMOUS
+                    HAXE_TYPE
+                      HAXE_REFERENCE_EXPRESSION
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('Void')
+              HAXE_VAR_INIT
+                PsiElement(=)('=')
+                HAXE_FUNCTION_LITERAL
+                  PsiElement(function)('function')
+                  PsiElement(()('(')
+                  HAXE_PARAMETER_LIST
+                    HAXE_PARAMETER
+                      HAXE_COMPONENT_NAME
+                        HAXE_IDENTIFIER
+                          PsiElement(ID)('fun')
+                      HAXE_TYPE_TAG
+                        PsiElement(:)(':')
+                        HAXE_FUNCTION_TYPE
+                          HAXE_TYPE_OR_ANONYMOUS
+                            HAXE_TYPE
+                              HAXE_REFERENCE_EXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('Void')
+                          PsiElement(->)('->')
+                          HAXE_TYPE_OR_ANONYMOUS
+                            HAXE_TYPE
+                              HAXE_REFERENCE_EXPRESSION
+                                HAXE_IDENTIFIER
+                                  PsiElement(ID)('Void')
+                  PsiElement())(')')
+                  HAXE_TYPE_TAG
+                    PsiElement(:)(':')
+                    HAXE_TYPE_OR_ANONYMOUS
+                      HAXE_TYPE
+                        HAXE_REFERENCE_EXPRESSION
+                          HAXE_IDENTIFIER
+                            PsiElement(ID)('Void')
+                PsiErrorElement:'!', '(', '++', '-', '--', '->', '.', <, ID, LITCHAR, LITFLOAT, LITHEX, LITINT, LITOCT, LITSTRING, REG_EXP, '[', cast, false, function, if, new, null, return, super, switch, this, throw, true, try, untyped, '{' or '~' expected, got ';'
+                  <empty list>
+            PsiElement(;)(';')
           HAXE_RETURN_STATEMENT
             PsiElement(return)('return')
             HAXE_PREFIX_EXPRESSION

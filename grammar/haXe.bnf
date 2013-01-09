@@ -298,7 +298,8 @@ functionLiteral ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? functi
 arrayLiteral ::= '[' expressionList? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private functionTypeWrapper ::= typeOrAnonymous functionType*
+private functionTypeWrapper ::= functionTypeOrWrapper functionType*
+private functionTypeOrWrapper ::= typeOrAnonymous | '(' functionTypeWrapper ')'
 left functionType ::= '->' typeOrAnonymous
 
 typeTag ::= ':' functionTypeWrapper
