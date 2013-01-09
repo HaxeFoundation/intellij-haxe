@@ -15,6 +15,7 @@ import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.util.PathUtil;
+import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -68,6 +69,11 @@ public class NMERunningState extends CommandLineState {
     }
     if (myDebug) {
       commandLine.addParameter("-Ddebug");
+    }
+
+    final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getNmeFlags());
+    while (flagsTokenizer.hasMoreTokens()) {
+      commandLine.addParameter(flagsTokenizer.nextToken());
     }
 
     final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());

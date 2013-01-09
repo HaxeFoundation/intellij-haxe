@@ -46,6 +46,16 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public String getNmeFlags() {
+    return mySettingsBase.getNmeFlags();
+  }
+
+  @Override
+  public void setNmeFlags(String flags) {
+    mySettingsBase.setNmeFlags(flags);
+  }
+
+  @Override
   public HaxeTarget getHaxeTarget() {
     return mySettingsBase.getHaxeTarget();
   }

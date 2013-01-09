@@ -202,5 +202,9 @@ public class HaxeCommonCompilerUtil {
     if (settings.getNmeTarget() == NMETarget.FLASH && context.isDebug()) {
       commandLine.add("-Dfdb");
     }
+    final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getNmeFlags());
+    while (flagsTokenizer.hasMoreTokens()) {
+      commandLine.add(flagsTokenizer.nextToken());
+    }
   }
 }

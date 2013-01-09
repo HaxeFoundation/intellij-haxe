@@ -15,6 +15,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   protected String mainClass = "";
   protected String outputFileName = "";
   protected String arguments = "";
+  protected String nmeFlags = "";
   protected boolean excludeFromCompilation = false;
   protected HaxeTarget haxeTarget = HaxeTarget.NEKO;
   protected NMETarget nmeTarget = NMETarget.FLASH;
@@ -29,6 +30,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   public HaxeModuleSettingsBaseImpl(String mainClass,
                                     String outputFileName,
                                     String arguments,
+                                    String nmeFlags,
                                     boolean excludeFromCompilation,
                                     HaxeTarget haxeTarget,
                                     NMETarget nmeTarget,
@@ -38,6 +40,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     this.mainClass = mainClass;
     this.outputFileName = outputFileName;
     this.arguments = arguments;
+    this.nmeFlags = nmeFlags;
     this.excludeFromCompilation = excludeFromCompilation;
     this.haxeTarget = haxeTarget;
     this.nmeTarget = nmeTarget;
@@ -68,6 +71,14 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setArguments(String arguments) {
     this.arguments = arguments;
+  }
+
+  public String getNmeFlags() {
+    return nmeFlags;
+  }
+
+  public void setNmeFlags(String flags) {
+    this.nmeFlags = flags;
   }
 
   public HaxeTarget getHaxeTarget() {

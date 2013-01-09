@@ -36,13 +36,14 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             HaxeTarget haxeTarget,
                             NMETarget nmeTarget,
                             String arguments,
+                            String nmeFlags,
                             boolean excludeFromCompilation,
                             String outputFileName,
                             String flexSdkName,
                             int buildConfig,
                             String hxmlPath,
                             String nmmlPath) {
-    super(mainClass, outputFileName, arguments, excludeFromCompilation, haxeTarget, nmeTarget, hxmlPath, nmmlPath, buildConfig);
+    super(mainClass, outputFileName, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, hxmlPath, nmmlPath, buildConfig);
     this.flexSdkName = flexSdkName;
   }
 
@@ -86,6 +87,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     if (excludeFromCompilation != settings.excludeFromCompilation) return false;
     if (buildConfig != settings.buildConfig) return false;
     if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
+    if (nmeFlags != null ? !nmeFlags.equals(settings.nmeFlags) : settings.nmeFlags != null) return false;
     if (flexSdkName != null ? !flexSdkName.equals(settings.flexSdkName) : settings.flexSdkName != null) return false;
     if (hxmlPath != null ? !hxmlPath.equals(settings.hxmlPath) : settings.hxmlPath != null) return false;
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
@@ -102,6 +104,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     int result = mainClass != null ? mainClass.hashCode() : 0;
     result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
     result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
+    result = 31 * result + (nmeFlags != null ? nmeFlags.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
     result = 31 * result + (haxeTarget != null ? haxeTarget.hashCode() : 0);
     result = 31 * result + (nmeTarget != null ? nmeTarget.hashCode() : 0);

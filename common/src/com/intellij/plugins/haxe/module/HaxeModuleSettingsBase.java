@@ -17,6 +17,10 @@ public interface HaxeModuleSettingsBase {
 
   void setArguments(String arguments);
 
+  String getNmeFlags();
+
+  void setNmeFlags(String flags);
+
   HaxeTarget getHaxeTarget();
 
   NMETarget getNmeTarget();
