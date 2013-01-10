@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,6 +48,22 @@ public class HaxeClassResolveResult implements Cloneable {
     if (resolveResult == null) {
       resolveResult = new HaxeClassResolveResult(aClass);
       HaxeClassResolveCache.getInstance(aClass.getProject()).put(aClass, resolveResult);
+
+      HaxeGenericParam genericParam = aClass.getGenericParam();
+      List<HaxeGenericListPart> genericListPartList = genericParam != null ?
+                                                      genericParam.getGenericListPartList() :
+                                                      Collections.<HaxeGenericListPart>emptyList();
+      for (HaxeGenericListPart genericListPart : genericListPartList) {
+        HaxeComponentName componentName = genericListPart.getComponentName();
+        HaxeTypeListPart typeListPart = genericListPart.getTypeListPart();
+        HaxeTypeOrAnonymous typeOrAnonymous = typeListPart != null ? typeListPart.getTypeOrAnonymous() : null;
+        HaxeType specializedType = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
+        if (specializedType != null) {
+          resolveResult.specialization.put(aClass,
+                                           componentName.getName(),
+                                           HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization));
+        }
+      }
 
       for (HaxeType haxeType : aClass.getExtendsList()) {
         final HaxeClassResolveResult result = create(HaxeResolveUtil.tryResolveClassByQName(haxeType));
