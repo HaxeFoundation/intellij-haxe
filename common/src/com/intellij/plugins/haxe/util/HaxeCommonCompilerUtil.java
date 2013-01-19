@@ -35,6 +35,8 @@ public class HaxeCommonCompilerUtil {
 
     String getSdkHomePath();
 
+    public String getHaxelibPath();
+
     boolean isDebug();
 
     String getSdkName();
@@ -89,7 +91,7 @@ public class HaxeCommonCompilerUtil {
       return false;
     }
 
-    final String haxelibPath = HaxeSdkUtilBase.getHaxelibPathByFolderPath(context.getSdkHomePath());
+    final String haxelibPath = context.getHaxelibPath();
     if (settings.isUseNmmlToBuild() && (haxelibPath == null || haxelibPath.isEmpty())) {
       context.errorHandler(HaxeCommonBundle.message("no.haxelib.for.sdk", context.getSdkName()));
       return false;
@@ -197,6 +199,7 @@ public class HaxeCommonCompilerUtil {
     commandLine.add(settings.getNmmlPath());
     commandLine.add(settings.getNmeTarget().getTargetFlag());
     if (context.isDebug()) {
+      commandLine.add("-debug");
       commandLine.add("-Ddebug");
     }
     if (settings.getNmeTarget() == NMETarget.FLASH && context.isDebug()) {

@@ -68,6 +68,7 @@ public class NMERunningState extends CommandLineState {
       commandLine.addParameter(flag);
     }
     if (myDebug) {
+      commandLine.addParameter("-debug");
       commandLine.addParameter("-Ddebug");
     }
 

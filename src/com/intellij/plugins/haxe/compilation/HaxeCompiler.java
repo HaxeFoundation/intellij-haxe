@@ -10,12 +10,14 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
@@ -143,6 +145,12 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       @Override
       public String getSdkHomePath() {
         return sdk.getHomePath();
+      }
+
+      @Override
+      public String getHaxelibPath() {
+        SdkAdditionalData data = sdk.getSdkAdditionalData();
+        return data instanceof HaxeSdkAdditionalDataBase ? ((HaxeSdkAdditionalDataBase)data).getHaxelibPath() : null;
       }
 
       @Override

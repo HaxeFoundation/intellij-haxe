@@ -127,6 +127,11 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       }
 
       @Override
+      public String getHaxelibPath() {
+        return jpsSdk.getSdkProperties().getHaxelibPath();
+      }
+
+      @Override
       public String getSdkName() {
         return jpsSdk.getVersionString();
       }
