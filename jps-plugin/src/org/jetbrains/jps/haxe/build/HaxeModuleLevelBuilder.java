@@ -32,6 +32,7 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -68,6 +69,11 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     }
 
     return doneSomething ? ExitCode.OK : ExitCode.NOTHING_DONE;
+  }
+
+  @Override
+  public List<String> getCompilableFileExtensions() {
+    return Collections.emptyList();
   }
 
   private boolean processModule(final CompileContext context,
