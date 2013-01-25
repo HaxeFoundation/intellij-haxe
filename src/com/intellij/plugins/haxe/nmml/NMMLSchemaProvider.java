@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.nmml;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -30,6 +30,6 @@ public class NMMLSchemaProvider extends XmlSchemaProvider {
 
   @Override
   public boolean isAvailable(final @NotNull XmlFile file) {
-    return NMMLFileType.INSTANCE.getDefaultExtension().equalsIgnoreCase(FileUtil.getExtension(file.getName()));
+    return FileUtilRt.extensionEquals(file.getName(), NMMLFileType.INSTANCE.getDefaultExtension());
   }
 }

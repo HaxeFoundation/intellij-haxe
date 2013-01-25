@@ -3,7 +3,7 @@ package com.intellij.plugins.haxe.codeInspection;
 import com.intellij.codeInspection.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.psi.PsiElement;
@@ -40,7 +40,7 @@ public class NMEBuildDirectoryInspection extends LocalInspectionTool {
 
   @Override
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
-    final boolean isNmml = NMMLFileType.DEFAULT_EXTENSION.equalsIgnoreCase(FileUtil.getExtension(file.getName()));
+    final boolean isNmml = FileUtilRt.extensionEquals(file.getName(), NMMLFileType.DEFAULT_EXTENSION);
     if (!isNmml || !(file instanceof XmlFile)) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }

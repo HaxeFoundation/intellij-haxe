@@ -4,6 +4,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
@@ -39,7 +40,7 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
     if (getParent() instanceof HaxeClass) {
       final HaxeFile haxeFile = (HaxeFile)getParent().getParent();
       if (oldName != null && oldName.equals(FileUtil.getNameWithoutExtension(haxeFile.getName()))) {
-        haxeFile.setName(newElementName + "." + FileUtil.getExtension(haxeFile.getName()));
+        haxeFile.setName(newElementName + "." + FileUtilRt.getExtension(haxeFile.getName()));
       }
     }
     return this;

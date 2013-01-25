@@ -18,7 +18,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -76,7 +76,7 @@ public class HaxeRunner extends DefaultProgramRunner {
       return super.doExecute(project, executor, nmeRunningState, contentToReuse, env);
     }
 
-    if (configuration.isCustomFileToLaunch() && "n".equalsIgnoreCase(FileUtil.getExtension(configuration.getCustomFileToLaunchPath()))) {
+    if (configuration.isCustomFileToLaunch() && FileUtilRt.extensionEquals(configuration.getCustomFileToLaunchPath(), "n")) {
       final NekoRunningState nekoRunningState = new NekoRunningState(env, module, configuration.getCustomFileToLaunchPath());
       return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
     }
