@@ -133,7 +133,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     if (PsiTreeUtil.getParentOfType(this, HaxeExternClassDeclaration.class) != null) {
       return true;
     }
-    if (PsiTreeUtil.getParentOfType(this, HaxeInterfaceDeclaration.class) != null) {
+    if (PsiTreeUtil.getParentOfType(this, HaxeInterfaceDeclaration.class, HaxeEnumDeclaration.class) != null) {
       return true;
     }
     if (PsiTreeUtil.getParentOfType(this, HaxeAnonymousType.class) != null) {

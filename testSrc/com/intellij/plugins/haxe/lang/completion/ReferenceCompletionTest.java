@@ -40,6 +40,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  public void testTest9() throws Throwable {
+    doTest();
+  }
+
   public void testSelfMethod() throws Throwable {
     doTest();
   }
@@ -51,6 +55,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testClassName() throws Throwable {
     myFixture.configureByFiles("ClassName.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("ClassName.txt");
+  }
+
+  public void testClassName2() throws Throwable {
+    doTest();
   }
 
   public void testPrivateMethod() throws Throwable {
