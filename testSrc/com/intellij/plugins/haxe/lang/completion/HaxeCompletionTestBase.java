@@ -47,6 +47,12 @@ public abstract class HaxeCompletionTestBase extends JavaCodeInsightFixtureTestC
     doTestVariantsInner(getTestName(false) + ".txt");
   }
 
+  protected void doTest(char charToType) {
+    myFixture.configureByFile(getTestName(false) + ".hx");
+    myFixture.type(charToType);
+    myFixture.checkResultByFile(getTestName(false) + ".txt");
+  }
+
   protected void doTestVariantsInner(String fileName) throws Throwable {
     final VirtualFile virtualFile = myFixture.copyFileToProject(fileName);
     final Scanner in = new Scanner(virtualFile.getInputStream());
