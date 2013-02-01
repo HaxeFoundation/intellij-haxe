@@ -16,7 +16,7 @@ public interface HaxeExternClassDeclaration extends HaxeClass {
   @NotNull
   List<HaxeBuildMacro> getBuildMacroList();
 
-  @Nullable
+  @NotNull
   HaxeComponentName getComponentName();
 
   @NotNull
@@ -24,6 +24,9 @@ public interface HaxeExternClassDeclaration extends HaxeClass {
 
   @Nullable
   HaxeExternClassDeclarationBody getExternClassDeclarationBody();
+
+  @NotNull
+  List<HaxeExternOrPrivate> getExternOrPrivateList();
 
   @NotNull
   List<HaxeFakeEnumMeta> getFakeEnumMetaList();

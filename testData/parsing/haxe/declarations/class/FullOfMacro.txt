@@ -211,3 +211,38 @@ haXe File
           PsiElement({)('{')
           PsiElement(})('}')
     PsiElement(})('}')
+  HAXE_EXTERN_CLASS_DECLARATION
+    HAXE_BUILD_MACRO
+      PsiElement(@:build)('@:build')
+      PsiElement(()('(')
+      HAXE_CALL_EXPRESSION
+        HAXE_REFERENCE_EXPRESSION
+          HAXE_REFERENCE_EXPRESSION
+            HAXE_IDENTIFIER
+              PsiElement(ID)('MacroGenerator')
+          PsiElement(.)('.')
+          HAXE_REFERENCE_EXPRESSION
+            HAXE_IDENTIFIER
+              PsiElement(ID)('build')
+        PsiElement(()('(')
+        HAXE_EXPRESSION_LIST
+          HAXE_ARRAY_LITERAL
+            PsiElement([)('[')
+            PsiElement(])(']')
+          PsiElement(,)(',')
+          HAXE_LITERAL_EXPRESSION
+            PsiElement(true)('true')
+        PsiElement())(')')
+      PsiElement())(')')
+    HAXE_EXTERN_OR_PRIVATE
+      PsiElement(extern)('extern')
+    HAXE_EXTERN_OR_PRIVATE
+      PsiElement(private)('private')
+    PsiElement(class)('class')
+    HAXE_COMPONENT_NAME
+      HAXE_IDENTIFIER
+        PsiElement(ID)('Test')
+    PsiElement({)('{')
+    HAXE_EXTERN_CLASS_DECLARATION_BODY
+      <empty list>
+    PsiElement(})('}')

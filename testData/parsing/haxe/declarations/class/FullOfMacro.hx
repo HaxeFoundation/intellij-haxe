@@ -19,3 +19,6 @@ class FullOfMacro {
   @:overload(function(name:String,value:String):js.JQuery{})
   function attr( name : String ) : String {}
 }
+
+@:build(MacroGenerator.build([], true))
+extern private class Test {}

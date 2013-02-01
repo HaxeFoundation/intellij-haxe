@@ -2402,7 +2402,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* 'private'? 'extern' 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+  // macroClass* externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBIND)
@@ -2412,20 +2412,20 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
         && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNATIVE)
         && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KEXTERN) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 17, "<extern class declaration>")) return false;
+        && !nextTokenIs(builder_, KCLASS) && !nextTokenIs(builder_, KEXTERN)
+        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, MACRO_ID)
+        && replaceVariants(builder_, 18, "<extern class declaration>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, "<extern class declaration>");
     result_ = externClassDeclaration_0(builder_, level_ + 1);
     result_ = result_ && externClassDeclaration_1(builder_, level_ + 1);
-    result_ = result_ && consumeToken(builder_, KEXTERN);
     result_ = result_ && consumeToken(builder_, KCLASS);
+    result_ = result_ && componentName(builder_, level_ + 1);
     pinned_ = result_; // pin = 4
-    result_ = result_ && report_error_(builder_, componentName(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, externClassDeclaration_4(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, externClassDeclaration_5(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, externClassDeclaration_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLCURLY)) && result_;
     result_ = pinned_ && report_error_(builder_, externClassDeclarationBody(builder_, level_ + 1)) && result_;
     result_ = pinned_ && consumeToken(builder_, PRCURLY) && result_;
@@ -2455,23 +2455,32 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // 'private'?
+  // externOrPrivate*
   private static boolean externClassDeclaration_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration_1")) return false;
-    consumeToken(builder_, KPRIVATE);
+    int offset_ = builder_.getCurrentOffset();
+    while (true) {
+      if (!externOrPrivate(builder_, level_ + 1)) break;
+      int next_offset_ = builder_.getCurrentOffset();
+      if (offset_ == next_offset_) {
+        empty_element_parsed_guard_(builder_, offset_, "externClassDeclaration_1");
+        break;
+      }
+      offset_ = next_offset_;
+    }
     return true;
   }
 
   // genericParam?
-  private static boolean externClassDeclaration_5(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externClassDeclaration_5")) return false;
+  private static boolean externClassDeclaration_4(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externClassDeclaration_4")) return false;
     genericParam(builder_, level_ + 1);
     return true;
   }
 
   // inheritList?
-  private static boolean externClassDeclaration_6(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externClassDeclaration_6")) return false;
+  private static boolean externClassDeclaration_5(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externClassDeclaration_5")) return false;
     inheritList(builder_, level_ + 1);
     return true;
   }
