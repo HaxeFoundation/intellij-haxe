@@ -172,7 +172,7 @@ private macroClass ::= '@:final' | '@:keep' | '@:core_api' | '@:bind' | '@:macro
                       | requireMeta | fakeEnumMeta | nativeMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 private functionMacroMember ::= macroMember | overloadMeta
-private macroMember ::= '@:macro' | '@:protected' | '@:debug' | '@:nodebug'
+private macroMember ::= '@:macro' | '@:protected' | '@:debug' | '@:nodebug' | '@:keep'
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | buildMacro | autoBuildMacro
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}

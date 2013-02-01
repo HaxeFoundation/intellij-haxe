@@ -2522,14 +2522,15 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
-        && !nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KNODEBUG)
-        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
-        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KINLINE)
-        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
-        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 19, "<extern function declaration>")) return false;
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
+        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
+        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
+        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
+        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
+        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, MACRO_ID)
+        && replaceVariants(builder_, 20, "<extern function declaration>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
@@ -2846,14 +2847,15 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
-        && !nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KNODEBUG)
-        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
-        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KINLINE)
-        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
-        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 19, "<function declaration with attributes>")) return false;
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
+        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
+        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
+        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
+        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
+        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, MACRO_ID)
+        && replaceVariants(builder_, 20, "<function declaration with attributes>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
@@ -3022,10 +3024,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "functionMacroMember")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
-        && !nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KNODEBUG)
-        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
-        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, MACRO_ID)) return false;
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
+        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
+        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
+        && !nextTokenIs(builder_, MACRO_ID)) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = macroMember(builder_, level_ + 1);
@@ -3045,14 +3048,15 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
-        && !nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KNODEBUG)
-        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
-        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KINLINE)
-        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
-        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 19, "<function prototype declaration with attributes>")) return false;
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
+        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
+        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
+        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KFUNCTION)
+        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
+        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
+        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, MACRO_ID)
+        && replaceVariants(builder_, 20, "<function prototype declaration with attributes>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
@@ -4467,22 +4471,23 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '@:macro' | '@:protected' | '@:debug' | '@:nodebug'
+  // '@:macro' | '@:protected' | '@:debug' | '@:nodebug' | '@:keep'
   //                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | buildMacro | autoBuildMacro
   static boolean macroMember(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroMember")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
-        && !nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KNODEBUG)
-        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KPROTECTED)
-        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
-        && !nextTokenIs(builder_, MACRO_ID)) return false;
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
+        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
+        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, MACRO_ID)) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, KMACRO);
     if (!result_) result_ = consumeToken(builder_, KPROTECTED);
     if (!result_) result_ = consumeToken(builder_, KDEBUG);
     if (!result_) result_ = consumeToken(builder_, KNODEBUG);
+    if (!result_) result_ = consumeToken(builder_, KKEEP);
     if (!result_) result_ = requireMeta(builder_, level_ + 1);
     if (!result_) result_ = nsMeta(builder_, level_ + 1);
     if (!result_) result_ = getterMeta(builder_, level_ + 1);
@@ -7079,14 +7084,14 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "varDeclaration")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
-        && !nextTokenIs(builder_, KMACRO) && !nextTokenIs(builder_, KNODEBUG)
-        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KPROTECTED)
-        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
-        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KINLINE)
-        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
-        && !nextTokenIs(builder_, KVAR) && !nextTokenIs(builder_, MACRO_ID)
-        && replaceVariants(builder_, 18, "<var declaration>")) return false;
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
+        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
+        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
+        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
+        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
+        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, KVAR)
+        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 19, "<var declaration>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();

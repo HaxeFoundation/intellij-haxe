@@ -8,6 +8,7 @@ haXe File
     HAXE_CLASS_BODY
       HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(@:macro)('@:macro')
+        PsiElement(@:keep)('@:keep')
         HAXE_DECLARATION_ATTRIBUTE_LIST
           HAXE_DECLARATION_ATTRIBUTE
             PsiElement(static)('static')
