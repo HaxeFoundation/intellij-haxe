@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -96,6 +97,9 @@ public class HaxeResolveUtil {
   @NotNull
   public static GlobalSearchScope getScopeForElement(@NotNull PsiElement context) {
     final Project project = context.getProject();
+    if(ApplicationManager.getApplication().isUnitTestMode()) {
+      return GlobalSearchScope.allScope(project);
+    }
     final Module module = ModuleUtilCore.findModuleForPsiElement(context);
     return module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) : GlobalSearchScope.allScope(project);
   }
