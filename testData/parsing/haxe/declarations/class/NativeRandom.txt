@@ -1,7 +1,8 @@
 haXe File
   HAXE_EXTERN_CLASS_DECLARATION
     PsiElement(@:final)('@:final')
-    PsiElement(extern)('extern')
+    HAXE_EXTERN_OR_PRIVATE
+      PsiElement(extern)('extern')
     PsiElement(class)('class')
     HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
@@ -87,8 +88,10 @@ haXe File
           PsiElement(})('}')
     PsiElement(})('}')
   HAXE_EXTERN_CLASS_DECLARATION
-    PsiElement(private)('private')
-    PsiElement(extern)('extern')
+    HAXE_EXTERN_OR_PRIVATE
+      PsiElement(private)('private')
+    HAXE_EXTERN_OR_PRIVATE
+      PsiElement(extern)('extern')
     PsiElement(class)('class')
     HAXE_COMPONENT_NAME
       HAXE_IDENTIFIER
