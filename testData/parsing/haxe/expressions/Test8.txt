@@ -127,8 +127,9 @@ haXe File
                         HAXE_REFERENCE_EXPRESSION
                           HAXE_IDENTIFIER
                             PsiElement(ID)('Void')
-                PsiErrorElement:'!', '(', '++', '-', '--', '->', '.', <, ID, LITCHAR, LITFLOAT, LITHEX, LITINT, LITOCT, LITSTRING, REG_EXP, '[', cast, false, function, if, new, null, return, super, switch, this, throw, true, try, untyped, '{' or '~' expected, got ';'
-                  <empty list>
+                  HAXE_BLOCK_STATEMENT
+                    PsiElement({)('{')
+                    PsiElement(})('}')
             PsiElement(;)(';')
           HAXE_RETURN_STATEMENT
             PsiElement(return)('return')

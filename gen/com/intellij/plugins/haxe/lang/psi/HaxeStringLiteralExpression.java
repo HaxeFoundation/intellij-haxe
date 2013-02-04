@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeMetaKeyValue extends HaxePsiCompositeElement {
+public interface HaxeStringLiteralExpression extends HaxeReference, HaxeExpression {
 
   @NotNull
-  HaxeStringLiteralExpression getStringLiteralExpression();
+  List<HaxeLongTemplateEntry> getLongTemplateEntryList();
+
+  @NotNull
+  List<HaxeShortTemplateEntry> getShortTemplateEntryList();
 
 }

@@ -57,7 +57,9 @@ public interface HaxeTokenTypeSets {
   );
 
   TokenSet STRINGS = TokenSet.create(
-    LITSTRING
+    OPEN_QUOTE,
+    CLOSING_QUOTE,
+    REGULAR_STRING_PART
   );
 
   TokenSet KEYWORDS = TokenSet.create(

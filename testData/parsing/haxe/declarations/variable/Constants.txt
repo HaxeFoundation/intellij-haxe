@@ -95,8 +95,10 @@ haXe File
               PsiElement(ID)('a8')
           HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERAL_EXPRESSION
-              PsiElement(LITSTRING)('"hello"')
+            HAXE_STRING_LITERAL_EXPRESSION
+              PsiElement(OPEN_QUOTE)('"')
+              PsiElement(REGULAR_STRING_PART)('hello')
+              PsiElement(CLOSING_QUOTE)('"')
         PsiElement(;)(';')
       HAXE_VAR_DECLARATION
         PsiElement(var)('var')
@@ -106,8 +108,14 @@ haXe File
               PsiElement(ID)('a9')
           HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERAL_EXPRESSION
-              PsiElement(LITSTRING)('"hello \"world\" !"')
+            HAXE_STRING_LITERAL_EXPRESSION
+              PsiElement(OPEN_QUOTE)('"')
+              PsiElement(REGULAR_STRING_PART)('hello ')
+              PsiElement(REGULAR_STRING_PART)('\"')
+              PsiElement(REGULAR_STRING_PART)('world')
+              PsiElement(REGULAR_STRING_PART)('\"')
+              PsiElement(REGULAR_STRING_PART)(' !')
+              PsiElement(CLOSING_QUOTE)('"')
         PsiElement(;)(';')
       HAXE_VAR_DECLARATION
         PsiElement(var)('var')
@@ -117,8 +125,10 @@ haXe File
               PsiElement(ID)('a10')
           HAXE_VAR_INIT
             PsiElement(=)('=')
-            HAXE_LITERAL_EXPRESSION
-              PsiElement(LITCHAR)(''hello "world" !'')
+            HAXE_STRING_LITERAL_EXPRESSION
+              PsiElement(OPEN_QUOTE)(''')
+              PsiElement(REGULAR_STRING_PART)('hello "world" !')
+              PsiElement(CLOSING_QUOTE)(''')
         PsiElement(;)(';')
       HAXE_VAR_DECLARATION
         PsiElement(var)('var')

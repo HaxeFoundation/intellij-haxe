@@ -10,20 +10,20 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeBitmapMetaImpl extends HaxePsiCompositeElementImpl implements HaxeBitmapMeta {
+public class HaxeSwitchCaseExpressionImpl extends HaxeExpressionImpl implements HaxeSwitchCaseExpression {
 
-  public HaxeBitmapMetaImpl(ASTNode node) {
+  public HaxeSwitchCaseExpressionImpl(ASTNode node) {
     super(node);
   }
 
   @Override
-  @Nullable
-  public HaxeStringLiteralExpression getStringLiteralExpression() {
-    return findChildByClass(HaxeStringLiteralExpression.class);
+  @NotNull
+  public List<HaxeExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitBitmapMeta(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSwitchCaseExpression(this);
     else super.accept(visitor);
   }
 

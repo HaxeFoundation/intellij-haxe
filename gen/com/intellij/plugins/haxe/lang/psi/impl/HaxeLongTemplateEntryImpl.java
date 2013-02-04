@@ -10,20 +10,20 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeBitmapMetaImpl extends HaxePsiCompositeElementImpl implements HaxeBitmapMeta {
+public class HaxeLongTemplateEntryImpl extends HaxePsiCompositeElementImpl implements HaxeLongTemplateEntry {
 
-  public HaxeBitmapMetaImpl(ASTNode node) {
+  public HaxeLongTemplateEntryImpl(ASTNode node) {
     super(node);
   }
 
   @Override
   @Nullable
-  public HaxeStringLiteralExpression getStringLiteralExpression() {
-    return findChildByClass(HaxeStringLiteralExpression.class);
+  public HaxeExpression getExpression() {
+    return findChildByClass(HaxeExpression.class);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitBitmapMeta(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitLongTemplateEntry(this);
     else super.accept(visitor);
   }
 

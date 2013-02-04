@@ -36,8 +36,10 @@ haXe File
                     PsiElement(ID)('trace')
                 PsiElement(()('(')
                 HAXE_EXPRESSION_LIST
-                  HAXE_LITERAL_EXPRESSION
-                    PsiElement(LITSTRING)('":)"')
+                  HAXE_STRING_LITERAL_EXPRESSION
+                    PsiElement(OPEN_QUOTE)('"')
+                    PsiElement(REGULAR_STRING_PART)(':)')
+                    PsiElement(CLOSING_QUOTE)('"')
                 PsiElement())(')')
               PsiElement(;)(';')
               PsiElement(})('}')
@@ -50,8 +52,10 @@ haXe File
                     PsiElement(ID)('trace')
                 PsiElement(()('(')
                 HAXE_EXPRESSION_LIST
-                  HAXE_LITERAL_EXPRESSION
-                    PsiElement(LITSTRING)('"wtf"')
+                  HAXE_STRING_LITERAL_EXPRESSION
+                    PsiElement(OPEN_QUOTE)('"')
+                    PsiElement(REGULAR_STRING_PART)('wtf')
+                    PsiElement(CLOSING_QUOTE)('"')
                 PsiElement())(')')
               PsiElement(;)(';')
               PsiElement(})('}')

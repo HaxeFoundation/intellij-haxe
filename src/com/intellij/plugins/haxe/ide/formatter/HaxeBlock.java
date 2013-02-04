@@ -2,64 +2,51 @@ package com.intellij.plugins.haxe.ide.formatter;
 
 import com.intellij.formatting.*;
 import com.intellij.formatting.templateLanguages.BlockWithParent;
-import com.intellij.formatting.templateLanguages.DataLanguageBlockWrapper;
-import com.intellij.formatting.templateLanguages.TemplateLanguageBlock;
-import com.intellij.formatting.templateLanguages.TemplateLanguageBlockFactory;
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.formatter.FormatterUtil;
+import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeBlock extends TemplateLanguageBlock {
-  private final HaxeIndentProcessor muIndentProcessor;
+public class HaxeBlock extends AbstractBlock implements BlockWithParent {
+  private final HaxeIndentProcessor myIndentProcessor;
   private final HaxeSpacingProcessor mySpacingProcessor;
   private final HaxeWrappingProcessor myWrappingProcessor;
   private final HaxeAlignmentProcessor myAlignmentProcessor;
   private Wrap myChildWrap = null;
   private final Indent myIndent;
+  private final CodeStyleSettings mySettings;
+  private boolean myChildrenBuilt = false;
+  private BlockWithParent myParent;
 
   protected HaxeBlock(ASTNode node,
                       Wrap wrap,
                       Alignment alignment,
-                      CodeStyleSettings settings,
-                      @NotNull TemplateLanguageBlockFactory blockFactory,
-                      @Nullable List<DataLanguageBlockWrapper> foreignChildren) {
-    super(node, wrap, alignment, blockFactory, settings, foreignChildren);
-    final HaxeCodeStyleSettings haxeCodeStyleSettings = getSettings().getCustomSettings(HaxeCodeStyleSettings.class);
-    muIndentProcessor = new HaxeIndentProcessor(settings);
-    mySpacingProcessor = new HaxeSpacingProcessor(node, settings, haxeCodeStyleSettings);
-    myWrappingProcessor = new HaxeWrappingProcessor(node, settings);
-    myAlignmentProcessor = new HaxeAlignmentProcessor(node, settings);
-    myIndent = muIndentProcessor.getChildIndent(myNode);
+                      CodeStyleSettings settings) {               
+    super(node, wrap, alignment);
+    mySettings = settings;
+    final HaxeCodeStyleSettings haxeCodeStyleSettings = mySettings.getCustomSettings(HaxeCodeStyleSettings.class);
+    myIndentProcessor = new HaxeIndentProcessor(mySettings.getCommonSettings(HaxeLanguage.INSTANCE));
+    mySpacingProcessor = new HaxeSpacingProcessor(node, mySettings.getCommonSettings(HaxeLanguage.INSTANCE), haxeCodeStyleSettings);
+    myWrappingProcessor = new HaxeWrappingProcessor(node, mySettings.getCommonSettings(HaxeLanguage.INSTANCE));
+    myAlignmentProcessor = new HaxeAlignmentProcessor(node, mySettings.getCommonSettings(HaxeLanguage.INSTANCE));
+    myIndent = myIndentProcessor.getChildIndent(myNode);
   }
 
-  public Wrap getChildWrap() {
-    return myChildWrap;
-  }
-
-  @Override
-  protected IElementType getTemplateTextElementType() {
-    return HaxeTokenTypes.LITSTRING;
-  }
-
-  @Override
-  @Nullable
-  protected Alignment createChildAlignment(ASTNode child) {
-    if (child.getElementType() != HaxeTokenTypes.PLPAREN && child.getElementType() != HaxeTokenTypes.HAXE_BLOCK_STATEMENT) {
-      return myAlignmentProcessor.createChildAlignment();
-    }
-    return null;
-  }
+  
 
   @Override
   public Indent getIndent() {
@@ -72,17 +59,37 @@ public class HaxeBlock extends TemplateLanguageBlock {
   }
 
   @Override
-  public Wrap createChildWrap(ASTNode child) {
-    final Wrap defaultWrap = super.createChildWrap(child);
-    final IElementType childType = child.getElementType();
-    final BlockWithParent parent = getParent();
-    final Wrap childWrap = parent instanceof HaxeBlock ? ((HaxeBlock)parent).getChildWrap() : null;
-    final Wrap wrap = myWrappingProcessor.createChildWrap(child, defaultWrap, childWrap);
+  protected List<Block> buildChildren() {
+    myChildrenBuilt = true;
+    if (isLeaf()) {
+      return EMPTY;
+    }
+    final ArrayList<Block> tlChildren = new ArrayList<Block>();
+    for (ASTNode childNode = getNode().getFirstChildNode(); childNode != null; childNode = childNode.getTreeNext()) {
+      if (FormatterUtil.containsWhiteSpacesOnly(childNode)) continue;
+      final HaxeBlock childBlock = new HaxeBlock(childNode, createChildWrap(childNode), createChildAlignment(childNode), mySettings);
+      childBlock.setParent(this);
+      tlChildren.add(childBlock);
+    }
+    return tlChildren;
+  }
 
-    if (HaxeTokenTypeSets.ASSIGN_OPERATORS.contains(childType)) {
+  public Wrap createChildWrap(ASTNode child) {
+    final IElementType childType = child.getElementType();
+    final Wrap wrap = myWrappingProcessor.createChildWrap(child, Wrap.createWrap(WrapType.NONE, false), myChildWrap);
+
+    if (childType == HaxeTokenTypes.HAXE_ASSIGN_OPERATION) {
       myChildWrap = wrap;
     }
     return wrap;
+  }
+
+  @Nullable
+  protected Alignment createChildAlignment(ASTNode child) {
+    if (child.getElementType() != HaxeTokenTypes.PLPAREN && child.getElementType() != HaxeTokenTypes.HAXE_BLOCK_STATEMENT) {
+      return myAlignmentProcessor.createChildAlignment();
+    }
+    return null;
   }
 
   @NotNull
@@ -101,7 +108,7 @@ public class HaxeBlock extends TemplateLanguageBlock {
 
     final IElementType elementType = myNode.getElementType();
     final IElementType prevType = prev == null ? null : prev.getNode().getElementType();
-    if (prevType == HaxeTokenTypes.PLCURLY) {
+    if (prevType == HaxeTokenTypes.PLPAREN) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
     if (isEndsWithRPAREN(elementType, prevType)) {
@@ -111,6 +118,21 @@ public class HaxeBlock extends TemplateLanguageBlock {
       return new ChildAttributes(Indent.getNoneIndent(), null);
     }
     return new ChildAttributes(prev.getIndent(), prev.getAlignment());
+  }
+
+  @Override
+  public boolean isLeaf() {
+    return false;
+  }
+
+  @Override
+  public BlockWithParent getParent() {
+    return myParent;
+  }
+
+  @Override
+  public void setParent(BlockWithParent newParent) {
+    myParent = newParent;
   }
 
   private static boolean isEndsWithRPAREN(IElementType elementType, IElementType prevType) {

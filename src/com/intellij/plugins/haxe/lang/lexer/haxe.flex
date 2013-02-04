@@ -7,6 +7,44 @@ import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 
 %%
+%{
+    private static final class State {
+        final int lBraceCount;
+        final int state;
+
+        public State(int state, int lBraceCount) {
+            this.state = state;
+            this.lBraceCount = lBraceCount;
+        }
+
+        @Override
+        public String toString() {
+            return "yystate = " + state + (lBraceCount == 0 ? "" : "lBraceCount = " + lBraceCount);
+        }
+    }
+
+    private final Stack<State> states = new Stack<State>();
+    private int lBraceCount;
+
+    private int commentStart;
+    private int commentDepth;
+
+    private void pushState(int state) {
+        states.push(new State(yystate(), lBraceCount));
+        lBraceCount = 0;
+        yybegin(state);
+    }
+
+    private void popState() {
+        State state = states.pop();
+        lBraceCount = state.lBraceCount;
+        yybegin(state.state);
+    }
+
+    public _HaxeLexer() {
+      this((java.io.Reader)null);
+    }
+%}
 
 %unicode
 %class _HaxeLexer
@@ -19,6 +57,8 @@ import org.jetbrains.annotations.NotNull;
 
 %eof{
 %eof}
+
+%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY
 
 WHITE_SPACE_CHAR=[\ \n\r\t\f]
 
@@ -47,22 +87,44 @@ mREG_EXP = "~/" ([^"/"] | {ESCAPE_SEQUENCE})* "/" [igmsu]*
 mFLOAT_EXPONENT = [eE] [+-]? {mDIGIT}+
 mNUM_FLOAT = ( (({mDIGIT}* "." {mDIGIT}+) | ({mDIGIT}+ "." {mDIGIT}*)) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
 
-CHARACTER_LITERAL="'"([^\\\'\r\n]|{ESCAPE_SEQUENCE})*("'"|\\)?
-STRING_LITERAL=\"([^\\\"\r\n]|{ESCAPE_SEQUENCE})*(\"|\\)?
-ESCAPE_SEQUENCE=\\[^\r\n]
+/*
+    Strings with templates
+*/
+
+REGULAR_QUO_STRING_PART=[^\\\"\$]+
+REGULAR_APOS_STRING_PART=[^\\\'\$]+
+SHORT_TEMPLATE_ENTRY=\${IDENTIFIER_NO_DOLLAR}
+LONELY_DOLLAR=\$
+LONG_TEMPLATE_ENTRY_START=\$\{
+
+IDENTIFIER_START_NO_DOLLAR={mLETTER}|"_"
+IDENTIFIER_START={IDENTIFIER_START_NO_DOLLAR}|"$"
+IDENTIFIER_PART_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}|{mDIGIT}
+IDENTIFIER_PART={IDENTIFIER_START}|{mDIGIT}
+IDENTIFIER={IDENTIFIER_START}{IDENTIFIER_PART}*
+IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 
 %%
 
-<YYINITIAL> {
+<YYINITIAL> "{"                           { return PLCURLY; }
+<YYINITIAL> "}"                           { return PRCURLY; }
+<LONG_TEMPLATE_ENTRY> "{"                 { lBraceCount++; return PLCURLY; }
+<LONG_TEMPLATE_ENTRY> "}"                 {
+                                              if (lBraceCount == 0) {
+                                                popState();
+                                                return LONG_TEMPLATE_ENTRY_END;
+                                              }
+                                              lBraceCount--;
+                                              return PRCURLY;
+                                          }
+
+<YYINITIAL, LONG_TEMPLATE_ENTRY> {
 
 {WHITE_SPACE_CHAR}+                       { return com.intellij.psi.TokenType.WHITE_SPACE;}
 
 {END_OF_LINE_COMMENT}                     { return MSL_COMMENT; }
 {C_STYLE_COMMENT}                         { return MML_COMMENT; }
 {DOC_COMMENT}                             { return DOC_COMMENT; }
-
-{CHARACTER_LITERAL}                       { return LITCHAR; }
-{STRING_LITERAL}                          { return LITSTRING; }
 
 "..."                                     { return OTRIPLE_DOT; }
 
@@ -153,9 +215,6 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 
 "."                                       { return ODOT; }
 
-"{"                                       { return PLCURLY; }
-"}"                                       { return PRCURLY; }
-
 "["                                       { return PLBRACK; }
 "]"                                       { return PRBRACK; }
 
@@ -220,5 +279,44 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 "#elseif"                                 { return PPELSEIF; }
 "#else"                                   { return PPELSE; }
 }
+
+// "
+
+<YYINITIAL, LONG_TEMPLATE_ENTRY> \"       { pushState(QUO_STRING); return OPEN_QUOTE; }
+<QUO_STRING> \"                 { popState(); return CLOSING_QUOTE; }
+<QUO_STRING> {ESCAPE_SEQUENCE}  { return REGULAR_STRING_PART; }
+
+<QUO_STRING> {REGULAR_QUO_STRING_PART}     { return REGULAR_STRING_PART; }
+<QUO_STRING> {SHORT_TEMPLATE_ENTRY}        {
+                                                                  pushState(SHORT_TEMPLATE_ENTRY);
+                                                                  yypushback(yylength() - 1);
+                                                                  return SHORT_TEMPLATE_ENTRY_START;
+                                                             }
+
+<QUO_STRING> {LONELY_DOLLAR}               { return REGULAR_STRING_PART; }
+<QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return LONG_TEMPLATE_ENTRY_START; }
+
+// '
+
+<YYINITIAL, LONG_TEMPLATE_ENTRY> \'     { pushState(APOS_STRING); return OPEN_QUOTE; }
+<APOS_STRING> \'                 { popState(); return CLOSING_QUOTE; }
+<APOS_STRING> {ESCAPE_SEQUENCE}  { return REGULAR_STRING_PART; }
+
+<APOS_STRING> {REGULAR_APOS_STRING_PART}    { return REGULAR_STRING_PART; }
+<APOS_STRING> {SHORT_TEMPLATE_ENTRY}        {
+                                                                  pushState(SHORT_TEMPLATE_ENTRY);
+                                                                  yypushback(yylength() - 1);
+                                                                  return SHORT_TEMPLATE_ENTRY_START;
+                                                             }
+
+<APOS_STRING> {LONELY_DOLLAR}               { return REGULAR_STRING_PART; }
+<APOS_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return LONG_TEMPLATE_ENTRY_START; }
+
+
+// Only *this* keyword is itself an expression valid in this position
+// *null*, *true* and *false* are also keywords and expression, but it does not make sense to put them
+// in a string template for it'd be easier to just type them in without a dollar
+<SHORT_TEMPLATE_ENTRY> "this"          { popState(); return KTHIS; }
+<SHORT_TEMPLATE_ENTRY> {IDENTIFIER_NO_DOLLAR}    { popState(); return ID; }
 
 .                                         {  yybegin(YYINITIAL); return com.intellij.psi.TokenType.BAD_CHARACTER; }

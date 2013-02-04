@@ -29,8 +29,10 @@ haXe File
                         PsiElement(ID)('Error')
                   PsiElement(()('(')
                   HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
-                      PsiElement(LITSTRING)('"invalid foo"')
+                    HAXE_STRING_LITERAL_EXPRESSION
+                      PsiElement(OPEN_QUOTE)('"')
+                      PsiElement(REGULAR_STRING_PART)('invalid foo')
+                      PsiElement(CLOSING_QUOTE)('"')
                   PsiElement())(')')
                 PsiElement(;)(';')
               PsiElement(})('}')
@@ -57,8 +59,10 @@ haXe File
                       PsiElement(ID)('trace')
                   PsiElement(()('(')
                   HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
-                      PsiElement(LITSTRING)('"error"')
+                    HAXE_STRING_LITERAL_EXPRESSION
+                      PsiElement(OPEN_QUOTE)('"')
+                      PsiElement(REGULAR_STRING_PART)('error')
+                      PsiElement(CLOSING_QUOTE)('"')
                   PsiElement())(')')
                 PsiElement(;)(';')
                 PsiElement(})('}')

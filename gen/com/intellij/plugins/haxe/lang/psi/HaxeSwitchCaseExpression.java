@@ -5,9 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeNativeMeta extends HaxePsiCompositeElement {
+public interface HaxeSwitchCaseExpression extends HaxeExpression {
 
-  @Nullable
-  HaxeStringLiteralExpression getStringLiteralExpression();
+  @NotNull
+  List<HaxeExpression> getExpressionList();
 
 }

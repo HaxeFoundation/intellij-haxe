@@ -7,4 +7,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeBitmapMeta extends HaxePsiCompositeElement {
 
+  @Nullable
+  HaxeStringLiteralExpression getStringLiteralExpression();
+
 }

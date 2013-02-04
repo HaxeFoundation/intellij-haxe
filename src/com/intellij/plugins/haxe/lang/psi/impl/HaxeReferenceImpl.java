@@ -94,6 +94,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       superClassResolveResult.specializeByParameters(haxeClass.getExtendsList().get(0).getTypeParam());
       return superClassResolveResult;
     }
+    if (this instanceof HaxeStringLiteralExpression) {
+      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this));
+    }
     if (this instanceof HaxeLiteralExpression) {
       final LeafPsiElement child = (LeafPsiElement)getFirstChild();
       final IElementType childTokenType = child == null ? null : child.getElementType();
@@ -154,7 +157,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Nullable
   private static String getLiteralClassName(IElementType type) {
-    if (type == HaxeTokenTypes.LITSTRING || type == HaxeTokenTypes.LITCHAR) {
+    if (type == HaxeTokenTypes.HAXE_STRING_LITERAL_EXPRESSION) {
       return "String";
     }
     else if (type == HaxeTokenTypes.HAXE_ARRAY_LITERAL) {

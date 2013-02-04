@@ -275,6 +275,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitLongTemplateEntry(@NotNull HaxeLongTemplateEntry o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitMetaKeyValue(@NotNull HaxeMetaKeyValue o) {
     visitPsiCompositeElement(o);
   }
@@ -378,6 +382,15 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitShortTemplateEntry(@NotNull HaxeShortTemplateEntry o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitStringLiteralExpression(@NotNull HaxeStringLiteralExpression o) {
+    visitReference(o);
+    // visitExpression(o);
+  }
+
   public void visitSuffixExpression(@NotNull HaxeSuffixExpression o) {
     visitExpression(o);
   }
@@ -397,6 +410,10 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitSwitchCaseBlock(@NotNull HaxeSwitchCaseBlock o) {
     visitPsiCompositeElement(o);
+  }
+
+  public void visitSwitchCaseExpression(@NotNull HaxeSwitchCaseExpression o) {
+    visitExpression(o);
   }
 
   public void visitSwitchStatement(@NotNull HaxeSwitchStatement o) {

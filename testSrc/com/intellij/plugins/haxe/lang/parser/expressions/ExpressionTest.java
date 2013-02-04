@@ -15,6 +15,10 @@ public class ExpressionTest extends HaxeParsingTestBase {
     super("parsing", "haxe", "expressions");
   }
 
+  public void testHaxe3() throws Throwable {
+    doTest(true);
+  }
+
   public void testTest1() throws Throwable {
     doTest(true);
   }

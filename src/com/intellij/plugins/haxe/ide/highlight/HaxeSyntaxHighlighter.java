@@ -33,8 +33,9 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
     ATTRIBUTES.put(KTRUE, HaxeSyntaxHighlighterColors.NUMBER);
     ATTRIBUTES.put(LITFLOAT, HaxeSyntaxHighlighterColors.NUMBER);
 
-    ATTRIBUTES.put(LITSTRING, HaxeSyntaxHighlighterColors.STRING);
-    ATTRIBUTES.put(LITCHAR, HaxeSyntaxHighlighterColors.STRING);
+    ATTRIBUTES.put(OPEN_QUOTE, HaxeSyntaxHighlighterColors.STRING);
+    ATTRIBUTES.put(CLOSING_QUOTE, HaxeSyntaxHighlighterColors.STRING);
+    ATTRIBUTES.put(REGULAR_STRING_PART, HaxeSyntaxHighlighterColors.STRING);
 
     ATTRIBUTES.put(PLPAREN, HaxeSyntaxHighlighterColors.PARENTHS);
     ATTRIBUTES.put(PRPAREN, HaxeSyntaxHighlighterColors.PARENTHS);

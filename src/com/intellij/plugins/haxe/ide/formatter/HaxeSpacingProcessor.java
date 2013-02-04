@@ -18,10 +18,10 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
  */
 public class HaxeSpacingProcessor {
   private final ASTNode myNode;
-  private final CodeStyleSettings mySettings;
+  private final CommonCodeStyleSettings mySettings;
   private final HaxeCodeStyleSettings myHaxeCodeStyleSettings;
 
-  public HaxeSpacingProcessor(ASTNode node, CodeStyleSettings settings, HaxeCodeStyleSettings haxeCodeStyleSettings) {
+  public HaxeSpacingProcessor(ASTNode node, CommonCodeStyleSettings settings, HaxeCodeStyleSettings haxeCodeStyleSettings) {
     myNode = node;
     mySettings = settings;
     myHaxeCodeStyleSettings = haxeCodeStyleSettings;

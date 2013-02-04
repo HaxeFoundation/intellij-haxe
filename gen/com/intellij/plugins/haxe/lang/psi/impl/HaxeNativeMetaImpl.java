@@ -16,6 +16,12 @@ public class HaxeNativeMetaImpl extends HaxePsiCompositeElementImpl implements H
     super(node);
   }
 
+  @Override
+  @Nullable
+  public HaxeStringLiteralExpression getStringLiteralExpression() {
+    return findChildByClass(HaxeStringLiteralExpression.class);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitNativeMeta(this);
     else super.accept(visitor);

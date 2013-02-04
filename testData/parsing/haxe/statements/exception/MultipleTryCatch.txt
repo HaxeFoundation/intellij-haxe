@@ -50,8 +50,10 @@ haXe File
                       PsiElement(ID)('trace')
                   PsiElement(()('(')
                   HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
-                      PsiElement(LITSTRING)('"String"')
+                    HAXE_STRING_LITERAL_EXPRESSION
+                      PsiElement(OPEN_QUOTE)('"')
+                      PsiElement(REGULAR_STRING_PART)('String')
+                      PsiElement(CLOSING_QUOTE)('"')
                   PsiElement())(')')
                 PsiElement(;)(';')
                 PsiElement(})('}')
@@ -78,8 +80,10 @@ haXe File
                       PsiElement(ID)('trace')
                   PsiElement(()('(')
                   HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
-                      PsiElement(LITSTRING)('"Error"')
+                    HAXE_STRING_LITERAL_EXPRESSION
+                      PsiElement(OPEN_QUOTE)('"')
+                      PsiElement(REGULAR_STRING_PART)('Error')
+                      PsiElement(CLOSING_QUOTE)('"')
                   PsiElement())(')')
                 PsiElement(;)(';')
                 PsiElement(})('}')
@@ -106,8 +110,10 @@ haXe File
                       PsiElement(ID)('trace')
                   PsiElement(()('(')
                   HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
-                      PsiElement(LITSTRING)('"Dynamic"')
+                    HAXE_STRING_LITERAL_EXPRESSION
+                      PsiElement(OPEN_QUOTE)('"')
+                      PsiElement(REGULAR_STRING_PART)('Dynamic')
+                      PsiElement(CLOSING_QUOTE)('"')
                   PsiElement())(')')
                 PsiElement(;)(';')
                 PsiElement(})('}')

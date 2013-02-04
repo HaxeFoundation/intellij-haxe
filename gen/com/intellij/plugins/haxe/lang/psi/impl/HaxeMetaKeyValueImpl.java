@@ -16,6 +16,12 @@ public class HaxeMetaKeyValueImpl extends HaxePsiCompositeElementImpl implements
     super(node);
   }
 
+  @Override
+  @NotNull
+  public HaxeStringLiteralExpression getStringLiteralExpression() {
+    return findNotNullChildByClass(HaxeStringLiteralExpression.class);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitMetaKeyValue(this);
     else super.accept(visitor);

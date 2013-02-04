@@ -6,12 +6,18 @@ haXe File
     HAXE_NATIVE_META
       PsiElement(@:native)('@:native')
       PsiElement(()('(')
-      PsiElement(LITSTRING)('"my.real.Path"')
+      HAXE_STRING_LITERAL_EXPRESSION
+        PsiElement(OPEN_QUOTE)('"')
+        PsiElement(REGULAR_STRING_PART)('my.real.Path')
+        PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
     HAXE_NS_META
       PsiElement(@:ns)('@:ns')
       PsiElement(()('(')
-      PsiElement(LITSTRING)('"namespace"')
+      HAXE_STRING_LITERAL_EXPRESSION
+        PsiElement(OPEN_QUOTE)('"')
+        PsiElement(REGULAR_STRING_PART)('namespace')
+        PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
     HAXE_META_META
       PsiElement(@:meta)('@:meta')
@@ -21,18 +27,27 @@ haXe File
       HAXE_META_KEY_VALUE
         PsiElement(ID)('name')
         PsiElement(=)('=')
-        PsiElement(LITSTRING)('"test"')
+        HAXE_STRING_LITERAL_EXPRESSION
+          PsiElement(OPEN_QUOTE)('"')
+          PsiElement(REGULAR_STRING_PART)('test')
+          PsiElement(CLOSING_QUOTE)('"')
       PsiElement(,)(',')
       HAXE_META_KEY_VALUE
         PsiElement(ID)('type')
         PsiElement(=)('=')
-        PsiElement(LITSTRING)('"Foo"')
+        HAXE_STRING_LITERAL_EXPRESSION
+          PsiElement(OPEN_QUOTE)('"')
+          PsiElement(REGULAR_STRING_PART)('Foo')
+          PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
       PsiElement())(')')
     HAXE_BITMAP_META
       PsiElement(@:bitmap)('@:bitmap')
       PsiElement(()('(')
-      PsiElement(LITSTRING)('"myfile.png"')
+      HAXE_STRING_LITERAL_EXPRESSION
+        PsiElement(OPEN_QUOTE)('"')
+        PsiElement(REGULAR_STRING_PART)('myfile.png')
+        PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
     HAXE_BUILD_MACRO
       PsiElement(@:build)('@:build')
@@ -52,8 +67,10 @@ haXe File
     HAXE_CUSTOM_META
       PsiElement(MACRO_ID)('@superClass')
       PsiElement(()('(')
-      HAXE_LITERAL_EXPRESSION
-        PsiElement(LITSTRING)('"user name"')
+      HAXE_STRING_LITERAL_EXPRESSION
+        PsiElement(OPEN_QUOTE)('"')
+        PsiElement(REGULAR_STRING_PART)('user name')
+        PsiElement(CLOSING_QUOTE)('"')
       PsiElement(,)(',')
       HAXE_OBJECT_LITERAL
         PsiElement({)('{')
@@ -61,8 +78,10 @@ haXe File
           HAXE_IDENTIFIER
             PsiElement(ID)('name')
           PsiElement(:)(':')
-          HAXE_LITERAL_EXPRESSION
-            PsiElement(LITSTRING)('"user"')
+          HAXE_STRING_LITERAL_EXPRESSION
+            PsiElement(OPEN_QUOTE)('"')
+            PsiElement(REGULAR_STRING_PART)('user')
+            PsiElement(CLOSING_QUOTE)('"')
         PsiElement(})('}')
       PsiElement())(')')
     PsiElement(class)('class')

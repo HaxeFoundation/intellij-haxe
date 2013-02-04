@@ -179,9 +179,9 @@ buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessEx
 autoBuildMacro ::= '@:autoBuild' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
 requireMeta ::=  '@:require' '(' identifier ')'
 fakeEnumMeta ::=  '@:fakeEnum' '(' type ')'
-nativeMeta ::=  '@:native' '(' LITSTRING ')'
-bitmapMeta ::= '@:bitmap' '(' LITSTRING ')'
-nsMeta ::= '@:ns' '(' LITSTRING ')'
+nativeMeta ::=  '@:native' '(' stringLiteralExpression ')'
+bitmapMeta ::= '@:bitmap' '(' stringLiteralExpression ')'
+nsMeta ::= '@:ns' '(' stringLiteralExpression ')'
 getterMeta ::= '@:getter' '(' referenceExpression ')'
 setterMeta ::= '@:setter' '(' referenceExpression ')'
 overloadMeta ::= '@:overload' '(' anonymousFunctionDeclaration ')'
@@ -189,7 +189,7 @@ customMeta ::= MACRO_ID ('(' customMetaLiterals ')')?
 private customMetaLiterals ::= literalExpression (',' literalExpression)*
 metaMeta ::= '@:meta' '(' ID '(' metaPartList ')' ')'
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
-metaKeyValue ::= ID '=' LITSTRING
+metaKeyValue ::= ID '=' stringLiteralExpression
 
 assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>='
 compareOperation ::= '==' | '!=' | '<=' | '<' | '>' | '>='
@@ -266,7 +266,7 @@ localVarDeclaration ::= 'var' localVarDeclarationPartList ';'? {pin=1 }
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
 localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverUntil="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-private local_var_declaration_part_recover ::= !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | REG_EXP)
+private local_var_declaration_part_recover ::= !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
@@ -355,8 +355,9 @@ throwStatement ::= 'throw' expression ';'?
 switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{'  switchCase* defaultCase? '}' {pin=1}
 switchCaseBlock ::= (literalExpression ";") | statementList
-switchCase ::= ('case' expression (',' expression)* ':')+ switchCaseBlock? {pin=1 recoverUntil="switch_case_recover"}
-private switch_case_recover ::= !('case' | 'default' | '}' | IDENTIFIER)
+switchCase ::= ('case' switchCaseExpression (',' switchCaseExpression)* ':')+ switchCaseBlock? {pin=1 recoverUntil="switch_case_recover"}
+switchCaseExpression ::= expression ('if' '(' expression ')')? {pin=1 extends="expression"}
+private switch_case_recover ::= !('case' | 'default' | '}' | ID)
 defaultCase::= 'default' ':' switchCaseBlock? {pin=1}
 
 tryStatement ::= 'try' statement ';'? catchStatement*
@@ -370,7 +371,7 @@ expressionList ::= expression (',' expression)* {recoverUntil="expression_list_r
 private expression_list_recover ::= !(')' | ']')
 
 expression ::= assignExpressionWrapper {recoverUntil="expression_recover"}
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:build' | '@:debug' | '@:getter' | '@:keep' | '@:macro' | '@:nodebug' | '@:ns' | '@:overload' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITCHAR | LITFLOAT | LITHEX | LITINT | LITOCT | LITSTRING | MACRO_ID | REG_EXP)
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:build' | '@:debug' | '@:getter' | '@:keep' | '@:macro' | '@:nodebug' | '@:ns' | '@:overload' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END)
 
 private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression*
 left assignExpression ::= assignOperation iteratorExpressionWrapper {pin=1 extends="expression"}
@@ -417,13 +418,21 @@ private value ::= 'untyped' expression
                 | tryStatement
                 | switchStatement
 
-literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT | LITSTRING | LITCHAR
+literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral
                     | 'null' | 'true' | 'false'
                     | functionLiteral
                     | arrayLiteral
                     | objectLiteral
+                    | stringLiteralExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry | longTemplateEntry)* CLOSING_QUOTE
+{pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+shortTemplateEntry ::= SHORT_TEMPLATE_ENTRY_START (thisExpression | referenceExpression) {pin=1}
+longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1}
+
 
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}

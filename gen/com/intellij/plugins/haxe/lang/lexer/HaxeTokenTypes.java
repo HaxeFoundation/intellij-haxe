@@ -74,6 +74,7 @@ public interface HaxeTokenTypes {
   IElementType HAXE_LOCAL_VAR_DECLARATION_PART = new HaxeElementType("HAXE_LOCAL_VAR_DECLARATION_PART");
   IElementType HAXE_LOGIC_AND_EXPRESSION = new HaxeElementType("HAXE_LOGIC_AND_EXPRESSION");
   IElementType HAXE_LOGIC_OR_EXPRESSION = new HaxeElementType("HAXE_LOGIC_OR_EXPRESSION");
+  IElementType HAXE_LONG_TEMPLATE_ENTRY = new HaxeElementType("HAXE_LONG_TEMPLATE_ENTRY");
   IElementType HAXE_META_KEY_VALUE = new HaxeElementType("HAXE_META_KEY_VALUE");
   IElementType HAXE_META_META = new HaxeElementType("HAXE_META_META");
   IElementType HAXE_MULTIPLICATIVE_EXPRESSION = new HaxeElementType("HAXE_MULTIPLICATIVE_EXPRESSION");
@@ -99,11 +100,14 @@ public interface HaxeTokenTypes {
   IElementType HAXE_SHIFT_EXPRESSION = new HaxeElementType("HAXE_SHIFT_EXPRESSION");
   IElementType HAXE_SHIFT_OPERATOR = new HaxeElementType("HAXE_SHIFT_OPERATOR");
   IElementType HAXE_SHIFT_RIGHT_OPERATOR = new HaxeElementType("HAXE_SHIFT_RIGHT_OPERATOR");
+  IElementType HAXE_SHORT_TEMPLATE_ENTRY = new HaxeElementType("HAXE_SHORT_TEMPLATE_ENTRY");
+  IElementType HAXE_STRING_LITERAL_EXPRESSION = new HaxeElementType("HAXE_STRING_LITERAL_EXPRESSION");
   IElementType HAXE_SUFFIX_EXPRESSION = new HaxeElementType("HAXE_SUFFIX_EXPRESSION");
   IElementType HAXE_SUPER_EXPRESSION = new HaxeElementType("HAXE_SUPER_EXPRESSION");
   IElementType HAXE_SWITCH_BLOCK = new HaxeElementType("HAXE_SWITCH_BLOCK");
   IElementType HAXE_SWITCH_CASE = new HaxeElementType("HAXE_SWITCH_CASE");
   IElementType HAXE_SWITCH_CASE_BLOCK = new HaxeElementType("HAXE_SWITCH_CASE_BLOCK");
+  IElementType HAXE_SWITCH_CASE_EXPRESSION = new HaxeElementType("HAXE_SWITCH_CASE_EXPRESSION");
   IElementType HAXE_SWITCH_STATEMENT = new HaxeElementType("HAXE_SWITCH_STATEMENT");
   IElementType HAXE_TERNARY_EXPRESSION = new HaxeElementType("HAXE_TERNARY_EXPRESSION");
   IElementType HAXE_THIS_EXPRESSION = new HaxeElementType("HAXE_THIS_EXPRESSION");
@@ -124,8 +128,8 @@ public interface HaxeTokenTypes {
   IElementType HAXE_VAR_INIT = new HaxeElementType("HAXE_VAR_INIT");
   IElementType HAXE_WHILE_STATEMENT = new HaxeElementType("HAXE_WHILE_STATEMENT");
 
+  IElementType CLOSING_QUOTE = new HaxeElementType("CLOSING_QUOTE");
   IElementType ID = new HaxeElementType("ID");
-  IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
   IElementType KAUTOBUILD = new HaxeElementType("@:autoBuild");
   IElementType KBIND = new HaxeElementType("@:bind");
   IElementType KBITMAP = new HaxeElementType("@:bitmap");
@@ -186,12 +190,12 @@ public interface HaxeTokenTypes {
   IElementType KUSING = new HaxeElementType("using");
   IElementType KVAR = new HaxeElementType("var");
   IElementType KWHILE = new HaxeElementType("while");
-  IElementType LITCHAR = new HaxeElementType("LITCHAR");
   IElementType LITFLOAT = new HaxeElementType("LITFLOAT");
   IElementType LITHEX = new HaxeElementType("LITHEX");
   IElementType LITINT = new HaxeElementType("LITINT");
   IElementType LITOCT = new HaxeElementType("LITOCT");
-  IElementType LITSTRING = new HaxeElementType("LITSTRING");
+  IElementType LONG_TEMPLATE_ENTRY_END = new HaxeElementType("LONG_TEMPLATE_ENTRY_END");
+  IElementType LONG_TEMPLATE_ENTRY_START = new HaxeElementType("LONG_TEMPLATE_ENTRY_START");
   IElementType MACRO_ID = new HaxeElementType("MACRO_ID");
   IElementType OARROW = new HaxeElementType("->");
   IElementType OASSIGN = new HaxeElementType("=");
@@ -221,6 +225,7 @@ public interface HaxeTokenTypes {
   IElementType ONEW = new HaxeElementType("new");
   IElementType ONOT = new HaxeElementType("!");
   IElementType ONOT_EQ = new HaxeElementType("!=");
+  IElementType OPEN_QUOTE = new HaxeElementType("OPEN_QUOTE");
   IElementType OPLUS = new HaxeElementType("+");
   IElementType OPLUS_ASSIGN = new HaxeElementType("+=");
   IElementType OPLUS_PLUS = new HaxeElementType("++");
@@ -245,7 +250,9 @@ public interface HaxeTokenTypes {
   IElementType PRBRACK = new HaxeElementType("]");
   IElementType PRCURLY = new HaxeElementType("}");
   IElementType PRPAREN = new HaxeElementType(")");
+  IElementType REGULAR_STRING_PART = new HaxeElementType("REGULAR_STRING_PART");
   IElementType REG_EXP = new HaxeElementType("REG_EXP");
+  IElementType SHORT_TEMPLATE_ENTRY_START = new HaxeElementType("SHORT_TEMPLATE_ENTRY_START");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
@@ -448,6 +455,9 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_LOGIC_OR_EXPRESSION) {
         return new HaxeLogicOrExpressionImpl(node);
       }
+      else if (type == HAXE_LONG_TEMPLATE_ENTRY) {
+        return new HaxeLongTemplateEntryImpl(node);
+      }
       else if (type == HAXE_META_KEY_VALUE) {
         return new HaxeMetaKeyValueImpl(node);
       }
@@ -523,6 +533,12 @@ public interface HaxeTokenTypes {
       else if (type == HAXE_SHIFT_RIGHT_OPERATOR) {
         return new HaxeShiftRightOperatorImpl(node);
       }
+      else if (type == HAXE_SHORT_TEMPLATE_ENTRY) {
+        return new HaxeShortTemplateEntryImpl(node);
+      }
+      else if (type == HAXE_STRING_LITERAL_EXPRESSION) {
+        return new HaxeStringLiteralExpressionImpl(node);
+      }
       else if (type == HAXE_SUFFIX_EXPRESSION) {
         return new HaxeSuffixExpressionImpl(node);
       }
@@ -537,6 +553,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == HAXE_SWITCH_CASE_BLOCK) {
         return new HaxeSwitchCaseBlockImpl(node);
+      }
+      else if (type == HAXE_SWITCH_CASE_EXPRESSION) {
+        return new HaxeSwitchCaseExpressionImpl(node);
       }
       else if (type == HAXE_SWITCH_STATEMENT) {
         return new HaxeSwitchStatementImpl(node);

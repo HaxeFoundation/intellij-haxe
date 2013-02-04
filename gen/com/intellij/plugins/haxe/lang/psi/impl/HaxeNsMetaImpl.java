@@ -16,6 +16,12 @@ public class HaxeNsMetaImpl extends HaxePsiCompositeElementImpl implements HaxeN
     super(node);
   }
 
+  @Override
+  @Nullable
+  public HaxeStringLiteralExpression getStringLiteralExpression() {
+    return findChildByClass(HaxeStringLiteralExpression.class);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitNsMeta(this);
     else super.accept(visitor);

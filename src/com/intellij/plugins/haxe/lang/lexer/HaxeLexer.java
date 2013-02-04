@@ -51,7 +51,9 @@ public class HaxeLexer extends LookAheadLexer {
         baseLexer.advance();
       }
       if (HaxeTokenTypeSets.STRINGS.contains(baseLexer.getTokenType())) {
-        baseLexer.advance();
+        while (HaxeTokenTypeSets.STRINGS.contains(baseLexer.getTokenType())) {
+          baseLexer.advance();
+        }
       }
       else {
         baseLexer.restore(position);

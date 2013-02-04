@@ -116,8 +116,10 @@ haXe File
                 PsiElement(ID)('trace')
             PsiElement(()('(')
             HAXE_EXPRESSION_LIST
-              HAXE_LITERAL_EXPRESSION
-                PsiElement(LITSTRING)('"Debug infos for all debug compiles"')
+              HAXE_STRING_LITERAL_EXPRESSION
+                PsiElement(OPEN_QUOTE)('"')
+                PsiElement(REGULAR_STRING_PART)('Debug infos for all debug compiles')
+                PsiElement(CLOSING_QUOTE)('"')
             PsiElement())(')')
           PsiElement(;)(';')
           PsiComment(#end)('#end')

@@ -52,8 +52,10 @@ haXe File
                     PsiElement(default)('default')
                     PsiElement(:)(':')
                     HAXE_SWITCH_CASE_BLOCK
-                      HAXE_LITERAL_EXPRESSION
-                        PsiElement(LITSTRING)('"NotZero"')
+                      HAXE_STRING_LITERAL_EXPRESSION
+                        PsiElement(OPEN_QUOTE)('"')
+                        PsiElement(REGULAR_STRING_PART)('NotZero')
+                        PsiElement(CLOSING_QUOTE)('"')
                       PsiElement(;)(';')
                   PsiElement(})('}')
             PsiElement(;)(';')

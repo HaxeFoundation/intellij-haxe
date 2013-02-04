@@ -18,9 +18,9 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
  */
 public class HaxeWrappingProcessor {
   private final ASTNode myNode;
-  private final CodeStyleSettings mySettings;
+  private final CommonCodeStyleSettings mySettings;
 
-  public HaxeWrappingProcessor(ASTNode node, CodeStyleSettings settings) {
+  public HaxeWrappingProcessor(ASTNode node, CommonCodeStyleSettings settings) {
     myNode = node;
     mySettings = settings;
   }
