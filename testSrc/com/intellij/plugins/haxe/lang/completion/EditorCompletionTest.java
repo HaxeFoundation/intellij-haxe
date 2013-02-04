@@ -20,4 +20,16 @@ public class EditorCompletionTest extends HaxeCompletionTestBase {
   public void testLess() {
     doTest('<');
   }
+
+  public void testString1() {
+    doTest('{');
+  }
+
+  public void testString2() {
+    doTest('{');
+  }
+
+  public void testString3() {
+    doTest('{');
+  }
 }
