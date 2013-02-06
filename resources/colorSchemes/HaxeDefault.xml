@@ -8,7 +8,7 @@
   <option name="HAXE_DEFINED_VAR">
     <value>
       <option name="FOREGROUND" value="38492E"/>
-      <option name="FONT" value="1"/>
+      <option name="FONT_TYPE" value="1"/>
     </value>
   </option>
   <option name="HAXE_UNDEFINED_VAR">
