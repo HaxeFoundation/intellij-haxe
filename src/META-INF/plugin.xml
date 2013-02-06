@@ -188,6 +188,8 @@
                                implementationClass="com.intellij.plugins.haxe.ide.info.HaxeParameterInfoHandler"/>
 
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
+    <additionalTextAttributes scheme="Default" file="colorSchemes/Default.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorSchemes/Default.xml"/>
 
     <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>
     <langCodeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeLanguageCodeStyleSettingsProvider"/>

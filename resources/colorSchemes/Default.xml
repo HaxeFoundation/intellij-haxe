@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<list>
+  <option name="HAXE_CONDITIONALLY_NOT_COMPILED">
+    <value>
+      <option name="FOREGROUND" value="38492E"/>
+    </value>
+  </option>
+  <option name="HAXE_DEFINED_VAR">
+    <value>
+      <option name="FOREGROUND" value="38492E"/>
+      <option name="FONT" value="1"/>
+    </value>
+  </option>
+  <option name="HAXE_UNDEFINED_VAR">
+    <value>
+      <option name="FOREGROUND" value="38492E"/>
+    </value>
+  </option>
+</list>
