@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -40,7 +41,7 @@ public class HaxeTypedHandler extends TypedHandlerDelegate {
   private static boolean checkAfterDollarInString(PsiFile file, int offset) {
     PsiElement at = file.findElementAt(offset - 1);
     final String text = at != null ? at.getText() : "";
-    return text.endsWith("$");
+    return text.endsWith("$") && PsiTreeUtil.getParentOfType(at, HaxePsiCompositeElement.class) != null;
   }
 
   @Override
@@ -49,7 +50,8 @@ public class HaxeTypedHandler extends TypedHandlerDelegate {
     if (c == '<' && myAfterTypeOrComponentName) {
       myAfterTypeOrComponentName = false;
       textToInsert = ">";
-    } else if (c == '{' && myAfterDollar) {
+    }
+    else if (c == '{' && myAfterDollar) {
       myAfterDollar = false;
       textToInsert = "}";
     }
