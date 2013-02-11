@@ -8,15 +8,20 @@ import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.LiteralTextEscaper;
 import com.intellij.psi.PsiLanguageInjectionHost;
+import org.intellij.lang.regexp.DefaultRegExpPropertiesProvider;
 import org.intellij.lang.regexp.psi.RegExpGroup;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements HaxeRegularExpression {
+  private final DefaultRegExpPropertiesProvider myPropertiesProvider;
+
   public HaxeRegularExpressionImpl(@NotNull ASTNode node) {
     super(node);
+    myPropertiesProvider = DefaultRegExpPropertiesProvider.getInstance();
   }
 
   @Override
@@ -85,5 +90,28 @@ public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements Haxe
   @Override
   public boolean supportsNamedGroupSyntax(RegExpGroup group) {
     return false;
+  }
+
+  @Override
+  public boolean isValidCategory(@NotNull String category) {
+    return myPropertiesProvider.isValidCategory(category);
+  }
+
+  @NotNull
+  @Override
+  public String[][] getAllKnownProperties() {
+    return myPropertiesProvider.getAllKnownProperties();
+  }
+
+  @Nullable
+  @Override
+  public String getPropertyDescription(@Nullable String name) {
+    return myPropertiesProvider.getPropertyDescription(name);
+  }
+
+  @NotNull
+  @Override
+  public String[][] getKnownCharacterClasses() {
+    return myPropertiesProvider.getKnownCharacterClasses();
   }
 }
