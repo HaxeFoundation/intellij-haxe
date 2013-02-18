@@ -1,42 +1,42 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('IfElse')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPE_TAG
+        TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPE_OR_ANONYMOUS
-            HAXE_TYPE
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('void')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_IF_STATEMENT
+          IF_STATEMENT
             PsiElement(if)('if')
             PsiElement(()('(')
-            HAXE_LITERAL_EXPRESSION
+            LITERAL_EXPRESSION
               PsiElement(true)('true')
             PsiElement())(')')
-            HAXE_BLOCK_STATEMENT
+            BLOCK_STATEMENT
               PsiElement({)('{')
-              HAXE_CALL_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+              CALL_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('trace')
                 PsiElement(()('(')
-                HAXE_EXPRESSION_LIST
-                  HAXE_STRING_LITERAL_EXPRESSION
+                EXPRESSION_LIST
+                  STRING_LITERAL_EXPRESSION
                     PsiElement(OPEN_QUOTE)('"')
                     PsiElement(REGULAR_STRING_PART)(':)')
                     PsiElement(CLOSING_QUOTE)('"')
@@ -44,15 +44,15 @@ haXe File
               PsiElement(;)(';')
               PsiElement(})('}')
             PsiElement(else)('else')
-            HAXE_BLOCK_STATEMENT
+            BLOCK_STATEMENT
               PsiElement({)('{')
-              HAXE_CALL_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+              CALL_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('trace')
                 PsiElement(()('(')
-                HAXE_EXPRESSION_LIST
-                  HAXE_STRING_LITERAL_EXPRESSION
+                EXPRESSION_LIST
+                  STRING_LITERAL_EXPRESSION
                     PsiElement(OPEN_QUOTE)('"')
                     PsiElement(REGULAR_STRING_PART)('wtf')
                     PsiElement(CLOSING_QUOTE)('"')

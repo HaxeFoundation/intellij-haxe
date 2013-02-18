@@ -1,17 +1,17 @@
 haXe File
-  HAXE_IMPORT_STATEMENT
+  IMPORT_STATEMENT
     PsiElement(import)('import')
-    HAXE_REFERENCE_EXPRESSION
-      HAXE_REFERENCE_EXPRESSION
-        HAXE_REFERENCE_EXPRESSION
-          HAXE_IDENTIFIER
+    REFERENCE_EXPRESSION
+      REFERENCE_EXPRESSION
+        REFERENCE_EXPRESSION
+          IDENTIFIER
             PsiElement(ID)('com')
         PsiElement(.)('.')
-        HAXE_REFERENCE_EXPRESSION
-          HAXE_IDENTIFIER
+        REFERENCE_EXPRESSION
+          IDENTIFIER
             PsiElement(ID)('fedor')
       PsiElement(.)('.')
-      HAXE_REFERENCE_EXPRESSION
-        HAXE_IDENTIFIER
+      REFERENCE_EXPRESSION
+        IDENTIFIER
           PsiElement(ID)('test')
     PsiElement(;)(';')

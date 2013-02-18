@@ -1,24 +1,24 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('ExtendsImplements')
-    HAXE_INHERIT_LIST
-      HAXE_INHERIT
+    INHERIT_LIST
+      INHERIT
         PsiElement(extends)('extends')
-        HAXE_TYPE
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('Bar')
       PsiElement(,)(',')
-      HAXE_INHERIT
+      INHERIT
         PsiElement(implements)('implements')
-        HAXE_TYPE
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('Test')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
+    CLASS_BODY
       <empty list>
     PsiElement(})('}')

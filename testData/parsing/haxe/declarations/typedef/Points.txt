@@ -1,119 +1,119 @@
 haXe File
-  HAXE_TYPEDEF_DECLARATION
+  TYPEDEF_DECLARATION
     PsiElement(typedef)('typedef')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Point')
     PsiElement(=)('=')
-    HAXE_TYPE_OR_ANONYMOUS
-      HAXE_ANONYMOUS_TYPE
+    TYPE_OR_ANONYMOUS
+      ANONYMOUS_TYPE
         PsiElement({)('{')
-        HAXE_ANONYMOUS_TYPE_BODY
-          HAXE_INTERFACE_BODY
-            HAXE_VAR_DECLARATION
+        ANONYMOUS_TYPE_BODY
+          INTERFACE_BODY
+            VAR_DECLARATION
               PsiElement(var)('var')
-              HAXE_VAR_DECLARATION_PART
-                HAXE_COMPONENT_NAME
-                  HAXE_IDENTIFIER
+              VAR_DECLARATION_PART
+                COMPONENT_NAME
+                  IDENTIFIER
                     PsiElement(ID)('x')
-                HAXE_TYPE_TAG
+                TYPE_TAG
                   PsiElement(:)(':')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('Int')
               PsiElement(;)(';')
-            HAXE_VAR_DECLARATION
+            VAR_DECLARATION
               PsiElement(var)('var')
-              HAXE_VAR_DECLARATION_PART
-                HAXE_COMPONENT_NAME
-                  HAXE_IDENTIFIER
+              VAR_DECLARATION_PART
+                COMPONENT_NAME
+                  IDENTIFIER
                     PsiElement(ID)('y')
-                HAXE_TYPE_TAG
+                TYPE_TAG
                   PsiElement(:)(':')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('Int')
               PsiElement(;)(';')
         PsiElement(})('}')
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Points')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('p')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPE_OR_ANONYMOUS
-                  HAXE_ANONYMOUS_TYPE
+                TYPE_OR_ANONYMOUS
+                  ANONYMOUS_TYPE
                     PsiElement({)('{')
-                    HAXE_ANONYMOUS_TYPE_BODY
-                      HAXE_TYPE_EXTENDS
+                    ANONYMOUS_TYPE_BODY
+                      TYPE_EXTENDS
                         PsiElement(>)('>')
-                        HAXE_TYPE
-                          HAXE_REFERENCE_EXPRESSION
-                            HAXE_IDENTIFIER
+                        TYPE
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
                               PsiElement(ID)('Point')
                       PsiElement(,)(',')
-                      HAXE_ANONYMOUS_TYPE_FIELD_LIST
-                        HAXE_ANONYMOUS_TYPE_FIELD
-                          HAXE_COMPONENT_NAME
-                            HAXE_IDENTIFIER
+                      ANONYMOUS_TYPE_FIELD_LIST
+                        ANONYMOUS_TYPE_FIELD
+                          COMPONENT_NAME
+                            IDENTIFIER
                               PsiElement(ID)('z')
-                          HAXE_TYPE_TAG
+                          TYPE_TAG
                             PsiElement(:)(':')
-                            HAXE_TYPE_OR_ANONYMOUS
-                              HAXE_TYPE
-                                HAXE_REFERENCE_EXPRESSION
-                                  HAXE_IDENTIFIER
+                            TYPE_OR_ANONYMOUS
+                              TYPE
+                                REFERENCE_EXPRESSION
+                                  IDENTIFIER
                                     PsiElement(ID)('Int')
                     PsiElement(})('}')
-          HAXE_ASSIGN_EXPRESSION
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+          ASSIGN_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('p')
-            HAXE_ASSIGN_OPERATION
+            ASSIGN_OPERATION
               PsiElement(=)('=')
-            HAXE_OBJECT_LITERAL
+            OBJECT_LITERAL
               PsiElement({)('{')
-              HAXE_OBJECT_LITERAL_ELEMENT
-                HAXE_IDENTIFIER
+              OBJECT_LITERAL_ELEMENT
+                IDENTIFIER
                   PsiElement(ID)('x')
                 PsiElement(:)(':')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('0')
               PsiElement(,)(',')
-              HAXE_OBJECT_LITERAL_ELEMENT
-                HAXE_IDENTIFIER
+              OBJECT_LITERAL_ELEMENT
+                IDENTIFIER
                   PsiElement(ID)('y')
                 PsiElement(:)(':')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('0')
               PsiElement(,)(',')
-              HAXE_OBJECT_LITERAL_ELEMENT
-                HAXE_IDENTIFIER
+              OBJECT_LITERAL_ELEMENT
+                IDENTIFIER
                   PsiElement(ID)('z')
                 PsiElement(:)(':')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('0')
               PsiElement(})('}')
           PsiElement(;)(';')

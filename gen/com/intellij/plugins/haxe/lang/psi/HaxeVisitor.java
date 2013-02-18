@@ -35,13 +35,13 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitArrayAccessExpression(@NotNull HaxeArrayAccessExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitArrayLiteral(@NotNull HaxeArrayLiteral o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitAssignExpression(@NotNull HaxeAssignExpression o) {
@@ -81,13 +81,13 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitCallExpression(@NotNull HaxeCallExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitCastExpression(@NotNull HaxeCastExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitCatchStatement(@NotNull HaxeCatchStatement o) {
@@ -251,8 +251,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitLiteralExpression(@NotNull HaxeLiteralExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitLocalFunctionDeclaration(@NotNull HaxeLocalFunctionDeclaration o) {
@@ -296,8 +296,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitNewExpression(@NotNull HaxeNewExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitNsMeta(@NotNull HaxeNsMeta o) {
@@ -345,13 +345,13 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitReferenceExpression(@NotNull HaxeReferenceExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitRegularExpressionLiteral(@NotNull HaxeRegularExpressionLiteral o) {
-    visitRegularExpression(o);
-    // visitLiteralExpression(o);
+    visitLiteralExpression(o);
+    // visitRegularExpression(o);
   }
 
   public void visitRequireMeta(@NotNull HaxeRequireMeta o) {
@@ -387,8 +387,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitStringLiteralExpression(@NotNull HaxeStringLiteralExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitSuffixExpression(@NotNull HaxeSuffixExpression o) {
@@ -396,8 +396,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitSuperExpression(@NotNull HaxeSuperExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitSwitchBlock(@NotNull HaxeSwitchBlock o) {
@@ -425,8 +425,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitThisExpression(@NotNull HaxeThisExpression o) {
-    visitReference(o);
-    // visitExpression(o);
+    visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitThrowStatement(@NotNull HaxeThrowStatement o) {
@@ -506,14 +506,6 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitNamedElement(@NotNull HaxeNamedElement o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitReference(@NotNull HaxeReference o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitRegularExpression(@NotNull HaxeRegularExpression o) {
     visitPsiCompositeElement(o);
   }
 

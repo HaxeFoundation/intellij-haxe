@@ -25,8 +25,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.plugins.haxe.lang.parser.GeneratedParserUtilBase._SECTION_GENERAL_;
-import static com.intellij.plugins.haxe.lang.parser.GeneratedParserUtilBase.enterErrorRecordingSection;
+import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -124,7 +123,7 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
       final PsiBuilder.Marker marker = builder.mark();
       enterErrorRecordingSection(builder, 0, _SECTION_GENERAL_, "<code fragment>");
       HaxeParser.expression(builder, 1);
-      marker.done(HaxeTokenTypes.HAXE_EXPRESSION);
+      marker.done(HaxeTokenTypes.EXPRESSION);
       return builder.getTreeBuilt();
     }
   }

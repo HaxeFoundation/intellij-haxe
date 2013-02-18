@@ -78,7 +78,7 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
     final IElementType childType = child.getElementType();
     final Wrap wrap = myWrappingProcessor.createChildWrap(child, Wrap.createWrap(WrapType.NONE, false), myChildWrap);
 
-    if (childType == HaxeTokenTypes.HAXE_ASSIGN_OPERATION) {
+    if (childType == HaxeTokenTypes.ASSIGN_OPERATION) {
       myChildWrap = wrap;
     }
     return wrap;
@@ -86,7 +86,7 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
 
   @Nullable
   protected Alignment createChildAlignment(ASTNode child) {
-    if (child.getElementType() != HaxeTokenTypes.PLPAREN && child.getElementType() != HaxeTokenTypes.HAXE_BLOCK_STATEMENT) {
+    if (child.getElementType() != HaxeTokenTypes.PLPAREN && child.getElementType() != HaxeTokenTypes.BLOCK_STATEMENT) {
       return myAlignmentProcessor.createChildAlignment();
     }
     return null;
@@ -137,8 +137,8 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
 
   private static boolean isEndsWithRPAREN(IElementType elementType, IElementType prevType) {
     return prevType == HaxeTokenTypes.PRPAREN &&
-           (elementType == HaxeTokenTypes.HAXE_IF_STATEMENT ||
-            elementType == HaxeTokenTypes.HAXE_FOR_STATEMENT ||
-            elementType == HaxeTokenTypes.HAXE_WHILE_STATEMENT);
+           (elementType == HaxeTokenTypes.IF_STATEMENT ||
+            elementType == HaxeTokenTypes.FOR_STATEMENT ||
+            elementType == HaxeTokenTypes.WHILE_STATEMENT);
   }
 }

@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.patterns.PsiElementPattern;
@@ -9,7 +10,6 @@ import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.parser.GeneratedParserUtilBase;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeCodeGenerateUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -51,7 +51,8 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).withSuperParent(1, PsiErrorElement.class).
         and(psiElement().withSuperParent(2, HaxeInheritList.class));
     extend(CompletionType.BASIC,
-           psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).withSuperParent(1, PsiErrorElement.class).
+           psiElement().andOr(psiElement().withSuperParent(1, PsiErrorElement.class),
+                              psiElement().withSuperParent(1, GeneratedParserUtilBase.DummyBlock.class)).
              andOr(psiElement().withSuperParent(2, HaxeClassBody.class), psiElement().withSuperParent(2, HaxeInheritList.class)),
            new CompletionProvider<CompletionParameters>() {
              @Override
@@ -103,7 +104,7 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       offset = pair.getSecond();
     }
     else {
-      text = posFile.getText().substring(0, posRange.getStartOffset() + 1);
+      text = posFile.getText().substring(0, posRange.getStartOffset());
       offset = 0;
     }
 

@@ -157,10 +157,10 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Nullable
   private static String getLiteralClassName(IElementType type) {
-    if (type == HaxeTokenTypes.HAXE_STRING_LITERAL_EXPRESSION) {
+    if (type == HaxeTokenTypes.STRING_LITERAL_EXPRESSION) {
       return "String";
     }
-    else if (type == HaxeTokenTypes.HAXE_ARRAY_LITERAL) {
+    else if (type == HaxeTokenTypes.ARRAY_LITERAL) {
       return "Array";
     }
     else if (type == HaxeTokenTypes.LITFLOAT) {

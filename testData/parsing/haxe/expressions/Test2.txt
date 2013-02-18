@@ -1,79 +1,79 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Test2')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('x')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('10')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('add')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_FUNCTION_LITERAL
+                FUNCTION_LITERAL
                   PsiElement(function)('function')
                   PsiElement(()('(')
-                  HAXE_PARAMETER_LIST
-                    HAXE_PARAMETER
-                      HAXE_COMPONENT_NAME
-                        HAXE_IDENTIFIER
+                  PARAMETER_LIST
+                    PARAMETER
+                      COMPONENT_NAME
+                        IDENTIFIER
                           PsiElement(ID)('n')
                   PsiElement())(')')
-                  HAXE_BLOCK_STATEMENT
+                  BLOCK_STATEMENT
                     PsiElement({)('{')
-                    HAXE_ASSIGN_EXPRESSION
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                    ASSIGN_EXPRESSION
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('x')
-                      HAXE_ASSIGN_OPERATION
+                      ASSIGN_OPERATION
                         PsiElement(+=)('+=')
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('n')
                     PsiElement(;)(';')
                     PsiElement(})('}')
             PsiElement(;)(';')
-          HAXE_CALL_EXPRESSION
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('add')
             PsiElement(()('(')
-            HAXE_EXPRESSION_LIST
-              HAXE_LITERAL_EXPRESSION
+            EXPRESSION_LIST
+              LITERAL_EXPRESSION
                 PsiElement(LITINT)('2')
             PsiElement())(')')
           PsiElement(;)(';')
-          HAXE_CALL_EXPRESSION
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('add')
             PsiElement(()('(')
-            HAXE_EXPRESSION_LIST
-              HAXE_LITERAL_EXPRESSION
+            EXPRESSION_LIST
+              LITERAL_EXPRESSION
                 PsiElement(LITINT)('3')
             PsiElement())(')')
           PsiElement(;)(';')

@@ -1,35 +1,35 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Void')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPE_TAG
+        TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPE_OR_ANONYMOUS
-            HAXE_TYPE
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('Void')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_IF_STATEMENT
+          IF_STATEMENT
             PsiElement(if)('if')
             PsiElement(()('(')
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('abort')
             PsiElement())(')')
-            HAXE_RETURN_STATEMENT
+            RETURN_STATEMENT
               PsiElement(return)('return')
               PsiElement(;)(';')
           PsiElement(})('}')

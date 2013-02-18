@@ -1,65 +1,65 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Do')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPE_TAG
+        TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPE_OR_ANONYMOUS
-            HAXE_TYPE
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('void')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('i')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('0')
             PsiElement(;)(';')
-          HAXE_DO_WHILE_STATEMENT
+          DO_WHILE_STATEMENT
             PsiElement(do)('do')
-            HAXE_BLOCK_STATEMENT
+            BLOCK_STATEMENT
               PsiElement({)('{')
-              HAXE_CALL_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+              CALL_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('trace')
                 PsiElement(()('(')
-                HAXE_EXPRESSION_LIST
-                  HAXE_PREFIX_EXPRESSION
+                EXPRESSION_LIST
+                  PREFIX_EXPRESSION
                     PsiElement(++)('++')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('i')
                 PsiElement())(')')
               PsiElement(;)(';')
               PsiElement(})('}')
             PsiElement(while)('while')
             PsiElement(()('(')
-            HAXE_COMPARE_EXPRESSION
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+            COMPARE_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('i')
-              HAXE_COMPARE_OPERATION
+              COMPARE_OPERATION
                 PsiElement(<)('<')
-              HAXE_LITERAL_EXPRESSION
+              LITERAL_EXPRESSION
                 PsiElement(LITINT)('11')
             PsiElement())(')')
             PsiElement(;)(';')

@@ -4,10 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
-import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import gnu.trove.THashSet;
@@ -38,8 +35,8 @@ public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
   }
 
   @Override
-  public void visitReference(@NotNull HaxeReference reference) {
-    if (reference.getTokenType() != HaxeTokenTypes.HAXE_REFERENCE_EXPRESSION) {
+  public void visitReferenceExpression(@NotNull HaxeReferenceExpression reference) {
+    if (reference.getTokenType() != HaxeTokenTypes.REFERENCE_EXPRESSION) {
       return; // call, array access, this, literal, etc
     }
     final HaxeReference leftSiblingReference = HaxeResolveUtil.getLeftReference(reference);

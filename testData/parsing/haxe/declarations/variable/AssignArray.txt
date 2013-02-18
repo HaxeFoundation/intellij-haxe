@@ -1,66 +1,66 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('AssignArray')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_VAR_DECLARATION
+    CLASS_BODY
+      VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VAR_DECLARATION_PART
-          HAXE_COMPONENT_NAME
-            HAXE_IDENTIFIER
+        VAR_DECLARATION_PART
+          COMPONENT_NAME
+            IDENTIFIER
               PsiElement(ID)('matrix')
-          HAXE_TYPE_TAG
+          TYPE_TAG
             PsiElement(:)(':')
-            HAXE_TYPE_OR_ANONYMOUS
-              HAXE_TYPE
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('Array')
-                HAXE_TYPE_PARAM
+                TYPE_PARAM
                   PsiElement(<)('<')
-                  HAXE_TYPE_LIST
-                    HAXE_TYPE_LIST_PART
-                      HAXE_TYPE_OR_ANONYMOUS
-                        HAXE_TYPE
-                          HAXE_REFERENCE_EXPRESSION
-                            HAXE_IDENTIFIER
+                  TYPE_LIST
+                    TYPE_LIST_PART
+                      TYPE_OR_ANONYMOUS
+                        TYPE
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
                               PsiElement(ID)('Array')
-                          HAXE_TYPE_PARAM
+                          TYPE_PARAM
                             PsiElement(<)('<')
-                            HAXE_TYPE_LIST
-                              HAXE_TYPE_LIST_PART
-                                HAXE_TYPE_OR_ANONYMOUS
-                                  HAXE_TYPE
-                                    HAXE_REFERENCE_EXPRESSION
-                                      HAXE_IDENTIFIER
+                            TYPE_LIST
+                              TYPE_LIST_PART
+                                TYPE_OR_ANONYMOUS
+                                  TYPE
+                                    REFERENCE_EXPRESSION
+                                      IDENTIFIER
                                         PsiElement(ID)('Int')
                             PsiElement(>)('>')
                   PsiElement(>)('>')
-          HAXE_VAR_INIT
+          VAR_INIT
             PsiElement(=)('=')
-            HAXE_ARRAY_LITERAL
+            ARRAY_LITERAL
               PsiElement([)('[')
-              HAXE_EXPRESSION_LIST
-                HAXE_ARRAY_LITERAL
+              EXPRESSION_LIST
+                ARRAY_LITERAL
                   PsiElement([)('[')
-                  HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
+                  EXPRESSION_LIST
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('1')
                     PsiElement(,)(',')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('1')
                   PsiElement(])(']')
                 PsiElement(,)(',')
-                HAXE_ARRAY_LITERAL
+                ARRAY_LITERAL
                   PsiElement([)('[')
-                  HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
+                  EXPRESSION_LIST
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('1')
                     PsiElement(,)(',')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('0')
                   PsiElement(])(']')
               PsiElement(])(']')

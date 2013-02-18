@@ -1,166 +1,166 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Test5')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('bar1')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_ADDITIVE_EXPRESSION
-                  HAXE_MULTIPLICATIVE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                ADDITIVE_EXPRESSION
+                  MULTIPLICATIVE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('a')
                     PsiElement(*)('*')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('b')
                   PsiElement(+)('+')
-                  HAXE_MULTIPLICATIVE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                  MULTIPLICATIVE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('c')
                     PsiElement(*)('*')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('d')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('bar2')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_MULTIPLICATIVE_EXPRESSION
-                  HAXE_MULTIPLICATIVE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                MULTIPLICATIVE_EXPRESSION
+                  MULTIPLICATIVE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('a')
                     PsiElement(*)('*')
-                    HAXE_PARENTHESIZED_EXPRESSION
+                    PARENTHESIZED_EXPRESSION
                       PsiElement(()('(')
-                      HAXE_ADDITIVE_EXPRESSION
-                        HAXE_REFERENCE_EXPRESSION
-                          HAXE_IDENTIFIER
+                      ADDITIVE_EXPRESSION
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
                             PsiElement(ID)('b')
                         PsiElement(+)('+')
-                        HAXE_REFERENCE_EXPRESSION
-                          HAXE_IDENTIFIER
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
                             PsiElement(ID)('c')
                       PsiElement())(')')
                   PsiElement(*)('*')
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('d')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('bar3')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_ADDITIVE_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                ADDITIVE_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('b')
                   PsiElement(+)('+')
-                  HAXE_PREFIX_EXPRESSION
+                  PREFIX_EXPRESSION
                     PsiElement(--)('--')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('c')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('bar4')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_ADDITIVE_EXPRESSION
-                  HAXE_SUFFIX_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                ADDITIVE_EXPRESSION
+                  SUFFIX_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('b')
                     PsiElement(--)('--')
                   PsiElement(+)('+')
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('c')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('bar5')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_ADDITIVE_EXPRESSION
-                  HAXE_SUFFIX_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                ADDITIVE_EXPRESSION
+                  SUFFIX_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('b')
                     PsiElement(--)('--')
                   PsiElement(+)('+')
-                  HAXE_PREFIX_EXPRESSION
+                  PREFIX_EXPRESSION
                     PsiElement(--)('--')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('c')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('bar6')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_MULTIPLICATIVE_EXPRESSION
-                  HAXE_PARENTHESIZED_EXPRESSION
+                MULTIPLICATIVE_EXPRESSION
+                  PARENTHESIZED_EXPRESSION
                     PsiElement(()('(')
-                    HAXE_ADDITIVE_EXPRESSION
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                    ADDITIVE_EXPRESSION
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('a')
                       PsiElement(+)('+')
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('b')
                     PsiElement())(')')
                   PsiElement(*)('*')
-                  HAXE_PARENTHESIZED_EXPRESSION
+                  PARENTHESIZED_EXPRESSION
                     PsiElement(()('(')
-                    HAXE_ADDITIVE_EXPRESSION
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                    ADDITIVE_EXPRESSION
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('c')
                       PsiElement(+)('+')
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('d')
                     PsiElement())(')')
             PsiElement(;)(';')

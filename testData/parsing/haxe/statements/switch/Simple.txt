@@ -1,87 +1,87 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Simple')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_SWITCH_STATEMENT
+          SWITCH_STATEMENT
             PsiElement(switch)('switch')
-            HAXE_PARENTHESIZED_EXPRESSION
+            PARENTHESIZED_EXPRESSION
               PsiElement(()('(')
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('v')
               PsiElement())(')')
-            HAXE_SWITCH_BLOCK
+            SWITCH_BLOCK
               PsiElement({)('{')
-              HAXE_SWITCH_CASE
+              SWITCH_CASE
                 PsiElement(case)('case')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('0')
                 PsiElement(:)(':')
-                HAXE_SWITCH_CASE_BLOCK
-                  HAXE_CALL_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                SWITCH_CASE_BLOCK
+                  CALL_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('e1')
                     PsiElement(()('(')
                     PsiElement())(')')
                   PsiElement(;)(';')
-              HAXE_SWITCH_CASE
+              SWITCH_CASE
                 PsiElement(case)('case')
-                HAXE_CALL_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('foo')
                   PsiElement(()('(')
-                  HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
+                  EXPRESSION_LIST
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('1')
                   PsiElement())(')')
                 PsiElement(:)(':')
-                HAXE_SWITCH_CASE_BLOCK
-                  HAXE_BREAK_STATEMENT
+                SWITCH_CASE_BLOCK
+                  BREAK_STATEMENT
                     PsiElement(break)('break')
                     PsiElement(;)(';')
-              HAXE_SWITCH_CASE
+              SWITCH_CASE
                 PsiElement(case)('case')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('65')
                 PsiElement(,)(',')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('90')
                 PsiElement(:)(':')
-                HAXE_SWITCH_CASE_BLOCK
-                  HAXE_CALL_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                SWITCH_CASE_BLOCK
+                  CALL_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('e3')
                     PsiElement(()('(')
                     PsiElement())(')')
                   PsiElement(;)(';')
-              HAXE_SWITCH_CASE
+              SWITCH_CASE
                 PsiElement(case)('case')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('bar')
                 PsiElement(:)(':')
               PsiComment(MSL_COMMENT)('//<– haxe plugin says 'or case expected, got default'')
-              HAXE_DEFAULT_CASE
+              DEFAULT_CASE
                 PsiElement(default)('default')
                 PsiElement(:)(':')
-                HAXE_SWITCH_CASE_BLOCK
-                  HAXE_RETURN_STATEMENT
+                SWITCH_CASE_BLOCK
+                  RETURN_STATEMENT
                     PsiElement(return)('return')
                     PsiElement(;)(';')
               PsiElement(})('}')

@@ -5,6 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeThisExpression extends HaxeReference, HaxeExpression {
+public interface HaxeThisExpression extends HaxeExpression, HaxeReference {
 
 }

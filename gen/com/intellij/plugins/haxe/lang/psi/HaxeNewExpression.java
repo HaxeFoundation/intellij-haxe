@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeNewExpression extends HaxeReference, HaxeExpression {
+public interface HaxeNewExpression extends HaxeExpression, HaxeReference {
 
   @Nullable
   HaxeExpressionList getExpressionList();

@@ -1,116 +1,116 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('TryCatch')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_TRY_STATEMENT
+          TRY_STATEMENT
             PsiElement(try)('try')
-            HAXE_BLOCK_STATEMENT
+            BLOCK_STATEMENT
               PsiElement({)('{')
-              HAXE_CALL_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+              CALL_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('bar')
                 PsiElement(()('(')
                 PsiElement())(')')
               PsiElement(;)(';')
               PsiElement(})('}')
-            HAXE_CATCH_STATEMENT
+            CATCH_STATEMENT
               PsiElement(catch)('catch')
               PsiElement(()('(')
-              HAXE_PARAMETER
-                HAXE_COMPONENT_NAME
-                  HAXE_IDENTIFIER
+              PARAMETER
+                COMPONENT_NAME
+                  IDENTIFIER
                     PsiElement(ID)('e')
-                HAXE_TYPE_TAG
+                TYPE_TAG
                   PsiElement(:)(':')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('String')
               PsiElement())(')')
-              HAXE_BLOCK_STATEMENT
+              BLOCK_STATEMENT
                 PsiElement({)('{')
-                HAXE_CALL_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('trace')
                   PsiElement(()('(')
-                  HAXE_EXPRESSION_LIST
-                    HAXE_STRING_LITERAL_EXPRESSION
+                  EXPRESSION_LIST
+                    STRING_LITERAL_EXPRESSION
                       PsiElement(OPEN_QUOTE)('"')
                       PsiElement(REGULAR_STRING_PART)('String')
                       PsiElement(CLOSING_QUOTE)('"')
                   PsiElement())(')')
                 PsiElement(;)(';')
                 PsiElement(})('}')
-            HAXE_CATCH_STATEMENT
+            CATCH_STATEMENT
               PsiElement(catch)('catch')
               PsiElement(()('(')
-              HAXE_PARAMETER
-                HAXE_COMPONENT_NAME
-                  HAXE_IDENTIFIER
+              PARAMETER
+                COMPONENT_NAME
+                  IDENTIFIER
                     PsiElement(ID)('e')
-                HAXE_TYPE_TAG
+                TYPE_TAG
                   PsiElement(:)(':')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('Error')
               PsiElement())(')')
-              HAXE_BLOCK_STATEMENT
+              BLOCK_STATEMENT
                 PsiElement({)('{')
-                HAXE_CALL_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('trace')
                   PsiElement(()('(')
-                  HAXE_EXPRESSION_LIST
-                    HAXE_STRING_LITERAL_EXPRESSION
+                  EXPRESSION_LIST
+                    STRING_LITERAL_EXPRESSION
                       PsiElement(OPEN_QUOTE)('"')
                       PsiElement(REGULAR_STRING_PART)('Error')
                       PsiElement(CLOSING_QUOTE)('"')
                   PsiElement())(')')
                 PsiElement(;)(';')
                 PsiElement(})('}')
-            HAXE_CATCH_STATEMENT
+            CATCH_STATEMENT
               PsiElement(catch)('catch')
               PsiElement(()('(')
-              HAXE_PARAMETER
-                HAXE_COMPONENT_NAME
-                  HAXE_IDENTIFIER
+              PARAMETER
+                COMPONENT_NAME
+                  IDENTIFIER
                     PsiElement(ID)('e')
-                HAXE_TYPE_TAG
+                TYPE_TAG
                   PsiElement(:)(':')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('Dynamic')
               PsiElement())(')')
-              HAXE_BLOCK_STATEMENT
+              BLOCK_STATEMENT
                 PsiElement({)('{')
-                HAXE_CALL_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('trace')
                   PsiElement(()('(')
-                  HAXE_EXPRESSION_LIST
-                    HAXE_STRING_LITERAL_EXPRESSION
+                  EXPRESSION_LIST
+                    STRING_LITERAL_EXPRESSION
                       PsiElement(OPEN_QUOTE)('"')
                       PsiElement(REGULAR_STRING_PART)('Dynamic')
                       PsiElement(CLOSING_QUOTE)('"')

@@ -1,83 +1,83 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Test3')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_CALL_EXPRESSION
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+          REFERENCE_EXPRESSION
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('a')
                 PsiElement(.)('.')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('b')
               PsiElement(()('(')
               PsiElement())(')')
             PsiElement(.)('.')
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('c')
           PsiElement(;)(';')
-          HAXE_ARRAY_ACCESS_EXPRESSION
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_CALL_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+          ARRAY_ACCESS_EXPRESSION
+            REFERENCE_EXPRESSION
+              REFERENCE_EXPRESSION
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('a')
                     PsiElement(.)('.')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('b')
                   PsiElement(()('(')
                   PsiElement())(')')
                 PsiElement(.)('.')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('c')
               PsiElement(.)('.')
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('d')
             PsiElement([)('[')
             PsiElement(])(']')
           PsiElement(;)(';')
-          HAXE_CALL_EXPRESSION
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_ARRAY_ACCESS_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              REFERENCE_EXPRESSION
+                ARRAY_ACCESS_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('a')
                     PsiElement(.)('.')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('b')
                   PsiElement([)('[')
                   PsiElement(])(']')
                 PsiElement(.)('.')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('c')
               PsiElement(.)('.')
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('d')
             PsiElement(()('(')
             PsiElement())(')')

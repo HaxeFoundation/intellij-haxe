@@ -1,84 +1,84 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Macro')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(@:macro)('@:macro')
         PsiElement(@:keep)('@:keep')
-        HAXE_DECLARATION_ATTRIBUTE_LIST
-          HAXE_DECLARATION_ATTRIBUTE
+        DECLARATION_ATTRIBUTE_LIST
+          DECLARATION_ATTRIBUTE
             PsiElement(static)('static')
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('fib')
         PsiElement(()('(')
-        HAXE_PARAMETER_LIST
-          HAXE_PARAMETER
-            HAXE_COMPONENT_NAME
-              HAXE_IDENTIFIER
+        PARAMETER_LIST
+          PARAMETER
+            COMPONENT_NAME
+              IDENTIFIER
                 PsiElement(ID)('n')
-            HAXE_TYPE_TAG
+            TYPE_TAG
               PsiElement(:)(':')
-              HAXE_TYPE_OR_ANONYMOUS
-                HAXE_TYPE
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('Int')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_IF_STATEMENT
+          IF_STATEMENT
             PsiElement(if)('if')
             PsiElement(()('(')
-            HAXE_COMPARE_EXPRESSION
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+            COMPARE_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('n')
-              HAXE_COMPARE_OPERATION
+              COMPARE_OPERATION
                 PsiElement(<)('<')
-              HAXE_LITERAL_EXPRESSION
+              LITERAL_EXPRESSION
                 PsiElement(LITINT)('2')
             PsiElement())(')')
-            HAXE_RETURN_STATEMENT
+            RETURN_STATEMENT
               PsiElement(return)('return')
-              HAXE_LITERAL_EXPRESSION
+              LITERAL_EXPRESSION
                 PsiElement(LITINT)('1')
               PsiElement(;)(';')
-          HAXE_RETURN_STATEMENT
+          RETURN_STATEMENT
             PsiElement(return)('return')
-            HAXE_ADDITIVE_EXPRESSION
-              HAXE_CALL_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+            ADDITIVE_EXPRESSION
+              CALL_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('fib')
                 PsiElement(()('(')
-                HAXE_EXPRESSION_LIST
-                  HAXE_ADDITIVE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                EXPRESSION_LIST
+                  ADDITIVE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('n')
                     PsiElement(-)('-')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('2')
                 PsiElement())(')')
               PsiElement(+)('+')
-              HAXE_CALL_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+              CALL_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('fib')
                 PsiElement(()('(')
-                HAXE_EXPRESSION_LIST
-                  HAXE_ADDITIVE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                EXPRESSION_LIST
+                  ADDITIVE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('n')
                     PsiElement(-)('-')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('1')
                 PsiElement())(')')
             PsiElement(;)(';')

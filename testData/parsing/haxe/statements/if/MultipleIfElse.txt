@@ -1,94 +1,94 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('MultipleIfElse')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPE_TAG
+        TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPE_OR_ANONYMOUS
-            HAXE_TYPE
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('void')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_IF_STATEMENT
+          IF_STATEMENT
             PsiElement(if)('if')
             PsiElement(()('(')
-            HAXE_COMPARE_EXPRESSION
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+            COMPARE_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('v')
-              HAXE_COMPARE_OPERATION
+              COMPARE_OPERATION
                 PsiElement(==)('==')
-              HAXE_LITERAL_EXPRESSION
+              LITERAL_EXPRESSION
                 PsiElement(LITINT)('0')
             PsiElement())(')')
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('e1')
             PsiElement(else)('else')
-            HAXE_IF_STATEMENT
+            IF_STATEMENT
               PsiElement(if)('if')
               PsiElement(()('(')
-              HAXE_COMPARE_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+              COMPARE_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('v')
-                HAXE_COMPARE_OPERATION
+                COMPARE_OPERATION
                   PsiElement(==)('==')
-                HAXE_CALL_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('foo')
                   PsiElement(()('(')
-                  HAXE_EXPRESSION_LIST
-                    HAXE_LITERAL_EXPRESSION
+                  EXPRESSION_LIST
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('1')
                   PsiElement())(')')
               PsiElement())(')')
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('e2')
               PsiElement(else)('else')
-              HAXE_IF_STATEMENT
+              IF_STATEMENT
                 PsiElement(if)('if')
                 PsiElement(()('(')
-                HAXE_LOGIC_OR_EXPRESSION
-                  HAXE_COMPARE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                LOGIC_OR_EXPRESSION
+                  COMPARE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('v')
-                    HAXE_COMPARE_OPERATION
+                    COMPARE_OPERATION
                       PsiElement(==)('==')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('65')
                   PsiElement(||)('||')
-                  HAXE_COMPARE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                  COMPARE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('v')
-                    HAXE_COMPARE_OPERATION
+                    COMPARE_OPERATION
                       PsiElement(==)('==')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('90')
                 PsiElement())(')')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('e3')
                 PsiElement(else)('else')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('e4')
                 PsiElement(;)(';')
           PsiElement(})('}')

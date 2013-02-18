@@ -8,125 +8,125 @@ import com.intellij.plugins.haxe.lang.psi.impl.*;
 
 public interface HaxeTokenTypes {
 
-  IElementType HAXE_ACCESS = new HaxeElementType("HAXE_ACCESS");
-  IElementType HAXE_ADDITIVE_EXPRESSION = new HaxeElementType("HAXE_ADDITIVE_EXPRESSION");
-  IElementType HAXE_ANONYMOUS_FUNCTION_DECLARATION = new HaxeElementType("HAXE_ANONYMOUS_FUNCTION_DECLARATION");
-  IElementType HAXE_ANONYMOUS_TYPE = new HaxeElementType("HAXE_ANONYMOUS_TYPE");
-  IElementType HAXE_ANONYMOUS_TYPE_BODY = new HaxeElementType("HAXE_ANONYMOUS_TYPE_BODY");
-  IElementType HAXE_ANONYMOUS_TYPE_FIELD = new HaxeElementType("HAXE_ANONYMOUS_TYPE_FIELD");
-  IElementType HAXE_ANONYMOUS_TYPE_FIELD_LIST = new HaxeElementType("HAXE_ANONYMOUS_TYPE_FIELD_LIST");
-  IElementType HAXE_ARRAY_ACCESS_EXPRESSION = new HaxeElementType("HAXE_ARRAY_ACCESS_EXPRESSION");
-  IElementType HAXE_ARRAY_LITERAL = new HaxeElementType("HAXE_ARRAY_LITERAL");
-  IElementType HAXE_ASSIGN_EXPRESSION = new HaxeElementType("HAXE_ASSIGN_EXPRESSION");
-  IElementType HAXE_ASSIGN_OPERATION = new HaxeElementType("HAXE_ASSIGN_OPERATION");
-  IElementType HAXE_AUTO_BUILD_MACRO = new HaxeElementType("HAXE_AUTO_BUILD_MACRO");
-  IElementType HAXE_BITMAP_META = new HaxeElementType("HAXE_BITMAP_META");
-  IElementType HAXE_BITWISE_EXPRESSION = new HaxeElementType("HAXE_BITWISE_EXPRESSION");
-  IElementType HAXE_BIT_OPERATION = new HaxeElementType("HAXE_BIT_OPERATION");
-  IElementType HAXE_BLOCK_STATEMENT = new HaxeElementType("HAXE_BLOCK_STATEMENT");
-  IElementType HAXE_BREAK_STATEMENT = new HaxeElementType("HAXE_BREAK_STATEMENT");
-  IElementType HAXE_BUILD_MACRO = new HaxeElementType("HAXE_BUILD_MACRO");
-  IElementType HAXE_CALL_EXPRESSION = new HaxeElementType("HAXE_CALL_EXPRESSION");
-  IElementType HAXE_CAST_EXPRESSION = new HaxeElementType("HAXE_CAST_EXPRESSION");
-  IElementType HAXE_CATCH_STATEMENT = new HaxeElementType("HAXE_CATCH_STATEMENT");
-  IElementType HAXE_CLASS_BODY = new HaxeElementType("HAXE_CLASS_BODY");
-  IElementType HAXE_CLASS_DECLARATION = new HaxeElementType("HAXE_CLASS_DECLARATION");
-  IElementType HAXE_COMPARE_EXPRESSION = new HaxeElementType("HAXE_COMPARE_EXPRESSION");
-  IElementType HAXE_COMPARE_OPERATION = new HaxeElementType("HAXE_COMPARE_OPERATION");
-  IElementType HAXE_COMPONENT_NAME = new HaxeElementType("HAXE_COMPONENT_NAME");
-  IElementType HAXE_CONTINUE_STATEMENT = new HaxeElementType("HAXE_CONTINUE_STATEMENT");
-  IElementType HAXE_CUSTOM_META = new HaxeElementType("HAXE_CUSTOM_META");
-  IElementType HAXE_DECLARATION_ATTRIBUTE = new HaxeElementType("HAXE_DECLARATION_ATTRIBUTE");
-  IElementType HAXE_DECLARATION_ATTRIBUTE_LIST = new HaxeElementType("HAXE_DECLARATION_ATTRIBUTE_LIST");
-  IElementType HAXE_DEFAULT_CASE = new HaxeElementType("HAXE_DEFAULT_CASE");
-  IElementType HAXE_DO_WHILE_STATEMENT = new HaxeElementType("HAXE_DO_WHILE_STATEMENT");
-  IElementType HAXE_ENUM_BODY = new HaxeElementType("HAXE_ENUM_BODY");
-  IElementType HAXE_ENUM_CONSTRUCTOR_PARAMETERS = new HaxeElementType("HAXE_ENUM_CONSTRUCTOR_PARAMETERS");
-  IElementType HAXE_ENUM_DECLARATION = new HaxeElementType("HAXE_ENUM_DECLARATION");
-  IElementType HAXE_ENUM_VALUE_DECLARATION = new HaxeElementType("HAXE_ENUM_VALUE_DECLARATION");
-  IElementType HAXE_EXPRESSION = new HaxeElementType("HAXE_EXPRESSION");
-  IElementType HAXE_EXPRESSION_LIST = new HaxeElementType("HAXE_EXPRESSION_LIST");
-  IElementType HAXE_EXTERN_CLASS_DECLARATION = new HaxeElementType("HAXE_EXTERN_CLASS_DECLARATION");
-  IElementType HAXE_EXTERN_CLASS_DECLARATION_BODY = new HaxeElementType("HAXE_EXTERN_CLASS_DECLARATION_BODY");
-  IElementType HAXE_EXTERN_FUNCTION_DECLARATION = new HaxeElementType("HAXE_EXTERN_FUNCTION_DECLARATION");
-  IElementType HAXE_EXTERN_OR_PRIVATE = new HaxeElementType("HAXE_EXTERN_OR_PRIVATE");
-  IElementType HAXE_FAKE_ENUM_META = new HaxeElementType("HAXE_FAKE_ENUM_META");
-  IElementType HAXE_FOR_STATEMENT = new HaxeElementType("HAXE_FOR_STATEMENT");
-  IElementType HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES = new HaxeElementType("HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES");
-  IElementType HAXE_FUNCTION_LITERAL = new HaxeElementType("HAXE_FUNCTION_LITERAL");
-  IElementType HAXE_FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES = new HaxeElementType("HAXE_FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES");
-  IElementType HAXE_FUNCTION_TYPE = new HaxeElementType("HAXE_FUNCTION_TYPE");
-  IElementType HAXE_GENERIC_LIST_PART = new HaxeElementType("HAXE_GENERIC_LIST_PART");
-  IElementType HAXE_GENERIC_PARAM = new HaxeElementType("HAXE_GENERIC_PARAM");
-  IElementType HAXE_GETTER_META = new HaxeElementType("HAXE_GETTER_META");
-  IElementType HAXE_IDENTIFIER = new HaxeElementType("HAXE_IDENTIFIER");
-  IElementType HAXE_IF_STATEMENT = new HaxeElementType("HAXE_IF_STATEMENT");
-  IElementType HAXE_IMPORT_STATEMENT = new HaxeElementType("HAXE_IMPORT_STATEMENT");
-  IElementType HAXE_INHERIT = new HaxeElementType("HAXE_INHERIT");
-  IElementType HAXE_INHERIT_LIST = new HaxeElementType("HAXE_INHERIT_LIST");
-  IElementType HAXE_INTERFACE_BODY = new HaxeElementType("HAXE_INTERFACE_BODY");
-  IElementType HAXE_INTERFACE_DECLARATION = new HaxeElementType("HAXE_INTERFACE_DECLARATION");
-  IElementType HAXE_ITERABLE = new HaxeElementType("HAXE_ITERABLE");
-  IElementType HAXE_ITERATOR_EXPRESSION = new HaxeElementType("HAXE_ITERATOR_EXPRESSION");
-  IElementType HAXE_LITERAL_EXPRESSION = new HaxeElementType("HAXE_LITERAL_EXPRESSION");
-  IElementType HAXE_LOCAL_FUNCTION_DECLARATION = new HaxeElementType("HAXE_LOCAL_FUNCTION_DECLARATION");
-  IElementType HAXE_LOCAL_VAR_DECLARATION = new HaxeElementType("HAXE_LOCAL_VAR_DECLARATION");
-  IElementType HAXE_LOCAL_VAR_DECLARATION_PART = new HaxeElementType("HAXE_LOCAL_VAR_DECLARATION_PART");
-  IElementType HAXE_LOGIC_AND_EXPRESSION = new HaxeElementType("HAXE_LOGIC_AND_EXPRESSION");
-  IElementType HAXE_LOGIC_OR_EXPRESSION = new HaxeElementType("HAXE_LOGIC_OR_EXPRESSION");
-  IElementType HAXE_LONG_TEMPLATE_ENTRY = new HaxeElementType("HAXE_LONG_TEMPLATE_ENTRY");
-  IElementType HAXE_META_KEY_VALUE = new HaxeElementType("HAXE_META_KEY_VALUE");
-  IElementType HAXE_META_META = new HaxeElementType("HAXE_META_META");
-  IElementType HAXE_MULTIPLICATIVE_EXPRESSION = new HaxeElementType("HAXE_MULTIPLICATIVE_EXPRESSION");
-  IElementType HAXE_NATIVE_META = new HaxeElementType("HAXE_NATIVE_META");
-  IElementType HAXE_NEW_EXPRESSION = new HaxeElementType("HAXE_NEW_EXPRESSION");
-  IElementType HAXE_NS_META = new HaxeElementType("HAXE_NS_META");
-  IElementType HAXE_OBJECT_LITERAL = new HaxeElementType("HAXE_OBJECT_LITERAL");
-  IElementType HAXE_OBJECT_LITERAL_ELEMENT = new HaxeElementType("HAXE_OBJECT_LITERAL_ELEMENT");
-  IElementType HAXE_OVERLOAD_META = new HaxeElementType("HAXE_OVERLOAD_META");
-  IElementType HAXE_PACKAGE_STATEMENT = new HaxeElementType("HAXE_PACKAGE_STATEMENT");
-  IElementType HAXE_PARAMETER = new HaxeElementType("HAXE_PARAMETER");
-  IElementType HAXE_PARAMETER_LIST = new HaxeElementType("HAXE_PARAMETER_LIST");
-  IElementType HAXE_PARENTHESIZED_EXPRESSION = new HaxeElementType("HAXE_PARENTHESIZED_EXPRESSION");
-  IElementType HAXE_PREFIX_EXPRESSION = new HaxeElementType("HAXE_PREFIX_EXPRESSION");
-  IElementType HAXE_PROPERTY_ACCESSOR = new HaxeElementType("HAXE_PROPERTY_ACCESSOR");
-  IElementType HAXE_PROPERTY_DECLARATION = new HaxeElementType("HAXE_PROPERTY_DECLARATION");
-  IElementType HAXE_REFERENCE_EXPRESSION = new HaxeElementType("HAXE_REFERENCE_EXPRESSION");
-  IElementType HAXE_REGULAR_EXPRESSION_LITERAL = new HaxeElementType("HAXE_REGULAR_EXPRESSION_LITERAL");
-  IElementType HAXE_REQUIRE_META = new HaxeElementType("HAXE_REQUIRE_META");
-  IElementType HAXE_RETURN_STATEMENT = new HaxeElementType("HAXE_RETURN_STATEMENT");
-  IElementType HAXE_RETURN_STATEMENT_WITHOUT_SEMICOLON = new HaxeElementType("HAXE_RETURN_STATEMENT_WITHOUT_SEMICOLON");
-  IElementType HAXE_SETTER_META = new HaxeElementType("HAXE_SETTER_META");
-  IElementType HAXE_SHIFT_EXPRESSION = new HaxeElementType("HAXE_SHIFT_EXPRESSION");
-  IElementType HAXE_SHIFT_OPERATOR = new HaxeElementType("HAXE_SHIFT_OPERATOR");
-  IElementType HAXE_SHIFT_RIGHT_OPERATOR = new HaxeElementType("HAXE_SHIFT_RIGHT_OPERATOR");
-  IElementType HAXE_SHORT_TEMPLATE_ENTRY = new HaxeElementType("HAXE_SHORT_TEMPLATE_ENTRY");
-  IElementType HAXE_STRING_LITERAL_EXPRESSION = new HaxeElementType("HAXE_STRING_LITERAL_EXPRESSION");
-  IElementType HAXE_SUFFIX_EXPRESSION = new HaxeElementType("HAXE_SUFFIX_EXPRESSION");
-  IElementType HAXE_SUPER_EXPRESSION = new HaxeElementType("HAXE_SUPER_EXPRESSION");
-  IElementType HAXE_SWITCH_BLOCK = new HaxeElementType("HAXE_SWITCH_BLOCK");
-  IElementType HAXE_SWITCH_CASE = new HaxeElementType("HAXE_SWITCH_CASE");
-  IElementType HAXE_SWITCH_CASE_BLOCK = new HaxeElementType("HAXE_SWITCH_CASE_BLOCK");
-  IElementType HAXE_SWITCH_CASE_EXPRESSION = new HaxeElementType("HAXE_SWITCH_CASE_EXPRESSION");
-  IElementType HAXE_SWITCH_STATEMENT = new HaxeElementType("HAXE_SWITCH_STATEMENT");
-  IElementType HAXE_TERNARY_EXPRESSION = new HaxeElementType("HAXE_TERNARY_EXPRESSION");
-  IElementType HAXE_THIS_EXPRESSION = new HaxeElementType("HAXE_THIS_EXPRESSION");
-  IElementType HAXE_THROW_STATEMENT = new HaxeElementType("HAXE_THROW_STATEMENT");
-  IElementType HAXE_TRY_STATEMENT = new HaxeElementType("HAXE_TRY_STATEMENT");
-  IElementType HAXE_TYPE = new HaxeElementType("HAXE_TYPE");
-  IElementType HAXE_TYPEDEF_DECLARATION = new HaxeElementType("HAXE_TYPEDEF_DECLARATION");
-  IElementType HAXE_TYPE_EXTENDS = new HaxeElementType("HAXE_TYPE_EXTENDS");
-  IElementType HAXE_TYPE_LIST = new HaxeElementType("HAXE_TYPE_LIST");
-  IElementType HAXE_TYPE_LIST_PART = new HaxeElementType("HAXE_TYPE_LIST_PART");
-  IElementType HAXE_TYPE_OR_ANONYMOUS = new HaxeElementType("HAXE_TYPE_OR_ANONYMOUS");
-  IElementType HAXE_TYPE_PARAM = new HaxeElementType("HAXE_TYPE_PARAM");
-  IElementType HAXE_TYPE_TAG = new HaxeElementType("HAXE_TYPE_TAG");
-  IElementType HAXE_UNSIGNED_SHIFT_RIGHT_OPERATOR = new HaxeElementType("HAXE_UNSIGNED_SHIFT_RIGHT_OPERATOR");
-  IElementType HAXE_USING_STATEMENT = new HaxeElementType("HAXE_USING_STATEMENT");
-  IElementType HAXE_VAR_DECLARATION = new HaxeElementType("HAXE_VAR_DECLARATION");
-  IElementType HAXE_VAR_DECLARATION_PART = new HaxeElementType("HAXE_VAR_DECLARATION_PART");
-  IElementType HAXE_VAR_INIT = new HaxeElementType("HAXE_VAR_INIT");
-  IElementType HAXE_WHILE_STATEMENT = new HaxeElementType("HAXE_WHILE_STATEMENT");
+  IElementType ACCESS = new HaxeElementType("ACCESS");
+  IElementType ADDITIVE_EXPRESSION = new HaxeElementType("ADDITIVE_EXPRESSION");
+  IElementType ANONYMOUS_FUNCTION_DECLARATION = new HaxeElementType("ANONYMOUS_FUNCTION_DECLARATION");
+  IElementType ANONYMOUS_TYPE = new HaxeElementType("ANONYMOUS_TYPE");
+  IElementType ANONYMOUS_TYPE_BODY = new HaxeElementType("ANONYMOUS_TYPE_BODY");
+  IElementType ANONYMOUS_TYPE_FIELD = new HaxeElementType("ANONYMOUS_TYPE_FIELD");
+  IElementType ANONYMOUS_TYPE_FIELD_LIST = new HaxeElementType("ANONYMOUS_TYPE_FIELD_LIST");
+  IElementType ARRAY_ACCESS_EXPRESSION = new HaxeElementType("ARRAY_ACCESS_EXPRESSION");
+  IElementType ARRAY_LITERAL = new HaxeElementType("ARRAY_LITERAL");
+  IElementType ASSIGN_EXPRESSION = new HaxeElementType("ASSIGN_EXPRESSION");
+  IElementType ASSIGN_OPERATION = new HaxeElementType("ASSIGN_OPERATION");
+  IElementType AUTO_BUILD_MACRO = new HaxeElementType("AUTO_BUILD_MACRO");
+  IElementType BITMAP_META = new HaxeElementType("BITMAP_META");
+  IElementType BITWISE_EXPRESSION = new HaxeElementType("BITWISE_EXPRESSION");
+  IElementType BIT_OPERATION = new HaxeElementType("BIT_OPERATION");
+  IElementType BLOCK_STATEMENT = new HaxeElementType("BLOCK_STATEMENT");
+  IElementType BREAK_STATEMENT = new HaxeElementType("BREAK_STATEMENT");
+  IElementType BUILD_MACRO = new HaxeElementType("BUILD_MACRO");
+  IElementType CALL_EXPRESSION = new HaxeElementType("CALL_EXPRESSION");
+  IElementType CAST_EXPRESSION = new HaxeElementType("CAST_EXPRESSION");
+  IElementType CATCH_STATEMENT = new HaxeElementType("CATCH_STATEMENT");
+  IElementType CLASS_BODY = new HaxeElementType("CLASS_BODY");
+  IElementType CLASS_DECLARATION = new HaxeElementType("CLASS_DECLARATION");
+  IElementType COMPARE_EXPRESSION = new HaxeElementType("COMPARE_EXPRESSION");
+  IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
+  IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
+  IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
+  IElementType CUSTOM_META = new HaxeElementType("CUSTOM_META");
+  IElementType DECLARATION_ATTRIBUTE = new HaxeElementType("DECLARATION_ATTRIBUTE");
+  IElementType DECLARATION_ATTRIBUTE_LIST = new HaxeElementType("DECLARATION_ATTRIBUTE_LIST");
+  IElementType DEFAULT_CASE = new HaxeElementType("DEFAULT_CASE");
+  IElementType DO_WHILE_STATEMENT = new HaxeElementType("DO_WHILE_STATEMENT");
+  IElementType ENUM_BODY = new HaxeElementType("ENUM_BODY");
+  IElementType ENUM_CONSTRUCTOR_PARAMETERS = new HaxeElementType("ENUM_CONSTRUCTOR_PARAMETERS");
+  IElementType ENUM_DECLARATION = new HaxeElementType("ENUM_DECLARATION");
+  IElementType ENUM_VALUE_DECLARATION = new HaxeElementType("ENUM_VALUE_DECLARATION");
+  IElementType EXPRESSION = new HaxeElementType("EXPRESSION");
+  IElementType EXPRESSION_LIST = new HaxeElementType("EXPRESSION_LIST");
+  IElementType EXTERN_CLASS_DECLARATION = new HaxeElementType("EXTERN_CLASS_DECLARATION");
+  IElementType EXTERN_CLASS_DECLARATION_BODY = new HaxeElementType("EXTERN_CLASS_DECLARATION_BODY");
+  IElementType EXTERN_FUNCTION_DECLARATION = new HaxeElementType("EXTERN_FUNCTION_DECLARATION");
+  IElementType EXTERN_OR_PRIVATE = new HaxeElementType("EXTERN_OR_PRIVATE");
+  IElementType FAKE_ENUM_META = new HaxeElementType("FAKE_ENUM_META");
+  IElementType FOR_STATEMENT = new HaxeElementType("FOR_STATEMENT");
+  IElementType FUNCTION_DECLARATION_WITH_ATTRIBUTES = new HaxeElementType("FUNCTION_DECLARATION_WITH_ATTRIBUTES");
+  IElementType FUNCTION_LITERAL = new HaxeElementType("FUNCTION_LITERAL");
+  IElementType FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES = new HaxeElementType("FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES");
+  IElementType FUNCTION_TYPE = new HaxeElementType("FUNCTION_TYPE");
+  IElementType GENERIC_LIST_PART = new HaxeElementType("GENERIC_LIST_PART");
+  IElementType GENERIC_PARAM = new HaxeElementType("GENERIC_PARAM");
+  IElementType GETTER_META = new HaxeElementType("GETTER_META");
+  IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
+  IElementType IF_STATEMENT = new HaxeElementType("IF_STATEMENT");
+  IElementType IMPORT_STATEMENT = new HaxeElementType("IMPORT_STATEMENT");
+  IElementType INHERIT = new HaxeElementType("INHERIT");
+  IElementType INHERIT_LIST = new HaxeElementType("INHERIT_LIST");
+  IElementType INTERFACE_BODY = new HaxeElementType("INTERFACE_BODY");
+  IElementType INTERFACE_DECLARATION = new HaxeElementType("INTERFACE_DECLARATION");
+  IElementType ITERABLE = new HaxeElementType("ITERABLE");
+  IElementType ITERATOR_EXPRESSION = new HaxeElementType("ITERATOR_EXPRESSION");
+  IElementType LITERAL_EXPRESSION = new HaxeElementType("LITERAL_EXPRESSION");
+  IElementType LOCAL_FUNCTION_DECLARATION = new HaxeElementType("LOCAL_FUNCTION_DECLARATION");
+  IElementType LOCAL_VAR_DECLARATION = new HaxeElementType("LOCAL_VAR_DECLARATION");
+  IElementType LOCAL_VAR_DECLARATION_PART = new HaxeElementType("LOCAL_VAR_DECLARATION_PART");
+  IElementType LOGIC_AND_EXPRESSION = new HaxeElementType("LOGIC_AND_EXPRESSION");
+  IElementType LOGIC_OR_EXPRESSION = new HaxeElementType("LOGIC_OR_EXPRESSION");
+  IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
+  IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
+  IElementType META_META = new HaxeElementType("META_META");
+  IElementType MULTIPLICATIVE_EXPRESSION = new HaxeElementType("MULTIPLICATIVE_EXPRESSION");
+  IElementType NATIVE_META = new HaxeElementType("NATIVE_META");
+  IElementType NEW_EXPRESSION = new HaxeElementType("NEW_EXPRESSION");
+  IElementType NS_META = new HaxeElementType("NS_META");
+  IElementType OBJECT_LITERAL = new HaxeElementType("OBJECT_LITERAL");
+  IElementType OBJECT_LITERAL_ELEMENT = new HaxeElementType("OBJECT_LITERAL_ELEMENT");
+  IElementType OVERLOAD_META = new HaxeElementType("OVERLOAD_META");
+  IElementType PACKAGE_STATEMENT = new HaxeElementType("PACKAGE_STATEMENT");
+  IElementType PARAMETER = new HaxeElementType("PARAMETER");
+  IElementType PARAMETER_LIST = new HaxeElementType("PARAMETER_LIST");
+  IElementType PARENTHESIZED_EXPRESSION = new HaxeElementType("PARENTHESIZED_EXPRESSION");
+  IElementType PREFIX_EXPRESSION = new HaxeElementType("PREFIX_EXPRESSION");
+  IElementType PROPERTY_ACCESSOR = new HaxeElementType("PROPERTY_ACCESSOR");
+  IElementType PROPERTY_DECLARATION = new HaxeElementType("PROPERTY_DECLARATION");
+  IElementType REFERENCE_EXPRESSION = new HaxeElementType("REFERENCE_EXPRESSION");
+  IElementType REGULAR_EXPRESSION_LITERAL = new HaxeElementType("REGULAR_EXPRESSION_LITERAL");
+  IElementType REQUIRE_META = new HaxeElementType("REQUIRE_META");
+  IElementType RETURN_STATEMENT = new HaxeElementType("RETURN_STATEMENT");
+  IElementType RETURN_STATEMENT_WITHOUT_SEMICOLON = new HaxeElementType("RETURN_STATEMENT_WITHOUT_SEMICOLON");
+  IElementType SETTER_META = new HaxeElementType("SETTER_META");
+  IElementType SHIFT_EXPRESSION = new HaxeElementType("SHIFT_EXPRESSION");
+  IElementType SHIFT_OPERATOR = new HaxeElementType("SHIFT_OPERATOR");
+  IElementType SHIFT_RIGHT_OPERATOR = new HaxeElementType("SHIFT_RIGHT_OPERATOR");
+  IElementType SHORT_TEMPLATE_ENTRY = new HaxeElementType("SHORT_TEMPLATE_ENTRY");
+  IElementType STRING_LITERAL_EXPRESSION = new HaxeElementType("STRING_LITERAL_EXPRESSION");
+  IElementType SUFFIX_EXPRESSION = new HaxeElementType("SUFFIX_EXPRESSION");
+  IElementType SUPER_EXPRESSION = new HaxeElementType("SUPER_EXPRESSION");
+  IElementType SWITCH_BLOCK = new HaxeElementType("SWITCH_BLOCK");
+  IElementType SWITCH_CASE = new HaxeElementType("SWITCH_CASE");
+  IElementType SWITCH_CASE_BLOCK = new HaxeElementType("SWITCH_CASE_BLOCK");
+  IElementType SWITCH_CASE_EXPRESSION = new HaxeElementType("SWITCH_CASE_EXPRESSION");
+  IElementType SWITCH_STATEMENT = new HaxeElementType("SWITCH_STATEMENT");
+  IElementType TERNARY_EXPRESSION = new HaxeElementType("TERNARY_EXPRESSION");
+  IElementType THIS_EXPRESSION = new HaxeElementType("THIS_EXPRESSION");
+  IElementType THROW_STATEMENT = new HaxeElementType("THROW_STATEMENT");
+  IElementType TRY_STATEMENT = new HaxeElementType("TRY_STATEMENT");
+  IElementType TYPE = new HaxeElementType("TYPE");
+  IElementType TYPEDEF_DECLARATION = new HaxeElementType("TYPEDEF_DECLARATION");
+  IElementType TYPE_EXTENDS = new HaxeElementType("TYPE_EXTENDS");
+  IElementType TYPE_LIST = new HaxeElementType("TYPE_LIST");
+  IElementType TYPE_LIST_PART = new HaxeElementType("TYPE_LIST_PART");
+  IElementType TYPE_OR_ANONYMOUS = new HaxeElementType("TYPE_OR_ANONYMOUS");
+  IElementType TYPE_PARAM = new HaxeElementType("TYPE_PARAM");
+  IElementType TYPE_TAG = new HaxeElementType("TYPE_TAG");
+  IElementType UNSIGNED_SHIFT_RIGHT_OPERATOR = new HaxeElementType("UNSIGNED_SHIFT_RIGHT_OPERATOR");
+  IElementType USING_STATEMENT = new HaxeElementType("USING_STATEMENT");
+  IElementType VAR_DECLARATION = new HaxeElementType("VAR_DECLARATION");
+  IElementType VAR_DECLARATION_PART = new HaxeElementType("VAR_DECLARATION_PART");
+  IElementType VAR_INIT = new HaxeElementType("VAR_INIT");
+  IElementType WHILE_STATEMENT = new HaxeElementType("WHILE_STATEMENT");
 
   IElementType CLOSING_QUOTE = new HaxeElementType("CLOSING_QUOTE");
   IElementType ID = new HaxeElementType("ID");
@@ -257,361 +257,361 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == HAXE_ACCESS) {
+       if (type == ACCESS) {
         return new HaxeAccessImpl(node);
       }
-      else if (type == HAXE_ADDITIVE_EXPRESSION) {
+      else if (type == ADDITIVE_EXPRESSION) {
         return new HaxeAdditiveExpressionImpl(node);
       }
-      else if (type == HAXE_ANONYMOUS_FUNCTION_DECLARATION) {
+      else if (type == ANONYMOUS_FUNCTION_DECLARATION) {
         return new HaxeAnonymousFunctionDeclarationImpl(node);
       }
-      else if (type == HAXE_ANONYMOUS_TYPE) {
+      else if (type == ANONYMOUS_TYPE) {
         return new HaxeAnonymousTypeImpl(node);
       }
-      else if (type == HAXE_ANONYMOUS_TYPE_BODY) {
+      else if (type == ANONYMOUS_TYPE_BODY) {
         return new HaxeAnonymousTypeBodyImpl(node);
       }
-      else if (type == HAXE_ANONYMOUS_TYPE_FIELD) {
+      else if (type == ANONYMOUS_TYPE_FIELD) {
         return new HaxeAnonymousTypeFieldImpl(node);
       }
-      else if (type == HAXE_ANONYMOUS_TYPE_FIELD_LIST) {
+      else if (type == ANONYMOUS_TYPE_FIELD_LIST) {
         return new HaxeAnonymousTypeFieldListImpl(node);
       }
-      else if (type == HAXE_ARRAY_ACCESS_EXPRESSION) {
+      else if (type == ARRAY_ACCESS_EXPRESSION) {
         return new HaxeArrayAccessExpressionImpl(node);
       }
-      else if (type == HAXE_ARRAY_LITERAL) {
+      else if (type == ARRAY_LITERAL) {
         return new HaxeArrayLiteralImpl(node);
       }
-      else if (type == HAXE_ASSIGN_EXPRESSION) {
+      else if (type == ASSIGN_EXPRESSION) {
         return new HaxeAssignExpressionImpl(node);
       }
-      else if (type == HAXE_ASSIGN_OPERATION) {
+      else if (type == ASSIGN_OPERATION) {
         return new HaxeAssignOperationImpl(node);
       }
-      else if (type == HAXE_AUTO_BUILD_MACRO) {
+      else if (type == AUTO_BUILD_MACRO) {
         return new HaxeAutoBuildMacroImpl(node);
       }
-      else if (type == HAXE_BITMAP_META) {
+      else if (type == BITMAP_META) {
         return new HaxeBitmapMetaImpl(node);
       }
-      else if (type == HAXE_BITWISE_EXPRESSION) {
+      else if (type == BITWISE_EXPRESSION) {
         return new HaxeBitwiseExpressionImpl(node);
       }
-      else if (type == HAXE_BIT_OPERATION) {
+      else if (type == BIT_OPERATION) {
         return new HaxeBitOperationImpl(node);
       }
-      else if (type == HAXE_BLOCK_STATEMENT) {
+      else if (type == BLOCK_STATEMENT) {
         return new HaxeBlockStatementImpl(node);
       }
-      else if (type == HAXE_BREAK_STATEMENT) {
+      else if (type == BREAK_STATEMENT) {
         return new HaxeBreakStatementImpl(node);
       }
-      else if (type == HAXE_BUILD_MACRO) {
+      else if (type == BUILD_MACRO) {
         return new HaxeBuildMacroImpl(node);
       }
-      else if (type == HAXE_CALL_EXPRESSION) {
+      else if (type == CALL_EXPRESSION) {
         return new HaxeCallExpressionImpl(node);
       }
-      else if (type == HAXE_CAST_EXPRESSION) {
+      else if (type == CAST_EXPRESSION) {
         return new HaxeCastExpressionImpl(node);
       }
-      else if (type == HAXE_CATCH_STATEMENT) {
+      else if (type == CATCH_STATEMENT) {
         return new HaxeCatchStatementImpl(node);
       }
-      else if (type == HAXE_CLASS_BODY) {
+      else if (type == CLASS_BODY) {
         return new HaxeClassBodyImpl(node);
       }
-      else if (type == HAXE_CLASS_DECLARATION) {
+      else if (type == CLASS_DECLARATION) {
         return new HaxeClassDeclarationImpl(node);
       }
-      else if (type == HAXE_COMPARE_EXPRESSION) {
+      else if (type == COMPARE_EXPRESSION) {
         return new HaxeCompareExpressionImpl(node);
       }
-      else if (type == HAXE_COMPARE_OPERATION) {
+      else if (type == COMPARE_OPERATION) {
         return new HaxeCompareOperationImpl(node);
       }
-      else if (type == HAXE_COMPONENT_NAME) {
+      else if (type == COMPONENT_NAME) {
         return new HaxeComponentNameImpl(node);
       }
-      else if (type == HAXE_CONTINUE_STATEMENT) {
+      else if (type == CONTINUE_STATEMENT) {
         return new HaxeContinueStatementImpl(node);
       }
-      else if (type == HAXE_CUSTOM_META) {
+      else if (type == CUSTOM_META) {
         return new HaxeCustomMetaImpl(node);
       }
-      else if (type == HAXE_DECLARATION_ATTRIBUTE) {
+      else if (type == DECLARATION_ATTRIBUTE) {
         return new HaxeDeclarationAttributeImpl(node);
       }
-      else if (type == HAXE_DECLARATION_ATTRIBUTE_LIST) {
+      else if (type == DECLARATION_ATTRIBUTE_LIST) {
         return new HaxeDeclarationAttributeListImpl(node);
       }
-      else if (type == HAXE_DEFAULT_CASE) {
+      else if (type == DEFAULT_CASE) {
         return new HaxeDefaultCaseImpl(node);
       }
-      else if (type == HAXE_DO_WHILE_STATEMENT) {
+      else if (type == DO_WHILE_STATEMENT) {
         return new HaxeDoWhileStatementImpl(node);
       }
-      else if (type == HAXE_ENUM_BODY) {
+      else if (type == ENUM_BODY) {
         return new HaxeEnumBodyImpl(node);
       }
-      else if (type == HAXE_ENUM_CONSTRUCTOR_PARAMETERS) {
+      else if (type == ENUM_CONSTRUCTOR_PARAMETERS) {
         return new HaxeEnumConstructorParametersImpl(node);
       }
-      else if (type == HAXE_ENUM_DECLARATION) {
+      else if (type == ENUM_DECLARATION) {
         return new HaxeEnumDeclarationImpl(node);
       }
-      else if (type == HAXE_ENUM_VALUE_DECLARATION) {
+      else if (type == ENUM_VALUE_DECLARATION) {
         return new HaxeEnumValueDeclarationImpl(node);
       }
-      else if (type == HAXE_EXPRESSION) {
+      else if (type == EXPRESSION) {
         return new HaxeExpressionImpl(node);
       }
-      else if (type == HAXE_EXPRESSION_LIST) {
+      else if (type == EXPRESSION_LIST) {
         return new HaxeExpressionListImpl(node);
       }
-      else if (type == HAXE_EXTERN_CLASS_DECLARATION) {
+      else if (type == EXTERN_CLASS_DECLARATION) {
         return new HaxeExternClassDeclarationImpl(node);
       }
-      else if (type == HAXE_EXTERN_CLASS_DECLARATION_BODY) {
+      else if (type == EXTERN_CLASS_DECLARATION_BODY) {
         return new HaxeExternClassDeclarationBodyImpl(node);
       }
-      else if (type == HAXE_EXTERN_FUNCTION_DECLARATION) {
+      else if (type == EXTERN_FUNCTION_DECLARATION) {
         return new HaxeExternFunctionDeclarationImpl(node);
       }
-      else if (type == HAXE_EXTERN_OR_PRIVATE) {
+      else if (type == EXTERN_OR_PRIVATE) {
         return new HaxeExternOrPrivateImpl(node);
       }
-      else if (type == HAXE_FAKE_ENUM_META) {
+      else if (type == FAKE_ENUM_META) {
         return new HaxeFakeEnumMetaImpl(node);
       }
-      else if (type == HAXE_FOR_STATEMENT) {
+      else if (type == FOR_STATEMENT) {
         return new HaxeForStatementImpl(node);
       }
-      else if (type == HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES) {
+      else if (type == FUNCTION_DECLARATION_WITH_ATTRIBUTES) {
         return new HaxeFunctionDeclarationWithAttributesImpl(node);
       }
-      else if (type == HAXE_FUNCTION_LITERAL) {
+      else if (type == FUNCTION_LITERAL) {
         return new HaxeFunctionLiteralImpl(node);
       }
-      else if (type == HAXE_FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES) {
+      else if (type == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES) {
         return new HaxeFunctionPrototypeDeclarationWithAttributesImpl(node);
       }
-      else if (type == HAXE_FUNCTION_TYPE) {
+      else if (type == FUNCTION_TYPE) {
         return new HaxeFunctionTypeImpl(node);
       }
-      else if (type == HAXE_GENERIC_LIST_PART) {
+      else if (type == GENERIC_LIST_PART) {
         return new HaxeGenericListPartImpl(node);
       }
-      else if (type == HAXE_GENERIC_PARAM) {
+      else if (type == GENERIC_PARAM) {
         return new HaxeGenericParamImpl(node);
       }
-      else if (type == HAXE_GETTER_META) {
+      else if (type == GETTER_META) {
         return new HaxeGetterMetaImpl(node);
       }
-      else if (type == HAXE_IDENTIFIER) {
+      else if (type == IDENTIFIER) {
         return new HaxeIdentifierImpl(node);
       }
-      else if (type == HAXE_IF_STATEMENT) {
+      else if (type == IF_STATEMENT) {
         return new HaxeIfStatementImpl(node);
       }
-      else if (type == HAXE_IMPORT_STATEMENT) {
+      else if (type == IMPORT_STATEMENT) {
         return new HaxeImportStatementImpl(node);
       }
-      else if (type == HAXE_INHERIT) {
+      else if (type == INHERIT) {
         return new HaxeInheritImpl(node);
       }
-      else if (type == HAXE_INHERIT_LIST) {
+      else if (type == INHERIT_LIST) {
         return new HaxeInheritListImpl(node);
       }
-      else if (type == HAXE_INTERFACE_BODY) {
+      else if (type == INTERFACE_BODY) {
         return new HaxeInterfaceBodyImpl(node);
       }
-      else if (type == HAXE_INTERFACE_DECLARATION) {
+      else if (type == INTERFACE_DECLARATION) {
         return new HaxeInterfaceDeclarationImpl(node);
       }
-      else if (type == HAXE_ITERABLE) {
+      else if (type == ITERABLE) {
         return new HaxeIterableImpl(node);
       }
-      else if (type == HAXE_ITERATOR_EXPRESSION) {
+      else if (type == ITERATOR_EXPRESSION) {
         return new HaxeIteratorExpressionImpl(node);
       }
-      else if (type == HAXE_LITERAL_EXPRESSION) {
+      else if (type == LITERAL_EXPRESSION) {
         return new HaxeLiteralExpressionImpl(node);
       }
-      else if (type == HAXE_LOCAL_FUNCTION_DECLARATION) {
+      else if (type == LOCAL_FUNCTION_DECLARATION) {
         return new HaxeLocalFunctionDeclarationImpl(node);
       }
-      else if (type == HAXE_LOCAL_VAR_DECLARATION) {
+      else if (type == LOCAL_VAR_DECLARATION) {
         return new HaxeLocalVarDeclarationImpl(node);
       }
-      else if (type == HAXE_LOCAL_VAR_DECLARATION_PART) {
+      else if (type == LOCAL_VAR_DECLARATION_PART) {
         return new HaxeLocalVarDeclarationPartImpl(node);
       }
-      else if (type == HAXE_LOGIC_AND_EXPRESSION) {
+      else if (type == LOGIC_AND_EXPRESSION) {
         return new HaxeLogicAndExpressionImpl(node);
       }
-      else if (type == HAXE_LOGIC_OR_EXPRESSION) {
+      else if (type == LOGIC_OR_EXPRESSION) {
         return new HaxeLogicOrExpressionImpl(node);
       }
-      else if (type == HAXE_LONG_TEMPLATE_ENTRY) {
+      else if (type == LONG_TEMPLATE_ENTRY) {
         return new HaxeLongTemplateEntryImpl(node);
       }
-      else if (type == HAXE_META_KEY_VALUE) {
+      else if (type == META_KEY_VALUE) {
         return new HaxeMetaKeyValueImpl(node);
       }
-      else if (type == HAXE_META_META) {
+      else if (type == META_META) {
         return new HaxeMetaMetaImpl(node);
       }
-      else if (type == HAXE_MULTIPLICATIVE_EXPRESSION) {
+      else if (type == MULTIPLICATIVE_EXPRESSION) {
         return new HaxeMultiplicativeExpressionImpl(node);
       }
-      else if (type == HAXE_NATIVE_META) {
+      else if (type == NATIVE_META) {
         return new HaxeNativeMetaImpl(node);
       }
-      else if (type == HAXE_NEW_EXPRESSION) {
+      else if (type == NEW_EXPRESSION) {
         return new HaxeNewExpressionImpl(node);
       }
-      else if (type == HAXE_NS_META) {
+      else if (type == NS_META) {
         return new HaxeNsMetaImpl(node);
       }
-      else if (type == HAXE_OBJECT_LITERAL) {
+      else if (type == OBJECT_LITERAL) {
         return new HaxeObjectLiteralImpl(node);
       }
-      else if (type == HAXE_OBJECT_LITERAL_ELEMENT) {
+      else if (type == OBJECT_LITERAL_ELEMENT) {
         return new HaxeObjectLiteralElementImpl(node);
       }
-      else if (type == HAXE_OVERLOAD_META) {
+      else if (type == OVERLOAD_META) {
         return new HaxeOverloadMetaImpl(node);
       }
-      else if (type == HAXE_PACKAGE_STATEMENT) {
+      else if (type == PACKAGE_STATEMENT) {
         return new HaxePackageStatementImpl(node);
       }
-      else if (type == HAXE_PARAMETER) {
+      else if (type == PARAMETER) {
         return new HaxeParameterImpl(node);
       }
-      else if (type == HAXE_PARAMETER_LIST) {
+      else if (type == PARAMETER_LIST) {
         return new HaxeParameterListImpl(node);
       }
-      else if (type == HAXE_PARENTHESIZED_EXPRESSION) {
+      else if (type == PARENTHESIZED_EXPRESSION) {
         return new HaxeParenthesizedExpressionImpl(node);
       }
-      else if (type == HAXE_PREFIX_EXPRESSION) {
+      else if (type == PREFIX_EXPRESSION) {
         return new HaxePrefixExpressionImpl(node);
       }
-      else if (type == HAXE_PROPERTY_ACCESSOR) {
+      else if (type == PROPERTY_ACCESSOR) {
         return new HaxePropertyAccessorImpl(node);
       }
-      else if (type == HAXE_PROPERTY_DECLARATION) {
+      else if (type == PROPERTY_DECLARATION) {
         return new HaxePropertyDeclarationImpl(node);
       }
-      else if (type == HAXE_REFERENCE_EXPRESSION) {
+      else if (type == REFERENCE_EXPRESSION) {
         return new HaxeReferenceExpressionImpl(node);
       }
-      else if (type == HAXE_REGULAR_EXPRESSION_LITERAL) {
+      else if (type == REGULAR_EXPRESSION_LITERAL) {
         return new HaxeRegularExpressionLiteralImpl(node);
       }
-      else if (type == HAXE_REQUIRE_META) {
+      else if (type == REQUIRE_META) {
         return new HaxeRequireMetaImpl(node);
       }
-      else if (type == HAXE_RETURN_STATEMENT) {
+      else if (type == RETURN_STATEMENT) {
         return new HaxeReturnStatementImpl(node);
       }
-      else if (type == HAXE_RETURN_STATEMENT_WITHOUT_SEMICOLON) {
+      else if (type == RETURN_STATEMENT_WITHOUT_SEMICOLON) {
         return new HaxeReturnStatementWithoutSemicolonImpl(node);
       }
-      else if (type == HAXE_SETTER_META) {
+      else if (type == SETTER_META) {
         return new HaxeSetterMetaImpl(node);
       }
-      else if (type == HAXE_SHIFT_EXPRESSION) {
+      else if (type == SHIFT_EXPRESSION) {
         return new HaxeShiftExpressionImpl(node);
       }
-      else if (type == HAXE_SHIFT_OPERATOR) {
+      else if (type == SHIFT_OPERATOR) {
         return new HaxeShiftOperatorImpl(node);
       }
-      else if (type == HAXE_SHIFT_RIGHT_OPERATOR) {
+      else if (type == SHIFT_RIGHT_OPERATOR) {
         return new HaxeShiftRightOperatorImpl(node);
       }
-      else if (type == HAXE_SHORT_TEMPLATE_ENTRY) {
+      else if (type == SHORT_TEMPLATE_ENTRY) {
         return new HaxeShortTemplateEntryImpl(node);
       }
-      else if (type == HAXE_STRING_LITERAL_EXPRESSION) {
+      else if (type == STRING_LITERAL_EXPRESSION) {
         return new HaxeStringLiteralExpressionImpl(node);
       }
-      else if (type == HAXE_SUFFIX_EXPRESSION) {
+      else if (type == SUFFIX_EXPRESSION) {
         return new HaxeSuffixExpressionImpl(node);
       }
-      else if (type == HAXE_SUPER_EXPRESSION) {
+      else if (type == SUPER_EXPRESSION) {
         return new HaxeSuperExpressionImpl(node);
       }
-      else if (type == HAXE_SWITCH_BLOCK) {
+      else if (type == SWITCH_BLOCK) {
         return new HaxeSwitchBlockImpl(node);
       }
-      else if (type == HAXE_SWITCH_CASE) {
+      else if (type == SWITCH_CASE) {
         return new HaxeSwitchCaseImpl(node);
       }
-      else if (type == HAXE_SWITCH_CASE_BLOCK) {
+      else if (type == SWITCH_CASE_BLOCK) {
         return new HaxeSwitchCaseBlockImpl(node);
       }
-      else if (type == HAXE_SWITCH_CASE_EXPRESSION) {
+      else if (type == SWITCH_CASE_EXPRESSION) {
         return new HaxeSwitchCaseExpressionImpl(node);
       }
-      else if (type == HAXE_SWITCH_STATEMENT) {
+      else if (type == SWITCH_STATEMENT) {
         return new HaxeSwitchStatementImpl(node);
       }
-      else if (type == HAXE_TERNARY_EXPRESSION) {
+      else if (type == TERNARY_EXPRESSION) {
         return new HaxeTernaryExpressionImpl(node);
       }
-      else if (type == HAXE_THIS_EXPRESSION) {
+      else if (type == THIS_EXPRESSION) {
         return new HaxeThisExpressionImpl(node);
       }
-      else if (type == HAXE_THROW_STATEMENT) {
+      else if (type == THROW_STATEMENT) {
         return new HaxeThrowStatementImpl(node);
       }
-      else if (type == HAXE_TRY_STATEMENT) {
+      else if (type == TRY_STATEMENT) {
         return new HaxeTryStatementImpl(node);
       }
-      else if (type == HAXE_TYPE) {
+      else if (type == TYPE) {
         return new HaxeTypeImpl(node);
       }
-      else if (type == HAXE_TYPEDEF_DECLARATION) {
+      else if (type == TYPEDEF_DECLARATION) {
         return new HaxeTypedefDeclarationImpl(node);
       }
-      else if (type == HAXE_TYPE_EXTENDS) {
+      else if (type == TYPE_EXTENDS) {
         return new HaxeTypeExtendsImpl(node);
       }
-      else if (type == HAXE_TYPE_LIST) {
+      else if (type == TYPE_LIST) {
         return new HaxeTypeListImpl(node);
       }
-      else if (type == HAXE_TYPE_LIST_PART) {
+      else if (type == TYPE_LIST_PART) {
         return new HaxeTypeListPartImpl(node);
       }
-      else if (type == HAXE_TYPE_OR_ANONYMOUS) {
+      else if (type == TYPE_OR_ANONYMOUS) {
         return new HaxeTypeOrAnonymousImpl(node);
       }
-      else if (type == HAXE_TYPE_PARAM) {
+      else if (type == TYPE_PARAM) {
         return new HaxeTypeParamImpl(node);
       }
-      else if (type == HAXE_TYPE_TAG) {
+      else if (type == TYPE_TAG) {
         return new HaxeTypeTagImpl(node);
       }
-      else if (type == HAXE_UNSIGNED_SHIFT_RIGHT_OPERATOR) {
+      else if (type == UNSIGNED_SHIFT_RIGHT_OPERATOR) {
         return new HaxeUnsignedShiftRightOperatorImpl(node);
       }
-      else if (type == HAXE_USING_STATEMENT) {
+      else if (type == USING_STATEMENT) {
         return new HaxeUsingStatementImpl(node);
       }
-      else if (type == HAXE_VAR_DECLARATION) {
+      else if (type == VAR_DECLARATION) {
         return new HaxeVarDeclarationImpl(node);
       }
-      else if (type == HAXE_VAR_DECLARATION_PART) {
+      else if (type == VAR_DECLARATION_PART) {
         return new HaxeVarDeclarationPartImpl(node);
       }
-      else if (type == HAXE_VAR_INIT) {
+      else if (type == VAR_INIT) {
         return new HaxeVarInitImpl(node);
       }
-      else if (type == HAXE_WHILE_STATEMENT) {
+      else if (type == WHILE_STATEMENT) {
         return new HaxeWhileStatementImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);

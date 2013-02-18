@@ -1,89 +1,89 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Test6')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('foo')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('o')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_OBJECT_LITERAL
+                OBJECT_LITERAL
                   PsiElement({)('{')
-                  HAXE_OBJECT_LITERAL_ELEMENT
-                    HAXE_IDENTIFIER
+                  OBJECT_LITERAL_ELEMENT
+                    IDENTIFIER
                       PsiElement(ID)('age')
                     PsiElement(:)(':')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(LITINT)('26')
                   PsiElement(,)(',')
-                  HAXE_OBJECT_LITERAL_ELEMENT
-                    HAXE_IDENTIFIER
+                  OBJECT_LITERAL_ELEMENT
+                    IDENTIFIER
                       PsiElement(ID)('name')
                     PsiElement(:)(':')
-                    HAXE_STRING_LITERAL_EXPRESSION
+                    STRING_LITERAL_EXPRESSION
                       PsiElement(OPEN_QUOTE)('"')
                       PsiElement(REGULAR_STRING_PART)('Tom')
                       PsiElement(CLOSING_QUOTE)('"')
                   PsiElement(})('}')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('regExp')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_REGULAR_EXPRESSION_LITERAL
+                REGULAR_EXPRESSION_LITERAL
                   PsiElement(REG_EXP)('~/Hello/i')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('mail')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_REGULAR_EXPRESSION_LITERAL
+                REGULAR_EXPRESSION_LITERAL
                   PsiElement(REG_EXP)('~/[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z][A-Z][A-Z]?/i')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('example1')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_REGULAR_EXPRESSION_LITERAL
+                REGULAR_EXPRESSION_LITERAL
                   PsiElement(REG_EXP)('~/([A-Za-z]+) is ([0-9]+) years old/')
             PsiElement(;)(';')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('example2')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_REGULAR_EXPRESSION_LITERAL
+                REGULAR_EXPRESSION_LITERAL
                   PsiElement(REG_EXP)('~/(.+)Test/ig')
             PsiElement(;)(';')
           PsiElement(})('}')

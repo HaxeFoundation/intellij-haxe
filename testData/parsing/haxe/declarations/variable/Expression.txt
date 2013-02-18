@@ -1,46 +1,46 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Expression')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_VAR_DECLARATION
+    CLASS_BODY
+      VAR_DECLARATION
         PsiElement(var)('var')
-        HAXE_VAR_DECLARATION_PART
-          HAXE_COMPONENT_NAME
-            HAXE_IDENTIFIER
+        VAR_DECLARATION_PART
+          COMPONENT_NAME
+            IDENTIFIER
               PsiElement(ID)('foo')
-          HAXE_TYPE_TAG
+          TYPE_TAG
             PsiElement(:)(':')
-            HAXE_TYPE_OR_ANONYMOUS
-              HAXE_TYPE
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('int')
-          HAXE_VAR_INIT
+          VAR_INIT
             PsiElement(=)('=')
-            HAXE_MULTIPLICATIVE_EXPRESSION
-              HAXE_MULTIPLICATIVE_EXPRESSION
-                HAXE_LITERAL_EXPRESSION
+            MULTIPLICATIVE_EXPRESSION
+              MULTIPLICATIVE_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('2')
                 PsiElement(*)('*')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('Math')
                   PsiElement(.)('.')
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('PI')
               PsiElement(*)('*')
-              HAXE_ARRAY_ACCESS_EXPRESSION
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+              ARRAY_ACCESS_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('radius')
                 PsiElement([)('[')
-                HAXE_LITERAL_EXPRESSION
+                LITERAL_EXPRESSION
                   PsiElement(LITINT)('0')
                 PsiElement(])(']')
         PsiElement(;)(';')

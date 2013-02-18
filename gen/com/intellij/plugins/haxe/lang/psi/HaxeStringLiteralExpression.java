@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeStringLiteralExpression extends HaxeReference, HaxeExpression {
+public interface HaxeStringLiteralExpression extends HaxeExpression, HaxeReference {
 
   @NotNull
   List<HaxeLongTemplateEntry> getLongTemplateEntryList();

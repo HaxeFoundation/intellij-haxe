@@ -1,119 +1,119 @@
 haXe File
-  HAXE_ENUM_DECLARATION
+  ENUM_DECLARATION
     PsiElement(enum)('enum')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Color3')
     PsiElement({)('{')
-    HAXE_ENUM_BODY
-      HAXE_ENUM_VALUE_DECLARATION
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+    ENUM_BODY
+      ENUM_VALUE_DECLARATION
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('red')
         PsiElement(;)(';')
-      HAXE_ENUM_VALUE_DECLARATION
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+      ENUM_VALUE_DECLARATION
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('green')
         PsiElement(;)(';')
-      HAXE_ENUM_VALUE_DECLARATION
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+      ENUM_VALUE_DECLARATION
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('blue')
         PsiElement(;)(';')
-      HAXE_ENUM_VALUE_DECLARATION
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+      ENUM_VALUE_DECLARATION
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('grey')
-        HAXE_ENUM_CONSTRUCTOR_PARAMETERS
+        ENUM_CONSTRUCTOR_PARAMETERS
           PsiElement(()('(')
-          HAXE_PARAMETER_LIST
-            HAXE_PARAMETER
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+          PARAMETER_LIST
+            PARAMETER
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('v')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPE_OR_ANONYMOUS
-                  HAXE_TYPE
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('Int')
           PsiElement())(')')
         PsiElement(;)(';')
-      HAXE_ENUM_VALUE_DECLARATION
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+      ENUM_VALUE_DECLARATION
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('rgb')
-        HAXE_ENUM_CONSTRUCTOR_PARAMETERS
+        ENUM_CONSTRUCTOR_PARAMETERS
           PsiElement(()('(')
-          HAXE_PARAMETER_LIST
-            HAXE_PARAMETER
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+          PARAMETER_LIST
+            PARAMETER
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('r')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPE_OR_ANONYMOUS
-                  HAXE_TYPE
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('Int')
             PsiElement(,)(',')
-            HAXE_PARAMETER
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            PARAMETER
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('g')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPE_OR_ANONYMOUS
-                  HAXE_TYPE
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('Int')
             PsiElement(,)(',')
-            HAXE_PARAMETER
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            PARAMETER
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('b')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPE_OR_ANONYMOUS
-                  HAXE_TYPE
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('Int')
           PsiElement())(')')
         PsiElement(;)(';')
-      HAXE_ENUM_VALUE_DECLARATION
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+      ENUM_VALUE_DECLARATION
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('alpha')
-        HAXE_ENUM_CONSTRUCTOR_PARAMETERS
+        ENUM_CONSTRUCTOR_PARAMETERS
           PsiElement(()('(')
-          HAXE_PARAMETER_LIST
-            HAXE_PARAMETER
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+          PARAMETER_LIST
+            PARAMETER
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('a')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPE_OR_ANONYMOUS
-                  HAXE_TYPE
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('Int')
             PsiElement(,)(',')
-            HAXE_PARAMETER
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            PARAMETER
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('col')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
-                HAXE_TYPE_OR_ANONYMOUS
-                  HAXE_TYPE
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('Color3')
           PsiElement())(')')
         PsiElement(;)(';')

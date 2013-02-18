@@ -1,165 +1,165 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Test8')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        HAXE_DECLARATION_ATTRIBUTE_LIST
-          HAXE_DECLARATION_ATTRIBUTE
-            HAXE_ACCESS
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        DECLARATION_ATTRIBUTE_LIST
+          DECLARATION_ATTRIBUTE
+            ACCESS
               PsiElement(public)('public')
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('example')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPE_TAG
+        TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPE_OR_ANONYMOUS
-            HAXE_TYPE
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('Something')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_RETURN_STATEMENT
+          RETURN_STATEMENT
             PsiElement(return)('return')
-            HAXE_PREFIX_EXPRESSION
-              HAXE_IF_STATEMENT
+            PREFIX_EXPRESSION
+              IF_STATEMENT
                 PsiElement(if)('if')
                 PsiElement(()('(')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('isFlag')
                 PsiElement())(')')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('flagExample')
                 PsiElement(;)(';')
                 PsiElement(else)('else')
-                HAXE_REFERENCE_EXPRESSION
-                  HAXE_IDENTIFIER
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
                     PsiElement(ID)('noFlagExample')
                 PsiElement(;)(';')
           PsiElement(})('}')
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        HAXE_DECLARATION_ATTRIBUTE_LIST
-          HAXE_DECLARATION_ATTRIBUTE
-            HAXE_ACCESS
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        DECLARATION_ATTRIBUTE_LIST
+          DECLARATION_ATTRIBUTE
+            ACCESS
               PsiElement(public)('public')
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('example2')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_TYPE_TAG
+        TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPE_OR_ANONYMOUS
-            HAXE_TYPE
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('Something')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION
             PsiElement(var)('var')
-            HAXE_LOCAL_VAR_DECLARATION_PART
-              HAXE_COMPONENT_NAME
-                HAXE_IDENTIFIER
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
                   PsiElement(ID)('f')
-              HAXE_TYPE_TAG
+              TYPE_TAG
                 PsiElement(:)(':')
                 PsiElement(()('(')
-                HAXE_FUNCTION_TYPE
-                  HAXE_FUNCTION_TYPE
-                    HAXE_TYPE_OR_ANONYMOUS
-                      HAXE_TYPE
-                        HAXE_REFERENCE_EXPRESSION
-                          HAXE_IDENTIFIER
+                FUNCTION_TYPE
+                  FUNCTION_TYPE
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
                             PsiElement(ID)('Void')
                     PsiElement(->)('->')
-                    HAXE_TYPE_OR_ANONYMOUS
-                      HAXE_TYPE
-                        HAXE_REFERENCE_EXPRESSION
-                          HAXE_IDENTIFIER
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
                             PsiElement(ID)('Void')
                   PsiElement())(')')
                   PsiElement(->)('->')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('Void')
-              HAXE_VAR_INIT
+              VAR_INIT
                 PsiElement(=)('=')
-                HAXE_FUNCTION_LITERAL
+                FUNCTION_LITERAL
                   PsiElement(function)('function')
                   PsiElement(()('(')
-                  HAXE_PARAMETER_LIST
-                    HAXE_PARAMETER
-                      HAXE_COMPONENT_NAME
-                        HAXE_IDENTIFIER
+                  PARAMETER_LIST
+                    PARAMETER
+                      COMPONENT_NAME
+                        IDENTIFIER
                           PsiElement(ID)('fun')
-                      HAXE_TYPE_TAG
+                      TYPE_TAG
                         PsiElement(:)(':')
-                        HAXE_FUNCTION_TYPE
-                          HAXE_TYPE_OR_ANONYMOUS
-                            HAXE_TYPE
-                              HAXE_REFERENCE_EXPRESSION
-                                HAXE_IDENTIFIER
+                        FUNCTION_TYPE
+                          TYPE_OR_ANONYMOUS
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
                                   PsiElement(ID)('Void')
                           PsiElement(->)('->')
-                          HAXE_TYPE_OR_ANONYMOUS
-                            HAXE_TYPE
-                              HAXE_REFERENCE_EXPRESSION
-                                HAXE_IDENTIFIER
+                          TYPE_OR_ANONYMOUS
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
                                   PsiElement(ID)('Void')
                   PsiElement())(')')
-                  HAXE_TYPE_TAG
+                  TYPE_TAG
                     PsiElement(:)(':')
-                    HAXE_TYPE_OR_ANONYMOUS
-                      HAXE_TYPE
-                        HAXE_REFERENCE_EXPRESSION
-                          HAXE_IDENTIFIER
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
                             PsiElement(ID)('Void')
-                  HAXE_BLOCK_STATEMENT
+                  BLOCK_STATEMENT
                     PsiElement({)('{')
                     PsiElement(})('}')
             PsiElement(;)(';')
-          HAXE_RETURN_STATEMENT
+          RETURN_STATEMENT
             PsiElement(return)('return')
-            HAXE_PREFIX_EXPRESSION
-              HAXE_TRY_STATEMENT
+            PREFIX_EXPRESSION
+              TRY_STATEMENT
                 PsiElement(try)('try')
-                HAXE_CALL_EXPRESSION
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('example')
                   PsiElement(()('(')
                   PsiElement())(')')
-                HAXE_CATCH_STATEMENT
+                CATCH_STATEMENT
                   PsiElement(catch)('catch')
                   PsiElement(()('(')
-                  HAXE_PARAMETER
-                    HAXE_COMPONENT_NAME
-                      HAXE_IDENTIFIER
+                  PARAMETER
+                    COMPONENT_NAME
+                      IDENTIFIER
                         PsiElement(ID)('e')
-                    HAXE_TYPE_TAG
+                    TYPE_TAG
                       PsiElement(:)(':')
-                      HAXE_TYPE_OR_ANONYMOUS
-                        HAXE_TYPE
-                          HAXE_REFERENCE_EXPRESSION
-                            HAXE_IDENTIFIER
+                      TYPE_OR_ANONYMOUS
+                        TYPE
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
                               PsiElement(ID)('String')
                   PsiElement())(')')
-                  HAXE_BLOCK_STATEMENT
+                  BLOCK_STATEMENT
                     PsiElement({)('{')
-                    HAXE_LITERAL_EXPRESSION
+                    LITERAL_EXPRESSION
                       PsiElement(null)('null')
                     PsiElement(;)(';')
                     PsiElement(})('}')

@@ -1,267 +1,267 @@
 haXe File
-  HAXE_CLASS_DECLARATION
+  CLASS_DECLARATION
     PsiElement(@:keep)('@:keep')
     PsiElement(@:final)('@:final')
     PsiElement(@:hack)('@:hack')
-    HAXE_NATIVE_META
+    NATIVE_META
       PsiElement(@:native)('@:native')
       PsiElement(()('(')
-      HAXE_STRING_LITERAL_EXPRESSION
+      STRING_LITERAL_EXPRESSION
         PsiElement(OPEN_QUOTE)('"')
         PsiElement(REGULAR_STRING_PART)('my.real.Path')
         PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
-    HAXE_NS_META
+    NS_META
       PsiElement(@:ns)('@:ns')
       PsiElement(()('(')
-      HAXE_STRING_LITERAL_EXPRESSION
+      STRING_LITERAL_EXPRESSION
         PsiElement(OPEN_QUOTE)('"')
         PsiElement(REGULAR_STRING_PART)('namespace')
         PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
-    HAXE_META_META
+    META_META
       PsiElement(@:meta)('@:meta')
       PsiElement(()('(')
       PsiElement(ID)('Event')
       PsiElement(()('(')
-      HAXE_META_KEY_VALUE
+      META_KEY_VALUE
         PsiElement(ID)('name')
         PsiElement(=)('=')
-        HAXE_STRING_LITERAL_EXPRESSION
+        STRING_LITERAL_EXPRESSION
           PsiElement(OPEN_QUOTE)('"')
           PsiElement(REGULAR_STRING_PART)('test')
           PsiElement(CLOSING_QUOTE)('"')
       PsiElement(,)(',')
-      HAXE_META_KEY_VALUE
+      META_KEY_VALUE
         PsiElement(ID)('type')
         PsiElement(=)('=')
-        HAXE_STRING_LITERAL_EXPRESSION
+        STRING_LITERAL_EXPRESSION
           PsiElement(OPEN_QUOTE)('"')
           PsiElement(REGULAR_STRING_PART)('Foo')
           PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
       PsiElement())(')')
-    HAXE_BITMAP_META
+    BITMAP_META
       PsiElement(@:bitmap)('@:bitmap')
       PsiElement(()('(')
-      HAXE_STRING_LITERAL_EXPRESSION
+      STRING_LITERAL_EXPRESSION
         PsiElement(OPEN_QUOTE)('"')
         PsiElement(REGULAR_STRING_PART)('myfile.png')
         PsiElement(CLOSING_QUOTE)('"')
       PsiElement())(')')
-    HAXE_BUILD_MACRO
+    BUILD_MACRO
       PsiElement(@:build)('@:build')
       PsiElement(()('(')
-      HAXE_CALL_EXPRESSION
-        HAXE_REFERENCE_EXPRESSION
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('MacroGenerator')
           PsiElement(.)('.')
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('build')
         PsiElement(()('(')
         PsiElement())(')')
       PsiElement())(')')
-    HAXE_CUSTOM_META
+    CUSTOM_META
       PsiElement(MACRO_ID)('@superClass')
       PsiElement(()('(')
-      HAXE_STRING_LITERAL_EXPRESSION
+      STRING_LITERAL_EXPRESSION
         PsiElement(OPEN_QUOTE)('"')
         PsiElement(REGULAR_STRING_PART)('user name')
         PsiElement(CLOSING_QUOTE)('"')
       PsiElement(,)(',')
-      HAXE_OBJECT_LITERAL
+      OBJECT_LITERAL
         PsiElement({)('{')
-        HAXE_OBJECT_LITERAL_ELEMENT
-          HAXE_IDENTIFIER
+        OBJECT_LITERAL_ELEMENT
+          IDENTIFIER
             PsiElement(ID)('name')
           PsiElement(:)(':')
-          HAXE_STRING_LITERAL_EXPRESSION
+          STRING_LITERAL_EXPRESSION
             PsiElement(OPEN_QUOTE)('"')
             PsiElement(REGULAR_STRING_PART)('user')
             PsiElement(CLOSING_QUOTE)('"')
         PsiElement(})('}')
       PsiElement())(')')
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('FullOfMacro')
     PsiElement({)('{')
-    HAXE_CLASS_BODY
-      HAXE_VAR_DECLARATION
-        HAXE_CUSTOM_META
+    CLASS_BODY
+      VAR_DECLARATION
+        CUSTOM_META
           PsiElement(MACRO_ID)('@customUser')
         PsiElement(var)('var')
-        HAXE_VAR_DECLARATION_PART
-          HAXE_COMPONENT_NAME
-            HAXE_IDENTIFIER
+        VAR_DECLARATION_PART
+          COMPONENT_NAME
+            IDENTIFIER
               PsiElement(ID)('_value')
         PsiElement(;)(';')
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        HAXE_GETTER_META
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        GETTER_META
           PsiElement(@:getter)('@:getter')
           PsiElement(()('(')
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('_value')
           PsiElement())(')')
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('getValue')
         PsiElement(()('(')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_RETURN_STATEMENT
+          RETURN_STATEMENT
             PsiElement(return)('return')
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('_value')
             PsiElement(;)(';')
           PsiElement(})('}')
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        HAXE_SETTER_META
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        SETTER_META
           PsiElement(@:setter)('@:setter')
           PsiElement(()('(')
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('_value')
           PsiElement())(')')
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('setValue')
         PsiElement(()('(')
-        HAXE_PARAMETER_LIST
-          HAXE_PARAMETER
-            HAXE_COMPONENT_NAME
-              HAXE_IDENTIFIER
+        PARAMETER_LIST
+          PARAMETER
+            COMPONENT_NAME
+              IDENTIFIER
                 PsiElement(ID)('value')
         PsiElement())(')')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
-          HAXE_ASSIGN_EXPRESSION
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+          ASSIGN_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('_value')
-            HAXE_ASSIGN_OPERATION
+            ASSIGN_OPERATION
               PsiElement(=)('=')
-            HAXE_REFERENCE_EXPRESSION
-              HAXE_IDENTIFIER
+            REFERENCE_EXPRESSION
+              IDENTIFIER
                 PsiElement(ID)('value')
           PsiElement(;)(';')
           PsiElement(})('}')
-      HAXE_FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        HAXE_OVERLOAD_META
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        OVERLOAD_META
           PsiElement(@:overload)('@:overload')
           PsiElement(()('(')
-          HAXE_ANONYMOUS_FUNCTION_DECLARATION
+          ANONYMOUS_FUNCTION_DECLARATION
             PsiElement(function)('function')
             PsiElement(()('(')
-            HAXE_PARAMETER_LIST
-              HAXE_PARAMETER
-                HAXE_COMPONENT_NAME
-                  HAXE_IDENTIFIER
+            PARAMETER_LIST
+              PARAMETER
+                COMPONENT_NAME
+                  IDENTIFIER
                     PsiElement(ID)('name')
-                HAXE_TYPE_TAG
+                TYPE_TAG
                   PsiElement(:)(':')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('String')
               PsiElement(,)(',')
-              HAXE_PARAMETER
-                HAXE_COMPONENT_NAME
-                  HAXE_IDENTIFIER
+              PARAMETER
+                COMPONENT_NAME
+                  IDENTIFIER
                     PsiElement(ID)('value')
-                HAXE_TYPE_TAG
+                TYPE_TAG
                   PsiElement(:)(':')
-                  HAXE_TYPE_OR_ANONYMOUS
-                    HAXE_TYPE
-                      HAXE_REFERENCE_EXPRESSION
-                        HAXE_IDENTIFIER
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
                           PsiElement(ID)('String')
             PsiElement())(')')
-            HAXE_TYPE_TAG
+            TYPE_TAG
               PsiElement(:)(':')
-              HAXE_TYPE_OR_ANONYMOUS
-                HAXE_TYPE
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('js')
                     PsiElement(.)('.')
-                    HAXE_REFERENCE_EXPRESSION
-                      HAXE_IDENTIFIER
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
                         PsiElement(ID)('JQuery')
             PsiElement({)('{')
             PsiElement(})('}')
           PsiElement())(')')
         PsiElement(function)('function')
-        HAXE_COMPONENT_NAME
-          HAXE_IDENTIFIER
+        COMPONENT_NAME
+          IDENTIFIER
             PsiElement(ID)('attr')
         PsiElement(()('(')
-        HAXE_PARAMETER_LIST
-          HAXE_PARAMETER
-            HAXE_COMPONENT_NAME
-              HAXE_IDENTIFIER
+        PARAMETER_LIST
+          PARAMETER
+            COMPONENT_NAME
+              IDENTIFIER
                 PsiElement(ID)('name')
-            HAXE_TYPE_TAG
+            TYPE_TAG
               PsiElement(:)(':')
-              HAXE_TYPE_OR_ANONYMOUS
-                HAXE_TYPE
-                  HAXE_REFERENCE_EXPRESSION
-                    HAXE_IDENTIFIER
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
                       PsiElement(ID)('String')
         PsiElement())(')')
-        HAXE_TYPE_TAG
+        TYPE_TAG
           PsiElement(:)(':')
-          HAXE_TYPE_OR_ANONYMOUS
-            HAXE_TYPE
-              HAXE_REFERENCE_EXPRESSION
-                HAXE_IDENTIFIER
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
                   PsiElement(ID)('String')
-        HAXE_BLOCK_STATEMENT
+        BLOCK_STATEMENT
           PsiElement({)('{')
           PsiElement(})('}')
     PsiElement(})('}')
-  HAXE_EXTERN_CLASS_DECLARATION
-    HAXE_BUILD_MACRO
+  EXTERN_CLASS_DECLARATION
+    BUILD_MACRO
       PsiElement(@:build)('@:build')
       PsiElement(()('(')
-      HAXE_CALL_EXPRESSION
-        HAXE_REFERENCE_EXPRESSION
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('MacroGenerator')
           PsiElement(.)('.')
-          HAXE_REFERENCE_EXPRESSION
-            HAXE_IDENTIFIER
+          REFERENCE_EXPRESSION
+            IDENTIFIER
               PsiElement(ID)('build')
         PsiElement(()('(')
-        HAXE_EXPRESSION_LIST
-          HAXE_ARRAY_LITERAL
+        EXPRESSION_LIST
+          ARRAY_LITERAL
             PsiElement([)('[')
             PsiElement(])(']')
           PsiElement(,)(',')
-          HAXE_LITERAL_EXPRESSION
+          LITERAL_EXPRESSION
             PsiElement(true)('true')
         PsiElement())(')')
       PsiElement())(')')
-    HAXE_EXTERN_OR_PRIVATE
+    EXTERN_OR_PRIVATE
       PsiElement(extern)('extern')
-    HAXE_EXTERN_OR_PRIVATE
+    EXTERN_OR_PRIVATE
       PsiElement(private)('private')
     PsiElement(class)('class')
-    HAXE_COMPONENT_NAME
-      HAXE_IDENTIFIER
+    COMPONENT_NAME
+      IDENTIFIER
         PsiElement(ID)('Test')
     PsiElement({)('{')
-    HAXE_EXTERN_CLASS_DECLARATION_BODY
+    EXTERN_CLASS_DECLARATION_BODY
       <empty list>
     PsiElement(})('}')
