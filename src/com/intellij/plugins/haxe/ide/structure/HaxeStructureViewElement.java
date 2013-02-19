@@ -58,6 +58,9 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
 
   @Override
   public TreeElement[] getChildren() {
+    if (!myElement.isValid()) {
+      return new TreeElement[0];
+    }
     final List<TreeElement> result = new ArrayList<TreeElement>();
     if (myElement instanceof HaxeFile) {
       for (HaxeNamedComponent subNamedComponent : HaxeResolveUtil.findComponentDeclarations((PsiFile)myElement)) {
