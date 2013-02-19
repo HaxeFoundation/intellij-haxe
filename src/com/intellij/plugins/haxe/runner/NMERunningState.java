@@ -51,10 +51,12 @@ public class NMERunningState extends CommandLineState {
 
   private GeneralCommandLine getCommandForNeko(Sdk sdk, HaxeModuleSettings settings) throws ExecutionException {
     final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
+    if (sdkData == null) {
+      throw new ExecutionException(HaxeCommonBundle.message("invalid.haxe.sdk"));
+    }
     final GeneralCommandLine commandLine = new GeneralCommandLine();
 
     commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
-    assert sdkData != null;
     final String haxelibPath = sdkData.getHaxelibPath();
     if (haxelibPath == null || haxelibPath.isEmpty()) {
       throw new ExecutionException(HaxeCommonBundle.message("no.haxelib.for.sdk", sdk.getName()));
