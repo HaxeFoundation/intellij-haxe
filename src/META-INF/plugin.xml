@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.5.9:</p>
+      <ul>
+        <li>Folding</li>
+      </ul>
       <p>0.5.8:</p>
       <ul>
         <li>Bug fixes</li>
@@ -120,7 +124,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.5.8</version>
+  <version>0.5.9</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="128.1" until-build="129.0"/>
   <depends>com.intellij.modules.ultimate</depends>
@@ -172,6 +176,7 @@
     <lang.surroundDescriptor language="haXe" implementationClass="com.intellij.plugins.haxe.ide.surroundWith.HaxeSurroundDescriptor"/>
     <lang.refactoringSupport language="haXe"
                              implementationClass="com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringSupportProvider"/>
+    <lang.foldingBuilder language="haXe" implementationClass="com.intellij.plugins.haxe.ide.folding.HaxeFoldingBuilder"/>
 
     <languageInjector implementation="com.intellij.plugins.haxe.lang.RegexLanguageInjector"/>
 
