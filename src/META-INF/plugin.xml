@@ -122,7 +122,7 @@
   </change-notes>
   <version>0.5.8</version>
   <vendor>JetBrains</vendor>
-  <idea-version since-build="126.329" until-build="127.1"/>
+  <idea-version since-build="128.1" until-build="129.0"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
