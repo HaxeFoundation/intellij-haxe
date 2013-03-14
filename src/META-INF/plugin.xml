@@ -126,7 +126,7 @@
   </change-notes>
   <version>0.6</version>
   <vendor>JetBrains</vendor>
-  <idea-version since-build="128.1"/>
+  <idea-version since-build="130.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
