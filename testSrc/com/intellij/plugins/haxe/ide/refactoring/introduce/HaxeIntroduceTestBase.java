@@ -1,12 +1,10 @@
 package com.intellij.plugins.haxe.ide.refactoring.introduce;
 
-import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.codeInsight.template.impl.TemplateState;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.Nullable;
@@ -64,28 +62,22 @@ public abstract class HaxeIntroduceTestBase extends LightCodeInsightFixtureTestC
     String name = getTestName(true);
     myFixture.configureByFile(name + ".hx");
     final boolean enabled = myFixture.getEditor().getSettings().isVariableInplaceRenameEnabled();
-    TemplateManagerImpl templateManager = (TemplateManagerImpl)TemplateManager.getInstance(LightPlatformTestCase.getProject());
-    try {
-      templateManager.setTemplateTesting(true);
-      myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(true);
+    TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
+    myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(true);
 
-      HaxeIntroduceHandler handler = createHandler();
-      final HaxeIntroduceOperation introduceOperation =
-        new HaxeIntroduceOperation(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "a");
-      introduceOperation.setReplaceAll(true);
-      if (customization != null) {
-        customization.consume(introduceOperation);
-      }
-      handler.performAction(introduceOperation);
+    HaxeIntroduceHandler handler = createHandler();
+    final HaxeIntroduceOperation introduceOperation =
+      new HaxeIntroduceOperation(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "a");
+    introduceOperation.setReplaceAll(true);
+    if (customization != null) {
+      customization.consume(introduceOperation);
+    }
+    handler.performAction(introduceOperation);
 
-      TemplateState state = TemplateManagerImpl.getTemplateState(myFixture.getEditor());
-      assert state != null;
-      state.gotoEnd(false);
-      myFixture.checkResultByFile(name + ".after.hx", true);
-    }
-    finally {
-      myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(enabled);
-      templateManager.setTemplateTesting(false);
-    }
+    TemplateState state = TemplateManagerImpl.getTemplateState(myFixture.getEditor());
+    assert state != null;
+    state.gotoEnd(false);
+    myFixture.checkResultByFile(name + ".after.hx", true);
+    myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(enabled);
   }
 }
