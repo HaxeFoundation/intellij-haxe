@@ -16,11 +16,14 @@ public interface HaxeVarDeclaration extends HaxePsiCompositeElement {
   @NotNull
   List<HaxeCustomMeta> getCustomMetaList();
 
-  @Nullable
-  HaxeDeclarationAttributeList getDeclarationAttributeList();
+  @NotNull
+  List<HaxeDeclarationAttribute> getDeclarationAttributeList();
 
   @NotNull
   List<HaxeGetterMeta> getGetterMetaList();
+
+  @NotNull
+  List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull
   List<HaxeNsMeta> getNsMetaList();

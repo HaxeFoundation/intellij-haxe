@@ -97,7 +97,7 @@ public class HaxeResolveUtil {
   @NotNull
   public static GlobalSearchScope getScopeForElement(@NotNull PsiElement context) {
     final Project project = context.getProject();
-    if(ApplicationManager.getApplication().isUnitTestMode()) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
       return GlobalSearchScope.allScope(project);
     }
     final Module module = ModuleUtilCore.findModuleForPsiElement(context);
@@ -523,12 +523,16 @@ public class HaxeResolveUtil {
     return null;
   }
 
-  public static Set<IElementType> getDeclarationTypes(@Nullable HaxeDeclarationAttributeList attributeList) {
-    if (attributeList == null) {
+  public static Set<IElementType> getDeclarationTypes(@Nullable HaxeDeclarationAttribute[] attributeList) {
+    return attributeList == null ? Collections.<IElementType>emptySet() : getDeclarationTypes(Arrays.asList(attributeList));
+  }
+
+  public static Set<IElementType> getDeclarationTypes(@Nullable List<HaxeDeclarationAttribute> attributeList) {
+    if (attributeList == null || attributeList.isEmpty()) {
       return Collections.emptySet();
     }
     final Set<IElementType> resultSet = new THashSet<IElementType>();
-    for (HaxeDeclarationAttribute attribute : attributeList.getDeclarationAttributeList()) {
+    for (HaxeDeclarationAttribute attribute : attributeList) {
       PsiElement result = attribute.getFirstChild();
       final HaxeAccess access = attribute.getAccess();
       if (access != null) {

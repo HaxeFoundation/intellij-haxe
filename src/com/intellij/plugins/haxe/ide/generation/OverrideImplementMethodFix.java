@@ -1,12 +1,14 @@
 package com.intellij.plugins.haxe.ide.generation;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttributeList;
+import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttribute;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.Function;
 
 /**
  * @author: Fedor.Korotkov
@@ -26,9 +28,14 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     if (override && !element.isOverride()) {
       result.append("override ");
     }
-    final HaxeDeclarationAttributeList declarationAttributeList = PsiTreeUtil.getChildOfType(element, HaxeDeclarationAttributeList.class);
+    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
     if (declarationAttributeList != null) {
-      result.append(declarationAttributeList.getText());
+      result.append(StringUtil.join(declarationAttributeList, new Function<HaxeDeclarationAttribute, String>() {
+        @Override
+        public String fun(HaxeDeclarationAttribute attribute) {
+          return attribute.getText();
+        }
+      }, " "));
       result.append(" ");
     }
     if (!result.toString().contains("public")) {

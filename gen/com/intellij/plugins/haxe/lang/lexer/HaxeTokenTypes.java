@@ -37,7 +37,6 @@ public interface HaxeTokenTypes {
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
   IElementType CUSTOM_META = new HaxeElementType("CUSTOM_META");
   IElementType DECLARATION_ATTRIBUTE = new HaxeElementType("DECLARATION_ATTRIBUTE");
-  IElementType DECLARATION_ATTRIBUTE_LIST = new HaxeElementType("DECLARATION_ATTRIBUTE_LIST");
   IElementType DEFAULT_CASE = new HaxeElementType("DEFAULT_CASE");
   IElementType DO_WHILE_STATEMENT = new HaxeElementType("DO_WHILE_STATEMENT");
   IElementType ENUM_BODY = new HaxeElementType("ENUM_BODY");
@@ -343,9 +342,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == DECLARATION_ATTRIBUTE) {
         return new HaxeDeclarationAttributeImpl(node);
-      }
-      else if (type == DECLARATION_ATTRIBUTE_LIST) {
-        return new HaxeDeclarationAttributeListImpl(node);
       }
       else if (type == DEFAULT_CASE) {
         return new HaxeDefaultCaseImpl(node);

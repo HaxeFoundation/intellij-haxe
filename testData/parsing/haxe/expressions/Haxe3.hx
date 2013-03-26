@@ -10,6 +10,9 @@ class Test {
     return macro while ($cond) trace($e);
   }
 
+  @:meta(Inject())
+  private var s:TextField;
+
   static function main() {
     var x = 0;
     repeat(x < 10, x++);

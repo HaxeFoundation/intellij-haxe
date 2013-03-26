@@ -110,9 +110,6 @@ public class HaxeParser implements PsiParser {
     else if (root_ == DECLARATION_ATTRIBUTE) {
       result_ = declarationAttribute(builder_, level_ + 1);
     }
-    else if (root_ == DECLARATION_ATTRIBUTE_LIST) {
-      result_ = declarationAttributeList(builder_, level_ + 1);
-    }
     else if (root_ == DEFAULT_CASE) {
       result_ = defaultCase(builder_, level_ + 1);
     }
@@ -382,10 +379,9 @@ public class HaxeParser implements PsiParser {
     }
     else {
       Marker marker_ = builder_.mark();
+      enterErrorRecordingSection(builder_, level_, _SECTION_RECOVER_, null);
       result_ = parse_root_(root_, builder_, level_);
-      while (builder_.getTokenType() != null) {
-        builder_.advanceLexer();
-      }
+      exitErrorRecordingSection(builder_, level_, result_, true, _SECTION_RECOVER_, TOKEN_ADVANCER);
       marker_.done(root_);
     }
     return builder_.getTreeBuilt();
@@ -405,6 +401,7 @@ public class HaxeParser implements PsiParser {
       SUPER_EXPRESSION, SWITCH_CASE_EXPRESSION, TERNARY_EXPRESSION, THIS_EXPRESSION),
     TokenSet.create(LITERAL_EXPRESSION, REGULAR_EXPRESSION_LITERAL),
   };
+
   public static boolean type_extends_(IElementType child_, IElementType parent_) {
     for (TokenSet set : EXTENDS_SETS_) {
       if (set.contains(child_) && set.contains(parent_)) return true;
@@ -1435,7 +1432,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
+  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
   static boolean class_body_part_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "class_body_part_recover")) return false;
     boolean result_ = false;
@@ -1447,7 +1444,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID
+  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
   private static boolean class_body_part_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "class_body_part_recover_0")) return false;
     boolean result_ = false;
@@ -1457,18 +1454,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, PPEND);
     if (!result_) result_ = consumeToken(builder_, PPERROR);
     if (!result_) result_ = consumeToken(builder_, PPIF);
-    if (!result_) result_ = consumeToken(builder_, KBUILD);
-    if (!result_) result_ = consumeToken(builder_, KAUTOBUILD);
-    if (!result_) result_ = consumeToken(builder_, KDEBUG);
-    if (!result_) result_ = consumeToken(builder_, KGETTER);
-    if (!result_) result_ = consumeToken(builder_, KKEEP);
-    if (!result_) result_ = consumeToken(builder_, KOVERLOAD);
-    if (!result_) result_ = consumeToken(builder_, KMACRO);
-    if (!result_) result_ = consumeToken(builder_, KNODEBUG);
-    if (!result_) result_ = consumeToken(builder_, KNS);
-    if (!result_) result_ = consumeToken(builder_, KPROTECTED);
-    if (!result_) result_ = consumeToken(builder_, KREQUIRE);
-    if (!result_) result_ = consumeToken(builder_, KSETTER);
+    if (!result_) result_ = metaKeyWord(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, KDYNAMIC);
     if (!result_) result_ = consumeToken(builder_, KFUNCTION);
     if (!result_) result_ = consumeToken(builder_, KINLINE);
@@ -1478,7 +1464,6 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KSTATIC);
     if (!result_) result_ = consumeToken(builder_, KVAR);
     if (!result_) result_ = consumeToken(builder_, PRCURLY);
-    if (!result_) result_ = consumeToken(builder_, MACRO_ID);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -1748,38 +1733,6 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = access(builder_, level_ + 1);
     if (result_) {
       marker_.done(DECLARATION_ATTRIBUTE);
-    }
-    else {
-      marker_.rollbackTo();
-    }
-    result_ = exitErrorRecordingSection(builder_, level_, result_, false, _SECTION_GENERAL_, null);
-    return result_;
-  }
-
-  /* ********************************************************** */
-  // declarationAttribute+
-  public static boolean declarationAttributeList(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "declarationAttributeList")) return false;
-    if (!nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KINLINE)
-        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
-        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
-        && replaceVariants(builder_, 6, "<declaration attribute list>")) return false;
-    boolean result_ = false;
-    Marker marker_ = builder_.mark();
-    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, "<declaration attribute list>");
-    result_ = declarationAttribute(builder_, level_ + 1);
-    int offset_ = builder_.getCurrentOffset();
-    while (result_) {
-      if (!declarationAttribute(builder_, level_ + 1)) break;
-      int next_offset_ = builder_.getCurrentOffset();
-      if (offset_ == next_offset_) {
-        empty_element_parsed_guard_(builder_, offset_, "declarationAttributeList");
-        break;
-      }
-      offset_ = next_offset_;
-    }
-    if (result_) {
-      marker_.done(DECLARATION_ATTRIBUTE_LIST);
     }
     else {
       marker_.rollbackTo();
@@ -2123,7 +2076,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:build' | '@:debug' | '@:getter' | '@:keep' | '@:macro' | '@:nodebug' | '@:ns' | '@:overload' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END)
+  // !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END)
   static boolean expression_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "expression_recover")) return false;
     boolean result_ = false;
@@ -2135,7 +2088,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | '@:autoBuild' | '@:build' | '@:debug' | '@:getter' | '@:keep' | '@:macro' | '@:nodebug' | '@:ns' | '@:overload' | '@:protected' | '@:require' | '@:setter' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END
+  // '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END
   private static boolean expression_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "expression_recover_0")) return false;
     boolean result_ = false;
@@ -2175,18 +2128,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, OSHIFT_RIGHT_ASSIGN);
     if (!result_) result_ = consumeToken(builder_, ">>>=");
     if (!result_) result_ = consumeToken(builder_, OQUEST);
-    if (!result_) result_ = consumeToken(builder_, KAUTOBUILD);
-    if (!result_) result_ = consumeToken(builder_, KBUILD);
-    if (!result_) result_ = consumeToken(builder_, KDEBUG);
-    if (!result_) result_ = consumeToken(builder_, KGETTER);
-    if (!result_) result_ = consumeToken(builder_, KKEEP);
-    if (!result_) result_ = consumeToken(builder_, KMACRO);
-    if (!result_) result_ = consumeToken(builder_, KNODEBUG);
-    if (!result_) result_ = consumeToken(builder_, KNS);
-    if (!result_) result_ = consumeToken(builder_, KOVERLOAD);
-    if (!result_) result_ = consumeToken(builder_, KPROTECTED);
-    if (!result_) result_ = consumeToken(builder_, KREQUIRE);
-    if (!result_) result_ = consumeToken(builder_, KSETTER);
+    if (!result_) result_ = metaKeyWord(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, PLBRACK);
     if (!result_) result_ = consumeToken(builder_, PRBRACK);
     if (!result_) result_ = consumeToken(builder_, OBIT_XOR);
@@ -2436,35 +2378,34 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // functionMacroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
+  // (functionMacroMember| declarationAttribute)* 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
   public static boolean externFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
-        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
-        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
-        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
-        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
-        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
-        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, MACRO_ID)
-        && replaceVariants(builder_, 20, "<extern function declaration>")) return false;
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNODEBUG)
+        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
+        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
+        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KINLINE)
+        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
+        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
+        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 21, "<extern function declaration>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, "<extern function declaration>");
     result_ = externFunctionDeclaration_0(builder_, level_ + 1);
-    result_ = result_ && externFunctionDeclaration_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, KFUNCTION);
-    result_ = result_ && externFunctionDeclaration_3(builder_, level_ + 1);
-    pinned_ = result_; // pin = 4
+    result_ = result_ && externFunctionDeclaration_2(builder_, level_ + 1);
+    pinned_ = result_; // pin = 3
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_5(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
+    result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_7(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_8(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && externFunctionDeclaration_9(builder_, level_ + 1) && result_;
+    result_ = pinned_ && externFunctionDeclaration_8(builder_, level_ + 1) && result_;
     if (result_ || pinned_) {
       marker_.done(EXTERN_FUNCTION_DECLARATION);
     }
@@ -2475,12 +2416,12 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // functionMacroMember*
+  // (functionMacroMember| declarationAttribute)*
   private static boolean externFunctionDeclaration_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_0")) return false;
     int offset_ = builder_.getCurrentOffset();
     while (true) {
-      if (!functionMacroMember(builder_, level_ + 1)) break;
+      if (!externFunctionDeclaration_0_0(builder_, level_ + 1)) break;
       int next_offset_ = builder_.getCurrentOffset();
       if (offset_ == next_offset_) {
         empty_element_parsed_guard_(builder_, offset_, "externFunctionDeclaration_0");
@@ -2491,20 +2432,29 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // declarationAttributeList?
-  private static boolean externFunctionDeclaration_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_1")) return false;
-    declarationAttributeList(builder_, level_ + 1);
-    return true;
+  // functionMacroMember| declarationAttribute
+  private static boolean externFunctionDeclaration_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_0_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = functionMacroMember(builder_, level_ + 1);
+    if (!result_) result_ = declarationAttribute(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   // 'new' | componentName genericParam?
-  private static boolean externFunctionDeclaration_3(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_3")) return false;
+  private static boolean externFunctionDeclaration_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_2")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, ONEW);
-    if (!result_) result_ = externFunctionDeclaration_3_1(builder_, level_ + 1);
+    if (!result_) result_ = externFunctionDeclaration_2_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -2515,12 +2465,12 @@ public class HaxeParser implements PsiParser {
   }
 
   // componentName genericParam?
-  private static boolean externFunctionDeclaration_3_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_3_1")) return false;
+  private static boolean externFunctionDeclaration_2_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_2_1")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = componentName(builder_, level_ + 1);
-    result_ = result_ && externFunctionDeclaration_3_1_1(builder_, level_ + 1);
+    result_ = result_ && externFunctionDeclaration_2_1_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -2531,36 +2481,36 @@ public class HaxeParser implements PsiParser {
   }
 
   // genericParam?
-  private static boolean externFunctionDeclaration_3_1_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_3_1_1")) return false;
+  private static boolean externFunctionDeclaration_2_1_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_2_1_1")) return false;
     genericParam(builder_, level_ + 1);
     return true;
   }
 
   // parameterList?
-  private static boolean externFunctionDeclaration_5(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_5")) return false;
+  private static boolean externFunctionDeclaration_4(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_4")) return false;
     parameterList(builder_, level_ + 1);
     return true;
   }
 
   // typeTag?
-  private static boolean externFunctionDeclaration_7(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_7")) return false;
+  private static boolean externFunctionDeclaration_6(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_6")) return false;
     typeTag(builder_, level_ + 1);
     return true;
   }
 
   // 'untyped'?
-  private static boolean externFunctionDeclaration_8(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_8")) return false;
+  private static boolean externFunctionDeclaration_7(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_7")) return false;
     consumeToken(builder_, KUNTYPED);
     return true;
   }
 
   // functionCommonBody | ';'
-  private static boolean externFunctionDeclaration_9(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_9")) return false;
+  private static boolean externFunctionDeclaration_8(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_8")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = functionCommonBody(builder_, level_ + 1);
@@ -2596,7 +2546,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
+  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
   static boolean extern_class_body_part_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "extern_class_body_part_recover")) return false;
     boolean result_ = false;
@@ -2608,7 +2558,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID
+  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
   private static boolean extern_class_body_part_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "extern_class_body_part_recover_0")) return false;
     boolean result_ = false;
@@ -2618,18 +2568,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, PPEND);
     if (!result_) result_ = consumeToken(builder_, PPERROR);
     if (!result_) result_ = consumeToken(builder_, PPIF);
-    if (!result_) result_ = consumeToken(builder_, KBUILD);
-    if (!result_) result_ = consumeToken(builder_, KAUTOBUILD);
-    if (!result_) result_ = consumeToken(builder_, KDEBUG);
-    if (!result_) result_ = consumeToken(builder_, KGETTER);
-    if (!result_) result_ = consumeToken(builder_, KKEEP);
-    if (!result_) result_ = consumeToken(builder_, KOVERLOAD);
-    if (!result_) result_ = consumeToken(builder_, KMACRO);
-    if (!result_) result_ = consumeToken(builder_, KNODEBUG);
-    if (!result_) result_ = consumeToken(builder_, KNS);
-    if (!result_) result_ = consumeToken(builder_, KPROTECTED);
-    if (!result_) result_ = consumeToken(builder_, KREQUIRE);
-    if (!result_) result_ = consumeToken(builder_, KSETTER);
+    if (!result_) result_ = metaKeyWord(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, KDYNAMIC);
     if (!result_) result_ = consumeToken(builder_, KFUNCTION);
     if (!result_) result_ = consumeToken(builder_, KINLINE);
@@ -2639,7 +2578,6 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KSTATIC);
     if (!result_) result_ = consumeToken(builder_, KVAR);
     if (!result_) result_ = consumeToken(builder_, PRCURLY);
-    if (!result_) result_ = consumeToken(builder_, MACRO_ID);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -2743,34 +2681,33 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // functionMacroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+  // (functionMacroMember | declarationAttribute)* 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
   public static boolean functionDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
-        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
-        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
-        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
-        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
-        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
-        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, MACRO_ID)
-        && replaceVariants(builder_, 20, "<function declaration with attributes>")) return false;
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNODEBUG)
+        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
+        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
+        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KINLINE)
+        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
+        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
+        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 21, "<function declaration with attributes>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, "<function declaration with attributes>");
     result_ = functionDeclarationWithAttributes_0(builder_, level_ + 1);
-    result_ = result_ && functionDeclarationWithAttributes_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, KFUNCTION);
-    result_ = result_ && functionDeclarationWithAttributes_3(builder_, level_ + 1);
-    pinned_ = result_; // pin = 4
+    result_ = result_ && functionDeclarationWithAttributes_2(builder_, level_ + 1);
+    pinned_ = result_; // pin = 3
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_5(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
+    result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_7(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_8(builder_, level_ + 1)) && result_;
     result_ = pinned_ && functionCommonBody(builder_, level_ + 1) && result_;
     if (result_ || pinned_) {
       marker_.done(FUNCTION_DECLARATION_WITH_ATTRIBUTES);
@@ -2782,12 +2719,12 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // functionMacroMember*
+  // (functionMacroMember | declarationAttribute)*
   private static boolean functionDeclarationWithAttributes_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_0")) return false;
     int offset_ = builder_.getCurrentOffset();
     while (true) {
-      if (!functionMacroMember(builder_, level_ + 1)) break;
+      if (!functionDeclarationWithAttributes_0_0(builder_, level_ + 1)) break;
       int next_offset_ = builder_.getCurrentOffset();
       if (offset_ == next_offset_) {
         empty_element_parsed_guard_(builder_, offset_, "functionDeclarationWithAttributes_0");
@@ -2798,20 +2735,29 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // declarationAttributeList?
-  private static boolean functionDeclarationWithAttributes_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_1")) return false;
-    declarationAttributeList(builder_, level_ + 1);
-    return true;
+  // functionMacroMember | declarationAttribute
+  private static boolean functionDeclarationWithAttributes_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_0_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = functionMacroMember(builder_, level_ + 1);
+    if (!result_) result_ = declarationAttribute(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   // 'new' | componentName genericParam?
-  private static boolean functionDeclarationWithAttributes_3(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_3")) return false;
+  private static boolean functionDeclarationWithAttributes_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_2")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, ONEW);
-    if (!result_) result_ = functionDeclarationWithAttributes_3_1(builder_, level_ + 1);
+    if (!result_) result_ = functionDeclarationWithAttributes_2_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -2822,12 +2768,12 @@ public class HaxeParser implements PsiParser {
   }
 
   // componentName genericParam?
-  private static boolean functionDeclarationWithAttributes_3_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_3_1")) return false;
+  private static boolean functionDeclarationWithAttributes_2_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_2_1")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = componentName(builder_, level_ + 1);
-    result_ = result_ && functionDeclarationWithAttributes_3_1_1(builder_, level_ + 1);
+    result_ = result_ && functionDeclarationWithAttributes_2_1_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -2838,29 +2784,29 @@ public class HaxeParser implements PsiParser {
   }
 
   // genericParam?
-  private static boolean functionDeclarationWithAttributes_3_1_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_3_1_1")) return false;
+  private static boolean functionDeclarationWithAttributes_2_1_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_2_1_1")) return false;
     genericParam(builder_, level_ + 1);
     return true;
   }
 
   // parameterList?
-  private static boolean functionDeclarationWithAttributes_5(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_5")) return false;
+  private static boolean functionDeclarationWithAttributes_4(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_4")) return false;
     parameterList(builder_, level_ + 1);
     return true;
   }
 
   // typeTag?
-  private static boolean functionDeclarationWithAttributes_7(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_7")) return false;
+  private static boolean functionDeclarationWithAttributes_6(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_6")) return false;
     typeTag(builder_, level_ + 1);
     return true;
   }
 
   // 'untyped'?
-  private static boolean functionDeclarationWithAttributes_8(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_8")) return false;
+  private static boolean functionDeclarationWithAttributes_7(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_7")) return false;
     consumeToken(builder_, KUNTYPED);
     return true;
   }
@@ -2920,10 +2866,10 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
-        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
-        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
-        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
-        && !nextTokenIs(builder_, MACRO_ID)) return false;
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNODEBUG)
+        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
+        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
+        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, MACRO_ID)) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = macroMember(builder_, level_ + 1);
@@ -2938,34 +2884,33 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // functionMacroMember* declarationAttributeList? 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
+  // (functionMacroMember| declarationAttribute)* 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
   public static boolean functionPrototypeDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
-        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
-        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
-        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
-        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KFUNCTION)
-        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
-        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
-        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, MACRO_ID)
-        && replaceVariants(builder_, 20, "<function prototype declaration with attributes>")) return false;
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNODEBUG)
+        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KOVERLOAD)
+        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
+        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
+        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KINLINE)
+        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
+        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
+        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 21, "<function prototype declaration with attributes>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, "<function prototype declaration with attributes>");
     result_ = functionPrototypeDeclarationWithAttributes_0(builder_, level_ + 1);
-    result_ = result_ && functionPrototypeDeclarationWithAttributes_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, KFUNCTION);
-    result_ = result_ && functionPrototypeDeclarationWithAttributes_3(builder_, level_ + 1);
-    pinned_ = result_; // pin = 4
+    result_ = result_ && functionPrototypeDeclarationWithAttributes_2(builder_, level_ + 1);
+    pinned_ = result_; // pin = 3
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_5(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
+    result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_7(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_8(builder_, level_ + 1)) && result_;
     result_ = pinned_ && consumeToken(builder_, OSEMI) && result_;
     if (result_ || pinned_) {
       marker_.done(FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES);
@@ -2977,12 +2922,12 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // functionMacroMember*
+  // (functionMacroMember| declarationAttribute)*
   private static boolean functionPrototypeDeclarationWithAttributes_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_0")) return false;
     int offset_ = builder_.getCurrentOffset();
     while (true) {
-      if (!functionMacroMember(builder_, level_ + 1)) break;
+      if (!functionPrototypeDeclarationWithAttributes_0_0(builder_, level_ + 1)) break;
       int next_offset_ = builder_.getCurrentOffset();
       if (offset_ == next_offset_) {
         empty_element_parsed_guard_(builder_, offset_, "functionPrototypeDeclarationWithAttributes_0");
@@ -2993,20 +2938,29 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // declarationAttributeList?
-  private static boolean functionPrototypeDeclarationWithAttributes_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_1")) return false;
-    declarationAttributeList(builder_, level_ + 1);
-    return true;
+  // functionMacroMember| declarationAttribute
+  private static boolean functionPrototypeDeclarationWithAttributes_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_0_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = functionMacroMember(builder_, level_ + 1);
+    if (!result_) result_ = declarationAttribute(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   // 'new' | componentName genericParam?
-  private static boolean functionPrototypeDeclarationWithAttributes_3(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_3")) return false;
+  private static boolean functionPrototypeDeclarationWithAttributes_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, ONEW);
-    if (!result_) result_ = functionPrototypeDeclarationWithAttributes_3_1(builder_, level_ + 1);
+    if (!result_) result_ = functionPrototypeDeclarationWithAttributes_2_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -3017,12 +2971,12 @@ public class HaxeParser implements PsiParser {
   }
 
   // componentName genericParam?
-  private static boolean functionPrototypeDeclarationWithAttributes_3_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_3_1")) return false;
+  private static boolean functionPrototypeDeclarationWithAttributes_2_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2_1")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = componentName(builder_, level_ + 1);
-    result_ = result_ && functionPrototypeDeclarationWithAttributes_3_1_1(builder_, level_ + 1);
+    result_ = result_ && functionPrototypeDeclarationWithAttributes_2_1_1(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -3033,29 +2987,29 @@ public class HaxeParser implements PsiParser {
   }
 
   // genericParam?
-  private static boolean functionPrototypeDeclarationWithAttributes_3_1_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_3_1_1")) return false;
+  private static boolean functionPrototypeDeclarationWithAttributes_2_1_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2_1_1")) return false;
     genericParam(builder_, level_ + 1);
     return true;
   }
 
   // parameterList?
-  private static boolean functionPrototypeDeclarationWithAttributes_5(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_5")) return false;
+  private static boolean functionPrototypeDeclarationWithAttributes_4(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_4")) return false;
     parameterList(builder_, level_ + 1);
     return true;
   }
 
   // typeTag?
-  private static boolean functionPrototypeDeclarationWithAttributes_7(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_7")) return false;
+  private static boolean functionPrototypeDeclarationWithAttributes_6(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_6")) return false;
     typeTag(builder_, level_ + 1);
     return true;
   }
 
   // 'untyped'?
-  private static boolean functionPrototypeDeclarationWithAttributes_8(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_8")) return false;
+  private static boolean functionPrototypeDeclarationWithAttributes_7(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_7")) return false;
     consumeToken(builder_, KUNTYPED);
     return true;
   }
@@ -3666,7 +3620,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID)
+  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
   static boolean interface_body_part_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "interface_body_part_recover")) return false;
     boolean result_ = false;
@@ -3678,7 +3632,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | '@:build' | '@:autoBuild' | '@:debug' | '@:getter' | '@:keep' | '@:overload' | '@:macro' | '@:nodebug' | '@:ns' | '@:protected' | '@:require' | '@:setter' | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | MACRO_ID
+  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
   private static boolean interface_body_part_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "interface_body_part_recover_0")) return false;
     boolean result_ = false;
@@ -3688,18 +3642,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, PPEND);
     if (!result_) result_ = consumeToken(builder_, PPERROR);
     if (!result_) result_ = consumeToken(builder_, PPIF);
-    if (!result_) result_ = consumeToken(builder_, KBUILD);
-    if (!result_) result_ = consumeToken(builder_, KAUTOBUILD);
-    if (!result_) result_ = consumeToken(builder_, KDEBUG);
-    if (!result_) result_ = consumeToken(builder_, KGETTER);
-    if (!result_) result_ = consumeToken(builder_, KKEEP);
-    if (!result_) result_ = consumeToken(builder_, KOVERLOAD);
-    if (!result_) result_ = consumeToken(builder_, KMACRO);
-    if (!result_) result_ = consumeToken(builder_, KNODEBUG);
-    if (!result_) result_ = consumeToken(builder_, KNS);
-    if (!result_) result_ = consumeToken(builder_, KPROTECTED);
-    if (!result_) result_ = consumeToken(builder_, KREQUIRE);
-    if (!result_) result_ = consumeToken(builder_, KSETTER);
+    if (!result_) result_ = metaKeyWord(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, KDYNAMIC);
     if (!result_) result_ = consumeToken(builder_, KFUNCTION);
     if (!result_) result_ = consumeToken(builder_, KINLINE);
@@ -3709,7 +3652,6 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KSTATIC);
     if (!result_) result_ = consumeToken(builder_, KVAR);
     if (!result_) result_ = consumeToken(builder_, PRCURLY);
-    if (!result_) result_ = consumeToken(builder_, MACRO_ID);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -4322,15 +4264,16 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // '@:macro' | '@:protected' | '@:debug' | '@:nodebug' | '@:keep'
-  //                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | buildMacro | autoBuildMacro
+  //                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
   static boolean macroMember(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroMember")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
-        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
-        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, MACRO_ID)) return false;
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNODEBUG)
+        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KPROTECTED)
+        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
+        && !nextTokenIs(builder_, MACRO_ID)) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, KMACRO);
@@ -4343,6 +4286,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = getterMeta(builder_, level_ + 1);
     if (!result_) result_ = setterMeta(builder_, level_ + 1);
     if (!result_) result_ = customMeta(builder_, level_ + 1);
+    if (!result_) result_ = metaMeta(builder_, level_ + 1);
     if (!result_) result_ = buildMacro(builder_, level_ + 1);
     if (!result_) result_ = autoBuildMacro(builder_, level_ + 1);
     if (!result_) {
@@ -4374,7 +4318,54 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '@:meta' '(' ID '(' metaPartList ')' ')'
+  // MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload'
+  static boolean metaKeyWord(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "metaKeyWord")) return false;
+    if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBIND)
+        && !nextTokenIs(builder_, KBITMAP) && !nextTokenIs(builder_, KBUILD)
+        && !nextTokenIs(builder_, KCOREAPI) && !nextTokenIs(builder_, KDEBUG)
+        && !nextTokenIs(builder_, KFAKEENUM) && !nextTokenIs(builder_, KFINAL)
+        && !nextTokenIs(builder_, KGETTER) && !nextTokenIs(builder_, KHACK)
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNATIVE)
+        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
+        && !nextTokenIs(builder_, KOVERLOAD) && !nextTokenIs(builder_, KPROTECTED)
+        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
+        && !nextTokenIs(builder_, MACRO_ID)) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, MACRO_ID);
+    if (!result_) result_ = consumeToken(builder_, KFINAL);
+    if (!result_) result_ = consumeToken(builder_, KHACK);
+    if (!result_) result_ = consumeToken(builder_, KNATIVE);
+    if (!result_) result_ = consumeToken(builder_, KMACRO);
+    if (!result_) result_ = consumeToken(builder_, KBUILD);
+    if (!result_) result_ = consumeToken(builder_, KAUTOBUILD);
+    if (!result_) result_ = consumeToken(builder_, KKEEP);
+    if (!result_) result_ = consumeToken(builder_, KREQUIRE);
+    if (!result_) result_ = consumeToken(builder_, KFAKEENUM);
+    if (!result_) result_ = consumeToken(builder_, KCOREAPI);
+    if (!result_) result_ = consumeToken(builder_, KBIND);
+    if (!result_) result_ = consumeToken(builder_, KBITMAP);
+    if (!result_) result_ = consumeToken(builder_, KNS);
+    if (!result_) result_ = consumeToken(builder_, KPROTECTED);
+    if (!result_) result_ = consumeToken(builder_, KGETTER);
+    if (!result_) result_ = consumeToken(builder_, KSETTER);
+    if (!result_) result_ = consumeToken(builder_, KDEBUG);
+    if (!result_) result_ = consumeToken(builder_, KNODEBUG);
+    if (!result_) result_ = consumeToken(builder_, KMETA);
+    if (!result_) result_ = consumeToken(builder_, KOVERLOAD);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // '@:meta' '(' ID '(' metaPartList? ')' ')'
   public static boolean metaMeta(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "metaMeta")) return false;
     if (!nextTokenIs(builder_, KMETA)) return false;
@@ -4387,7 +4378,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, ID)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLPAREN)) && result_;
-    result_ = pinned_ && report_error_(builder_, metaPartList(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, metaMeta_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
     if (result_ || pinned_) {
@@ -4398,6 +4389,13 @@ public class HaxeParser implements PsiParser {
     }
     result_ = exitErrorRecordingSection(builder_, level_, result_, pinned_, _SECTION_GENERAL_, null);
     return result_ || pinned_;
+  }
+
+  // metaPartList?
+  private static boolean metaMeta_4(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "metaMeta_4")) return false;
+    metaPartList(builder_, level_ + 1);
+    return true;
   }
 
   /* ********************************************************** */
@@ -6468,7 +6466,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | '@:keep' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:overload' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID)
+  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
   static boolean top_level_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "top_level_recover")) return false;
     boolean result_ = false;
@@ -6480,7 +6478,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | '@:keep' | '@:bind' | '@:bitmap' | '@:build' | '@:autoBuild' | '@:core_api' | '@:fakeEnum' | '@:final' | '@:hack' | '@:overload' | '@:macro' | '@:meta' | '@:native' | '@:ns' | '@:require' | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | MACRO_ID
+  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef'
   private static boolean top_level_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "top_level_recover_0")) return false;
     boolean result_ = false;
@@ -6490,21 +6488,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, PPEND);
     if (!result_) result_ = consumeToken(builder_, PPERROR);
     if (!result_) result_ = consumeToken(builder_, PPIF);
-    if (!result_) result_ = consumeToken(builder_, KKEEP);
-    if (!result_) result_ = consumeToken(builder_, KBIND);
-    if (!result_) result_ = consumeToken(builder_, KBITMAP);
-    if (!result_) result_ = consumeToken(builder_, KBUILD);
-    if (!result_) result_ = consumeToken(builder_, KAUTOBUILD);
-    if (!result_) result_ = consumeToken(builder_, KCOREAPI);
-    if (!result_) result_ = consumeToken(builder_, KFAKEENUM);
-    if (!result_) result_ = consumeToken(builder_, KFINAL);
-    if (!result_) result_ = consumeToken(builder_, KHACK);
-    if (!result_) result_ = consumeToken(builder_, KOVERLOAD);
-    if (!result_) result_ = consumeToken(builder_, KMACRO);
-    if (!result_) result_ = consumeToken(builder_, KMETA);
-    if (!result_) result_ = consumeToken(builder_, KNATIVE);
-    if (!result_) result_ = consumeToken(builder_, KNS);
-    if (!result_) result_ = consumeToken(builder_, KREQUIRE);
+    if (!result_) result_ = metaKeyWord(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, KCLASS);
     if (!result_) result_ = consumeToken(builder_, KENUM);
     if (!result_) result_ = consumeToken(builder_, KEXTERN);
@@ -6513,7 +6497,6 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KINTERFACE);
     if (!result_) result_ = consumeToken(builder_, KPRIVATE);
     if (!result_) result_ = consumeToken(builder_, KTYPEDEF);
-    if (!result_) result_ = consumeToken(builder_, MACRO_ID);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -6958,29 +6941,29 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroMember* declarationAttributeList? 'var' varDeclarationPartList ';'
+  // (macroMember | declarationAttribute)* 'var' varDeclarationPartList ';'
   public static boolean varDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "varDeclaration")) return false;
     if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBUILD)
         && !nextTokenIs(builder_, KDEBUG) && !nextTokenIs(builder_, KGETTER)
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
-        && !nextTokenIs(builder_, KNODEBUG) && !nextTokenIs(builder_, KNS)
-        && !nextTokenIs(builder_, KPROTECTED) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KSETTER) && !nextTokenIs(builder_, KDYNAMIC)
-        && !nextTokenIs(builder_, KINLINE) && !nextTokenIs(builder_, KOVERRIDE)
-        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KPUBLIC)
-        && !nextTokenIs(builder_, KSTATIC) && !nextTokenIs(builder_, KVAR)
-        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 19, "<var declaration>")) return false;
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNODEBUG)
+        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KPROTECTED)
+        && !nextTokenIs(builder_, KREQUIRE) && !nextTokenIs(builder_, KSETTER)
+        && !nextTokenIs(builder_, KDYNAMIC) && !nextTokenIs(builder_, KINLINE)
+        && !nextTokenIs(builder_, KOVERRIDE) && !nextTokenIs(builder_, KPRIVATE)
+        && !nextTokenIs(builder_, KPUBLIC) && !nextTokenIs(builder_, KSTATIC)
+        && !nextTokenIs(builder_, KVAR) && !nextTokenIs(builder_, MACRO_ID)
+        && replaceVariants(builder_, 20, "<var declaration>")) return false;
     boolean result_ = false;
     boolean pinned_ = false;
     Marker marker_ = builder_.mark();
     enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, "<var declaration>");
     result_ = varDeclaration_0(builder_, level_ + 1);
-    result_ = result_ && varDeclaration_1(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, KVAR);
+    result_ = result_ && varDeclarationPartList(builder_, level_ + 1);
     pinned_ = result_; // pin = 3
-    result_ = result_ && report_error_(builder_, varDeclarationPartList(builder_, level_ + 1));
-    result_ = pinned_ && consumeToken(builder_, OSEMI) && result_;
+    result_ = result_ && consumeToken(builder_, OSEMI);
     if (result_ || pinned_) {
       marker_.done(VAR_DECLARATION);
     }
@@ -6991,12 +6974,12 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // macroMember*
+  // (macroMember | declarationAttribute)*
   private static boolean varDeclaration_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "varDeclaration_0")) return false;
     int offset_ = builder_.getCurrentOffset();
     while (true) {
-      if (!macroMember(builder_, level_ + 1)) break;
+      if (!varDeclaration_0_0(builder_, level_ + 1)) break;
       int next_offset_ = builder_.getCurrentOffset();
       if (offset_ == next_offset_) {
         empty_element_parsed_guard_(builder_, offset_, "varDeclaration_0");
@@ -7007,11 +6990,20 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // declarationAttributeList?
-  private static boolean varDeclaration_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "varDeclaration_1")) return false;
-    declarationAttributeList(builder_, level_ + 1);
-    return true;
+  // macroMember | declarationAttribute
+  private static boolean varDeclaration_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "varDeclaration_0_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = macroMember(builder_, level_ + 1);
+    if (!result_) result_ = declarationAttribute(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   /* ********************************************************** */

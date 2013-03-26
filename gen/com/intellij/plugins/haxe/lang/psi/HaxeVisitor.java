@@ -126,10 +126,6 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
-  public void visitDeclarationAttributeList(@NotNull HaxeDeclarationAttributeList o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitDefaultCase(@NotNull HaxeDefaultCase o) {
     visitPsiCompositeElement(o);
   }

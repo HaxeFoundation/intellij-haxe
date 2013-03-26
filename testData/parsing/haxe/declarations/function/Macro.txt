@@ -9,9 +9,8 @@ haXe File
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(@:macro)('@:macro')
         PsiElement(@:keep)('@:keep')
-        DECLARATION_ATTRIBUTE_LIST
-          DECLARATION_ATTRIBUTE
-            PsiElement(static)('static')
+        DECLARATION_ATTRIBUTE
+          PsiElement(static)('static')
         PsiElement(function)('function')
         COMPONENT_NAME
           IDENTIFIER

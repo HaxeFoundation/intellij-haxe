@@ -33,13 +33,12 @@ haXe File
     PsiComment(PPEXPRESSION)(' !debug ')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE_LIST
-          DECLARATION_ATTRIBUTE
-            PsiElement(inline)('inline')
-          PsiComment(#end)('#end')
-          DECLARATION_ATTRIBUTE
-            ACCESS
-              PsiElement(public)('public')
+        DECLARATION_ATTRIBUTE
+          PsiElement(inline)('inline')
+        PsiComment(#end)('#end')
+        DECLARATION_ATTRIBUTE
+          ACCESS
+            PsiElement(public)('public')
         PsiElement(function)('function')
         COMPONENT_NAME
           IDENTIFIER

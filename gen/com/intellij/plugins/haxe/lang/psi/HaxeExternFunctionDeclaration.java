@@ -22,8 +22,8 @@ public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarat
   @NotNull
   List<HaxeCustomMeta> getCustomMetaList();
 
-  @Nullable
-  HaxeDeclarationAttributeList getDeclarationAttributeList();
+  @NotNull
+  List<HaxeDeclarationAttribute> getDeclarationAttributeList();
 
   @Nullable
   HaxeExpression getExpression();
@@ -33,6 +33,9 @@ public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarat
 
   @NotNull
   List<HaxeGetterMeta> getGetterMetaList();
+
+  @NotNull
+  List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull
   List<HaxeNsMeta> getNsMetaList();

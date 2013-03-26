@@ -111,12 +111,11 @@ haXe File
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         PsiElement(@:macro)('@:macro')
-        DECLARATION_ATTRIBUTE_LIST
-          DECLARATION_ATTRIBUTE
-            ACCESS
-              PsiElement(public)('public')
-          DECLARATION_ATTRIBUTE
-            PsiElement(static)('static')
+        DECLARATION_ATTRIBUTE
+          ACCESS
+            PsiElement(public)('public')
+        DECLARATION_ATTRIBUTE
+          PsiElement(static)('static')
         PsiElement(function)('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -180,10 +179,33 @@ haXe File
               PsiElement())(')')
             PsiElement(;)(';')
           PsiElement(})('}')
+      VAR_DECLARATION
+        META_META
+          PsiElement(@:meta)('@:meta')
+          PsiElement(()('(')
+          PsiElement(ID)('Inject')
+          PsiElement(()('(')
+          PsiElement())(')')
+          PsiElement())(')')
+        DECLARATION_ATTRIBUTE
+          ACCESS
+            PsiElement(private)('private')
+        PsiElement(var)('var')
+        VAR_DECLARATION_PART
+          COMPONENT_NAME
+            IDENTIFIER
+              PsiElement(ID)('s')
+          TYPE_TAG
+            PsiElement(:)(':')
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    PsiElement(ID)('TextField')
+        PsiElement(;)(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE_LIST
-          DECLARATION_ATTRIBUTE
-            PsiElement(static)('static')
+        DECLARATION_ATTRIBUTE
+          PsiElement(static)('static')
         PsiElement(function)('function')
         COMPONENT_NAME
           IDENTIFIER

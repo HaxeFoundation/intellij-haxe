@@ -47,9 +47,9 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
   }
 
   @Override
-  @Nullable
-  public HaxeDeclarationAttributeList getDeclarationAttributeList() {
-    return findChildByClass(HaxeDeclarationAttributeList.class);
+  @NotNull
+  public List<HaxeDeclarationAttribute> getDeclarationAttributeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDeclarationAttribute.class);
   }
 
   @Override
@@ -68,6 +68,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
   @NotNull
   public List<HaxeGetterMeta> getGetterMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeGetterMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeMetaMeta> getMetaMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
   }
 
   @Override

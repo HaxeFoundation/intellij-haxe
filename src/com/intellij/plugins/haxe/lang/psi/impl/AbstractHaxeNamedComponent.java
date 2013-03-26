@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -147,19 +148,19 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
       return true;
     }
-    final HaxeDeclarationAttributeList declarationAttributeList = PsiTreeUtil.getChildOfType(element, HaxeDeclarationAttributeList.class);
+    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KPUBLIC);
   }
 
   @Override
   public boolean isStatic() {
-    final HaxeDeclarationAttributeList declarationAttributeList = PsiTreeUtil.getChildOfType(this, HaxeDeclarationAttributeList.class);
+    final HaxeDeclarationAttribute[]declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KSTATIC);
   }
 
   @Override
   public boolean isOverride() {
-    final HaxeDeclarationAttributeList declarationAttributeList = PsiTreeUtil.getChildOfType(this, HaxeDeclarationAttributeList.class);
+    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
   }
 }
