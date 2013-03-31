@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.*;
 
 public interface HaxeTokenTypes {
 
+  IElementType ABSTRACT_CLASS_DECLARATION = new HaxeElementType("ABSTRACT_CLASS_DECLARATION");
   IElementType ACCESS = new HaxeElementType("ACCESS");
   IElementType ADDITIVE_EXPRESSION = new HaxeElementType("ADDITIVE_EXPRESSION");
   IElementType ANONYMOUS_FUNCTION_DECLARATION = new HaxeElementType("ANONYMOUS_FUNCTION_DECLARATION");
@@ -129,6 +130,7 @@ public interface HaxeTokenTypes {
 
   IElementType CLOSING_QUOTE = new HaxeElementType("CLOSING_QUOTE");
   IElementType ID = new HaxeElementType("ID");
+  IElementType KABSTRACT = new HaxeElementType("abstract");
   IElementType KAUTOBUILD = new HaxeElementType("@:autoBuild");
   IElementType KBIND = new HaxeElementType("@:bind");
   IElementType KBITMAP = new HaxeElementType("@:bitmap");
@@ -152,6 +154,7 @@ public interface HaxeTokenTypes {
   IElementType KFALSE = new HaxeElementType("false");
   IElementType KFINAL = new HaxeElementType("@:final");
   IElementType KFOR = new HaxeElementType("for");
+  IElementType KFROM = new HaxeElementType("from");
   IElementType KFUNCTION = new HaxeElementType("function");
   IElementType KGETTER = new HaxeElementType("@:getter");
   IElementType KHACK = new HaxeElementType("@:hack");
@@ -182,6 +185,7 @@ public interface HaxeTokenTypes {
   IElementType KSWITCH = new HaxeElementType("switch");
   IElementType KTHIS = new HaxeElementType("this");
   IElementType KTHROW = new HaxeElementType("throw");
+  IElementType KTO = new HaxeElementType("to");
   IElementType KTRUE = new HaxeElementType("true");
   IElementType KTRY = new HaxeElementType("try");
   IElementType KTYPEDEF = new HaxeElementType("typedef");
@@ -256,7 +260,10 @@ public interface HaxeTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == ACCESS) {
+       if (type == ABSTRACT_CLASS_DECLARATION) {
+        return new HaxeAbstractClassDeclarationImpl(node);
+      }
+      else if (type == ACCESS) {
         return new HaxeAccessImpl(node);
       }
       else if (type == ADDITIVE_EXPRESSION) {

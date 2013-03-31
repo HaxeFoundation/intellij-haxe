@@ -67,22 +67,23 @@ haXe File
     CUSTOM_META
       PsiElement(MACRO_ID)('@superClass')
       PsiElement(()('(')
-      STRING_LITERAL_EXPRESSION
-        PsiElement(OPEN_QUOTE)('"')
-        PsiElement(REGULAR_STRING_PART)('user name')
-        PsiElement(CLOSING_QUOTE)('"')
-      PsiElement(,)(',')
-      OBJECT_LITERAL
-        PsiElement({)('{')
-        OBJECT_LITERAL_ELEMENT
-          IDENTIFIER
-            PsiElement(ID)('name')
-          PsiElement(:)(':')
-          STRING_LITERAL_EXPRESSION
-            PsiElement(OPEN_QUOTE)('"')
-            PsiElement(REGULAR_STRING_PART)('user')
-            PsiElement(CLOSING_QUOTE)('"')
-        PsiElement(})('}')
+      EXPRESSION_LIST
+        STRING_LITERAL_EXPRESSION
+          PsiElement(OPEN_QUOTE)('"')
+          PsiElement(REGULAR_STRING_PART)('user name')
+          PsiElement(CLOSING_QUOTE)('"')
+        PsiElement(,)(',')
+        OBJECT_LITERAL
+          PsiElement({)('{')
+          OBJECT_LITERAL_ELEMENT
+            IDENTIFIER
+              PsiElement(ID)('name')
+            PsiElement(:)(':')
+            STRING_LITERAL_EXPRESSION
+              PsiElement(OPEN_QUOTE)('"')
+              PsiElement(REGULAR_STRING_PART)('user')
+              PsiElement(CLOSING_QUOTE)('"')
+          PsiElement(})('}')
       PsiElement())(')')
     PsiElement(class)('class')
     COMPONENT_NAME

@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeCustomMeta extends HaxePsiCompositeElement {
 
-  @NotNull
-  List<HaxeLiteralExpression> getLiteralExpressionList();
+  @Nullable
+  HaxeExpressionList getExpressionList();
 
 }

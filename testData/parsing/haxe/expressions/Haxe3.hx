@@ -73,3 +73,40 @@ class Test {
     trace(s); // 2
   }
 }
+
+@:coreType abstract Kilometer from Int {
+  function foo(){}
+}
+class Main {
+    static function main() {
+        var km:Kilometer = 1;
+        var n:Int = km; // Kilometer should be Int
+    }
+}
+
+abstract Void { } // value type with no relations
+abstract Int to Float { } // value type which implicit casts to Float
+abstract UInt to Int from Int { } // value types which auto-casts to and from Int
+abstract EnumFlags<T:EnumValue>(Int) { } // opaque type based on Int
+abstract Vector<T>(VectorData<T>) { } // opaque type based on VectorData<T>
+
+abstract StringSplitter(Array<String>) {
+    inline function new(a:Array<String>)
+        this = a
+
+    @:from static public inline function fromString(s:String) {
+        return new StringSplitter(s.split(""));
+    }
+}
+
+abstract MyInt(Int) from Int to Int {
+    // MyInt + MyInt can be used as is, and returns a MyInt
+    @:op(A + B) static public function add(lhs:MyInt, rhs:MyInt):MyInt {}
+
+    @:commutative @:op(A * B) static public function repeat(lhs:MyInt, rhs:String):String {
+        var s:StringBuf = new StringBuf();
+        for (i in 0...lhs)
+            s.add(rhs);
+        return s.toString();
+    }
+}

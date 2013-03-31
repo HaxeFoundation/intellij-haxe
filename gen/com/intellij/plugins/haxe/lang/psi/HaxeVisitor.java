@@ -6,6 +6,10 @@ import com.intellij.psi.PsiElementVisitor;
 
 public class HaxeVisitor extends PsiElementVisitor {
 
+  public void visitAbstractClassDeclaration(@NotNull HaxeAbstractClassDeclaration o) {
+    visitClass(o);
+  }
+
   public void visitAccess(@NotNull HaxeAccess o) {
     visitPsiCompositeElement(o);
   }

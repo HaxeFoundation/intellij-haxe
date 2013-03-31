@@ -23,7 +23,10 @@ public class HaxeParser implements PsiParser {
     int level_ = 0;
     boolean result_;
     builder_ = adapt_builder_(root_, builder_, this);
-    if (root_ == ACCESS) {
+    if (root_ == ABSTRACT_CLASS_DECLARATION) {
+      result_ = abstractClassDeclaration(builder_, level_ + 1);
+    }
+    else if (root_ == ACCESS) {
       result_ = access(builder_, level_ + 1);
     }
     else if (root_ == ADDITIVE_EXPRESSION) {
@@ -407,6 +410,146 @@ public class HaxeParser implements PsiParser {
       if (set.contains(child_) && set.contains(parent_)) return true;
     }
     return false;
+  }
+
+  /* ********************************************************** */
+  // macroClass* 'private'? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
+  public static boolean abstractClassDeclaration(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration")) return false;
+    if (!nextTokenIs(builder_, KAUTOBUILD) && !nextTokenIs(builder_, KBIND)
+        && !nextTokenIs(builder_, KBITMAP) && !nextTokenIs(builder_, KBUILD)
+        && !nextTokenIs(builder_, KCOREAPI) && !nextTokenIs(builder_, KFAKEENUM)
+        && !nextTokenIs(builder_, KFINAL) && !nextTokenIs(builder_, KHACK)
+        && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
+        && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNATIVE)
+        && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KREQUIRE)
+        && !nextTokenIs(builder_, KABSTRACT) && !nextTokenIs(builder_, KPRIVATE)
+        && !nextTokenIs(builder_, MACRO_ID) && replaceVariants(builder_, 17, "<abstract class declaration>")) return false;
+    boolean result_ = false;
+    boolean pinned_ = false;
+    Marker marker_ = builder_.mark();
+    enterErrorRecordingSection(builder_, level_, _SECTION_GENERAL_, "<abstract class declaration>");
+    result_ = abstractClassDeclaration_0(builder_, level_ + 1);
+    result_ = result_ && abstractClassDeclaration_1(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, KABSTRACT);
+    pinned_ = result_; // pin = 3
+    result_ = result_ && report_error_(builder_, componentName(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, abstractClassDeclaration_4(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, abstractClassDeclaration_5(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, abstractClassDeclaration_6(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLCURLY)) && result_;
+    result_ = pinned_ && report_error_(builder_, classBody(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && consumeToken(builder_, PRCURLY) && result_;
+    if (result_ || pinned_) {
+      marker_.done(ABSTRACT_CLASS_DECLARATION);
+    }
+    else {
+      marker_.rollbackTo();
+    }
+    result_ = exitErrorRecordingSection(builder_, level_, result_, pinned_, _SECTION_GENERAL_, null);
+    return result_ || pinned_;
+  }
+
+  // macroClass*
+  private static boolean abstractClassDeclaration_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_0")) return false;
+    int offset_ = builder_.getCurrentOffset();
+    while (true) {
+      if (!macroClass(builder_, level_ + 1)) break;
+      int next_offset_ = builder_.getCurrentOffset();
+      if (offset_ == next_offset_) {
+        empty_element_parsed_guard_(builder_, offset_, "abstractClassDeclaration_0");
+        break;
+      }
+      offset_ = next_offset_;
+    }
+    return true;
+  }
+
+  // 'private'?
+  private static boolean abstractClassDeclaration_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_1")) return false;
+    consumeToken(builder_, KPRIVATE);
+    return true;
+  }
+
+  // genericParam?
+  private static boolean abstractClassDeclaration_4(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_4")) return false;
+    genericParam(builder_, level_ + 1);
+    return true;
+  }
+
+  // ('(' type ')')?
+  private static boolean abstractClassDeclaration_5(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_5")) return false;
+    abstractClassDeclaration_5_0(builder_, level_ + 1);
+    return true;
+  }
+
+  // '(' type ')'
+  private static boolean abstractClassDeclaration_5_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_5_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, PLPAREN);
+    result_ = result_ && type(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  // (('from' | 'to') type)*
+  private static boolean abstractClassDeclaration_6(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_6")) return false;
+    int offset_ = builder_.getCurrentOffset();
+    while (true) {
+      if (!abstractClassDeclaration_6_0(builder_, level_ + 1)) break;
+      int next_offset_ = builder_.getCurrentOffset();
+      if (offset_ == next_offset_) {
+        empty_element_parsed_guard_(builder_, offset_, "abstractClassDeclaration_6");
+        break;
+      }
+      offset_ = next_offset_;
+    }
+    return true;
+  }
+
+  // ('from' | 'to') type
+  private static boolean abstractClassDeclaration_6_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_6_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = abstractClassDeclaration_6_0_0(builder_, level_ + 1);
+    result_ = result_ && type(builder_, level_ + 1);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
+  }
+
+  // 'from' | 'to'
+  private static boolean abstractClassDeclaration_6_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_6_0_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = builder_.mark();
+    result_ = consumeToken(builder_, KFROM);
+    if (!result_) result_ = consumeToken(builder_, KTO);
+    if (!result_) {
+      marker_.rollbackTo();
+    }
+    else {
+      marker_.drop();
+    }
+    return result_;
   }
 
   /* ********************************************************** */
@@ -1615,7 +1758,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // MACRO_ID ('(' customMetaLiterals ')')?
+  // MACRO_ID ('(' expressionList ')')?
   public static boolean customMeta(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "customMeta")) return false;
     if (!nextTokenIs(builder_, MACRO_ID)) return false;
@@ -1636,76 +1779,21 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // ('(' customMetaLiterals ')')?
+  // ('(' expressionList ')')?
   private static boolean customMeta_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "customMeta_1")) return false;
     customMeta_1_0(builder_, level_ + 1);
     return true;
   }
 
-  // '(' customMetaLiterals ')'
+  // '(' expressionList ')'
   private static boolean customMeta_1_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "customMeta_1_0")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, PLPAREN);
-    result_ = result_ && customMetaLiterals(builder_, level_ + 1);
+    result_ = result_ && expressionList(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRPAREN);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
-  }
-
-  /* ********************************************************** */
-  // literalExpression (',' literalExpression)*
-  static boolean customMetaLiterals(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "customMetaLiterals")) return false;
-    if (!nextTokenIs(builder_, PLBRACK) && !nextTokenIs(builder_, KFALSE)
-        && !nextTokenIs(builder_, KFUNCTION) && !nextTokenIs(builder_, KNULL)
-        && !nextTokenIs(builder_, KTRUE) && !nextTokenIs(builder_, PLCURLY)
-        && !nextTokenIs(builder_, LITFLOAT) && !nextTokenIs(builder_, LITHEX)
-        && !nextTokenIs(builder_, LITINT) && !nextTokenIs(builder_, LITOCT)
-        && !nextTokenIs(builder_, OPEN_QUOTE) && !nextTokenIs(builder_, REG_EXP)) return false;
-    boolean result_ = false;
-    Marker marker_ = builder_.mark();
-    result_ = literalExpression(builder_, level_ + 1);
-    result_ = result_ && customMetaLiterals_1(builder_, level_ + 1);
-    if (!result_) {
-      marker_.rollbackTo();
-    }
-    else {
-      marker_.drop();
-    }
-    return result_;
-  }
-
-  // (',' literalExpression)*
-  private static boolean customMetaLiterals_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "customMetaLiterals_1")) return false;
-    int offset_ = builder_.getCurrentOffset();
-    while (true) {
-      if (!customMetaLiterals_1_0(builder_, level_ + 1)) break;
-      int next_offset_ = builder_.getCurrentOffset();
-      if (offset_ == next_offset_) {
-        empty_element_parsed_guard_(builder_, offset_, "customMetaLiterals_1");
-        break;
-      }
-      offset_ = next_offset_;
-    }
-    return true;
-  }
-
-  // ',' literalExpression
-  private static boolean customMetaLiterals_1_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "customMetaLiterals_1_0")) return false;
-    boolean result_ = false;
-    Marker marker_ = builder_.mark();
-    result_ = consumeToken(builder_, OCOMMA);
-    result_ = result_ && literalExpression(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
     }
@@ -6416,6 +6504,7 @@ public class HaxeParser implements PsiParser {
   /* ********************************************************** */
   // classDeclaration
   //                               | externClassDeclaration
+  //                               | abstractClassDeclaration
   //                               | interfaceDeclaration
   //                               | enumDeclaration
   //                               | typedefDeclaration
@@ -6428,14 +6517,15 @@ public class HaxeParser implements PsiParser {
         && !nextTokenIs(builder_, KKEEP) && !nextTokenIs(builder_, KMACRO)
         && !nextTokenIs(builder_, KMETA) && !nextTokenIs(builder_, KNATIVE)
         && !nextTokenIs(builder_, KNS) && !nextTokenIs(builder_, KREQUIRE)
-        && !nextTokenIs(builder_, KCLASS) && !nextTokenIs(builder_, KENUM)
-        && !nextTokenIs(builder_, KEXTERN) && !nextTokenIs(builder_, KINTERFACE)
-        && !nextTokenIs(builder_, KPRIVATE) && !nextTokenIs(builder_, KTYPEDEF)
-        && !nextTokenIs(builder_, MACRO_ID)) return false;
+        && !nextTokenIs(builder_, KABSTRACT) && !nextTokenIs(builder_, KCLASS)
+        && !nextTokenIs(builder_, KENUM) && !nextTokenIs(builder_, KEXTERN)
+        && !nextTokenIs(builder_, KINTERFACE) && !nextTokenIs(builder_, KPRIVATE)
+        && !nextTokenIs(builder_, KTYPEDEF) && !nextTokenIs(builder_, MACRO_ID)) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = classDeclaration(builder_, level_ + 1);
     if (!result_) result_ = externClassDeclaration(builder_, level_ + 1);
+    if (!result_) result_ = abstractClassDeclaration(builder_, level_ + 1);
     if (!result_) result_ = interfaceDeclaration(builder_, level_ + 1);
     if (!result_) result_ = enumDeclaration(builder_, level_ + 1);
     if (!result_) result_ = typedefDeclaration(builder_, level_ + 1);
@@ -6466,7 +6556,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
+  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
   static boolean top_level_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "top_level_recover")) return false;
     boolean result_ = false;
@@ -6478,7 +6568,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef'
+  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef'
   private static boolean top_level_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "top_level_recover_0")) return false;
     boolean result_ = false;
@@ -6489,6 +6579,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, PPERROR);
     if (!result_) result_ = consumeToken(builder_, PPIF);
     if (!result_) result_ = metaKeyWord(builder_, level_ + 1);
+    if (!result_) result_ = consumeToken(builder_, KABSTRACT);
     if (!result_) result_ = consumeToken(builder_, KCLASS);
     if (!result_) result_ = consumeToken(builder_, KENUM);
     if (!result_) result_ = consumeToken(builder_, KEXTERN);

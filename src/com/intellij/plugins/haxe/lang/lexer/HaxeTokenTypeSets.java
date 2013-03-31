@@ -67,6 +67,7 @@ public interface HaxeTokenTypeSets {
     KCASE,
     KCAST,
     KCLASS,
+    KABSTRACT,
     KCONTINUE,
     KDEFAULT,
     KDO,
@@ -124,7 +125,9 @@ public interface HaxeTokenTypeSets {
     KMETA,
     KUSING,
     KSUPER,
-    MACRO_ID
+    MACRO_ID,
+    KFROM,
+    KTO
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(

@@ -90,6 +90,10 @@
     kCASE="case"
     kCAST="cast"
 
+    kABSTRACT="abstract"
+    kFROM="from"
+    kTO="to"
+
     kCLASS="class"
     kENUM="enum"
     kINTERFACE="interface"
@@ -187,8 +191,7 @@ nsMeta ::= '@:ns' '(' stringLiteralExpression ')'
 getterMeta ::= '@:getter' '(' referenceExpression ')'
 setterMeta ::= '@:setter' '(' referenceExpression ')'
 overloadMeta ::= '@:overload' '(' anonymousFunctionDeclaration ')'
-customMeta ::= MACRO_ID ('(' customMetaLiterals ')')?
-private customMetaLiterals ::= literalExpression (',' literalExpression)*
+customMeta ::= MACRO_ID ('(' expressionList ')')?
 metaMeta ::= '@:meta' '(' ID '(' metaPartList? ')' ')'
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
 metaKeyValue ::= ID '=' stringLiteralExpression
@@ -207,13 +210,14 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel*
 private topLevel ::= importStatement | usingStatement | topLevelDeclaration {recoverUntil="top_level_recover"}
-private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'class' | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
+private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
 
 importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration
                               | externClassDeclaration
+                              | abstractClassDeclaration
                               | interfaceDeclaration
                               | enumDeclaration
                               | typedefDeclaration
@@ -231,6 +235,10 @@ private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#er
 
 classDeclaration ::= macroClass* 'private'? 'class' componentName genericParam? inheritList? '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+
+abstractClassDeclaration ::= macroClass* 'private'? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverUntil="class_body_part_recover"}
 private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
