@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
   public static final ID<String, Void> HAXE_COMPONENT_FILE_NAME_INDEX = ID.create("HaxeComponentFileNameIndex");
-  private static final int INDEX_VERSION = 3;
+  private static final int INDEX_VERSION = 4;
   private DataIndexer<String, Void, FileContent> myDataIndexer = new MyDataIndexer();
 
   @NotNull
