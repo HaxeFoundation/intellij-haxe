@@ -100,7 +100,10 @@ public class HaxeColorAnnotator implements Annotator {
   }
 
   @Nullable
-  private static TextAttributesKey getAttributeByType(HaxeComponentType type, boolean isStatic) {
+  private static TextAttributesKey getAttributeByType(@Nullable HaxeComponentType type, boolean isStatic) {
+    if (type == null) {
+      return null;
+    }
     switch (type) {
       case CLASS:
       case ENUM:
