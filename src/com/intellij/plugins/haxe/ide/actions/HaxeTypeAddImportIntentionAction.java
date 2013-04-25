@@ -41,7 +41,7 @@ public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAct
   }
 
   @Override
-  public boolean showHint(Editor editor) {
+  public boolean showHint(@NotNull Editor editor) {
     myEditor = editor;
     TextRange range = InjectedLanguageManager.getInstance(myType.getProject()).injectedToHost(myType, myType.getTextRange());
     HintManager.getInstance().showQuestionHint(editor, getText(), range.getStartOffset(), range.getEndOffset(), this);
