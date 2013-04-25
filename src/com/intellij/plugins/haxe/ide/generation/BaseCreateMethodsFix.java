@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.ide.generation;
 
-import com.intellij.codeInsight.CodeInsightUtilBase;
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.HaxeNamedElementNode;
@@ -51,7 +51,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   }
 
   public void invoke(@NotNull final Project project, final Editor editor, final PsiFile file) throws IncorrectOperationException {
-    if (!CodeInsightUtilBase.prepareFileForWrite(file)) return;
+    if (!FileModificationService.getInstance().prepareFileForWrite(file)) return;
     evalAnchor(editor, file);
     processElements(project, getElementsToProcess());
   }

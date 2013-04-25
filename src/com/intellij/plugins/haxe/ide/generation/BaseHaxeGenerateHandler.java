@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.ide.generation;
 
-import com.intellij.codeInsight.CodeInsightUtilBase;
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.ide.util.MemberChooser;
 import com.intellij.lang.LanguageCodeInsightActionHandler;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,7 +41,7 @@ public abstract class BaseHaxeGenerateHandler implements LanguageCodeInsightActi
 
   @Override
   public void invoke(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
-    if (!CodeInsightUtilBase.prepareFileForWrite(file)) return;
+    if (!FileModificationService.getInstance().prepareFileForWrite(file)) return;
     final HaxeClass haxeClass =
       PsiTreeUtil.getParentOfType(file.findElementAt(editor.getCaretModel().getOffset()), HaxeClassDeclaration.class);
     if (haxeClass == null) return;
