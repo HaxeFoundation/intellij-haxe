@@ -11,18 +11,17 @@ import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeDebugProcess extends FlexDebugProcess {
-  public HaxeDebugProcess(final XDebugSession session, final FlexBuildConfiguration bc, final BCBasedRunnerParameters params)
-    throws IOException {
+  public HaxeDebugProcess(final XDebugSession session,
+                          final FlexBuildConfiguration bc,
+                          final BCBasedRunnerParameters params) throws IOException {
     super(session, bc, params);
-
-    final XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>> flexHandler =
-      (XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>)getBreakpointHandlers()[0];
-    getBreakpointHandlers()[0] = new HaxeBreakPointHandler(flexHandler);
   }
 
   @NotNull
