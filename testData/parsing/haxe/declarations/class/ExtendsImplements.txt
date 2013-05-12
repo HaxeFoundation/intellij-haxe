@@ -22,3 +22,26 @@ haXe File
     CLASS_BODY
       <empty list>
     PsiElement(})('}')
+  PsiComment(MSL_COMMENT)('//haxe 3')
+  CLASS_DECLARATION
+    PsiElement(class)('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        PsiElement(ID)('ExtendsImplements')
+    INHERIT_LIST
+      INHERIT
+        PsiElement(extends)('extends')
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              PsiElement(ID)('Bar')
+      INHERIT
+        PsiElement(implements)('implements')
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              PsiElement(ID)('Test')
+    PsiElement({)('{')
+    CLASS_BODY
+      <empty list>
+    PsiElement(})('}')

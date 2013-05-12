@@ -3511,7 +3511,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // inherit (',' inherit)*
+  // inherit (','? inherit)*
   public static boolean inheritList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "inheritList")) return false;
     if (!nextTokenIs(builder_, KEXTENDS) && !nextTokenIs(builder_, KIMPLEMENTS)
@@ -3531,7 +3531,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (',' inherit)*
+  // (','? inherit)*
   private static boolean inheritList_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "inheritList_1")) return false;
     int offset_ = builder_.getCurrentOffset();
@@ -3547,12 +3547,12 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ',' inherit
+  // ','? inherit
   private static boolean inheritList_1_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "inheritList_1_0")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
-    result_ = consumeToken(builder_, OCOMMA);
+    result_ = inheritList_1_0_0(builder_, level_ + 1);
     result_ = result_ && inherit(builder_, level_ + 1);
     if (!result_) {
       marker_.rollbackTo();
@@ -3563,8 +3563,15 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
+  // ','?
+  private static boolean inheritList_1_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "inheritList_1_0_0")) return false;
+    consumeToken(builder_, OCOMMA);
+    return true;
+  }
+
   /* ********************************************************** */
-  // !(',' | '{')
+  // !(',' | '{' | 'extends' | 'implements')
   static boolean inherit_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "inherit_recover")) return false;
     boolean result_ = false;
@@ -3576,13 +3583,15 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // ',' | '{'
+  // ',' | '{' | 'extends' | 'implements'
   private static boolean inherit_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "inherit_recover_0")) return false;
     boolean result_ = false;
     Marker marker_ = builder_.mark();
     result_ = consumeToken(builder_, OCOMMA);
     if (!result_) result_ = consumeToken(builder_, PLCURLY);
+    if (!result_) result_ = consumeToken(builder_, KEXTENDS);
+    if (!result_) result_ = consumeToken(builder_, KIMPLEMENTS);
     if (!result_) {
       marker_.rollbackTo();
     }
