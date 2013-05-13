@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.6.3:</p>
+      <ul>
+        <li>Parser improvements</li>
+      </ul>
       <p>0.6.2:</p>
       <ul>
         <li>Bug fixes</li>
@@ -132,7 +136,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.6.2</version>
+  <version>0.6.3</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="130.1" until-build="131.1"/>
   <depends>com.intellij.modules.ultimate</depends>
