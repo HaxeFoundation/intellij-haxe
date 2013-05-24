@@ -4,6 +4,10 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.6.4:</p>
+      <ul>
+        <li>Optimize imports</li>
+      </ul>
       <p>0.6.3:</p>
       <ul>
         <li>Parser improvements</li>
@@ -136,7 +140,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.6.3</version>
+  <version>0.6.4</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="130.1" until-build="131.1"/>
   <depends>com.intellij.modules.ultimate</depends>
@@ -189,6 +193,7 @@
     <lang.refactoringSupport language="haXe"
                              implementationClass="com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringSupportProvider"/>
     <lang.foldingBuilder language="haXe" implementationClass="com.intellij.plugins.haxe.ide.folding.HaxeFoldingBuilder"/>
+    <lang.importOptimizer language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeImportOptimizer"/>
 
     <languageInjector implementation="com.intellij.plugins.haxe.lang.RegexLanguageInjector"/>
 
@@ -257,6 +262,12 @@
     <localInspection language="XML" shortName="NMEBuildDirectory" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="com.intellij.plugins.haxe.codeInspection.NMEBuildDirectoryInspection"/>
+
+
+    <localInspection language="haXe" shortName="HaxeUnusedImport" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspection.unused.import.name"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection"/>
   </extensions>
 
   <actions>

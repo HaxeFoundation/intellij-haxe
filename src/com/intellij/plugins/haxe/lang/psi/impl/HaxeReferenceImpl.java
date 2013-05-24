@@ -268,13 +268,13 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         assert referenceExpression != null;
         replace(referenceExpression);
       }
-      else if (UsefulPsiTreeUtil.findImportByClass(this, getText()) == null && !destinationPackage.isEmpty()) {
+      else if (UsefulPsiTreeUtil.findImportByClassName(this, getText()) == null && !destinationPackage.isEmpty()) {
         // need add import
         HaxeAddImportHelper.addImport(importPath, getContainingFile());
       }
     }
     else {
-      final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClass(this, getText());
+      final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClassName(this, getText());
       HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
       if (referenceExpression != null && !importPath.equals(referenceExpression.getText())) {
         // need remove, cause can resolve without

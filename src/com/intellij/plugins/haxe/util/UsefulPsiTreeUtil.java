@@ -2,9 +2,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Condition;
-import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -78,17 +76,17 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static HaxeImportStatement findImportByClass(@NotNull PsiElement psiElement, String className) {
+  public static HaxeImportStatement findImportByClassName(@NotNull PsiElement psiElement, String className) {
     final List<HaxeImportStatement> haxeImportStatementList = getAllImportStatements(psiElement);
     for (HaxeImportStatement importStatement : haxeImportStatementList) {
-      if (importStatementForClass(importStatement, className)) {
+      if (importStatementForClassName(importStatement, className)) {
         return importStatement;
       }
     }
     return null;
   }
 
-  public static boolean importStatementForClass(HaxeImportStatement importStatement, String className) {
+  public static boolean importStatementForClassName(HaxeImportStatement importStatement, String className) {
     final HaxeExpression expression = importStatement.getReferenceExpression();
     if (expression == null) {
       return false;
@@ -110,7 +108,8 @@ public class UsefulPsiTreeUtil {
     return null;
   }
 
-  private static List<HaxeImportStatement> getAllImportStatements(PsiElement element) {
+  @NotNull
+  public static List<HaxeImportStatement> getAllImportStatements(PsiElement element) {
     final HaxeImportStatement[] haxeImportStatements =
       PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatement.class);
     if (haxeImportStatements != null) {
@@ -178,5 +177,18 @@ public class UsefulPsiTreeUtil {
       }
     }
     return result == null ? null : ArrayUtil.toObjectArray(result, aClass);
+  }
+
+  public static boolean importStatementForClass(@NotNull HaxeImportStatement importStatement, @NotNull HaxeClass haxeClass) {
+    HaxeReferenceExpression importReferenceExpression = importStatement.getReferenceExpression();
+    if (importReferenceExpression == null) {
+      return false;
+    }
+    PsiElement importTarget = importReferenceExpression.resolve();
+    if (importTarget == null) {
+      return false;
+    }
+    // in case of helpers just check containing files
+    return importTarget.getContainingFile() == haxeClass.getContainingFile();
   }
 }
