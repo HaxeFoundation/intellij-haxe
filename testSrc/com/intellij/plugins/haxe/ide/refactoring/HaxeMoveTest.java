@@ -8,7 +8,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiUtilBase;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.refactoring.MultiFileTestCase;
 import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
@@ -61,7 +61,7 @@ public class HaxeMoveTest extends MultiFileTestCase {
         assertNotNull(targetDirectory);
 
         if (files.iterator().next() instanceof PsiFile) {
-          new MoveFilesOrDirectoriesProcessor(myProject, PsiUtilBase.toPsiElementArray(files), targetDirectory,
+          new MoveFilesOrDirectoriesProcessor(myProject, PsiUtilCore.toPsiElementArray(files), targetDirectory,
                                               false, false, null, null).run();
         }
         else if (files.iterator().next() instanceof PsiPackage) {
@@ -70,7 +70,7 @@ public class HaxeMoveTest extends MultiFileTestCase {
           final PsiDirectory[] dirs = newParentPackage.getDirectories();
           assertEquals(dirs.length, 1);
 
-          new MoveClassesOrPackagesProcessor(myProject, PsiUtilBase.toPsiElementArray(files),
+          new MoveClassesOrPackagesProcessor(myProject, PsiUtilCore.toPsiElementArray(files),
                                              new SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage),
                                                                                  newParentPackage.getDirectories()[0]),
                                              true, true, null).run();
