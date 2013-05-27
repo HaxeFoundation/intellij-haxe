@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.ide.refactoring.introduce;
 
-import com.intellij.codeInsight.CodeInsightUtilBase;
+import com.intellij.codeInsight.CodeInsightUtilCore;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.codeInsight.template.impl.TemplateState;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -370,7 +370,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     }
 
     declaration = performReplace(declaration, operation);
-    declaration = CodeInsightUtilBase.forcePsiPostprocessAndRestoreElement(declaration);
+    declaration = CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(declaration);
     return declaration;
   }
 
