@@ -92,6 +92,14 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     checkCompletion(CheckType.INCLUDES, "bar", "baz");
   }
 
+  public void testPackageCompletionInImportStatement3() {
+    myFixture.addFileToProject("com/foo/Bar.hx", "package com.foo;\nclass Bar {}");
+    myFixture.addFileToProject("com/foo/Baz.hx", "package com.foo;\nclass Baz {}");
+    myFixture.configureByText("Foo.hx", "import com.foo.B<caret>");
+    myFixture.completeBasic();
+    checkCompletion(CheckType.INCLUDES, "Bar", "Baz");
+  }
+
   public void testPrivateMethod() throws Throwable {
     myFixture.configureByFiles("PrivateMethod.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("PrivateMethod.txt");

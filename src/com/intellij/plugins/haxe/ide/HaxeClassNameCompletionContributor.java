@@ -18,11 +18,14 @@ import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 
@@ -41,17 +44,33 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-               addVariantsFromIndex(result, parameters.getOriginalFile(), CLASS_INSERT_HANDLER);
+               addVariantsFromIndex(result, parameters.getOriginalFile(), null, CLASS_INSERT_HANDLER);
+             }
+           });
+    extend(CompletionType.BASIC,
+           psiElement().and(inComplexExpression),
+           new CompletionProvider<CompletionParameters>() {
+             @Override
+             protected void addCompletions(@NotNull CompletionParameters parameters,
+                                           ProcessingContext context,
+                                           @NotNull CompletionResultSet result) {
+               HaxeReference leftReference =
+                 HaxeResolveUtil.getLeftReference(PsiTreeUtil.getParentOfType(parameters.getPosition(), HaxeReference.class));
+               PsiElement leftTarget = leftReference != null ? leftReference.resolve() : null;
+               if (leftTarget instanceof PsiPackage) {
+                 addVariantsFromIndex(result, parameters.getOriginalFile(), ((PsiPackage)leftTarget).getQualifiedName(), null);
+               }
              }
            });
   }
 
   private static void addVariantsFromIndex(final CompletionResultSet resultSet,
                                            final PsiFile targetFile,
-                                           final InsertHandler<LookupElement> insertHandler) {
+                                           @Nullable String prefixPackage,
+                                           @Nullable final InsertHandler<LookupElement> insertHandler) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, insertHandler), scope);
+    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, prefixPackage, insertHandler), scope);
   }
 
   private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER = new InsertHandler<LookupElement>() {
@@ -77,25 +96,27 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
 
   private static class MyProcessor implements Processor<Pair<String, HaxeClassInfo>> {
     private final CompletionResultSet myResultSet;
-    private final InsertHandler<LookupElement> myInsertHandler;
+    @Nullable private final InsertHandler<LookupElement> myInsertHandler;
+    @Nullable private final String myPrefixPackage;
 
-    private MyProcessor(CompletionResultSet resultSet, InsertHandler<LookupElement> insertHandler) {
+    private MyProcessor(CompletionResultSet resultSet, @Nullable String prefixPackage, @Nullable InsertHandler<LookupElement> insertHandler) {
       myResultSet = resultSet;
+      myPrefixPackage = prefixPackage;
       myInsertHandler = insertHandler;
     }
 
     @Override
     public boolean process(Pair<String, HaxeClassInfo> pair) {
-      add(pair.getFirst(), pair.getSecond());
+      HaxeClassInfo info = pair.getSecond();
+      if (myPrefixPackage == null || myPrefixPackage.equalsIgnoreCase(info.getValue())) {
+        String name = pair.getFirst();
+        final String qName = HaxeResolveUtil.joinQName(info.getValue(), name);
+        myResultSet.addElement(LookupElementBuilder.create(qName, name)
+                                 .withIcon(info.getIcon())
+                                 .withTailText(" " + info.getValue(), true)
+                                 .withInsertHandler(myInsertHandler));
+      }
       return true;
-    }
-
-    private void add(String name, HaxeClassInfo info) {
-      final String qName = HaxeResolveUtil.joinQName(info.getValue(), name);
-      myResultSet.addElement(LookupElementBuilder.create(qName, name)
-                               .withIcon(info.getIcon())
-                               .withTailText(" " + info.getValue(), true)
-                               .withInsertHandler(myInsertHandler));
     }
   }
 }
