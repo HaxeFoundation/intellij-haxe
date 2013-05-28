@@ -41,4 +41,12 @@ public class HaxeAnnotationTest extends LightCodeInsightFixtureTestCase {
   public void testIDEA_100331_2() throws Throwable {
     doTest("test/TArray.hx");
   }
+
+  public void testIDEA_106515() throws Throwable {
+    doTest("test/TArray.hx");
+  }
+
+  public void testIDEA_106515_2() throws Throwable {
+    doTest("test/TArray.hx");
+  }
 }

@@ -32,10 +32,10 @@ import java.util.List;
  */
 public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAction, LocalQuickFix {
   private final List<HaxeComponent> candidates;
-  private final HaxeType myType;
+  private final PsiElement myType;
   private Editor myEditor;
 
-  public HaxeTypeAddImportIntentionAction(@NotNull HaxeType type, @NotNull List<HaxeComponent> components) {
+  public HaxeTypeAddImportIntentionAction(@NotNull PsiElement type, @NotNull List<HaxeComponent> components) {
     myType = type;
     candidates = components;
   }

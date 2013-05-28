@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -39,12 +40,25 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
       return;
     }
 
-    final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
+    tryCreateAnnotation(expression);
+  }
+
+  @Override
+  public void visitReferenceExpression(@NotNull HaxeReferenceExpression expression) {
+    super.visitReferenceExpression(expression);
+
+    if (expression.resolve() == null) {
+      tryCreateAnnotation(expression);
+    }
+  }
+
+  private void tryCreateAnnotation(HaxeReferenceExpression expression) {
+    final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(expression);
     final List<HaxeComponent> components =
-      HaxeComponentIndex.getItemsByName(expression.getText(), type.getProject(), scope);
+      HaxeComponentIndex.getItemsByName(expression.getText(), expression.getProject(), scope);
     if (!components.isEmpty()) {
-      myHolder.createErrorAnnotation(type, HaxeBundle.message("haxe.unresolved.type"))
-        .registerFix(new HaxeTypeAddImportIntentionAction(type, components));
+      myHolder.createErrorAnnotation(expression, HaxeBundle.message("haxe.unresolved.type"))
+        .registerFix(new HaxeTypeAddImportIntentionAction(expression, components));
     }
   }
 }

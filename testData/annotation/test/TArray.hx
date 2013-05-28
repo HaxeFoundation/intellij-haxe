@@ -1,3 +1,5 @@
 package test;
 
-class TArray{}
+class TArray{
+  public static function alloc() {}
+}
