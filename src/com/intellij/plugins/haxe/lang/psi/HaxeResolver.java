@@ -7,8 +7,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.PackageReferenceSet;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.PsiPackageReference;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +85,20 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     // try super field
-    return resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
+    List<? extends PsiElement> superElements = resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
+    if (!superElements.isEmpty()) {
+      return superElements;
+    }
+
+    if (JavaPsiFacade.getInstance(reference.getProject()).getNameHelper().isQualifiedName(reference.getText())) {
+      PsiPackageReference packageReference = new PackageReferenceSet(reference.getText(), reference, 0).getLastReference();
+      PsiElement packageTarget = packageReference != null ? packageReference.resolve() : null;
+      if (packageTarget != null) {
+        return Arrays.asList(packageTarget);
+      }
+    }
+
+    return ContainerUtil.emptyList();
   }
 
   @Nullable

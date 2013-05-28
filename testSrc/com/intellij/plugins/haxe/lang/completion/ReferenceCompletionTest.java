@@ -61,6 +61,37 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  public void testPackageCompletionInPackageStatement1() {
+    myFixture.addFileToProject("com/bar/Bar.hx", "");
+    myFixture.configureByText("Baz.hx", "package <caret>");
+    myFixture.completeBasic();
+    checkCompletion(CheckType.INCLUDES, "com");
+  }
+
+  public void testPackageCompletionInPackageStatement2() {
+    myFixture.addFileToProject("com/bar/Bar.hx", "");
+    myFixture.addFileToProject("com/baz/Baz.hx", "");
+    myFixture.configureByText("Foo.hx", "package com.b<caret>");
+    myFixture.completeBasic();
+    checkCompletion(CheckType.INCLUDES, "bar", "baz");
+  }
+
+  public void testPackageCompletionInImportStatement1() {
+    myFixture.addFileToProject("com/bar/Bar.hx", "");
+    myFixture.addFileToProject("com/baz/Baz.hx", "");
+    myFixture.configureByText("Foo.hx", "import <caret>");
+    myFixture.completeBasic();
+    checkCompletion(CheckType.INCLUDES, "com");
+  }
+
+  public void testPackageCompletionInImportStatement2() {
+    myFixture.addFileToProject("com/bar/Bar.hx", "");
+    myFixture.addFileToProject("com/baz/Baz.hx", "");
+    myFixture.configureByText("Foo.hx", "import com.b<caret>");
+    myFixture.completeBasic();
+    checkCompletion(CheckType.INCLUDES, "bar", "baz");
+  }
+
   public void testPrivateMethod() throws Throwable {
     myFixture.configureByFiles("PrivateMethod.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("PrivateMethod.txt");

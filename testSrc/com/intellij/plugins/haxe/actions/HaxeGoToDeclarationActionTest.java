@@ -18,6 +18,10 @@ public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCas
     return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/goto/");
   }
 
+  protected void doTest(PsiFile file, int expectedSize) {
+    doTest(new PsiFile[]{file}, expectedSize);
+  }
+
   protected void doTest(PsiFile[] files, int expectedSize) {
     final PsiFile myFile = files[0];
     final Collection<PsiElement> elements = TargetElementUtilBase

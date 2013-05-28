@@ -17,6 +17,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
@@ -303,11 +304,11 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     // if not first in chain
     // foo.bar.baz
-    final HaxeReference referenceExpression = HaxeResolveUtil.getLeftReference(this);
-    if (referenceExpression != null && getParent() instanceof HaxeReference && !referenceExpression.resolveHaxeClass().isFunctionType()) {
-      addClassVariants(suggestedVariants, referenceExpression.resolveHaxeClass().getHaxeClass(),
-                       !(referenceExpression instanceof HaxeThisExpression));
-      addUsingVariants(suggestedVariants, referenceExpression.resolveHaxeClass().getHaxeClass(),
+    final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
+    if (leftReference != null && getParent() instanceof HaxeReference && !leftReference.resolveHaxeClass().isFunctionType()) {
+      addClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
+                       !(leftReference instanceof HaxeThisExpression));
+      addUsingVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        HaxeResolveUtil.findUsingClasses(getContainingFile()));
     }
     else {
@@ -321,7 +322,17 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
 
-    return HaxeLookupElement.convert(suggestedVariants).toArray();
+    Object[] variants = HaxeLookupElement.convert(suggestedVariants).toArray();
+    PsiElement leftTarget = leftReference != null ? leftReference.resolve() : null;
+
+    if (leftTarget instanceof PsiPackage) {
+      return ArrayUtil.mergeArrays(variants, ((PsiPackage)leftTarget).getSubPackages());
+    }
+    else if (leftReference == null) {
+      PsiPackage rootPackage = JavaPsiFacade.getInstance(getElement().getProject()).findPackage("");
+      return rootPackage == null ? variants : ArrayUtil.mergeArrays(variants, rootPackage.getSubPackages());
+    }
+    return variants;
   }
 
   private static void addUsingVariants(Set<HaxeComponentName> variants, @Nullable HaxeClass ourClass, List<HaxeClass> classes) {

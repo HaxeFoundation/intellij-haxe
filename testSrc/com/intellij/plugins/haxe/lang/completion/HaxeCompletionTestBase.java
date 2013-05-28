@@ -9,10 +9,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -70,6 +67,14 @@ public abstract class HaxeCompletionTestBase extends JavaCodeInsightFixtureTestC
     }
 
     myFixture.complete(type, count);
+    checkCompletion(checkType, variants);
+  }
+
+  protected void checkCompletion(CheckType checkType, String... variants) {
+    checkCompletion(checkType, new ArrayList<String>(Arrays.asList(variants)));
+  }
+
+  protected void checkCompletion(CheckType checkType, List<String> variants) {
     List<String> stringList = myFixture.getLookupElementStrings();
     if (stringList == null) {
       stringList = Collections.emptyList();
