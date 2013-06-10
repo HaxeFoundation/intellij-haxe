@@ -196,6 +196,8 @@
     <lang.importOptimizer language="haXe" implementationClass="com.intellij.plugins.haxe.ide.HaxeImportOptimizer"/>
 
     <languageInjector implementation="com.intellij.plugins.haxe.lang.RegexLanguageInjector"/>
+    <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpressionLiteral"
+                             implementationClass="com.intellij.plugins.haxe.lang.psi.manipulators.HaxeRegularExpressionLiteralManipulator"/>
 
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
 
