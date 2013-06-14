@@ -5,7 +5,6 @@ import com.intellij.formatting.templateLanguages.BlockWithParent;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
@@ -35,7 +34,7 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
   protected HaxeBlock(ASTNode node,
                       Wrap wrap,
                       Alignment alignment,
-                      CodeStyleSettings settings) {               
+                      CodeStyleSettings settings) {
     super(node, wrap, alignment);
     mySettings = settings;
     final HaxeCodeStyleSettings haxeCodeStyleSettings = mySettings.getCustomSettings(HaxeCodeStyleSettings.class);
@@ -46,7 +45,6 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
     myIndent = myIndentProcessor.getChildIndent(myNode);
   }
 
-  
 
   @Override
   public Indent getIndent() {

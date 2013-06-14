@@ -56,9 +56,10 @@ public class NekoRunningState extends CommandLineState {
     commandLine.setExePath(sdkData.getNekoBinPath());
     commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
 
-    if(customFileToLaunch != null){
+    if (customFileToLaunch != null) {
       commandLine.addParameter(customFileToLaunch);
-    } else {
+    }
+    else {
       final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
       final VirtualFile fileToLaunch = outputDirectory != null ? outputDirectory.findChild(settings.getOutputFileName()) : null;
       if (fileToLaunch != null) {

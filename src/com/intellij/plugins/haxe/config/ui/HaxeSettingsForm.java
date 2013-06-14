@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.config.ui;
 
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
-import com.intellij.plugins.haxe.util.HaxeUtil;
 import com.intellij.ui.AddDeleteListPanel;
 
 import javax.swing.*;
@@ -43,7 +42,7 @@ public class HaxeSettingsForm {
     myAddDeleteListPanel = new MyAddDeleteListPanel(HaxeBundle.message("haxe.conditional.compilation.defined.macros"));
   }
 
-  private class MyAddDeleteListPanel extends AddDeleteListPanel<String>{
+  private class MyAddDeleteListPanel extends AddDeleteListPanel<String> {
     public MyAddDeleteListPanel(final String title) {
       super(title, Collections.<String>emptyList());
     }
@@ -69,7 +68,7 @@ public class HaxeSettingsForm {
     protected String findItemToAdd() {
       final StringValueDialog dialog = new StringValueDialog(myAddDeleteListPanel, false);
       dialog.show();
-      if(!dialog.isOK()) {
+      if (!dialog.isOK()) {
         return null;
       }
       final String stringValue = dialog.getStringValue();

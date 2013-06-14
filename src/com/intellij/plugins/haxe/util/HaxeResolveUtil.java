@@ -484,7 +484,8 @@ public class HaxeResolveUtil {
     final HaxeImportStatement importStatement = (HaxeImportStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
-        return element instanceof HaxeImportStatement && UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatement)element, result);
+        return element instanceof HaxeImportStatement &&
+               UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatement)element, result);
       }
     });
     final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpression();

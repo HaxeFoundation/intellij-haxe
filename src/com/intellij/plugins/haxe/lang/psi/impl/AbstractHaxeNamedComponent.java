@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -98,7 +97,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             haxeClass = typedefDeclaration;
           }
         }
-        if(haxeClass == null) {
+        if (haxeClass == null) {
           return "";
         }
         final Pair<String, String> qName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
@@ -154,7 +153,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public boolean isStatic() {
-    final HaxeDeclarationAttribute[]declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
+    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KSTATIC);
   }
 

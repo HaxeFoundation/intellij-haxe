@@ -51,7 +51,7 @@ public abstract class BaseHaxeGenerateHandler implements LanguageCodeInsightActi
 
     List<HaxeNamedElementNode> selectedElements = Collections.emptyList();
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      selectedElements = ContainerUtil.map(candidates, new Function<HaxeNamedComponent, HaxeNamedElementNode>(){
+      selectedElements = ContainerUtil.map(candidates, new Function<HaxeNamedComponent, HaxeNamedElementNode>() {
         @Override
         public HaxeNamedElementNode fun(HaxeNamedComponent namedComponent) {
           return new HaxeNamedElementNode(namedComponent);

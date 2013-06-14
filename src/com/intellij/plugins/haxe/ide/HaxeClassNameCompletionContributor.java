@@ -99,7 +99,9 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     @Nullable private final InsertHandler<LookupElement> myInsertHandler;
     @Nullable private final String myPrefixPackage;
 
-    private MyProcessor(CompletionResultSet resultSet, @Nullable String prefixPackage, @Nullable InsertHandler<LookupElement> insertHandler) {
+    private MyProcessor(CompletionResultSet resultSet,
+                        @Nullable String prefixPackage,
+                        @Nullable InsertHandler<LookupElement> insertHandler) {
       myResultSet = resultSet;
       myPrefixPackage = prefixPackage;
       myInsertHandler = insertHandler;

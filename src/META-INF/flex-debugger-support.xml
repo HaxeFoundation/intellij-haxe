@@ -1,6 +1,7 @@
 <idea-plugin version="2">
   <extensions defaultExtensionNs="com.intellij">
     <plugins.haxe.module.config implementation="com.intellij.plugins.haxe.runner.debugger.HaxeFlexSDKExtension"/>
-    <flex.breakpoint.type.provider implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType$HaxeBreakpointTypeProvider"/>
+    <flex.breakpoint.type.provider
+        implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType$HaxeBreakpointTypeProvider"/>
   </extensions>
 </idea-plugin>

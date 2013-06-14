@@ -10,7 +10,7 @@ import java.awt.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class StringValueDialog extends DialogWrapper{
+public class StringValueDialog extends DialogWrapper {
   private JTextField myTextField;
   private JPanel myMainPanel;
 

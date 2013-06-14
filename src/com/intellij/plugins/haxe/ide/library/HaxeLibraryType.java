@@ -19,13 +19,14 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeLibraryType extends LibraryType<DummyLibraryProperties> {
-  public static final PersistentLibraryKind<DummyLibraryProperties> HAXE_LIBRARY = new PersistentLibraryKind<DummyLibraryProperties>("haXe") {
-    @NotNull
-    @Override
-    public DummyLibraryProperties createDefaultProperties() {
-      return new DummyLibraryProperties();
-    }
-  };
+  public static final PersistentLibraryKind<DummyLibraryProperties> HAXE_LIBRARY =
+    new PersistentLibraryKind<DummyLibraryProperties>("haXe") {
+      @NotNull
+      @Override
+      public DummyLibraryProperties createDefaultProperties() {
+        return new DummyLibraryProperties();
+      }
+    };
 
   public HaxeLibraryType() {
     super(HAXE_LIBRARY);

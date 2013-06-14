@@ -47,5 +47,4 @@ public class HaxeMacroUtil {
     }, at, null, ResolveState.initial());
     return result;
   }
-
 }

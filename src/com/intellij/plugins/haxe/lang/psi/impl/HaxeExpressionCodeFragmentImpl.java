@@ -25,7 +25,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
+import static com.intellij.lang.parser.GeneratedParserUtilBase._SECTION_GENERAL_;
+import static com.intellij.lang.parser.GeneratedParserUtilBase.enterErrorRecordingSection;
 
 /**
  * @author: Fedor.Korotkov

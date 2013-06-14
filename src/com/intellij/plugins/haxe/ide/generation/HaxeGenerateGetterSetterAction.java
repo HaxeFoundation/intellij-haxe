@@ -8,7 +8,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 public class HaxeGenerateGetterSetterAction extends BaseHaxeGenerateAction {
   @Override
   protected BaseHaxeGenerateHandler getGenerateHandler() {
-    return new HaxeGenerateAccessorHandler(CreateGetterSetterFix.Strategy.GETTERSETTER){
+    return new HaxeGenerateAccessorHandler(CreateGetterSetterFix.Strategy.GETTERSETTER) {
       @Override
       protected String getTitle() {
         return HaxeBundle.message("fields.to.generate.getters.setters");
