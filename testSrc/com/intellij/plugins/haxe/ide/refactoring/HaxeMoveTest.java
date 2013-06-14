@@ -7,6 +7,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.refactoring.MultiFileTestCase;
@@ -24,7 +25,7 @@ import java.util.Collection;
 public class HaxeMoveTest extends MultiFileTestCase {
   @Override
   protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/");
+    return HaxeTestUtils.BASE_TEST_DATA_PATH;
   }
 
   @Override

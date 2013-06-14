@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
 import junit.framework.TestCase;
 

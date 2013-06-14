@@ -7,20 +7,19 @@ import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeLiveTemplatesTest extends LightCodeInsightFixtureTestCase {
+public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
-    return FileUtil.toSystemDependentName("/plugins/haxe/testData/liveTemplates/");
+    return "/liveTemplates/";
   }
 
   @Override
@@ -43,10 +42,6 @@ public class HaxeLiveTemplatesTest extends LightCodeInsightFixtureTestCase {
   public static void expandTemplate(final Editor editor) {
     new ListTemplatesAction().actionPerformedImpl(editor.getProject(), editor);
     ((LookupImpl)LookupManager.getActiveLookup(editor)).finishLookup(Lookup.NORMAL_SELECT_CHAR);
-  }
-
-  private void doTest() throws Exception {
-    doTest(getTestName(false) + ".hx");
   }
 
   private void doTest(String... files) throws Exception {

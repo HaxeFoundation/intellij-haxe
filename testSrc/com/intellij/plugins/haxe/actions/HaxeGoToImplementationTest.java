@@ -2,17 +2,15 @@ package com.intellij.plugins.haxe.actions;
 
 import com.intellij.codeInsight.navigation.GotoImplementationHandler;
 import com.intellij.codeInsight.navigation.GotoTargetHandler;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeGoToImplementationTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/gotoImplementation/");
+  protected String getBasePath() {
+    return "/gotoImplementation/";
   }
 
   private void doTest(int expectedLength) throws Throwable {

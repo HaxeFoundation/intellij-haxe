@@ -1,16 +1,14 @@
 package com.intellij.plugins.haxe.actions;
 
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeRenameTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/rename/");
+  protected String getBasePath() {
+    return "/rename/";
   }
 
   public void doTest(String newName, String... additionalFiles) {

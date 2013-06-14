@@ -1,19 +1,25 @@
 package com.intellij.plugins.haxe.actions;
 
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.generation.*;
-import com.intellij.testFramework.LightCodeInsightTestCase;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeGenerateActionTest extends LightCodeInsightTestCase {
+abstract public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
+  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
+  protected HaxeGenerateActionTest() {
+    PlatformTestCase.initPlatformLangPrefix();
+  }
+
   @NotNull
   @Override
   protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/generate/");
+    return HaxeTestUtils.BASE_TEST_DATA_PATH + FileUtil.toSystemDependentName("/generate/");
   }
 
   protected void doOverrideTest() {

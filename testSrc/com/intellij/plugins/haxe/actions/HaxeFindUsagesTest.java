@@ -1,10 +1,8 @@
 package com.intellij.plugins.haxe.actions;
 
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.PsiElementUsageTarget;
 import com.intellij.usages.UsageTarget;
@@ -16,10 +14,10 @@ import java.util.Collection;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeFindUsagesTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/findUsages/");
+  protected String getBasePath() {
+    return "/findUsages/";
   }
 
   protected void doTest(int size) throws Throwable {

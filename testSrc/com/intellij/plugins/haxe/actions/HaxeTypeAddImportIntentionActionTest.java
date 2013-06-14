@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.actions;
 
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
@@ -10,15 +9,14 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeTypeAddImportIntentionActionTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixtureTestCase {
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/addImportIntention/");
+  protected String getBasePath() {
+    return "/addImportIntention/";
   }
 
   public void doTest() {
@@ -27,7 +25,8 @@ public class HaxeTypeAddImportIntentionActionTest extends JavaCodeInsightFixture
     final HaxeType type = PsiTreeUtil.getParentOfType(file.findElementAt(myFixture.getCaretOffset()), HaxeType.class, false);
     assertNotNull(type);
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
-    new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex.getItemsByName(type.getReferenceExpression().getText(), type.getProject(), scope))
+    new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex
+      .getItemsByName(type.getReferenceExpression().getText(), type.getProject(), scope))
       .execute();
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }

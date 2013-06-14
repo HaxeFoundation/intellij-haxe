@@ -1,20 +1,18 @@
 package com.intellij.plugins.haxe.lang.completion;
 
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.CharFilter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
  */
-public abstract class HaxeCompletionTestBase extends JavaCodeInsightFixtureTestCase {
+public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestCase {
   enum CheckType {EQUALS, INCLUDES, EXCLUDES}
 
   private final String myPath;
@@ -26,17 +24,15 @@ public abstract class HaxeCompletionTestBase extends JavaCodeInsightFixtureTestC
   private static String getPath(String... args) {
     final StringBuilder result = new StringBuilder();
     for (String folder : args) {
-      if (result.length() > 0) {
-        result.append("/");
-      }
+      result.append("/");
       result.append(folder);
     }
     return result.toString();
   }
 
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/") + myPath;
+  protected String getBasePath() {
+    return myPath;
   }
 
   protected void doTest() throws Throwable {

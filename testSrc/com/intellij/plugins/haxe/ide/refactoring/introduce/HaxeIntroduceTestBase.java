@@ -3,9 +3,9 @@ package com.intellij.plugins.haxe.ide.refactoring.introduce;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.codeInsight.template.impl.TemplateState;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +14,7 @@ import java.util.Collection;
 /**
  * @author: Fedor.Korotkov
  */
-public abstract class HaxeIntroduceTestBase extends LightCodeInsightFixtureTestCase {
+public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCase {
   protected void doTestSuggestions(Class<? extends HaxeExpression> parentClass, String... expectedNames) {
     final Collection<String> names = buildSuggestions(parentClass);
     for (String expectedName : expectedNames) {

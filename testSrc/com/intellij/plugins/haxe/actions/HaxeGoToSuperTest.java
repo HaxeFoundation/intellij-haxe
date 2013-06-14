@@ -2,18 +2,16 @@ package com.intellij.plugins.haxe.actions;
 
 import com.intellij.codeInsight.CodeInsightActionHandler;
 import com.intellij.lang.CodeInsightActions;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeGoToSuperTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeGoToSuperTest extends HaxeCodeInsightFixtureTestCase {
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/gotoSuper/");
+  protected String getBasePath() {
+    return "/gotoSuper/";
   }
 
   private void doTest() throws Throwable {

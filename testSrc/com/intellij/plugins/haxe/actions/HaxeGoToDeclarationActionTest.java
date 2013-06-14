@@ -1,21 +1,19 @@
 package com.intellij.plugins.haxe.actions;
 
 import com.intellij.codeInsight.TargetElementUtilBase;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 import java.util.Collection;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeGoToDeclarationActionTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCase {
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/goto/");
+  protected String getBasePath() {
+    return "/goto/";
   }
 
   protected void doTest(PsiFile file, int expectedSize) {

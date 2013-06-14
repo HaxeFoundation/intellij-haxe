@@ -2,22 +2,18 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
-
-import java.util.Arrays;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeAnnotationTest extends LightCodeInsightFixtureTestCase {
+public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/annotation/");
+  protected String getBasePath() {
+    return "/annotation/";
   }
 
   private void doTest(String... additionalPaths) throws Exception {

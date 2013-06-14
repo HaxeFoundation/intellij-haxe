@@ -3,17 +3,16 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.actions.OptimizeImportsAction;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
 
 /**
  * Created by fedorkorotkov.
  */
-public class HaxeImportOptimizerTest extends LightCodeInsightFixtureTestCase {
+public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
-    return FileUtil.toSystemDependentName("/plugins/haxe/testData/imports/optimize/");
+    return "/imports/optimize/";
   }
 
   public void testHelper1() throws Throwable {

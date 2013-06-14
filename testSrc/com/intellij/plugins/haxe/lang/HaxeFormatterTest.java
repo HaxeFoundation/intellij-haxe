@@ -1,16 +1,15 @@
 package com.intellij.plugins.haxe.lang;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 import junit.framework.Assert;
 
 import java.io.FileNotFoundException;
@@ -19,12 +18,12 @@ import java.io.FileWriter;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeFormatterTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   protected CommonCodeStyleSettings myTestStyleSettings;
 
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/formatter/");
+  protected String getBasePath() {
+    return "/formatter/";
   }
 
   @Override

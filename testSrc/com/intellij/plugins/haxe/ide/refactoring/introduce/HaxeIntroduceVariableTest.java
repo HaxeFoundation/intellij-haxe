@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide.refactoring.introduce;
 
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 
 /**
@@ -9,7 +8,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   @Override
   protected String getBasePath() {
-    return FileUtil.toSystemDependentName("/plugins/haxe/testData/refactoring/introduceVariable/");
+    return "/refactoring/introduceVariable/";
   }
 
   @Override

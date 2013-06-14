@@ -1,8 +1,7 @@
 package com.intellij.plugins.haxe.lang.parser;
 
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.ParsingTestCase;
 
 abstract public class HaxeParsingTestBase extends ParsingTestCase {
@@ -23,7 +22,7 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
 
   @Override
   protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/");
+    return HaxeTestUtils.BASE_TEST_DATA_PATH;
   }
 
   @Override

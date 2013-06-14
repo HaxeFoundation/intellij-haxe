@@ -3,9 +3,9 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.ide.util.importProject.RootDetectionProcessor;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
 import gnu.trove.THashSet;
 
@@ -18,8 +18,7 @@ import java.util.Set;
  */
 public class HaxeSourceRootDetectionTest extends PlatformTestCase {
   private void doTest(String... expected) {
-    final String dirPath =
-      PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/rootDetection/") + getTestName(true);
+    final String dirPath = FileUtil.toSystemDependentName(HaxeTestUtils.BASE_TEST_DATA_PATH + "/rootDetection/") + getTestName(true);
     final File dir = new File(dirPath);
     assertTrue(dir.isDirectory());
     final HaxeProjectStructureDetector haxeProjectStructureDetector = new HaxeProjectStructureDetector();

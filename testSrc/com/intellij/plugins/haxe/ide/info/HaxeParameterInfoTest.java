@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.LightCodeInsightTestCase;
 import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoContext;
@@ -16,7 +17,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   @NotNull
   @Override
   protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/paramInfo/");
+    return HaxeTestUtils.BASE_TEST_DATA_PATH + FileUtil.toSystemDependentName("/paramInfo/");
   }
 
   private void doTest(String infoText, int highlightedParameterIndex) throws Exception {

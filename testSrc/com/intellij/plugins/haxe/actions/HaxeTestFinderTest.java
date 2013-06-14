@@ -1,21 +1,19 @@
 package com.intellij.plugins.haxe.actions;
 
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.HaxeTestFinder;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeTestFinderTest extends JavaCodeInsightFixtureTestCase {
+public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
   private HaxeTestFinder myTestFinder = null;
 
   @Override
-  protected String getTestDataPath() {
-    return PathManager.getHomePath() + FileUtil.toSystemDependentName("/plugins/haxe/testData/testFinder/");
+  protected String getBasePath() {
+    return "/testFinder/";
   }
 
   @Override
