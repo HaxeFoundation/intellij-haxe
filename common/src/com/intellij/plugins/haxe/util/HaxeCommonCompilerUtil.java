@@ -60,6 +60,10 @@ public class HaxeCommonCompilerUtil {
 
     String getCompileOutputPath();
 
+    void setErrorRoot(String root);
+
+    String getErrorRoot();
+
     void handleOutput(String[] lines);
   }
 
@@ -124,6 +128,11 @@ public class HaxeCommonCompilerUtil {
     String workingPath = context.getCompileOutputPath() + "/" + (context.isDebug() ? "debug" : "release");
     if (settings.isUseNmmlToBuild()) {
       setupNME(commandLine, context);
+      String nmmlPath = settings.getNmmlPath();
+      final int endIndex = nmmlPath.lastIndexOf('/');
+      if (endIndex > 0) {
+        context.setErrorRoot(nmmlPath.substring(0, endIndex));
+      }
     }
     else if (settings.isUseHxmlToBuild()) {
       String hxmlPath = settings.getHxmlPath();

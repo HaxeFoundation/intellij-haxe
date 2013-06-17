@@ -39,6 +39,7 @@ import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
@@ -131,6 +132,8 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       return false;
     }
     boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+      private String mErrorRoot;
+
       @NotNull
       @Override
       public HaxeModuleSettingsBase getModuleSettings() {
@@ -193,8 +196,18 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       }
 
       @Override
+      public void setErrorRoot(String root) {
+        mErrorRoot = root;
+      }
+
+      @Override
+      public String getErrorRoot() {
+        return (mErrorRoot != null) ? mErrorRoot : PathUtil.getParentPath(module.getModuleFilePath());
+      }
+
+      @Override
       public void handleOutput(String[] lines) {
-        HaxeCompilerUtil.fillContext(module, context, lines);
+        HaxeCompilerUtil.fillContext(context, getErrorRoot(), lines);
       }
     });
 

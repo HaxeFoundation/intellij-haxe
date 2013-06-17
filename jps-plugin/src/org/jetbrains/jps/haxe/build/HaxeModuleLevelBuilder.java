@@ -116,6 +116,8 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     context.processMessage(new ProgressMessage(HaxeCommonBundle.message("haxe.module.compilation.progress.message", module.getName())));
 
     boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+      private String mErrorRoot;
+
       @NotNull
       @Override
       public HaxeModuleSettingsBase getModuleSettings() {
@@ -180,9 +182,19 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       }
 
       @Override
+      public void setErrorRoot(String root) {
+        mErrorRoot = root;
+      }
+
+      @Override
+      public String getErrorRoot() {
+        return (mErrorRoot != null) ? mErrorRoot : getWorkingDirectoryPath();
+      }
+
+      @Override
       public void handleOutput(String[] lines) {
         for (String error : lines) {
-          final HaxeCompilerError compilerError = HaxeCompilerError.create(StringUtil.notNullize(getWorkingDirectoryPath()), error);
+          final HaxeCompilerError compilerError = HaxeCompilerError.create(StringUtil.notNullize(getErrorRoot()), error);
           context.processMessage(new CompilerMessage(
             BUILDER_NAME,
             BuildMessage.Kind.WARNING,
@@ -190,7 +202,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
             compilerError != null ? compilerError.getPath() : null,
             -1L, -1L, -1L,
             compilerError != null ? (long)compilerError.getLine() : -1L,
-            -1L
+            compilerError != null ? (long)compilerError.getColumn() : -1L
           ));
         }
       }
