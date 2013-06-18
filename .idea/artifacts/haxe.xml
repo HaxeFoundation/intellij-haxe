@@ -1,0 +1,18 @@
+<component name="ArtifactManager">
+  <artifact build-on-make="true" name="haxe">
+    <output-path>$PROJECT_DIR$/out/artifacts/haxe</output-path>
+    <root id="root">
+      <element id="directory" name="lib">
+        <element id="archive" name="haxe-common.jar">
+          <element id="module-output" name="common" />
+        </element>
+        <element id="archive" name="haxe-jps-plugin.jar">
+          <element id="module-output" name="jps-plugin" />
+        </element>
+        <element id="archive" name="haxe.jar">
+          <element id="module-output" name="intellij-haxe" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>
