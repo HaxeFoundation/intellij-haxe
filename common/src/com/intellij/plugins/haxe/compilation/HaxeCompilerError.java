@@ -29,11 +29,13 @@ public class HaxeCompilerError {
   private final String errorMessage;
   private final String path;
   private final int line;
+  private final int column;
 
-  public HaxeCompilerError(String errorMessage, String path, int line) {
+  public HaxeCompilerError(String errorMessage, String path, int line, int column) {
     this.errorMessage = errorMessage;
     this.path = path;
     this.line = line;
+    this.column = column;
   }
 
   public String getErrorMessage() {
@@ -48,6 +50,10 @@ public class HaxeCompilerError {
     return line;
   }
 
+  public int getColumn() {
+    return column;
+  }
+
   @Nullable
   public static HaxeCompilerError create(@NotNull String rootPath, final String message) {
     return create(rootPath, message, true);
@@ -55,29 +61,48 @@ public class HaxeCompilerError {
 
   @Nullable
   public static HaxeCompilerError create(@NotNull String rootPath, final String message, boolean checkExistence) {
-    final int index = message.indexOf(' ');
-    if (index < 1) {
+    final int pathSeparationIndex = message.indexOf(' ');
+    if (pathSeparationIndex < 1) {
       return null;
     }
-    String error = message.substring(0, index - 1);
-    final int semicolonIndex = error.lastIndexOf(':');
+    String pathAndLine = message.substring(0, pathSeparationIndex - 1);
+    final int lineSeparationIndex = pathAndLine.lastIndexOf(':');
     int line = -1;
     try {
-      line = semicolonIndex == -1 ? -1 : Integer.parseInt(error.substring(semicolonIndex + 1));
+      line = (lineSeparationIndex == -1) ? -1 : Integer.parseInt(pathAndLine.substring(lineSeparationIndex + 1));
     }
     catch (NumberFormatException ignored) {
     }
 
-    final String path = semicolonIndex == -1 ? error : error.substring(0, semicolonIndex);
+    final String path = (lineSeparationIndex == -1) ? pathAndLine : pathAndLine.substring(0, lineSeparationIndex);
 
-    final int semicolonIndex2 = message.indexOf(':', index);
+    final int errorSeparationIndex = message.indexOf(':', pathSeparationIndex);
     String errorMessage = null;
-    if (semicolonIndex2 != -1) {
-      errorMessage = message.substring(semicolonIndex2 + 1);
+    if (errorSeparationIndex != -1) {
+      errorMessage = message.substring(errorSeparationIndex + 1);
+    }
+
+    String charsOrLines;
+    if (errorSeparationIndex != -1) {
+      charsOrLines = message.substring(pathSeparationIndex + 1, errorSeparationIndex);
+    }
+    else {
+      charsOrLines = message.substring(pathSeparationIndex + 1);
+    }
+
+    int column = -1;
+    if (charsOrLines.startsWith("characters")) {
+      try {
+        final int columnSeparationIndex = charsOrLines.indexOf('-');
+        String columnstr = charsOrLines.substring("characters".length() + 1, columnSeparationIndex);
+        column = Integer.parseInt(columnstr);
+      }
+      catch (NumberFormatException ignored) {
+      }
     }
 
     String filePath = FileUtil.toSystemIndependentName(path);
-    if (!path.startsWith(rootPath)) {
+    if (!FileUtil.isAbsolute(path)) {
       filePath = rootPath + "/" + filePath;
     }
 
@@ -85,6 +110,6 @@ public class HaxeCompilerError {
       return null;
     }
 
-    return new HaxeCompilerError(StringUtil.trimLeading(StringUtil.trimTrailing(StringUtil.notNullize(errorMessage))), filePath, line);
+    return new HaxeCompilerError(StringUtil.trimLeading(StringUtil.trimTrailing(StringUtil.notNullize(errorMessage))), filePath, line, column);
   }
 }

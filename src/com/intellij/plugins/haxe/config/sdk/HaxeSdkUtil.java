@@ -39,8 +39,6 @@ import java.util.regex.Pattern;
 public class HaxeSdkUtil extends HaxeSdkUtilBase {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
   private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
-  private static final String COMPILER_EXECUTABLE_NAME = "haxe";
-  private static final String HAXELIB_EXECUTABLE_NAME = "haxelib";
 
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
@@ -66,7 +64,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
         return null;
       }
 
-      final String outputString = output.getStdout();
+      final String outputString = output.getStderr();
 
       String haxeVersion = "NA";
       final Matcher matcher = VERSION_MATCHER.matcher(outputString);
@@ -88,12 +86,26 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     if (sdkRoot == null) {
       return;
     }
-    final VirtualFile stdRoot = sdkRoot.findChild("std");
+    VirtualFile stdRoot;
+    final String stdPath = System.getenv("HAXE_STD_PATH");
+    if (stdPath != null) {
+      stdRoot = VirtualFileManager.getInstance().findFileByUrl(stdPath);
+    }
+    else {
+      stdRoot = sdkRoot.findChild("std");
+    }
     if (stdRoot != null) {
       modificator.addRoot(stdRoot, OrderRootType.SOURCES);
       modificator.addRoot(stdRoot, OrderRootType.CLASSES);
     }
-    final VirtualFile docRoot = sdkRoot.findChild("doc");
+    VirtualFile docRoot;
+    final String docPath = System.getenv("HAXE_DOC_PATH");
+    if (docPath != null) {
+      docRoot = VirtualFileManager.getInstance().findFileByUrl(docPath);
+    }
+    else {
+      docRoot = sdkRoot.findChild("doc");
+    }
     if (docRoot != null) {
       modificator.addRoot(docRoot, JavadocOrderRootType.getInstance());
     }
