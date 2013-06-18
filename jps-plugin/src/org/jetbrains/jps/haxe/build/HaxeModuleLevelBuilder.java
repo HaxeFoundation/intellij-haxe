@@ -116,7 +116,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     context.processMessage(new ProgressMessage(HaxeCommonBundle.message("haxe.module.compilation.progress.message", module.getName())));
 
     boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
-      private String mErrorRoot;
+      private String myErrorRoot;
 
       @NotNull
       @Override
@@ -183,12 +183,12 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
 
       @Override
       public void setErrorRoot(String root) {
-        mErrorRoot = root;
+        myErrorRoot = root;
       }
 
       @Override
       public String getErrorRoot() {
-        return (mErrorRoot != null) ? mErrorRoot : getWorkingDirectoryPath();
+        return (myErrorRoot != null) ? myErrorRoot : getWorkingDirectoryPath();
       }
 
       @Override

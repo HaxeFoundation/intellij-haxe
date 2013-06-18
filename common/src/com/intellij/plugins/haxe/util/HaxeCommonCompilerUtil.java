@@ -20,11 +20,13 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.util.BooleanValueHolder;
+import com.intellij.util.PathUtil;
 import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NotNull;
 
@@ -129,9 +131,9 @@ public class HaxeCommonCompilerUtil {
     if (settings.isUseNmmlToBuild()) {
       setupNME(commandLine, context);
       String nmmlPath = settings.getNmmlPath();
-      final int endIndex = nmmlPath.lastIndexOf('/');
-      if (endIndex > 0) {
-        context.setErrorRoot(nmmlPath.substring(0, endIndex));
+      String nmmlDir = PathUtil.getParentPath(nmmlPath);
+      if (!StringUtil.isEmpty(nmmlDir)) {
+        context.setErrorRoot(nmmlDir);
       }
     }
     else if (settings.isUseHxmlToBuild()) {

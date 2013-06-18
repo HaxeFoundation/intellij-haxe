@@ -132,7 +132,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       return false;
     }
     boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
-      private String mErrorRoot;
+      private String myErrorRoot;
 
       @NotNull
       @Override
@@ -197,12 +197,12 @@ public class HaxeCompiler implements SourceProcessingCompiler {
 
       @Override
       public void setErrorRoot(String root) {
-        mErrorRoot = root;
+        myErrorRoot = root;
       }
 
       @Override
       public String getErrorRoot() {
-        return (mErrorRoot != null) ? mErrorRoot : PathUtil.getParentPath(module.getModuleFilePath());
+        return (myErrorRoot != null) ? myErrorRoot : PathUtil.getParentPath(module.getModuleFilePath());
       }
 
       @Override
