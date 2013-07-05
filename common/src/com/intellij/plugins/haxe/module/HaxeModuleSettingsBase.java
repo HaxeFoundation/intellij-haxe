@@ -63,8 +63,6 @@ public interface HaxeModuleSettingsBase {
 
   String getNmmlPath();
 
-  String getOpenFlPath();
-
   void setHxmlPath(String hxmlPath);
 
   boolean isUseHxmlToBuild();
@@ -76,8 +74,6 @@ public interface HaxeModuleSettingsBase {
   boolean isUseUserPropertiesToBuild();
 
   void setNmmlPath(String nmmlPath);
-
-  void setOpenFlPath(String openFlPath);
 
   int getBuildConfig();
 

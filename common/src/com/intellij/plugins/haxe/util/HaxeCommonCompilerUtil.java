@@ -138,11 +138,6 @@ public class HaxeCommonCompilerUtil {
 
     if (settings.isUseOpenFlToBuild()) {
       setupOpenFL(commandLine, context);
-      String openFlPath = settings.getOpenFlPath();
-      String openFlDir = PathUtil.getParentPath(openFlPath);
-      if (!StringUtil.isEmpty(openFlDir)) {
-        context.setErrorRoot(openFlDir);
-      }
     }
     else if (settings.isUseNmmlToBuild()) {
       setupNME(commandLine, context);
@@ -258,15 +253,19 @@ public class HaxeCommonCompilerUtil {
     commandLine.add("run");
     commandLine.add("openfl");
     commandLine.add("build");
-    commandLine.add(settings.getOpenFlPath());
+
     commandLine.add(settings.getOpenFLTarget().getTargetFlag());
+
     if (context.isDebug()) {
       commandLine.add("-debug");
       commandLine.add("-Ddebug");
+
+      if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
+        commandLine.add("-Dfdb");
+      }
     }
-    if (settings.getOpenFLTarget() == OpenFLTarget.FLASH && context.isDebug()) {
-      commandLine.add("-Dfdb");
-    }
+
+
     final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getOpenFLFlags());
     while (flagsTokenizer.hasMoreTokens()) {
       commandLine.add(flagsTokenizer.nextToken());

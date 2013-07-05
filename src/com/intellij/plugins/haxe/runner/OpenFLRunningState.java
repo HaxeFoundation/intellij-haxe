@@ -27,6 +27,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
+import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.util.PathUtil;
@@ -80,17 +81,20 @@ public class OpenFLRunningState extends CommandLineState {
     commandLine.addParameter("run");
     commandLine.addParameter("openfl");
     commandLine.addParameter(myRunInTest ? "test" : "run");
-    //commandLine.addParameter(settings.getOpenFlPath()); // openfl has static filename project.xml
+
     for (String flag : settings.getOpenFLTarget().getFlags()) {
       commandLine.addParameter(flag);
     }
 
-    commandLine.addParameter("-verbose");
+    //commandLine.addParameter("-verbose");
 
     if (myDebug) {
+      commandLine.addParameter("-Ddebug");
       commandLine.addParameter("-debug");
-      commandLine.addParameter("-D");
-      commandLine.addParameter("fdb");
+
+      if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
+        commandLine.addParameter("-Dfdb");
+      }
     }
 
     final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getOpenFLFlags());

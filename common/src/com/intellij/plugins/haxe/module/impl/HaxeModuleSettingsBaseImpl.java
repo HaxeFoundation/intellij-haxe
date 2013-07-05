@@ -162,10 +162,6 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     return nmmlPath;
   }
 
-  public String getOpenFlPath() {
-    return openFlPath;
-  }
-
 
   public void setHxmlPath(String hxmlPath) {
     this.hxmlPath = hxmlPath;
@@ -190,11 +186,6 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   public void setNmmlPath(String nmmlPath) {
     this.nmmlPath = nmmlPath;
   }
-
-  public void setOpenFlPath(String openFlPath) {
-    this.openFlPath = openFlPath;
-  }
-
 
   public void setBuildConfig(int buildConfig) {
     this.buildConfig = buildConfig;
