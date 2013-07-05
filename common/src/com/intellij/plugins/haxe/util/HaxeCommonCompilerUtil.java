@@ -92,7 +92,7 @@ public class HaxeCommonCompilerUtil {
 
     final HaxeTarget target = settings.getHaxeTarget();
     final NMETarget nmeTarget = settings.getNmeTarget();
-    final OpenFLTarget openFlTarget = settings.getOpenFLTarget();
+    final OpenFLTarget openFLTarget = settings.getOpenFLTarget();
 
     if (target == null && !settings.isUseNmmlToBuild()) {
       context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
@@ -102,7 +102,7 @@ public class HaxeCommonCompilerUtil {
       context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
       return false;
     }
-    if (openFlTarget == null && settings.isUseOpenFlToBuild()) {
+    if (openFLTarget == null && settings.isUseOpenFLToBuild()) {
       context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
       return false;
     }
@@ -120,14 +120,14 @@ public class HaxeCommonCompilerUtil {
     }
 
     final String haxelibPath = context.getHaxelibPath();
-    if ((settings.isUseOpenFlToBuild() || settings.isUseNmmlToBuild()) && (haxelibPath == null || haxelibPath.isEmpty())) {
+    if ((settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) && (haxelibPath == null || haxelibPath.isEmpty())) {
       context.errorHandler(HaxeCommonBundle.message("no.haxelib.for.sdk", context.getSdkName()));
       return false;
     }
 
     final List<String> commandLine = new ArrayList<String>();
 
-    if (settings.isUseOpenFlToBuild() || settings.isUseNmmlToBuild()) {
+    if (settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) {
       commandLine.add(haxelibPath);
     }
     else {
@@ -136,7 +136,7 @@ public class HaxeCommonCompilerUtil {
 
     String workingPath = context.getCompileOutputPath() + "/" + (context.isDebug() ? "debug" : "release");
 
-    if (settings.isUseOpenFlToBuild()) {
+    if (settings.isUseOpenFLToBuild()) {
       setupOpenFL(commandLine, context);
     }
     else if (settings.isUseNmmlToBuild()) {

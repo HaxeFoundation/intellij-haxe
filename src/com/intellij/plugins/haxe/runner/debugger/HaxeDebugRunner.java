@@ -105,7 +105,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       return HaxeFlashDebuggingUtil.getNMEDescriptor(this, module, contentToReuse, env, executor, flexSdkName);
     }
 
-    if (settings.isUseOpenFlToBuild() && settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
+    if (settings.isUseOpenFLToBuild() && settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
       return HaxeFlashDebuggingUtil.getOpenFLDescriptor(this, module, contentToReuse, env, executor, flexSdkName);
     }
 

@@ -106,7 +106,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     if (buildConfig != settings.buildConfig) return false;
     if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
     if (nmeFlags != null ? !nmeFlags.equals(settings.nmeFlags) : settings.nmeFlags != null) return false;
-    if (openFlFlags != null ? !openFlFlags.equals(settings.openFlFlags) : settings.openFlFlags != null) return false;
+    if (openFLFlags != null ? !openFLFlags.equals(settings.openFLFlags) : settings.openFLFlags != null) return false;
     if (flexSdkName != null ? !flexSdkName.equals(settings.flexSdkName) : settings.flexSdkName != null) return false;
     if (hxmlPath != null ? !hxmlPath.equals(settings.hxmlPath) : settings.hxmlPath != null) return false;
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
@@ -124,7 +124,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
     result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
     result = 31 * result + (nmeFlags != null ? nmeFlags.hashCode() : 0);
-    result = 31 * result + (openFlFlags != null ? openFlFlags.hashCode() : 0);
+    result = 31 * result + (openFLFlags != null ? openFLFlags.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
     result = 31 * result + (haxeTarget != null ? haxeTarget.hashCode() : 0);
     result = 31 * result + (nmeTarget != null ? nmeTarget.hashCode() : 0);

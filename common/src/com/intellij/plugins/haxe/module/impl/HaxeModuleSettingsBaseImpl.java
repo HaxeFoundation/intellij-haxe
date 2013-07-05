@@ -33,14 +33,14 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   protected String outputFileName = "";
   protected String arguments = "";
   protected String nmeFlags = "";
-  protected String openFlFlags = "";
+  protected String openFLFlags = "";
   protected boolean excludeFromCompilation = false;
   protected HaxeTarget haxeTarget = HaxeTarget.NEKO;
   protected NMETarget nmeTarget = NMETarget.FLASH;
   protected OpenFLTarget openFLTarget = OpenFLTarget.FLASH;
   protected String hxmlPath = "";
   protected String nmmlPath = "";
-  protected String openFlPath = "";
+  protected String openFLPath = "";
   protected int buildConfig = 0;
 
 
@@ -57,7 +57,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
                                     OpenFLTarget openFLTarget,
                                     String hxmlPath,
                                     String nmmlPath,
-                                    String openFlPath,
+                                    String openFLPath,
                                     int buildConfig) {
     this.mainClass = mainClass;
     this.outputFileName = outputFileName;
@@ -69,16 +69,12 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     this.openFLTarget = openFLTarget;
     this.hxmlPath = hxmlPath;
     this.nmmlPath = nmmlPath;
-    this.openFlPath = openFlPath;
+    this.openFLPath = openFLPath;
     this.buildConfig = buildConfig;
   }
 
   public void setNmeTarget(NMETarget nmeTarget) {
     this.nmeTarget = nmeTarget;
-  }
-
-  public void setOpenFLTarget(OpenFLTarget openFlTarget) {
-    this.openFLTarget = openFlTarget;
   }
 
   public int getBuildConfig() {
@@ -110,14 +106,14 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   }
 
   public void setOpenFLFlags(String flags) {
-    this.openFlFlags = flags;
+    this.openFLFlags = flags;
   }
 
   public String getOpenFLFlags() {
-    return openFlFlags;
+    return openFLFlags;
   }
 
-  public void setOpenFlTarget(OpenFLTarget target) {
+  public void setOpenFLTarget(OpenFLTarget target) {
     this.openFLTarget = target;
   }
 
@@ -175,7 +171,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     return buildConfig == USE_NMML;
   }
 
-  public boolean isUseOpenFlToBuild() {
+  public boolean isUseOpenFLToBuild() {
     return buildConfig == USE_OPENFL;
   }
 

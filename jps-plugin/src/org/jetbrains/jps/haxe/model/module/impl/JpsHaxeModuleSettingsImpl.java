@@ -52,8 +52,8 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
-  public void setOpenFlTarget(OpenFLTarget openFLTarget) {
-    mySettingsBase.setOpenFlTarget(openFLTarget);
+  public void setOpenFLTarget(OpenFLTarget openFLTarget) {
+    mySettingsBase.setOpenFLTarget(openFLTarget);
   }
 
 
@@ -155,8 +155,8 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
-  public boolean isUseOpenFlToBuild() {
-    return mySettingsBase.isUseOpenFlToBuild();
+  public boolean isUseOpenFLToBuild() {
+    return mySettingsBase.isUseOpenFLToBuild();
   }
 
   @Override

@@ -398,7 +398,7 @@ public class HaxeConfigurationEditor {
     myHxmlFileRadioButton.setSelected(settings.isUseHxmlToBuild());
     myNmmlFileRadioButton.setSelected(settings.isUseNmmlToBuild());
     myUserPropertiesRadioButton.setSelected(settings.isUseUserPropertiesToBuild());
-    myOpenFLFileRadioButton.setSelected(settings.isUseOpenFlToBuild());
+    myOpenFLFileRadioButton.setSelected(settings.isUseOpenFLToBuild());
     updateComponents();
     updateTargetCombo();
   }

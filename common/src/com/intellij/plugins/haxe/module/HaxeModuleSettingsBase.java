@@ -25,7 +25,7 @@ import com.intellij.plugins.haxe.config.OpenFLTarget;
 public interface HaxeModuleSettingsBase {
   void setNmeTarget(NMETarget nmeTarget);
 
-  void setOpenFlTarget(OpenFLTarget openFlTarget);
+  void setOpenFLTarget(OpenFLTarget openFLTarget);
 
   String getMainClass();
 
@@ -69,7 +69,7 @@ public interface HaxeModuleSettingsBase {
 
   boolean isUseNmmlToBuild();
 
-  boolean isUseOpenFlToBuild();
+  boolean isUseOpenFLToBuild();
 
   boolean isUseUserPropertiesToBuild();
 
