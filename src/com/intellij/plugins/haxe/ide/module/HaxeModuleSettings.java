@@ -22,6 +22,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -50,6 +51,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   public HaxeModuleSettings(String mainClass,
                             HaxeTarget haxeTarget,
                             NMETarget nmeTarget,
+                            OpenFLTarget openFLTarget,
                             String arguments,
                             String nmeFlags,
                             boolean excludeFromCompilation,
@@ -57,8 +59,9 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             String flexSdkName,
                             int buildConfig,
                             String hxmlPath,
-                            String nmmlPath) {
-    super(mainClass, outputFileName, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, hxmlPath, nmmlPath, buildConfig);
+                            String nmmlPath,
+                            String openFLPath) {
+    super(mainClass, outputFileName, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath, openFLPath, buildConfig);
     this.flexSdkName = flexSdkName;
   }
 
@@ -103,6 +106,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     if (buildConfig != settings.buildConfig) return false;
     if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
     if (nmeFlags != null ? !nmeFlags.equals(settings.nmeFlags) : settings.nmeFlags != null) return false;
+    if (openFlFlags != null ? !openFlFlags.equals(settings.openFlFlags) : settings.openFlFlags != null) return false;
     if (flexSdkName != null ? !flexSdkName.equals(settings.flexSdkName) : settings.flexSdkName != null) return false;
     if (hxmlPath != null ? !hxmlPath.equals(settings.hxmlPath) : settings.hxmlPath != null) return false;
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
@@ -120,9 +124,11 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
     result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
     result = 31 * result + (nmeFlags != null ? nmeFlags.hashCode() : 0);
+    result = 31 * result + (openFlFlags != null ? openFlFlags.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
     result = 31 * result + (haxeTarget != null ? haxeTarget.hashCode() : 0);
     result = 31 * result + (nmeTarget != null ? nmeTarget.hashCode() : 0);
+    result = 31 * result + (openFLTarget != null ? openFLTarget.hashCode() : 0);
     result = 31 * result + (flexSdkName != null ? flexSdkName.hashCode() : 0);
     result = 31 * result + (hxmlPath != null ? hxmlPath.hashCode() : 0);
     result = 31 * result + (myHXCPPPort != null ? myHXCPPPort.hashCode() : 0);

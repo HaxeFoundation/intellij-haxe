@@ -31,6 +31,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.NMERunningState;
@@ -102,6 +103,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     if (settings.isUseNmmlToBuild() && settings.getNmeTarget() == NMETarget.FLASH) {
       return HaxeFlashDebuggingUtil.getNMEDescriptor(this, module, contentToReuse, env, executor, flexSdkName);
+    }
+
+    if (settings.isUseOpenFlToBuild() && settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
+      return HaxeFlashDebuggingUtil.getOpenFLDescriptor(this, module, contentToReuse, env, executor, flexSdkName);
     }
 
     return HaxeFlashDebuggingUtil.getDescriptor(this, module, contentToReuse, env, configuration.getCustomFileToLaunchPath(), flexSdkName);

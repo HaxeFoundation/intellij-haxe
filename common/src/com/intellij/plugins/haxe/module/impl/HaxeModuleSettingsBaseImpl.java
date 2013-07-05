@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.module.impl;
 
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 
 /**
@@ -26,16 +27,20 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   public static final int USE_PROPERTIES = 0;
   public static final int USE_HXML = 1;
   public static final int USE_NMML = 2;
+  public static final int USE_OPENFL = 3;
 
   protected String mainClass = "";
   protected String outputFileName = "";
   protected String arguments = "";
   protected String nmeFlags = "";
+  protected String openFlFlags = "";
   protected boolean excludeFromCompilation = false;
   protected HaxeTarget haxeTarget = HaxeTarget.NEKO;
   protected NMETarget nmeTarget = NMETarget.FLASH;
+  protected OpenFLTarget openFLTarget = OpenFLTarget.FLASH;
   protected String hxmlPath = "";
   protected String nmmlPath = "";
+  protected String openFlPath = "";
   protected int buildConfig = 0;
 
 
@@ -49,8 +54,10 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
                                     boolean excludeFromCompilation,
                                     HaxeTarget haxeTarget,
                                     NMETarget nmeTarget,
+                                    OpenFLTarget openFLTarget,
                                     String hxmlPath,
                                     String nmmlPath,
+                                    String openFlPath,
                                     int buildConfig) {
     this.mainClass = mainClass;
     this.outputFileName = outputFileName;
@@ -59,13 +66,19 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     this.excludeFromCompilation = excludeFromCompilation;
     this.haxeTarget = haxeTarget;
     this.nmeTarget = nmeTarget;
+    this.openFLTarget = openFLTarget;
     this.hxmlPath = hxmlPath;
     this.nmmlPath = nmmlPath;
+    this.openFlPath = openFlPath;
     this.buildConfig = buildConfig;
   }
 
   public void setNmeTarget(NMETarget nmeTarget) {
     this.nmeTarget = nmeTarget;
+  }
+
+  public void setOpenFLTarget(OpenFLTarget openFlTarget) {
+    this.openFLTarget = openFlTarget;
   }
 
   public int getBuildConfig() {
@@ -95,6 +108,23 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   public void setNmeFlags(String flags) {
     this.nmeFlags = flags;
   }
+
+  public void setOpenFLFlags(String flags) {
+    this.openFlFlags = flags;
+  }
+
+  public String getOpenFLFlags() {
+    return openFlFlags;
+  }
+
+  public void setOpenFlTarget(OpenFLTarget target) {
+    this.openFLTarget = target;
+  }
+
+  public OpenFLTarget getOpenFLTarget() {
+    return openFLTarget;
+  }
+
 
   public HaxeTarget getHaxeTarget() {
     return haxeTarget;
@@ -132,6 +162,11 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     return nmmlPath;
   }
 
+  public String getOpenFlPath() {
+    return openFlPath;
+  }
+
+
   public void setHxmlPath(String hxmlPath) {
     this.hxmlPath = hxmlPath;
   }
@@ -144,6 +179,10 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     return buildConfig == USE_NMML;
   }
 
+  public boolean isUseOpenFlToBuild() {
+    return buildConfig == USE_OPENFL;
+  }
+
   public boolean isUseUserPropertiesToBuild() {
     return buildConfig == USE_PROPERTIES;
   }
@@ -151,6 +190,11 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   public void setNmmlPath(String nmmlPath) {
     this.nmmlPath = nmmlPath;
   }
+
+  public void setOpenFlPath(String openFlPath) {
+    this.openFlPath = openFlPath;
+  }
+
 
   public void setBuildConfig(int buildConfig) {
     this.buildConfig = buildConfig;

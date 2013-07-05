@@ -17,12 +17,15 @@ package com.intellij.plugins.haxe.module;
 
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.config.OpenFLTarget;
 
 /**
  * @author: Fedor.Korotkov
  */
 public interface HaxeModuleSettingsBase {
   void setNmeTarget(NMETarget nmeTarget);
+
+  void setOpenFlTarget(OpenFLTarget openFlTarget);
 
   String getMainClass();
 
@@ -34,11 +37,17 @@ public interface HaxeModuleSettingsBase {
 
   String getNmeFlags();
 
+  String getOpenFLFlags();
+
   void setNmeFlags(String flags);
+
+  void setOpenFLFlags(String flags);
 
   HaxeTarget getHaxeTarget();
 
   NMETarget getNmeTarget();
+
+  OpenFLTarget getOpenFLTarget();
 
   void setHaxeTarget(HaxeTarget haxeTarget);
 
@@ -54,15 +63,21 @@ public interface HaxeModuleSettingsBase {
 
   String getNmmlPath();
 
+  String getOpenFlPath();
+
   void setHxmlPath(String hxmlPath);
 
   boolean isUseHxmlToBuild();
 
   boolean isUseNmmlToBuild();
 
+  boolean isUseOpenFlToBuild();
+
   boolean isUseUserPropertiesToBuild();
 
   void setNmmlPath(String nmmlPath);
+
+  void setOpenFlPath(String openFlPath);
 
   int getBuildConfig();
 

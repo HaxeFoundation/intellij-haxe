@@ -17,6 +17,7 @@ package org.jetbrains.jps.haxe.model.module.impl;
 
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.haxe.model.module.JpsHaxeModuleSettings;
@@ -51,6 +52,12 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public void setOpenFlTarget(OpenFLTarget openFLTarget) {
+    mySettingsBase.setOpenFlTarget(openFLTarget);
+  }
+
+
+  @Override
   public String getArguments() {
     return mySettingsBase.getArguments();
   }
@@ -71,6 +78,17 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public String getOpenFLFlags() {
+    return mySettingsBase.getOpenFLFlags();
+  }
+
+  @Override
+  public void setOpenFLFlags(String flags) {
+    mySettingsBase.setOpenFLFlags(flags);
+  }
+
+
+  @Override
   public HaxeTarget getHaxeTarget() {
     return mySettingsBase.getHaxeTarget();
   }
@@ -79,6 +97,12 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   public NMETarget getNmeTarget() {
     return mySettingsBase.getNmeTarget();
   }
+
+  @Override
+  public OpenFLTarget getOpenFLTarget() {
+    return mySettingsBase.getOpenFLTarget();
+  }
+
 
   @Override
   public void setHaxeTarget(HaxeTarget haxeTarget) {
@@ -116,6 +140,11 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public String getOpenFlPath() {
+    return mySettingsBase.getOpenFlPath();
+  }
+
+  @Override
   public void setHxmlPath(String hxmlPath) {
     mySettingsBase.setHxmlPath(hxmlPath);
   }
@@ -131,6 +160,11 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public boolean isUseOpenFlToBuild() {
+    return mySettingsBase.isUseOpenFlToBuild();
+  }
+
+  @Override
   public boolean isUseUserPropertiesToBuild() {
     return mySettingsBase.isUseUserPropertiesToBuild();
   }
@@ -138,6 +172,11 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   @Override
   public void setNmmlPath(String nmmlPath) {
     mySettingsBase.setNmmlPath(nmmlPath);
+  }
+
+  @Override
+  public void setOpenFlPath(String openFlPath) {
+    mySettingsBase.setOpenFlPath(openFlPath);
   }
 
   @Override
