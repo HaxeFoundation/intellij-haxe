@@ -121,7 +121,7 @@ public class HaxeFlashDebuggingUtil {
         @NotNull
         public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
           try {
-            OpenFLRunningState runningState = new OpenFLRunningState(env, module, true, true);
+            OpenFLRunningState runningState = new OpenFLRunningState(env, module, false, true);
             final ExecutionResult executionResult = runningState.execute(executor, runner);
             final BCBasedRunnerParameters params = new BCBasedRunnerParameters();
             params.setModuleName(module.getName());

@@ -80,20 +80,20 @@ public class OpenFLRunningState extends CommandLineState {
     commandLine.setExePath(haxelibPath);
     commandLine.addParameter("run");
     commandLine.addParameter("openfl");
-    commandLine.addParameter(myRunInTest ? "test" : "run");
+    commandLine.addParameter("run");
 
     for (String flag : settings.getOpenFLTarget().getFlags()) {
       commandLine.addParameter(flag);
     }
 
-    //commandLine.addParameter("-verbose");
+    commandLine.addParameter("-verbose");
 
     if (myDebug) {
       commandLine.addParameter("-Ddebug");
-      commandLine.addParameter("-debug");
+      //commandLine.addParameter("-debug");
 
       if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
-        commandLine.addParameter("-Dfdb");
+        //commandLine.addParameter("-Dfdb");
       }
     }
 

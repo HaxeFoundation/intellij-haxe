@@ -19,6 +19,7 @@ import com.intellij.flex.model.bc.BuildConfigurationNature;
 import com.intellij.flex.model.bc.OutputType;
 import com.intellij.flex.model.bc.TargetPlatform;
 import com.intellij.lang.javascript.flex.projectStructure.model.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,8 @@ import java.util.Collection;
 public class FakeFlexBuildConfiguration implements FlexBuildConfiguration {
   private final Sdk sdk;
   private final String url;
+
+  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
 
   public FakeFlexBuildConfiguration(Sdk sdk, String url) {
     this.sdk = sdk;
@@ -125,7 +128,8 @@ public class FakeFlexBuildConfiguration implements FlexBuildConfiguration {
   @NotNull
   @Override
   public Dependencies getDependencies() {
-    return null;
+    LOG.info("FakeFlexBuildConfiguration::getDependencies");
+    return new FakeFlexDependencies();
   }
 
   @NotNull

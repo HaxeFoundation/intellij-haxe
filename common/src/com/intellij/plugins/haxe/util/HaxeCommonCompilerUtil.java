@@ -256,6 +256,8 @@ public class HaxeCommonCompilerUtil {
 
     commandLine.add(settings.getOpenFLTarget().getTargetFlag());
 
+    commandLine.add("-verbose");
+
     if (context.isDebug()) {
       commandLine.add("-debug");
       commandLine.add("-Ddebug");
