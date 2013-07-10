@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.runner.NMERunningState;
+import com.intellij.plugins.haxe.runner.OpenFLRunningState;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
@@ -89,6 +90,38 @@ public class HaxeFlashDebuggingUtil {
         public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
           try {
             NMERunningState runningState = new NMERunningState(env, module, false, true);
+            final ExecutionResult executionResult = runningState.execute(executor, runner);
+            final BCBasedRunnerParameters params = new BCBasedRunnerParameters();
+            params.setModuleName(module.getName());
+            return new HaxeDebugProcess(session, bc, params);
+          }
+          catch (IOException e) {
+            throw new ExecutionException(e.getMessage(), e);
+          }
+        }
+      });
+
+    return debugSession.getRunContentDescriptor();
+  }
+
+  public static RunContentDescriptor getOpenFLDescriptor(final HaxeDebugRunner runner,
+                                                      final Module module,
+                                                      RunContentDescriptor contentToReuse,
+                                                      final ExecutionEnvironment env,
+                                                      final Executor executor, String flexSdkName) throws ExecutionException {
+    final Sdk flexSdk = FlexSdkUtils.findFlexOrFlexmojosSdk(flexSdkName);
+    if (flexSdk == null) {
+      throw new ExecutionException(HaxeBundle.message("flex.sdk.not.found", flexSdkName));
+    }
+
+    final FlexBuildConfiguration bc = new FakeFlexBuildConfiguration(flexSdk, null);
+
+    final XDebugSession debugSession =
+      XDebuggerManager.getInstance(module.getProject()).startSession(runner, env, contentToReuse, new XDebugProcessStarter() {
+        @NotNull
+        public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
+          try {
+            OpenFLRunningState runningState = new OpenFLRunningState(env, module, true, true);
             final ExecutionResult executionResult = runningState.execute(executor, runner);
             final BCBasedRunnerParameters params = new BCBasedRunnerParameters();
             params.setModuleName(module.getName());

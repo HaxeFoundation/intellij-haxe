@@ -24,6 +24,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.util.BooleanValueHolder;
 import com.intellij.util.PathUtil;
@@ -91,11 +92,17 @@ public class HaxeCommonCompilerUtil {
 
     final HaxeTarget target = settings.getHaxeTarget();
     final NMETarget nmeTarget = settings.getNmeTarget();
+    final OpenFLTarget openFLTarget = settings.getOpenFLTarget();
+
     if (target == null && !settings.isUseNmmlToBuild()) {
       context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
       return false;
     }
     if (nmeTarget == null && settings.isUseNmmlToBuild()) {
+      context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
+      return false;
+    }
+    if (openFLTarget == null && settings.isUseOpenFLToBuild()) {
       context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
       return false;
     }
@@ -113,14 +120,14 @@ public class HaxeCommonCompilerUtil {
     }
 
     final String haxelibPath = context.getHaxelibPath();
-    if (settings.isUseNmmlToBuild() && (haxelibPath == null || haxelibPath.isEmpty())) {
+    if ((settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) && (haxelibPath == null || haxelibPath.isEmpty())) {
       context.errorHandler(HaxeCommonBundle.message("no.haxelib.for.sdk", context.getSdkName()));
       return false;
     }
 
     final List<String> commandLine = new ArrayList<String>();
 
-    if (settings.isUseNmmlToBuild()) {
+    if (settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) {
       commandLine.add(haxelibPath);
     }
     else {
@@ -128,7 +135,11 @@ public class HaxeCommonCompilerUtil {
     }
 
     String workingPath = context.getCompileOutputPath() + "/" + (context.isDebug() ? "debug" : "release");
-    if (settings.isUseNmmlToBuild()) {
+
+    if (settings.isUseOpenFLToBuild()) {
+      setupOpenFL(commandLine, context);
+    }
+    else if (settings.isUseNmmlToBuild()) {
       setupNME(commandLine, context);
       String nmmlPath = settings.getNmmlPath();
       String nmmlDir = PathUtil.getParentPath(nmmlPath);
@@ -232,6 +243,32 @@ public class HaxeCommonCompilerUtil {
       commandLine.add("-Dfdb");
     }
     final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getNmeFlags());
+    while (flagsTokenizer.hasMoreTokens()) {
+      commandLine.add(flagsTokenizer.nextToken());
+    }
+  }
+
+  private static void setupOpenFL(List<String> commandLine, CompilationContext context) {
+    final HaxeModuleSettingsBase settings = context.getModuleSettings();
+    commandLine.add("run");
+    commandLine.add("openfl");
+    commandLine.add("build");
+
+    commandLine.add(settings.getOpenFLTarget().getTargetFlag());
+
+    commandLine.add("-verbose");
+
+    if (context.isDebug()) {
+      commandLine.add("-debug");
+      commandLine.add("-Ddebug");
+
+      if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
+        commandLine.add("-Dfdb");
+      }
+    }
+
+
+    final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getOpenFLFlags());
     while (flagsTokenizer.hasMoreTokens()) {
       commandLine.add(flagsTokenizer.nextToken());
     }

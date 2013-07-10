@@ -36,10 +36,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.config.HaxeProjectSettings;
-import com.intellij.plugins.haxe.config.HaxeSettingsConfigurable;
-import com.intellij.plugins.haxe.config.HaxeTarget;
-import com.intellij.plugins.haxe.config.NMETarget;
+import com.intellij.plugins.haxe.config.*;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
 import com.intellij.psi.PsiFile;
@@ -74,6 +71,7 @@ public class HaxeConfigurationEditor {
   private TextFieldWithBrowseButton myHxmlFileChooserTextField;
   private JBRadioButton myHxmlFileRadioButton;
   private JBRadioButton myNmmlFileRadioButton;
+  private JBRadioButton myOpenFLFileRadioButton;
   private JBRadioButton myUserPropertiesRadioButton;
   private JPanel myCompilerOptions;
   private JPanel myCommonPanel;
@@ -83,11 +81,13 @@ public class HaxeConfigurationEditor {
   private RawCommandLineEditor myNMEArguments;
   private TextFieldWithBrowseButton myNMEFileChooserTextField;
   private JPanel myNMEFilePanel;
+  private JPanel myOpenFLFilePanel;
   private JPanel myBuildFilePanel;
-  private JPanel myCompilerOprionsWrapper;
+  private JPanel myCompilerOptionsWrapper;
 
   private HaxeTarget selectedHaxeTarget = HaxeTarget.NEKO;
   private NMETarget selectedNmeTarget = NMETarget.FLASH;
+  private OpenFLTarget selectedOpenFLTarget = OpenFLTarget.FLASH;
 
   private final Module myModule;
   private final CompilerModuleExtension myExtension;
@@ -109,6 +109,7 @@ public class HaxeConfigurationEditor {
     group.add(myHxmlFileRadioButton);
     group.add(myNmmlFileRadioButton);
     group.add(myUserPropertiesRadioButton);
+    group.add(myOpenFLFileRadioButton);
   }
 
   private void addActionListeners() {
@@ -169,6 +170,7 @@ public class HaxeConfigurationEditor {
     myHxmlFileRadioButton.addActionListener(listener);
     myNmmlFileRadioButton.addActionListener(listener);
     myUserPropertiesRadioButton.addActionListener(listener);
+    myOpenFLFileRadioButton.addActionListener(listener);
 
     ActionListener fileChooserListener = new ActionListener() {
       @Override
@@ -176,10 +178,13 @@ public class HaxeConfigurationEditor {
         final VirtualFile moduleFile = myModule.getModuleFile();
         assert moduleFile != null;
         final boolean isNMML = myNmmlFileRadioButton.isSelected();
+        final boolean isOpenFL = myOpenFLFileRadioButton.isSelected();
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false) {
           public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
             return super.isFileVisible(file, showHiddenFiles) &&
-                   (file.isDirectory() || (isNMML ? "nmml" : "hxml").equalsIgnoreCase(file.getExtension()));
+                   (file.isDirectory()
+                    || (isNMML ? "nmml" : "hxml").equalsIgnoreCase(file.getExtension())
+                    || (isOpenFL && "project.xml".equalsIgnoreCase(file.getName())));
           }
         };
         final VirtualFile file = FileChooser.chooseFile(descriptor, getMainPanel(), null, moduleFile.getParent());
@@ -187,8 +192,7 @@ public class HaxeConfigurationEditor {
           String path = FileUtil.toSystemIndependentName(file.getPath());
           if (isNMML) {
             myNMEFileChooserTextField.setText(path);
-          }
-          else {
+          } else {
             myHxmlFileChooserTextField.setText(path);
           }
           updateComponents();
@@ -230,6 +234,7 @@ public class HaxeConfigurationEditor {
   private void updateFileChooser() {
     boolean containsHxml = false;
     boolean containsNME = false;
+    boolean containsOpenFL = false;
     Component[] components = myBuildFilePanel.getComponents();
     for (Component component : components) {
       if (component == myHxmlFileChooserPanel) {
@@ -238,6 +243,9 @@ public class HaxeConfigurationEditor {
       if (component == myNMEFilePanel) {
         containsNME = true;
       }
+      if (component == myOpenFLFilePanel) {
+        containsOpenFL = true;
+      }
     }
     if (!myHxmlFileRadioButton.isSelected() && containsHxml) {
       myBuildFilePanel.remove(myHxmlFileChooserPanel);
@@ -245,6 +253,11 @@ public class HaxeConfigurationEditor {
     if (!myNmmlFileRadioButton.isSelected() && containsNME) {
       myBuildFilePanel.remove(myNMEFilePanel);
     }
+
+    if (!myOpenFLFileRadioButton.isSelected() && containsOpenFL) {
+      myBuildFilePanel.remove(myOpenFLFilePanel);
+    }
+
     final GridConstraints constraints = new GridConstraints();
     constraints.setRow(0);
     constraints.setFill(GridConstraints.FILL_HORIZONTAL);
@@ -254,11 +267,16 @@ public class HaxeConfigurationEditor {
     if (myNmmlFileRadioButton.isSelected() && !containsNME) {
       myBuildFilePanel.add(myNMEFilePanel, constraints);
     }
+
+    if (myOpenFLFileRadioButton.isSelected() && !containsOpenFL) {
+      myBuildFilePanel.add(myOpenFLFilePanel, constraints);
+    }
+
   }
 
   private void updateUserProperties() {
     boolean contains = false;
-    Component[] components = myCompilerOprionsWrapper.getComponents();
+    Component[] components = myCompilerOptionsWrapper.getComponents();
     for (Component component : components) {
       if (component == myCompilerOptions) {
         contains = true;
@@ -269,10 +287,10 @@ public class HaxeConfigurationEditor {
       final GridConstraints constraints = new GridConstraints();
       constraints.setRow(0);
       constraints.setFill(GridConstraints.FILL_HORIZONTAL);
-      myCompilerOprionsWrapper.add(myCompilerOptions, constraints);
+      myCompilerOptionsWrapper.add(myCompilerOptions, constraints);
     }
     else if (!myUserPropertiesRadioButton.isSelected() && contains) {
-      myCompilerOprionsWrapper.remove(myCompilerOptions);
+      myCompilerOptionsWrapper.remove(myCompilerOptions);
     }
   }
 
@@ -281,6 +299,10 @@ public class HaxeConfigurationEditor {
     if (myNmmlFileRadioButton.isSelected()) {
       NMETarget.initCombo((DefaultComboBoxModel)myTargetComboBox.getModel());
       myTargetComboBox.setSelectedItem(selectedNmeTarget);
+    }
+    else if (myOpenFLFileRadioButton.isSelected()) {
+      OpenFLTarget.initCombo((DefaultComboBoxModel)myTargetComboBox.getModel());
+      myTargetComboBox.setSelectedItem(selectedOpenFLTarget);
     }
     else {
       HaxeTarget.initCombo((DefaultComboBoxModel)myTargetComboBox.getModel());
@@ -333,11 +355,13 @@ public class HaxeConfigurationEditor {
     result = result || settings.getNmeTarget() != selectedNmeTarget;
     result = result || !FileUtil.toSystemIndependentName(myNMEFileChooserTextField.getText()).equals(settings.getNmmlPath());
 
+    result = result || settings.getOpenFLTarget() != selectedOpenFLTarget;
+
     result = result || !settings.getMainClass().equals(myMainClassFieldWithButton.getText());
     result = result || settings.getHaxeTarget() != selectedHaxeTarget;
 
     result = result || !FileUtil.toSystemIndependentName(myHxmlFileChooserTextField.getText()).equals(settings.getHxmlPath());
-    result = result || !FileUtil.toSystemIndependentName(myNMEFileChooserTextField.getText()).equals(settings.getNmmlPath());
+
     result = result || !settings.getArguments().equals(myAppArguments.getText());
     result = result || !settings.getNmeFlags().equals(myNMEArguments.getText());
     result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
@@ -374,6 +398,7 @@ public class HaxeConfigurationEditor {
     myHxmlFileRadioButton.setSelected(settings.isUseHxmlToBuild());
     myNmmlFileRadioButton.setSelected(settings.isUseNmmlToBuild());
     myUserPropertiesRadioButton.setSelected(settings.isUseUserPropertiesToBuild());
+    myOpenFLFileRadioButton.setSelected(settings.isUseOpenFLToBuild());
     updateComponents();
     updateTargetCombo();
   }
@@ -386,8 +411,9 @@ public class HaxeConfigurationEditor {
     settings.setNmeFlags(myNMEArguments.getText());
     if (myNmmlFileRadioButton.isSelected()) {
       settings.setNmeTarget((NMETarget)myTargetComboBox.getSelectedItem());
-    }
-    else {
+    } else if (myOpenFLFileRadioButton.isSelected()) {
+      settings.setOpenFLTarget((OpenFLTarget)myTargetComboBox.getSelectedItem());
+    } else {
       settings.setHaxeTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     }
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());
@@ -421,6 +447,9 @@ public class HaxeConfigurationEditor {
     }
     else if (myNmmlFileRadioButton.isSelected()) {
       buildConfig = HaxeModuleSettings.USE_NMML;
+    }
+    else if (myOpenFLFileRadioButton.isSelected()) {
+      buildConfig = HaxeModuleSettings.USE_OPENFL;
     }
     return buildConfig;
   }
