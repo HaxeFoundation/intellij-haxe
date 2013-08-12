@@ -26,7 +26,7 @@ import com.intellij.plugins.haxe.runner.debugger.hxcpp.HXCPPDebugProcess;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.connection.HXCPPResponse;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.io.socketConnection.AbstractResponseToRequestHandler;
 import com.intellij.xdebugger.XSourcePosition;
@@ -130,7 +130,7 @@ public class HXCPPStackFrame extends XStackFrame {
   }
 
   @Override
-  public void customizePresentation(SimpleColoredComponent component) {
+  public void customizePresentation(ColoredTextContainer component) {
     XSourcePosition position = getSourcePosition();
     component.append(myFunctionName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     component.append(" in ", SimpleTextAttributes.REGULAR_ATTRIBUTES);

@@ -16,9 +16,11 @@
 package com.intellij.plugins.haxe.runner;
 
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.CommandLineState;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.configurations.RunProfile;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -26,7 +28,6 @@ import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -46,20 +47,6 @@ import org.jetbrains.annotations.NotNull;
 public class HaxeRunner extends DefaultProgramRunner {
   public static final String HAXE_RUNNER_ID = "HaxeRunner";
 
-  public static final RunProfileState EMPTY_RUN_STATE = new RunProfileState() {
-    public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
-      return null;
-    }
-
-    public RunnerSettings getRunnerSettings() {
-      return null;
-    }
-
-    public ConfigurationPerRunnerSettings getConfigurationSettings() {
-      return new ConfigurationPerRunnerSettings(HAXE_RUNNER_ID, null);
-    }
-  };
-
   @NotNull
   @Override
   public String getRunnerId() {
@@ -73,7 +60,6 @@ public class HaxeRunner extends DefaultProgramRunner {
 
   @Override
   protected RunContentDescriptor doExecute(Project project,
-                                           Executor executor,
                                            RunProfileState state,
                                            RunContentDescriptor contentToReuse,
                                            ExecutionEnvironment env) throws ExecutionException {
@@ -88,24 +74,24 @@ public class HaxeRunner extends DefaultProgramRunner {
 
     if (settings.isUseNmmlToBuild()) {
       final NMERunningState nmeRunningState = new NMERunningState(env, module, false);
-      return super.doExecute(project, executor, nmeRunningState, contentToReuse, env);
+      return super.doExecute(project, nmeRunningState, contentToReuse, env);
     }
 
     if (settings.isUseOpenFLToBuild()) {
       final OpenFLRunningState openflRunningState = new OpenFLRunningState(env, module, true);
-      return super.doExecute(project, executor, openflRunningState, contentToReuse, env);
+      return super.doExecute(project, openflRunningState, contentToReuse, env);
     }
 
     if (configuration.isCustomFileToLaunch() && FileUtilRt.extensionEquals(configuration.getCustomFileToLaunchPath(), "n")) {
       final NekoRunningState nekoRunningState = new NekoRunningState(env, module, configuration.getCustomFileToLaunchPath());
-      return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
+      return super.doExecute(project, nekoRunningState, contentToReuse, env);
     }
 
     if (configuration.isCustomExecutable()) {
       final String filePath = configuration.isCustomFileToLaunch()
                               ? configuration.getCustomFileToLaunchPath()
                               : getOutputFilePath(module, settings);
-      return super.doExecute(project, executor, new CommandLineState(env) {
+      return super.doExecute(project, new CommandLineState(env) {
         @NotNull
         @Override
         protected ProcessHandler startProcess() throws ExecutionException {
@@ -137,7 +123,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     }
 
     final NekoRunningState nekoRunningState = new NekoRunningState(env, module, null);
-    return super.doExecute(project, executor, nekoRunningState, contentToReuse, env);
+    return super.doExecute(project, nekoRunningState, contentToReuse, env);
   }
 
   private static String getOutputFilePath(Module module, HaxeModuleSettings settings) {

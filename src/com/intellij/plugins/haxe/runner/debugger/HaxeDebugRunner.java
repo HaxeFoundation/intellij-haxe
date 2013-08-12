@@ -63,12 +63,12 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
   @Override
   protected RunContentDescriptor doExecute(Project project,
-                                           Executor executor,
                                            RunProfileState state,
                                            RunContentDescriptor contentToReuse,
                                            ExecutionEnvironment env) throws ExecutionException {
     final HaxeApplicationConfiguration configuration = (HaxeApplicationConfiguration)env.getRunProfile();
     final Module module = configuration.getConfigurationModule().getModule();
+    final Executor executor = env.getExecutor();
 
     if (module == null) {
       throw new ExecutionException(HaxeBundle.message("no.module.for.run.configuration", configuration.getName()));

@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.runner;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
+import com.intellij.execution.configuration.EmptyRunProfileState;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
@@ -66,7 +67,7 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
   }
 
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    return HaxeRunner.EMPTY_RUN_STATE;
+    return EmptyRunProfileState.INSTANCE;
   }
 
   @Override

@@ -21,6 +21,10 @@
     <![CDATA[
       <p>0.6.5:</p>
       <ul>
+        <li>Bug fixes</li>
+      </ul>
+      <p>0.6.5:</p>
+      <ul>
         <li>OpenFL support</li>
       </ul>
       <p>0.6.4:</p>
@@ -159,9 +163,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.6.5</version>
+  <version>0.6.6</version>
   <vendor>JetBrains</vendor>
-  <idea-version since-build="130.1" until-build="131.1"/>
+  <idea-version since-build="130.1485" until-build="131.1"/>
   <depends>com.intellij.modules.ultimate</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
