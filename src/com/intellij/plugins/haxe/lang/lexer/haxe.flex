@@ -35,6 +35,22 @@ import org.jetbrains.annotations.NotNull;
         yybegin(state);
     }
 
+    private String getStateName(int state) {
+        if(state == SHORT_TEMPLATE_ENTRY) {
+          return "SHORT_TEMPLATE_ENTRY";
+        }
+        if(state == LONG_TEMPLATE_ENTRY) {
+          return "LONG_TEMPLATE_ENTRY";
+        }
+        if(state == QUO_STRING) {
+          return "QUO_STRING";
+        }
+        if(state == APOS_STRING) {
+          return "APOS_STRING";
+        }
+        return null;
+    }
+
     private void popState() {
         State state = states.pop();
         lBraceCount = state.lBraceCount;
@@ -282,7 +298,7 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 "#error"                                  { return PPERROR; }
 "#elseif"                                 { return PPELSEIF; }
 "#else"                                   { return PPELSE; }
-}
+} // <YYINITIAL, LONG_TEMPLATE_ENTRY>
 
 // "
 
@@ -323,4 +339,5 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 <SHORT_TEMPLATE_ENTRY> "this"          { popState(); return KTHIS; }
 <SHORT_TEMPLATE_ENTRY> {IDENTIFIER_NO_DOLLAR}    { popState(); return ID; }
 
-.                                         {  yybegin(YYINITIAL); return com.intellij.psi.TokenType.BAD_CHARACTER; }
+<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY> .  { return com.intellij.psi.TokenType.BAD_CHARACTER; }
+.                                                                       {  yybegin(YYINITIAL); return com.intellij.psi.TokenType.BAD_CHARACTER; }

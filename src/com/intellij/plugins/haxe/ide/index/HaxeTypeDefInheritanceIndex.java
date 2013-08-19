@@ -44,7 +44,7 @@ import java.util.Map;
  */
 public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String, List<HaxeClassInfo>> {
   public static final ID<String, List<HaxeClassInfo>> HAXE_TYPEDEF_INHERITANCE_INDEX = ID.create("HaxeTypeDefInheritanceIndex");
-  private static final int INDEX_VERSION = 2;
+  private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION + 2;
   private final DataIndexer<String, List<HaxeClassInfo>, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<List<HaxeClassInfo>> myExternalizer = new HaxeClassInfoListExternalizer();
 
