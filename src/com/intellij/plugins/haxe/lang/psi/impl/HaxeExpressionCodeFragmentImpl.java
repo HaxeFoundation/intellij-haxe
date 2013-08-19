@@ -41,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.lang.parser.GeneratedParserUtilBase._SECTION_GENERAL_;
+import static com.intellij.lang.parser.GeneratedParserUtilBase.adapt_builder_;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.enterErrorRecordingSection;
 
 /**
@@ -134,11 +135,15 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
     @Override
     protected ASTNode doParseContents(@NotNull ASTNode chameleon, @NotNull PsiElement psi) {
       final PsiBuilderFactory factory = PsiBuilderFactory.getInstance();
-      final PsiBuilder builder = factory.createBuilder(getProject(), chameleon);
+      final PsiBuilder psiBuilder = factory.createBuilder(getProject(), chameleon);
+      final PsiBuilder builder = adapt_builder_(HaxeTokenTypes.EXPRESSION, psiBuilder, new HaxeParser());
 
       final PsiBuilder.Marker marker = builder.mark();
       enterErrorRecordingSection(builder, 0, _SECTION_GENERAL_, "<code fragment>");
       HaxeParser.expression(builder, 1);
+      while (builder.getTokenType() != null) {
+        builder.advanceLexer();
+      }
       marker.done(HaxeTokenTypes.EXPRESSION);
       return builder.getTreeBuilt();
     }
