@@ -154,6 +154,9 @@ public class HaxeConfigurationEditor {
         if (myTargetComboBox.getSelectedItem() instanceof NMETarget) {
           selectedNmeTarget = (NMETarget)myTargetComboBox.getSelectedItem();
         }
+        if (myTargetComboBox.getSelectedItem() instanceof OpenFLTarget) {
+          selectedOpenFLTarget = (OpenFLTarget)myTargetComboBox.getSelectedItem();
+        }
         if (!myOutputFileNameTextField.getText().isEmpty()) {
           myOutputFileNameTextField.setText(getCurrentExtension(FileUtil.getNameWithoutExtension(myOutputFileNameTextField.getText())));
         }
@@ -192,7 +195,8 @@ public class HaxeConfigurationEditor {
           String path = FileUtil.toSystemIndependentName(file.getPath());
           if (isNMML) {
             myNMEFileChooserTextField.setText(path);
-          } else {
+          }
+          else {
             myHxmlFileChooserTextField.setText(path);
           }
           updateComponents();
@@ -271,7 +275,6 @@ public class HaxeConfigurationEditor {
     if (myOpenFLFileRadioButton.isSelected() && !containsOpenFL) {
       myBuildFilePanel.add(myOpenFLFilePanel, constraints);
     }
-
   }
 
   private void updateUserProperties() {
@@ -383,6 +386,7 @@ public class HaxeConfigurationEditor {
     myAppArguments.setText(settings.getArguments());
     selectedHaxeTarget = settings.getHaxeTarget();
     selectedNmeTarget = settings.getNmeTarget();
+    selectedOpenFLTarget = settings.getOpenFLTarget();
     myExcludeFromCompilationCheckBox.setSelected(settings.isExcludeFromCompilation());
     myOutputFileNameTextField.setText(settings.getOutputFileName());
     for (UnnamedConfigurable configurable : configurables) {
@@ -411,9 +415,11 @@ public class HaxeConfigurationEditor {
     settings.setNmeFlags(myNMEArguments.getText());
     if (myNmmlFileRadioButton.isSelected()) {
       settings.setNmeTarget((NMETarget)myTargetComboBox.getSelectedItem());
-    } else if (myOpenFLFileRadioButton.isSelected()) {
+    }
+    else if (myOpenFLFileRadioButton.isSelected()) {
       settings.setOpenFLTarget((OpenFLTarget)myTargetComboBox.getSelectedItem());
-    } else {
+    }
+    else {
       settings.setHaxeTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     }
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());

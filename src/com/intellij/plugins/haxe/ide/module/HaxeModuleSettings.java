@@ -61,7 +61,8 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             String hxmlPath,
                             String nmmlPath,
                             String openFLPath) {
-    super(mainClass, outputFileName, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath, openFLPath, buildConfig);
+    super(mainClass, outputFileName, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
+          openFLPath, buildConfig);
     this.flexSdkName = flexSdkName;
   }
 
@@ -113,6 +114,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     if (outputFileName != null ? !outputFileName.equals(settings.outputFileName) : settings.outputFileName != null) return false;
     if (haxeTarget != settings.haxeTarget) return false;
     if (nmeTarget != settings.nmeTarget) return false;
+    if (openFLTarget != settings.openFLTarget) return false;
     if (myHXCPPPort != settings.myHXCPPPort) return false;
 
     return true;
