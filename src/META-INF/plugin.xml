@@ -19,7 +19,7 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.6.5:</p>
+      <p>0.6.6:</p>
       <ul>
         <li>Bug fixes</li>
       </ul>
@@ -283,17 +283,20 @@
 
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
-    <!--<annotator language="haXe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor"/>-->
 
     <localInspection language="XML" shortName="NMEBuildDirectory" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="com.intellij.plugins.haxe.codeInspection.NMEBuildDirectoryInspection"/>
 
-
     <localInspection language="haXe" shortName="HaxeUnusedImport" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspection.unused.import.name"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection"/>
+
+    <localInspection language="haXe" shortName="HaxeUnresolvedSymbol" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspection.unresolved.symbol"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
   </extensions>
 
   <actions>

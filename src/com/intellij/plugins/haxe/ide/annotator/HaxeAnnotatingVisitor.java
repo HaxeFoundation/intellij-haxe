@@ -15,13 +15,12 @@
  */
 package com.intellij.plugins.haxe.ide.annotator;
 
-import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.Annotator;
-import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,28 +30,20 @@ import java.util.Set;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
+public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   private static final Set<String> BUILTIN = new THashSet<String>(Arrays.asList(
     "trace", "__call__", "__vmem_set__", "__vmem_get__", "__vmem_sign__", "__global__", "_global", "__foreach__"
   ));
-  private AnnotationHolder myHolder = null;
-
-  @Override
-  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    assert myHolder == null;
-    myHolder = holder;
-    try {
-      element.accept(this);
-    }
-    finally {
-      myHolder = null;
-    }
-  }
 
   @Override
   public void visitReferenceExpression(@NotNull HaxeReferenceExpression reference) {
     if (reference.getTokenType() != HaxeTokenTypes.REFERENCE_EXPRESSION) {
       return; // call, array access, this, literal, etc
+    }
+    final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
+    if (childReferences != null && childReferences.length > 1) {
+      super.visitReferenceExpression(reference);
+      return;
     }
     final HaxeReference leftSiblingReference = HaxeResolveUtil.getLeftReference(reference);
     final PsiElement referenceTarget = reference.resolve();
@@ -68,7 +59,7 @@ public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
 
     if (!(reference.getParent() instanceof HaxeReference) && !(reference.getParent() instanceof HaxePackageStatement)) {
       // whole reference expression
-      myHolder.createErrorAnnotation(reference, HaxeBundle.message("cannot.resolve.reference"));
+      handleUnresolvedReference(reference);
     }
     final PsiElement leftSiblingReferenceTarget = leftSiblingReference == null ? null : leftSiblingReference.resolve();
     if (leftSiblingReference != null && leftSiblingReferenceTarget == null) {
@@ -86,6 +77,14 @@ public class HaxeAnnotatingVisitor extends HaxeVisitor implements Annotator {
       return; // package
     }
 
-    myHolder.createErrorAnnotation(reference, HaxeBundle.message("cannot.resolve.reference"));
+    handleUnresolvedReference(reference);
   }
+
+  @Override
+  public void visitElement(PsiElement element) {
+    ProgressIndicatorProvider.checkCanceled();
+    element.acceptChildren(this);
+  }
+
+  abstract protected void handleUnresolvedReference(HaxeReferenceExpression reference);
 }
