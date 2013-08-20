@@ -25,6 +25,7 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
@@ -141,7 +142,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     final String result = System.getenv("HAXEPATH");
     if (result == null && !SystemInfo.isWindows) {
       final String candidate = "/usr/lib/haxe";
-      if (VirtualFileManager.getInstance().findFileByUrl(candidate) != null) {
+      if (VirtualFileManager.getInstance().findFileByUrl(VfsUtil.pathToUrl(candidate)) != null) {
         return candidate;
       }
     }
