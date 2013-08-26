@@ -19,7 +19,7 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.6.6:</p>
+      <p>0.6.7:</p>
       <ul>
         <li>Bug fixes</li>
       </ul>
@@ -163,7 +163,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.6.6</version>
+  <version>0.6.7</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="130.1485" until-build="131.1"/>
   <depends>com.intellij.modules.ultimate</depends>
