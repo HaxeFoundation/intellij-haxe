@@ -23,7 +23,9 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerUISettings;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -92,8 +94,12 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
     // flash only
 
-    if (!PluginManager.isPluginInstalled(PluginId.getId("com.intellij.flex"))) {
+    final IdeaPluginDescriptor plugin = PluginManager.getPlugin(PluginId.getId("com.intellij.flex"));
+    if (plugin == null) {
       throw new ExecutionException(HaxeBundle.message("install.flex.plugin"));
+    }
+    if (!plugin.isEnabled()) {
+      throw new ExecutionException(HaxeBundle.message("enable.flex.plugin"));
     }
 
     String flexSdkName = settings.getFlexSdkName();

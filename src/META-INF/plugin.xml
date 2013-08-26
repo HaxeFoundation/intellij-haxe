@@ -166,7 +166,6 @@
   <version>0.6.7</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="130.1485" until-build="131.1"/>
-  <depends>com.intellij.modules.ultimate</depends>
   <depends>com.intellij.modules.java</depends><!-- Rich platform which contains compiler abstraction -->
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
