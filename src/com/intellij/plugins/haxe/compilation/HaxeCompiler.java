@@ -209,6 +209,11 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       public void handleOutput(String[] lines) {
         HaxeCompilerUtil.fillContext(context, getErrorRoot(), lines);
       }
+
+      @Override
+      public String getModuleDirPath() {
+        return PathUtil.getParentPath(module.getModuleFilePath());
+      }
     });
 
     if (!compiled) {

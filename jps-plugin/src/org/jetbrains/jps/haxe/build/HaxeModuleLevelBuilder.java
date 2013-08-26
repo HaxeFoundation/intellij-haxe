@@ -169,12 +169,6 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
         });
       }
 
-      @Nullable
-      public String getWorkingDirectoryPath() {
-        final File baseDirectory = JpsModelSerializationDataService.getBaseDirectory(module);
-        return baseDirectory != null ? baseDirectory.getPath() : null;
-      }
-
       @Override
       public String getCompileOutputPath() {
         final String outputRootUrl = JpsJavaExtensionService.getInstance().getOutputUrl(module, false);
@@ -205,6 +199,17 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
             compilerError != null ? (long)compilerError.getColumn() : -1L
           ));
         }
+      }
+
+      @Override
+      public String getModuleDirPath() {
+        return getWorkingDirectoryPath();
+      }
+
+      @Nullable
+      public String getWorkingDirectoryPath() {
+        final File baseDirectory = JpsModelSerializationDataService.getBaseDirectory(module);
+        return baseDirectory != null ? baseDirectory.getPath() : null;
       }
     });
 

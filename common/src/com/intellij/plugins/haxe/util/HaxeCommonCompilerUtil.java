@@ -68,6 +68,8 @@ public class HaxeCommonCompilerUtil {
     String getErrorRoot();
 
     void handleOutput(String[] lines);
+
+    String getModuleDirPath();
   }
 
   public static boolean compile(final CompilationContext context) {
@@ -138,6 +140,8 @@ public class HaxeCommonCompilerUtil {
 
     if (settings.isUseOpenFLToBuild()) {
       setupOpenFL(commandLine, context);
+      workingPath = context.getModuleDirPath();
+      context.setErrorRoot(workingPath);
     }
     else if (settings.isUseNmmlToBuild()) {
       setupNME(commandLine, context);
