@@ -31,7 +31,7 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeFileTemplateUtil {
-  private final static String HAXE_TEMPLATE_PREFIX = "haXe ";
+  private final static String HAXE_TEMPLATE_PREFIX = "Haxe ";
 
   public static List<FileTemplate> getApplicableTemplates() {
     return getApplicableTemplates(new Condition<FileTemplate>() {
@@ -69,14 +69,14 @@ public class HaxeFileTemplateUtil {
   public static Icon getTemplateIcon(String name) {
     name = getTemplateShortName(name);
     if ("Class".equals(name)) {
-      return icons.HaxeIcons.C_haXe;
+      return icons.HaxeIcons.C_Haxe;
     }
     else if ("Interface".equals(name)) {
-      return icons.HaxeIcons.I_haXe;
+      return icons.HaxeIcons.I_Haxe;
     }
     else if ("Enum".equals(name)) {
-      return icons.HaxeIcons.E_haXe;
+      return icons.HaxeIcons.E_Haxe;
     }
-    return icons.HaxeIcons.HaXe_16;
+    return icons.HaxeIcons.Haxe_16;
   }
 }

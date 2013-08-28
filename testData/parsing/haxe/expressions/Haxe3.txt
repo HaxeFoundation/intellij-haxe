@@ -1,4 +1,4 @@
-haXe File
+Haxe File
   IMPORT_STATEMENT
     PsiElement(import)('import')
     REFERENCE_EXPRESSION

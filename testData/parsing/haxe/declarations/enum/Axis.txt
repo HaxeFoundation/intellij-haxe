@@ -1,4 +1,4 @@
-haXe File
+Haxe File
   ENUM_DECLARATION
     PsiElement(enum)('enum')
     COMPONENT_NAME

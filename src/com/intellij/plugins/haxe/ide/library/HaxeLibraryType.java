@@ -35,7 +35,7 @@ import javax.swing.*;
  */
 public class HaxeLibraryType extends LibraryType<DummyLibraryProperties> {
   public static final PersistentLibraryKind<DummyLibraryProperties> HAXE_LIBRARY =
-    new PersistentLibraryKind<DummyLibraryProperties>("haXe") {
+    new PersistentLibraryKind<DummyLibraryProperties>("Haxe") {
       @NotNull
       @Override
       public DummyLibraryProperties createDefaultProperties() {
@@ -50,7 +50,7 @@ public class HaxeLibraryType extends LibraryType<DummyLibraryProperties> {
   @NotNull
   @Override
   public String getCreateActionName() {
-    return "haXe";
+    return "Haxe";
   }
 
   @Override
@@ -80,7 +80,7 @@ public class HaxeLibraryType extends LibraryType<DummyLibraryProperties> {
 
   @Override
   public Icon getIcon() {
-    return icons.HaxeIcons.HaXe_16;
+    return icons.HaxeIcons.Haxe_16;
   }
 
   public static HaxeLibraryType getInstance() {

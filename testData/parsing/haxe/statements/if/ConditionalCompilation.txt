@@ -1,4 +1,4 @@
-haXe File
+Haxe File
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' flash8\n')
   PsiComment(PPBODY)('// Haxe code specific for flash player 8\n#elseif')

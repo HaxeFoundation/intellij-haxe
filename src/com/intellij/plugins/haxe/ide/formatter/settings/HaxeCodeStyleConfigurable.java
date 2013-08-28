@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxeCodeStyleConfigurable extends CodeStyleAbstractConfigurable {
   public HaxeCodeStyleConfigurable(@NotNull CodeStyleSettings settings, CodeStyleSettings cloneSettings) {
-    super(settings, cloneSettings, "haXe");
+    super(settings, cloneSettings, "Haxe");
   }
 
   @Override

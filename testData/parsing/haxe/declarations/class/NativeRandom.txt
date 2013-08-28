@@ -1,4 +1,4 @@
-haXe File
+Haxe File
   EXTERN_CLASS_DECLARATION
     PsiElement(@:final)('@:final')
     EXTERN_OR_PRIVATE

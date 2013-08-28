@@ -49,7 +49,7 @@ public class HXCPPRemoteRunConfigurationType implements ConfigurationType {
   }
 
   public Icon getIcon() {
-    return icons.HaxeIcons.HaXe_16;
+    return icons.HaxeIcons.Haxe_16;
   }
 
   @NotNull

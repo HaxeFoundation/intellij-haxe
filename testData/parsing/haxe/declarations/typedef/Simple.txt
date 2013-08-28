@@ -1,4 +1,4 @@
-haXe File
+Haxe File
   TYPEDEF_DECLARATION
     PsiElement(typedef)('typedef')
     COMPONENT_NAME

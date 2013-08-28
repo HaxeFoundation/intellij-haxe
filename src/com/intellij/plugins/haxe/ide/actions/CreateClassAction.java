@@ -44,7 +44,7 @@ import java.util.Properties;
  */
 public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
   public CreateClassAction() {
-    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), icons.HaxeIcons.HaXe_16, true);
+    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), icons.HaxeIcons.Haxe_16, true);
   }
 
   @Override

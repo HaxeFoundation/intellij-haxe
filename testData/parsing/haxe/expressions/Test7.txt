@@ -1,4 +1,4 @@
-haXe File
+Haxe File
   CLASS_DECLARATION
     PsiElement(class)('class')
     COMPONENT_NAME
