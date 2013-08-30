@@ -23,6 +23,7 @@ import com.intellij.openapi.roots.ui.configuration.CommonContentEntriesEditor;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationEditorProvider;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationState;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
 
 /**
  * @author: Fedor.Korotkov
@@ -34,7 +35,7 @@ public class HaxeModuleConfigurationEditorProvider implements ModuleConfiguratio
       return ModuleConfigurationEditor.EMPTY;
     }
     return new ModuleConfigurationEditor[]{
-      new CommonContentEntriesEditor(module.getName(), state, true, true),
+      new CommonContentEntriesEditor(module.getName(), state, JavaSourceRootType.SOURCE, JavaSourceRootType.TEST_SOURCE),
       new ClasspathEditor(state),
       new HaxeModuleConfigurationEditor(state)
     };

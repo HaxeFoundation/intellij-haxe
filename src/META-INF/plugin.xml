@@ -19,7 +19,7 @@
   <description>Support for haXe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.6.8:</p>
+      <p>0.6.9:</p>
       <ul>
         <li>Bug fixes</li>
       </ul>
@@ -163,9 +163,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.6.8</version>
+  <version>0.6.9</version>
   <vendor>JetBrains</vendor>
-  <idea-version since-build="130.1485"/>
+  <idea-version since-build="132.1"/>
   <depends>com.intellij.modules.java</depends><!-- Rich platform which contains compiler abstraction -->
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
