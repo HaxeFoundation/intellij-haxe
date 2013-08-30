@@ -32,7 +32,8 @@ public enum OpenFLTarget {
   LINUX("Linux", "linux"),
   LINUX64("Linux 64", "linux", "-64"),
   FLASH("Flash", "flash"),
-  HTML5("HTML5", "html5");
+  HTML5("HTML5", "html5"),
+  NEKO("Neko", "neko");
 
   private final String[] flags;
   private final String description;

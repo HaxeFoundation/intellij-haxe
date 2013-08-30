@@ -1,4 +1,4 @@
-haXe File
+Haxe File
   PACKAGE_STATEMENT
     PsiElement(package)('package')
     PsiElement(;)(';')

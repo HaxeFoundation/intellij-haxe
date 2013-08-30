@@ -46,7 +46,7 @@ public class HaxeBreakpointType extends XLineBreakpointType<XBreakpointPropertie
   private final XDebuggerEditorsProvider myEditorProvider = new HaxeDebuggerEditorsProvider();
 
   protected HaxeBreakpointType() {
-    super("haXe", HaxeBundle.message("haxe.break.point.title"));
+    super("Haxe", HaxeBundle.message("haxe.break.point.title"));
   }
 
   public boolean canPutAt(@NotNull final VirtualFile file, final int line, @NotNull Project project) {

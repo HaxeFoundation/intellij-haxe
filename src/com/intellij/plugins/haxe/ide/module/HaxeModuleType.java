@@ -49,12 +49,12 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
 
   @Override
   public Icon getBigIcon() {
-    return icons.HaxeIcons.HaXe_24;
+    return icons.HaxeIcons.Haxe_24;
   }
 
   @Override
   public Icon getNodeIcon(boolean isOpened) {
-    return icons.HaxeIcons.HaXe_16;
+    return icons.HaxeIcons.Haxe_16;
   }
 
   @Override

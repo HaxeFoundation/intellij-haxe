@@ -35,12 +35,12 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public Icon getIcon() {
-    return icons.HaxeIcons.HaXe_16;
+    return icons.HaxeIcons.Haxe_16;
   }
 
   @Override
   public Icon getIconForAddAction() {
-    return icons.HaxeIcons.HaXe_16;
+    return icons.HaxeIcons.Haxe_16;
   }
 
   public static HaxeSdkType getInstance() {

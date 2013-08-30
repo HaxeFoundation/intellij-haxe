@@ -29,17 +29,17 @@ public enum HaxeComponentType {
   CLASS(0) {
     @Override
     public Icon getIcon() {
-      return icons.HaxeIcons.C_haXe;
+      return icons.HaxeIcons.C_Haxe;
     }
   }, ENUM(1) {
     @Override
     public Icon getIcon() {
-      return icons.HaxeIcons.E_haXe;
+      return icons.HaxeIcons.E_Haxe;
     }
   }, INTERFACE(2) {
     @Override
     public Icon getIcon() {
-      return icons.HaxeIcons.I_haXe;
+      return icons.HaxeIcons.I_Haxe;
     }
   }, FUNCTION(3) {
     @Override

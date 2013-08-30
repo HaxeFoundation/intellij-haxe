@@ -42,7 +42,7 @@ public class HaxeFile extends PsiFileBase {
 
   @Override
   public String toString() {
-    return "haXe File";
+    return "Haxe File";
   }
 
   @Override

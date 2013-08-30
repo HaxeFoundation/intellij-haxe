@@ -61,7 +61,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
         command.getCommandLineString()).runProcess();
 
       if (output.getExitCode() != 0) {
-        LOG.error("haXe compiler exited with invalid exit code: " + output.getExitCode());
+        LOG.error("Haxe compiler exited with invalid exit code: " + output.getExitCode());
         return null;
       }
 
