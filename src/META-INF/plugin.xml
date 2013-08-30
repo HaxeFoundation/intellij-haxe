@@ -21,6 +21,7 @@
     <![CDATA[
       <p>0.6.9:</p>
       <ul>
+        <li>Neko target for OpenFL</li>
         <li>Bug fixes</li>
       </ul>
       <p>0.6.5:</p>
