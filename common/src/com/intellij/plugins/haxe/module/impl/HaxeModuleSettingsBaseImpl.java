@@ -40,6 +40,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   protected OpenFLTarget openFLTarget = OpenFLTarget.FLASH;
   protected String hxmlPath = "";
   protected String nmmlPath = "";
+  protected String openflxmlPath = "";
   protected String openFLPath = "";
   protected int buildConfig = 0;
 
@@ -158,6 +159,9 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     return nmmlPath;
   }
 
+  public String getOpenFLXmlPath() {
+    return openflxmlPath;
+  }
 
   public void setHxmlPath(String hxmlPath) {
     this.hxmlPath = hxmlPath;
@@ -181,6 +185,10 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setNmmlPath(String nmmlPath) {
     this.nmmlPath = nmmlPath;
+  }
+
+  public void setOpenFLXMLPath(String openflxmlPath) {
+    this.openflxmlPath = openflxmlPath;
   }
 
   public void setBuildConfig(int buildConfig) {
