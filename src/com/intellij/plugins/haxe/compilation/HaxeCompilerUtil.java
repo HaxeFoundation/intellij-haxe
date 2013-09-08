@@ -42,7 +42,7 @@ public class HaxeCompilerUtil {
     }
 
     context.addMessage(
-      CompilerMessageCategory.WARNING,
+      compilerError.getCategory(),
       compilerError.getErrorMessage(),
       VfsUtilCore.pathToUrl(compilerError.getPath()),
       compilerError.getLine(),

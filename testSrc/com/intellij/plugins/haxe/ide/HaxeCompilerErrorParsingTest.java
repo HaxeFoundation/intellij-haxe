@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
 import junit.framework.TestCase;
 
@@ -30,6 +31,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
 
     assertNotNull(compilerError);
+    assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
     assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
     assertEquals("Class not found : StringTools212", compilerError.getErrorMessage());
     assertEquals(5, compilerError.getLine());
@@ -42,6 +44,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
 
     assertNotNull(compilerError);
+    assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
     assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
     assertEquals("Class not found : StringTools212", compilerError.getErrorMessage());
     assertEquals(5, compilerError.getLine());
@@ -54,6 +57,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
 
     assertNotNull(compilerError);
+    assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
     assertEquals("/trees/test/./HelloWorld.hx", compilerError.getPath());
     assertEquals("Unknown identifier : addEvetListener", compilerError.getErrorMessage());
     assertEquals(12, compilerError.getLine());
@@ -66,6 +70,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
 
     assertNotNull(compilerError);
+    assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
     assertEquals("/an/absolute/path/HelloWorld.hx", compilerError.getPath());
     assertEquals("Unknown identifier : addEvetListener", compilerError.getErrorMessage());
     assertEquals(12, compilerError.getLine());
@@ -78,8 +83,22 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
 
     assertNotNull(compilerError);
+    assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
     assertEquals("/trees/test/hello/HelloWorld.hx", compilerError.getPath());
     assertEquals("Interfaces cannot implement another interface (use extends instead)", compilerError.getErrorMessage());
+    assertEquals(18, compilerError.getLine());
+    assertEquals(-1, compilerError.getColumn());
+  }
+
+  public void testWarnings() {
+    final String error = "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!";
+    final String rootPath = "/trees/test";
+    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
+
+    assertNotNull(compilerError);
+    assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
+    assertEquals("/trees/test/hello/HelloWorld.hx", compilerError.getPath());
+    assertEquals("Danger, Will Robinson!", compilerError.getErrorMessage());
     assertEquals(18, compilerError.getLine());
     assertEquals(-1, compilerError.getColumn());
   }
