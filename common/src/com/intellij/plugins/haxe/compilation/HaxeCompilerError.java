@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
+import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -26,16 +27,22 @@ import java.io.File;
  * @author: Fedor.Korotkov
  */
 public class HaxeCompilerError {
+  private final CompilerMessageCategory category;
   private final String errorMessage;
   private final String path;
   private final int line;
   private final int column;
 
-  public HaxeCompilerError(String errorMessage, String path, int line, int column) {
+  public HaxeCompilerError(CompilerMessageCategory category, String errorMessage, String path, int line, int column) {
+    this.category = category;
     this.errorMessage = errorMessage;
     this.path = path;
     this.line = line;
     this.column = column;
+  }
+
+  public CompilerMessageCategory getCategory() {
+    return category;
   }
 
   public String getErrorMessage() {
@@ -77,9 +84,14 @@ public class HaxeCompilerError {
     final String path = (lineSeparationIndex == -1) ? pathAndLine : pathAndLine.substring(0, lineSeparationIndex);
 
     final int errorSeparationIndex = message.indexOf(':', pathSeparationIndex);
-    String errorMessage = null;
+    CompilerMessageCategory category = CompilerMessageCategory.ERROR;
+    String errorMessage = "";
     if (errorSeparationIndex != -1) {
-      errorMessage = message.substring(errorSeparationIndex + 1);
+      errorMessage = message.substring(errorSeparationIndex + 1).trim();
+      if (errorMessage.startsWith("Warning : ")) {
+        errorMessage = errorMessage.substring("Warning : ".length()).trim();
+        category = CompilerMessageCategory.WARNING;
+      }
     }
 
     String charsOrLines;
@@ -110,6 +122,6 @@ public class HaxeCompilerError {
       return null;
     }
 
-    return new HaxeCompilerError(StringUtil.trimLeading(StringUtil.trimTrailing(StringUtil.notNullize(errorMessage))), filePath, line, column);
+    return new HaxeCompilerError(category, errorMessage, filePath, line, column);
   }
 }
