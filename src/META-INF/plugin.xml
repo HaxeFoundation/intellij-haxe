@@ -19,6 +19,10 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.7:</p>
+      <ul>
+        <li>Bug fixes</li>
+      </ul>
       <p>0.6.9:</p>
       <ul>
         <li>Neko target for OpenFL</li>
@@ -164,9 +168,9 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.6.9</version>
+  <version>0.7</version>
   <vendor>JetBrains</vendor>
-  <idea-version since-build="132.1"/>
+  <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.java</depends><!-- Rich platform which contains compiler abstraction -->
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>

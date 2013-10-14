@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class HXCPPCommand implements AbstractRequest {
-  private static final Logger LOG = LoggerFactory.getInstance().getLoggerInstance(HXCPPCommand.class.getName());
+  private static final Logger LOG = Logger.getInstance(HXCPPCommand.class);
   private final String[] myArgs;
   private final int myId;
 

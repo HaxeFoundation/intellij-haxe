@@ -15,7 +15,6 @@
  */
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.connection;
 
-import com.intellij.idea.LoggerFactory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.socketConnection.RequestWriter;
@@ -28,7 +27,7 @@ import java.io.Writer;
 import java.util.Set;
 
 public class HXCPPRequestReaderWriter implements RequestWriter<HXCPPCommand>, ResponseReader<HXCPPResponse> {
-  private static final Logger LOG = LoggerFactory.getInstance().getLoggerInstance(HXCPPRequestReaderWriter.class.getName());
+  private static final Logger LOG = Logger.getInstance(HXCPPRequestReaderWriter.class);
   private Writer myWriter;
   private BufferedReader myReader;
   private int id = 0;
