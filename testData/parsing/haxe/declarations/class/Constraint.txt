@@ -81,3 +81,32 @@ Haxe File
                     PsiElement(ID)('T')
         PsiElement(;)(';')
     PsiElement(})('}')
+  CLASS_DECLARATION
+    PsiElement(class)('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        PsiElement(ID)('Constraint')
+    GENERIC_PARAM
+      PsiElement(<)('<')
+      GENERIC_LIST_PART
+        COMPONENT_NAME
+          IDENTIFIER
+            PsiElement(ID)('T')
+      PsiElement(>)('>')
+    PsiElement({)('{')
+    CLASS_BODY
+      VAR_DECLARATION
+        PsiElement(var)('var')
+        VAR_DECLARATION_PART
+          COMPONENT_NAME
+            IDENTIFIER
+              PsiElement(ID)('evt')
+          TYPE_TAG
+            PsiElement(:)(':')
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    PsiElement(ID)('T')
+        PsiElement(;)(';')
+    PsiElement(})('}')
