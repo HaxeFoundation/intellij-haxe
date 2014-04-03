@@ -35,8 +35,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
 
 import javax.swing.*;
+import java.util.Collections;
 import java.util.Properties;
 
 /**
@@ -44,7 +46,10 @@ import java.util.Properties;
  */
 public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
   public CreateClassAction() {
-    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), icons.HaxeIcons.Haxe_16, null);
+    super(HaxeBundle.message("action.create.new.class"),
+          HaxeBundle.message("action.create.new.class"),
+          icons.HaxeIcons.Haxe_16,
+          Collections.singleton(JavaSourceRootType.SOURCE));
   }
 
   @Override
