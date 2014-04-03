@@ -28,7 +28,7 @@ import java.io.Writer;
 import java.util.Set;
 
 public class HXCPPRequestReaderWriter implements RequestWriter<HXCPPCommand>, ResponseReader<HXCPPResponse> {
-  private static final Logger LOG = LoggerFactory.getInstance().getLoggerInstance(HXCPPRequestReaderWriter.class.getName());
+  private static final Logger LOG = Logger.getInstance(HXCPPRequestReaderWriter.class.getName());
   private Writer myWriter;
   private BufferedReader myReader;
   private int id = 0;

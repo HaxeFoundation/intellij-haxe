@@ -51,7 +51,7 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HXCPPDebugProcess extends XDebugProcess implements SocketConnectionListener {
-  private static final Logger LOG = LoggerFactory.getInstance().getLoggerInstance(HXCPPDebugProcess.class.getName());
+  private static final Logger LOG = Logger.getInstance(HXCPPDebugProcess.class.getName());
   @Nullable private ExecutionResult myExecutionResult;
   private final HXCPPConnection myConnection = new HXCPPConnection();
   private final HXCPPBreakpointsHandler myBreakpointsHandler;
