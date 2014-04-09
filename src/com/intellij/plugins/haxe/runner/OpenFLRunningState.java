@@ -80,7 +80,7 @@ public class OpenFLRunningState extends CommandLineState {
     }
     commandLine.setExePath(haxelibPath);
     commandLine.addParameter("run");
-    commandLine.addParameter("openfl");
+    commandLine.addParameter("lime");
     commandLine.addParameter(myRunInTest ? "test" : "run");
 
     if(!StringUtil.isEmpty(settings.getOpenFLXmlPath())) {
