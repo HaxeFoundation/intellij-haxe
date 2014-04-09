@@ -1,5 +1,0 @@
-package ${PACKAGE_NAME};
-class ${NAME} {
-    public function new() {
-    }
-}
