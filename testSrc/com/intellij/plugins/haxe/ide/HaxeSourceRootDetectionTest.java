@@ -40,7 +40,7 @@ public class HaxeSourceRootDetectionTest extends PlatformTestCase {
     final RootDetectionProcessor detectionProcessor = new RootDetectionProcessor(
       dir, new ProjectStructureDetector[]{haxeProjectStructureDetector}
     );
-    final List<DetectedProjectRoot> detected = detectionProcessor.findRoots().get(haxeProjectStructureDetector);
+    final List<DetectedProjectRoot> detected = detectionProcessor.runDetectors().get(haxeProjectStructureDetector);
     assertNotNull(detected);
     final Set<String> actual = new THashSet<String>();
     for (DetectedProjectRoot projectRoot : detected) {
