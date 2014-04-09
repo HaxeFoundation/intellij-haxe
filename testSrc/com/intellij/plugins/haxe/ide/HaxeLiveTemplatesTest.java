@@ -20,6 +20,7 @@ import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.lookup.impl.LookupImpl;
 import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -61,10 +62,10 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(String... files) throws Exception {
     myFixture.configureByFiles(files);
-    expandTemplate(myFixture.getEditor());
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
+        expandTemplate(myFixture.getEditor());
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
     });

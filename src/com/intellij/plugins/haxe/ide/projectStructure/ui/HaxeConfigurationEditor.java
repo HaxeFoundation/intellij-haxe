@@ -84,6 +84,7 @@ public class HaxeConfigurationEditor {
   private JPanel myOpenFLFilePanel;
   private JPanel myBuildFilePanel;
   private JPanel myCompilerOptionsWrapper;
+  private TextFieldWithBrowseButton myOpenFLFileChooserTextField;
 
   private HaxeTarget selectedHaxeTarget = HaxeTarget.NEKO;
   private NMETarget selectedNmeTarget = NMETarget.FLASH;
@@ -187,7 +188,9 @@ public class HaxeConfigurationEditor {
             return super.isFileVisible(file, showHiddenFiles) &&
                    (file.isDirectory()
                     || (isNMML ? "nmml" : "hxml").equalsIgnoreCase(file.getExtension())
-                    || (isOpenFL && "project.xml".equalsIgnoreCase(file.getName())));
+                    || (isOpenFL && "project.xml".equalsIgnoreCase(file.getName()))
+                    || (isOpenFL && "Project.xml".equalsIgnoreCase(file.getName()))
+                   );
           }
         };
         final VirtualFile file = FileChooser.chooseFile(descriptor, getMainPanel(), null, moduleFile.getParent());
@@ -196,7 +199,12 @@ public class HaxeConfigurationEditor {
           if (isNMML) {
             myNMEFileChooserTextField.setText(path);
           }
-          else {
+          else if(isOpenFL)
+          {
+            myOpenFLFileChooserTextField.setText(path);
+          }
+          else
+          {
             myHxmlFileChooserTextField.setText(path);
           }
           updateComponents();
@@ -206,6 +214,7 @@ public class HaxeConfigurationEditor {
 
     myHxmlFileChooserTextField.getButton().addActionListener(fileChooserListener);
     myNMEFileChooserTextField.getButton().addActionListener(fileChooserListener);
+    myOpenFLFileChooserTextField.getButton().addActionListener(fileChooserListener);
 
     myEditMacrosesButton.addActionListener(new ActionListener() {
       @Override
@@ -260,6 +269,7 @@ public class HaxeConfigurationEditor {
 
     if (!myOpenFLFileRadioButton.isSelected() && containsOpenFL) {
       myBuildFilePanel.remove(myOpenFLFilePanel);
+      myBuildFilePanel.remove(myOpenFLFileChooserTextField);
     }
 
     final GridConstraints constraints = new GridConstraints();
@@ -365,6 +375,8 @@ public class HaxeConfigurationEditor {
 
     result = result || !FileUtil.toSystemIndependentName(myHxmlFileChooserTextField.getText()).equals(settings.getHxmlPath());
 
+    result = result || !FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()).equals(settings.getOpenFLXmlPath());
+
     result = result || !settings.getArguments().equals(myAppArguments.getText());
     result = result || !settings.getNmeFlags().equals(myNMEArguments.getText());
     result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
@@ -396,6 +408,7 @@ public class HaxeConfigurationEditor {
     final String url = myExtension.getCompilerOutputUrl();
     myFolderTextField.setText(VfsUtil.urlToPath(url));
     myHxmlFileChooserTextField.setText(settings.getHxmlPath());
+    myOpenFLFileChooserTextField.setText(settings.getOpenFLXmlPath());
     myNMEFileChooserTextField.setText(settings.getNmmlPath());
     myNMEArguments.setText(settings.getNmeFlags());
 
@@ -426,6 +439,7 @@ public class HaxeConfigurationEditor {
     settings.setOutputFileName(myOutputFileNameTextField.getText());
 
     settings.setHxmlPath(FileUtil.toSystemIndependentName(myHxmlFileChooserTextField.getText()));
+    settings.setOpenFLXMLPath(FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()));
     settings.setNmmlPath(FileUtil.toSystemIndependentName(myNMEFileChooserTextField.getText()));
 
     settings.setBuildConfig(getCurrentBuildConfig());

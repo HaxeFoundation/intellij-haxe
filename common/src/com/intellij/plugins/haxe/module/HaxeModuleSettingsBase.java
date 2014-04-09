@@ -63,6 +63,8 @@ public interface HaxeModuleSettingsBase {
 
   String getNmmlPath();
 
+  String getOpenFLXmlPath();
+
   void setHxmlPath(String hxmlPath);
 
   boolean isUseHxmlToBuild();

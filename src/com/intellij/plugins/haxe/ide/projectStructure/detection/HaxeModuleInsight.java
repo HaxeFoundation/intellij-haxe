@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.ide.projectStructure.detection;
 import com.intellij.ide.util.importProject.ModuleDescriptor;
 import com.intellij.ide.util.importProject.ModuleInsight;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
+import com.intellij.ide.util.projectWizard.importSources.DetectedSourceRoot;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -40,7 +41,7 @@ public class HaxeModuleInsight extends ModuleInsight {
   }
 
   @Override
-  protected ModuleDescriptor createModuleDescriptor(File moduleContentRoot, Collection<DetectedProjectRoot> sourceRoots) {
+  protected ModuleDescriptor createModuleDescriptor(File moduleContentRoot, Collection<DetectedSourceRoot> sourceRoots) {
     return new ModuleDescriptor(moduleContentRoot, HaxeModuleType.getInstance(), sourceRoots);
   }
 

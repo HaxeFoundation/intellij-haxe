@@ -174,7 +174,7 @@ haxeFile ::= packageStatement? topLevelList
   http://haxe.org/manual/metadata
   http://haxe.org/manual/tips_and_tricks
 */
-private macroClass ::= '@:final' | '@:keep' | '@:core_api' | '@:bind' | '@:macro' | '@:hack'
+private macroClass ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
                       | requireMeta | fakeEnumMeta | nativeMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 private functionMacroMember ::= macroMember | overloadMeta
