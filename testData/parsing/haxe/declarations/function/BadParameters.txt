@@ -39,9 +39,9 @@ Haxe File
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       PsiElement(ID)('Number')
-          PsiElement(,)(',')
-          PsiErrorElement:<parameter> expected, got ')'
-            <empty list>
+        PsiElement(,)(',')
+        PsiErrorElement:<parameter> expected, got ')'
+          <empty list>
         PsiElement())(')')
         TYPE_TAG
           PsiElement(:)(':')

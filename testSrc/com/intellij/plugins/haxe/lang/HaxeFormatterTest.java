@@ -15,7 +15,7 @@
  */
 package com.intellij.plugins.haxe.lang;
 
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -70,7 +70,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest() throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
