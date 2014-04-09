@@ -258,6 +258,10 @@ public class HaxeCommonCompilerUtil {
     commandLine.add("openfl");
     commandLine.add("build");
 
+    if(!StringUtil.isEmpty(settings.getOpenFLXmlPath())) {
+      commandLine.add(settings.getOpenFLXmlPath());
+    }
+
     commandLine.add(settings.getOpenFLTarget().getTargetFlag());
 
     commandLine.add("-verbose");

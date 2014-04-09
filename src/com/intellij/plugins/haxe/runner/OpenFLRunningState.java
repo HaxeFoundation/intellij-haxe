@@ -26,6 +26,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
@@ -81,6 +82,10 @@ public class OpenFLRunningState extends CommandLineState {
     commandLine.addParameter("run");
     commandLine.addParameter("openfl");
     commandLine.addParameter(myRunInTest ? "test" : "run");
+
+    if(!StringUtil.isEmpty(settings.getOpenFLXmlPath())) {
+      commandLine.addParameter(settings.getOpenFLXmlPath());
+    }
 
     for (String flag : settings.getOpenFLTarget().getFlags()) {
       commandLine.addParameter(flag);

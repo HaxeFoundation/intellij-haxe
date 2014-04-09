@@ -140,6 +140,11 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public String getOpenFLXmlPath() {
+    return mySettingsBase.getOpenFLXmlPath();
+  }
+
+  @Override
   public void setHxmlPath(String hxmlPath) {
     mySettingsBase.setHxmlPath(hxmlPath);
   }
