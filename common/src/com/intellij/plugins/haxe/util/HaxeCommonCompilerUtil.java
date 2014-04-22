@@ -255,7 +255,7 @@ public class HaxeCommonCompilerUtil {
   private static void setupOpenFL(List<String> commandLine, CompilationContext context) {
     final HaxeModuleSettingsBase settings = context.getModuleSettings();
     commandLine.add("run");
-    commandLine.add("openfl");
+    commandLine.add("lime");
     commandLine.add("build");
 
     if(!StringUtil.isEmpty(settings.getOpenFLXmlPath())) {
