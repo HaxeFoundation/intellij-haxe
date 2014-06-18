@@ -31,7 +31,7 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeFileTemplateUtil {
-  private final static String HAXE_TEMPLATE_PREFIX = "Haxe ";
+  private final static String HAXE_TEMPLATE_PREFIX = "Haxe";
 
   public static List<FileTemplate> getApplicableTemplates() {
     return getApplicableTemplates(new Condition<FileTemplate>() {

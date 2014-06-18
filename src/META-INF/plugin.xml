@@ -262,10 +262,10 @@
     <moduleService serviceInterface="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"
                    serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
-    <internalFileTemplate name="Haxe Class"/>
-    <internalFileTemplate name="Haxe Interface"/>
-    <internalFileTemplate name="Haxe Enum"/>
-    <internalFileTemplate name="NMML Project File"/>
+    <internalFileTemplate name="HaxeClass"/>
+    <internalFileTemplate name="HaxeInterface"/>
+    <internalFileTemplate name="HaxeEnum"/>
+    <internalFileTemplate name="NMMLProjectFile"/>
 
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeArrayVariableMacro"/>
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestIndexNameMacro"/>
