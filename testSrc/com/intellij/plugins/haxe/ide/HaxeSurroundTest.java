@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.generation.surroundWith.SurroundWithHandler;
 import com.intellij.lang.surroundWith.Surrounder;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -57,14 +58,22 @@ public class HaxeSurroundTest extends HaxeCodeInsightFixtureTestCase {
   protected void doTest(final Surrounder surrounder) throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
 
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+    /*WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         SurroundWithHandler.invoke(getProject(), myFixture.getEditor(), myFixture.getFile(), surrounder);
         PsiDocumentManager.getInstance(getProject()).doPostponedOperationsAndUnblockDocument(myFixture.getDocument(myFixture.getFile()));
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
-    });
+    });*/
+      CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+          @Override
+          public void run() {
+              SurroundWithHandler.invoke(getProject(), myFixture.getEditor(), myFixture.getFile(), surrounder);
+              PsiDocumentManager.getInstance(getProject()).doPostponedOperationsAndUnblockDocument(myFixture.getDocument(myFixture.getFile()));
+              CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
+          }
+      }, null, null);
 
     myFixture.checkResultByFile(getTestName(false) + "_after.hx");
   }

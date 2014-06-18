@@ -127,6 +127,8 @@
     kNEVER="never"
     kOVERRIDE="override"
     kINLINE="inline"
+    kGET="get"
+    kSET="set"
 
     kUNTYPED="untyped"
     kTYPEDEF="typedef"
@@ -281,7 +283,7 @@ private local_var_declaration_part_recover ::= !('!' | '#else' | '#elseif' | '#e
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
-propertyAccessor ::= referenceExpression | 'null' | 'default' | 'dynamic' | 'never'
+propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | referenceExpression
 
 private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression | throwStatement
 
@@ -467,7 +469,8 @@ left qualifiedReferenceExpression ::= '.' referenceExpression {elementType="refe
 simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * {elementType="referenceExpression"}
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
-identifier ::= ID
+identifier ::= 'get' | 'set' | ID
+//identifier ::= ID
 
 thisExpression ::= 'this'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}

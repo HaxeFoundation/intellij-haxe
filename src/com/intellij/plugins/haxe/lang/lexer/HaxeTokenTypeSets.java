@@ -142,7 +142,11 @@ public interface HaxeTokenTypeSets {
     KSUPER,
     MACRO_ID,
     KFROM,
-    KTO
+    KTO,
+    KGET,
+    KSET,
+    KNEVER,
+    ONEW
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(

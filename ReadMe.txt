@@ -1,3 +1,5 @@
+Use intellij-haxe.jar file to install plugin with "Install plugin from disk..." button
+
 Steps to configure a plugin SDK:
 
 * Open Module Settings

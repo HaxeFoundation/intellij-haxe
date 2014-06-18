@@ -20,6 +20,7 @@ import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.lookup.impl.LookupImpl;
 import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -62,13 +63,20 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(String... files) throws Exception {
     myFixture.configureByFiles(files);
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+          @Override
+          public void run() {
+              expandTemplate(myFixture.getEditor());
+              CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
+          }
+      }, null, null);
+    /*WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         expandTemplate(myFixture.getEditor());
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
-    });
+    });*/
     myFixture.getEditor().getSelectionModel().removeSelection();
     myFixture.checkResultByFile(getTestName(false) + "_after.hx");
   }
