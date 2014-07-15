@@ -41,7 +41,7 @@ public class HaxeModuleInsight extends ModuleInsight {
   }
 
   @Override
-  protected ModuleDescriptor createModuleDescriptor(File moduleContentRoot, Collection<DetectedProjectRoot> sourceRoots) {
+  protected ModuleDescriptor createModuleDescriptor(File moduleContentRoot, Collection<DetectedSourceRoot> sourceRoots) {
     return new ModuleDescriptor(moduleContentRoot, HaxeModuleType.getInstance(), sourceRoots);
   }
 
