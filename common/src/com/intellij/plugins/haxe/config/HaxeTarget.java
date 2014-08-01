@@ -42,6 +42,36 @@ public enum HaxeTarget {
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".swf";
     }
+  }, CPP("cpp", HaxeCommonBundle.message("haxe.target.cpp")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".exe";
+    }
+  }, PHP("php", HaxeCommonBundle.message("haxe.target.php")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".php";
+    }
+  }, JAVA("java", HaxeCommonBundle.message("haxe.target.java")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".jar";
+    }
+  }, CSHARP("csharp", HaxeCommonBundle.message("haxe.target.csharp")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".exe";
+    }
+  }, PYTHON("python", HaxeCommonBundle.message("haxe.target.python")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".py";
+    }
   };
 
   private final String flag;
