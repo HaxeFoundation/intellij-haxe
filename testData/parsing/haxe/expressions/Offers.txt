@@ -43,12 +43,12 @@ Haxe File
                         PsiElement(ID)('toString')
                   PsiElement(()('(')
                   PsiElement())(')')
-                PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign operation>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '?', '[' or '||' expected, got '\'
-                  PsiElement(BAD_CHARACTER)('\')
+                  PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign operation>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '?', '[' or '||' expected, got '\'
+                    PsiElement(BAD_CHARACTER)('\')
           REFERENCE_EXPRESSION
             IDENTIFIER
               PsiElement(ID)('n')
-          PsiErrorElement:'!', '(', '++', '-', '--', ';', ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, new, null, return, super, switch, this, throw, true, try, untyped, var, while, '{' or '~' expected, got '}'
+          PsiErrorElement:'!', '(', '++', '-', '--', ';', ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, get, if, new, null, return, set, super, switch, this, throw, true, try, untyped, var, while, '{' or '~' expected, got '}'
             PsiElement(LONG_TEMPLATE_ENTRY_END)('}')
           PsiElement(REGULAR_STRING_PART)('\n')
           PsiElement(REGULAR_STRING_PART)('}')

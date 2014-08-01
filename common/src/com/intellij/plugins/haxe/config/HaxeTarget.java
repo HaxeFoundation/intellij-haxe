@@ -60,7 +60,7 @@ public enum HaxeTarget {
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".jar";
     }
-  }, CSHARP("csharp", HaxeCommonBundle.message("haxe.target.csharp")) {
+  }, CSHARP("cs", HaxeCommonBundle.message("haxe.target.csharp")) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
