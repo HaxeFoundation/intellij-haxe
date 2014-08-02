@@ -267,6 +267,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitJsRequireMeta(@NotNull HaxeJsRequireMeta o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitLiteralExpression(@NotNull HaxeLiteralExpression o) {
     visitExpression(o);
     // visitReference(o);

@@ -49,6 +49,9 @@ public interface HaxeAbstractClassDeclaration extends HaxeClass {
   HaxeGenericParam getGenericParam();
 
   @NotNull
+  List<HaxeJsRequireMeta> getJsRequireMetaList();
+
+  @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull

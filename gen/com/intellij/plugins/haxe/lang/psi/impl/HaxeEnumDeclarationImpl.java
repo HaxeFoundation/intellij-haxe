@@ -94,6 +94,12 @@ public class HaxeEnumDeclarationImpl extends AbstractHaxePsiClass implements Hax
 
   @Override
   @NotNull
+  public List<HaxeJsRequireMeta> getJsRequireMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeJsRequireMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeMetaMeta> getMetaMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
   }

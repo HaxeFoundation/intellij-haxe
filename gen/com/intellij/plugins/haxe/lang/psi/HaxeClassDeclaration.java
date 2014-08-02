@@ -52,6 +52,9 @@ public interface HaxeClassDeclaration extends HaxeClass {
   HaxeInheritList getInheritList();
 
   @NotNull
+  List<HaxeJsRequireMeta> getJsRequireMetaList();
+
+  @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull

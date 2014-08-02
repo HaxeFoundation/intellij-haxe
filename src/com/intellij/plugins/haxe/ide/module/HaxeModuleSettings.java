@@ -57,12 +57,13 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             String nmeFlags,
                             boolean excludeFromCompilation,
                             String outputFileName,
+                            String outputFolder,
                             String flexSdkName,
                             int buildConfig,
                             String hxmlPath,
                             String nmmlPath,
                             String openFLPath) {
-    super(mainClass, outputFileName, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
+    super(mainClass, outputFileName, outputFolder, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
           openFLPath, buildConfig);
     this.flexSdkName = flexSdkName;
   }
@@ -113,6 +114,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     if (hxmlPath != null ? !hxmlPath.equals(settings.hxmlPath) : settings.hxmlPath != null) return false;
     if (mainClass != null ? !mainClass.equals(settings.mainClass) : settings.mainClass != null) return false;
     if (outputFileName != null ? !outputFileName.equals(settings.outputFileName) : settings.outputFileName != null) return false;
+    if (outputFolder!= null ? !outputFolder.equals(settings.outputFolder) : settings.outputFolder!= null) return false;
     if (haxeTarget != settings.haxeTarget) return false;
     if (nmeTarget != settings.nmeTarget) return false;
     if (openFLTarget != settings.openFLTarget) return false;
@@ -125,6 +127,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   public int hashCode() {
     int result = mainClass != null ? mainClass.hashCode() : 0;
     result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
+    result = 31 * result + (outputFolder != null ? outputFolder.hashCode() : 0);
     result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
     result = 31 * result + (nmeFlags != null ? nmeFlags.hashCode() : 0);
     result = 31 * result + (openFLFlags != null ? openFLFlags.hashCode() : 0);

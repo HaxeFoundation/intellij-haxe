@@ -28,6 +28,7 @@ import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -70,8 +71,9 @@ public class NekoRunningState extends CommandLineState {
     GeneralCommandLine commandLine = new GeneralCommandLine();
 
     commandLine.setExePath(sdkData.getNekoBinPath());
-    commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
-
+    //commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
+    //Get output path provided in settings
+    commandLine.setWorkDirectory(settings.getOutputFolder());
     if (customFileToLaunch != null) {
       commandLine.addParameter(customFileToLaunch);
     }
@@ -80,6 +82,9 @@ public class NekoRunningState extends CommandLineState {
       final VirtualFile fileToLaunch = outputDirectory != null ? outputDirectory.findChild(settings.getOutputFileName()) : null;
       if (fileToLaunch != null) {
         commandLine.addParameter(fileToLaunch.getPath());
+      }
+      else {
+        commandLine.addParameter(settings.getOutputFileName());
       }
     }
 

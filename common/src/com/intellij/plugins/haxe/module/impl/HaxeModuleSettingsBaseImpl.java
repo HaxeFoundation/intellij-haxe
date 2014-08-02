@@ -32,6 +32,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   protected String mainClass = "";
   protected String outputFileName = "";
+  protected String outputFolder = "";
   protected String arguments = "";
   protected String nmeFlags = "";
   protected String openFLFlags = "";
@@ -51,6 +52,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public HaxeModuleSettingsBaseImpl(String mainClass,
                                     String outputFileName,
+                                    String outputFolder,
                                     String arguments,
                                     String nmeFlags,
                                     boolean excludeFromCompilation,
@@ -63,6 +65,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
                                     int buildConfig) {
     this.mainClass = mainClass;
     this.outputFileName = outputFileName;
+    this.outputFolder = outputFolder;
     this.arguments = arguments;
     this.nmeFlags = nmeFlags;
     this.excludeFromCompilation = excludeFromCompilation;
@@ -151,6 +154,10 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   public void setOutputFileName(String outputFileName) {
     this.outputFileName = outputFileName;
   }
+
+  public String getOutputFolder() { return outputFolder; }
+
+  public void setOutputFolder(String outputFolder) { this.outputFolder = outputFolder; }
 
   public String getHxmlPath() {
     return hxmlPath;

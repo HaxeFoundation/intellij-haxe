@@ -131,6 +131,12 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public String getOutputFolder() { return mySettingsBase.getOutputFolder(); }
+
+  @Override
+  public void setOutputFolder(String outputFolder) { mySettingsBase.setOutputFolder(outputFolder); }
+
+  @Override
   public String getHxmlPath() {
     return mySettingsBase.getHxmlPath();
   }

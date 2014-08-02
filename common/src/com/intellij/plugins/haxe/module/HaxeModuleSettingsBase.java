@@ -60,6 +60,10 @@ public interface HaxeModuleSettingsBase {
 
   void setOutputFileName(String outputFileName);
 
+  String getOutputFolder();
+
+  void setOutputFolder(String outputFolder);
+
   String getHxmlPath();
 
   String getNmmlPath();

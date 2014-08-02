@@ -100,6 +100,12 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
 
   @Override
   @NotNull
+  public List<HaxeJsRequireMeta> getJsRequireMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeJsRequireMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeMetaMeta> getMetaMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
   }
