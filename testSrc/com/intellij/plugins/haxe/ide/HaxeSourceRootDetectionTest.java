@@ -26,6 +26,7 @@ import gnu.trove.THashSet;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,11 +38,14 @@ public class HaxeSourceRootDetectionTest extends PlatformTestCase {
     final File dir = new File(dirPath);
     assertTrue(dir.isDirectory());
     final HaxeProjectStructureDetector haxeProjectStructureDetector = new HaxeProjectStructureDetector();
+    final ProjectStructureDetector[] detector = new ProjectStructureDetector[]{haxeProjectStructureDetector};
     final RootDetectionProcessor detectionProcessor = new RootDetectionProcessor(
-      dir, new ProjectStructureDetector[]{haxeProjectStructureDetector}
+      dir,detector
     );
     // TODO:
-    final List<DetectedProjectRoot> detected = null;//= detectionProcessor.findRoots().get(haxeProjectStructureDetector);
+    final List<DetectedProjectRoot> detected;//= detectionProcessor.findRoots().get(haxeProjectStructureDetector);
+    Map<ProjectStructureDetector, List<DetectedProjectRoot>> detectorListMap = detectionProcessor.runDetectors();
+    detected = detectorListMap.get(haxeProjectStructureDetector);
     assertNotNull(detected);
     final Set<String> actual = new THashSet<String>();
     for (DetectedProjectRoot projectRoot : detected) {

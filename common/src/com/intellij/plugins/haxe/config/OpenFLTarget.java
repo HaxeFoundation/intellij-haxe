@@ -25,7 +25,7 @@ import javax.swing.*;
 public enum OpenFLTarget {
   IOS("iOS", "ios", "-simulator"),
   ANDROID("Android", "android"),
-  WEOS("webOS", "webos"),
+  WEBOS("webOS", "webos"),
   BLACKBERRY("BlackBerry", "blackberry"),
   WINDOWS("Windows", "windows"),
   MAC("Mac OS", "mac"),
@@ -33,7 +33,9 @@ public enum OpenFLTarget {
   LINUX64("Linux 64", "linux", "-64"),
   FLASH("Flash", "flash"),
   HTML5("HTML5", "html5"),
-  NEKO("Neko", "neko");
+  NEKO("Neko", "neko"),
+  TIZEN("Tizen", "tizen"),
+  EMSCRIPTEN("Emscripten", "emscripten");
 
   private final String[] flags;
   private final String description;

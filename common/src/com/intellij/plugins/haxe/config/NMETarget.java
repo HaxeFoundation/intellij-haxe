@@ -25,7 +25,7 @@ import javax.swing.*;
 public enum NMETarget {
   IOS("iOS", "ios", "-simulator"),
   ANDROID("Android", "android"),
-  WEOS("webOS", "webos"),
+  WEBOS("webOS", "webos"),
   BLACKBERRY("BlackBerry", "blackberry"),
   WINDOWS("Windows", "windows"),
   MAC("Mac OS", "mac"),
