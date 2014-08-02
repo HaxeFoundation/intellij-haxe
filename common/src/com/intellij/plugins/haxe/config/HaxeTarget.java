@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +17,7 @@
 package com.intellij.plugins.haxe.config;
 
 import com.intellij.plugins.haxe.HaxeCommonBundle;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -64,6 +66,7 @@ public enum HaxeTarget {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
+      String name = SystemProperties.getOsName();
       return fileName + ".exe";
     }
   }, PYTHON("python", HaxeCommonBundle.message("haxe.target.python")) {
