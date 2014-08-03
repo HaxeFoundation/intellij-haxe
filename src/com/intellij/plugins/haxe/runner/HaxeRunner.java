@@ -127,7 +127,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     return super.doExecute(project, nekoRunningState, contentToReuse, env);
   }
 
-  private static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
+  static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
     FileDocumentManager.getInstance().saveAllDocuments();
     final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
     assert model != null;

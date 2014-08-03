@@ -22,6 +22,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.openapi.compiler.*;
+import com.intellij.openapi.compiler.Compiler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;

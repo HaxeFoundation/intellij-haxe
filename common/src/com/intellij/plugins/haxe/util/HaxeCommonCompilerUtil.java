@@ -174,7 +174,7 @@ public class HaxeCommonCompilerUtil {
     try {
       final File workingDirectory = new File(FileUtil.toSystemDependentName(workingPath));
       if (!workingDirectory.exists()) {
-        workingDirectory.mkdir();
+        if (!workingDirectory.mkdirs()) throw new IOException("Cannot create directory " + workingPath);
       }
       BaseOSProcessHandler handler = new BaseOSProcessHandler(
         new ProcessBuilder(commandLine).directory(workingDirectory).start(),

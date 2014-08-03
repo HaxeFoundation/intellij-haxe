@@ -195,7 +195,7 @@
     <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompiler"/>
+    <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <moduleConfigurationEditorProvider
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
