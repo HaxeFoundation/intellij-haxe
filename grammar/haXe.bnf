@@ -127,6 +127,7 @@
     kNEVER="never"
     kOVERRIDE="override"
     kINLINE="inline"
+    kMACRO2="macro"
     kGET="get"
     kSET="set"
 
@@ -144,6 +145,8 @@
     kREQUIRE="@:require"
     kFAKEENUM="@:fakeEnum"
     kCOREAPI="@:core_api"
+
+    kJSREQUIRE="@:jsRequire"
 
     kBIND="@:bind"
     kBITMAP="@:bitmap"
@@ -177,7 +180,7 @@ haxeFile ::= packageStatement? topLevelList
   http://haxe.org/manual/tips_and_tricks
 */
 private macroClass ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
-                      | requireMeta | fakeEnumMeta | nativeMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
+                      | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 private functionMacroMember ::= macroMember | overloadMeta
 private macroMember ::= '@:macro' | '@:protected' | '@:debug' | '@:nodebug' | '@:keep'
@@ -198,7 +201,9 @@ metaMeta ::= '@:meta' '(' ID '(' metaPartList? ')' ')'
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
 metaKeyValue ::= ID '=' stringLiteralExpression
 
-private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload'
+jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression ')'
+
+private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire'
 
 assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>='
 compareOperation ::= '==' | '!=' | '<=' | '<' | '>' | '>='
@@ -260,7 +265,7 @@ enumBody ::= enumValueDeclaration*
  */
 
 access ::= 'public' | 'private'
-declarationAttribute ::= 'static' | 'inline' | 'dynamic' | 'override' | access
+declarationAttribute ::= 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | access
 
 enumValueDeclaration ::= componentName enumConstructorParameters? ';'
 {recoverUntil="enum_value_declaration_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}

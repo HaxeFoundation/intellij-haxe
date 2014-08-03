@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +24,13 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.ide.util.projectWizard.ProjectWizardUtil;
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -35,6 +39,10 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 
 public class NekoRunningState extends CommandLineState {
   private final Module module;
@@ -69,18 +77,30 @@ public class NekoRunningState extends CommandLineState {
     GeneralCommandLine commandLine = new GeneralCommandLine();
 
     commandLine.setExePath(sdkData.getNekoBinPath());
-    commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
+    //commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
 
+    //Get output path provided in settings
+    //Neko is always compiled to /release/ folder
+    String workDirectory = settings.getOutputFolder() + "/release/";
+
+    commandLine.setWorkDirectory(workDirectory);
     if (customFileToLaunch != null) {
       commandLine.addParameter(customFileToLaunch);
     }
     else {
       final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
       final VirtualFile fileToLaunch = outputDirectory != null ? outputDirectory.findChild(settings.getOutputFileName()) : null;
+      String outputFileName = settings.getOutputFileName();
       if (fileToLaunch != null) {
         commandLine.addParameter(fileToLaunch.getPath());
       }
+      else if (outputFileName != null) {
+        commandLine.addParameter(outputFileName);
+      }
     }
+
+    //Make sure to have one command line parameter which contains file name
+    assert commandLine.getParametersList().getArray().length == 1;
 
     final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
     setConsoleBuilder(consoleBuilder);

@@ -1,3 +1,20 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
@@ -68,6 +85,7 @@ public interface HaxeTokenTypes {
   IElementType INTERFACE_DECLARATION = new HaxeElementType("INTERFACE_DECLARATION");
   IElementType ITERABLE = new HaxeElementType("ITERABLE");
   IElementType ITERATOR_EXPRESSION = new HaxeElementType("ITERATOR_EXPRESSION");
+  IElementType JS_REQUIRE_META = new HaxeElementType("JS_REQUIRE_META");
   IElementType LITERAL_EXPRESSION = new HaxeElementType("LITERAL_EXPRESSION");
   IElementType LOCAL_FUNCTION_DECLARATION = new HaxeElementType("LOCAL_FUNCTION_DECLARATION");
   IElementType LOCAL_VAR_DECLARATION = new HaxeElementType("LOCAL_VAR_DECLARATION");
@@ -164,8 +182,10 @@ public interface HaxeTokenTypes {
   IElementType KIMPORT = new HaxeElementType("import");
   IElementType KINLINE = new HaxeElementType("inline");
   IElementType KINTERFACE = new HaxeElementType("interface");
+  IElementType KJSREQUIRE = new HaxeElementType("@:jsRequire");
   IElementType KKEEP = new HaxeElementType("@:keep");
   IElementType KMACRO = new HaxeElementType("@:macro");
+  IElementType KMACRO2 = new HaxeElementType("macro");
   IElementType KMETA = new HaxeElementType("@:meta");
   IElementType KNATIVE = new HaxeElementType("@:native");
   IElementType KNEVER = new HaxeElementType("never");
@@ -441,6 +461,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == ITERATOR_EXPRESSION) {
         return new HaxeIteratorExpressionImpl(node);
+      }
+      else if (type == JS_REQUIRE_META) {
+        return new HaxeJsRequireMetaImpl(node);
       }
       else if (type == LITERAL_EXPRESSION) {
         return new HaxeLiteralExpressionImpl(node);

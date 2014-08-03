@@ -14,23 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.runner.debugger.hxcpp.frame;
+package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.plugins.haxe.runner.debugger.hxcpp.HXCPPDebugProcess;
-import com.intellij.xdebugger.frame.XExecutionStack;
-import com.intellij.xdebugger.frame.XSuspendContext;
+import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompileTask;
+import com.intellij.openapi.compiler.FileProcessingCompiler;
 
-import java.util.List;
+/**
+ * Created by as3boyan on 03.08.14.
+ */
+public class HaxeCompilerTask implements CompileTask {
 
-public class HXCPPSuspendContext extends XSuspendContext {
-  private final HXCPPExecutionStack myExecutionStack;
-
-  public HXCPPSuspendContext(HXCPPDebugProcess debugProcess, List<HXCPPStackFrame> frames) {
-    myExecutionStack = new HXCPPExecutionStack(debugProcess, frames);
-  }
+  static HaxeCompiler haxeCompiler;
 
   @Override
-  public XExecutionStack getActiveExecutionStack() {
-    return myExecutionStack;
+  public boolean execute(CompileContext context) {
+    if (haxeCompiler == null) {
+      haxeCompiler = new HaxeCompiler();
+    }
+    
+    FileProcessingCompiler.ProcessingItem[] processingItems = haxeCompiler.getProcessingItems(context);
+    haxeCompiler.process(context, processingItems);
+    return true;
   }
 }

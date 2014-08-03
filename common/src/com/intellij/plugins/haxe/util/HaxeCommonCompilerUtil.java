@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,10 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -173,9 +178,9 @@ public class HaxeCommonCompilerUtil {
     try {
       final File workingDirectory = new File(FileUtil.toSystemDependentName(workingPath));
       if (!workingDirectory.exists()) {
-        workingDirectory.mkdir();
+        if (!workingDirectory.mkdirs()) throw new IOException("Cannot create directory " + workingPath);
       }
-      BaseOSProcessHandler handler = new BaseOSProcessHandler(
+      final BaseOSProcessHandler handler = new BaseOSProcessHandler(
         new ProcessBuilder(commandLine).directory(workingDirectory).start(),
         null,
         Charset.defaultCharset()
@@ -184,7 +189,18 @@ public class HaxeCommonCompilerUtil {
       handler.addProcessListener(new ProcessAdapter() {
         @Override
         public void onTextAvailable(ProcessEvent event, Key outputType) {
-          context.handleOutput(event.getText().split("\\n"));
+          String[] lines = event.getText().split("\\n");
+          if (lines.length > 0) {
+            if (lines[0].matches("Error: : unknown option `-python'.")) {
+              handler.detachProcess();
+              handler.removeProcessListener(this);
+              context.errorHandler("Currently active Haxe toolkit doesn't supports Python target. Please install latest version of Haxe toolkit");
+              Notifications.Bus.notify(
+                new Notification("", "Current version of Haxe toolkit doesn't supports Python target", "You can download latest version of Haxe toolkit at <a href='http://haxe.org/download'>haxe.org/download</a> ", NotificationType.WARNING, NotificationListener.URL_OPENING_LISTENER));
+              return;
+            }
+          }
+          context.handleOutput(lines);
         }
 
         @Override
