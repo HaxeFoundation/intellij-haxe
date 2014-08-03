@@ -33,7 +33,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.runner.HaxeApplicationModuleBasedConfiguration;
-import com.intellij.plugins.haxe.runner.HaxeRunner;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.ui.HXCPPRunConfigurationEditorForm;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
