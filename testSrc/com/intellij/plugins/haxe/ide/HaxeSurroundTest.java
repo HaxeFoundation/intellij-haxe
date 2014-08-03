@@ -58,22 +58,22 @@ public class HaxeSurroundTest extends HaxeCodeInsightFixtureTestCase {
   protected void doTest(final Surrounder surrounder) throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
 
-    /*WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         SurroundWithHandler.invoke(getProject(), myFixture.getEditor(), myFixture.getFile(), surrounder);
         PsiDocumentManager.getInstance(getProject()).doPostponedOperationsAndUnblockDocument(myFixture.getDocument(myFixture.getFile()));
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
-    });*/
-      CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+    });
+      /*CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
           @Override
           public void run() {
               SurroundWithHandler.invoke(getProject(), myFixture.getEditor(), myFixture.getFile(), surrounder);
               PsiDocumentManager.getInstance(getProject()).doPostponedOperationsAndUnblockDocument(myFixture.getDocument(myFixture.getFile()));
               CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
           }
-      }, null, null);
+      }, null, null);*/
 
     myFixture.checkResultByFile(getTestName(false) + "_after.hx");
   }

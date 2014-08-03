@@ -38,7 +38,9 @@ public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCa
   }
 
   protected Collection<String> buildSuggestions(Class<? extends HaxeExpression> parentClass) {
-    myFixture.configureByFile(getTestName(true) + ".hx");
+    String name = getTestName(true);
+    name = convertStringFirstLetterToUppercase(name);
+    myFixture.configureByFile(name + ".hx");
     HaxeIntroduceHandler handler = createHandler();
     HaxeExpression expr = PsiTreeUtil.getParentOfType(
       myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset()),
@@ -54,7 +56,9 @@ public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCa
   }
 
   protected void doTest(@Nullable Consumer<HaxeIntroduceOperation> customization, boolean replaceAll) {
-    myFixture.configureByFile(getTestName(true) + ".hx");
+    String testName = getTestName(true);
+    testName = convertStringFirstLetterToUppercase(testName);
+    myFixture.configureByFile(testName + ".hx");
     boolean inplaceEnabled = myFixture.getEditor().getSettings().isVariableInplaceRenameEnabled();
     try {
       myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(false);
@@ -66,15 +70,21 @@ public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCa
         customization.consume(operation);
       }
       handler.performAction(operation);
-      myFixture.checkResultByFile(getTestName(true) + ".after.hx");
+      myFixture.checkResultByFile(testName + ".after.hx");
     }
     finally {
       myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(inplaceEnabled);
     }
   }
 
+  private String convertStringFirstLetterToUppercase(String testName) {
+    testName = Character.toUpperCase(testName.charAt(0)) + testName.substring(1);
+    return testName;
+  }
+
   protected void doTestInplace(@Nullable Consumer<HaxeIntroduceOperation> customization) {
     String name = getTestName(true);
+    name = convertStringFirstLetterToUppercase(name);
     myFixture.configureByFile(name + ".hx");
     final boolean enabled = myFixture.getEditor().getSettings().isVariableInplaceRenameEnabled();
     TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
