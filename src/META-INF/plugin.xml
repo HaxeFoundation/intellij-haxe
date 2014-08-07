@@ -20,6 +20,10 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.7.2:</p>
+      <ul>
+        <li>New version</li>
+      </ul>
       <p>0.7.1:</p>
       <ul>
         <li>Bug fixes for  13.1.1</li>

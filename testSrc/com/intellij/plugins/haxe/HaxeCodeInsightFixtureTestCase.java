@@ -26,6 +26,7 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixtureTestCase {
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   protected HaxeCodeInsightFixtureTestCase() {
+    super();
     PlatformTestCase.initPlatformLangPrefix();
   }
 

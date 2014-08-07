@@ -72,19 +72,19 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest() throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
-      /*CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+      CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
           @Override
           public void run() {
               CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
 
           }
-      }, null, null);*/
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      }, null, null);
+    /*WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
-    });
+    });*/
     try {
       myFixture.checkResultByFile(getTestName(false) + ".txt");
     }
