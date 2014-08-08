@@ -208,14 +208,23 @@
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
     <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
+
     <fileTypeFactory implementation="com.intellij.plugins.haxe.nmml.NMMLFileTypeFactory"/>
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.nmml.NMMLSchemaProvider"/>
+
+    <!-- HXML BEGIN -->
+    <fileTypeFactory implementation="com.intellij.plugins.haxe.hxml.HXMLFileTypeFactory"/>
+    <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.hxml.HXMLParserDefinition"/>
+    <lang.syntaxHighlighterFactory key="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
+    <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HXMLColorSettingsPage"/>
+    <!-- HXML END -->
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
     <lang.syntaxHighlighterFactory key="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
+
 
     <lang.braceMatcher language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
     <typedHandler implementation="com.intellij.plugins.haxe.ide.editor.HaxeTypedHandler" id="haxe"/>
@@ -249,6 +258,7 @@
                                implementationClass="com.intellij.plugins.haxe.ide.info.HaxeParameterInfoHandler"/>
 
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
+
     <additionalTextAttributes scheme="Default" file="colorSchemes/HaxeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/HaxeDefault.xml"/>
 

@@ -1,0 +1,20 @@
+{
+  parserClass="com.intellij.plugins.haxe.hxml.HXMLParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="HXML"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.intellij.plugins.haxe.hxml.psi"
+  psiImplPackage="com.intellij.plugins.haxe.hxml.psi.impl"
+
+  elementTypeHolderClass="com.intellij.plugins.haxe.hxml.psi.HXMLTypes"
+  elementTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLElementType"
+  tokenTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLTokenType"
+}
+
+simpleFile ::= item_*
+
+private item_ ::= (property|COMMENT|CRLF)
+
+property ::= (KEY SEPARATOR VALUE) | KEY
