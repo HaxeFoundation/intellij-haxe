@@ -216,10 +216,16 @@ unsignedShiftRightOperator ::= '>' '>' '>'
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel*
-private topLevel ::= importStatement | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
+private topLevel ::= importStatement | importStatementWithInSupport | importStatement | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
 private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
 
-importStatement ::= 'import' simpleQualifiedReferenceExpression ('in' referenceExpression)? ';' {pin=1}
+importStatementRegular ::= simpleQualifiedReferenceExpression
+importStatementWithWildcard ::= simpleQualifiedReferenceExpressionWithWildcardSupport
+importStatementWithInSupport ::= simpleQualifiedReferenceExpression 'in' referenceExpression
+
+private importStatementAll ::= importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
+
+importStatement ::= 'import' importStatementAll ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration
@@ -290,7 +296,7 @@ propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | referenceExpression
 
-private functionCommonBody ::= blockStatement | returnStatementWithoutSemicolon | expression | throwStatement
+private functionCommonBody ::= blockStatement | returnStatement | expression | throwStatement
 
 externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList"}
@@ -471,10 +477,18 @@ left arrayAccessExpression ::= '[' expression? ']'
 referenceExpression ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 left qualifiedReferenceExpression ::= '.' referenceExpression {elementType="referenceExpression"}
+
 simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * { elementType="referenceExpression"}
+
+//import wildcard support
+left qualifiedReferenceExpressionOrWildcard ::= '.' referenceExpression {elementType="referenceExpression"}
+left wildcard ::= '.' '*'
+simpleQualifiedReferenceExpressionWithWildcardSupport ::= referenceExpression qualifiedReferenceExpressionOrWildcard * wildcard  { elementType="referenceExpression"}
+
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
-identifier ::= 'get' | 'set' | ID
+identifier ::= ID
+//'get' | 'set' |
 //identifier ::= ID
 
 thisExpression ::= 'this'

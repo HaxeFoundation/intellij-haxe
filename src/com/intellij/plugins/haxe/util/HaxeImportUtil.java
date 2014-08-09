@@ -55,7 +55,7 @@ public class HaxeImportUtil {
     List<HaxeImportStatement> usefulImportStatements = ContainerUtil.findAll(allImportStatements, new Condition<HaxeImportStatement>() {
       @Override
       public boolean value(HaxeImportStatement statement) {
-        HaxeReferenceExpression referenceExpression = statement.getReferenceExpressionList().get(0);
+        HaxeReferenceExpression referenceExpression = statement.getImportStatementRegular().getReferenceExpression();
         if (referenceExpression != null && referenceExpression.resolve() == null) {
           // don't know for sure
           return true;

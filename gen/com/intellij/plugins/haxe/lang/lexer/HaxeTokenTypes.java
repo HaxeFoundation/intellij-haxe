@@ -1,3 +1,21 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.lexer;
 
@@ -62,6 +80,9 @@ public interface HaxeTokenTypes {
   IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
   IElementType IF_STATEMENT = new HaxeElementType("IF_STATEMENT");
   IElementType IMPORT_STATEMENT = new HaxeElementType("IMPORT_STATEMENT");
+  IElementType IMPORT_STATEMENT_REGULAR = new HaxeElementType("IMPORT_STATEMENT_REGULAR");
+  IElementType IMPORT_STATEMENT_WITH_IN_SUPPORT = new HaxeElementType("IMPORT_STATEMENT_WITH_IN_SUPPORT");
+  IElementType IMPORT_STATEMENT_WITH_WILDCARD = new HaxeElementType("IMPORT_STATEMENT_WITH_WILDCARD");
   IElementType INHERIT = new HaxeElementType("INHERIT");
   IElementType INHERIT_LIST = new HaxeElementType("INHERIT_LIST");
   IElementType INTERFACE_BODY = new HaxeElementType("INTERFACE_BODY");
@@ -128,6 +149,7 @@ public interface HaxeTokenTypes {
   IElementType VAR_DECLARATION_PART = new HaxeElementType("VAR_DECLARATION_PART");
   IElementType VAR_INIT = new HaxeElementType("VAR_INIT");
   IElementType WHILE_STATEMENT = new HaxeElementType("WHILE_STATEMENT");
+  IElementType WILDCARD = new HaxeElementType("WILDCARD");
 
   IElementType CLOSING_QUOTE = new HaxeElementType("CLOSING_QUOTE");
   IElementType ID = new HaxeElementType("ID");
@@ -427,6 +449,15 @@ public interface HaxeTokenTypes {
       else if (type == IMPORT_STATEMENT) {
         return new HaxeImportStatementImpl(node);
       }
+      else if (type == IMPORT_STATEMENT_REGULAR) {
+        return new HaxeImportStatementRegularImpl(node);
+      }
+      else if (type == IMPORT_STATEMENT_WITH_IN_SUPPORT) {
+        return new HaxeImportStatementWithInSupportImpl(node);
+      }
+      else if (type == IMPORT_STATEMENT_WITH_WILDCARD) {
+        return new HaxeImportStatementWithWildcardImpl(node);
+      }
       else if (type == INHERIT) {
         return new HaxeInheritImpl(node);
       }
@@ -624,6 +655,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == WHILE_STATEMENT) {
         return new HaxeWhileStatementImpl(node);
+      }
+      else if (type == WILDCARD) {
+        return new HaxeWildcardImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

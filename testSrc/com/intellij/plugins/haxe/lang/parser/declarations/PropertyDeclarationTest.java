@@ -15,23 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.lang.parser.declarations;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+/**
+ * Created by as3boyan on 09.08.14.
+ */
+public class PropertyDeclarationTest extends DeclarationTestBase {
+  public PropertyDeclarationTest() {
+    super("property");
+  }
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface HaxeImportStatement extends HaxePsiCompositeElement {
-
-  @Nullable
-  HaxeImportStatementRegular getImportStatementRegular();
-
-  @Nullable
-  HaxeImportStatementWithInSupport getImportStatementWithInSupport();
-
-  @Nullable
-  HaxeImportStatementWithWildcard getImportStatementWithWildcard();
-
+  public void testProperty() throws Throwable {
+    doTest(true);
+  }
 }

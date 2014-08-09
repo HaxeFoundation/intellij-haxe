@@ -505,7 +505,7 @@ public class HaxeResolveUtil {
                UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatement)element, result);
       }
     });
-    final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpressionList().get(0);
+    final HaxeExpression expression = importStatement == null ? null : importStatement.getImportStatementRegular().getReferenceExpression();
     final String packageName = getPackageName((HaxePackageStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {

@@ -1,0 +1,1 @@
+import flash.display.Sprite in FDSprite;

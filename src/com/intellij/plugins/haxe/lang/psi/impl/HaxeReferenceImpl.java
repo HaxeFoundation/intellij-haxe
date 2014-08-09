@@ -251,7 +251,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private void bindToPackage(PsiPackage element) {
     final HaxeImportStatement importStatement =
       HaxeElementGenerator.createImportStatementFromPath(getProject(), element.getQualifiedName());
-    HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpressionList().get(0) : null;
+    HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
     assert referenceExpression != null;
     replace(referenceExpression);
   }
@@ -282,7 +282,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                 importPath;
         final HaxeImportStatement importStatement =
           HaxeElementGenerator.createImportStatementFromPath(getProject(), newQName);
-        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpressionList().get(0) : null;
+        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
         assert referenceExpression != null;
         replace(referenceExpression);
       }
@@ -293,7 +293,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     else {
       final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClassName(this, getText());
-      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpressionList().get(0) : null;
+      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
       if (referenceExpression != null && !importPath.equals(referenceExpression.getText())) {
         // need remove, cause can resolve without
         importStatement.getParent().deleteChildRange(importStatement, importStatement);

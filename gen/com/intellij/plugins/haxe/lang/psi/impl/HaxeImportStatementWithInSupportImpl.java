@@ -28,33 +28,21 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeImportStatementImpl extends HaxePsiCompositeElementImpl implements HaxeImportStatement {
+public class HaxeImportStatementWithInSupportImpl extends HaxePsiCompositeElementImpl implements HaxeImportStatementWithInSupport {
 
-  public HaxeImportStatementImpl(ASTNode node) {
+  public HaxeImportStatementWithInSupportImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitImportStatement(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitImportStatementWithInSupport(this);
     else super.accept(visitor);
   }
 
   @Override
-  @Nullable
-  public HaxeImportStatementRegular getImportStatementRegular() {
-    return findChildByClass(HaxeImportStatementRegular.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeImportStatementWithInSupport getImportStatementWithInSupport() {
-    return findChildByClass(HaxeImportStatementWithInSupport.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeImportStatementWithWildcard getImportStatementWithWildcard() {
-    return findChildByClass(HaxeImportStatementWithWildcard.class);
+  @NotNull
+  public List<HaxeReferenceExpression> getReferenceExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeReferenceExpression.class);
   }
 
 }
