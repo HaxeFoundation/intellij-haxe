@@ -1,3 +1,21 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.parser;
 
@@ -2610,7 +2628,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'import' simpleQualifiedReferenceExpression ';'
+  // 'import' simpleQualifiedReferenceExpression ('in' referenceExpression)? ';'
   public static boolean importStatement(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "importStatement")) return false;
     if (!nextTokenIs(builder_, KIMPORT)) return false;
@@ -2620,9 +2638,28 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, KIMPORT);
     pinned_ = result_; // pin = 1
     result_ = result_ && report_error_(builder_, simpleQualifiedReferenceExpression(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, importStatement_2(builder_, level_ + 1)) && result_;
     result_ = pinned_ && consumeToken(builder_, OSEMI) && result_;
     exit_section_(builder_, level_, marker_, IMPORT_STATEMENT, result_, pinned_, null);
     return result_ || pinned_;
+  }
+
+  // ('in' referenceExpression)?
+  private static boolean importStatement_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "importStatement_2")) return false;
+    importStatement_2_0(builder_, level_ + 1);
+    return true;
+  }
+
+  // 'in' referenceExpression
+  private static boolean importStatement_2_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "importStatement_2_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, OIN);
+    result_ = result_ && referenceExpression(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   /* ********************************************************** */

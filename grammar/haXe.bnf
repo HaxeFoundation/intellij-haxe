@@ -219,7 +219,7 @@ private topLevelList ::= topLevel*
 private topLevel ::= importStatement | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
 private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
 
-importStatement ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
+importStatement ::= 'import' simpleQualifiedReferenceExpression ('in' referenceExpression)? ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration

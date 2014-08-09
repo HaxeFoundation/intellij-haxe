@@ -1,6 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +104,7 @@ public class UsefulPsiTreeUtil {
   }
 
   public static boolean importStatementForClassName(HaxeImportStatement importStatement, String className) {
-    final HaxeExpression expression = importStatement.getReferenceExpression();
+    final HaxeExpression expression = importStatement.getReferenceExpressionList().get(0);
     if (expression == null) {
       return false;
     }
@@ -114,7 +115,7 @@ public class UsefulPsiTreeUtil {
   @Nullable
   public static String findHelperOwnerQName(PsiElement context, String className) {
     for (HaxeImportStatement importStatement : getAllImportStatements(context)) {
-      final HaxeExpression expression = importStatement.getReferenceExpression();
+      final HaxeExpression expression = importStatement.getReferenceExpressionList().get(0);
       final String qName = expression == null ? null : expression.getText();
       final PsiElement resolve = HaxeResolveUtil.findClassByQName(qName, context);
       if (resolve != null && HaxeResolveUtil.findComponentDeclaration(resolve.getContainingFile(), className) != null) {
@@ -196,7 +197,7 @@ public class UsefulPsiTreeUtil {
   }
 
   public static boolean importStatementForClass(@NotNull HaxeImportStatement importStatement, @NotNull HaxeClass haxeClass) {
-    HaxeReferenceExpression importReferenceExpression = importStatement.getReferenceExpression();
+    HaxeReferenceExpression importReferenceExpression = importStatement.getReferenceExpressionList().get(0);
     if (importReferenceExpression == null) {
       return false;
     }

@@ -1,6 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -504,7 +505,7 @@ public class HaxeResolveUtil {
                UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatement)element, result);
       }
     });
-    final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpression();
+    final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpressionList().get(0);
     final String packageName = getPackageName((HaxePackageStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
