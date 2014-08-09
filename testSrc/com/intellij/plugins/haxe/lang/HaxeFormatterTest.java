@@ -1,6 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,19 +73,19 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest() throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
-      CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+      /*CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
           @Override
           public void run() {
               CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
 
           }
-      }, null, null);
-    /*WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      }, null, null);*/
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
-    });*/
+    });
     try {
       myFixture.checkResultByFile(getTestName(false) + ".txt");
     }
