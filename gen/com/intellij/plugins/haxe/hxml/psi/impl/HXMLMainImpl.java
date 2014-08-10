@@ -17,40 +17,33 @@
  */
 
 // This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.hxml.psi;
+package com.intellij.plugins.haxe.hxml.psi.impl;
 
+import java.util.List;
 import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElementVisitor;
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.intellij.plugins.haxe.hxml.psi.HXMLTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.intellij.plugins.haxe.hxml.psi.*;
 
-public class HXMLVisitor extends PsiElementVisitor {
+public class HXMLMainImpl extends ASTWrapperPsiElement implements HXMLMain {
 
-  public void visitClasspath(@NotNull HXMLClasspath o) {
-    visitPsiElement(o);
+  public HXMLMainImpl(ASTNode node) {
+    super(node);
   }
 
-  public void visitDefine(@NotNull HXMLDefine o) {
-    visitPsiElement(o);
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HXMLVisitor) ((HXMLVisitor)visitor).visitMain(this);
+    else super.accept(visitor);
   }
 
-  public void visitLib(@NotNull HXMLLib o) {
-    visitPsiElement(o);
-  }
-
-  public void visitMain(@NotNull HXMLMain o) {
-    visitPsiElement(o);
-  }
-
-  public void visitProperty(@NotNull HXMLProperty o) {
-    visitPsiElement(o);
-  }
-
-  public void visitQualifiedName(@NotNull HXMLQualifiedName o) {
-    visitPsiElement(o);
-  }
-
-  public void visitPsiElement(@NotNull PsiElement o) {
-    visitElement(o);
+  @Override
+  @NotNull
+  public HXMLQualifiedName getQualifiedName() {
+    return findNotNullChildByClass(HXMLQualifiedName.class);
   }
 
 }

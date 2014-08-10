@@ -24,18 +24,25 @@ import com.intellij.psi.TokenType;
 
 CRLF= \n|\r|\r\n
 WHITE_SPACE=[\ \t\f]
-FIRST_VALUE_CHARACTER=[^ \n\r\f\\] | "\\"{CRLF} | "\\".
-VALUE_CHARACTER=[^\n\r\f\\] | "\\"{CRLF} | "\\".
+FIRST_VALUE_CHARACTER=[^ \n\r\f\\]
+FIRST_KEY_CHARACTER=-
+FIRST_CLASS_CHARACTER=[A-Z]
+VALUE_CHARACTER=[^\n\r\f\\]
 END_OF_LINE_COMMENT=("#")[^\r\n]*
 SEPARATOR=[\ ]
-KEY_CHARACTER=[^\ \n\r\t\f\\] | "\\"{CRLF} | "\\".
+KEY_CHARACTER=[^\ \n\r\t\f\\]
+CLASS_NAME_WORD=[a-z]
+QUALIFIED_NAME_WORD=[a-z]+"."
 
 %state WAITING_VALUE
 
 %%
 
 <YYINITIAL> {END_OF_LINE_COMMENT}                           { yybegin(YYINITIAL); return HXMLTypes.COMMENT; }
-<YYINITIAL> {KEY_CHARACTER}+                                { yybegin(YYINITIAL); return HXMLTypes.KEY; }
+<YYINITIAL> {FIRST_KEY_CHARACTER}{KEY_CHARACTER}+           { yybegin(YYINITIAL); return HXMLTypes.KEY; }
+<YYINITIAL> {FIRST_CLASS_CHARACTER}{CLASS_NAME_WORD}+       { yybegin(YYINITIAL); return HXMLTypes.QUALIFIEDCLASSNAME; }
+<YYINITIAL> {QUALIFIED_NAME_WORD}+{FIRST_CLASS_CHARACTER}{CLASS_NAME_WORD}+
+                                                            { yybegin(YYINITIAL); return HXMLTypes.QUALIFIEDCLASSNAME; }
 <YYINITIAL> {SEPARATOR}                                     { yybegin(WAITING_VALUE); return HXMLTypes.SEPARATOR; }
 <WAITING_VALUE> {CRLF}                                      { yybegin(YYINITIAL); return HXMLTypes.CRLF; }
 <WAITING_VALUE> {WHITE_SPACE}+                              { yybegin(WAITING_VALUE); return TokenType.WHITE_SPACE; }

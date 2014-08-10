@@ -15,6 +15,13 @@
 
 simpleFile ::= item_*
 
-private item_ ::= (property|COMMENT|CRLF)
+private item_ ::= (lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF)
 
 property ::= (KEY SEPARATOR VALUE) | KEY
+
+define ::= '-D' SEPARATOR VALUE
+lib ::= '-lib' SEPARATOR VALUE (':' VALUE)?
+classpath ::= '-cp' SEPARATOR VALUE
+main ::= '-main' SEPARATOR qualifiedName
+
+qualifiedName ::= QUALIFIEDCLASSNAME
