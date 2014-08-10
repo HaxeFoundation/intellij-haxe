@@ -55,10 +55,13 @@ public class HaxeImportUtil {
     List<HaxeImportStatement> usefulImportStatements = ContainerUtil.findAll(allImportStatements, new Condition<HaxeImportStatement>() {
       @Override
       public boolean value(HaxeImportStatement statement) {
-        HaxeReferenceExpression referenceExpression = statement.getImportStatementRegular().getReferenceExpression();
-        if (referenceExpression != null && referenceExpression.resolve() == null) {
-          // don't know for sure
-          return true;
+        final HaxeImportStatementRegular regularImport = statement.getImportStatementRegular();
+        if(regularImport != null) {
+          final HaxeReferenceExpression referenceExpression = regularImport.getReferenceExpression();
+          if (referenceExpression.resolve() == null) {
+            // don't know for sure
+            return true;
+          }
         }
         for (HaxeClass haxeClass : classesInFile) {
           if (UsefulPsiTreeUtil.importStatementForClass(statement, haxeClass)) {
