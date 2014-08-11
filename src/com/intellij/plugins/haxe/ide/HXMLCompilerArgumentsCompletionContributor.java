@@ -27,11 +27,13 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.util.ProcessingContext;
+import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +41,58 @@ import java.util.regex.Pattern;
  * Created by as3boyan on 10.08.14.
  */
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
+  private static final Set<String> compilerArguments = new THashSet<String>() {
+    {
+      //for (IElementType elementType : HaxeTokenTypeSets.KEYWORDS.getTypes()) {
+      //  add(elementType.toString());
+      //}
+      //add(HaxeTokenTypes.ONEW.toString());
+
+      //final ArrayList<String> compilerArguments;
+      //compilerArguments = new ArrayList<String>();
+
+      // TODO: get path to Haxe instead of using global alias
+
+      try {
+        ArrayList<String> commandLine = new ArrayList<String>();
+        //final String sdkExePath = HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath());
+        commandLine.add("haxe");
+        commandLine.add("--help");
+
+        BaseOSProcessHandler processHandler =
+          new BaseOSProcessHandler(new ProcessBuilder(commandLine).start(), null, Charset.defaultCharset());
+
+        processHandler.addProcessListener(new ProcessAdapter() {
+          @Override
+          public void onTextAvailable(ProcessEvent event, Key outputType) {
+            String text = event.getText();
+            Pattern pattern = Pattern.compile("-([a-z-_0-9]+)");
+            Matcher matcher = pattern.matcher(text);
+
+            while (matcher.find()) {
+              String group = matcher.group();
+
+              if (!contains(group)) {
+                add(group);
+              }
+            }
+          }
+
+          @Override
+          public void processTerminated(ProcessEvent event) {
+            super.processTerminated(event);
+          }
+        });
+
+        processHandler.startNotify();
+        processHandler.waitFor();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  };
+
   public HXMLCompilerArgumentsCompletionContributor() {
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
@@ -46,46 +100,7 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet set) {
-               final ArrayList<String> compilerArguments;
-               compilerArguments = new ArrayList<String>();
 
-               try {
-                 ArrayList<String> commandLine = new ArrayList<String>();
-                 //final String sdkExePath = HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath());
-                 commandLine.add("haxe");
-                 commandLine.add("--help");
-
-                 BaseOSProcessHandler processHandler =
-                   new BaseOSProcessHandler(new ProcessBuilder(commandLine).start(), null, Charset.defaultCharset());
-
-                 processHandler.addProcessListener(new ProcessAdapter() {
-                   @Override
-                   public void onTextAvailable(ProcessEvent event, Key outputType) {
-                     String text = event.getText();
-                     Pattern pattern = Pattern.compile("-([a-z-_0-9]+)");
-                     Matcher matcher = pattern.matcher(text);
-
-                     while (matcher.find()) {
-                       String group = matcher.group();
-
-                       if (compilerArguments.indexOf(group) == -1) {
-                         compilerArguments.add(group);
-                       }
-                     }
-                   }
-
-                   @Override
-                   public void processTerminated(ProcessEvent event) {
-                     super.processTerminated(event);
-                   }
-                 });
-
-                 processHandler.startNotify();
-                 processHandler.waitFor();
-               }
-               catch (IOException e) {
-                 e.printStackTrace();
-               }
 
                //String[] compilerArguments;
 
@@ -95,11 +110,13 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                //  "D",
                //  "cp",
                //  "main",
-               //  "dce"
+               //  "dce
                //};
 
-               for (String argument : compilerArguments) {
-                 set.addElement(LookupElementBuilder.create(argument));
+               if (compilerArguments != null) {
+                 for (String argument : compilerArguments) {
+                   set.addElement(LookupElementBuilder.create(argument));
+                 }
                }
              }
            }
