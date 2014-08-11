@@ -1,4 +1,4 @@
-Download [intellij-haxe.jar](https://github.com/eliasku/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file to install plugin with "Install plugin from disk..." button
+Download [intellij-haxe.jar](https://github.com/eliasku/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file and install plugin using "Install plugin from disk..." button in Plugin dialog
 
 For those who want to learn and maintain this plugin look at this introductory tutorial:
 http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support

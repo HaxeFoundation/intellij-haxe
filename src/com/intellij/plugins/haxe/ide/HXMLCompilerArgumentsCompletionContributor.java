@@ -43,14 +43,6 @@ import java.util.regex.Pattern;
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
   private static final Set<String> compilerArguments = new THashSet<String>() {
     {
-      //for (IElementType elementType : HaxeTokenTypeSets.KEYWORDS.getTypes()) {
-      //  add(elementType.toString());
-      //}
-      //add(HaxeTokenTypes.ONEW.toString());
-
-      //final ArrayList<String> compilerArguments;
-      //compilerArguments = new ArrayList<String>();
-
       // TODO: get path to Haxe instead of using global alias
 
       try {
@@ -86,6 +78,8 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
 
         processHandler.startNotify();
         processHandler.waitFor();
+        processHandler.detachProcess();
+        processHandler.getProcess().destroy();
       }
       catch (IOException e) {
         e.printStackTrace();
