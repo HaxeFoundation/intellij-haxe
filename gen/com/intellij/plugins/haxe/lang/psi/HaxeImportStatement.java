@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +26,12 @@ import com.intellij.psi.PsiElement;
 public interface HaxeImportStatement extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxeReferenceExpression getReferenceExpression();
+  HaxeImportStatementRegular getImportStatementRegular();
+
+  @Nullable
+  HaxeImportStatementWithInSupport getImportStatementWithInSupport();
+
+  @Nullable
+  HaxeImportStatementWithWildcard getImportStatementWithWildcard();
 
 }

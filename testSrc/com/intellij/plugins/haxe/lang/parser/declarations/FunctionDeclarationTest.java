@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +51,10 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   }
 
   public void testMacro() throws Throwable {
+    doTest(true);
+  }
+
+  public void testReturnStatement() throws  Throwable {
     doTest(true);
   }
 }

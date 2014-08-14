@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +32,7 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeFileTemplateUtil {
-  private final static String HAXE_TEMPLATE_PREFIX = "Haxe ";
+  private final static String HAXE_TEMPLATE_PREFIX = "Haxe";
 
   public static List<FileTemplate> getApplicableTemplates() {
     return getApplicableTemplates(new Condition<FileTemplate>() {

@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.generation.surroundWith.SurroundWithHandler;
 import com.intellij.lang.surroundWith.Surrounder;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -65,6 +67,14 @@ public class HaxeSurroundTest extends HaxeCodeInsightFixtureTestCase {
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
     });
+      /*CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+          @Override
+          public void run() {
+              SurroundWithHandler.invoke(getProject(), myFixture.getEditor(), myFixture.getFile(), surrounder);
+              PsiDocumentManager.getInstance(getProject()).doPostponedOperationsAndUnblockDocument(myFixture.getDocument(myFixture.getFile()));
+              CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
+          }
+      }, null, null);*/
 
     myFixture.checkResultByFile(getTestName(false) + "_after.hx");
   }

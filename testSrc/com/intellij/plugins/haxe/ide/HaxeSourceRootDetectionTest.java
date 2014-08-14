@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +27,7 @@ import gnu.trove.THashSet;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,10 +39,14 @@ public class HaxeSourceRootDetectionTest extends PlatformTestCase {
     final File dir = new File(dirPath);
     assertTrue(dir.isDirectory());
     final HaxeProjectStructureDetector haxeProjectStructureDetector = new HaxeProjectStructureDetector();
+    final ProjectStructureDetector[] detector = new ProjectStructureDetector[]{haxeProjectStructureDetector};
     final RootDetectionProcessor detectionProcessor = new RootDetectionProcessor(
-      dir, new ProjectStructureDetector[]{haxeProjectStructureDetector}
+      dir,detector
     );
-    final List<DetectedProjectRoot> detected = detectionProcessor.runDetectors().get(haxeProjectStructureDetector);
+    // TODO:
+    final List<DetectedProjectRoot> detected;//= detectionProcessor.findRoots().get(haxeProjectStructureDetector);
+    Map<ProjectStructureDetector, List<DetectedProjectRoot>> detectorListMap = detectionProcessor.runDetectors();
+    detected = detectorListMap.get(haxeProjectStructureDetector);
     assertNotNull(detected);
     final Set<String> actual = new THashSet<String>();
     for (DetectedProjectRoot projectRoot : detected) {

@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +34,11 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
     super(node);
   }
 
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitFunctionLiteral(this);
+    else super.accept(visitor);
+  }
+
   @Override
   @Nullable
   public HaxeBlockStatement getBlockStatement() {
@@ -52,8 +59,8 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
 
   @Override
   @Nullable
-  public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
-    return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
+  public HaxeReturnStatement getReturnStatement() {
+    return findChildByClass(HaxeReturnStatement.class);
   }
 
   @Override
@@ -66,11 +73,6 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
   @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitFunctionLiteral(this);
-    else super.accept(visitor);
   }
 
 }

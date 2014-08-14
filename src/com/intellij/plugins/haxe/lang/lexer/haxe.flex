@@ -196,6 +196,8 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 "static"                                  {  return KSTATIC;  }
 "dynamic"                                 {  return KDYNAMIC;  }
 "never"                                   {  return KNEVER;  }
+"get"                                     {  return KGET;  }
+"set"                                     {  return KSET;  }
 "override"                                {  return KOVERRIDE;  }
 "inline"                                  {  return KINLINE;  }
 

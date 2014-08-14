@@ -1,0 +1,27 @@
+{
+  parserClass="com.intellij.plugins.haxe.hxml.HXMLParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="HXML"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.intellij.plugins.haxe.hxml.psi"
+  psiImplPackage="com.intellij.plugins.haxe.hxml.psi.impl"
+
+  elementTypeHolderClass="com.intellij.plugins.haxe.hxml.psi.HXMLTypes"
+  elementTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLElementType"
+  tokenTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLTokenType"
+}
+
+simpleFile ::= item_*
+
+private item_ ::= (lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF)
+
+property ::= (KEY SEPARATOR VALUE) | KEY
+
+define ::= '-D' SEPARATOR VALUE
+lib ::= '-lib' SEPARATOR VALUE (':' VALUE)?
+classpath ::= '-cp' SEPARATOR VALUE
+main ::= '-main' SEPARATOR qualifiedName
+
+qualifiedName ::= QUALIFIEDCLASSNAME

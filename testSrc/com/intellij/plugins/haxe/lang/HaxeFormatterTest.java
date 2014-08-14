@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang;
 
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -70,6 +73,13 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest() throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
+      /*CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+          @Override
+          public void run() {
+              CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
+
+          }
+      }, null, null);*/
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {

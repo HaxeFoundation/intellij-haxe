@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,23 +104,29 @@ public class UsefulPsiTreeUtil {
   }
 
   public static boolean importStatementForClassName(HaxeImportStatement importStatement, String className) {
-    final HaxeExpression expression = importStatement.getReferenceExpression();
-    if (expression == null) {
-      return false;
+    final HaxeImportStatementRegular regularImport = importStatement.getImportStatementRegular();
+    if(regularImport != null) {
+      final HaxeExpression expression = regularImport.getReferenceExpression();
+      final String qName = expression.getText();
+      return qName.endsWith("." + className);
     }
-    final String qName = expression.getText();
-    return qName.endsWith("." + className);
+    // TODO: other import types (inject util logic to ImportStatement?)
+    return false;
   }
 
   @Nullable
   public static String findHelperOwnerQName(PsiElement context, String className) {
     for (HaxeImportStatement importStatement : getAllImportStatements(context)) {
-      final HaxeExpression expression = importStatement.getReferenceExpression();
-      final String qName = expression == null ? null : expression.getText();
-      final PsiElement resolve = HaxeResolveUtil.findClassByQName(qName, context);
-      if (resolve != null && HaxeResolveUtil.findComponentDeclaration(resolve.getContainingFile(), className) != null) {
-        return qName;
+      final HaxeImportStatementRegular regularImport = importStatement.getImportStatementRegular();
+      if(regularImport != null) {
+        final HaxeExpression expression = regularImport.getReferenceExpression();
+        final String qName = expression.getText();
+        final PsiElement resolve = HaxeResolveUtil.findClassByQName(qName, context);
+        if (resolve != null && HaxeResolveUtil.findComponentDeclaration(resolve.getContainingFile(), className) != null) {
+          return qName;
+        }
       }
+      // TODO: other import types (inject util logic to ImportStatement?)
     }
     return null;
   }
@@ -195,15 +203,17 @@ public class UsefulPsiTreeUtil {
   }
 
   public static boolean importStatementForClass(@NotNull HaxeImportStatement importStatement, @NotNull HaxeClass haxeClass) {
-    HaxeReferenceExpression importReferenceExpression = importStatement.getReferenceExpression();
-    if (importReferenceExpression == null) {
-      return false;
+    final HaxeImportStatementRegular regularImport = importStatement.getImportStatementRegular();
+    if(regularImport != null) {
+      HaxeReferenceExpression importReferenceExpression = regularImport.getReferenceExpression();
+      PsiElement importTarget = importReferenceExpression.resolve();
+      if (importTarget == null) {
+        return false;
+      }
+      // in case of helpers just check containing files
+      return importTarget.getContainingFile() == haxeClass.getContainingFile();
     }
-    PsiElement importTarget = importReferenceExpression.resolve();
-    if (importTarget == null) {
-      return false;
-    }
-    // in case of helpers just check containing files
-    return importTarget.getContainingFile() == haxeClass.getContainingFile();
+    // TODO: other import types (inject util logic to ImportStatement?)
+    return false;
   }
 }

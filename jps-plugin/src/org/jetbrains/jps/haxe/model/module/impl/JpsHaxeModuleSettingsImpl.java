@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,6 +129,12 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   public void setOutputFileName(String outputFileName) {
     mySettingsBase.setOutputFileName(outputFileName);
   }
+
+  @Override
+  public String getOutputFolder() { return mySettingsBase.getOutputFolder(); }
+
+  @Override
+  public void setOutputFolder(String outputFolder) { mySettingsBase.setOutputFolder(outputFolder); }
 
   @Override
   public String getHxmlPath() {

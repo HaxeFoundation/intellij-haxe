@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +127,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     return super.doExecute(project, nekoRunningState, contentToReuse, env);
   }
 
-  private static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
+  static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
     FileDocumentManager.getInstance().saveAllDocuments();
     final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
     assert model != null;

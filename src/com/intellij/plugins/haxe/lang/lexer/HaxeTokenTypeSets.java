@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +143,11 @@ public interface HaxeTokenTypeSets {
     KSUPER,
     MACRO_ID,
     KFROM,
-    KTO
+    KTO,
+    KGET,
+    KSET,
+    KNEVER,
+    ONEW
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(
