@@ -128,8 +128,6 @@
     kOVERRIDE="override"
     kINLINE="inline"
     kMACRO2="macro"
-    kGET="get"
-    kSET="set"
 
     kUNTYPED="untyped"
     kTYPEDEF="typedef"
@@ -488,8 +486,6 @@ simpleQualifiedReferenceExpressionWithWildcardSupport ::= referenceExpression qu
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
 identifier ::= ID
-//'get' | 'set' |
-//identifier ::= ID
 
 thisExpression ::= 'this'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}

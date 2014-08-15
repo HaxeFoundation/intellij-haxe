@@ -144,8 +144,6 @@ public interface HaxeTokenTypeSets {
     MACRO_ID,
     KFROM,
     KTO,
-    KGET,
-    KSET,
     KNEVER,
     ONEW
   );
