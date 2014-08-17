@@ -16,11 +16,18 @@
   ~ limitations under the License.
   -->
 <idea-plugin version="2">
-  <id>com.intellij.plugins.haxe</id>
+  <id>com.intellij.plugins.haxe-community</id>
   <name>Haxe Support</name>
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8:</p>
+      <ul>
+        <li>Migration to new IntelliJ IDEA 13.1 API</li>
+        <li>HXML syntax highlighting</li>
+        <li>HXML completion</li>
+        <li>Parser support for different types of imports</li>
+        <li>Parser support for @:jsRequire and more parser fixes</li>
       <p>0.7.2:</p>
       <ul>
         <li>New version</li>
@@ -178,7 +185,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.7.1</version>
+  <version>0.8</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.java</depends><!-- Rich platform which contains compiler abstraction -->
