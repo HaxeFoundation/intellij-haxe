@@ -23,6 +23,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HXMLQualifiedname extends PsiElement {
+public interface HXMLQualifiedName extends PsiElement {
 
 }
