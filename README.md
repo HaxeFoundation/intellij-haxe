@@ -13,7 +13,7 @@ http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
 - JUnit (for unit tests)
 - PsiViewer (for testing grammar)
 
-IntelliJ IDEA uses Grammar-Kit plugin to generate lexer/parser, grammar for Haxe is [haXe.bnf](https://github.com/eliasku/intellij-haxe/blob/master/grammar/haXe.bnf)
+IntelliJ IDEA uses Grammar-Kit plugin to generate lexer/parser, grammar for Haxe is [haXe.bnf](https://github.com/eliasku/intellij-haxe/blob/master/grammar/haxe.bnf)
 
 ###Steps to configure a IntelliJ Platform Plugin SDK:
 - Open Module Settings
