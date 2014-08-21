@@ -16,21 +16,26 @@
   ~ limitations under the License.
   -->
 <idea-plugin version="2">
-  <id>com.intellij.plugins.haxe</id>
+  <id>com.intellij.plugins.haxe-community</id>
   <name>Haxe Support</name>
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.7.3: (community version)</p>
+      <p>0.8.2: (community version)</p>
       <ul>
         <li>"Find usages in project" fixed.</li>
-        <li>Bug fixes for 13.1.3</li>
-        <li>HXML completion: cache compiler arguments</li>
-        <li>HXML: compiler arguments completion contributor</li>
-        <li>HXML: add more parsing rules(define, lib, classpath, main, qualified class names), make it more strict</li>
-        <li>Parser: support for import types(wildcard, in and regular)</li>
-        <li>Parser: one line function with return statement (Fixes #9)</li>
-        <li>Add parser support for `import in` syntax.</li>
+      </ul>
+      <p>0.8.1: (community version)</p>
+      <ul>
+        <li>Remove com.intellij.modules.java from dependencies list to make plugin work in PHPStorm(and other IntelliJ IDEA platform-based IDEs)</li>
+      </ul>
+      <p>0.8: (community version)</p>
+      <ul>
+        <li>Migration to new IntelliJ IDEA 13.1 API</li>
+        <li>HXML syntax highlighting</li>
+        <li>HXML completion</li>
+        <li>Parser support for different types of imports</li>
+        <li>Parser support for @:jsRequire and more parser fixes</li>
       </ul>
       <p>0.7.2: (community version)</p>
       <ul>
@@ -194,10 +199,10 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.7.3 (community version)</version>
-  <vendor>JetBrains, AS3boyan, TiVo Inc.</vendor>
+  <version>0.8.2 (community version)</version>
+  <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
-  <depends>com.intellij.modules.java</depends><!-- Rich platform which contains compiler abstraction -->
+  <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
