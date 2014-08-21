@@ -199,7 +199,10 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.2 (community version)</version>
+  <version>
+    0.8.2 (community version)
+    TiVo Build
+  </version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
