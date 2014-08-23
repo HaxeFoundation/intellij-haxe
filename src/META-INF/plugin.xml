@@ -21,9 +21,10 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.8.2: (community version)</p>
+      <p>0.8.1.TiVo.1: (community version)</p>
       <ul>
         <li>"Find usages in project" fixed.</li>
+        <li>Allowed @:final on methods and fields.</li>
       </ul>
       <p>0.8.1: (community version)</p>
       <ul>
@@ -200,8 +201,7 @@
       ]]>
   </change-notes>
   <version>
-    0.8.2 (community version)
-    TiVo Build
+    0.8.1.TiVo.1 (community version) TiVo Build 
   </version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
