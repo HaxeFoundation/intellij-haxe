@@ -190,8 +190,8 @@ public class HaxeConfigurationEditor {
             return super.isFileVisible(file, showHiddenFiles) &&
                    (file.isDirectory()
                     || (isNMML ? "nmml" : "hxml").equalsIgnoreCase(file.getExtension())
-                    || (isOpenFL && "project.xml".equalsIgnoreCase(file.getName()))
-                    || (isOpenFL && "Project.xml".equalsIgnoreCase(file.getName()))
+                    || (isOpenFL && "xml".equalsIgnoreCase(file.getExtension()))
+                    || (isOpenFL && "lime".equalsIgnoreCase(file.getExtension()))
                    );
           }
         };
