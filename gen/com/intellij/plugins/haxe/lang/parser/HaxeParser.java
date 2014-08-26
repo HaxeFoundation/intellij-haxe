@@ -1602,32 +1602,44 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // expression (',' expression)*
+  // forStatement | whileStatement | (expression (',' expression)*)
   public static boolean expressionList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "expressionList")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<expression list>");
-    result_ = expression(builder_, level_ + 1);
-    result_ = result_ && expressionList_1(builder_, level_ + 1);
+    result_ = forStatement(builder_, level_ + 1);
+    if (!result_) result_ = whileStatement(builder_, level_ + 1);
+    if (!result_) result_ = expressionList_2(builder_, level_ + 1);
     exit_section_(builder_, level_, marker_, EXPRESSION_LIST, result_, false, expression_list_recover_parser_);
     return result_;
   }
 
+  // expression (',' expression)*
+  private static boolean expressionList_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expressionList_2")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = expression(builder_, level_ + 1);
+    result_ = result_ && expressionList_2_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
   // (',' expression)*
-  private static boolean expressionList_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "expressionList_1")) return false;
+  private static boolean expressionList_2_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expressionList_2_1")) return false;
     int pos_ = current_position_(builder_);
     while (true) {
-      if (!expressionList_1_0(builder_, level_ + 1)) break;
-      if (!empty_element_parsed_guard_(builder_, "expressionList_1", pos_)) break;
+      if (!expressionList_2_1_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "expressionList_2_1", pos_)) break;
       pos_ = current_position_(builder_);
     }
     return true;
   }
 
   // ',' expression
-  private static boolean expressionList_1_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "expressionList_1_0")) return false;
+  private static boolean expressionList_2_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "expressionList_2_1_0")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, OCOMMA);
