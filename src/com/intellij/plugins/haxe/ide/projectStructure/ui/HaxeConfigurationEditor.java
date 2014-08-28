@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,9 +189,10 @@ public class HaxeConfigurationEditor {
           public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
             return super.isFileVisible(file, showHiddenFiles) &&
                    (file.isDirectory()
-                    || (isNMML ? "nmml" : "hxml").equalsIgnoreCase(file.getExtension())
-                    || (isOpenFL && "project.xml".equalsIgnoreCase(file.getName()))
-                    || (isOpenFL && "Project.xml".equalsIgnoreCase(file.getName()))
+                    || (!isNMML && !isOpenFL && "hxml".equalsIgnoreCase(file.getExtension()))
+                    || (isNMML && "nmml".equalsIgnoreCase(file.getExtension()))
+                    || (isOpenFL && "xml".equalsIgnoreCase(file.getExtension()))
+                    || (isOpenFL && "lime".equalsIgnoreCase(file.getExtension()))
                    );
           }
         };
@@ -381,6 +384,7 @@ public class HaxeConfigurationEditor {
     result = result || !settings.getNmeFlags().equals(myNMEArguments.getText());
     result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
     result = result || !settings.getOutputFileName().equals(myOutputFileNameTextField.getText());
+    result = result || !settings.getOutputFolder().equals(myFolderTextField.getText());
 
     result = result || getCurrentBuildConfig() != settings.getBuildConfig();
 
@@ -401,6 +405,7 @@ public class HaxeConfigurationEditor {
     selectedOpenFLTarget = settings.getOpenFLTarget();
     myExcludeFromCompilationCheckBox.setSelected(settings.isExcludeFromCompilation());
     myOutputFileNameTextField.setText(settings.getOutputFileName());
+    myFolderTextField.setText(settings.getOutputFolder());
     for (UnnamedConfigurable configurable : configurables) {
       configurable.reset();
     }
@@ -437,6 +442,7 @@ public class HaxeConfigurationEditor {
     }
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());
     settings.setOutputFileName(myOutputFileNameTextField.getText());
+    settings.setOutputFolder(myFolderTextField.getText());
 
     settings.setHxmlPath(FileUtil.toSystemIndependentName(myHxmlFileChooserTextField.getText()));
     settings.setOpenFLXMLPath(FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()));

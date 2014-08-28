@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +34,11 @@ public class HaxeClassBodyImpl extends HaxePsiCompositeElementImpl implements Ha
     super(node);
   }
 
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitClassBody(this);
+    else super.accept(visitor);
+  }
+
   @Override
   @NotNull
   public List<HaxeFunctionDeclarationWithAttributes> getFunctionDeclarationWithAttributesList() {
@@ -42,11 +49,6 @@ public class HaxeClassBodyImpl extends HaxePsiCompositeElementImpl implements Ha
   @NotNull
   public List<HaxeVarDeclaration> getVarDeclarationList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeVarDeclaration.class);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitClassBody(this);
-    else super.accept(visitor);
   }
 
 }

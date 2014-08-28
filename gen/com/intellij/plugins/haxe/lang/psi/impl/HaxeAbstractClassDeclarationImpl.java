@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +32,11 @@ public class HaxeAbstractClassDeclarationImpl extends AbstractHaxePsiClass imple
 
   public HaxeAbstractClassDeclarationImpl(ASTNode node) {
     super(node);
+  }
+
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitAbstractClassDeclaration(this);
+    else super.accept(visitor);
   }
 
   @Override
@@ -82,6 +89,12 @@ public class HaxeAbstractClassDeclarationImpl extends AbstractHaxePsiClass imple
 
   @Override
   @NotNull
+  public List<HaxeJsRequireMeta> getJsRequireMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeJsRequireMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeMetaMeta> getMetaMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
   }
@@ -108,11 +121,6 @@ public class HaxeAbstractClassDeclarationImpl extends AbstractHaxePsiClass imple
   @NotNull
   public List<HaxeType> getTypeList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitAbstractClassDeclaration(this);
-    else super.accept(visitor);
   }
 
 }

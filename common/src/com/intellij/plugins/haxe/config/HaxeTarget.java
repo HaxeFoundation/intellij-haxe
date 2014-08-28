@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +18,7 @@
 package com.intellij.plugins.haxe.config;
 
 import com.intellij.plugins.haxe.HaxeCommonBundle;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -41,6 +44,37 @@ public enum HaxeTarget {
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".swf";
+    }
+  }, CPP("cpp", HaxeCommonBundle.message("haxe.target.cpp")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".exe";
+    }
+  }, PHP("php", HaxeCommonBundle.message("haxe.target.php")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".php";
+    }
+  }, JAVA("java", HaxeCommonBundle.message("haxe.target.java")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".jar";
+    }
+  }, CSHARP("cs", HaxeCommonBundle.message("haxe.target.csharp")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      String name = SystemProperties.getOsName();
+      return fileName + ".exe";
+    }
+  }, PYTHON("python", HaxeCommonBundle.message("haxe.target.python")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".py";
     }
   };
 

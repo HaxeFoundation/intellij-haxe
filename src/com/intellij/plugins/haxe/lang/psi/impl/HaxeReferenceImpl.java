@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -249,7 +251,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private void bindToPackage(PsiPackage element) {
     final HaxeImportStatement importStatement =
       HaxeElementGenerator.createImportStatementFromPath(getProject(), element.getQualifiedName());
-    HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
+    HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
     assert referenceExpression != null;
     replace(referenceExpression);
   }
@@ -280,7 +282,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                 importPath;
         final HaxeImportStatement importStatement =
           HaxeElementGenerator.createImportStatementFromPath(getProject(), newQName);
-        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
+        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
         assert referenceExpression != null;
         replace(referenceExpression);
       }
@@ -291,7 +293,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     else {
       final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClassName(this, getText());
-      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
+      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
       if (referenceExpression != null && !importPath.equals(referenceExpression.getText())) {
         // need remove, cause can resolve without
         importStatement.getParent().deleteChildRange(importStatement, importStatement);

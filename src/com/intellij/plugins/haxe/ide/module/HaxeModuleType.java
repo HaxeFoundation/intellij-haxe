@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +72,7 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
       public void updateDataModel() {
         super.updateDataModel();
         moduleBuilder.setModuleJdk(getJdk());
+        // TODO: generate Main class as entry point for new projects
       }
     }};
   }

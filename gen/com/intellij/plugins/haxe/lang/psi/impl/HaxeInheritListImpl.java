@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +34,15 @@ public class HaxeInheritListImpl extends HaxePsiCompositeElementImpl implements 
     super(node);
   }
 
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitInheritList(this);
+    else super.accept(visitor);
+  }
+
   @Override
   @NotNull
   public List<HaxeInherit> getInheritList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeInherit.class);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitInheritList(this);
-    else super.accept(visitor);
   }
 
 }

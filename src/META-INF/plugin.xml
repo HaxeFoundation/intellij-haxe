@@ -1,5 +1,7 @@
 <!--
   ~ Copyright 2000-2013 JetBrains s.r.o.
+  ~ Copyright 2014-2014 AS3Boyan
+  ~ Copyright 2014-2014 Elias Ku
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +21,22 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1:</p>
+      <ul>
+        <li>Remove com.intellij.modules.java from dependencies list to make plugin work in PHPStorm(and other IntelliJ IDEA platform-based IDEs)</li>
+      </ul>
+      <p>0.8:</p>
+      <ul>
+        <li>Migration to new IntelliJ IDEA 13.1 API</li>
+        <li>HXML syntax highlighting</li>
+        <li>HXML completion</li>
+        <li>Parser support for different types of imports</li>
+        <li>Parser support for @:jsRequire and more parser fixes</li>
+      </ul>
+      <p>0.7.2:</p>
+      <ul>
+        <li>New version</li>
+      </ul>
       <p>0.7.1:</p>
       <ul>
         <li>Bug fixes for  13.1.1</li>
@@ -172,10 +190,10 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.7.1</version>
+  <version>0.8.1</version>
   <vendor>JetBrains</vendor>
   <idea-version since-build="132.400"/>
-  <depends>com.intellij.modules.java</depends><!-- Rich platform which contains compiler abstraction -->
+  <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
@@ -194,7 +212,7 @@
     <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <compiler implementation="com.intellij.plugins.haxe.compilation.HaxeCompiler"/>
+    <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <moduleConfigurationEditorProvider
         implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
@@ -203,14 +221,23 @@
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
     <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
+
     <fileTypeFactory implementation="com.intellij.plugins.haxe.nmml.NMMLFileTypeFactory"/>
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.nmml.NMMLSchemaProvider"/>
+
+    <!-- HXML BEGIN -->
+    <fileTypeFactory implementation="com.intellij.plugins.haxe.hxml.HXMLFileTypeFactory"/>
+    <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.hxml.HXMLParserDefinition"/>
+    <lang.syntaxHighlighterFactory key="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
+    <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HXMLColorSettingsPage"/>
+    <!-- HXML END -->
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
     <lang.syntaxHighlighterFactory key="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
+
 
     <lang.braceMatcher language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
     <typedHandler implementation="com.intellij.plugins.haxe.ide.editor.HaxeTypedHandler" id="haxe"/>
@@ -244,6 +271,7 @@
                                implementationClass="com.intellij.plugins.haxe.ide.info.HaxeParameterInfoHandler"/>
 
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
+
     <additionalTextAttributes scheme="Default" file="colorSchemes/HaxeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/HaxeDefault.xml"/>
 
@@ -255,6 +283,7 @@
     <completion.contributor language="any" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
+    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
     <configurationType implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.HXCPPRemoteRunConfigurationType"/>
@@ -262,10 +291,10 @@
     <moduleService serviceInterface="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"
                    serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
-    <internalFileTemplate name="Haxe Class"/>
-    <internalFileTemplate name="Haxe Interface"/>
-    <internalFileTemplate name="Haxe Enum"/>
-    <internalFileTemplate name="NMML Project File"/>
+    <internalFileTemplate name="HaxeClass"/>
+    <internalFileTemplate name="HaxeInterface"/>
+    <internalFileTemplate name="HaxeEnum"/>
+    <internalFileTemplate name="NMMLProjectFile"/>
 
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeArrayVariableMacro"/>
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestIndexNameMacro"/>

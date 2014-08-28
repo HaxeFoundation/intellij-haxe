@@ -43,8 +43,8 @@ Haxe File
                         PsiElement(ID)('toString')
                   PsiElement(()('(')
                   PsiElement())(')')
-                PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign operation>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '?', '[' or '||' expected, got '\'
-                  PsiElement(BAD_CHARACTER)('\')
+                  PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign operation>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '?', '[' or '||' expected, got '\'
+                    PsiElement(BAD_CHARACTER)('\')
           REFERENCE_EXPRESSION
             IDENTIFIER
               PsiElement(ID)('n')

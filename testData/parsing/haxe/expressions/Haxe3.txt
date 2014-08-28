@@ -1,19 +1,20 @@
 Haxe File
   IMPORT_STATEMENT
     PsiElement(import)('import')
-    REFERENCE_EXPRESSION
+    IMPORT_STATEMENT_REGULAR
       REFERENCE_EXPRESSION
         REFERENCE_EXPRESSION
-          IDENTIFIER
-            PsiElement(ID)('haxe')
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              PsiElement(ID)('haxe')
+          PsiElement(.)('.')
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              PsiElement(ID)('macro')
         PsiElement(.)('.')
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiElement(ID)('macro')
-      PsiElement(.)('.')
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          PsiElement(ID)('Expr')
+            PsiElement(ID)('Expr')
     PsiElement(;)(';')
   ENUM_DECLARATION
     PsiElement(enum)('enum')

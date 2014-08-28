@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +34,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.runner.HaxeApplicationModuleBasedConfiguration;
-import com.intellij.plugins.haxe.runner.HaxeRunner;
 import com.intellij.plugins.haxe.runner.debugger.hxcpp.ui.HXCPPRunConfigurationEditorForm;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;

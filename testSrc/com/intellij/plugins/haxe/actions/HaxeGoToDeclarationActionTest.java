@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +38,13 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   protected void doTest(PsiFile[] files, int expectedSize) {
+    assertNotNull(files);
     final PsiFile myFile = files[0];
-    final Collection<PsiElement> elements = TargetElementUtilBase
-      .getInstance().getTargetCandidates(myFile.findReferenceAt(myFixture.getCaretOffset()));
+    assertNotNull(myFile);
+    final TargetElementUtilBase util = TargetElementUtilBase.getInstance();
+    assertNotNull(util);
+
+    final Collection<PsiElement> elements = util.getTargetCandidates(myFile.findReferenceAt(myFixture.getCaretOffset()));
     assertNotNull(elements);
     assertEquals(expectedSize, elements.size());
   }
@@ -181,6 +187,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testStringLiteral() {
+    assertNotNull(myFixture);
     doTest(myFixture.configureByFiles("StringLiteral.hx",
                                       "std/Array.hx",
                                       "std/StdTypes.hx",

@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +34,27 @@ public class HaxeImportStatementImpl extends HaxePsiCompositeElementImpl impleme
     super(node);
   }
 
-  @Override
-  @Nullable
-  public HaxeReferenceExpression getReferenceExpression() {
-    return findChildByClass(HaxeReferenceExpression.class);
-  }
-
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitImportStatement(this);
     else super.accept(visitor);
+  }
+
+  @Override
+  @Nullable
+  public HaxeImportStatementRegular getImportStatementRegular() {
+    return findChildByClass(HaxeImportStatementRegular.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeImportStatementWithInSupport getImportStatementWithInSupport() {
+    return findChildByClass(HaxeImportStatementWithInSupport.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeImportStatementWithWildcard getImportStatementWithWildcard() {
+    return findChildByClass(HaxeImportStatementWithWildcard.class);
   }
 
 }

@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,6 +244,18 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitImportStatementWithWildcard(@NotNull HaxeImportStatementWithWildcard o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitInherit(@NotNull HaxeInherit o) {
     visitPsiCompositeElement(o);
   }
@@ -264,6 +278,10 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitIteratorExpression(@NotNull HaxeIteratorExpression o) {
     visitExpression(o);
+  }
+
+  public void visitJsRequireMeta(@NotNull HaxeJsRequireMeta o) {
+    visitPsiCompositeElement(o);
   }
 
   public void visitLiteralExpression(@NotNull HaxeLiteralExpression o) {
@@ -506,6 +524,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitWhileStatement(@NotNull HaxeWhileStatement o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitWildcard(@NotNull HaxeWildcard o) {
     visitPsiCompositeElement(o);
   }
 

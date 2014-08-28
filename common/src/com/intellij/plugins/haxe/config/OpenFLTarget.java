@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +27,7 @@ import javax.swing.*;
 public enum OpenFLTarget {
   IOS("iOS", "ios", "-simulator"),
   ANDROID("Android", "android"),
-  WEOS("webOS", "webos"),
+  WEBOS("webOS", "webos"),
   BLACKBERRY("BlackBerry", "blackberry"),
   WINDOWS("Windows", "windows"),
   MAC("Mac OS", "mac"),
@@ -33,7 +35,9 @@ public enum OpenFLTarget {
   LINUX64("Linux 64", "linux", "-64"),
   FLASH("Flash", "flash"),
   HTML5("HTML5", "html5"),
-  NEKO("Neko", "neko");
+  NEKO("Neko", "neko"),
+  TIZEN("Tizen", "tizen"),
+  EMSCRIPTEN("Emscripten", "emscripten");
 
   private final String[] flags;
   private final String description;

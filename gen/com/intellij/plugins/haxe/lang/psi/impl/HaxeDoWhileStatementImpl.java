@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +32,11 @@ public class HaxeDoWhileStatementImpl extends HaxePsiCompositeElementImpl implem
 
   public HaxeDoWhileStatementImpl(ASTNode node) {
     super(node);
+  }
+
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitDoWhileStatement(this);
+    else super.accept(visitor);
   }
 
   @Override
@@ -114,11 +121,6 @@ public class HaxeDoWhileStatementImpl extends HaxePsiCompositeElementImpl implem
   @Nullable
   public HaxeWhileStatement getWhileStatement() {
     return findChildByClass(HaxeWhileStatement.class);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitDoWhileStatement(this);
-    else super.accept(visitor);
   }
 
 }

@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +32,11 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
 
   public HaxeLocalFunctionDeclarationImpl(ASTNode node) {
     super(node);
+  }
+
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitLocalFunctionDeclaration(this);
+    else super.accept(visitor);
   }
 
   @Override
@@ -64,8 +71,8 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
 
   @Override
   @Nullable
-  public HaxeReturnStatementWithoutSemicolon getReturnStatementWithoutSemicolon() {
-    return findChildByClass(HaxeReturnStatementWithoutSemicolon.class);
+  public HaxeReturnStatement getReturnStatement() {
+    return findChildByClass(HaxeReturnStatement.class);
   }
 
   @Override
@@ -78,11 +85,6 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
   @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitLocalFunctionDeclaration(this);
-    else super.accept(visitor);
   }
 
 }

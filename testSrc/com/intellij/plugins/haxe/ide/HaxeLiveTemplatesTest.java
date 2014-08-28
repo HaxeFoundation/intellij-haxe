@@ -1,5 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +21,6 @@ import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.lookup.impl.LookupImpl;
 import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -58,10 +59,18 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
   public static void expandTemplate(final Editor editor) {
     new ListTemplatesAction().actionPerformedImpl(editor.getProject(), editor);
     ((LookupImpl)LookupManager.getActiveLookup(editor)).finishLookup(Lookup.NORMAL_SELECT_CHAR);
+
   }
 
   private void doTest(String... files) throws Exception {
     myFixture.configureByFiles(files);
+      //CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
+      //    @Override
+      //    public void run() {
+      //        expandTemplate(myFixture.getEditor());
+      //        CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
+      //    }
+      //}, null, null);
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
