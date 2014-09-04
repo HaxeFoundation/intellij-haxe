@@ -338,6 +338,11 @@
                      key="haxe.inspection.unresolved.symbol"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
+
+    <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
+    <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
+    <methodHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyProvider"/>
+
   </extensions>
 
   <actions>
