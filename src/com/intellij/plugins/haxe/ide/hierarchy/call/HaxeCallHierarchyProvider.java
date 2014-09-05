@@ -50,7 +50,7 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
   @Override
   public HierarchyBrowser createHierarchyBrowser(PsiElement element) {
     if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "createHierarchyBrowser" + element );
+      LOG.debug( "createHierarchyBrowser " + element );
     }
     return null;
   }
@@ -58,7 +58,7 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
   @Override
   public void browserActivated(@NotNull HierarchyBrowser browser) {
     if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "browserActivated" + browser );
+      LOG.debug( "browserActivated " + browser );
     }
 
   }
