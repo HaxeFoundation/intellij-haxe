@@ -180,7 +180,7 @@ haxeFile ::= packageStatement? topLevelList
 private macroClass ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
                       | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
-private functionMacroMember ::= macroMember | overloadMeta
+private functionMacroMember ::= '@:final' | macroMember | overloadMeta
 private macroMember ::= '@:macro' | '@:protected' | '@:debug' | '@:nodebug' | '@:keep'
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
