@@ -87,6 +87,18 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
     final HaxeVarDeclarationPart declarationPart =
       HaxeElementGenerator.createVarDeclarationPart(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName()));
+
+    if (myStratagy == Strategy.GETTERSETTER) {
+      // set namedComponent to be 'public' and add '@:isVar' metadata before 'public' variable scope modifier as a physical field is intended.
+      // see Haxe docs: http://haxe.org/manual/class-field-property-rules.html
+
+      // Brute force attempt which is missing space and throws this error:
+      // [  22158]  ERROR - l.source.tree.CompositeElement - Assertion failed: anchorBefore == null || anchorBefore.getTreeParent() == parent
+      // ----
+      //PsiElement myIsVarMetadata = HaxeElementGenerator.createStatementFromText(namedComponent.getProject(), "@:isVar ");
+      //namedComponent.addBefore(myIsVarMetadata, namedComponent.getParent());
+    }
+
     final HaxePropertyDeclaration propertyDeclaration = declarationPart.getPropertyDeclaration();
     if (propertyDeclaration != null) {
       namedComponent.addAfter(propertyDeclaration, namedComponent.getComponentName());
@@ -99,14 +111,14 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     result.append(name);
     result.append("(");
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
-      result.append(HaxePresentableUtil.getterName(name));
+      result.append("get");
     }
     else {
       result.append("null");
     }
     result.append(",");
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
-      result.append(HaxePresentableUtil.setterName(name));
+      result.append("set");
     }
     else {
       result.append("null");
@@ -144,6 +156,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
       result.append(";");
     }
     else {
+      result.append("return ");
       result.append("this.");
       result.append(name);
       result.append("=value;");
