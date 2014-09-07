@@ -17,12 +17,16 @@
  */
 package com.intellij.plugins.haxe.ide.generation;
 
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxePropertyDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.tree.PsiWhiteSpaceImpl;
 
 import java.util.Set;
 
@@ -87,22 +91,63 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
     final HaxeVarDeclarationPart declarationPart =
       HaxeElementGenerator.createVarDeclarationPart(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName()));
-
-    if (myStratagy == Strategy.GETTERSETTER) {
-      // set namedComponent to be 'public' and add '@:isVar' metadata before 'public' variable scope modifier as a physical field is intended.
-      // see Haxe docs: http://haxe.org/manual/class-field-property-rules.html
-
-      // Brute force attempt which is missing space and throws this error:
-      // [  22158]  ERROR - l.source.tree.CompositeElement - Assertion failed: anchorBefore == null || anchorBefore.getTreeParent() == parent
-      // ----
-      //PsiElement myIsVarMetadata = HaxeElementGenerator.createStatementFromText(namedComponent.getProject(), "@:isVar ");
-      //namedComponent.addBefore(myIsVarMetadata, namedComponent.getParent());
-    }
-
     final HaxePropertyDeclaration propertyDeclaration = declarationPart.getPropertyDeclaration();
     if (propertyDeclaration != null) {
       namedComponent.addAfter(propertyDeclaration, namedComponent.getComponentName());
+      if (myStratagy == Strategy.GETTERSETTER) {
+        makeHaxeFieldPhysical(namedComponent);
+      }
     }
+  }
+
+  /**
+   * make field to physical
+   * @see <a href="http://haxe.org/manual/class-field-property-rules.html</a>
+   */
+  private void makeHaxeFieldPhysical(HaxeNamedComponent namedComponent) {
+    addPublicAccessor(namedComponent);
+    addIsVarMetadata(namedComponent);
+  }
+
+  /**
+   * set variable to have a 'public' AccessLevel.
+   */
+  private static void addPublicAccessor(HaxeNamedComponent namedComponent) {
+    if (UsefulPsiTreeUtil.getChildOfType(namedComponent, HaxeTokenTypes.KPUBLIC) != null) {
+      return;
+    }
+
+    // Adds "public"
+    final PsiElement parentPsiElement = namedComponent.getParent();
+    final PsiElement publicPsiElement = HaxeElementGenerator.createStatementFromText(namedComponent.getProject(), "public");
+    parentPsiElement.addBefore(publicPsiElement, parentPsiElement.getFirstChild());
+
+    // Add white space PsiElement
+    final PsiElement whiteSpacePsiElement = new PsiWhiteSpaceImpl("");
+    //parentPsiElement.addAfter(whiteSpacePsiElement, publicPsiElement); //throws error
+
+    ////////////////////////////////////////////////////
+    // Note: Alternative that seems better but isn't working
+    ////////////////////////////////////////////////////
+
+    // Add HaxeTokenTypes.KPUBLIC to DeclarationTypes
+    //final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(namedComponent, HaxeDeclarationAttribute.class);
+    //HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).add(HaxeTokenTypes.KPUBLIC);
+  }
+
+  /**
+   * add '@:isVar' metadata before 'public' AccessLevel
+   */
+  private void addIsVarMetadata(HaxeNamedComponent namedComponent) {
+    final PsiElement parentPsiElement = namedComponent.getParent();
+
+    // Add @:isVar
+    final PsiElement isVarPsiElement = HaxeElementGenerator.createStatementFromText(namedComponent.getProject(), "@:isVar");
+    parentPsiElement.addBefore(isVarPsiElement, parentPsiElement.getFirstChild());
+
+    // Add white space PsiElement
+    final PsiElement whiteSpacePsiElement = new PsiWhiteSpaceImpl("");
+    //parentPsiElement.addAfter(whiteSpacePsiElement, isVarPsiElement); //throws error
   }
 
   private String buildVarDeclaration(String name) {
