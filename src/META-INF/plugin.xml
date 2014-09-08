@@ -296,7 +296,6 @@
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
-    <configurationType implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.HXCPPRemoteRunConfigurationType"/>
 
     <moduleService serviceInterface="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"
                    serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
