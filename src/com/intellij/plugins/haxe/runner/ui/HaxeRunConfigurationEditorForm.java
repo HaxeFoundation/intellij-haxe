@@ -149,7 +149,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     myRemoteDebuggingCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-          customRemoteDebugging = myCustomPathCheckBox.isSelected();
+          customRemoteDebugging = myRemoteDebuggingCheckBox.isSelected();
       }
     });
 
@@ -215,7 +215,14 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       fileName = !fileName.contains("://") ? FileUtil.toSystemIndependentName(fileName) : fileName;
       configuration.setCustomExecutablePath(fileName);
     }
-    configuration.setCustomDebugPort(customDebugListenPort);
+    Integer port;
+    try {
+        port = Integer.parseInt(myDebugListenPort.getText());
+    }
+    catch (NumberFormatException ex) {
+        port = 6972;
+    }
+    configuration.setCustomDebugPort(port);
     configuration.setCustomRemoteDebugging(customRemoteDebugging);
   }
 
