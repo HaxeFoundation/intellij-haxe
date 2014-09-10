@@ -1,5 +1,9 @@
 Download [intellij-haxe.jar](https://github.com/eliasku/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file and install plugin using "Install plugin from disk..." button in Plugin dialog
 
+For those who want to learn and maintain this plugin look at this introductory tutorial:
+http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
+
+
 ###Important Note
 
 The hxcpp debugger functionality has been rewritten to conform to the
@@ -19,10 +23,6 @@ Haxe v3.0 debugger.  In order to use this, you must:
   -start_debugger is set:
 
   new debugger.Local(true);
-
-
-For those who want to learn and maintain this plugin look at this introductory tutorial:
-http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
 
 ###Required plugins to develop:
 - Plugin DevKit (REQUIRED!)
