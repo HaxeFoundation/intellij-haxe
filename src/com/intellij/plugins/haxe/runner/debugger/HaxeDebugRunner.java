@@ -41,6 +41,7 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -77,6 +78,7 @@ import com.intellij.xdebugger.frame.XStackFrame;
 import com.intellij.xdebugger.frame.XSuspendContext;
 import com.intellij.xdebugger.frame.XValue;
 import com.intellij.xdebugger.frame.XValueChildrenList;
+import com.intellij.xdebugger.frame.XValueModifier;
 import com.intellij.xdebugger.frame.XValueNode;
 import com.intellij.xdebugger.frame.XValuePlace;
 import com.intellij.xdebugger.impl.XSourcePositionImpl;
@@ -89,6 +91,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
+import javax.swing.SwingUtilities;
 
 /**
  * @author: Fedor.Korotkov
@@ -267,8 +270,11 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                     // indicating that the debugger is waiting for the remote
                     // process to start.
                     if (remoteDebugging) {
-                        debugProcess.info("Listening for debugged process " +
-                                          "on port " + port + " ...");
+                        Messages.showInfoMessage
+                            (project, "Listening for debugged process " +
+                             "on port " + port + " ... Press OK after " +
+                             "remote debugged process has started.",
+                             "Haxe Debugger");
                     }
                     // Else, start the being-debugged process and make the
                     // local debug process instance aware of it.
@@ -333,17 +339,16 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                          try {
                              DebugProcess.this.readLoop();
                          }
-                         catch (RuntimeException e) {
-                             e.printStackTrace(System.out);
-                             DebugProcess.this.error
-                                 ("Debugger protocol error: read loop failed " +
-                                  "with " + e);
-                         }
-                         catch (IOException e) {
-                             e.printStackTrace(System.out);
-                             DebugProcess.this.error
-                                 ("Debugger protocol error: read loop failed " +
-                                  "with " + e);
+                         catch (final Throwable t) {
+                             SwingUtilities.invokeLater
+                                 (new Runnable()
+                                  {
+                                      public void run()
+                                      {
+                                          DebugProcess.this.error
+                                              ("Debugging loop failed: " + t);
+                                      }
+                                  });
                          }
                      }
                     });
@@ -443,20 +448,17 @@ public class HaxeDebugRunner extends DefaultProgramRunner
 
         private void info(String message)
         {
-            Messages.showInfoMessage
-                (mProject, message, "Haxe Debugger");
+            Messages.showInfoMessage(mProject, message, "Haxe Debugger");
         }
 
         private void warn(String message)
         {
-            Messages.showInfoMessage
-                (mProject, message, "Haxe Debugger Warning");
+            Messages.showInfoMessage(mProject, message, "Haxe Debugger Warning");
         }
 
         private void error(String message)
         {
-            Messages.showInfoMessage
-                (mProject, message, "Haxe Debugger Error");
+            Messages.showInfoMessage(mProject, message, "Haxe Debugger Error");
             this.stop();
         }
 
@@ -1019,6 +1021,46 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                     node.setPresentation
                         (mIcon, mType, mValue, (mChildren != null));
                 }
+
+                // getModifier() is temporarily disabled as it does not work
+                // due to PSI errors in the haxe PSI tree.
+//                public XValueModifier getModifier()
+//                {
+//                    return new XValueModifier()
+//                    {
+//                        public void setValue(@NotNull String expression,
+//                                   @NotNull final XModificationCallback callback)
+//                        {
+//                            System.out.println("Setting value of " +
+//                                               Value.this.mName + " with " +
+//                                               "expression " +
+//                                               Value.this.mExpression  + 
+//                                               " to " + expression);
+//                            DebugProcess.this.enqueueCommand
+//                                (debugger.Command.SetExpression
+//                                 (false, mExpression, expression),
+//                                 new MessageListener()
+//                            {
+//                                public void handleMessage(int messageId,
+//                                                       debugger.Message message)
+//                                {
+//                                    // Just indicate that the value was
+//                                    // modified, it may end up being the same
+//                                    // value if the set expression failed
+//                                    callback.valueModified();
+//                                }
+//                            });
+//                        }
+//
+//                        public String getInitialValueEditorText()
+//                        {
+//                            System.out.println("Getting initial value of " +
+//                                               Value.this.mName + " as " +
+//                                               Value.this.mValue);
+//                            return Value.this.mValue;
+//                        }
+//                    };
+//                }
                 
                 public String getEvaluationExpression()
                 {
