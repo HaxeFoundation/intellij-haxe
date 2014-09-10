@@ -9,8 +9,10 @@ Haxe v3.0 debugger.  In order to use this, you must:
 - Re-build your project using this newest debugger haxelib
 - Configure your haxe program to start the debugger when the following
   command line option is provided:
+
   -start_debugger
   (and if you expect to do remote debugging, you'll also have to support:
+
   -debugger_host=<host>:<port>
   Most likely you'll just want to add the following in your main() when
   -start_debugger is set:
