@@ -8,7 +8,7 @@ Haxe v3.0 debugger.  In order to use this, you must:
 - Install the newest debugger haxelib from https://github.com/TiVo/debugger
 - Re-build your project using this newest debugger haxelib
 - Configure your haxe program to start the debugger when the following
-  command line options is provided:
+  command line option is provided:
   -start_debugger
   (and if you expect to do remote debugging, you'll also have to support:
   -debugger_host=<host>:<port>
