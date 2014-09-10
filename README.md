@@ -1,5 +1,22 @@
 Download [intellij-haxe.jar](https://github.com/eliasku/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file and install plugin using "Install plugin from disk..." button in Plugin dialog
 
+###Important Note
+
+The hxcpp debugger functionality has been rewritten to conform to the
+Haxe v3.0 debugger.  In order to use this, you must:
+
+- Install the newest debugger haxelib from https://github.com/TiVo/debugger
+- Re-build your project using this newest debugger haxelib
+- Configure your haxe program to start the debugger when the following
+  command line options is provided:
+  -start_debugger
+  (and if you expect to do remote debugging, you'll also have to support:
+  -debugger_host=<host>:<port>
+  Most likely you'll just want to add the following in your main() when
+  -start_debugger is set:
+  new debugger.Local(true);
+
+
 For those who want to learn and maintain this plugin look at this introductory tutorial:
 http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
 
