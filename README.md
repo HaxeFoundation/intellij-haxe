@@ -13,7 +13,7 @@ Haxe v3.0 debugger.  In order to use this, you must:
   -start_debugger
   (and if you expect to do remote debugging, you'll also have to support:
 
-  -debugger_host=<host>:<port>
+  -debugger_host=[host]:[port]
 
   Most likely you'll just want to add the following in your main() when
   -start_debugger is set:
