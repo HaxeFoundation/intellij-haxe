@@ -17,11 +17,19 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.call;
 
+import com.intellij.ide.hierarchy.CallHierarchyBrowserBase;
 import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
+import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,15 +45,40 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
     LOG.setLevel(Level.DEBUG);
   }
 
+  /**
+   * Returns the element for which the hierarchy should be displayed.
+   *
+   * @param context the data context for the action invocation.
+   * @return the target element, or null if the action is not applicable in this context.
+   */
   @Nullable
   @Override
   public PsiElement getTarget(@NotNull DataContext context) {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "getTarget" + context );
     }
+
+    final Project project = CommonDataKeys.PROJECT.getData(context);
+    if (project == null) return null;
+
+    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
+    if (element == null) return null;
+
+    PsiElement parent = PsiTreeUtil.getParentOfType(element, HaxeClassReferenceImpl.class, false);
+    if (parent != null) {
+      HaxeClassReferenceImpl pclass = (HaxeClassReferenceImpl) parent;
+      return (PsiElement)((HaxeClassReferenceImpl)parent).resolveHaxeClass();
+    }
+
     return null;
   }
 
+  /**
+   * Creates a browser for viewing the hierarchy of the specified element.
+   *
+   * @param element the element to view the hierarchy for.
+   * @return the browser instance.
+   */
   @NotNull
   @Override
   public HierarchyBrowser createHierarchyBrowser(PsiElement element) {
@@ -53,13 +86,21 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
       LOG.debug( "createHierarchyBrowser " + element );
     }
     return null;
+
+    //return new CallHierarchyBrowser(element.getProject(), (PsiMethod) element);
   }
 
+  /**
+   * Notifies that the toolwindow has been shown and the specified browser is currently being displayed.
+   *
+   * @param hierarchyBrowser the browser instance created by {@link #createHierarchyBrowser(com.intellij.psi.PsiElement)}.
+   */
   @Override
-  public void browserActivated(@NotNull HierarchyBrowser browser) {
+  public void browserActivated(@NotNull HierarchyBrowser hierarchyBrowser) {
     if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "browserActivated " + browser );
+      LOG.debug( "browserActivated " + hierarchyBrowser );
     }
 
+    ((CallHierarchyBrowser) hierarchyBrowser).changeView(CallHierarchyBrowserBase.CALLER_TYPE);
   }
 }
