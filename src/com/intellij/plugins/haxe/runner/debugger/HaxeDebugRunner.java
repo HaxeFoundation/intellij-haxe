@@ -635,6 +635,12 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                                          ((debugger.ClassList)
                                           message.params.__a[0]);
                                  }
+                                 else {
+                                     throw new RuntimeException
+                                         ("Unexpected message in response " +
+                                          "to class list request: " + 
+                                         JavaProtocol.messageToString(message));
+                                 }
                              }
                          });
                     break;
