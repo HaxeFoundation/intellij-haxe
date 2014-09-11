@@ -42,17 +42,25 @@ public class NMERunningState extends CommandLineState {
   private final Module module;
   private final boolean myRunInTest;
   private final boolean myDebug;
+  private final int myDebugPort;
 
   public NMERunningState(ExecutionEnvironment env, Module module, boolean runInTest) {
-    this(env, module, runInTest, false);
+      this(env, module, runInTest, false, 0);
   }
 
   public NMERunningState(ExecutionEnvironment env, Module module, boolean runInTest, boolean debug) {
-    super(env);
-    this.module = module;
-    myRunInTest = runInTest;
-    myDebug = debug;
+      this(env, module, runInTest, debug, 6972);
   }
+    
+    public NMERunningState(ExecutionEnvironment env, Module module,
+                           boolean runInTest, boolean debug, int debugPort)
+    {
+        super(env);
+        this.module = module;
+        myRunInTest = runInTest;
+        myDebug = debug;
+        myDebugPort = debugPort;
+    }
 
   @NotNull
   @Override
@@ -89,6 +97,9 @@ public class NMERunningState extends CommandLineState {
     if (myDebug) {
       commandLine.addParameter("-debug");
       commandLine.addParameter("-Ddebug");
+      commandLine.addParameter("-args");
+      commandLine.addParameter("-start_debugger");
+      commandLine.addParameter("-debugger_host=localhost:" + myDebugPort);
     }
 
     final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getNmeFlags());

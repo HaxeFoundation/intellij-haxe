@@ -25,6 +25,7 @@
       <ul>
         <li>"Find usages in project" fixed.</li>
         <li>Allowed @:final on methods and fields.</li>
+        <li>Re-implemented hxcpp debugger support to work with Haxe v3 built-in debugger</li>
       </ul>
       <p>0.8.1: (community version)</p>
       <ul>
@@ -296,7 +297,6 @@
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
-    <configurationType implementation="com.intellij.plugins.haxe.runner.debugger.hxcpp.HXCPPRemoteRunConfigurationType"/>
 
     <moduleService serviceInterface="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"
                    serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>

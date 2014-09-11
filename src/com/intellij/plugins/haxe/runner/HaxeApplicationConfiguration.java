@@ -48,6 +48,8 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
   private String customFileToLaunchPath = "";
   private String customExecutablePath = "";
   private boolean customExecutable = false;
+  private int customDebugPort = 6972;
+  private boolean customRemoteDebugging = false;
 
   public HaxeApplicationConfiguration(String name, Project project, HaxeRunConfigurationType configurationType) {
     super(name, new HaxeApplicationModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
@@ -122,6 +124,22 @@ public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeA
 
   public void setCustomExecutablePath(String customExecutablePath) {
     this.customExecutablePath = customExecutablePath;
+  }
+
+  public int getCustomDebugPort() {
+      return customDebugPort;
+  }
+
+  public void setCustomDebugPort(int customDebugPort) {
+      this.customDebugPort = customDebugPort;
+  }
+
+  public boolean isCustomRemoteDebugging() {
+    return customRemoteDebugging;
+  }
+
+  public void setCustomRemoteDebugging(boolean customRemoteDebugging) {
+    this.customRemoteDebugging = customRemoteDebugging;
   }
 
   public void writeExternal(final Element element) throws WriteExternalException {
