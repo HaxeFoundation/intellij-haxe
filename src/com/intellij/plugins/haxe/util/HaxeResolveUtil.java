@@ -201,7 +201,7 @@ public class HaxeResolveUtil {
       return null;
     }
     final HaxeNamedComponent result = haxeClass.findMethodByName(name);
-    return result != null ? result : haxeClass.findFieldByName(name);
+    return result != null ? result : haxeClass.findHaxeFieldByName(name);
   }
 
   @NotNull
@@ -221,8 +221,8 @@ public class HaxeResolveUtil {
           unfilteredResult.add(namedComponent);
         }
       }
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getExtendsList()));
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getImplementsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeExtendsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     }
     if (!unique) {
       return unfilteredResult;

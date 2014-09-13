@@ -102,14 +102,14 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (this instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
       assert haxeClass != null;
-      if (haxeClass.getExtendsList().isEmpty()) {
+      if (haxeClass.getHaxeExtendsList().isEmpty()) {
         return HaxeClassResolveResult.create(null);
       }
-      final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getReferenceExpression();
+      final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
       final HaxeClassResolveResult superClassResolveResult = superExpression instanceof HaxeReference
                                                              ? ((HaxeReference)superExpression).resolveHaxeClass()
                                                              : HaxeClassResolveResult.create(null);
-      superClassResolveResult.specializeByParameters(haxeClass.getExtendsList().get(0).getTypeParam());
+      superClassResolveResult.specializeByParameters(haxeClass.getHaxeExtendsList().get(0).getTypeParam());
       return superClassResolveResult;
     }
     if (this instanceof HaxeStringLiteralExpression) {

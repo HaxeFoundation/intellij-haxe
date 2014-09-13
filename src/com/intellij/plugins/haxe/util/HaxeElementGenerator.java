@@ -53,7 +53,7 @@ public class HaxeElementGenerator {
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
     final HaxeFunctionDeclarationWithAttributes mainMethod =
-      (HaxeFunctionDeclarationWithAttributes)haxeClass.getMethods().iterator().next();
+      (HaxeFunctionDeclarationWithAttributes)haxeClass.getHaxeMethods().iterator().next();
     final HaxeBlockStatement statement = mainMethod.getBlockStatement();
     assert statement != null;
     return statement.getChildren()[0];
@@ -63,7 +63,7 @@ public class HaxeElementGenerator {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return (HaxeVarDeclarationPart)haxeClass.getFields().iterator().next();
+    return (HaxeVarDeclarationPart)haxeClass.getHaxeFields().iterator().next();
   }
 
 
