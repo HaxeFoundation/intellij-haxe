@@ -103,6 +103,10 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
+    if (typeTag == null) {
+      return "";
+    }
+
     final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
     if (haxeFunctionType != null) {
       return buildTypeText(element, haxeFunctionType, specialization);

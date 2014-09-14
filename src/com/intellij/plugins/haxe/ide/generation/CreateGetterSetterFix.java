@@ -87,8 +87,10 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
       return;
     }
 
+    final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclarationPart)namedComponent).getTypeTag());
+
     final HaxeVarDeclaration declaration =
-      HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName()));
+      HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName(), typeText));
     final HaxePropertyDeclaration propertyDeclaration = declaration.getVarDeclarationPartList().iterator().next().getPropertyDeclaration();
     if (propertyDeclaration != null) {
       HaxeVarDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeVarDeclaration.class, false);
@@ -98,7 +100,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     }
   }
 
-  private String buildVarDeclaration(String name) {
+  private String buildVarDeclaration(String name, String typeText) {
     final StringBuilder result = new StringBuilder();
     result.append("@:isVar public var ");
     result.append(name);
@@ -117,6 +119,11 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
       result.append("null");
     }
     result.append(")");
+
+    if (!typeText.isEmpty()) {
+      result.append(":" + typeText);
+    }
+
     result.append(";");
     return result.toString();
   }
@@ -134,11 +141,15 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     result.append(isGetter ? HaxePresentableUtil.getterName(name) : HaxePresentableUtil.setterName(name));
     result.append("(");
     if (!isGetter) {
-      result.append("value:");
-      result.append(typeText);
+      result.append("value");
+
+      if (!typeText.isEmpty()) {
+        result.append(":");
+        result.append(typeText);
+      }
     }
     result.append(")");
-    if (isGetter) {
+    if (isGetter && !typeText.isEmpty()) {
       result.append(":");
       result.append(typeText);
     }
