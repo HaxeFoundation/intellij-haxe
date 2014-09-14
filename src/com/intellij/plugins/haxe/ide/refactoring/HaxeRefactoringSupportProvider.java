@@ -19,9 +19,12 @@ package com.intellij.plugins.haxe.ide.refactoring;
 
 import com.intellij.lang.refactoring.RefactoringSupportProvider;
 import com.intellij.plugins.haxe.ide.refactoring.introduce.HaxeIntroduceVariableHandler;
+import com.intellij.plugins.haxe.ide.refactoring.introduceField.HaxeIntroduceConstantHandler;
+import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpHandler;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringActionHandler;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -35,5 +38,29 @@ public class HaxeRefactoringSupportProvider extends RefactoringSupportProvider {
   @Override
   public RefactoringActionHandler getIntroduceVariableHandler() {
     return new HaxeIntroduceVariableHandler();
+  }
+
+  @Nullable
+  @Override
+  public RefactoringActionHandler getExtractMethodHandler() {
+    return super.getExtractMethodHandler();
+  }
+
+  @Nullable
+  @Override
+  public RefactoringActionHandler getIntroduceConstantHandler() {
+    return new HaxeIntroduceConstantHandler();
+  }
+
+  @Nullable
+  @Override
+  public RefactoringActionHandler getPullUpHandler() {
+    return new HaxePullUpHandler();
+  }
+
+  @Nullable
+  @Override
+  public RefactoringActionHandler getPushDownHandler() {
+    return super.getPushDownHandler();
   }
 }

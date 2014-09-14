@@ -47,6 +47,9 @@ public interface HaxeClass extends HaxeComponent {
   @NotNull
   List<HaxeNamedComponent> getFields();
 
+  @NotNull
+  List<HaxeVarDeclaration> getVarDeclarations();
+
   @Nullable
   HaxeNamedComponent findFieldByName(@NotNull final String name);
 
