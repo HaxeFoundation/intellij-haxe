@@ -86,6 +86,12 @@ public class HaxeCompilerError {
     final String path = (lineSeparationIndex == -1) ? pathAndLine : pathAndLine.substring(0, lineSeparationIndex);
 
     final int errorSeparationIndex = message.indexOf(':', pathSeparationIndex);
+    if (errorSeparationIndex == -1) {
+        // NME produces lots of garbage output that has nothing to do with
+        // any warnings or errors.  The only warning/error lines that matter
+        // are ones with a colon in them, so ignore all others.
+        return null;
+    }
     CompilerMessageCategory category = CompilerMessageCategory.ERROR;
     String errorMessage = "";
     if (errorSeparationIndex != -1) {
