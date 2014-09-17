@@ -11,9 +11,11 @@ import debugger.HaxeProtocol;
  * The haxe compiler will compile this into a Java class called
  * haxe.root.JavaProtocol.  The haxe command that is used to do this is:
  *
- * haxe -java JavaProtocol -main JavaProtocol -lib debugger
+ * haxe -cp .. -java JavaProtocol -main JavaProtocol -lib debugger
  *
- * The resulting jar is in JavaProtocol/JavaProtocol.jar.
+ * The resulting Java source files will be in JavaProtocol/src.  The only
+ * relevant output is the Java source files, everything else can and should be
+ * deleted.
  **/
 class JavaProtocol
 {
