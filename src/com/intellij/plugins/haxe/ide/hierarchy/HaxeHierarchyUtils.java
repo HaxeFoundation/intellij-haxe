@@ -23,20 +23,27 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 /**
  * Created by ebishton on 9/4/14.
+ *
+ * A set of utility functions that support the HierarchyProviders.
  */
 public class HaxeHierarchyUtils {
   private static final Logger LOG = Logger.getInstance("#com.intellij.ide.hierarchy.HaxeHierarchyUtils");
@@ -50,6 +57,41 @@ public class HaxeHierarchyUtils {
     throw new NotImplementedException("Static use only.");
   }
 
+
+  /**
+   * Given a PSI id element, find out if it references a class, and, if so,
+   * returns the PSI element for the class.
+   *
+   * @param id A PSI element for an identifier (e.g. variable name).
+   * @return A PSI class element, or null if not found.
+   */
+  @Nullable
+  public static HaxeClass findReferencedClassForId(@NotNull LeafPsiElement id) {
+    if (null == id) {
+      return null;
+    }
+    PsiElement element = id.getParent();
+    while (null != element) {
+      if (element instanceof HaxeReferenceExpression) {
+        HaxeClass pclass = resolveClassReference((HaxeReferenceExpression) element);
+        if (null != pclass) {
+          return pclass;
+        }
+      }
+      if (element instanceof HaxeFile) {
+        return null;
+      }
+      element = element.getParent();
+    }
+    return null;
+  }
+
+  /**
+   * Retrieve the list of classes implemented in the given File.
+   *
+   * @param psiRoot - File to search.
+   * @return An array of found classes, or an empty array if none.
+   */
   public static AbstractHaxePsiClass[] getClassList(@NotNull HaxeFile psiRoot) {
 
     ArrayList<AbstractHaxePsiClass> classes = new ArrayList<AbstractHaxePsiClass>();
@@ -58,9 +100,19 @@ public class HaxeHierarchyUtils {
         classes.add((AbstractHaxePsiClass)child);
       }
     }
-    return ((AbstractHaxePsiClass[])classes.toArray());
+    AbstractHaxePsiClass[] return_type = {};
+    return (classes.toArray(return_type));
   }
 
+  /**
+   * Get the PSI element for the class containing the currently focused
+   * element.  Anonymous classes can be excluded if desired.
+   *
+   * @param context - editing context
+   * @param allowAnonymous - flag to allow anonymous classes or not.
+   * @return The PSI element representing the containing class.
+   */
+  @Nullable
   public static AbstractHaxePsiClass getContainingClass(@NotNull DataContext context, boolean allowAnonymous) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("getContainingClass " + context);
@@ -126,10 +178,43 @@ public class HaxeHierarchyUtils {
     }
   }
 
+  /**
+   * Retrieve the PSI element for the file containing the given
+   * context (focus element).
+   *
+   * @param context - editing context
+   * @return The PSI node representing the file element.
+   */
+  @Nullable
   public static HaxeFile getContainingFile(@NotNull DataContext context) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("getContainingFile " + context);
     }
+
+    // XXX: EMB: Can we just ask for the node at offset 0??
+    PsiElement element = getPsiElement(context);
+    while (element != null) {
+      if (element instanceof HaxeFile) {
+        return (HaxeFile)element;
+      }
+      element = element.getParent();
+    }
+    return null;
+  }
+
+  /**
+   * Retrieve the PSI element for the given context (focal point).
+   *
+   * @param context - editing context
+   * @return The PSI element at the caret position.
+   */
+  @Nullable
+  public static PsiElement getPsiElement(@NotNull DataContext context) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getPsiElement " + context);
+    }
+
+    PsiElement element = null;
 
     final Project project = CommonDataKeys.PROJECT.getData(context);
     if (project == null) {
@@ -140,6 +225,9 @@ public class HaxeHierarchyUtils {
     }
 
     final Editor editor = CommonDataKeys.EDITOR.getData(context);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("editor " + editor);
+    }
     if (editor != null) {
       final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
       if (file == null) {
@@ -149,18 +237,27 @@ public class HaxeHierarchyUtils {
         return null;
       }
 
-      // Walk the PSI tree toward the root.
       final int offset = editor.getCaretModel().getOffset();
-      // XXX: EMB: Can we just ask for the node at offset 0??
-      PsiElement element = file.findElementAt(offset);
-      while (element != null) {
-        if (element instanceof HaxeFile) {
-          return (HaxeFile)element;
-        }
-        element = element.getParent();
-      }
+      element = file.findElementAt(offset);
     }
-    return null;
+    else {
+      element = CommonDataKeys.PSI_ELEMENT.getData(context);
+    }
+    return element;
+  }
+
+  /**
+   * Determine the class (PSI element), if any, that is referenced by the
+   * given reference expression.
+   *
+   * @param element A PSI reference expression.
+   * @return The associated class, if any.  null if not found.
+   */
+  @Nullable
+  public static HaxeClass resolveClassReference(@NotNull HaxeReferenceExpression element) {
+    HaxeClassResolveResult result = element.resolveHaxeClass();
+    HaxeClass pclass = result == null ? null : result.getHaxeClass();
+    return pclass;
   }
 
 } // END class HaxeHierarchyUtils
