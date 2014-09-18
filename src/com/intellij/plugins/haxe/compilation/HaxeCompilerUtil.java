@@ -26,6 +26,9 @@ import com.intellij.openapi.vfs.VfsUtilCore;
  * @author: Fedor.Korotkov
  */
 public class HaxeCompilerUtil {
+
+  public static final String ERROR = "Error: ";
+
   public static void fillContext(CompileContext context, String errorRoot, String[] errors) {
     for (String error : errors) {
       addErrorToContext(error, context, errorRoot);
@@ -38,8 +41,22 @@ public class HaxeCompilerUtil {
       error,
       !ApplicationManager.getApplication().isUnitTestMode()
     );
+
     if (compilerError == null) {
-      context.addMessage(CompilerMessageCategory.WARNING, error, null, -1, -1);
+      if (error.startsWith(ERROR)) {
+        if (!error.contentEquals("Error: Build failed")) {
+          context.addMessage(CompilerMessageCategory.ERROR, error.substring(ERROR.length()), null, -1, -1);
+        }
+        else {
+          return;
+        }
+      }
+      else if (error.endsWith("is not installed")) {
+        context.addMessage(CompilerMessageCategory.WARNING, error, null, -1, -1);
+      }
+      else {
+        context.addMessage(CompilerMessageCategory.INFORMATION, error, null, -1, -1);
+      }
       return;
     }
 

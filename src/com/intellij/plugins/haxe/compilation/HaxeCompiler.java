@@ -220,7 +220,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     });
 
     if (!compiled) {
-      context.addMessage(CompilerMessageCategory.ERROR, "compilation failed", null, 0, 0);
+      context.addMessage(CompilerMessageCategory.ERROR, "Compilation failed", null, 0, 0);
     }
 
     return compiled;

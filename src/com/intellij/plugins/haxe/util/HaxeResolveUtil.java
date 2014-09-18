@@ -301,6 +301,30 @@ public class HaxeResolveUtil {
     return result;
   }
 
+  public static List<HaxeVarDeclaration> getClassVarDeclarations(HaxeClass haxeClass) {
+    PsiElement body = null;
+    final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
+    if (type == HaxeComponentType.CLASS) {
+      body = PsiTreeUtil.getChildOfAnyType(haxeClass, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
+    }
+
+    final List<HaxeVarDeclaration> result = new ArrayList<HaxeVarDeclaration>();
+
+    if (body == null) {
+      return result;
+    }
+
+    final HaxeVarDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeVarDeclaration.class);
+
+    if (variables == null) {
+      return result;
+    }
+    for (HaxeVarDeclaration varDeclaration : variables) {
+      result.add(varDeclaration);
+    }
+    return result;
+  }
+
   @Nullable
   public static List<HaxeType> getFunctionParameters(HaxeNamedComponent component) {
     if (HaxeComponentType.typeOf(component) != HaxeComponentType.METHOD) {

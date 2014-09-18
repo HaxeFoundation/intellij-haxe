@@ -189,7 +189,8 @@ public class HaxeConfigurationEditor {
           public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
             return super.isFileVisible(file, showHiddenFiles) &&
                    (file.isDirectory()
-                    || (isNMML ? "nmml" : "hxml").equalsIgnoreCase(file.getExtension())
+                    || (!isNMML && !isOpenFL && "hxml".equalsIgnoreCase(file.getExtension()))
+                    || (isNMML && "nmml".equalsIgnoreCase(file.getExtension()))
                     || (isOpenFL && "xml".equalsIgnoreCase(file.getExtension()))
                     || (isOpenFL && "lime".equalsIgnoreCase(file.getExtension()))
                    );
