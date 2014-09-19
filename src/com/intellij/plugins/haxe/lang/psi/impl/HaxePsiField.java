@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiField extends PsiFieldImpl implements PsiField {
+public class HaxePsiField /*extends PsiFieldImpl*/ extends AbstractHaxeNamedComponent implements PsiField {
 
   private HaxeNamedComponent mHaxeNamedComponent;
   private AbstractHaxePsiClass mContainingClass;
@@ -42,10 +42,6 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
     super(inHaxeNamedComponent.getNode());
     mContainingClass = inContainingClass;
     mHaxeNamedComponent = inHaxeNamedComponent;
-  }
-
-  public HaxeNamedComponent getDelegate() {
-    return ((HaxeNamedComponent) mHaxeNamedComponent);
   }
 
   @Nullable
@@ -82,5 +78,65 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
       return mHaxeNamedComponent.isStatic();
     }
     return getModifierList().hasModifierProperty(name);
+  }
+
+  @Nullable
+  @Override
+  public PsiExpression getInitializer() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
+  }
+
+  @Override
+  public boolean hasInitializer() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return false;
+  }
+
+  @Override
+  public void setInitializer(@Nullable PsiExpression initializer) throws IncorrectOperationException {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    // none
+  }
+
+  @NotNull
+  @Override
+  public PsiIdentifier getNameIdentifier() {
+     /* TODO: [TiVo]: Implement */
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public PsiType getType() {
+     /* TODO: [TiVo]: Implement */
+
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiTypeElement getTypeElement() {
+     /* TODO: [TiVo]: Implement */
+    return null;
+  }
+
+  @Override
+  public void normalizeDeclaration() throws IncorrectOperationException {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+  }
+
+  @Nullable
+  @Override
+  public Object computeConstantValue() {
+     /* TODO: [TiVo]: Implement */
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiModifierList getModifierList() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
   }
 }

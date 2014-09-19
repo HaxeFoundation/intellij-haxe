@@ -26,6 +26,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
+import com.intellij.psi.impl.source.PsiMethodImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -170,10 +171,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiReference findReferenceAt(int offset) {
-    PsiElement element = getDelegate().findElementAt(offset);
-    /* TODO: [TiVo]: Implement */
-    return null;
-
+    return getDelegate().findReferenceAt(offset);
   }
 
   @Override
@@ -379,7 +377,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   }
 
   @Nullable
-  @Override
+  // @ O v e r r i d e
   public HaxeComponentName getComponentName() {
     return getDelegate().getComponentName();
   }
@@ -411,8 +409,8 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @NotNull
   @Override
   public PsiReferenceList getThrowsList() {
+    /* TODO: [TiVo]: translate below returned objects into PsiReferenceList */
     HaxeThrowStatement returnStatement = getDelegate().getThrowStatement();
-    /* TODO: [TiVo]: Implement */
     return null;
   }
 
@@ -438,6 +436,51 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   public boolean isVarArgs() {
     /* TODO: [TiVo]: Implement */
     return false;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    if (PsiModifier.PUBLIC.equals(name)) {
+      return getDelegate().isPublic();
+    }
+    else if (PsiModifier.PRIVATE.equals(name)) {
+      return (! getDelegate().isPublic());
+    }
+    else if (PsiModifier.STATIC.equals(name)) {
+      return (getDelegate().isStatic());
+    }
+    else if (getModifierList() != null) {
+      return getModifierList().hasModifierProperty(name);
+    }
+    return false;
+  }
+
+  @Nullable
+  @Override
+  public PsiDocComment getDocComment() {
+    return new HaxePsiDocComment(getDelegate());
+  }
+
+  @Override
+  public boolean isDeprecated() {
+    return false;
+  }
+
+  @Override
+  public boolean hasTypeParameters() {
+    return PsiImplUtil.hasTypeParameters(this);
+  }
+
+  @NotNull
+  @Override
+  public PsiTypeParameter[] getTypeParameters() {
+    return PsiImplUtil.getTypeParameters(this);
+  }
+
+  @Nullable
+  @Override
+  public PsiClass getContainingClass() {
+    return mContainingClass;
   }
 
   @NotNull
@@ -496,53 +539,6 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return new PsiMethod[0];
   }
 
-  @NotNull
-  @Override
-  public PsiModifierList getModifierList() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
-  }
-
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    if (PsiModifier.PUBLIC.equals(name)) {
-      return isPublic();
-    }
-    else if (PsiModifier.PRIVATE.equals(name)) {
-      return (! isPublic());
-    }
-    else if (PsiModifier.STATIC.equals(name)) {
-      return (isStatic());
-    }
-    else if (getModifierList() != null) {
-      return getModifierList().hasModifierProperty(name);
-    }
-    return false;
-  }
-
-  @NotNull
-  @Override
-  public HierarchicalMethodSignature getHierarchicalMethodSignature() {
-     /* TODO: [TiVo]: Implement */
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiDocComment getDocComment() {
-    return new HaxePsiDocComment(this);
-  }
-
-  @Override
-  public boolean isDeprecated() {
-    return false;
-  }
-
-  @Override
-  public boolean hasTypeParameters() {
-    return PsiImplUtil.hasTypeParameters(this);
-  }
-
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
@@ -552,13 +548,15 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
 
   @NotNull
   @Override
-  public PsiTypeParameter[] getTypeParameters() {
-    return PsiImplUtil.getTypeParameters(this);
+  public PsiModifierList getModifierList() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public PsiClass getContainingClass() {
-    return mContainingClass;
+  public HierarchicalMethodSignature getHierarchicalMethodSignature() {
+     /* TODO: [TiVo]: Implement */
+    return null;
   }
 }

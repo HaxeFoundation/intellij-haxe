@@ -191,15 +191,12 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getExtendsList() {
-    List<HaxeType> hxList = getHaxeExtendsList();
-    final int size = hxList.size();
-    PsiReference[] psiRefArray = new PsiReference[size];
-    for (int idx=0; idx<size; idx++) {
-      psiRefArray[idx] = hxList.get(idx).getReferenceExpression();
+    List<HaxeType> haxeTypeList = getHaxeExtendsList();
+    HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this.getNode());
+    for (HaxeType haxeType : haxeTypeList) {
+      psiReferenceList.add(haxeType.getReferenceExpression());
     }
-    // TODO: [TiVo]: fix translation
-    // return new PsiReferenceListImpl(psiRefArray);
-    return null;
+    return psiReferenceList;
   }
 
   @Override
@@ -211,15 +208,12 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getImplementsList() {
-    List<HaxeType> hxList = getHaxeImplementsList();
-    final int size = hxList.size();
-    PsiReference[] psiRefArray = new PsiReference[size];
-    for (int idx=0; idx<size; idx++) {
-      psiRefArray[idx] = hxList.get(idx).getReferenceExpression();
+    List<HaxeType> haxeTypeList = getHaxeImplementsList();
+    HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this.getNode());
+    for (HaxeType haxeType : haxeTypeList) {
+      psiReferenceList.add(haxeType.getReferenceExpression());
     }
-    // TODO: [TiVo]: fix translation
-    // return new PsiReferenceListImpl(psiRefArray);
-    return null;
+    return psiReferenceList;
   }
 
   @Override
