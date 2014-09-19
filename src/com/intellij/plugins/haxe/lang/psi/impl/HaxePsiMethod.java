@@ -26,7 +26,9 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
+import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.PsiMethodImpl;
+import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -350,10 +352,10 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return getDelegate().getUseScope();
   }
 
-  @Override
-  public ASTNode getNode() {
-    return getDelegate().getNode();
-  }
+  //@Override
+  //public ASTNode getNode() {
+  //  return getDelegate().getNode();
+  //}
 
   @Override
   public boolean isEquivalentTo(PsiElement another) {
@@ -493,50 +495,45 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-     /* TODO: [TiVo]: Implement */
+    //return (PsiIdentifier)super.getNode().findChildByRoleAsPsiElement(ChildRole.NAME);
+    /* TODO: [TiVo]: Implement */
     return null;
   }
 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods() {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
+    return PsiSuperMethodImplUtil.findSuperMethods(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods(boolean checkAccess) {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
+    return PsiSuperMethodImplUtil.findSuperMethods(this, checkAccess);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods(PsiClass parentClass) {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
+    return PsiSuperMethodImplUtil.findSuperMethods(this, parentClass);
   }
 
   @NotNull
   @Override
   public List<MethodSignatureBackedByPsiMethod> findSuperMethodSignaturesIncludingStatic(boolean checkAccess) {
-     /* TODO: [TiVo]: Implement */
-    return null;
+    return PsiSuperMethodImplUtil.findSuperMethodSignaturesIncludingStatic(this, checkAccess);
   }
 
   @Nullable
   @Override
   public PsiMethod findDeepestSuperMethod() {
-     /* TODO: [TiVo]: Implement */
-    return null;
+    return PsiSuperMethodImplUtil.findDeepestSuperMethod(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findDeepestSuperMethods() {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
+    return PsiSuperMethodImplUtil.findDeepestSuperMethods(this);
   }
 
   @Nullable
@@ -556,7 +553,6 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @NotNull
   @Override
   public HierarchicalMethodSignature getHierarchicalMethodSignature() {
-     /* TODO: [TiVo]: Implement */
-    return null;
+    return PsiSuperMethodImplUtil.getHierarchicalMethodSignature(this);
   }
 }
