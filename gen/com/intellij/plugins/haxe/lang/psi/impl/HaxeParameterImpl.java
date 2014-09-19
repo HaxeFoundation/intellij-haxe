@@ -19,13 +19,11 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import java.util.List;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiParameterImpl;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.util.PsiTreeUtil;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
 public class HaxeParameterImpl extends AbstractHaxeNamedComponent implements HaxeParameter {
@@ -57,4 +55,66 @@ public class HaxeParameterImpl extends AbstractHaxeNamedComponent implements Hax
     return findChildByClass(HaxeVarInit.class);
   }
 
+
+  @NotNull
+  // @ O v e r r i d e
+  public PsiElement getDeclarationScope() {
+    return null;
+  }
+
+  // @ O v e r r i d e
+  public boolean isVarArgs() {
+    return false;
+  }
+
+  @Nullable
+  // @ O v e r r i d e
+  public PsiTypeElement getTypeElement() {
+    return null;
+  }
+
+  @NotNull
+  // @ O v e r r i d e
+  public PsiType getType() {
+    return null;
+  }
+
+  @Nullable
+  // @ O v e r r i d e
+  public PsiExpression getInitializer() {
+    return null;
+  }
+
+  // @ O v e r r i d e
+  public boolean hasInitializer() {
+    return false;
+  }
+
+  // @ O v e r r i d e
+  public void normalizeDeclaration() throws IncorrectOperationException {
+
+  }
+
+  @Nullable
+  // @ O v e r r i d e
+  public Object computeConstantValue() {
+    return null;
+  }
+
+  @Nullable
+  // @ O v e r r i d e
+  public PsiIdentifier getNameIdentifier() {
+    return null;
+  }
+
+  @Nullable
+  // @ O v e r r i d e
+  public PsiModifierList getModifierList() {
+    return null;
+  }
+
+  // @ O v e r r i d e
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    return false;
+  }
 }

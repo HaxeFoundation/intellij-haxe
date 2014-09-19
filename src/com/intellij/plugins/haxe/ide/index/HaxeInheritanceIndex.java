@@ -109,7 +109,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
       final Map<String, String> qNameCache = new THashMap<String, String>();
       for (HaxeClass haxeClass : classes) {
         final HaxeClassInfo value = new HaxeClassInfo(haxeClass.getQualifiedName(), HaxeComponentType.typeOf(haxeClass));
-        for (HaxeType haxeType : haxeClass.getExtendsList()) {
+        for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {
           if (haxeType == null) continue;
           final String classNameCandidate = haxeType.getText();
           final String key = classNameCandidate.indexOf('.') != -1 ?
@@ -117,7 +117,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
                              getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
           put(result, key, value);
         }
-        for (HaxeType haxeType : haxeClass.getImplementsList()) {
+        for (HaxeType haxeType : haxeClass.getHaxeImplementsList()) {
           if (haxeType == null) continue;
           final String classNameCandidate = haxeType.getText();
           final String key = classNameCandidate.indexOf('.') != -1 ?

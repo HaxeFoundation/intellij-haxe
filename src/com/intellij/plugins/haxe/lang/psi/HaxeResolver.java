@@ -85,13 +85,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (reference instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
       assert haxeClass != null;
-      if (!haxeClass.getExtendsList().isEmpty()) {
-        final HaxeExpression superExpression = haxeClass.getExtendsList().get(0).getReferenceExpression();
+      if (!haxeClass.getHaxeExtendsList().isEmpty()) {
+        final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
         final HaxeClass superClass = superExpression instanceof HaxeReference
                                      ? ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass()
                                      : null;
-        final HaxeNamedComponent constructor = superClass == null ? null : superClass.findMethodByName("new");
-        return toCandidateInfoArray(constructor != null ? constructor : superClass);
+        final HaxeNamedComponent constructor = ((superClass == null) ? null : superClass.findHaxeMethodByName("new"));
+        return toCandidateInfoArray(((constructor != null) ? constructor : superClass));
       }
     }
 

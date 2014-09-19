@@ -34,12 +34,12 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
 
   @NotNull
   @Override
-  public List<HaxeType> getExtendsList() {
+  public List<HaxeType> getHaxeExtendsList() {
     final HaxeTypeExtends typeExtends = getAnonymousTypeBody().getTypeExtends();
     if (typeExtends != null) {
       return Arrays.asList(typeExtends.getType());
     }
-    return super.getExtendsList();
+    return super.getHaxeExtendsList();
   }
 
   @Override

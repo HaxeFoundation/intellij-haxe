@@ -112,9 +112,10 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeParameterList getParameterList() {
-    return findChildByClass(HaxeParameterList.class);
+    HaxeParameterList hplist = findChildByClass(HaxeParameterList.class);
+    return ((hplist!=null)? hplist :new HaxeParameterListImpl(null));
   }
 
   @Override

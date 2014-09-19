@@ -20,10 +20,12 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
+
+import com.intellij.psi.PsiBlockStatement;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeBlockStatement extends HaxePsiCompositeElement {
+public interface HaxeBlockStatement extends HaxePsiCompositeElement, PsiBlockStatement {
 
   @NotNull
   List<HaxeBlockStatement> getBlockStatementList();
