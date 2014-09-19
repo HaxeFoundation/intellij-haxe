@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.project.Project;
@@ -27,8 +26,9 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
-import com.intellij.psi.impl.source.PsiMethodImpl;
 import com.intellij.psi.impl.source.tree.ChildRole;
+import com.intellij.psi.impl.source.tree.CompositeElement;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -247,6 +247,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return getDelegate().addAfter(element, anchor);
   }
 
+  @Deprecated
   @Override
   public void checkAdd(@NotNull PsiElement element) throws IncorrectOperationException {
     getDelegate().checkAdd(element);
@@ -273,6 +274,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     getDelegate().delete();
   }
 
+  @Deprecated
   @Override
   public void checkDelete() throws IncorrectOperationException {
     getDelegate().checkDelete();
@@ -352,10 +354,10 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return getDelegate().getUseScope();
   }
 
-  //@Override
-  //public ASTNode getNode() {
-  //  return getDelegate().getNode();
-  //}
+  @Override
+  public CompositePsiElement getNode() {
+    return ((CompositePsiElement)getDelegate().getNode());
+  }
 
   @Override
   public boolean isEquivalentTo(PsiElement another) {
@@ -495,9 +497,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    //return (PsiIdentifier)super.getNode().findChildByRoleAsPsiElement(ChildRole.NAME);
-    /* TODO: [TiVo]: Implement */
-    return null;
+    return ((PsiIdentifier)((CompositePsiElement)super.getNode()).findChildByRoleAsPsiElement(ChildRole.NAME));
   }
 
   @NotNull
@@ -524,6 +524,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return PsiSuperMethodImplUtil.findSuperMethodSignaturesIncludingStatic(this, checkAccess);
   }
 
+  @Deprecated
   @Nullable
   @Override
   public PsiMethod findDeepestSuperMethod() {
