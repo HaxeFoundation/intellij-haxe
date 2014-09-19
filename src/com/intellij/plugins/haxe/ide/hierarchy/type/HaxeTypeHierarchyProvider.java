@@ -139,8 +139,7 @@ public class HaxeTypeHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "createHierarchyBrowser " + element );
     }
-    // return new TypeHierarchyBrowser(element.getProject(), (PsiClass) element);
-    return null;
+    return new TypeHierarchyBrowser(element.getProject(), (PsiClass) element);
   }
 
   @Override
