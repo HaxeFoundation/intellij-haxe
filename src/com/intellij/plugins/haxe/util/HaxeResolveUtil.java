@@ -200,8 +200,8 @@ public class HaxeResolveUtil {
     if (haxeClass == null) {
       return null;
     }
-    final HaxeNamedComponent result = haxeClass.findMethodByName(name);
-    return result != null ? result : haxeClass.findFieldByName(name);
+    final HaxeNamedComponent result = haxeClass.findHaxeMethodByName(name);
+    return result != null ? result : haxeClass.findHaxeFieldByName(name);
   }
 
   @NotNull
@@ -221,8 +221,8 @@ public class HaxeResolveUtil {
           unfilteredResult.add(namedComponent);
         }
       }
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getExtendsList()));
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getImplementsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeExtendsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     }
     if (!unique) {
       return unfilteredResult;
@@ -351,13 +351,13 @@ public class HaxeResolveUtil {
         final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
         // try next
         HaxeClassResolveResult result =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
+          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("next"),
                                     resolveResult.getSpecialization());
         if (result.getHaxeClass() != null) {
           return result;
         }
         // try iterator
-        result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
+        result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator"),
                                            resolveResult.getSpecialization());
         return result.getSpecialization().containsKey(null, "T")
                ? result.getSpecialization().get(null, "T")

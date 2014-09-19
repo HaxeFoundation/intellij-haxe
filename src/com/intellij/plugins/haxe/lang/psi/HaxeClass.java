@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.impl.source.PsiExtensibleClass;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +28,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeClass extends HaxeComponent {
+public interface HaxeClass extends HaxeComponent, PsiClass {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
   @NotNull
@@ -34,24 +36,24 @@ public interface HaxeClass extends HaxeComponent {
   String getQualifiedName();
 
   @NotNull
-  List<HaxeType> getExtendsList();
+  List<HaxeType> getHaxeExtendsList();
 
   @NotNull
-  List<HaxeType> getImplementsList();
+  List<HaxeType> getHaxeImplementsList();
 
   boolean isInterface();
 
   @NotNull
-  List<HaxeNamedComponent> getMethods();
+  List<HaxeNamedComponent> getHaxeMethods();
 
   @NotNull
-  List<HaxeNamedComponent> getFields();
+  List<HaxeNamedComponent> getHaxeFields();
 
   @Nullable
-  HaxeNamedComponent findFieldByName(@NotNull final String name);
+  HaxeNamedComponent findHaxeFieldByName(@NotNull final String name);
 
   @Nullable
-  HaxeNamedComponent findMethodByName(@NotNull final String name);
+  HaxeNamedComponent findHaxeMethodByName(@NotNull final String name);
 
   boolean isGeneric();
 
