@@ -17,8 +17,15 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.impl.source.PsiReferenceListImpl;
+
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiReferenceList {
+public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiReferenceList {
+  public HaxePsiReferenceList(ASTNode node) {
+    super(node);
+  }
 }

@@ -26,6 +26,9 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
+import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.impl.source.PsiMethodImpl;
+import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -170,10 +173,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiReference findReferenceAt(int offset) {
-    PsiElement element = getDelegate().findElementAt(offset);
-    /* TODO: [TiVo]: Implement */
-    return null;
-
+    return getDelegate().findReferenceAt(offset);
   }
 
   @Override
@@ -352,10 +352,10 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return getDelegate().getUseScope();
   }
 
-  @Override
-  public ASTNode getNode() {
-    return getDelegate().getNode();
-  }
+  //@Override
+  //public ASTNode getNode() {
+  //  return getDelegate().getNode();
+  //}
 
   @Override
   public boolean isEquivalentTo(PsiElement another) {
@@ -379,7 +379,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   }
 
   @Nullable
-  @Override
+  // @ O v e r r i d e
   public HaxeComponentName getComponentName() {
     return getDelegate().getComponentName();
   }
@@ -411,8 +411,8 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @NotNull
   @Override
   public PsiReferenceList getThrowsList() {
+    /* TODO: [TiVo]: translate below returned objects into PsiReferenceList */
     HaxeThrowStatement returnStatement = getDelegate().getThrowStatement();
-    /* TODO: [TiVo]: Implement */
     return null;
   }
 
@@ -440,79 +440,16 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return false;
   }
 
-  @NotNull
-  @Override
-  public MethodSignature getSignature(@NotNull PsiSubstitutor substitutor) {
-    /* TODO: [TiVo]: Implement */
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiIdentifier getNameIdentifier() {
-     /* TODO: [TiVo]: Implement */
-    return null;
-  }
-
-  @NotNull
-  @Override
-  public PsiMethod[] findSuperMethods() {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
-  }
-
-  @NotNull
-  @Override
-  public PsiMethod[] findSuperMethods(boolean checkAccess) {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
-  }
-
-  @NotNull
-  @Override
-  public PsiMethod[] findSuperMethods(PsiClass parentClass) {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
-  }
-
-  @NotNull
-  @Override
-  public List<MethodSignatureBackedByPsiMethod> findSuperMethodSignaturesIncludingStatic(boolean checkAccess) {
-     /* TODO: [TiVo]: Implement */
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiMethod findDeepestSuperMethod() {
-     /* TODO: [TiVo]: Implement */
-    return null;
-  }
-
-  @NotNull
-  @Override
-  public PsiMethod[] findDeepestSuperMethods() {
-     /* TODO: [TiVo]: Implement */
-    return new PsiMethod[0];
-  }
-
-  @NotNull
-  @Override
-  public PsiModifierList getModifierList() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
-  }
-
   @Override
   public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
     if (PsiModifier.PUBLIC.equals(name)) {
-      return isPublic();
+      return getDelegate().isPublic();
     }
     else if (PsiModifier.PRIVATE.equals(name)) {
-      return (! isPublic());
+      return (! getDelegate().isPublic());
     }
     else if (PsiModifier.STATIC.equals(name)) {
-      return (isStatic());
+      return (getDelegate().isStatic());
     }
     else if (getModifierList() != null) {
       return getModifierList().hasModifierProperty(name);
@@ -520,17 +457,10 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return false;
   }
 
-  @NotNull
-  @Override
-  public HierarchicalMethodSignature getHierarchicalMethodSignature() {
-     /* TODO: [TiVo]: Implement */
-    return null;
-  }
-
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    return new HaxePsiDocComment(this);
+    return new HaxePsiDocComment(getDelegate());
   }
 
   @Override
@@ -543,13 +473,6 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     return PsiImplUtil.hasTypeParameters(this);
   }
 
-  @Nullable
-  @Override
-  public PsiTypeParameterList getTypeParameterList() {
-    /* TODO: [TiVo]: Implement */
-    return null;
-  }
-
   @NotNull
   @Override
   public PsiTypeParameter[] getTypeParameters() {
@@ -560,5 +483,76 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Override
   public PsiClass getContainingClass() {
     return mContainingClass;
+  }
+
+  @NotNull
+  @Override
+  public MethodSignature getSignature(@NotNull PsiSubstitutor substitutor) {
+    /* TODO: [TiVo]: Implement */
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiIdentifier getNameIdentifier() {
+    //return (PsiIdentifier)super.getNode().findChildByRoleAsPsiElement(ChildRole.NAME);
+    /* TODO: [TiVo]: Implement */
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public PsiMethod[] findSuperMethods() {
+    return PsiSuperMethodImplUtil.findSuperMethods(this);
+  }
+
+  @NotNull
+  @Override
+  public PsiMethod[] findSuperMethods(boolean checkAccess) {
+    return PsiSuperMethodImplUtil.findSuperMethods(this, checkAccess);
+  }
+
+  @NotNull
+  @Override
+  public PsiMethod[] findSuperMethods(PsiClass parentClass) {
+    return PsiSuperMethodImplUtil.findSuperMethods(this, parentClass);
+  }
+
+  @NotNull
+  @Override
+  public List<MethodSignatureBackedByPsiMethod> findSuperMethodSignaturesIncludingStatic(boolean checkAccess) {
+    return PsiSuperMethodImplUtil.findSuperMethodSignaturesIncludingStatic(this, checkAccess);
+  }
+
+  @Nullable
+  @Override
+  public PsiMethod findDeepestSuperMethod() {
+    return PsiSuperMethodImplUtil.findDeepestSuperMethod(this);
+  }
+
+  @NotNull
+  @Override
+  public PsiMethod[] findDeepestSuperMethods() {
+    return PsiSuperMethodImplUtil.findDeepestSuperMethods(this);
+  }
+
+  @Nullable
+  @Override
+  public PsiTypeParameterList getTypeParameterList() {
+    /* TODO: [TiVo]: Implement */
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public PsiModifierList getModifierList() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public HierarchicalMethodSignature getHierarchicalMethodSignature() {
+    return PsiSuperMethodImplUtil.getHierarchicalMethodSignature(this);
   }
 }
