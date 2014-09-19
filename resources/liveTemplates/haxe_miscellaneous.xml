@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2000-2013 JetBrains s.r.o.
+  ~ Copyright 2014-2014 Hays Clark
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
   ~
@@ -24,6 +25,18 @@
   </template>
 
   <template name="prv" value="private var $END$" description="private var" toReformat="false" toShortenFQNames="false">
+    <context>
+      <option name="HAXE" value="true"/>
+    </context>
+  </template>
+
+  <template name="psc" value="public static inline var $END$" description="public static const (equivalent)" toReformat="false" toShortenFQNames="false">
+    <context>
+      <option name="HAXE" value="true"/>
+    </context>
+  </template>
+
+  <template name="psiv" value="public static inline var $END$" description="public static inline var" toReformat="false" toShortenFQNames="false">
     <context>
       <option name="HAXE" value="true"/>
     </context>

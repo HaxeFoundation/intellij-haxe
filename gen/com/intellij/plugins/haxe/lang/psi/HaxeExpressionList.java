@@ -28,4 +28,10 @@ public interface HaxeExpressionList extends HaxePsiCompositeElement {
   @NotNull
   List<HaxeExpression> getExpressionList();
 
+  @Nullable
+  HaxeForStatement getForStatement();
+
+  @Nullable
+  HaxeWhileStatement getWhileStatement();
+
 }

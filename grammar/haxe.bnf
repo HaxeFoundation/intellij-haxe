@@ -389,7 +389,7 @@ catchStatement ::= 'catch' '(' parameter ')' statement ';'?
  * expressions
  */
 
-expressionList ::= expression (',' expression)* {recoverWhile="expression_list_recover"}
+expressionList ::= forStatement | whileStatement | (expression (',' expression)*) {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
 expression ::= assignExpressionWrapper {recoverWhile="expression_recover"}

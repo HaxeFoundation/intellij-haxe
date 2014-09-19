@@ -107,6 +107,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.FIELD);
   }
 
+  @NotNull
+  @Override
+  public List<HaxeVarDeclaration> getVarDeclarations() {
+    final List<HaxeVarDeclaration> result = HaxeResolveUtil.getClassVarDeclarations(this);
+    return result;
+  }
+
   @Nullable
   @Override
   public HaxeNamedComponent findHaxeFieldByName(@NotNull final String name) {

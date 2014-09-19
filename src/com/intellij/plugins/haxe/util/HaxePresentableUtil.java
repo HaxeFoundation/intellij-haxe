@@ -30,11 +30,11 @@ import java.util.List;
  */
 public class HaxePresentableUtil {
   public static String setterName(@NotNull @Nls String name) {
-    return "set" + startsWithUpperCase(name);
+    return "set_" + name;
   }
 
   public static String getterName(@NotNull @Nls String name) {
-    return "get" + startsWithUpperCase(name);
+    return "get_" + name;
   }
 
   public static String startsWithUpperCase(@NotNull @Nls String name) {
@@ -103,6 +103,10 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
+    if (typeTag == null) {
+      return "";
+    }
+
     final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
     if (haxeFunctionType != null) {
       return buildTypeText(element, haxeFunctionType, specialization);

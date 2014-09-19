@@ -45,4 +45,16 @@ public class HaxeExpressionListImpl extends HaxePsiCompositeElementImpl implemen
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
   }
 
+  @Override
+  @Nullable
+  public HaxeForStatement getForStatement() {
+    return findChildByClass(HaxeForStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeWhileStatement getWhileStatement() {
+    return findChildByClass(HaxeWhileStatement.class);
+  }
+
 }
