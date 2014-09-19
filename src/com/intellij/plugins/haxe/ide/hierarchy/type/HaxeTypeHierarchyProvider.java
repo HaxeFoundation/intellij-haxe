@@ -55,12 +55,12 @@ public class HaxeTypeHierarchyProvider implements HierarchyProvider {
       LOG.debug( "getTarget " + context );
     }
 
-    AbstractHaxePsiClass clazz = HaxeHierarchyUtils.getContainingClass(
-                                          context, false /* No anonymous classes */ );
+    HaxeClass clazz = HaxeHierarchyUtils.getContainingClass(
+                                  context, false /* No anonymous classes */ );
     if (null == clazz) {
       HaxeFile f = HaxeHierarchyUtils.getContainingFile(context);
       if (f != null) {
-        AbstractHaxePsiClass[] classes = HaxeHierarchyUtils.getClassList(f);
+        HaxeClass[] classes = HaxeHierarchyUtils.getClassList(f);
         return classes.length > 0 ? classes[0] : null;
       }
     }

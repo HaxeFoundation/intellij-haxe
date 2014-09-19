@@ -59,8 +59,8 @@ public class HaxeHierarchyUtils {
 
 
   /**
-   * Given a PSI id element, find out if it references a class, and, if so,
-   * returns the PSI element for the class.
+   * Given a PSI id element, find out if it -- or one of its parents --
+   * references a class, and, if so, returns the PSI element for the class.
    *
    * @param id A PSI element for an identifier (e.g. variable name).
    * @return A PSI class element, or null if not found.
@@ -92,15 +92,15 @@ public class HaxeHierarchyUtils {
    * @param psiRoot - File to search.
    * @return An array of found classes, or an empty array if none.
    */
-  public static AbstractHaxePsiClass[] getClassList(@NotNull HaxeFile psiRoot) {
+  public static HaxeClass[] getClassList(@NotNull HaxeFile psiRoot) {
 
-    ArrayList<AbstractHaxePsiClass> classes = new ArrayList<AbstractHaxePsiClass>();
+    ArrayList<HaxeClass> classes = new ArrayList<HaxeClass>();
     for (PsiElement child : psiRoot.getChildren()) {
-      if (child instanceof AbstractHaxePsiClass) {
-        classes.add((AbstractHaxePsiClass)child);
+      if (child instanceof HaxeClass) {
+        classes.add((HaxeClass)child);
       }
     }
-    AbstractHaxePsiClass[] return_type = {};
+    HaxeClass[] return_type = {};
     return (classes.toArray(return_type));
   }
 
@@ -204,6 +204,9 @@ public class HaxeHierarchyUtils {
 
   /**
    * Retrieve the PSI element for the given context (focal point).
+   * Returns the leaf-node element at the exact position in the PSI.
+   * This does NOT attempt to locate a higher-order PSI element as
+   * {@link TargetElementUtilBase#findTargetElement} would.
    *
    * @param context - editing context
    * @return The PSI element at the caret position.

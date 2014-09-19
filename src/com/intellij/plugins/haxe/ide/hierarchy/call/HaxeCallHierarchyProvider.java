@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl;
@@ -64,19 +65,32 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
       LOG.debug( "getTarget" + context );
     }
 
+    HaxeClass pclass = null;
+
     final PsiElement element = HaxeHierarchyUtils.getPsiElement(context);
     if (element == null) return null;
 
-    // We're looking for the closest class up the tree.  That may be
-    // a type of the expression, or it may be the containing class.
-    HaxeClass pclass = null;
-    if (element instanceof LeafPsiElement) {
-      pclass = HaxeHierarchyUtils.findReferencedClassForId((LeafPsiElement)element);
-    }
+    // If the element is a file (e.g. focus is on the project window),
+    // then just take the first class in it...
+    if (element instanceof HaxeFile) {
 
-    // No reference expression?  Then how about a containing class?
-    if (null == pclass) {
-      pclass = HaxeHierarchyUtils.getContainingClass(context, false /* anonymous */);
+      HaxeClass[] classlist = HaxeHierarchyUtils.getClassList((HaxeFile)element);
+      if (classlist.length > 0) {
+        pclass = classlist[0];
+      }
+
+    } else {
+
+      // We're looking for the closest class up the tree.  That may be
+      // a type of the expression, or it may be the containing class.
+      if (element instanceof LeafPsiElement) {
+        pclass = HaxeHierarchyUtils.findReferencedClassForId((LeafPsiElement)element);
+      }
+
+      // No reference expression?  Then how about a containing class?
+      if (null == pclass) {
+        pclass = HaxeHierarchyUtils.getContainingClass(context, false /* anonymous */);
+      }
     }
 
     return pclass;
