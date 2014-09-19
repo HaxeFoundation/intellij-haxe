@@ -107,11 +107,16 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   @Override
-  public HaxeNamedComponent findMethodByName(@NotNull String name) {
+  public HaxeNamedComponent findHaxeMethodByName(@NotNull String name) {
+    System.out.println(" AbstractHaxeTypeDefImpl >>>>> findHaxeMethodByName('"+name+"')");
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
+    System.out.println(" AbstractHaxeTypeDefImpl >>>>> targetHaxeClass = "+targetHaxeClass);
     if (targetHaxeClass != null) {
-      return targetHaxeClass.findMethodByName(name);
+      System.out.println(" AbstractHaxeTypeDefImpl >>>>> targetHaxeClass.findHaxeMethodByName('"+name+"') = "+targetHaxeClass.findHaxeMethodByName(
+        name));
+      return targetHaxeClass.findHaxeMethodByName(name);
     }
-    return super.findMethodByName(name);
+    System.out.println(" AbstractHaxeTypeDefImpl >>>>> super.findHaxeMethodByName('"+name+"') = "+super.findHaxeMethodByName(name));
+    return super.findHaxeMethodByName(name);
   }
 }

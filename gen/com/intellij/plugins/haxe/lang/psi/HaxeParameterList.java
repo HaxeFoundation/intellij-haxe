@@ -20,10 +20,11 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
 
-public interface HaxeParameterList extends HaxePsiCompositeElement {
+import com.intellij.psi.PsiParameterList;
+import org.jetbrains.annotations.*;
+
+public interface HaxeParameterList extends HaxePsiCompositeElement, PsiParameterList {
 
   @NotNull
   List<HaxeParameter> getParameterList();

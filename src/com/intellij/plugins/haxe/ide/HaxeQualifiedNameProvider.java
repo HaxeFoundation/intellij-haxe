@@ -79,7 +79,7 @@ public class HaxeQualifiedNameProvider implements QualifiedNameProvider {
       return null;
     }
     final String memberName = fqn.substring(index + 1);
-    HaxeNamedComponent namedComponent = haxeClass.findMethodByName(memberName);
+    HaxeNamedComponent namedComponent = haxeClass.findHaxeMethodByName(memberName);
     if (namedComponent == null) {
       namedComponent = haxeClass.findHaxeFieldByName(memberName);
     }

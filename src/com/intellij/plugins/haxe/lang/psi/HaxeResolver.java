@@ -90,8 +90,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         final HaxeClass superClass = superExpression instanceof HaxeReference
                                      ? ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass()
                                      : null;
-        final HaxeNamedComponent constructor = superClass == null ? null : superClass.findMethodByName("new");
-        return toCandidateInfoArray(constructor != null ? constructor : superClass);
+        final HaxeNamedComponent constructor = ((superClass == null) ? null : superClass.findHaxeMethodByName("new"));
+        return toCandidateInfoArray(((constructor != null) ? constructor : superClass));
       }
     }
 

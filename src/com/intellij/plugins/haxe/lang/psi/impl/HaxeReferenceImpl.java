@@ -153,7 +153,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           return resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
         }
         // __get method
-        return HaxeResolveUtil.getHaxeClassResolveResult(resolveResultHaxeClass.findMethodByName("__get"),
+        return HaxeResolveUtil.getHaxeClassResolveResult(resolveResultHaxeClass.findHaxeMethodByName("__get"),
                                                          resolveResult.getSpecialization());
       }
     }

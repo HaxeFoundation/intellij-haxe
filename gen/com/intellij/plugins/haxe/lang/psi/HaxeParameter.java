@@ -20,10 +20,17 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
+
+import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeParameter extends HaxeComponent {
+//----
+// TODO: [TiVo]: derive HaxeParameter from PsiParameter (is it required?)
+// It is possible but several underlying hooks to be implemented (not just adapt)
+//----
+
+public interface HaxeParameter extends HaxeComponent /*, PsiParameter */ {
 
   @NotNull
   HaxeComponentName getComponentName();

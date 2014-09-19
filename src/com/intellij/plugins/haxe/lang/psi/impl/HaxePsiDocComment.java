@@ -1,7 +1,62 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiDocCommentOwner;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.javadoc.PsiDocCommentImpl;
+import com.intellij.psi.javadoc.PsiDocComment;
+
+import org.jetbrains.annotations.NotNull;
+
+
 /**
- * Created by srikanthg on 9/19/14.
+ * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiDocComment {
+public class HaxePsiDocComment extends PsiDocCommentImpl implements PsiDocComment {
+
+  private PsiComment mComment;
+  private HaxeNamedComponent mOwnerComponent;
+
+  public HaxePsiDocComment(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
+    super(HaxeResolveUtil.findDocumentation(inHaxeNamedComponent).getText());
+    mOwnerComponent = inHaxeNamedComponent;
+    mComment = HaxeResolveUtil.findDocumentation(inHaxeNamedComponent);
+  }
+
+  @Override
+  public PsiDocCommentOwner getOwner() {
+    final PsiElement parent = mComment;
+    if (parent instanceof PsiDocCommentOwner) {
+      final PsiDocCommentOwner owner = (PsiDocCommentOwner) parent;
+      if (owner.getDocComment() == this) {
+        return owner;
+      }
+    }
+    // HaxeXXX component owners that are not yet adapted to PsiXXX
+    return null;
+  }
+
+  @Override
+  public String toString() {
+    return "HaxePsiDocComment";
+  }
 }

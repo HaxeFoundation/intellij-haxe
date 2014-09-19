@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeClass extends HaxeComponent, PsiExtensibleClass, PsiClass {
+public interface HaxeClass extends HaxeComponent, PsiClass {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
   @NotNull
@@ -53,7 +53,7 @@ public interface HaxeClass extends HaxeComponent, PsiExtensibleClass, PsiClass {
   HaxeNamedComponent findHaxeFieldByName(@NotNull final String name);
 
   @Nullable
-  HaxeNamedComponent findMethodByName(@NotNull final String name);
+  HaxeNamedComponent findHaxeMethodByName(@NotNull final String name);
 
   boolean isGeneric();
 
