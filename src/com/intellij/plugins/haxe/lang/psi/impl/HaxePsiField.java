@@ -22,7 +22,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiFieldImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.util.IncorrectOperationException;
 
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
