@@ -82,12 +82,12 @@ public class HaxeClassResolveResult implements Cloneable {
         }
       }
 
-      for (HaxeType haxeType : aClass.getExtendsList()) {
+      for (HaxeType haxeType : aClass.getHaxeExtendsList()) {
         final HaxeClassResolveResult result = create(HaxeResolveUtil.tryResolveClassByQName(haxeType));
         result.specializeByParameters(haxeType.getTypeParam());
         resolveResult.merge(result.getSpecialization());
       }
-      for (HaxeType haxeType : aClass.getImplementsList()) {
+      for (HaxeType haxeType : aClass.getHaxeImplementsList()) {
         final HaxeClassResolveResult result = create(HaxeResolveUtil.tryResolveClassByQName(haxeType));
         result.specializeByParameters(haxeType.getTypeParam());
         resolveResult.merge(result.getSpecialization());

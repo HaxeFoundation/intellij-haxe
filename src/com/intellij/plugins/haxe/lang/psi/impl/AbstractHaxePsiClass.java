@@ -19,21 +19,32 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.InheritanceImplUtil;
+import com.intellij.psi.impl.PsiClassImplUtil;
+import com.intellij.psi.impl.PsiImplUtil;
+import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
  */
 public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent implements HaxeClass {
+
   public AbstractHaxePsiClass(@NotNull ASTNode node) {
     super(node);
   }
@@ -72,34 +83,34 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public List<HaxeType> getExtendsList() {
+  public List<HaxeType> getHaxeExtendsList() {
     return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
   }
 
   @NotNull
   @Override
-  public List<HaxeType> getImplementsList() {
+  public List<HaxeType> getHaxeImplementsList() {
     return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
   }
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getMethods() {
+  public List<HaxeNamedComponent> getHaxeMethods() {
     final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(this);
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.METHOD);
   }
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getFields() {
+  public List<HaxeNamedComponent> getHaxeFields() {
     final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(this);
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.FIELD);
   }
 
   @Nullable
   @Override
-  public HaxeNamedComponent findFieldByName(@NotNull final String name) {
-    return ContainerUtil.find(getFields(), new Condition<HaxeNamedComponent>() {
+  public HaxeNamedComponent findHaxeFieldByName(@NotNull final String name) {
+    return ContainerUtil.find(getHaxeFields(), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
         return name.equals(component.getName());
@@ -108,8 +119,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public HaxeNamedComponent findMethodByName(@NotNull final String name) {
-    return ContainerUtil.find(getMethods(), new Condition<HaxeNamedComponent>() {
+  public HaxeNamedComponent findHaxeMethodByName(@NotNull final String name) {
+    return ContainerUtil.find(getHaxeMethods(), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
         return name.equals(component.getName());
@@ -120,5 +131,291 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public boolean isGeneric() {
     return getGenericParam() != null;
+  }
+
+  @Override
+  public boolean isEnum() {
+    return (HaxeComponentType.typeOf(this) == HaxeComponentType.ENUM);
+  }
+
+  @Override
+  public boolean isAnnotationType() {
+    /* both: annotation & typedef in haxe are treated as typedef! */
+    return (HaxeComponentType.typeOf(this) == HaxeComponentType.TYPEDEF);
+  }
+
+  @Override
+  public boolean isDeprecated() {
+    /* not applicable to Haxe language */
+    return false;
+  }
+
+  @Override
+  @NotNull
+  public PsiClass[] getSupers() {
+    // Extends and Implements in one list
+    return PsiClassImplUtil.getSupers(this);
+  }
+
+  @Override
+  public PsiClass getSuperClass() {
+    return PsiClassImplUtil.getSuperClass(this);
+  }
+
+  @Override
+  @NotNull
+  public PsiClassType[] getSuperTypes() {
+    return PsiClassImplUtil.getSuperTypes(this);
+  }
+
+  @Override
+  public PsiElement getScope() {
+    PsiElement retVal = null;
+    // PsiClassImplUtil.getClassUseScope(this);
+    // HaxeResolveUtil.getScopeForElement(this);
+    /* TODO: [TiVo]: translate these scope objects into PsiElement */
+    return retVal;
+  }
+
+  @Override
+  public PsiClass getContainingClass() {
+    PsiElement parent = getParent();
+    return (parent instanceof PsiClass ? (PsiClass)parent : null);
+  }
+
+  @Override
+  public PsiClass[] getInterfaces() {  // Extends and Implements in one list
+    return PsiClassImplUtil.getInterfaces(this);
+  }
+
+  @Override
+  @Nullable
+  public PsiReferenceList getExtendsList() {
+    List<HaxeType> hxList = getHaxeExtendsList();
+    final int size = hxList.size();
+    PsiReference[] psiRefArray = new PsiReference[size];
+    for (int idx=0; idx<size; idx++) {
+      psiRefArray[idx] = hxList.get(idx).getReferenceExpression();
+    }
+    // TODO: [TiVo]: fix translation
+    // return new PsiReferenceListImpl(psiRefArray);
+    return null;
+  }
+
+  @Override
+  @NotNull
+  public PsiClassType[] getExtendsListTypes() {
+    return PsiClassImplUtil.getExtendsListTypes(this);
+  }
+
+  @Override
+  @Nullable
+  public PsiReferenceList getImplementsList() {
+    List<HaxeType> hxList = getHaxeImplementsList();
+    final int size = hxList.size();
+    PsiReference[] psiRefArray = new PsiReference[size];
+    for (int idx=0; idx<size; idx++) {
+      psiRefArray[idx] = hxList.get(idx).getReferenceExpression();
+    }
+    // TODO: [TiVo]: fix translation
+    // return new PsiReferenceListImpl(psiRefArray);
+    return null;
+  }
+
+  @Override
+  @NotNull
+  public PsiClassType[] getImplementsListTypes() {
+    return PsiClassImplUtil.getImplementsListTypes(this);
+  }
+
+  @Override
+  public boolean isInheritor(@NotNull PsiClass baseClass, boolean checkDeep) {
+    return InheritanceImplUtil.isInheritor(this, baseClass, checkDeep);
+  }
+
+  @Override
+  public boolean isInheritorDeep(PsiClass baseClass, @Nullable PsiClass classToByPass) {
+    return InheritanceImplUtil.isInheritorDeep(this, baseClass, classToByPass);
+  }
+
+  @Override
+  @NotNull
+  public PsiClassInitializer[] getInitializers() {
+    PsiClassInitializer[] retVal = {};
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return retVal;
+  }
+
+  @Override
+  @NotNull
+  public PsiField[] getFields() {
+    List<HaxeNamedComponent> haxeFields = getHaxeFields();
+    int index = 0;
+    HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
+    for (HaxeNamedComponent element : haxeFields) {
+      psiFields[index++] = new HaxePsiField(this, element);
+    }
+    return psiFields;
+  }
+
+  @Override
+  @NotNull
+  public PsiField[] getAllFields() {
+    return PsiClassImplUtil.getAllFields(this);
+  }
+
+  @Override
+  @Nullable
+  public PsiField findFieldByName(@NonNls String name, boolean checkBases) {
+    return PsiClassImplUtil.findFieldByName(this, name, checkBases);
+  }
+
+  @Override
+  @NotNull
+  public PsiMethod[] getMethods() {
+    List<HaxeNamedComponent> haxeMethods = getHaxeMethods();
+    int index = 0;
+    HaxePsiMethod[] psiMethods = new HaxePsiMethod[haxeMethods.size()];
+    for (HaxeNamedComponent element : haxeMethods) {
+      psiMethods[index++] = new HaxePsiMethod(this, element);
+    }
+    return psiMethods;
+  }
+
+  @Override
+  @NotNull
+  public PsiMethod[] getAllMethods() {
+    return PsiClassImplUtil.getAllMethods(this);
+  }
+
+  @Override
+  @NotNull
+  public PsiMethod[] getConstructors() {
+    return PsiClassImplUtil.findMethodsByName(this, "new", false);
+  }
+
+  @Override
+  @Nullable
+  public PsiMethod findMethodBySignature(final PsiMethod psiMethod, final boolean checkBases) {
+    return PsiClassImplUtil.findMethodBySignature(this, psiMethod, checkBases);
+  }
+
+  @Override
+  @NotNull
+  public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
+    return PsiClassImplUtil.findMethodsByName(this, name, checkBases);
+  }
+
+  public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
+    return PsiClassImplUtil.findMethodsBySignature(this, patternMethod, checkBases);
+  }
+
+  @Override
+  @NotNull
+  public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return new ArrayList<Pair<PsiMethod, PsiSubstitutor>>();
+  }
+
+  @Override
+  @NotNull
+  public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(@NonNls String name, boolean checkBases) {
+    return PsiClassImplUtil.findMethodsAndTheirSubstitutorsByName(this, name, checkBases);
+  }
+
+  public boolean hasTypeParameters() {
+    return PsiImplUtil.hasTypeParameters(this);
+  }
+
+  @Override
+  @Nullable
+  public PsiTypeParameterList getTypeParameterList() {
+    PsiTypeParameterList[] retVal = {};
+    // TODO: [TiVo]: MUST implement
+    return retVal[0];
+  }
+
+  @Override
+  @NotNull
+  public PsiTypeParameter[] getTypeParameters() {
+    return PsiImplUtil.getTypeParameters(this);
+  }
+
+  @Override
+  public PsiElement getLBrace() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
+  }
+
+  @Override
+  public PsiElement getRBrace() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public PsiModifierList getModifierList() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    if (PsiModifier.PUBLIC.equals(name)) {
+        return isPublic();
+    }
+    else if (PsiModifier.PRIVATE.equals(name)) {
+      return (! isPublic());
+    }
+    else if (getModifierList() != null) {
+      return getModifierList().hasModifierProperty(name);
+    }
+    return false;
+  }
+
+  @Override
+  @Nullable
+  public PsiDocComment getDocComment() {
+    return new HaxePsiDocComment(this);
+  }
+
+  @Override
+  @NotNull
+  public PsiElement getNavigationElement() {
+    return this;
+  }
+
+  @Override
+  @Nullable
+  public PsiIdentifier getNameIdentifier() {
+    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    return null;
+  }
+
+  @Override
+  @NotNull
+  public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
+    return PsiSuperMethodImplUtil.getVisibleSignatures(this);
+  }
+
+  @NotNull
+  public PsiClass[] getInnerClasses() {
+    PsiClass[] retVal = {};
+    /* not applicable to Haxe language */
+    return retVal;
+  }
+
+  @NotNull
+  public PsiClass[] getAllInnerClasses() {
+    PsiClass[] retVal = {};
+    /* not applicable to Haxe language */
+    return retVal;
+  }
+
+  @Override
+  public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
+    /* not applicable to Haxe language */
+    return null;
   }
 }

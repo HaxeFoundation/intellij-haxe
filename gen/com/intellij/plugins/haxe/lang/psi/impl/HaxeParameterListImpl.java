@@ -20,12 +20,12 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
 public class HaxeParameterListImpl extends HaxePsiCompositeElementImpl implements HaxeParameterList {
@@ -45,4 +45,20 @@ public class HaxeParameterListImpl extends HaxePsiCompositeElementImpl implement
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class);
   }
 
+  @NotNull
+  @Override
+  public PsiParameter[] getParameters() {
+    return ((PsiParameter[]) PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class).toArray());
+  }
+
+  @Override
+  public int getParameterIndex(PsiParameter parameter) {
+    // TODO: [TiVo]: Verify if this works: finding a PsiParameter object in a List<HaxeParameter>
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class).indexOf(parameter);
+  }
+
+  @Override
+  public int getParametersCount() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class).size();
+  }
 }
