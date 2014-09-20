@@ -79,7 +79,6 @@ public interface HaxeTokenTypes {
   IElementType GETTER_META = new HaxeElementType("GETTER_META");
   IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
   IElementType IF_STATEMENT = new HaxeElementType("IF_STATEMENT");
-  IElementType IMPORT_STATEMENT = new HaxeElementType("IMPORT_STATEMENT");
   IElementType IMPORT_STATEMENT_REGULAR = new HaxeElementType("IMPORT_STATEMENT_REGULAR");
   IElementType IMPORT_STATEMENT_WITH_IN_SUPPORT = new HaxeElementType("IMPORT_STATEMENT_WITH_IN_SUPPORT");
   IElementType IMPORT_STATEMENT_WITH_WILDCARD = new HaxeElementType("IMPORT_STATEMENT_WITH_WILDCARD");
@@ -443,9 +442,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == IF_STATEMENT) {
         return new HaxeIfStatementImpl(node);
-      }
-      else if (type == IMPORT_STATEMENT) {
-        return new HaxeImportStatementImpl(node);
       }
       else if (type == IMPORT_STATEMENT_REGULAR) {
         return new HaxeImportStatementRegularImpl(node);

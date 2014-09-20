@@ -249,9 +249,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private void bindToPackage(PsiPackage element) {
-    final HaxeImportStatement importStatement =
+    final HaxeImportStatementRegular importStatement =
       HaxeElementGenerator.createImportStatementFromPath(getProject(), element.getQualifiedName());
-    HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
+    HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
     assert referenceExpression != null;
     replace(referenceExpression);
   }
@@ -265,13 +265,13 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                               FileUtil.getNameWithoutExtension(((HaxeFile)element).getName());
 
     if (resolve() == null) {
-      if (getParent() instanceof HaxeImportStatement && !destinationPackage.isEmpty()) {
-        final HaxeImportStatement importStatement =
+      if (getParent() instanceof HaxeImportStatementRegular && !destinationPackage.isEmpty()) {
+        final HaxeImportStatementRegular importStatement =
           HaxeElementGenerator.createImportStatementFromPath(getProject(), importPath);
         assert importStatement != null;
         getParent().replace(importStatement);
       }
-      else if (getParent() instanceof HaxeImportStatement && destinationPackage.isEmpty()) {
+      else if (getParent() instanceof HaxeImportStatementRegular && destinationPackage.isEmpty()) {
         // need remove, empty destination
         getParent().getParent().deleteChildRange(getParent(), getParent());
       }
@@ -280,9 +280,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         final String newQName = destinationPackage.equals(HaxeResolveUtil.getPackageName(getContainingFile())) ?
                                 FileUtil.getNameWithoutExtension(((HaxeFile)element).getName()) :
                                 importPath;
-        final HaxeImportStatement importStatement =
+        final HaxeImportStatementRegular importStatement =
           HaxeElementGenerator.createImportStatementFromPath(getProject(), newQName);
-        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
+        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
         assert referenceExpression != null;
         replace(referenceExpression);
       }
@@ -292,8 +292,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
     else {
-      final HaxeImportStatement importStatement = UsefulPsiTreeUtil.findImportByClassName(this, getText());
-      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getImportStatementRegular().getReferenceExpression() : null;
+      final HaxeImportStatementRegular importStatement = UsefulPsiTreeUtil.findImportByClassName(this, getText());
+      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
       if (referenceExpression != null && !importPath.equals(referenceExpression.getText())) {
         // need remove, cause can resolve without
         importStatement.getParent().deleteChildRange(importStatement, importStatement);

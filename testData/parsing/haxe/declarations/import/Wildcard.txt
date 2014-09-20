@@ -1,37 +1,33 @@
 Haxe File
-  IMPORT_STATEMENT
+  IMPORT_STATEMENT_WITH_WILDCARD
     PsiElement(import)('import')
-    IMPORT_STATEMENT_WITH_WILDCARD
-      REFERENCE_EXPRESSION
-        WILDCARD
+    REFERENCE_EXPRESSION
+      WILDCARD
+        REFERENCE_EXPRESSION
           REFERENCE_EXPRESSION
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                PsiElement(ID)('flash')
-            PsiElement(.)('.')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                PsiElement(ID)('display')
+            IDENTIFIER
+              PsiElement(ID)('flash')
           PsiElement(.)('.')
-          PsiElement(*)('*')
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              PsiElement(ID)('display')
+        PsiElement(.)('.')
+        PsiElement(*)('*')
     PsiElement(;)(';')
-  IMPORT_STATEMENT
+  IMPORT_STATEMENT_REGULAR
     PsiElement(import)('import')
-    IMPORT_STATEMENT_WITH_WILDCARD
+    REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
-        WILDCARD
-          REFERENCE_EXPRESSION
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                PsiElement(ID)('flash')
-            PsiElement(.)('.')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                PsiElement(ID)('display')
-          PsiElement(.)('.')
-          PsiElement(*)('*')
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            PsiElement(ID)('flash')
+        PsiElement(.)('.')
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            PsiElement(ID)('display')
+      PsiElement(.)('.')
+  PsiElement(*)('*')
   PsiErrorElement:';' expected, got 'in'
-    <empty list>
-  PsiElement(in)('in')
+    PsiElement(in)('in')
   PsiElement(ID)('FDSprite')
   PsiElement(;)(';')

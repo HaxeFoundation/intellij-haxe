@@ -522,14 +522,14 @@ public class HaxeResolveUtil {
   }
 
   public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
-    final HaxeImportStatement importStatement = (HaxeImportStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
+    final HaxeImportStatementRegular importStatement = (HaxeImportStatementRegular)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
-        return element instanceof HaxeImportStatement &&
-               UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatement)element, result);
+        return element instanceof HaxeImportStatementRegular &&
+               UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatementRegular)element, result);
       }
     });
-    final HaxeExpression expression = importStatement == null ? null : importStatement.getImportStatementRegular().getReferenceExpression();
+    final HaxeExpression expression = importStatement == null ? null : importStatement.getReferenceExpression();
     final String packageName = getPackageName((HaxePackageStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {

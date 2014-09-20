@@ -197,9 +197,6 @@ public class HaxeParser implements PsiParser {
     else if (root_ == IF_STATEMENT) {
       result_ = ifStatement(builder_, 0);
     }
-    else if (root_ == IMPORT_STATEMENT) {
-      result_ = importStatement(builder_, 0);
-    }
     else if (root_ == IMPORT_STATEMENT_REGULAR) {
       result_ = importStatementRegular(builder_, 0);
     }
@@ -2647,26 +2644,10 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'import' importStatementAll ';'
-  public static boolean importStatement(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "importStatement")) return false;
-    if (!nextTokenIs(builder_, KIMPORT)) return false;
-    boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
-    result_ = consumeToken(builder_, KIMPORT);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, importStatementAll(builder_, level_ + 1));
-    result_ = pinned_ && consumeToken(builder_, OSEMI) && result_;
-    exit_section_(builder_, level_, marker_, IMPORT_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
-  }
-
-  /* ********************************************************** */
   // importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
   static boolean importStatementAll(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "importStatementAll")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, KIMPORT)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = importStatementWithWildcard(builder_, level_ + 1);
@@ -2677,39 +2658,47 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // simpleQualifiedReferenceExpression
+  // 'import' simpleQualifiedReferenceExpression ';'
   public static boolean importStatementRegular(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "importStatementRegular")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, KIMPORT)) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
-    result_ = simpleQualifiedReferenceExpression(builder_, level_ + 1);
-    exit_section_(builder_, marker_, IMPORT_STATEMENT_REGULAR, result_);
-    return result_;
+    boolean pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    result_ = consumeToken(builder_, KIMPORT);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, simpleQualifiedReferenceExpression(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, OSEMI) && result_;
+    exit_section_(builder_, level_, marker_, IMPORT_STATEMENT_REGULAR, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
-  // simpleQualifiedReferenceExpression 'in' referenceExpression
+  // 'import' simpleQualifiedReferenceExpression 'in' referenceExpression ';'
   public static boolean importStatementWithInSupport(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "importStatementWithInSupport")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, KIMPORT)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = simpleQualifiedReferenceExpression(builder_, level_ + 1);
+    result_ = consumeToken(builder_, KIMPORT);
+    result_ = result_ && simpleQualifiedReferenceExpression(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, OIN);
     result_ = result_ && referenceExpression(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, OSEMI);
     exit_section_(builder_, marker_, IMPORT_STATEMENT_WITH_IN_SUPPORT, result_);
     return result_;
   }
 
   /* ********************************************************** */
-  // simpleQualifiedReferenceExpressionWithWildcardSupport
+  // 'import' simpleQualifiedReferenceExpressionWithWildcardSupport ';'
   public static boolean importStatementWithWildcard(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "importStatementWithWildcard")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, KIMPORT)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = simpleQualifiedReferenceExpressionWithWildcardSupport(builder_, level_ + 1);
+    result_ = consumeToken(builder_, KIMPORT);
+    result_ = result_ && simpleQualifiedReferenceExpressionWithWildcardSupport(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, OSEMI);
     exit_section_(builder_, marker_, IMPORT_STATEMENT_WITH_WILDCARD, result_);
     return result_;
   }
@@ -4884,14 +4873,12 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // importStatement | importStatementWithInSupport | importStatement | usingStatement | topLevelDeclaration
+  // importStatementAll | usingStatement | topLevelDeclaration
   static boolean topLevel(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "topLevel")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
-    result_ = importStatement(builder_, level_ + 1);
-    if (!result_) result_ = importStatementWithInSupport(builder_, level_ + 1);
-    if (!result_) result_ = importStatement(builder_, level_ + 1);
+    result_ = importStatementAll(builder_, level_ + 1);
     if (!result_) result_ = usingStatement(builder_, level_ + 1);
     if (!result_) result_ = topLevelDeclaration(builder_, level_ + 1);
     exit_section_(builder_, level_, marker_, null, result_, false, top_level_recover_parser_);

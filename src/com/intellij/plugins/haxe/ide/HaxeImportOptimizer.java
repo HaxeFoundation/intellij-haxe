@@ -23,7 +23,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +55,7 @@ public class HaxeImportOptimizer implements ImportOptimizer {
   }
 
   private static void optimizeImports(PsiFile file) {
-    for (HaxeImportStatement unusedImportStatement : HaxeImportUtil.findUnusedImports(file)) {
+    for (HaxeImportStatementRegular unusedImportStatement : HaxeImportUtil.findUnusedImports(file)) {
       unusedImportStatement.delete();
     }
     // todo: rearrange

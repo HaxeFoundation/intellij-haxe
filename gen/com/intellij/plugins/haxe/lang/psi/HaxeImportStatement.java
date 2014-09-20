@@ -25,13 +25,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeImportStatement extends HaxePsiCompositeElement {
 
-  @Nullable
-  HaxeImportStatementRegular getImportStatementRegular();
-
-  @Nullable
-  HaxeImportStatementWithInSupport getImportStatementWithInSupport();
-
-  @Nullable
-  HaxeImportStatementWithWildcard getImportStatementWithWildcard();
+  @NotNull
+  HaxeReferenceExpression getReferenceExpression();
 
 }

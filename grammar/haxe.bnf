@@ -214,16 +214,15 @@ unsignedShiftRightOperator ::= '>' '>' '>'
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
 
 private topLevelList ::= topLevel*
-private topLevel ::= importStatement | importStatementWithInSupport | importStatement | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
+private topLevel ::= importStatementAll | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
 private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
 
-importStatementRegular ::= simpleQualifiedReferenceExpression
-importStatementWithWildcard ::= simpleQualifiedReferenceExpressionWithWildcardSupport
-importStatementWithInSupport ::= simpleQualifiedReferenceExpression 'in' referenceExpression
+importStatementRegular ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
+importStatementWithWildcard ::= 'import' simpleQualifiedReferenceExpressionWithWildcardSupport ';'
+importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression 'in' referenceExpression ';'
 
 private importStatementAll ::= importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
 
-importStatement ::= 'import' importStatementAll ';' {pin=1}
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration
