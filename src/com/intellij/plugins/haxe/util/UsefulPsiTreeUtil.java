@@ -103,6 +103,18 @@ public class UsefulPsiTreeUtil {
     return null;
   }
 
+  @Nullable
+  public static HaxeImportStatementWithInSupport findImportWithInByClassName(@NotNull PsiElement psiElement, String className) {
+    final List<HaxeImportStatementWithInSupport> haxeImportStatementList = getAllInImportStatements(psiElement);
+    for (HaxeImportStatementWithInSupport importStatement : haxeImportStatementList) {
+      if (importInStatementForClassName(importStatement, className)) {
+        return importStatement;
+      }
+    }
+    return null;
+  }
+
+  @NotNull
   public static boolean importStatementForClassName(HaxeImportStatementRegular importStatement, String className) {
     final HaxeImportStatementRegular regularImport = importStatement;
     if(regularImport != null) {
@@ -111,6 +123,26 @@ public class UsefulPsiTreeUtil {
       return qName.endsWith("." + className);
     }
     // TODO: other import types (inject util logic to ImportStatement?)
+    return false;
+  }
+
+  @NotNull
+  public static boolean importInStatementForClassName(HaxeImportStatementWithInSupport importStatementWithInSupport, String classname) {
+    HaxeIdentifier identifier = importStatementWithInSupport.getIdentifier();
+    if (identifier != null) {
+      String qName = identifier.getText();
+      return qName.contentEquals(classname);
+    }
+    return false;
+  }
+
+  @NotNull
+  public static boolean importWildcardStatementForClassName(HaxeImportStatementWithWildcard importStatementWithWildcard, String classname) {
+    HaxeReferenceExpression expression = importStatementWithWildcard.getReferenceExpression();
+    if (expression != null) {
+      String qName = expression.getText();
+
+    }
     return false;
   }
 
@@ -135,6 +167,26 @@ public class UsefulPsiTreeUtil {
   public static List<HaxeImportStatementRegular> getAllImportStatements(PsiElement element) {
     final HaxeImportStatementRegular[] haxeImportStatements =
       PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatementRegular.class);
+    if (haxeImportStatements != null) {
+      return Arrays.asList(haxeImportStatements);
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public static List<HaxeImportStatementWithInSupport> getAllInImportStatements(PsiElement element) {
+    final HaxeImportStatementWithInSupport[] haxeImportStatements =
+      PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatementWithInSupport.class);
+    if (haxeImportStatements != null) {
+      return Arrays.asList(haxeImportStatements);
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public static List<HaxeImportStatementWithWildcard> getAllWildcardImportStatements(PsiElement element) {
+    final HaxeImportStatementWithWildcard[] haxeImportStatements =
+      PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatementWithWildcard.class);
     if (haxeImportStatements != null) {
       return Arrays.asList(haxeImportStatements);
     }

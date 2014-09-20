@@ -219,7 +219,7 @@ private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' 
 
 importStatementRegular ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 importStatementWithWildcard ::= 'import' simpleQualifiedReferenceExpressionWithWildcardSupport ';'
-importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression 'in' referenceExpression ';'
+importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression 'in' identifier';'
 
 private importStatementAll ::= importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
 

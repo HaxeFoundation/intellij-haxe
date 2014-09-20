@@ -286,7 +286,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         assert referenceExpression != null;
         replace(referenceExpression);
       }
-      else if (UsefulPsiTreeUtil.findImportByClassName(this, getText()) == null && !destinationPackage.isEmpty()) {
+      else if (UsefulPsiTreeUtil.findImportByClassName(this, getText()) == null && UsefulPsiTreeUtil.findImportWithInByClassName(this, getText()) == null && !destinationPackage.isEmpty()) {
         // need add import
         HaxeAddImportHelper.addImport(importPath, getContainingFile());
       }
