@@ -278,7 +278,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     int index = 0;
     HaxePsiMethod[] psiMethods = new HaxePsiMethod[haxeMethods.size()];
     for (HaxeNamedComponent element : haxeMethods) {
-      psiMethods[index++] = new HaxePsiMethod(this, element);
+      psiMethods[index++] = new HaxePsiMethod(element);
     }
     return psiMethods;
   }

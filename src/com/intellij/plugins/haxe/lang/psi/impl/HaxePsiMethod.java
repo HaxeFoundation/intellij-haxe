@@ -35,6 +35,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -50,12 +51,9 @@ import java.util.List;
 public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMethod {
 
   private HaxeNamedComponent mHaxeNamedComponent;
-  private AbstractHaxePsiClass mContainingClass;
 
-  public HaxePsiMethod(@NotNull AbstractHaxePsiClass inContainingClass,
-                       @NotNull HaxeNamedComponent inHaxeNamedComponent) {
+  public HaxePsiMethod(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
     super(inHaxeNamedComponent.getNode());
-    mContainingClass = inContainingClass;
     mHaxeNamedComponent = inHaxeNamedComponent;
   }
 
@@ -484,7 +482,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiClass getContainingClass() {
-    return mContainingClass;
+    return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
   }
 
   @NotNull

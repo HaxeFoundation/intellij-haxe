@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.call;
 
+import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.ide.hierarchy.CallHierarchyBrowserBase;
 import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
@@ -25,13 +26,12 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiMethod;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
@@ -62,38 +62,58 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
   @Override
   public PsiElement getTarget(@NotNull DataContext context) {
     if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "getTarget" + context );
+      LOG.debug( "getTarget " + context );
     }
 
-    HaxeClass pclass = null;
+    final PsiElement logicalElement = HaxeHierarchyUtils.getReferencedElement(context);
+    if (logicalElement == null) {
+      return null;
+    }
 
-    final PsiElement element = HaxeHierarchyUtils.getPsiElement(context);
-    if (element == null) return null;
+    // Apparently, the tree that referenced element is part of is NOT
+    // the PSI tree from the parsed file, but rather a PSI tree that
+    // matches the logical structure of the language.  The parent of a
+    // referenced component is always the element we want the type of.
+    HaxeComponentType ctype = HaxeComponentType.typeOf(logicalElement.getParent());
+    if (ctype == HaxeComponentType.METHOD) {
+      // What we need to return is not the element we checked the type of,
+      // nor the corresponding parsed file element.
+      // Instead, we need to return the composite HaxePsiMethod class.
+      HaxeNamedComponent psiElement = (HaxeNamedComponent) logicalElement.getParent();
+      HaxePsiMethod psiMethod = new HaxePsiMethod(psiElement);
+      return psiMethod;
+    }
 
-    // If the element is a file (e.g. focus is on the project window),
-    // then just take the first class in it...
-    if (element instanceof HaxeFile) {
 
-      HaxeClass[] classlist = HaxeHierarchyUtils.getClassList((HaxeFile)element);
-      if (classlist.length > 0) {
-        pclass = classlist[0];
+
+    if (false) {
+      // test code -- do not check in
+      PsiElement testel = logicalElement;
+      while (!(testel instanceof HaxeFile)) {
+        final String result = HaxeComponentType.getName(testel);
+        String type = result == null ? testel.toString() : result;
+        LOG.debug( "Component type is " + type);
+        testel = testel.getParent();
       }
 
-    } else {
-
-      // We're looking for the closest class up the tree.  That may be
-      // a type of the expression, or it may be the containing class.
-      if (element instanceof LeafPsiElement) {
-        pclass = HaxeHierarchyUtils.findReferencedClassForId((LeafPsiElement)element);
+      {
+        PsiElement target = TargetElementUtilBase.findTargetElement(CommonDataKeys.EDITOR.getData(context),
+                                                                    TargetElementUtilBase.ELEMENT_NAME_ACCEPTED |
+                                                                    TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
+                                                                    TargetElementUtilBase.LOOKUP_ITEM_ACCEPTED);
+        String result = HaxeComponentType.getName(target);
+        String type = result == null ? target.toString() : result;
+        LOG.debug("Found Component type is " + type);
       }
 
-      // No reference expression?  Then how about a containing class?
-      if (null == pclass) {
-        pclass = HaxeHierarchyUtils.getContainingClass(context, false /* anonymous */);
+      {
+        final String result = HaxeComponentType.getName(logicalElement.getParent());
+        String type = result == null ? "reference" : result;
+        LOG.debug("Component type is " + type);
       }
     }
 
-    return pclass;
+    return null;
   }
 
   /**
@@ -108,9 +128,7 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "createHierarchyBrowser " + element );
     }
-    return null;
-
-    //return new CallHierarchyBrowser(element.getProject(), (PsiMethod) element);
+    return new CallHierarchyBrowser(element.getProject(), (PsiMethod) element);
   }
 
   /**
