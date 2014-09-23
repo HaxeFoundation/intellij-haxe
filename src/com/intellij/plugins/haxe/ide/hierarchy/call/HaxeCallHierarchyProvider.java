@@ -65,56 +65,8 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
       LOG.debug( "getTarget " + context );
     }
 
-    final PsiElement logicalElement = HaxeHierarchyUtils.getReferencedElement(context);
-    if (logicalElement == null) {
-      return null;
-    }
-
-    // Apparently, the tree that referenced element is part of is NOT
-    // the PSI tree from the parsed file, but rather a PSI tree that
-    // matches the logical structure of the language.  The parent of a
-    // referenced component is always the element we want the type of.
-    HaxeComponentType ctype = HaxeComponentType.typeOf(logicalElement.getParent());
-    if (ctype == HaxeComponentType.METHOD) {
-      // What we need to return is not the element we checked the type of,
-      // nor the corresponding parsed file element.
-      // Instead, we need to return the composite HaxePsiMethod class.
-      HaxeComponentWithDeclarationList psiElement =
-              (HaxeComponentWithDeclarationList) logicalElement.getParent();
-      HaxePsiMethod psiMethod = new HaxePsiMethod(psiElement);
-      return psiMethod;
-    }
-
-
-
-    if (false) {
-      // test code -- do not check in
-      PsiElement testel = logicalElement;
-      while (!(testel instanceof HaxeFile)) {
-        final String result = HaxeComponentType.getName(testel);
-        String type = result == null ? testel.toString() : result;
-        LOG.debug( "Component type is " + type);
-        testel = testel.getParent();
-      }
-
-      {
-        PsiElement target = TargetElementUtilBase.findTargetElement(CommonDataKeys.EDITOR.getData(context),
-                                                                    TargetElementUtilBase.ELEMENT_NAME_ACCEPTED |
-                                                                    TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
-                                                                    TargetElementUtilBase.LOOKUP_ITEM_ACCEPTED);
-        String result = HaxeComponentType.getName(target);
-        String type = result == null ? target.toString() : result;
-        LOG.debug("Found Component type is " + type);
-      }
-
-      {
-        final String result = HaxeComponentType.getName(logicalElement.getParent());
-        String type = result == null ? "reference" : result;
-        LOG.debug("Component type is " + type);
-      }
-    }
-
-    return null;
+    HaxePsiMethod foundMethod = HaxeHierarchyUtils.getTargetMethod(context);
+    return foundMethod;
   }
 
   /**

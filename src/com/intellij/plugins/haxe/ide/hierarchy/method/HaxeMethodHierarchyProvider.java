@@ -17,9 +17,14 @@ package com.intellij.plugins.haxe.ide.hierarchy.method;
 
 import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
+import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
+import com.intellij.ide.hierarchy.method.MethodHierarchyBrowser;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiMethod;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +46,8 @@ public class HaxeMethodHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "getTarget " + context );
     }
-    return null;
+    HaxePsiMethod foundMethod = HaxeHierarchyUtils.getTargetMethod(context);
+    return foundMethod;
   }
 
   @NotNull
@@ -50,7 +56,7 @@ public class HaxeMethodHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "createHierarchyBrowser " + element );
     }
-    return null;
+    return new MethodHierarchyBrowser(element.getProject(), (PsiMethod) element);
   }
 
   @Override
