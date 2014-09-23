@@ -26,6 +26,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeImportStatementWithInSupport extends HaxePsiCompositeElement {
 
   @NotNull
-  List<HaxeReferenceExpression> getReferenceExpressionList();
+  HaxeIdentifier getIdentifier();
+
+  @NotNull
+  HaxeReferenceExpression getReferenceExpression();
 
 }

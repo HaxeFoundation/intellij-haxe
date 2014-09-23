@@ -25,7 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.HaxeImportOptimizer;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -67,12 +67,12 @@ public class HaxeUnusedImportInspection extends LocalInspectionTool {
   @Nullable
   @Override
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
-    List<HaxeImportStatement> unusedImports = HaxeImportUtil.findUnusedImports(file);
+    List<HaxeImportStatementRegular> unusedImports = HaxeImportUtil.findUnusedImports(file);
     if (unusedImports.isEmpty()) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
-    for (HaxeImportStatement haxeImportStatement : unusedImports) {
+    for (HaxeImportStatementRegular haxeImportStatement : unusedImports) {
       result.add(manager.createProblemDescriptor(
         haxeImportStatement,
         TextRange.from(0, haxeImportStatement.getTextLength()),

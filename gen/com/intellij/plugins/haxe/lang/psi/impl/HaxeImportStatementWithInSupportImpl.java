@@ -41,8 +41,14 @@ public class HaxeImportStatementWithInSupportImpl extends HaxePsiCompositeElemen
 
   @Override
   @NotNull
-  public List<HaxeReferenceExpression> getReferenceExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeReferenceExpression.class);
+  public HaxeIdentifier getIdentifier() {
+    return findNotNullChildByClass(HaxeIdentifier.class);
+  }
+
+  @Override
+  @NotNull
+  public HaxeReferenceExpression getReferenceExpression() {
+    return findNotNullChildByClass(HaxeReferenceExpression.class);
   }
 
 }

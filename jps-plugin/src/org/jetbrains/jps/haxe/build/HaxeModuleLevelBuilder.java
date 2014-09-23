@@ -189,7 +189,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
 
       @Override
       public void handleOutput(String[] lines) {
-        for (String error : lines) {
+        /*for (String error : lines) {
           final HaxeCompilerError compilerError = HaxeCompilerError.create(StringUtil.notNullize(getErrorRoot()), error);
           context.processMessage(new CompilerMessage(
             BUILDER_NAME,
@@ -200,7 +200,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
             compilerError != null ? (long)compilerError.getLine() : -1L,
             compilerError != null ? (long)compilerError.getColumn() : -1L
           ));
-        }
+        }*/
       }
 
       @Override

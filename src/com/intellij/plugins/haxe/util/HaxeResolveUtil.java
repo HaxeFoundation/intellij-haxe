@@ -509,9 +509,15 @@ public class HaxeResolveUtil {
   }
 
   public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
+    HaxeImportStatementWithInSupport importStatementWithInSupport = PsiTreeUtil.getParentOfType(type, HaxeImportStatementWithInSupport.class, false);
+    if (importStatementWithInSupport != null) {
+      return importStatementWithInSupport.getReferenceExpression().getText();
+    }
+
     if (type instanceof HaxeType) {
       type = ((HaxeType)type).getReferenceExpression();
     }
+
     final String result = type.getText();
     if (result.indexOf('.') == -1) {
       final PsiFile psiFile = type.getContainingFile();
@@ -522,14 +528,24 @@ public class HaxeResolveUtil {
   }
 
   public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
-    final HaxeImportStatement importStatement = (HaxeImportStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
+    final HaxeImportStatementRegular importStatement = (HaxeImportStatementRegular)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
-        return element instanceof HaxeImportStatement &&
-               UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatement)element, result);
+        return element instanceof HaxeImportStatementRegular &&
+               UsefulPsiTreeUtil.importStatementForClassName((HaxeImportStatementRegular)element, result);
       }
     });
-    final HaxeExpression expression = importStatement == null ? null : importStatement.getImportStatementRegular().getReferenceExpression();
+
+    final HaxeImportStatementWithInSupport importStatementWithInSupport = (HaxeImportStatementWithInSupport)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithInSupport &&
+               UsefulPsiTreeUtil.importInStatementForClassName(((HaxeImportStatementWithInSupport)element), result);
+      }
+    });
+
+    final HaxeExpression importStatementExpression = importStatement == null ? null : importStatement.getReferenceExpression();
+    final HaxeExpression importStatementWithInExpression = importStatementWithInSupport == null ? null : importStatementWithInSupport.getReferenceExpression();
     final String packageName = getPackageName((HaxePackageStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
@@ -547,8 +563,12 @@ public class HaxeResolveUtil {
     if (classForType != null) {
       return classForType.getQualifiedName();
     }
-    else if (importStatement != null && expression != null) {
-      return expression.getText();
+    else if (importStatement != null && importStatementExpression != null) {
+      return importStatementExpression.getText();
+    }
+    else if (importStatementWithInSupport != null && importStatementWithInExpression != null) {
+      String text = importStatementWithInExpression.getText();
+      return text;
     }
     else if (searchInSamePackage && !packageName.isEmpty()) {
       return packageName + "." + result;
