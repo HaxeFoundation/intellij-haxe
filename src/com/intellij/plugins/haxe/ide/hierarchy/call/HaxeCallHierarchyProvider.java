@@ -79,7 +79,8 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
       // What we need to return is not the element we checked the type of,
       // nor the corresponding parsed file element.
       // Instead, we need to return the composite HaxePsiMethod class.
-      HaxeNamedComponent psiElement = (HaxeNamedComponent) logicalElement.getParent();
+      HaxeComponentWithDeclarationList psiElement =
+              (HaxeComponentWithDeclarationList) logicalElement.getParent();
       HaxePsiMethod psiMethod = new HaxePsiMethod(psiElement);
       return psiMethod;
     }

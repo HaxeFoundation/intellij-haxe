@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.project.Project;
@@ -26,8 +27,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.impl.source.PsiParameterListImpl;
 import com.intellij.psi.impl.source.tree.ChildRole;
-import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -41,7 +42,9 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.lang.model.type.UnknownTypeException;
 import javax.swing.*;
+import java.security.ProviderException;
 import java.util.List;
 
 
@@ -50,15 +53,14 @@ import java.util.List;
  */
 public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMethod {
 
-  private HaxeNamedComponent mHaxeNamedComponent;
-
-  public HaxePsiMethod(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
+  private HaxeComponentWithDeclarationList mHaxeMethodComponent;
+  public HaxePsiMethod(@NotNull HaxeComponentWithDeclarationList inHaxeNamedComponent) {
     super(inHaxeNamedComponent.getNode());
-    mHaxeNamedComponent = inHaxeNamedComponent;
+    mHaxeMethodComponent = inHaxeNamedComponent;
   }
 
-  public HaxeFunctionDeclarationWithAttributes getDelegate() {
-    return ((HaxeFunctionDeclarationWithAttributes) mHaxeNamedComponent);
+  public HaxeComponentWithDeclarationList getDelegate() {
+    return (mHaxeMethodComponent);
   }
 
   @NotNull
@@ -353,8 +355,8 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   }
 
   @Override
-  public CompositePsiElement getNode() {
-    return ((CompositePsiElement)getDelegate().getNode());
+  public ASTNode getNode() {
+    return getDelegate().getNode();
   }
 
   @Override
@@ -404,22 +406,66 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
 
   @NotNull
   @Override
-  public PsiParameterList getParameterList() {
-    return getDelegate().getParameterList();
+  public HaxeParameterList getParameterList() {
+
+    // HACK HACK HACK
+    // This breaks the compiler's type and error checking.
+    // HaxeComponentWithDeclarationList should implement or derive
+    // from HaxePsiMethod.  We shouldn't be checking and calling
+    // specific types.  This is the easy way out for the moment.
+
+    HaxeComponentWithDeclarationList delegate = getDelegate();
+    if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
+      return ((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList();
+    }
+    if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      return ((HaxeFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList();
+    }
+    if (delegate instanceof HaxeExternFunctionDeclaration) {
+      return ((HaxeExternFunctionDeclaration)delegate).getParameterList();
+    }
+
+    throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
   }
 
   @NotNull
   @Override
   public PsiReferenceList getThrowsList() {
-    /* TODO: [TiVo]: translate below returned objects into PsiReferenceList */
-    HaxeThrowStatement returnStatement = getDelegate().getThrowStatement();
-    return null;
+
+    // HACK HACK HACK See above comment.
+
+    PsiReferenceList prl;
+    HaxeComponentWithDeclarationList delegate = getDelegate();
+    if (delegate instanceof HaxeExternFunctionDeclaration) {
+      prl = new HaxePsiReferenceList(((HaxeExternFunctionDeclaration)delegate).getThrowStatement().getNode());
+    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      prl = new HaxePsiReferenceList(new HaxeDummyASTNode("ThrowsList"));
+    } else if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
+      prl = new HaxePsiReferenceList(((HaxeFunctionDeclarationWithAttributes)delegate).getThrowStatement().getNode());
+    } else {
+      throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
+    }
+    return prl;
   }
 
   @Nullable
   @Override
   public PsiCodeBlock getBody() {
-    return getDelegate().getBlockStatement().getCodeBlock();
+
+    // HACK HACK HACK See above comment.
+
+    PsiCodeBlock pcb;
+    HaxeComponentWithDeclarationList delegate = getDelegate();
+    if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
+      pcb = ((HaxeFunctionDeclarationWithAttributes)delegate).getBlockStatement().getCodeBlock();
+    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      pcb = null;
+    } else if (delegate instanceof HaxeExternFunctionDeclaration) {
+      pcb = ((HaxeExternFunctionDeclaration)delegate).getBlockStatement().getCodeBlock();
+    } else {
+      throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
+    }
+    return pcb;
   }
 
   @Override
@@ -554,4 +600,14 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   public HierarchicalMethodSignature getHierarchicalMethodSignature() {
     return PsiSuperMethodImplUtil.getHierarchicalMethodSignature(this);
   }
+
+  // If we get rid of the above type hacks, then we don't need this
+  // exception any more.
+  /** Thrown when an unexpected type is encountered while trying to
+   * disambiguate classes.
+   */
+  class UnknownSubclassEncounteredException extends ProviderException {
+    UnknownSubclassEncounteredException(String s) {super(s);}
+  }
+
 }
