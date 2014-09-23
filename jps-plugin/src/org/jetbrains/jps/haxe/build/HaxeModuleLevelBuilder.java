@@ -79,11 +79,13 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     throws ProjectBuildException, IOException {
     boolean doneSomething = false;
 
-    for (final JpsModule module : chunk.getModules()) {
-      if (module.getModuleType() == JpsHaxeModuleType.INSTANCE) {
-        doneSomething |= processModule(context, dirtyFilesHolder, module);
-      }
-    }
+    // Don't do this.  HaxeCompiler already does it, and doing it here just
+    // does it again.
+//    for (final JpsModule module : chunk.getModules()) {
+//      if (module.getModuleType() == JpsHaxeModuleType.INSTANCE) {
+//        doneSomething |= processModule(context, dirtyFilesHolder, module);
+//      }
+//    }
 
     return doneSomething ? ExitCode.OK : ExitCode.NOTHING_DONE;
   }
