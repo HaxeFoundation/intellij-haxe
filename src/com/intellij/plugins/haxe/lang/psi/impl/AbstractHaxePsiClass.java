@@ -385,7 +385,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiDocComment getDocComment() {
-    return new HaxePsiDocComment(this);
+    if (null != HaxeResolveUtil.findDocumentation(this)) {
+      return new HaxePsiDocComment(this);
+    }
+    return null;
   }
 
   @Override

@@ -23,13 +23,11 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
-import com.intellij.psi.impl.source.PsiParameterListImpl;
-import com.intellij.psi.impl.source.tree.ChildRole;
-import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -42,7 +40,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.lang.model.type.UnknownTypeException;
 import javax.swing.*;
 import java.security.ProviderException;
 import java.util.List;
@@ -541,7 +538,15 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    return ((PsiIdentifier)((CompositePsiElement)super.getNode()).findChildByRoleAsPsiElement(ChildRole.NAME));
+    PsiIdentifier foundName = null;
+    ASTNode node = getNode();
+    if (null != node) {
+      ASTNode element = node.findChildByType(HaxeTokenTypes.IDENTIFIER);
+      if (null != element) {
+        foundName = (PsiIdentifier) element.getPsi();
+      }
+    }
+    return foundName;
   }
 
   @NotNull
