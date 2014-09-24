@@ -20,13 +20,21 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.lang.psi.HaxePsiFunctionPrototypeDeclarationWithAttributes;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxePsiFunctionPrototypeDeclarationWithAttributesImpl extends AbstractHaxeNamedComponent implements HaxePsiFunctionPrototypeDeclarationWithAttributes {
+
+/**
+ * @author: Srikanth.Ganapavarapu
+ */
+public class HaxePsiFunctionPrototypeDeclarationWithAttributesImpl
+  extends AbstractHaxeNamedComponent
+  implements HaxeFunctionPrototypeDeclarationWithAttributes {
 
   public HaxePsiFunctionPrototypeDeclarationWithAttributesImpl(ASTNode node) {
     super(node);

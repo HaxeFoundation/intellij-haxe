@@ -532,7 +532,7 @@ public interface HaxePsiTokenTypes {
         return new HaxeParameterImpl(node);
       }
       else if (type == PARAMETER_LIST) {
-        return new HaxePsiParameterListImpl(node);
+        return new HaxePsiParameterList(node);
       }
       else if (type == PARENTHESIZED_EXPRESSION) {
         return new HaxeParenthesizedExpressionImpl(node);

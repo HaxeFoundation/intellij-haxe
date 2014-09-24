@@ -17,12 +17,13 @@
  */
 
 // This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
-public interface HaxePsiLocalFunctionDeclaration extends HaxeComponent {
+public interface HaxePsiLocalFunctionDeclaration extends HaxeLocalFunctionDeclaration, HaxeComponent {
 
   @Nullable
   HaxeBlockStatement getBlockStatement();

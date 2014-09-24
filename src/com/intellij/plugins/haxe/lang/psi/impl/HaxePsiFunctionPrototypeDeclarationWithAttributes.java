@@ -24,6 +24,10 @@ import java.util.List;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
+
+/**
+ * @author: Srikanth.Ganapavarapu
+ */
 public interface HaxePsiFunctionPrototypeDeclarationWithAttributes extends HaxeComponentWithDeclarationList {
 
   @NotNull

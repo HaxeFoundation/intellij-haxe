@@ -24,7 +24,10 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxePsiFunctionLiteralImpl extends HaxeExpressionImpl implements HaxePsiFunctionLiteral {
+/**
+ * @author: Srikanth.Ganapavarapu
+ */
+public class HaxePsiFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeFunctionLiteral {
 
   public HaxePsiFunctionLiteralImpl(ASTNode node) {
     super(node);

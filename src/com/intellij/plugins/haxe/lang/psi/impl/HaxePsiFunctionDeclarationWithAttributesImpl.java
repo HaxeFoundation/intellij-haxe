@@ -20,13 +20,21 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.lang.psi.HaxePsiFunctionDeclarationWithAttributes;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxePsiFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamedComponent implements HaxePsiFunctionDeclarationWithAttributes {
+
+/**
+ * @author: Srikanth.Ganapavarapu
+ */
+public class HaxePsiFunctionDeclarationWithAttributesImpl
+  extends AbstractHaxeNamedComponent
+  implements HaxeFunctionDeclarationWithAttributes {
 
   public HaxePsiFunctionDeclarationWithAttributesImpl(ASTNode node) {
     super(node);
@@ -112,8 +120,8 @@ public class HaxePsiFunctionDeclarationWithAttributesImpl extends AbstractHaxeNa
   @Override
   @NotNull
   public HaxePsiParameterList getParameterList() {
-    HaxePsiParameterList hplist = findChildByClass(HaxePsiParameterList.class);
-    return ((hplist!=null)? hplist :new HaxePsiParameterListImpl(null));
+    HaxePsiParameterList list = findChildByClass(HaxePsiParameterList.class);
+    return ((list!=null)? list : new HaxePsiParameterList(null));
   }
 
   @Override

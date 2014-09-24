@@ -22,7 +22,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
 import com.intellij.psi.PsiParameterList;
 
 /**
- * Created by srikanthg on 9/22/14.
+ * @author: Srikanth.Ganapavarapu
  */
 public class HaxePsiParameterList extends HaxeParameterListImpl implements HaxeParameterList, PsiParameterList {
   public HaxePsiParameterList(ASTNode node) {

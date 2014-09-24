@@ -23,6 +23,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
+
+/**
+ * @author: Srikanth.Ganapavarapu
+ */
 public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeComponentWithDeclarationList {
 
   @NotNull

@@ -24,6 +24,9 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
 
+/**
+ * @author: Srikanth.Ganapavarapu
+ */
 public class HaxePsiLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent implements HaxePsiLocalFunctionDeclaration {
 
   public HaxePsiLocalFunctionDeclarationImpl(ASTNode node) {

@@ -63,7 +63,7 @@ public interface HaxePsiFunctionDeclarationWithAttributes extends HaxeComponentW
   List<HaxeOverloadMeta> getOverloadMetaList();
 
   @NotNull
-  HaxePsiParameterList getParameterList();
+  com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListImpl getParameterList();
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
