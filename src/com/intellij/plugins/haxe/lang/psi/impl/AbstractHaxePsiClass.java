@@ -30,6 +30,7 @@ import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.ChildRole;
+import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -335,8 +336,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiTypeParameterList getTypeParameterList() {
-    // TODO: [TiVo]: MUST implement
-    return null;
+    return new PsiTypeParameterListImpl(this.getNode());
   }
 
   @Override
@@ -347,18 +347,18 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public PsiElement getLBrace() {
-    return this.findChildByRoleAsPsiElement(ChildRole.LBRACE);
+    return findChildByRoleAsPsiElement(ChildRole.LBRACE);
   }
 
   @Override
   public PsiElement getRBrace() {
-    return this.findChildByRoleAsPsiElement(ChildRole.RBRACE);
+    return findChildByRoleAsPsiElement(ChildRole.RBRACE);
   }
 
   @Override
   @Nullable
   public PsiModifierList getModifierList() {
-    // does this need to be implemented
+    // TODO: [TiVo]: MUST implement
     return null;
   }
 
@@ -394,7 +394,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiIdentifier getNameIdentifier() {
-    return ((PsiIdentifier) this.findChildByRoleAsPsiElement(ChildRole.NAME));
+    return ((PsiIdentifier) findChildByRoleAsPsiElement(ChildRole.NAME));
   }
 
   @Override

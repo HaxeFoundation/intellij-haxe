@@ -48,12 +48,14 @@ public class HaxeParameterListImpl extends HaxePsiCompositeElementImpl implement
   @NotNull
   @Override
   public PsiParameter[] getParameters() {
-    return ((PsiParameter[]) PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class).toArray());
+    List<HaxeParameter> list = PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class);
+    HaxePsiParameter[] retVal = new HaxePsiParameter[list.size()];
+    list.toArray(retVal);
+    return retVal;
   }
 
   @Override
   public int getParameterIndex(PsiParameter parameter) {
-    // TODO: [TiVo]: Verify if this works: finding a PsiParameter object in a List<HaxeParameter>
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class).indexOf(parameter);
   }
 
