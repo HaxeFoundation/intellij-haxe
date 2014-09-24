@@ -20,6 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
 public interface HaxePsiExternFunctionDeclaration extends HaxeComponentWithDeclarationList {

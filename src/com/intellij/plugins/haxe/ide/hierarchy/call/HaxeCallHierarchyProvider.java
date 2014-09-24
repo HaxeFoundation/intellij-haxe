@@ -65,6 +65,7 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
       LOG.debug( "getTarget " + context );
     }
 
+/*
     final PsiElement logicalElement = HaxeHierarchyUtils.getReferencedElement(context);
     if (logicalElement == null) {
       return null;
@@ -83,8 +84,6 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
       HaxePsiMethod psiMethod = new HaxePsiMethod(psiElement);
       return psiMethod;
     }
-
-
 
     if (false) {
       // test code -- do not check in
@@ -112,8 +111,10 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
         LOG.debug("Component type is " + type);
       }
     }
-
     return null;
+*/
+    HaxePsiMethod foundMethod = HaxeHierarchyUtils.getTargetMethod(context);
+    return foundMethod;
   }
 
   /**

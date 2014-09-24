@@ -95,9 +95,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getHaxeMethods() {
-    final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(this);
-    return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.METHOD);
+  public List<HaxeComponentWithDeclarationList> getHaxeMethods() {
+    final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(this);
+    final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
+    final List<HaxeComponentWithDeclarationList> result = new ArrayList<HaxeComponentWithDeclarationList>();
+    for ( HaxeNamedComponent method : methods ) {
+      // HaxeComponentWithDeclarationList is the superclass for all method
+      // types in the PSI tree.
+      result.add((HaxeComponentWithDeclarationList)method);
+    }
+    return result;
   }
 
   @NotNull
@@ -276,10 +283,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getMethods() {
-    List<HaxeNamedComponent> haxeMethods = getHaxeMethods();
+    List<HaxeComponentWithDeclarationList> haxeMethods = getHaxeMethods();
     int index = 0;
     HaxePsiMethod[] psiMethods = new HaxePsiMethod[haxeMethods.size()];
-    for (HaxeNamedComponent element : haxeMethods) {
+    for (HaxeComponentWithDeclarationList element : haxeMethods) {
       psiMethods[index++] = new HaxePsiMethod(element);
     }
     return psiMethods;
@@ -380,7 +387,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiDocComment getDocComment() {
-    return new HaxePsiDocComment(this);
+    if (null != HaxeResolveUtil.findDocumentation(this)) {
+      return new HaxePsiDocComment(this);
+    }
+    return null;
   }
 
   @Override

@@ -79,7 +79,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getHaxeMethods() {
+  public List<HaxeComponentWithDeclarationList> getHaxeMethods() {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
       return targetHaxeClass.getHaxeMethods();

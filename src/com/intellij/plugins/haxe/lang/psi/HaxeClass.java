@@ -44,7 +44,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass {
   boolean isInterface();
 
   @NotNull
-  List<HaxeNamedComponent> getHaxeMethods();
+  List<HaxeComponentWithDeclarationList> getHaxeMethods();
 
   @NotNull
   List<HaxeNamedComponent> getHaxeFields();

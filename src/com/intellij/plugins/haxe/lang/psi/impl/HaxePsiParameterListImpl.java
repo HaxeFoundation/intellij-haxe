@@ -15,31 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.lang.psi.impl;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
-import org.jetbrains.annotations.*;
-
-public interface HaxePsiFunctionLiteral extends HaxeExpression {
-
-  @Nullable
-  HaxeBlockStatement getBlockStatement();
-
-  @Nullable
-  HaxeExpression getExpression();
-
-  @Nullable
-  HaxePsiParameterList getParameterList();
-
-  @Nullable
-  HaxeReturnStatement getReturnStatement();
-
-  @Nullable
-  HaxeThrowStatement getThrowStatement();
-
-  @Nullable
-  HaxeTypeTag getTypeTag();
-
+/**
+ * Created by srikanthg on 9/24/14.
+ */
+public class HaxePsiParameterListImpl extends HaxeParameterListImpl implements PsiElement {
+  public HaxePsiParameterListImpl(ASTNode node) {
+     super(node);
+  }
 }

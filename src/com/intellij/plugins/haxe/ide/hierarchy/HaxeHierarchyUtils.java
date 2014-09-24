@@ -25,8 +25,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiMethod;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -276,11 +278,46 @@ public class HaxeHierarchyUtils {
     final Editor editor = CommonDataKeys.EDITOR.getData(context);
     if (editor != null) {
       element = TargetElementUtil.findTargetElement(editor,
-                                    TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
+                                    TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
+                                    TargetElementUtil.ELEMENT_NAME_ACCEPTED);
     }
 
     return element;
   }
+
+  /**
+   * Determine if there is a method that is the target of the current
+   * action, and, if so, return it.
+   *
+   * @param context Editor context.
+   * @return The PSI method if the current context points at a method,
+   *         null otherwise.
+   */
+  @Nullable
+  public static HaxePsiMethod getTargetMethod(@NotNull DataContext context) {
+
+    final PsiElement logicalElement = HaxeHierarchyUtils.getReferencedElement(context);
+    if (logicalElement == null) {
+      return null;
+    }
+
+    // Apparently, the tree that referenced element is part of is NOT
+    // the AST tree from the parsed file, but rather a PSI tree that
+    // matches the logical structure of the language.  The parent of a
+    // referenced component is always the element we want the type of.
+    HaxeComponentType ctype = HaxeComponentType.typeOf(logicalElement.getParent());
+    if (ctype == HaxeComponentType.METHOD) {
+      // What we need to return is not the element we checked the type of,
+      // nor the corresponding parsed file element.
+      // Instead, we need to return the composite HaxePsiMethod class.
+      HaxeComponentWithDeclarationList psiElement =
+        (HaxeComponentWithDeclarationList)logicalElement.getParent();
+      HaxePsiMethod psiMethod = new HaxePsiMethod(psiElement);
+      return psiMethod;
+    }
+    return null;
+  }
+
 
   /**
    * Determine the class (PSI element), if any, that is referenced by the

@@ -31,12 +31,10 @@ import java.util.List;
  */
 public class HaxePresentableUtil {
   public static String setterName(@NotNull @Nls String name) {
-    // return "set" + startsWithUpperCase(name);
     return "set_" + name;
   }
 
   public static String getterName(@NotNull @Nls String name) {
-//    return "get" + startsWithUpperCase(name);
     return "get_" + name;
   }
 
