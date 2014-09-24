@@ -21,6 +21,7 @@ import com.intellij.lang.ASTFactory;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.impl.source.tree.LazyParseableElement;
+import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.psi.tree.ILazyParseableElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,4 +41,15 @@ public class HaxeDummyASTNode  extends LazyParseableElement {
   public static boolean isUsableNode(@Nullable ASTNode node) {
     return null != node && !isDummyNode(node);
   }
+
+  @Override
+  public TreeElement getFirstChildNode() {
+    return null;
+  }
+
+  @Override
+  public TreeElement getLastChildNode() {
+    return null;
+  }
+
 }

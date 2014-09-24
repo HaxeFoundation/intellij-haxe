@@ -415,53 +415,54 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // specific types.  This is the easy way out for the moment.
 
     HaxeComponentWithDeclarationList delegate = getDelegate();
+    HaxeParameterList list = null;
     if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
-      return ((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList();
+      list = ((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList();
+    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      list = ((HaxeFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList();
+    } else if (delegate instanceof HaxeExternFunctionDeclaration) {
+      list = ((HaxeExternFunctionDeclaration)delegate).getParameterList();
+    } else {
+      throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
-    if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-      return ((HaxeFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList();
-    }
-    if (delegate instanceof HaxeExternFunctionDeclaration) {
-      return ((HaxeExternFunctionDeclaration)delegate).getParameterList();
-    }
-
-    throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
+    return list != null ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list"));
   }
 
   @NotNull
   @Override
   public PsiReferenceList getThrowsList() {
     // TODO: [TiVo]: HACK HACK HACK See above comment.
-    PsiReferenceList prl;
+    HaxeThrowStatement ts = null;
     HaxeComponentWithDeclarationList delegate = getDelegate();
     if (delegate instanceof HaxeExternFunctionDeclaration) {
-      prl = new HaxePsiReferenceList(((HaxeExternFunctionDeclaration)delegate).getThrowStatement().getNode());
+      ts = ((HaxeExternFunctionDeclaration)delegate).getThrowStatement();
     } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-      prl = new HaxePsiReferenceList(new HaxeDummyASTNode("ThrowsList"));
+      ; // intentionally left no-op
     } else if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
-      prl = new HaxePsiReferenceList(((HaxeFunctionDeclarationWithAttributes)delegate).getThrowStatement().getNode());
+      ts = ((HaxeFunctionDeclarationWithAttributes)delegate).getThrowStatement();
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
-    return prl;
+    return new HaxePsiReferenceList(ts == null ? new HaxeDummyASTNode("ThrowsList")
+                                                : ts.getNode());
   }
 
   @Nullable
   @Override
   public PsiCodeBlock getBody() {
     // TODO: [TiVo]: See above comment.
-    PsiCodeBlock pcb;
+    HaxeBlockStatement bs = null;
     HaxeComponentWithDeclarationList delegate = getDelegate();
     if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
-      pcb = ((HaxeFunctionDeclarationWithAttributes)delegate).getBlockStatement().getCodeBlock();
+      bs = ((HaxeFunctionDeclarationWithAttributes)delegate).getBlockStatement();
     } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-      pcb = null;
+      ; // intentional no-op
     } else if (delegate instanceof HaxeExternFunctionDeclaration) {
-      pcb = ((HaxeExternFunctionDeclaration)delegate).getBlockStatement().getCodeBlock();
+      bs = ((HaxeExternFunctionDeclaration)delegate).getBlockStatement();
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
-    return pcb;
+    return bs == null ? null : bs.getCodeBlock();
   }
 
   @Override
