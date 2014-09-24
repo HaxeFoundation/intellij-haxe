@@ -73,6 +73,11 @@ public enum HaxeComponentType {
     public Icon getIcon() {
       return AllIcons.Nodes.Annotationtype;
     }
+  }, CLASSVARIABLE(9) {
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Nodes.Field;
+    }
   };
 
   private final int myKey;
@@ -113,6 +118,8 @@ public enum HaxeComponentType {
         return PARAMETER;
       case 8:
         return TYPEDEF;
+      case 9:
+        return CLASSVARIABLE;
     }
     return null;
   }
@@ -155,6 +162,10 @@ public enum HaxeComponentType {
     if (element instanceof HaxeParameter) {
       return PARAMETER;
     }
+    if (element instanceof HaxeVarDeclaration) {
+      return CLASSVARIABLE;
+    }
+
     return null;
   }
 

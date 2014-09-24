@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -30,11 +31,13 @@ import java.util.List;
  */
 public class HaxePresentableUtil {
   public static String setterName(@NotNull @Nls String name) {
-    return "set" + startsWithUpperCase(name);
+    // return "set" + startsWithUpperCase(name);
+    return "set_" + name;
   }
 
   public static String getterName(@NotNull @Nls String name) {
-    return "get" + startsWithUpperCase(name);
+//    return "get" + startsWithUpperCase(name);
+    return "get_" + name;
   }
 
   public static String startsWithUpperCase(@NotNull @Nls String name) {
@@ -62,7 +65,7 @@ public class HaxePresentableUtil {
   @NotNull
   public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericSpecialization specialization) {
     final StringBuilder result = new StringBuilder();
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterList.class);
+    final HaxePsiParameterList parameterList = PsiTreeUtil.getChildOfType(element, HaxePsiParameterList.class);
     if (parameterList == null) {
       return "";
     }
@@ -103,6 +106,10 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
+    if (typeTag == null) {
+      return "";
+    }
+
     final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
     if (haxeFunctionType != null) {
       return buildTypeText(element, haxeFunctionType, specialization);

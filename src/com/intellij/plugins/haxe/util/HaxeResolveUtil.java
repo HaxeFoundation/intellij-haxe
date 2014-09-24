@@ -301,12 +301,36 @@ public class HaxeResolveUtil {
     return result;
   }
 
+  public static List<HaxeVarDeclaration> getClassVarDeclarations(HaxeClass haxeClass) {
+    PsiElement body = null;
+    final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
+    if (type == HaxeComponentType.CLASS) {
+      body = PsiTreeUtil.getChildOfAnyType(haxeClass, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
+    }
+
+    final List<HaxeVarDeclaration> result = new ArrayList<HaxeVarDeclaration>();
+
+    if (body == null) {
+      return result;
+    }
+
+    final HaxeVarDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeVarDeclaration.class);
+
+    if (variables == null) {
+      return result;
+    }
+    for (HaxeVarDeclaration varDeclaration : variables) {
+      result.add(varDeclaration);
+    }
+    return result;
+  }
+
   @Nullable
   public static List<HaxeType> getFunctionParameters(HaxeNamedComponent component) {
     if (HaxeComponentType.typeOf(component) != HaxeComponentType.METHOD) {
       return null;
     }
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterList.class);
+    final HaxePsiParameterList parameterList = PsiTreeUtil.getChildOfType(component, HaxePsiParameterList.class);
     if (parameterList == null) {
       return Collections.emptyList();
     }
@@ -593,7 +617,7 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static HaxeClassResolveResult findFirstParameterClass(HaxeNamedComponent haxeNamedComponent) {
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterList.class);
+    final HaxePsiParameterList parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxePsiParameterList.class);
     if (parameterList == null) {
       return HaxeClassResolveResult.EMPTY;
     }

@@ -23,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiExternFunctionDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiFunctionPrototypeDeclarationWithAttributes;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -35,6 +37,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -50,17 +53,14 @@ import java.util.List;
 public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMethod {
 
   private HaxeNamedComponent mHaxeNamedComponent;
-  private AbstractHaxePsiClass mContainingClass;
 
-  public HaxePsiMethod(@NotNull AbstractHaxePsiClass inContainingClass,
-                       @NotNull HaxeNamedComponent inHaxeNamedComponent) {
+  public HaxePsiMethod(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
     super(inHaxeNamedComponent.getNode());
-    mContainingClass = inContainingClass;
     mHaxeNamedComponent = inHaxeNamedComponent;
   }
 
-  public HaxeFunctionDeclarationWithAttributes getDelegate() {
-    return ((HaxeFunctionDeclarationWithAttributes) mHaxeNamedComponent);
+  public HaxeComponentWithDeclarationList getDelegate() {
+    return ((HaxeComponentWithDeclarationList) mHaxeNamedComponent);
   }
 
   @NotNull
@@ -407,21 +407,45 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @NotNull
   @Override
   public PsiParameterList getParameterList() {
-    return getDelegate().getParameterList();
+    PsiParameterList[] retVal = null;
+    if (getDelegate() instanceof HaxeFunctionDeclarationWithAttributes) {
+      retVal = ((HaxePsiFunctionDeclarationWithAttributes) getDelegate()).getParameterList();
+    }
+    else if (getDelegate() instanceof HaxeExternFunctionDeclaration) {
+      retVal = ((HaxePsiExternFunctionDeclaration) getDelegate()).getParameterList();
+    }
+    else if (getDelegate() instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      retVal = ((HaxePsiFunctionPrototypeDeclarationWithAttributes) getDelegate()).getParameterList();
+    }
+    PsiParameterList[] retVal = new PsiParameterList[1];
+    return retVal[0];
   }
 
   @NotNull
   @Override
   public PsiReferenceList getThrowsList() {
     /* TODO: [TiVo]: translate below returned objects into PsiReferenceList */
-    HaxeThrowStatement returnStatement = getDelegate().getThrowStatement();
-    return null;
+    HaxeThrowStatement throwStatement = null;
+    if (getDelegate() instanceof HaxeFunctionDeclarationWithAttributes) {
+      throwStatement = ((HaxeFunctionDeclarationWithAttributes) getDelegate()).getThrowStatement();
+    }
+    else if (getDelegate() instanceof HaxeExternFunctionDeclaration) {
+      throwStatement = ((HaxeExternFunctionDeclaration) getDelegate()).getThrowStatement();
+    }
+    PsiReferenceList[] retVal = new PsiReferenceList[1];
+    return retVal[0];
   }
 
   @Nullable
   @Override
   public PsiCodeBlock getBody() {
-    return getDelegate().getBlockStatement().getCodeBlock();
+    if (getDelegate() instanceof HaxeFunctionDeclarationWithAttributes) {
+      return ((HaxeFunctionDeclarationWithAttributes) getDelegate()).getBlockStatement().getCodeBlock();
+    }
+    else if (getDelegate() instanceof HaxeExternFunctionDeclaration) {
+      return ((HaxeExternFunctionDeclaration) getDelegate()).getBlockStatement().getCodeBlock();
+    }
+    return null;
   }
 
   @Override
@@ -484,7 +508,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiClass getContainingClass() {
-    return mContainingClass;
+    return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
   }
 
   @NotNull

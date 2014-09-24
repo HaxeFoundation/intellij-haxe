@@ -19,6 +19,7 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
 public interface HaxePsiAnonymousFunctionDeclaration extends HaxePsiCompositeElement {

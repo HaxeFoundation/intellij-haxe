@@ -17,11 +17,15 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import com.intellij.lang.Language;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiDocCommentOwner;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.javadoc.PsiDocCommentImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 
@@ -37,14 +41,15 @@ public class HaxePsiDocComment extends PsiDocCommentImpl implements PsiDocCommen
   private HaxeNamedComponent mOwnerComponent;
 
   public HaxePsiDocComment(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
-    super(HaxeResolveUtil.findDocumentation(inHaxeNamedComponent).getText());
+    super((HaxeResolveUtil.findDocumentation(inHaxeNamedComponent) != null) ?
+          HaxeResolveUtil.findDocumentation(inHaxeNamedComponent).getText() : "");
     mOwnerComponent = inHaxeNamedComponent;
     mComment = HaxeResolveUtil.findDocumentation(inHaxeNamedComponent);
   }
 
   @Override
   public PsiDocCommentOwner getOwner() {
-    final PsiElement parent = mComment;
+    final PsiElement parent = mOwnerComponent;
     if (parent instanceof PsiDocCommentOwner) {
       final PsiDocCommentOwner owner = (PsiDocCommentOwner) parent;
       if (owner.getDocComment() == this) {
@@ -53,6 +58,54 @@ public class HaxePsiDocComment extends PsiDocCommentImpl implements PsiDocCommen
     }
     // HaxeXXX component owners that are not yet adapted to PsiXXX
     return null;
+  }
+
+  @Override
+  public PsiElement getParent() {
+    return mOwnerComponent;
+  }
+
+  @Override
+  public PsiFile getContainingFile() {
+    return mOwnerComponent.getContainingFile();
+  }
+
+  @Override
+  public boolean isWritable() {
+    return false;
+  }
+
+  @NotNull
+  @Override
+  public Project getProject() {
+    return mOwnerComponent.getProject();
+  }
+
+  @Override
+  public boolean canNavigateToSource() {
+    return mOwnerComponent.canNavigateToSource();
+  }
+
+  @Override
+  public boolean canNavigate() {
+    return mOwnerComponent.canNavigate();
+  }
+
+  @NotNull
+  @Override
+  public Language getLanguage() {
+    return mOwnerComponent.getLanguage();
+  }
+
+  @NotNull
+  @Override
+  public ASTNode getNode() {
+    return mOwnerComponent.getNode();
+  }
+
+  @Override
+  public boolean isValid() {
+    return true;
   }
 
   @Override

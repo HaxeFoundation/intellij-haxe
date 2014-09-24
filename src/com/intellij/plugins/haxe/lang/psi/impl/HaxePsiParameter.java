@@ -17,15 +17,16 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+
 import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
-import com.intellij.psi.PsiParameterList;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
+import com.intellij.psi.PsiParameter;
 
 /**
- * Created by srikanthg on 9/22/14.
+ * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiParameterList extends HaxeParameterListImpl implements HaxeParameterList, PsiParameterList {
-  public HaxePsiParameterList(ASTNode node) {
+public class HaxePsiParameter extends HaxeParameterImpl implements HaxeParameter, PsiParameter {
+  public HaxePsiParameter(ASTNode node) {
     super(node);
   }
 }

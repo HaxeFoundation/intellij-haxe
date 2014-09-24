@@ -17,12 +17,14 @@
  */
 package com.intellij.plugins.haxe.ide.generation;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxePropertyDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.tree.PsiWhiteSpaceImpl;
+import com.intellij.psi.util.PsiTreeUtil;
 
 import java.util.Set;
 
@@ -85,33 +87,43 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
       return;
     }
 
-    final HaxeVarDeclarationPart declarationPart =
-      HaxeElementGenerator.createVarDeclarationPart(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName()));
-    final HaxePropertyDeclaration propertyDeclaration = declarationPart.getPropertyDeclaration();
+    final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclarationPart)namedComponent).getTypeTag());
+
+    final HaxeVarDeclaration declaration =
+      HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName(), typeText));
+    final HaxePropertyDeclaration propertyDeclaration = declaration.getVarDeclarationPartList().iterator().next().getPropertyDeclaration();
     if (propertyDeclaration != null) {
-      namedComponent.addAfter(propertyDeclaration, namedComponent.getComponentName());
+      HaxeVarDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeVarDeclaration.class, false);
+      if (varDeclaration != null) {
+        varDeclaration.replace(declaration);
+      }
     }
   }
 
-  private String buildVarDeclaration(String name) {
+  private String buildVarDeclaration(String name, String typeText) {
     final StringBuilder result = new StringBuilder();
-    result.append("var ");
+    result.append("@:isVar public var ");
     result.append(name);
     result.append("(");
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
-      result.append(HaxePresentableUtil.getterName(name));
+      result.append("get");
     }
     else {
       result.append("null");
     }
     result.append(",");
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
-      result.append(HaxePresentableUtil.setterName(name));
+      result.append("set");
     }
     else {
       result.append("null");
     }
     result.append(")");
+
+    if (!typeText.isEmpty()) {
+      result.append(":" + typeText);
+    }
+
     result.append(";");
     return result.toString();
   }
@@ -129,11 +141,15 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     result.append(isGetter ? HaxePresentableUtil.getterName(name) : HaxePresentableUtil.setterName(name));
     result.append("(");
     if (!isGetter) {
-      result.append("value:");
-      result.append(typeText);
+      result.append("value");
+
+      if (!typeText.isEmpty()) {
+        result.append(":");
+        result.append(typeText);
+      }
     }
     result.append(")");
-    if (isGetter) {
+    if (isGetter && !typeText.isEmpty()) {
       result.append(":");
       result.append(typeText);
     }
@@ -144,6 +160,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
       result.append(";");
     }
     else {
+      result.append("return ");
       result.append("this.");
       result.append(name);
       result.append("=value;");

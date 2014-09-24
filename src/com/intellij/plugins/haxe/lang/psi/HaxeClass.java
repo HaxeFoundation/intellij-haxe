@@ -49,6 +49,9 @@ public interface HaxeClass extends HaxeComponent, PsiClass {
   @NotNull
   List<HaxeNamedComponent> getHaxeFields();
 
+  @NotNull
+  List<HaxeVarDeclaration> getVarDeclarations();
+
   @Nullable
   HaxeNamedComponent findHaxeFieldByName(@NotNull final String name);
 

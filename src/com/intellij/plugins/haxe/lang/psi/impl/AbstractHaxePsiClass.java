@@ -107,6 +107,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.FIELD);
   }
 
+  @NotNull
+  @Override
+  public List<HaxeVarDeclaration> getVarDeclarations() {
+    final List<HaxeVarDeclaration> result = HaxeResolveUtil.getClassVarDeclarations(this);
+    return result;
+  }
+
   @Nullable
   @Override
   public HaxeNamedComponent findHaxeFieldByName(@NotNull final String name) {
@@ -194,6 +201,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     List<HaxeType> haxeTypeList = getHaxeExtendsList();
     HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this.getNode());
     for (HaxeType haxeType : haxeTypeList) {
+      // TODO: [TiVo]: using 'add' confuses IDE that: it is a refactoring action
       psiReferenceList.add(haxeType.getReferenceExpression());
     }
     return psiReferenceList;
@@ -211,6 +219,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     List<HaxeType> haxeTypeList = getHaxeImplementsList();
     HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this.getNode());
     for (HaxeType haxeType : haxeTypeList) {
+      // TODO: [TiVo]: using 'add' confuses IDE that: it is a refactoring action
       psiReferenceList.add(haxeType.getReferenceExpression());
     }
     return psiReferenceList;
@@ -271,7 +280,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     int index = 0;
     HaxePsiMethod[] psiMethods = new HaxePsiMethod[haxeMethods.size()];
     for (HaxeNamedComponent element : haxeMethods) {
-      psiMethods[index++] = new HaxePsiMethod(this, element);
+      psiMethods[index++] = new HaxePsiMethod(element);
     }
     return psiMethods;
   }

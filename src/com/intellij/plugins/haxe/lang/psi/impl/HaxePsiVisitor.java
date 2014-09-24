@@ -17,16 +17,20 @@
  */
 
 // This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.plugins.haxe.lang.psi.HaxePsiFunctionPrototypeDeclarationWithAttributes;
+import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
 import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElementVisitor;
 
 public class HaxePsiVisitor extends HaxeVisitor {
 
-  @Override
   public void visitParameterList(@NotNull HaxePsiParameterList o) {
     visitPsiCompositeElement(o);
+  }
+
+  public void visitFunctionPrototypeDeclarationWithAttributes(@NotNull HaxePsiFunctionPrototypeDeclarationWithAttributes o) {
+    visitComponentWithDeclarationList(o);
   }
 
 }

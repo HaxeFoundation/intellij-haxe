@@ -66,6 +66,13 @@ public class HaxeElementGenerator {
     return (HaxeVarDeclarationPart)haxeClass.getHaxeFields().iterator().next();
   }
 
+  public static HaxeVarDeclaration createVarDeclaration(Project myProject, String text) {
+    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
+    assert haxeClass != null;
+    String haxeClassText = haxeClass.getText();
+    return (HaxeVarDeclaration)haxeClass.getVarDeclarations().iterator().next();
+  }
 
   public static List<HaxeNamedComponent> createNamedSubComponentsFromText(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());

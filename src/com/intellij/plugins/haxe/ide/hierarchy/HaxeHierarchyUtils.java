@@ -17,21 +17,18 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy;
 
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
@@ -70,20 +67,43 @@ public class HaxeHierarchyUtils {
     if (null == id) {
       return null;
     }
-    PsiElement element = id.getParent();
-    while (null != element) {
-      if (element instanceof HaxeReferenceExpression) {
-        HaxeClass pclass = resolveClassReference((HaxeReferenceExpression) element);
-        if (null != pclass) {
-          return pclass;
+
+    PsiReference found = id.findReferenceAt(0);
+    PsiElement resolved = null;
+    if (found instanceof PsiMultiReference) {
+      for (PsiReference ref : ((PsiMultiReference)found).getReferences()) {
+        PsiElement target = ref.resolve();
+        if (null != target && target instanceof PsiClass) {
+          resolved = target;
+          break;
         }
       }
-      if (element instanceof HaxeFile) {
-        return null;
-      }
-      element = element.getParent();
     }
-    return null;
+    else {
+      resolved = found.resolve();
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("findReferencedClassForID found " + resolved);
+    }
+
+    HaxeClass pclass = resolved instanceof HaxeClass ? (HaxeClass) resolved : null;
+    return pclass;
+
+    //PsiElement element = id.getParent();
+    //while (null != element) {
+    //  if (element instanceof HaxeReferenceExpression) {
+    //    HaxeClass pclass = resolveClassReference((HaxeReferenceExpression) element);
+    //    if (null != pclass) {
+    //      return pclass;
+    //    }
+    //  }
+    //  if (element instanceof HaxeFile) {
+    //    return null;
+    //  }
+    //  element = element.getParent();
+    //}
+    //return null;
   }
 
   /**
@@ -249,6 +269,19 @@ public class HaxeHierarchyUtils {
     return element;
   }
 
+  @Nullable
+  public static PsiElement getReferencedElement(@NotNull DataContext context) {
+    PsiElement element = null;
+
+    final Editor editor = CommonDataKeys.EDITOR.getData(context);
+    if (editor != null) {
+      element = TargetElementUtil.findTargetElement(editor,
+                                    TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
+    }
+
+    return element;
+  }
+
   /**
    * Determine the class (PSI element), if any, that is referenced by the
    * given reference expression.
@@ -257,7 +290,7 @@ public class HaxeHierarchyUtils {
    * @return The associated class, if any.  null if not found.
    */
   @Nullable
-  public static HaxeClass resolveClassReference(@NotNull HaxeReferenceExpression element) {
+  public static HaxeClass resolveClassReference(@NotNull HaxeReference element) {
     HaxeClassResolveResult result = element.resolveHaxeClass();
     HaxeClass pclass = result == null ? null : result.getHaxeClass();
     return pclass;
