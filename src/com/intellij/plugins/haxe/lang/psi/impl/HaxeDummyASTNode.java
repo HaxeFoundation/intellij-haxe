@@ -22,13 +22,22 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.impl.source.tree.LazyParseableElement;
 import com.intellij.psi.tree.ILazyParseableElementType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by ebishton on 9/22/14.
  */
 public class HaxeDummyASTNode  extends LazyParseableElement {
   HaxeDummyASTNode(String text) {
-    super(TokenType.DUMMY_HOLDER, "DUMMY");
+    super(TokenType.DUMMY_HOLDER, text);
   }
 
+  public static boolean isDummyNode(@NotNull ASTNode node) {
+    return ! (node instanceof HaxeDummyASTNode);
+  }
+
+  public static boolean isUsableNode(@Nullable ASTNode node) {
+    return null != node && !isDummyNode(node);
+  }
 }
