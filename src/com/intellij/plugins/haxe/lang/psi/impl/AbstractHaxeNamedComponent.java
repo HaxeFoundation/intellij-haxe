@@ -29,10 +29,12 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -179,4 +181,32 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
   }
+
+  @Nullable
+  public final PsiElement findChildByRoleAsPsiElement(int role) {
+    ASTNode element = findChildByRole(role);
+    if (element == null) return null;
+    return SourceTreeToPsiMap.treeElementToPsi(element);
+  }
+
+  @Nullable
+  public ASTNode findChildByRole(int role) {
+    // assert ChildRole.isUnique(role);
+    for (ASTNode child = getFirstChild().getNode(); child != null; child = child.getTreeNext()) {
+      if (getChildRole(child) == role) return child;
+    }
+    return null;
+  }
+
+  public int getChildRole(ASTNode child) {
+    return 0; //ChildRole.NONE;
+  }
+
+  protected final int getChildRole(ASTNode child, int roleCandidate) {
+    if (findChildByRole(roleCandidate) == child) {
+      return roleCandidate;
+    }
+    return 0; //ChildRole.NONE;
+  }
+
 }

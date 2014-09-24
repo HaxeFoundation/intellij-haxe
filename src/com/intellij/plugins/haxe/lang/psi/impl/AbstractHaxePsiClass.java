@@ -29,6 +29,7 @@ import com.intellij.psi.impl.InheritanceImplUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -184,11 +185,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public PsiElement getScope() {
-    PsiElement retVal = null;
-    // PsiClassImplUtil.getClassUseScope(this);
-    // HaxeResolveUtil.getScopeForElement(this);
-    /* TODO: [TiVo]: translate these scope objects into PsiElement */
-    return retVal;
+    return getParent();
   }
 
   @Override
@@ -251,9 +248,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiClassInitializer[] getInitializers() {
-    PsiClassInitializer[] retVal = {};
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return retVal;
+    // does this need to be implemented
+    return PsiClassInitializer.EMPTY_ARRAY;
   }
 
   @Override
@@ -323,8 +319,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return new ArrayList<Pair<PsiMethod, PsiSubstitutor>>();
+    return PsiClassImplUtil.getAllWithSubstitutorsByMap(this, PsiClassImplUtil.MemberType.METHOD);
   }
 
   @Override
@@ -340,9 +335,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiTypeParameterList getTypeParameterList() {
-    PsiTypeParameterList[] retVal = {};
     // TODO: [TiVo]: MUST implement
-    return retVal[0];
+    return null;
   }
 
   @Override
@@ -353,20 +347,18 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public PsiElement getLBrace() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
+    return this.findChildByRoleAsPsiElement(ChildRole.LBRACE);
   }
 
   @Override
   public PsiElement getRBrace() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
+    return this.findChildByRoleAsPsiElement(ChildRole.RBRACE);
   }
 
   @Override
   @Nullable
   public PsiModifierList getModifierList() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
+    // does this need to be implemented
     return null;
   }
 
@@ -402,8 +394,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiIdentifier getNameIdentifier() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
+    return ((PsiIdentifier) this.findChildByRoleAsPsiElement(ChildRole.NAME));
   }
 
   @Override
@@ -414,21 +405,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   public PsiClass[] getInnerClasses() {
-    PsiClass[] retVal = {};
-    /* not applicable to Haxe language */
-    return retVal;
+    return PsiClass.EMPTY_ARRAY;
   }
 
   @NotNull
   public PsiClass[] getAllInnerClasses() {
-    PsiClass[] retVal = {};
-    /* not applicable to Haxe language */
-    return retVal;
+    return PsiClass.EMPTY_ARRAY;
   }
 
   @Override
   public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
-    /* not applicable to Haxe language */
     return null;
   }
 }

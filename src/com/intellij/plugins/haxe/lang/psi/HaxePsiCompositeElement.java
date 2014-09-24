@@ -17,11 +17,10 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.NavigatablePsiElement;
-import com.intellij.psi.impl.source.tree.CompositePsiElement;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
-
-// TODO: [TiVo]: derive from CompositePsiElement's related base (or at impl level)?
 
 /**
  * @author fedor.korotkov

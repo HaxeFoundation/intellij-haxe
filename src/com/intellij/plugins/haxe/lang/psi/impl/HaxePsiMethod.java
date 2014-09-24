@@ -407,13 +407,13 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @NotNull
   @Override
   public HaxeParameterList getParameterList() {
-
+    //
     // TODO: [TiVo]:
     // This breaks the compiler's type and error checking.
     // HaxeComponentWithDeclarationList should implement or derive
     // from HaxePsiMethod.  We shouldn't be checking and calling
     // specific types.  This is the easy way out for the moment.
-
+    //
     HaxeComponentWithDeclarationList delegate = getDelegate();
     HaxeParameterList list = null;
     if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
@@ -431,7 +431,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @NotNull
   @Override
   public PsiReferenceList getThrowsList() {
-    // TODO: [TiVo]: HACK HACK HACK See above comment.
+    // TODO: [TiVo]: See above comment.
     HaxeThrowStatement ts = null;
     HaxeComponentWithDeclarationList delegate = getDelegate();
     if (delegate instanceof HaxeExternFunctionDeclaration) {
