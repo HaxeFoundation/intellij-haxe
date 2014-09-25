@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiParameterList;
 
 public class HaxeVisitor extends PsiElementVisitor {
 
@@ -360,6 +361,7 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitParameterList(@NotNull HaxeParameterList o) {
     visitPsiCompositeElement(o);
+    // visitPsiParameterList(o);
   }
 
   public void visitParenthesizedExpression(@NotNull HaxeParenthesizedExpression o) {

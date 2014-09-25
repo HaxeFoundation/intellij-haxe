@@ -313,7 +313,7 @@ varInit ::= '=' expression {pin=1}
 parameter ::= '?'? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
-parameterList ::= parameter (',' parameter)* {recoverWhile="parameterListRecovery"}
+parameterList ::= parameter (',' parameter)* {recoverWhile="parameterListRecovery" implements=["com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement" "com.intellij.psi.PsiParameterList"]}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
 functionLiteral ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody {pin=2}
