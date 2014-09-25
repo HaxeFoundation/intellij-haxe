@@ -19,14 +19,24 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiTypeElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
 public class HaxePsiParameter extends HaxeParameterImpl implements HaxeParameter, PsiParameter {
-  public HaxePsiParameter(ASTNode node) {
+  public HaxePsiParameter(@NotNull ASTNode node) {
     super(node);
+  }
+
+  @Nullable
+  @Override
+  public PsiTypeElement getTypeElement() {
+    return HaxeTokenTypes.PARAMETER;
   }
 }
