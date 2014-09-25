@@ -20,8 +20,6 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
-
-import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 

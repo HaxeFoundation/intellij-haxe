@@ -20,9 +20,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
-
-import com.intellij.psi.PsiCodeBlock;
-import com.intellij.psi.impl.source.tree.ChildRole;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -126,10 +123,4 @@ public class HaxeBlockStatementImpl extends HaxePsiCompositeElementImpl implemen
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeWhileStatement.class);
   }
 
-  @NotNull
-  @Override
-  public PsiCodeBlock getCodeBlock() {
-    // TODO: [TiVo]: this may not work... could be NULL or Exception // TEST
-    return findChildByClass(PsiCodeBlock.class);
-  }
 }
