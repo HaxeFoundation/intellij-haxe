@@ -529,7 +529,7 @@ public interface HaxeTokenTypes {
         return new HaxePackageStatementImpl(node);
       }
       else if (type == PARAMETER) {
-        return new HaxeParameterImpl(node);
+        return new HaxePsiParameter(node);
       }
       else if (type == PARAMETER_LIST) {
         return new HaxeParameterListImpl(node);

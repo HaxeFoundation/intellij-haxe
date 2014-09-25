@@ -72,7 +72,8 @@ public class HaxePsiDocComment extends PsiDocCommentImpl implements PsiDocCommen
 
   @Override
   public boolean isWritable() {
-    return false;
+    // TODO: [TiVo]: Fix hack
+    return true;
   }
 
   @NotNull

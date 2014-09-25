@@ -19,13 +19,27 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
 public class HaxePsiParameterList extends HaxeParameterListImpl implements HaxeParameterList, PsiParameterList {
+
   public HaxePsiParameterList(ASTNode node) {
     super(node);
+  }
+
+  @NotNull
+  @Override
+  public HaxePsiParameter[] getParameters() {
+    PsiParameter[] psiParameters = super.getParameters();
+    HaxePsiParameter[] haxePsiParameters = new HaxePsiParameter[psiParameters.length];
+    for (int index = 0; index < psiParameters.length; index++) {
+      haxePsiParameters[index] = new HaxePsiParameter(psiParameters[index]);
+    }
+    return haxePsiParameters;
   }
 }
