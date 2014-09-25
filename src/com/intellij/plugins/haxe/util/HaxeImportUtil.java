@@ -51,13 +51,16 @@ public class HaxeImportUtil {
       }
     });
 
+    List<HaxeImportStatementRegular> filteredUsefulImports = new ArrayList<HaxeImportStatementRegular>();
+
     List<HaxeImportStatementRegular> allImportStatements = UsefulPsiTreeUtil.getAllImportStatements(file);
-    List<HaxeImportStatementRegular> usefulImportStatements = ContainerUtil.findAll(allImportStatements, new Condition<HaxeImportStatementRegular>() {
+    final List<HaxeImportStatementRegular> usefulImportStatements = ContainerUtil.findAll(allImportStatements, new Condition<HaxeImportStatementRegular>() {
       @Override
       public boolean value(HaxeImportStatementRegular statement) {
         final HaxeImportStatementRegular regularImport = statement;
         if(regularImport != null) {
           final HaxeReferenceExpression referenceExpression = regularImport.getReferenceExpression();
+
           if (referenceExpression.resolve() == null) {
             // don't know for sure
             return true;
@@ -72,8 +75,23 @@ public class HaxeImportUtil {
       }
     });
 
+    boolean alreadyAdded = false;
+
+    for (int i = 0; i < usefulImportStatements.size(); i++) {
+      for (int j = 0; j < filteredUsefulImports.size(); j++) {
+        if (usefulImportStatements.get(i).getReferenceExpression().getText().equals(filteredUsefulImports.get(j).getReferenceExpression().getText())) {
+          alreadyAdded = true;
+          break;
+        }
+      }
+
+      if (!alreadyAdded) {
+        filteredUsefulImports.add(usefulImportStatements.get(i));
+      }
+    }
+
     List<HaxeImportStatementRegular> uselessImportStatements = new ArrayList<HaxeImportStatementRegular>(allImportStatements);
-    uselessImportStatements.removeAll(usefulImportStatements);
+    uselessImportStatements.removeAll(filteredUsefulImports);
 
     return uselessImportStatements;
   }
