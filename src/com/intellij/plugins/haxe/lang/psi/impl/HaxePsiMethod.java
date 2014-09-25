@@ -25,6 +25,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -416,12 +417,12 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     //
     HaxeComponentWithDeclarationList delegate = getDelegate();
     HaxePsiParameterList list = null;
-    if (delegate instanceof HaxePsiFunctionDeclarationWithAttributes) {
-      list = ((HaxePsiFunctionDeclarationWithAttributes)delegate).getParameterList();
-    } else if (delegate instanceof HaxePsiFunctionPrototypeDeclarationWithAttributes) {
-      list = ((HaxePsiFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList();
-    } else if (delegate instanceof HaxePsiExternFunctionDeclaration) {
-      list = ((HaxePsiExternFunctionDeclaration)delegate).getParameterList();
+    if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
+      list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList());
+    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList());
+    } else if (delegate instanceof HaxeExternFunctionDeclaration) {
+      list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeExternFunctionDeclaration)delegate).getParameterList());
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
@@ -434,12 +435,12 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // TODO: [TiVo]: See above comment.
     HaxeThrowStatement ts = null;
     HaxeComponentWithDeclarationList delegate = getDelegate();
-    if (delegate instanceof HaxePsiExternFunctionDeclaration) {
-      ts = ((HaxePsiExternFunctionDeclaration)delegate).getThrowStatement();
-    } else if (delegate instanceof HaxePsiFunctionPrototypeDeclarationWithAttributes) {
+    if (delegate instanceof HaxeExternFunctionDeclaration) {
+      ts = ((HaxeExternFunctionDeclaration)delegate).getThrowStatement();
+    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
       ; // intentionally left no-op
-    } else if (delegate instanceof HaxePsiFunctionDeclarationWithAttributes) {
-      ts = ((HaxePsiFunctionDeclarationWithAttributes)delegate).getThrowStatement();
+    } else if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
+      ts = ((HaxeFunctionDeclarationWithAttributes)delegate).getThrowStatement();
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
@@ -453,12 +454,12 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // TODO: [TiVo]: See above comment.
     HaxeBlockStatement bs = null;
     HaxeComponentWithDeclarationList delegate = getDelegate();
-    if (delegate instanceof HaxePsiFunctionDeclarationWithAttributes) {
-      bs = ((HaxePsiFunctionDeclarationWithAttributes)delegate).getBlockStatement();
-    } else if (delegate instanceof HaxePsiFunctionPrototypeDeclarationWithAttributes) {
+    if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
+      bs = ((HaxeFunctionDeclarationWithAttributes)delegate).getBlockStatement();
+    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
       ; // intentional no-op
-    } else if (delegate instanceof HaxePsiExternFunctionDeclaration) {
-      bs = ((HaxePsiExternFunctionDeclaration)delegate).getBlockStatement();
+    } else if (delegate instanceof HaxeExternFunctionDeclaration) {
+      bs = ((HaxeExternFunctionDeclaration)delegate).getBlockStatement();
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }

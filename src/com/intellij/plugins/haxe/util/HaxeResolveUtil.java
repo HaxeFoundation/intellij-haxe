@@ -629,4 +629,8 @@ public class HaxeResolveUtil {
     }
     return HaxeClassResolveResult.EMPTY;
   }
+
+  public static HaxePsiParameterList toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
+    return new HaxePsiParameterList(haxeParameterList.getNode());
+  }
 }
