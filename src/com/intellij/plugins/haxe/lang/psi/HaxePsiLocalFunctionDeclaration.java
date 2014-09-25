@@ -17,36 +17,14 @@
  */
 
 // This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi.impl;
+package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
 public interface HaxePsiLocalFunctionDeclaration extends HaxeLocalFunctionDeclaration, HaxeComponent {
 
   @Nullable
-  HaxeBlockStatement getBlockStatement();
-
-  @NotNull
-  HaxeComponentName getComponentName();
-
-  @Nullable
-  HaxeExpression getExpression();
-
-  @Nullable
-  HaxeGenericParam getGenericParam();
-
-  @Nullable
   HaxePsiParameterList getParameterList();
-
-  @Nullable
-  HaxeReturnStatement getReturnStatement();
-
-  @Nullable
-  HaxeThrowStatement getThrowStatement();
-
-  @Nullable
-  HaxeTypeTag getTypeTag();
 
 }

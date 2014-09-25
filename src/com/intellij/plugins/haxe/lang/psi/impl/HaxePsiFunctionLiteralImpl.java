@@ -21,57 +21,21 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElementVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeFunctionLiteral {
+public class HaxePsiFunctionLiteralImpl extends HaxeFunctionLiteralImpl implements HaxePsiFunctionLiteral {
 
   public HaxePsiFunctionLiteralImpl(ASTNode node) {
     super(node);
   }
 
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitFunctionLiteral(this);
-    else super.accept(visitor);
-  }
-
   @Override
-  @Nullable
-  public HaxeBlockStatement getBlockStatement() {
-    return findChildByClass(HaxeBlockStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
-  }
-
-  @Override
-  @Nullable
+  @NotNull
   public HaxePsiParameterList getParameterList() {
-    return findChildByClass(HaxePsiParameterList.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeReturnStatement getReturnStatement() {
-    return findChildByClass(HaxeReturnStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeThrowStatement getThrowStatement() {
-    return findChildByClass(HaxeThrowStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeTypeTag getTypeTag() {
-    return findChildByClass(HaxeTypeTag.class);
+    return new HaxePsiParameterList(super.getParameterList().getNode());
   }
 
 }

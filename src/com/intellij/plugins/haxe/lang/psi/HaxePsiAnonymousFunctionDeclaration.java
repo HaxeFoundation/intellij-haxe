@@ -22,24 +22,11 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
-public interface HaxePsiFunctionLiteral extends HaxeExpression {
-
-  @Nullable
-  HaxeBlockStatement getBlockStatement();
-
-  @Nullable
-  HaxeExpression getExpression();
+public interface HaxePsiAnonymousFunctionDeclaration extends HaxeAnonymousFunctionDeclaration {
 
   @Nullable
   HaxePsiParameterList getParameterList();
 
   @Nullable
-  HaxeReturnStatement getReturnStatement();
-
-  @Nullable
-  HaxeThrowStatement getThrowStatement();
-
-  @Nullable
   HaxeTypeTag getTypeTag();
-
 }

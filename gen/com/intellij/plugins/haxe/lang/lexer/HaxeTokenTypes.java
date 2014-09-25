@@ -295,7 +295,7 @@ public interface HaxeTokenTypes {
         return new HaxeAdditiveExpressionImpl(node);
       }
       else if (type == ANONYMOUS_FUNCTION_DECLARATION) {
-        return new HaxeAnonymousFunctionDeclarationImpl(node);
+        return new HaxePsiAnonymousFunctionDeclarationImpl(node);
       }
       else if (type == ANONYMOUS_TYPE) {
         return new HaxeAnonymousTypeImpl(node);
@@ -385,7 +385,7 @@ public interface HaxeTokenTypes {
         return new HaxeEnumBodyImpl(node);
       }
       else if (type == ENUM_CONSTRUCTOR_PARAMETERS) {
-        return new HaxeEnumConstructorParametersImpl(node);
+        return new HaxePsiEnumConstructorParametersImpl(node);
       }
       else if (type == ENUM_DECLARATION) {
         return new HaxeEnumDeclarationImpl(node);
@@ -406,7 +406,7 @@ public interface HaxeTokenTypes {
         return new HaxeExternClassDeclarationBodyImpl(node);
       }
       else if (type == EXTERN_FUNCTION_DECLARATION) {
-        return new HaxeExternFunctionDeclarationImpl(node);
+        return new HaxePsiExternFunctionDeclarationImpl(node);
       }
       else if (type == EXTERN_OR_PRIVATE) {
         return new HaxeExternOrPrivateImpl(node);
@@ -418,13 +418,13 @@ public interface HaxeTokenTypes {
         return new HaxeForStatementImpl(node);
       }
       else if (type == FUNCTION_DECLARATION_WITH_ATTRIBUTES) {
-        return new HaxeFunctionDeclarationWithAttributesImpl(node);
+        return new HaxePsiFunctionDeclarationWithAttributesImpl(node);
       }
       else if (type == FUNCTION_LITERAL) {
-        return new HaxeFunctionLiteralImpl(node);
+        return new HaxePsiFunctionLiteralImpl(node);
       }
       else if (type == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES) {
-        return new HaxeFunctionPrototypeDeclarationWithAttributesImpl(node);
+        return new HaxePsiFunctionPrototypeDeclarationWithAttributesImpl(node);
       }
       else if (type == FUNCTION_TYPE) {
         return new HaxeFunctionTypeImpl(node);
@@ -481,7 +481,7 @@ public interface HaxeTokenTypes {
         return new HaxeLiteralExpressionImpl(node);
       }
       else if (type == LOCAL_FUNCTION_DECLARATION) {
-        return new HaxeLocalFunctionDeclarationImpl(node);
+        return new HaxePsiLocalFunctionDeclarationImpl(node);
       }
       else if (type == LOCAL_VAR_DECLARATION) {
         return new HaxeLocalVarDeclarationImpl(node);
@@ -529,7 +529,7 @@ public interface HaxeTokenTypes {
         return new HaxePackageStatementImpl(node);
       }
       else if (type == PARAMETER) {
-        return new HaxeParameterImpl(node);
+        return new HaxePsiParameter(node);
       }
       else if (type == PARAMETER_LIST) {
         return new HaxePsiParameterList(node);

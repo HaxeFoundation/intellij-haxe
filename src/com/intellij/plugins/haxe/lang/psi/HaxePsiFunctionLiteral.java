@@ -19,57 +19,12 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
-import java.util.List;
-
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
-
-/**
- * @author: Srikanth.Ganapavarapu
- */
-public interface HaxePsiFunctionPrototypeDeclarationWithAttributes extends HaxeComponentWithDeclarationList {
-
-  @NotNull
-  List<HaxeAutoBuildMacro> getAutoBuildMacroList();
-
-  @NotNull
-  List<HaxeBuildMacro> getBuildMacroList();
-
-  @Nullable
-  HaxeComponentName getComponentName();
-
-  @NotNull
-  List<HaxeCustomMeta> getCustomMetaList();
-
-  @NotNull
-  List<HaxeDeclarationAttribute> getDeclarationAttributeList();
-
-  @Nullable
-  HaxeGenericParam getGenericParam();
-
-  @NotNull
-  List<HaxeGetterMeta> getGetterMetaList();
-
-  @NotNull
-  List<HaxeMetaMeta> getMetaMetaList();
-
-  @NotNull
-  List<HaxeNsMeta> getNsMetaList();
-
-  @NotNull
-  List<HaxeOverloadMeta> getOverloadMetaList();
+public interface HaxePsiFunctionLiteral extends HaxeFunctionLiteral {
 
   @Nullable
   HaxePsiParameterList getParameterList();
-
-  @NotNull
-  List<HaxeRequireMeta> getRequireMetaList();
-
-  @NotNull
-  List<HaxeSetterMeta> getSetterMetaList();
-
-  @Nullable
-  HaxeTypeTag getTypeTag();
 
 }

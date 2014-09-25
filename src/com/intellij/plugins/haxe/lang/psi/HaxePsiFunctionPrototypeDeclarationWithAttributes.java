@@ -22,12 +22,12 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
-public interface HaxePsiAnonymousFunctionDeclaration extends HaxePsiCompositeElement {
+/**
+ * @author: Srikanth.Ganapavarapu
+ */
+public interface HaxePsiFunctionPrototypeDeclarationWithAttributes extends HaxeFunctionPrototypeDeclarationWithAttributes {
 
   @Nullable
   HaxePsiParameterList getParameterList();
-
-  @Nullable
-  HaxeTypeTag getTypeTag();
 
 }

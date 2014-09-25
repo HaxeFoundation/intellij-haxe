@@ -25,8 +25,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiExternFunctionDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiFunctionPrototypeDeclarationWithAttributes;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -297,7 +295,9 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
 
   @Override
   public boolean isWritable() {
-    return getDelegate().isWritable();
+    // TODO: [TiVo]: Fix hack
+    return true;
+    //return getDelegate().isWritable();
   }
 
   @Nullable
@@ -391,7 +391,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   public PsiType getReturnType() {
     /* TODO: [TiVo]: translate below returned objects into PsiType */
     // HaxeReturnStatement returnStatement = getDelegate().getReturnStatement();
-    // HaxeFunctionType type = getDelegate().getTypeTag().getFunctionType();
+    // HaxePsiFunctionType type = getDelegate().getTypeTag().getFunctionType();
     return null;
   }
 
@@ -400,13 +400,13 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   public PsiTypeElement getReturnTypeElement() {
     /* TODO: [TiVo]: translate below returned objects into PsiTypeElement */
     // HaxeReturnStatement returnStatement = getDelegate().getReturnStatement();
-    // HaxeFunctionType type = getDelegate().getTypeTag().getFunctionType();
+    // HaxePsiFunctionType type = getDelegate().getTypeTag().getFunctionType();
     return null;
   }
 
   @NotNull
   @Override
-  public HaxeParameterList getParameterList() {
+  public HaxePsiParameterList getParameterList() {
     //
     // TODO: [TiVo]:
     // This breaks the compiler's type and error checking.
@@ -415,17 +415,17 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // specific types.  This is the easy way out for the moment.
     //
     HaxeComponentWithDeclarationList delegate = getDelegate();
-    HaxeParameterList list = null;
-    if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
-      list = ((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList();
-    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-      list = ((HaxeFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList();
-    } else if (delegate instanceof HaxeExternFunctionDeclaration) {
-      list = ((HaxeExternFunctionDeclaration)delegate).getParameterList();
+    HaxePsiParameterList list = null;
+    if (delegate instanceof HaxePsiFunctionDeclarationWithAttributes) {
+      list = ((HaxePsiFunctionDeclarationWithAttributes)delegate).getParameterList();
+    } else if (delegate instanceof HaxePsiFunctionPrototypeDeclarationWithAttributes) {
+      list = ((HaxePsiFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList();
+    } else if (delegate instanceof HaxePsiExternFunctionDeclaration) {
+      list = ((HaxePsiExternFunctionDeclaration)delegate).getParameterList();
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
-    return list != null ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list"));
+    return list != null ? list : new HaxePsiParameterList(new HaxeDummyASTNode("Dummy parameter list"));
   }
 
   @NotNull
@@ -434,12 +434,12 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // TODO: [TiVo]: See above comment.
     HaxeThrowStatement ts = null;
     HaxeComponentWithDeclarationList delegate = getDelegate();
-    if (delegate instanceof HaxeExternFunctionDeclaration) {
-      ts = ((HaxeExternFunctionDeclaration)delegate).getThrowStatement();
-    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+    if (delegate instanceof HaxePsiExternFunctionDeclaration) {
+      ts = ((HaxePsiExternFunctionDeclaration)delegate).getThrowStatement();
+    } else if (delegate instanceof HaxePsiFunctionPrototypeDeclarationWithAttributes) {
       ; // intentionally left no-op
-    } else if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
-      ts = ((HaxeFunctionDeclarationWithAttributes)delegate).getThrowStatement();
+    } else if (delegate instanceof HaxePsiFunctionDeclarationWithAttributes) {
+      ts = ((HaxePsiFunctionDeclarationWithAttributes)delegate).getThrowStatement();
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
@@ -453,12 +453,12 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // TODO: [TiVo]: See above comment.
     HaxeBlockStatement bs = null;
     HaxeComponentWithDeclarationList delegate = getDelegate();
-    if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
-      bs = ((HaxeFunctionDeclarationWithAttributes)delegate).getBlockStatement();
-    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+    if (delegate instanceof HaxePsiFunctionDeclarationWithAttributes) {
+      bs = ((HaxePsiFunctionDeclarationWithAttributes)delegate).getBlockStatement();
+    } else if (delegate instanceof HaxePsiFunctionPrototypeDeclarationWithAttributes) {
       ; // intentional no-op
-    } else if (delegate instanceof HaxeExternFunctionDeclaration) {
-      bs = ((HaxeExternFunctionDeclaration)delegate).getBlockStatement();
+    } else if (delegate instanceof HaxePsiExternFunctionDeclaration) {
+      bs = ((HaxePsiExternFunctionDeclaration)delegate).getBlockStatement();
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }

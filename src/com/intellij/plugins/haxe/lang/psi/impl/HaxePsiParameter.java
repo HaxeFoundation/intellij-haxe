@@ -17,16 +17,100 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
-import com.intellij.psi.PsiParameter;
+import com.intellij.psi.*;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
 public class HaxePsiParameter extends HaxeParameterImpl implements HaxeParameter, PsiParameter {
+
   public HaxePsiParameter(ASTNode node) {
     super(node);
+  }
+
+  public HaxePsiParameter(PsiParameter parameter) {
+    super(parameter.getNode());
+  }
+
+  public HaxePsiParameter(HaxeParameter parameter) {
+    super(parameter.getNode());
+  }
+
+  @NotNull
+  @Override
+  public PsiElement getDeclarationScope() {
+    // TODO: [TiVo]: implement?
+    return getParent();
+  }
+
+  @Override
+  public boolean isVarArgs() {
+    // TODO: [TiVo]: implement?
+    return false;
+  }
+
+  @Nullable
+  @Override
+  public PsiTypeElement getTypeElement() {
+    // TODO: [TiVo]: implement?
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public PsiType getType() {
+    // TODO: [TiVo]: implement?
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiExpression getInitializer() {
+    // TODO: [TiVo]: implement?
+    return null;
+  }
+
+  @Override
+  public boolean hasInitializer() {
+    // TODO: [TiVo]: implement?
+    return false;
+  }
+
+  @Override
+  public void normalizeDeclaration() throws IncorrectOperationException {
+    // TODO: [TiVo]: implement?
+  }
+
+  @Nullable
+  @Override
+  public Object computeConstantValue() {
+    // TODO: [TiVo]: implement?
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiIdentifier getNameIdentifier() {
+    // TODO: [TiVo]: implement?
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiModifierList getModifierList() {
+    // TODO: [TiVo]: implement?
+    return null;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    // TODO: [TiVo]: implement?
+    return false;
   }
 }

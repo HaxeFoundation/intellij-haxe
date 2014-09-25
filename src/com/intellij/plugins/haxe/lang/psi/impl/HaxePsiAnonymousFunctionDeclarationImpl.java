@@ -24,27 +24,17 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxePsiAnonymousFunctionDeclarationImpl extends HaxePsiCompositeElementImpl implements HaxeAnonymousFunctionDeclaration {
+public class HaxePsiAnonymousFunctionDeclarationImpl
+  extends HaxeAnonymousFunctionDeclarationImpl
+  implements HaxePsiAnonymousFunctionDeclaration {
 
   public HaxePsiAnonymousFunctionDeclarationImpl(ASTNode node) {
     super(node);
   }
 
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitAnonymousFunctionDeclaration(this);
-    else super.accept(visitor);
-  }
-
-  @Override
   @Nullable
+  @Override
   public HaxePsiParameterList getParameterList() {
-    return findChildByClass(HaxePsiParameterList.class);
+    return new HaxePsiParameterList(super.getParameterList().getNode());
   }
-
-  @Override
-  @Nullable
-  public HaxeTypeTag getTypeTag() {
-    return findChildByClass(HaxeTypeTag.class);
-  }
-
 }

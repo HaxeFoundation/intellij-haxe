@@ -19,11 +19,12 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
-public interface HaxeEnumConstructorParameters extends HaxePsiCompositeElement {
+public interface HaxePsiExternFunctionDeclaration extends HaxeExternFunctionDeclaration {
 
   @Nullable
-  HaxeParameterList getParameterList();
+  HaxePsiParameterList getParameterList();
 
 }

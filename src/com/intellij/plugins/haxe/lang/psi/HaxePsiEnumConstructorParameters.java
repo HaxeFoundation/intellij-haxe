@@ -22,7 +22,7 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import org.jetbrains.annotations.*;
 
-public interface HaxePsiEnumConstructorParameters extends HaxePsiCompositeElement {
+public interface HaxePsiEnumConstructorParameters extends HaxeEnumConstructorParameters {
 
   @Nullable
   HaxePsiParameterList getParameterList();

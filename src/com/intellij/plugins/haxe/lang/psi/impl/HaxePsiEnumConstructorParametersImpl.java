@@ -21,24 +21,18 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElementVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxePsiEnumConstructorParametersImpl extends HaxePsiCompositeElementImpl implements HaxeEnumConstructorParameters {
+public class HaxePsiEnumConstructorParametersImpl extends HaxeEnumConstructorParametersImpl implements HaxePsiEnumConstructorParameters {
 
   public HaxePsiEnumConstructorParametersImpl(ASTNode node) {
     super(node);
   }
 
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitEnumConstructorParameters(this);
-    else super.accept(visitor);
-  }
-
-  @Override
   @Nullable
+  @Override
   public HaxePsiParameterList getParameterList() {
-    return findChildByClass(HaxePsiParameterList.class);
+    return new HaxePsiParameterList(super.getParameterList().getNode());
   }
 
 }
