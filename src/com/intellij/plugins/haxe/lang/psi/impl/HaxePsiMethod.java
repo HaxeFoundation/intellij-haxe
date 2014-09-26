@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.impl.java.stubs.JavaStubElementTypes;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -463,7 +464,9 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
-    return bs == null ? null : bs.getCodeBlock();
+
+    //return bs == null ? null : bs.getPsi();
+    return null;
   }
 
   @Override
@@ -590,7 +593,29 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
+    // As an adapter, this class is not properly situated in the PSI tree.
+    // So we can't search the PSI tree directly.  Therefore, search the
+    // AST tree and then convert those into PSI elements.
+
     /* TODO: [TiVo]: Implement */
+
+    if (false) {
+
+      //ASTNode node = getNode();
+      //ASTNode paramList = node.findChildByType(HaxeTokenTypes.PARAMETER_LIST);
+      //for (ASTNode astChild = paramList.getFirstChildNode(); astChild != null; astChild = astChild.getTreeNext()) {
+      //  if (astChild.getElementType() == HaxeTokenTypes.PARAMETER) {
+      //    Need to get the type from each parameter and drop it into our list.
+      //
+      //  }
+      //  PsiElement psiChild = astChild.getPsi();
+      //  if (psiChild)
+      //}
+      //PARAMETER
+      //
+      //return getRequiredStubOrPsiChild(JavaStubElementTypes.TYPE_PARAMETER_LIST);
+    }
+
     return null;
   }
 

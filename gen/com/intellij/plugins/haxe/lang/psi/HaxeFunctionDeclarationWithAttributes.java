@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
 import org.jetbrains.annotations.*;
+import com.intellij.psi.PsiElement;
 
 public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponentWithDeclarationList {
 
@@ -60,7 +61,7 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeComponentWith
   @NotNull
   List<HaxeOverloadMeta> getOverloadMetaList();
 
-  @NotNull
+  @Nullable
   HaxeParameterList getParameterList();
 
   @NotNull

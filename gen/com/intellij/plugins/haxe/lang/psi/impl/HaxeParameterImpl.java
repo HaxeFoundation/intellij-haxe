@@ -19,11 +19,13 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.psi.*;
-import com.intellij.psi.impl.source.PsiParameterImpl;
-import com.intellij.util.IncorrectOperationException;
+import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
 public class HaxeParameterImpl extends AbstractHaxeNamedComponent implements HaxeParameter {

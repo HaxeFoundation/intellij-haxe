@@ -525,10 +525,10 @@ public interface HaxeTokenTypes {
         return new HaxePackageStatementImpl(node);
       }
       else if (type == PARAMETER) {
-        return new HaxePsiParameter(node);
+        return new HaxeParameterImpl(node);
       }
       else if (type == PARAMETER_LIST) {
-        return new HaxePsiParameterList(node);
+        return new HaxeParameterListImpl(node);
       }
       else if (type == PARENTHESIZED_EXPRESSION) {
         return new HaxeParenthesizedExpressionImpl(node);
