@@ -30,6 +30,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.java.stubs.JavaStubElementTypes;
+import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -465,8 +466,11 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
 
-    //return bs == null ? null : bs.getPsi();
-    return null;
+    if (bs == null) {
+      return null;
+    }
+
+    return (PsiCodeBlock)bs.getNode().findChildByType(HaxeTokenTypes.BLOCK_STATEMENT);
   }
 
   @Override
