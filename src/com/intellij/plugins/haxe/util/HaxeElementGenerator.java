@@ -93,7 +93,7 @@ public class HaxeElementGenerator {
 
   @Nullable
   private static <T extends PsiElement> T createImportAndFindChild(Project myProject, String name, Class<T> aClass) {
-    final HaxeImportStatement importStatement = createImportStatementFromPath(myProject, name);
+    final HaxeImportStatementRegular importStatement = createImportStatementFromPath(myProject, name);
     if (importStatement == null) {
       return null;
     }
@@ -101,9 +101,9 @@ public class HaxeElementGenerator {
   }
 
   @Nullable
-  public static HaxeImportStatement createImportStatementFromPath(Project myProject, String path) {
+  public static HaxeImportStatementRegular createImportStatementFromPath(Project myProject, String path) {
     final PsiFile dummyFile = createDummyFile(myProject, "import " + path + ";");
-    return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatement.class);
+    return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatementRegular.class);
   }
 
   @Nullable

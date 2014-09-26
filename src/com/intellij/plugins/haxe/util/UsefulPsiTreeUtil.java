@@ -93,9 +93,9 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static HaxeImportStatement findImportByClassName(@NotNull PsiElement psiElement, String className) {
-    final List<HaxeImportStatement> haxeImportStatementList = getAllImportStatements(psiElement);
-    for (HaxeImportStatement importStatement : haxeImportStatementList) {
+  public static HaxeImportStatementRegular findImportByClassName(@NotNull PsiElement psiElement, String className) {
+    final List<HaxeImportStatementRegular> haxeImportStatementList = getAllImportStatements(psiElement);
+    for (HaxeImportStatementRegular importStatement : haxeImportStatementList) {
       if (importStatementForClassName(importStatement, className)) {
         return importStatement;
       }
@@ -103,8 +103,20 @@ public class UsefulPsiTreeUtil {
     return null;
   }
 
-  public static boolean importStatementForClassName(HaxeImportStatement importStatement, String className) {
-    final HaxeImportStatementRegular regularImport = importStatement.getImportStatementRegular();
+  @Nullable
+  public static HaxeImportStatementWithInSupport findImportWithInByClassName(@NotNull PsiElement psiElement, String className) {
+    final List<HaxeImportStatementWithInSupport> haxeImportStatementList = getAllInImportStatements(psiElement);
+    for (HaxeImportStatementWithInSupport importStatement : haxeImportStatementList) {
+      if (importInStatementForClassName(importStatement, className)) {
+        return importStatement;
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  public static boolean importStatementForClassName(HaxeImportStatementRegular importStatement, String className) {
+    final HaxeImportStatementRegular regularImport = importStatement;
     if(regularImport != null) {
       final HaxeExpression expression = regularImport.getReferenceExpression();
       final String qName = expression.getText();
@@ -114,10 +126,30 @@ public class UsefulPsiTreeUtil {
     return false;
   }
 
+  @NotNull
+  public static boolean importInStatementForClassName(HaxeImportStatementWithInSupport importStatementWithInSupport, String classname) {
+    HaxeIdentifier identifier = importStatementWithInSupport.getIdentifier();
+    if (identifier != null) {
+      String qName = identifier.getText();
+      return qName.contentEquals(classname);
+    }
+    return false;
+  }
+
+  @NotNull
+  public static boolean importWildcardStatementForClassName(HaxeImportStatementWithWildcard importStatementWithWildcard, String classname) {
+    HaxeReferenceExpression expression = importStatementWithWildcard.getReferenceExpression();
+    if (expression != null) {
+      String qName = expression.getText();
+
+    }
+    return false;
+  }
+
   @Nullable
   public static String findHelperOwnerQName(PsiElement context, String className) {
-    for (HaxeImportStatement importStatement : getAllImportStatements(context)) {
-      final HaxeImportStatementRegular regularImport = importStatement.getImportStatementRegular();
+    for (HaxeImportStatementRegular importStatement : getAllImportStatements(context)) {
+      final HaxeImportStatementRegular regularImport = importStatement;
       if(regularImport != null) {
         final HaxeExpression expression = regularImport.getReferenceExpression();
         final String qName = expression.getText();
@@ -132,9 +164,29 @@ public class UsefulPsiTreeUtil {
   }
 
   @NotNull
-  public static List<HaxeImportStatement> getAllImportStatements(PsiElement element) {
-    final HaxeImportStatement[] haxeImportStatements =
-      PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatement.class);
+  public static List<HaxeImportStatementRegular> getAllImportStatements(PsiElement element) {
+    final HaxeImportStatementRegular[] haxeImportStatements =
+      PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatementRegular.class);
+    if (haxeImportStatements != null) {
+      return Arrays.asList(haxeImportStatements);
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public static List<HaxeImportStatementWithInSupport> getAllInImportStatements(PsiElement element) {
+    final HaxeImportStatementWithInSupport[] haxeImportStatements =
+      PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatementWithInSupport.class);
+    if (haxeImportStatements != null) {
+      return Arrays.asList(haxeImportStatements);
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public static List<HaxeImportStatementWithWildcard> getAllWildcardImportStatements(PsiElement element) {
+    final HaxeImportStatementWithWildcard[] haxeImportStatements =
+      PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatementWithWildcard.class);
     if (haxeImportStatements != null) {
       return Arrays.asList(haxeImportStatements);
     }
@@ -202,8 +254,8 @@ public class UsefulPsiTreeUtil {
     return result == null ? null : ArrayUtil.toObjectArray(result, aClass);
   }
 
-  public static boolean importStatementForClass(@NotNull HaxeImportStatement importStatement, @NotNull HaxeClass haxeClass) {
-    final HaxeImportStatementRegular regularImport = importStatement.getImportStatementRegular();
+  public static boolean importStatementForClass(@NotNull HaxeImportStatementRegular importStatement, @NotNull HaxeClass haxeClass) {
+    final HaxeImportStatementRegular regularImport = importStatement;
     if(regularImport != null) {
       HaxeReferenceExpression importReferenceExpression = regularImport.getReferenceExpression();
       PsiElement importTarget = importReferenceExpression.resolve();

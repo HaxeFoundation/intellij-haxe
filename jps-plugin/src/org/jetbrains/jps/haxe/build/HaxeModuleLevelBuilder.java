@@ -79,11 +79,13 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     throws ProjectBuildException, IOException {
     boolean doneSomething = false;
 
-    for (final JpsModule module : chunk.getModules()) {
-      if (module.getModuleType() == JpsHaxeModuleType.INSTANCE) {
-        doneSomething |= processModule(context, dirtyFilesHolder, module);
-      }
-    }
+    // Don't do this.  HaxeCompiler already does it, and doing it here just
+    // does it again.
+//    for (final JpsModule module : chunk.getModules()) {
+//      if (module.getModuleType() == JpsHaxeModuleType.INSTANCE) {
+//        doneSomething |= processModule(context, dirtyFilesHolder, module);
+//      }
+//    }
 
     return doneSomething ? ExitCode.OK : ExitCode.NOTHING_DONE;
   }
@@ -189,7 +191,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
 
       @Override
       public void handleOutput(String[] lines) {
-        for (String error : lines) {
+        /*for (String error : lines) {
           final HaxeCompilerError compilerError = HaxeCompilerError.create(StringUtil.notNullize(getErrorRoot()), error);
           context.processMessage(new CompilerMessage(
             BUILDER_NAME,
@@ -200,7 +202,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
             compilerError != null ? (long)compilerError.getLine() : -1L,
             compilerError != null ? (long)compilerError.getColumn() : -1L
           ));
-        }
+        }*/
       }
 
       @Override
