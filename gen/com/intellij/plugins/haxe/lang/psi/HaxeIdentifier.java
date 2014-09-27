@@ -23,6 +23,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeIdentifier extends HaxeIdentifierBase {
+public interface HaxeIdentifier extends HaxeIdentifierPsiMixin {
 
 }

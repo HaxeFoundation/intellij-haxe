@@ -19,17 +19,15 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeIdentifierBase;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
-import com.intellij.psi.PsiIdentifier;
+import com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin;
 import com.intellij.psi.tree.IElementType;
 
 /**
  * Created by ebishton on 9/27/14.
  */
-public class HaxeIdentifierBaseImpl extends HaxePsiCompositeElementImpl implements HaxeIdentifierBase {
+public class HaxeIdentifierPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeIdentifierPsiMixin {
 
-  public HaxeIdentifierBaseImpl(ASTNode node) {
+  public HaxeIdentifierPsiMixinImpl(ASTNode node) {
     super(node);
   }
 

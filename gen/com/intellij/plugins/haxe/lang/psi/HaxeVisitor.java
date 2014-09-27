@@ -233,7 +233,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitIdentifier(@NotNull HaxeIdentifier o) {
-    visitIdentifierBase(o);
+    visitIdentifierPsiMixin(o);
   }
 
   public void visitIfStatement(@NotNull HaxeIfStatement o) {
@@ -539,7 +539,7 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
-  public void visitIdentifierBase(@NotNull HaxeIdentifierBase o) {
+  public void visitIdentifierPsiMixin(@NotNull HaxeIdentifierPsiMixin o) {
     visitPsiCompositeElement(o);
   }
 
