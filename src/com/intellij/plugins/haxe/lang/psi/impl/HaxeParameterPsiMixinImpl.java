@@ -20,8 +20,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -33,19 +35,19 @@ import java.util.Arrays;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public abstract class HaxeParameterBase extends AbstractHaxeNamedComponent implements HaxeParameter, PsiParameter {
+public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeParameterPsiMixin {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterBase");
 
-  public HaxeParameterBase(ASTNode node) {
+  public HaxeParameterPsiMixinImpl(ASTNode node) {
     super(node);
   }
 
-  public HaxeParameterBase(PsiParameter parameter) {
+  public HaxeParameterPsiMixinImpl(PsiParameter parameter) {
     super(parameter.getNode());
   }
 
-  public HaxeParameterBase(HaxeParameter parameter) {
+  public HaxeParameterPsiMixinImpl(HaxeParameter parameter) {
     super(parameter.getNode());
   }
 

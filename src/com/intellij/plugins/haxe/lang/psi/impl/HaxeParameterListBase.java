@@ -39,10 +39,10 @@ public class HaxeParameterListBase extends HaxePsiCompositeElementImpl implement
 
   @NotNull
   @Override
-  public HaxeParameterBase[] getParameters() {
-    HaxeParameterBase[] psiParameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameterBase.class, null);
+  public HaxeParameterPsiMixinImpl[] getParameters() {
+    HaxeParameterPsiMixinImpl[] psiParameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameterPsiMixinImpl.class, null);
     if (psiParameters == null) {
-      psiParameters = new HaxeParameterBase[0];
+      psiParameters = new HaxeParameterPsiMixinImpl[0];
     }
     return psiParameters;
   }
@@ -62,7 +62,7 @@ public class HaxeParameterListBase extends HaxePsiCompositeElementImpl implement
 
   @Override
   public int getParametersCount() {
-    HaxeParameterBase[] params = getParameters();
+    HaxeParameterPsiMixinImpl[] params = getParameters();
     return params == null ? 0 : getParameters().length;
   }
 }
