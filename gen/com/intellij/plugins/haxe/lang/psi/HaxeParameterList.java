@@ -22,9 +22,8 @@ package com.intellij.plugins.haxe.lang.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiParameterList;
 
-public interface HaxeParameterList extends HaxePsiCompositeElement, PsiParameterList {
+public interface HaxeParameterList extends HaxePsiCompositeElement {
 
   @NotNull
   List<HaxeParameter> getParameterList();

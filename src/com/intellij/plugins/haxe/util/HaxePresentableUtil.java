@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameter;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nls;
@@ -67,7 +68,7 @@ public class HaxePresentableUtil {
     if (parameterList == null) {
       return "";
     }
-    final List<HaxeParameter> list = parameterList.getParameterList();
+    final List<HaxePsiParameter> list = parameterList.getParametersAsList();
     for (int i = 0, size = list.size(); i < size; i++) {
       HaxeParameter parameter = list.get(i);
       result.append(parameter.getName());

@@ -30,6 +30,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameter;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -335,7 +336,7 @@ public class HaxeResolveUtil {
     if (parameterList == null) {
       return Collections.emptyList();
     }
-    return ContainerUtil.map(parameterList.getParameterList(), new Function<HaxeParameter, HaxeType>() {
+    return ContainerUtil.map(parameterList.getParametersAsList(), new Function<HaxeParameter, HaxeType>() {
       @Override
       public HaxeType fun(HaxeParameter parameter) {
         final HaxeTypeTag typeTag = parameter.getTypeTag();
@@ -642,7 +643,7 @@ public class HaxeResolveUtil {
     if (parameterList == null) {
       return HaxeClassResolveResult.EMPTY;
     }
-    final List<HaxeParameter> parameters = parameterList.getParameterList();
+    final List<HaxePsiParameter> parameters = parameterList.getParametersAsList();
     if (!parameters.isEmpty()) {
       final HaxeParameter parameter = parameters.iterator().next();
       return getHaxeClassResolveResult(parameter, HaxeGenericSpecialization.EMPTY);

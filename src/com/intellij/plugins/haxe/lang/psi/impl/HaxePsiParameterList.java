@@ -20,16 +20,23 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.impl.PsiImplUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.List;
 
 import java.util.List;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiParameterList extends HaxeParameterListImpl implements HaxeParameterList, PsiParameterList {
+public class HaxePsiParameterList extends HaxePsiCompositeElementImpl implements PsiParameterList {
 
   public HaxePsiParameterList(ASTNode node) {
     super(node);
@@ -38,27 +45,29 @@ public class HaxePsiParameterList extends HaxeParameterListImpl implements HaxeP
   @NotNull
   @Override
   public HaxePsiParameter[] getParameters() {
-    List<HaxeParameter> paramList = super.getParameterList();
-    HaxePsiParameter[] haxePsiParameters = new HaxePsiParameter[paramList.size()];
-    int index = 0;
-    for (HaxeParameter param : paramList ) {
-      haxePsiParameters[index++] = new HaxePsiParameter(param);
+    HaxePsiParameter[] psiParameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxePsiParameter.class, null);
+    if (psiParameters == null) {
+      psiParameters = new HaxePsiParameter[0];
     }
-    return haxePsiParameters;
+    return psiParameters;
+  }
+
+  public List<HaxePsiParameter> getParametersAsList() {
+    HaxePsiParameter[] parameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxePsiParameter.class, null);
+    if (parameters == null) {
+      parameters = new HaxePsiParameter[0];
+    }
+    return Arrays.asList(parameters);
   }
 
   @Override
   public int getParameterIndex(PsiParameter parameter) {
-    return 0;
+    return PsiImplUtil.getParameterIndex(parameter, this);
   }
 
   @Override
   public int getParametersCount() {
-    int count = 0;
-    List<HaxeParameter> paramList = super.getParameterList();
-    if (null != paramList) {
-      count = paramList.size();
-    }
-    return count;
+    HaxePsiParameter[] params = getParameters();
+    return params == null ? 0 : getParameters().length;
   }
 }
