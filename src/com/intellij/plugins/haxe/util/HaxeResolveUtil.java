@@ -30,8 +30,8 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListBase;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameter;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameterList;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -332,7 +332,7 @@ public class HaxeResolveUtil {
     if (HaxeComponentType.typeOf(component) != HaxeComponentType.METHOD) {
       return null;
     }
-    final HaxePsiParameterList parameterList = PsiTreeUtil.getChildOfType(component, HaxePsiParameterList.class);
+    final HaxeParameterListBase parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterListBase.class);
     if (parameterList == null) {
       return Collections.emptyList();
     }
@@ -639,11 +639,11 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static HaxeClassResolveResult findFirstParameterClass(HaxeNamedComponent haxeNamedComponent) {
-    final HaxePsiParameterList parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxePsiParameterList.class);
+    final HaxeParameterListBase parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterListBase.class);
     if (parameterList == null) {
       return HaxeClassResolveResult.EMPTY;
     }
-    final List<HaxePsiParameter> parameters = parameterList.getParametersAsList();
+    final List<HaxeParameter> parameters = parameterList.getParametersAsList();
     if (!parameters.isEmpty()) {
       final HaxeParameter parameter = parameters.iterator().next();
       return getHaxeClassResolveResult(parameter, HaxeGenericSpecialization.EMPTY);
@@ -651,7 +651,7 @@ public class HaxeResolveUtil {
     return HaxeClassResolveResult.EMPTY;
   }
 
-  public static HaxePsiParameterList toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
-    return new HaxePsiParameterList(haxeParameterList.getNode());
+  public static HaxeParameterListBase toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
+    return new HaxeParameterListBase(haxeParameterList.getNode());
   }
 }

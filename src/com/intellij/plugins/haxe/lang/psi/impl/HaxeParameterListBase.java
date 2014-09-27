@@ -36,9 +36,9 @@ import java.util.List;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiParameterList extends HaxePsiCompositeElementImpl implements PsiParameterList {
+public class HaxeParameterListBase extends HaxePsiCompositeElementImpl implements PsiParameterList {
 
-  public HaxePsiParameterList(ASTNode node) {
+  public HaxeParameterListBase(ASTNode node) {
     super(node);
   }
 
@@ -52,10 +52,10 @@ public class HaxePsiParameterList extends HaxePsiCompositeElementImpl implements
     return psiParameters;
   }
 
-  public List<HaxePsiParameter> getParametersAsList() {
-    HaxePsiParameter[] parameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxePsiParameter.class, null);
+  public List<HaxeParameter> getParametersAsList() {
+    HaxeParameter[] parameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameter.class, null);
     if (parameters == null) {
-      parameters = new HaxePsiParameter[0];
+      parameters = new HaxeParameter[0];
     }
     return Arrays.asList(parameters);
   }

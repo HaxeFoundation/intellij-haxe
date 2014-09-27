@@ -25,7 +25,7 @@ import org.jetbrains.annotations.*;
 
 public class HaxePsiVisitor extends HaxeVisitor {
 
-  public void visitParameterList(@NotNull HaxePsiParameterList o) {
+  public void visitParameterList(@NotNull HaxeParameterListBase o) {
     visitPsiCompositeElement(o);
   }
 

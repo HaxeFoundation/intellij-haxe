@@ -29,13 +29,10 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
-import com.intellij.psi.impl.java.stubs.JavaStubElementTypes;
-import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
-import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -410,7 +407,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
 
   @NotNull
   @Override
-  public HaxePsiParameterList getParameterList() {
+  public HaxeParameterListBase getParameterList() {
     //
     // TODO: [TiVo]:
     // This breaks the compiler's type and error checking.
@@ -419,7 +416,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // specific types.  This is the easy way out for the moment.
     //
     HaxeComponentWithDeclarationList delegate = getDelegate();
-    HaxePsiParameterList list = null;
+    HaxeParameterListBase list = null;
     if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
       list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList());
     } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
@@ -429,7 +426,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
-    return list != null ? list : new HaxePsiParameterList(new HaxeDummyASTNode("Dummy parameter list"));
+    return list != null ? list : new HaxeParameterListBase(new HaxeDummyASTNode("Dummy parameter list"));
   }
 
   @NotNull

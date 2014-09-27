@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeParameterListImpl extends HaxePsiParameterList implements HaxeParameterList {
+public class HaxeParameterListImpl extends HaxeParameterListBase implements HaxeParameterList {
 
   public HaxeParameterListImpl(ASTNode node) {
     super(node);
