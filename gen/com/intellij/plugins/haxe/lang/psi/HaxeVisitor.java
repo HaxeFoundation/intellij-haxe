@@ -233,7 +233,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitIdentifier(@NotNull HaxeIdentifier o) {
-    visitPsiCompositeElement(o);
+    visitIdentifierBase(o);
   }
 
   public void visitIfStatement(@NotNull HaxeIfStatement o) {
@@ -536,6 +536,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitComponentWithDeclarationList(@NotNull HaxeComponentWithDeclarationList o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitIdentifierBase(@NotNull HaxeIdentifierBase o) {
     visitPsiCompositeElement(o);
   }
 

@@ -15,25 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.psi.impl;
+package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.tree.IElementType;
 
 /**
  * Created by ebishton on 9/27/14.
  */
-public class HaxeIdentifierBase extends HaxePsiCompositeElementImpl implements PsiIdentifier {
+public interface HaxeIdentifierBase extends HaxePsiCompositeElement, PsiIdentifier {
 
-  public HaxeIdentifierBase(ASTNode node) {
-    super(node);
-  }
-
-  @Override
-  public IElementType getTokenType() {
-    return HaxeTokenTypes.IDENTIFIER;
-  }
 }
