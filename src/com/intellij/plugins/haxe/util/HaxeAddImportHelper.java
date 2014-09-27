@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -41,7 +41,7 @@ public class HaxeAddImportHelper {
   }
 
   private static void insertImportBefore(String path, PsiFile file, PsiElement child) {
-    final HaxeImportStatement importStatement =
+    final HaxeImportStatementRegular importStatement =
       HaxeElementGenerator.createImportStatementFromPath(file.getProject(), path);
     if (importStatement == null) {
       return;

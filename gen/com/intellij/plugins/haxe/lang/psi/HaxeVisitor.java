@@ -241,10 +241,6 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
-  public void visitImportStatement(@NotNull HaxeImportStatement o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
     visitPsiCompositeElement(o);
   }

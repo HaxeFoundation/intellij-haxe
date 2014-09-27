@@ -28,9 +28,7 @@ import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
-import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -87,7 +85,25 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                                            @Nullable final InsertHandler<LookupElement> insertHandler) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-    HaxeComponentIndex.processAll(project, new MyProcessor(resultSet, prefixPackage, insertHandler), scope);
+    final MyProcessor processor = new MyProcessor(resultSet, prefixPackage, insertHandler);
+    HaxeComponentIndex.processAll(project, processor, scope);
+
+    if (insertHandler != null) {
+      targetFile.acceptChildren(new HaxeRecursiveVisitor() {
+
+        @Override
+        public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport importStatementWithInSupport) {
+          String name = importStatementWithInSupport.getIdentifier().getText();
+          String packageName = importStatementWithInSupport.getReferenceExpression().getText();
+          String qName = HaxeResolveUtil.joinQName(packageName, name);
+
+          resultSet.addElement(LookupElementBuilder.create(qName, name)
+                                 .withTailText(" " + packageName, true)
+                                 .withInsertHandler(insertHandler));
+        }
+      });
+    }
+
   }
 
   private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER = new InsertHandler<LookupElement>() {

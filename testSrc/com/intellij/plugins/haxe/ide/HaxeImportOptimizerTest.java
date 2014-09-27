@@ -44,6 +44,14 @@ public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  public void testIn() throws Throwable {
+    runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
+  }
+
+  public void testWildcard() throws Throwable {
+    runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
+  }
+
   private void runOptimizeAction(String... additionalFiles) throws Throwable {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(true) + ".hx"}, additionalFiles));
     OptimizeImportsAction.actionPerformedImpl(DataManager.getInstance().getDataContext(myFixture.getEditor().getContentComponent()));

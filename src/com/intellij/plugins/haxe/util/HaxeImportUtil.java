@@ -31,7 +31,7 @@ import java.util.List;
  * Created by fedorkorotkov.
  */
 public class HaxeImportUtil {
-  public static List<HaxeImportStatement> findUnusedImports(PsiFile file) {
+  public static List<HaxeImportStatementRegular> findUnusedImports(PsiFile file) {
     final List<HaxeClass> classesInFile = new ArrayList<HaxeClass>();
     file.acceptChildren(new HaxeRecursiveVisitor() {
       @Override
@@ -46,16 +46,16 @@ public class HaxeImportUtil {
       }
 
       @Override
-      public void visitImportStatement(@NotNull HaxeImportStatement o) {
+      public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
         // stop
       }
     });
 
-    List<HaxeImportStatement> allImportStatements = UsefulPsiTreeUtil.getAllImportStatements(file);
-    List<HaxeImportStatement> usefulImportStatements = ContainerUtil.findAll(allImportStatements, new Condition<HaxeImportStatement>() {
+    List<HaxeImportStatementRegular> allImportStatements = UsefulPsiTreeUtil.getAllImportStatements(file);
+    List<HaxeImportStatementRegular> usefulImportStatements = ContainerUtil.findAll(allImportStatements, new Condition<HaxeImportStatementRegular>() {
       @Override
-      public boolean value(HaxeImportStatement statement) {
-        final HaxeImportStatementRegular regularImport = statement.getImportStatementRegular();
+      public boolean value(HaxeImportStatementRegular statement) {
+        final HaxeImportStatementRegular regularImport = statement;
         if(regularImport != null) {
           final HaxeReferenceExpression referenceExpression = regularImport.getReferenceExpression();
           if (referenceExpression.resolve() == null) {
@@ -72,7 +72,7 @@ public class HaxeImportUtil {
       }
     });
 
-    List<HaxeImportStatement> uselessImportStatements = new ArrayList<HaxeImportStatement>(allImportStatements);
+    List<HaxeImportStatementRegular> uselessImportStatements = new ArrayList<HaxeImportStatementRegular>(allImportStatements);
     uselessImportStatements.removeAll(usefulImportStatements);
 
     return uselessImportStatements;

@@ -18,10 +18,13 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * @author: Srikanth.Ganapavarapu
@@ -35,11 +38,27 @@ public class HaxePsiParameterList extends HaxeParameterListImpl implements HaxeP
   @NotNull
   @Override
   public HaxePsiParameter[] getParameters() {
-    PsiParameter[] psiParameters = super.getParameters();
-    HaxePsiParameter[] haxePsiParameters = new HaxePsiParameter[psiParameters.length];
-    for (int index = 0; index < psiParameters.length; index++) {
-      haxePsiParameters[index] = new HaxePsiParameter(psiParameters[index]);
+    List<HaxeParameter> paramList = super.getParameterList();
+    HaxePsiParameter[] haxePsiParameters = new HaxePsiParameter[paramList.size()];
+    int index = 0;
+    for (HaxeParameter param : paramList ) {
+      haxePsiParameters[index++] = new HaxePsiParameter(param);
     }
     return haxePsiParameters;
+  }
+
+  @Override
+  public int getParameterIndex(PsiParameter parameter) {
+    return 0;
+  }
+
+  @Override
+  public int getParametersCount() {
+    int count = 0;
+    List<HaxeParameter> paramList = super.getParameterList();
+    if (null != paramList) {
+      count = paramList.size();
+    }
+    return count;
   }
 }

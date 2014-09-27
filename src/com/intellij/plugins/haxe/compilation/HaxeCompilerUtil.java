@@ -25,47 +25,46 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeCompilerUtil {
-
-  public static final String ERROR = "Error: ";
-
-  public static void fillContext(CompileContext context, String errorRoot, String[] errors) {
-    for (String error : errors) {
-      addErrorToContext(error, context, errorRoot);
-    }
-  }
-
-  private static void addErrorToContext(String error, CompileContext context, String errorRoot) {
-    final HaxeCompilerError compilerError = HaxeCompilerError.create(
-      errorRoot,
-      error,
-      !ApplicationManager.getApplication().isUnitTestMode()
-    );
-
-    if (compilerError == null) {
-      if (error.startsWith(ERROR)) {
-        if (!error.contentEquals("Error: Build failed")) {
-          context.addMessage(CompilerMessageCategory.ERROR, error.substring(ERROR.length()), null, -1, -1);
+public class HaxeCompilerUtil
+{
+    public static final String ERROR = "Error: ";
+    
+    public static void fillContext(CompileContext context, String errorRoot,
+                                   String[] errors)
+    {
+        for (String error : errors) {
+            addErrorToContext(error, context, errorRoot);
         }
-        else {
-          return;
-        }
-      }
-      else if (error.endsWith("is not installed")) {
-        context.addMessage(CompilerMessageCategory.WARNING, error, null, -1, -1);
-      }
-      else {
-        context.addMessage(CompilerMessageCategory.INFORMATION, error, null, -1, -1);
-      }
-      return;
     }
-
-    context.addMessage(
-      compilerError.getCategory(),
-      compilerError.getErrorMessage(),
-      VfsUtilCore.pathToUrl(compilerError.getPath()),
-      compilerError.getLine(),
-      compilerError.getColumn()
-    );
-  }
+    
+    private static void addErrorToContext(String error, CompileContext context,
+                                          String errorRoot)
+    {
+        // First, force in a warning just to make the compilation window always
+        // visible.  This is so that informational messages, which can be
+        // interesting and should be shown as soon as they are immediately
+        // available, are displayed.  I have no idea why IntelliJ doesn't show
+        // "informational" messages if there hasn't been a warning or error ...
+        if (context.getUserData(hasShowWindowWarning) == null) {
+            context.addMessage(CompilerMessageCategory.WARNING,
+                               "This is not a real warning, it's just here " +
+                               "to force this window to open ...", null, -1, -1);
+            context.putUserData(hasShowWindowWarning, "yes");
+        }
+        
+        final HaxeCompilerError compilerError = HaxeCompilerError.create
+            (errorRoot,
+             error,
+             !ApplicationManager.getApplication().isUnitTestMode());
+        
+        context.addMessage
+            (compilerError.getCategory(),
+             compilerError.getErrorMessage(),
+             VfsUtilCore.pathToUrl(compilerError.getPath()),
+             compilerError.getLine(),
+             compilerError.getColumn());
+    }
+    
+    private static com.intellij.openapi.util.Key hasShowWindowWarning =
+        new com.intellij.openapi.util.Key("hasShowWindowWarning");
 }

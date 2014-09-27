@@ -59,7 +59,9 @@ public class HaxeSpacingProcessor {
     final ASTNode nodeNode2 = node2 == null ? null : node2.getFirstChildNode();
     final IElementType typeType2 = nodeNode2 == null ? null : nodeNode2.getElementType();
 
-    if (type1 == IMPORT_STATEMENT ||
+    if (type1 == IMPORT_STATEMENT_REGULAR ||
+        type1 == IMPORT_STATEMENT_WITH_IN_SUPPORT ||
+        type1 == IMPORT_STATEMENT_WITH_WILDCARD ||
         type1 == PACKAGE_STATEMENT ||
         type1 == USING_STATEMENT) {
       return addSingleSpaceIf(false, true);
