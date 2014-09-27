@@ -23,6 +23,7 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -44,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.security.ProviderException;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -56,10 +58,13 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
 
   public HaxePsiMethod(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
     super(inHaxeNamedComponent.getNode());
+    if (HaxeComponentType.typeOf(inHaxeNamedComponent) != HaxeComponentType.METHOD) {
+      throw new UnknownSubclassEncounteredException(inHaxeNamedComponent.getClass().toString());
+    }
     mHaxeNamedComponent = inHaxeNamedComponent;
   }
 
-  public HaxeComponentWithDeclarationList getDelegate() {
+  private HaxeComponentWithDeclarationList getDelegate() {
     return ((HaxeComponentWithDeclarationList) mHaxeNamedComponent);
   }
 
@@ -409,25 +414,8 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
   @NotNull
   @Override
   public HaxePsiParameterList getParameterList() {
-    //
-    // TODO: [TiVo]:
-    // This breaks the compiler's type and error checking.
-    // HaxeComponentWithDeclarationList should implement or derive
-    // from HaxePsiMethod.  We shouldn't be checking and calling
-    // specific types.  This is the easy way out for the moment.
-    //
-    HaxeComponentWithDeclarationList delegate = getDelegate();
-    HaxePsiParameterList list = null;
-    if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
-      list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList());
-    } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-      list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeFunctionPrototypeDeclarationWithAttributes)delegate).getParameterList());
-    } else if (delegate instanceof HaxeExternFunctionDeclaration) {
-      list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeExternFunctionDeclaration)delegate).getParameterList());
-    } else {
-      throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
-    }
-    return list != null ? list : new HaxePsiParameterList(new HaxeDummyASTNode("Dummy parameter list"));
+    final HaxePsiParameterList list = PsiTreeUtil.getChildOfType(mHaxeNamedComponent, HaxePsiParameterList.class);
+    return ((list != null) ? list : new HaxePsiParameterList(new HaxeDummyASTNode("Dummy parameter list")));
   }
 
   @NotNull

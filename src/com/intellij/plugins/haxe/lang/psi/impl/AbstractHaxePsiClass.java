@@ -22,16 +22,16 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.InheritanceImplUtil;
-import com.intellij.psi.impl.PsiClassImplUtil;
-import com.intellij.psi.impl.PsiImplUtil;
-import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.impl.*;
+import com.intellij.psi.impl.source.JavaStubPsiElement;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
@@ -86,6 +86,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public List<HaxeType> getHaxeExtendsList() {
+    getProject();
+    getManager();
     return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
   }
 
@@ -98,12 +100,11 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public List<HaxeComponentWithDeclarationList> getHaxeMethods() {
-    final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(this);
-    final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
+    final List<HaxeNamedComponent> allTypes = HaxeResolveUtil.findNamedSubComponents(this);
+    final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(allTypes, HaxeComponentType.METHOD);
     final List<HaxeComponentWithDeclarationList> result = new ArrayList<HaxeComponentWithDeclarationList>();
     for ( HaxeNamedComponent method : methods ) {
-      // HaxeComponentWithDeclarationList is the superclass for all method
-      // types in the PSI tree.
+      // HaxeComponentWithDeclarationList is the superclass for all method types in the PSI tree.
       result.add((HaxeComponentWithDeclarationList)method);
     }
     return result;
@@ -203,11 +204,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getExtendsList() {
-    List<HaxeType> haxeTypeList = getHaxeExtendsList();
-    HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this.getNode());
-    for (HaxeType haxeType : haxeTypeList) {
-      // TODO: [TiVo]: using 'add' confuses IDE that: it is a refactoring action
-      psiReferenceList.add(haxeType.getReferenceExpression());
+    final List<HaxeType> haxeTypeList = getHaxeExtendsList();
+    HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this, getNode(), PsiReferenceList.Role.EXTENDS_LIST);
+    for (HaxeType haxeTypeElement : haxeTypeList) {
+      psiReferenceList.addReferenceElements(haxeTypeElement.getReferenceExpression().getIdentifier().getChildren());
     }
     return psiReferenceList;
   }
@@ -215,17 +215,20 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiClassType[] getExtendsListTypes() {
-    return PsiClassImplUtil.getExtendsListTypes(this);
+    final PsiReferenceList extendsList = this.getExtendsList();
+    if (extendsList != null) {
+      return extendsList.getReferencedTypes();
+    }
+    return PsiClassType.EMPTY_ARRAY;
   }
 
   @Override
   @Nullable
   public PsiReferenceList getImplementsList() {
-    List<HaxeType> haxeTypeList = getHaxeImplementsList();
-    HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this.getNode());
-    for (HaxeType haxeType : haxeTypeList) {
-      // TODO: [TiVo]: using 'add' confuses IDE that: it is a refactoring action
-      psiReferenceList.add(haxeType.getReferenceExpression());
+    final List<HaxeType> haxeTypeList = getHaxeImplementsList();
+    HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this, getNode(), PsiReferenceList.Role.IMPLEMENTS_LIST);
+    for (HaxeType haxeTypeElement : haxeTypeList) {
+      psiReferenceList.addReferenceElements(haxeTypeElement.getReferenceExpression().getIdentifier().getChildren());
     }
     return psiReferenceList;
   }
@@ -233,7 +236,11 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiClassType[] getImplementsListTypes() {
-    return PsiClassImplUtil.getImplementsListTypes(this);
+    final PsiReferenceList implementsList = this.getImplementsList();
+    if (implementsList != null) {
+      return implementsList.getReferencedTypes();
+    }
+    return PsiClassType.EMPTY_ARRAY;
   }
 
   @Override
@@ -260,7 +267,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     int index = 0;
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
     for (HaxeNamedComponent element : haxeFields) {
-      psiFields[index++] = new HaxePsiField(this, element);
+      psiFields[index++] = new HaxePsiField(element);
     }
     return psiFields;
   }

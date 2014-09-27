@@ -17,29 +17,28 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.impl.source.PsiFieldImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
-
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiField /*extends AbstractHaxeNamedComponent */ extends PsiFieldImpl implements PsiField {
+public class HaxePsiField extends PsiFieldImpl implements PsiField {
 
   private HaxeNamedComponent mHaxeNamedComponent;
-  private AbstractHaxePsiClass mContainingClass;
 
-  public HaxePsiField(@NotNull AbstractHaxePsiClass inContainingClass,
-                       @NotNull HaxeNamedComponent inHaxeNamedComponent) {
+  public HaxePsiField(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
     super(inHaxeNamedComponent.getNode());
-    mContainingClass = inContainingClass;
     mHaxeNamedComponent = inHaxeNamedComponent;
   }
 
@@ -62,7 +61,7 @@ public class HaxePsiField /*extends AbstractHaxeNamedComponent */ extends PsiFie
   @Nullable
   @Override
   public PsiClass getContainingClass() {
-    return mContainingClass;
+    return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
   }
 
   @Override
@@ -78,68 +77,4 @@ public class HaxePsiField /*extends AbstractHaxeNamedComponent */ extends PsiFie
     }
     return getModifierList().hasModifierProperty(name);
   }
-
-  /*
-
-  @NotNull
-  @Override
-  public PsiIdentifier getNameIdentifier() {
-     // TODO: [TiVo]: Implement
-    return null;
-  }
-
-  @NotNull
-  @Override
-  public PsiType getType() {
-     // TODO: [TiVo]: Implement
-
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiTypeElement getTypeElement() {
-     // TODO: [TiVo]: Implement
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public Object computeConstantValue() {
-     // TODO: [TiVo]: Implement
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiExpression getInitializer() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
-  }
-
-  @Override
-  public boolean hasInitializer() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return false;
-  }
-
-  @Override
-  public void setInitializer(@Nullable PsiExpression initializer) throws IncorrectOperationException {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    // none
-  }
-
-  @Override
-  public void normalizeDeclaration() throws IncorrectOperationException {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-  }
-
-  @Nullable
-  @Override
-  public PsiModifierList getModifierList() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
-  }
-
-  */
 }

@@ -38,18 +38,26 @@ public class HaxePsiParameterList extends HaxeParameterListImpl implements HaxeP
   @NotNull
   @Override
   public HaxePsiParameter[] getParameters() {
+    HaxePsiParameter[] haxePsiParameters = {};
     List<HaxeParameter> paramList = super.getParameterList();
-    HaxePsiParameter[] haxePsiParameters = new HaxePsiParameter[paramList.size()];
-    int index = 0;
-    for (HaxeParameter param : paramList ) {
-      haxePsiParameters[index++] = new HaxePsiParameter(param);
+    if (null != paramList) {
+      haxePsiParameters = new HaxePsiParameter[paramList.size()];
+      int index = 0;
+      for (HaxeParameter param : paramList) {
+        haxePsiParameters[index++] = new HaxePsiParameter(param);
+      }
     }
     return haxePsiParameters;
   }
 
   @Override
   public int getParameterIndex(PsiParameter parameter) {
-    return 0;
+    int index = 0;
+    List<HaxeParameter> paramList = super.getParameterList();
+    if (null != paramList) {
+      index = paramList.indexOf(parameter);
+    }
+    return index;
   }
 
   @Override
