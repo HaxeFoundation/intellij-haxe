@@ -19,18 +19,13 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.impl.PsiImplUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.List;
-
 import java.util.List;
 
 /**
@@ -44,10 +39,10 @@ public class HaxeParameterListBase extends HaxePsiCompositeElementImpl implement
 
   @NotNull
   @Override
-  public HaxePsiParameter[] getParameters() {
-    HaxePsiParameter[] psiParameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxePsiParameter.class, null);
+  public HaxeParameterBase[] getParameters() {
+    HaxeParameterBase[] psiParameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameterBase.class, null);
     if (psiParameters == null) {
-      psiParameters = new HaxePsiParameter[0];
+      psiParameters = new HaxeParameterBase[0];
     }
     return psiParameters;
   }
@@ -67,7 +62,7 @@ public class HaxeParameterListBase extends HaxePsiCompositeElementImpl implement
 
   @Override
   public int getParametersCount() {
-    HaxePsiParameter[] params = getParameters();
+    HaxeParameterBase[] params = getParameters();
     return params == null ? 0 : getParameters().length;
   }
 }

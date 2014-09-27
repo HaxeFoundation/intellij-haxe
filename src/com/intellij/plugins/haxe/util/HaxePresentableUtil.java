@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListBase;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiParameter;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;

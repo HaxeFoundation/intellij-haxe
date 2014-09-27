@@ -310,7 +310,7 @@ anonymousFunctionDeclaration ::= 'function' '(' parameterList? ')' typeTag? 'unt
 
 varInit ::= '=' expression {pin=1}
 parameter ::= '?'? componentName typeTag? varInit?
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterBase" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 parameterList ::= parameter (',' parameter)* {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListBase" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
