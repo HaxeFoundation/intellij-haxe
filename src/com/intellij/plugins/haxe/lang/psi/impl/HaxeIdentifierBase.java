@@ -15,28 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.util.PsiTreeUtil;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.tree.IElementType;
 
-public class HaxeIdentifierImpl extends HaxeIdentifierBase implements HaxeIdentifier {
+/**
+ * Created by ebishton on 9/27/14.
+ */
+public class HaxeIdentifierBase extends HaxePsiCompositeElementImpl implements PsiIdentifier {
 
-  public HaxeIdentifierImpl(ASTNode node) {
+  public HaxeIdentifierBase(ASTNode node) {
     super(node);
   }
 
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitIdentifier(this);
-    else super.accept(visitor);
+  @Override
+  public IElementType getTokenType() {
+    return HaxeTokenTypes.IDENTIFIER;
   }
-
 }

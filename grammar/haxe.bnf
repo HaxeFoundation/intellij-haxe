@@ -485,6 +485,7 @@ simpleQualifiedReferenceExpressionWithWildcardSupport ::= referenceExpression qu
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
 identifier ::= ID
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierBase"}
 
 thisExpression ::= 'this'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
