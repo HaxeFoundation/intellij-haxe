@@ -30,7 +30,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListBase;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -331,7 +331,7 @@ public class HaxeResolveUtil {
     if (HaxeComponentType.typeOf(component) != HaxeComponentType.METHOD) {
       return null;
     }
-    final HaxeParameterListBase parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterListBase.class);
+    final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterListPsiMixinImpl.class);
     if (parameterList == null) {
       return Collections.emptyList();
     }
@@ -638,7 +638,7 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static HaxeClassResolveResult findFirstParameterClass(HaxeNamedComponent haxeNamedComponent) {
-    final HaxeParameterListBase parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterListBase.class);
+    final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterListPsiMixinImpl.class);
     if (parameterList == null) {
       return HaxeClassResolveResult.EMPTY;
     }
@@ -650,7 +650,7 @@ public class HaxeResolveUtil {
     return HaxeClassResolveResult.EMPTY;
   }
 
-  public static HaxeParameterListBase toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
-    return new HaxeParameterListBase(haxeParameterList.getNode());
+  public static HaxeParameterListPsiMixinImpl toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
+    return new HaxeParameterListPsiMixinImpl(haxeParameterList.getNode());
   }
 }

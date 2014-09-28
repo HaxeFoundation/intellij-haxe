@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiParameterList;
@@ -31,9 +32,9 @@ import java.util.List;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxeParameterListBase extends HaxePsiCompositeElementImpl implements PsiParameterList {
+public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeParameterListPsiMixin {
 
-  public HaxeParameterListBase(ASTNode node) {
+  public HaxeParameterListPsiMixinImpl(ASTNode node) {
     super(node);
   }
 

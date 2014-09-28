@@ -407,7 +407,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
 
   @NotNull
   @Override
-  public HaxeParameterListBase getParameterList() {
+  public HaxeParameterListPsiMixinImpl getParameterList() {
     //
     // TODO: [TiVo]:
     // This breaks the compiler's type and error checking.
@@ -416,7 +416,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     // specific types.  This is the easy way out for the moment.
     //
     HaxeComponentWithDeclarationList delegate = getDelegate();
-    HaxeParameterListBase list = null;
+    HaxeParameterListPsiMixinImpl list = null;
     if (delegate instanceof HaxeFunctionDeclarationWithAttributes) {
       list = HaxeResolveUtil.toHaxePsiParameterList(((HaxeFunctionDeclarationWithAttributes)delegate).getParameterList());
     } else if (delegate instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
@@ -426,7 +426,7 @@ public class HaxePsiMethod extends AbstractHaxeNamedComponent implements PsiMeth
     } else {
       throw new UnknownSubclassEncounteredException(delegate.getClass().toString());
     }
-    return list != null ? list : new HaxeParameterListBase(new HaxeDummyASTNode("Dummy parameter list"));
+    return list != null ? list : new HaxeParameterListPsiMixinImpl(new HaxeDummyASTNode("Dummy parameter list"));
   }
 
   @NotNull

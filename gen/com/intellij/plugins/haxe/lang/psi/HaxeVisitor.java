@@ -355,7 +355,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitParameterList(@NotNull HaxeParameterList o) {
-    visitPsiCompositeElement(o);
+    visitParameterListPsiMixin(o);
   }
 
   public void visitParenthesizedExpression(@NotNull HaxeParenthesizedExpression o) {
@@ -544,6 +544,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitNamedElement(@NotNull HaxeNamedElement o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitParameterListPsiMixin(@NotNull HaxeParameterListPsiMixin o) {
     visitPsiCompositeElement(o);
   }
 
