@@ -25,6 +25,7 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -161,6 +162,93 @@ public class HaxeImportUtil {
     }
 
     List<HaxeImportStatementWithInSupport> uselessImportStatements = new ArrayList<HaxeImportStatementWithInSupport>(allImportStatementWithInSupports);
+    uselessImportStatements.removeAll(filteredUsefulImports);
+
+    return uselessImportStatements;
+  }
+
+  public static List<HaxeImportStatementWithWildcard> findUnusedInImportsWithWildcards(PsiFile file) {
+    final List<HaxeClass> classesInFile = new ArrayList<HaxeClass>();
+    file.acceptChildren(new HaxeRecursiveVisitor() {
+      @Override
+      public void visitElement(PsiElement element) {
+        super.visitElement(element);
+        if (element instanceof HaxeReference) {
+          HaxeClass haxeClass = ((HaxeReference)element).resolveHaxeClass().getHaxeClass();
+          if (haxeClass != null) {
+            classesInFile.add(haxeClass);
+          }
+        }
+      }
+
+      @Override
+      public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
+        // stop
+      }
+
+      @Override
+      public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport o) {
+        // stop
+      }
+
+      @Override
+      public void visitImportStatementWithWildcard(@NotNull HaxeImportStatementWithWildcard o) {
+        // stop
+      }
+    });
+
+    List<HaxeImportStatementRegular> importStatements = UsefulPsiTreeUtil.getAllImportStatements(file);
+
+    List<HaxeClass> alreadyImportedClassList = new ArrayList<HaxeClass>();
+
+    for (HaxeImportStatementRegular importStatementRegular : importStatements) {
+      HaxeReferenceExpression referenceExpression = importStatementRegular.getReferenceExpression();
+      if (referenceExpression != null) {
+        PsiElement psiElement = referenceExpression.resolve();
+        if (psiElement != null) {
+          for (HaxeClass haxeClass : classesInFile) {
+            if (haxeClass.getContainingFile() == psiElement.getContainingFile()) {
+              if (!alreadyImportedClassList.contains(haxeClass)) {
+                alreadyImportedClassList.add(haxeClass);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    classesInFile.removeAll(alreadyImportedClassList);
+
+    List<HaxeImportStatementWithWildcard> filteredUsefulImports = new ArrayList<HaxeImportStatementWithWildcard>();
+
+    List<HaxeImportStatementWithWildcard> allImportStatementsWithWildcard = UsefulPsiTreeUtil.getAllImportStatementsWithWildcard(file);
+    List<HaxeImportStatementWithWildcard> usefulImportStatementWithInSupports =
+      ContainerUtil.findAll(allImportStatementsWithWildcard, new Condition<HaxeImportStatementWithWildcard>() {
+        @Override
+        public boolean value(HaxeImportStatementWithWildcard importStatementWithInSupport) {
+          List<HaxeClass>
+            classesForImportStatementWithWildcard = UsefulPsiTreeUtil.getClassesForImportStatementWithWildcard(importStatementWithInSupport);
+
+          return !classesInFile.isEmpty() && !Collections.disjoint(classesInFile, classesForImportStatementWithWildcard);
+        }
+      });
+
+    boolean alreadyAdded = false;
+
+    for (int i = 0; i < usefulImportStatementWithInSupports.size(); i++) {
+      for (int j = 0; j < filteredUsefulImports.size(); j++) {
+        if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(filteredUsefulImports.get(j).getReferenceExpression().getText())) {
+          alreadyAdded = true;
+          break;
+        }
+      }
+
+      if (!alreadyAdded) {
+        filteredUsefulImports.add(usefulImportStatementWithInSupports.get(i));
+      }
+    }
+
+    List<HaxeImportStatementWithWildcard> uselessImportStatements = new ArrayList<HaxeImportStatementWithWildcard>(allImportStatementsWithWildcard);
     uselessImportStatements.removeAll(filteredUsefulImports);
 
     return uselessImportStatements;

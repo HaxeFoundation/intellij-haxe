@@ -18,12 +18,13 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
@@ -137,12 +138,58 @@ public class UsefulPsiTreeUtil {
   }
 
   @NotNull
-  public static boolean importWildcardStatementForClassName(HaxeImportStatementWithWildcard importStatementWithWildcard, String classname) {
-    HaxeReferenceExpression expression = importStatementWithWildcard.getReferenceExpression();
-    if (expression != null) {
-      String qName = expression.getText();
+  public static String getPackageStatementForImportStatementWithWildcard(HaxeImportStatementWithWildcard importStatementWithWildcard) {
+    String text = importStatementWithWildcard.getReferenceExpression().getText();
+    String packageStatement = text.substring(0, text.length() - 2);
+    return packageStatement;
+  }
 
+  @NotNull
+  public static List<HaxeClass> getClassesForImportStatementWithWildcard(HaxeImportStatementWithWildcard importStatementWithWildcard) {
+    List<HaxeClass> classList = new ArrayList<HaxeClass>();
+
+    String packageStatement = getPackageStatementForImportStatementWithWildcard(importStatementWithWildcard);
+    Project project = importStatementWithWildcard.getProject();
+    VirtualFile[] virtualDirectoriesForPackage = getVirtualDirectoriesForPackage(packageStatement, project);
+    for (VirtualFile file : virtualDirectoriesForPackage) {
+      VirtualFile[] files = file.getChildren();
+      for (VirtualFile virtualFile : files) {
+        if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
+          PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+          List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
+          for (HaxeClass haxeClass : haxeClassList) {
+            classList.add(haxeClass);
+          }
+        }
+      }
     }
+    return classList;
+  }
+  
+  @NotNull
+  public static boolean importStatementWithWildcardForClassName(HaxeImportStatementWithWildcard importStatementWithWildcard, String classname) {
+    if (!Character.isUpperCase(classname.charAt(0))) {
+      return false;
+    }
+
+    String packageStatement = getPackageStatementForImportStatementWithWildcard(importStatementWithWildcard);
+    Project project = importStatementWithWildcard.getProject();
+    VirtualFile[] virtualDirectoriesForPackage = getVirtualDirectoriesForPackage(packageStatement, project);
+    for (VirtualFile file : virtualDirectoriesForPackage) {
+      VirtualFile[] files = file.getChildren();
+      for (VirtualFile virtualFile : files) {
+        if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
+          PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+          List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
+          for (HaxeClass haxeClass : haxeClassList) {
+            if (haxeClass.getName().equals(classname)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
     return false;
   }
 
@@ -184,13 +231,19 @@ public class UsefulPsiTreeUtil {
   }
 
   @NotNull
-  public static List<HaxeImportStatementWithWildcard> getAllWildcardImportStatements(PsiElement element) {
+  public static List<HaxeImportStatementWithWildcard> getAllImportStatementsWithWildcard(PsiElement element) {
     final HaxeImportStatementWithWildcard[] haxeImportStatements =
       PsiTreeUtil.getChildrenOfType(element.getContainingFile(), HaxeImportStatementWithWildcard.class);
     if (haxeImportStatements != null) {
       return Arrays.asList(haxeImportStatements);
     }
     return Collections.emptyList();
+  }
+
+  @NotNull
+  public static VirtualFile[] getVirtualDirectoriesForPackage(String packageStatement, Project project) {
+    VirtualFile[] directoriesByPackageName = PackageIndex.getInstance(project).getDirectoriesByPackageName(packageStatement, true);
+    return directoriesByPackageName;
   }
 
   @NotNull
