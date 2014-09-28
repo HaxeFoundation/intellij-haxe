@@ -49,6 +49,16 @@ public class HaxeImportUtil {
       public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
         // stop
       }
+
+      @Override
+      public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport o) {
+        // stop
+      }
+
+      @Override
+      public void visitImportStatementWithWildcard(@NotNull HaxeImportStatementWithWildcard o) {
+        // stop
+      }
     });
 
     List<HaxeImportStatementRegular> filteredUsefulImports = new ArrayList<HaxeImportStatementRegular>();
@@ -91,6 +101,66 @@ public class HaxeImportUtil {
     }
 
     List<HaxeImportStatementRegular> uselessImportStatements = new ArrayList<HaxeImportStatementRegular>(allImportStatements);
+    uselessImportStatements.removeAll(filteredUsefulImports);
+
+    return uselessImportStatements;
+  }
+
+  public static List<HaxeImportStatementWithInSupport> findUnusedInImports(PsiFile file) {
+    final List<String> referencesInFile = new ArrayList<String>();
+    file.acceptChildren(new HaxeRecursiveVisitor() {
+      @Override
+      public void visitElement(PsiElement element) {
+        super.visitElement(element);
+        if (element instanceof HaxeReference) {
+          referencesInFile.add(element.getText());
+        }
+      }
+
+      @Override
+      public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
+        // stop
+      }
+
+      @Override
+      public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport o) {
+        // stop
+      }
+
+      @Override
+      public void visitImportStatementWithWildcard(@NotNull HaxeImportStatementWithWildcard o) {
+        // stop
+      }
+    });
+
+    List<HaxeImportStatementWithInSupport> filteredUsefulImports = new ArrayList<HaxeImportStatementWithInSupport>();
+
+    List<HaxeImportStatementWithInSupport> allImportStatementWithInSupports = UsefulPsiTreeUtil.getAllInImportStatements(file);
+    List<HaxeImportStatementWithInSupport> usefulImportStatementWithInSupports =
+      ContainerUtil.findAll(allImportStatementWithInSupports, new Condition<HaxeImportStatementWithInSupport>() {
+        @Override
+        public boolean value(HaxeImportStatementWithInSupport importStatementWithInSupport) {
+          return referencesInFile.contains(importStatementWithInSupport.getIdentifier().getText());
+        }
+      });
+
+    boolean alreadyAdded = false;
+
+    for (int i = 0; i < usefulImportStatementWithInSupports.size(); i++) {
+      for (int j = 0; j < filteredUsefulImports.size(); j++) {
+        if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(filteredUsefulImports.get(j).getReferenceExpression().getText())
+          && usefulImportStatementWithInSupports.get(i).getIdentifier().getText().equals(filteredUsefulImports.get(j).getIdentifier().getText())) {
+          alreadyAdded = true;
+          break;
+        }
+      }
+
+      if (!alreadyAdded) {
+        filteredUsefulImports.add(usefulImportStatementWithInSupports.get(i));
+      }
+    }
+
+    List<HaxeImportStatementWithInSupport> uselessImportStatements = new ArrayList<HaxeImportStatementWithInSupport>(allImportStatementWithInSupports);
     uselessImportStatements.removeAll(filteredUsefulImports);
 
     return uselessImportStatements;
