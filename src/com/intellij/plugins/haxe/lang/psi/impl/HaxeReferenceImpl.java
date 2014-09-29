@@ -327,6 +327,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                        !(leftReference instanceof HaxeThisExpression));
       addUsingVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        HaxeResolveUtil.findUsingClasses(getContainingFile()));
+      addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());
     }
     else {
       // if chain
@@ -350,6 +351,21 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return rootPackage == null ? variants : ArrayUtil.mergeArrays(variants, rootPackage.getSubPackages());
     }
     return variants;
+  }
+
+  private void addChildClassVariants(Set<HaxeComponentName> variants, HaxeClass haxeClass) {
+    PsiFile psiFile = haxeClass.getContainingFile();
+    String nameWithoutExtension = psiFile.getVirtualFile().getNameWithoutExtension();
+
+    if (haxeClass.getName().equals(nameWithoutExtension)) {
+      List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
+
+      for (HaxeClass aClass : haxeClassList) {
+        if (!aClass.getName().equals(nameWithoutExtension)) {
+          variants.add(aClass.getComponentName());
+        }
+      }
+    }
   }
 
   private static void addUsingVariants(Set<HaxeComponentName> variants, @Nullable HaxeClass ourClass, List<HaxeClass> classes) {
