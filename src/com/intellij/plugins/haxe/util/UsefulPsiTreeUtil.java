@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -156,9 +157,14 @@ public class UsefulPsiTreeUtil {
       for (VirtualFile virtualFile : files) {
         if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
           PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+
+          String nameWithoutExtension = virtualFile.getNameWithoutExtension();
+
           List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
           for (HaxeClass haxeClass : haxeClassList) {
-            classList.add(haxeClass);
+            if (haxeClass.getName().equals(nameWithoutExtension)) {
+              classList.add(haxeClass);
+            }
           }
         }
       }
@@ -180,6 +186,13 @@ public class UsefulPsiTreeUtil {
       for (VirtualFile virtualFile : files) {
         if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
           PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+
+          String nameWithoutExtension = virtualFile.getNameWithoutExtension();
+
+          if (!nameWithoutExtension.equals(classname)) {
+            continue;
+          }
+
           List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
           for (HaxeClass haxeClass : haxeClassList) {
             if (haxeClass.getName().equals(classname)) {
