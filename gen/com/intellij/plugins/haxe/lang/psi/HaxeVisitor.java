@@ -424,6 +424,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitSimpleMeta(@NotNull HaxeSimpleMeta o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitStringLiteralExpression(@NotNull HaxeStringLiteralExpression o) {
     visitExpression(o);
     // visitReference(o);

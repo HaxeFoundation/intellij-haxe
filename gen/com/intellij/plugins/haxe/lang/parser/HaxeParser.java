@@ -332,6 +332,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == SHORT_TEMPLATE_ENTRY) {
       result_ = shortTemplateEntry(builder_, 0);
     }
+    else if (root_ == SIMPLE_META) {
+      result_ = simpleMeta(builder_, 0);
+    }
     else if (root_ == STRING_LITERAL_EXPRESSION) {
       result_ = stringLiteralExpression(builder_, 0);
     }
@@ -3336,18 +3339,12 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
-  //                       | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
+  // simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
   public static boolean macroClass(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroClass")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<macro class>");
-    result_ = consumeToken(builder_, KFINAL);
-    if (!result_) result_ = consumeToken(builder_, KKEEP);
-    if (!result_) result_ = consumeToken(builder_, "@:coreApi");
-    if (!result_) result_ = consumeToken(builder_, KBIND);
-    if (!result_) result_ = consumeToken(builder_, KMACRO);
-    if (!result_) result_ = consumeToken(builder_, KHACK);
+    result_ = simpleMeta(builder_, level_ + 1);
     if (!result_) result_ = requireMeta(builder_, level_ + 1);
     if (!result_) result_ = fakeEnumMeta(builder_, level_ + 1);
     if (!result_) result_ = nativeMeta(builder_, level_ + 1);
@@ -4370,6 +4367,22 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, OCOMMA);
     result_ = result_ && interfaceBody(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
+  public static boolean simpleMeta(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "simpleMeta")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, "<simple meta>");
+    result_ = consumeToken(builder_, KFINAL);
+    if (!result_) result_ = consumeToken(builder_, KKEEP);
+    if (!result_) result_ = consumeToken(builder_, "@:coreApi");
+    if (!result_) result_ = consumeToken(builder_, KBIND);
+    if (!result_) result_ = consumeToken(builder_, KMACRO);
+    if (!result_) result_ = consumeToken(builder_, KHACK);
+    exit_section_(builder_, level_, marker_, SIMPLE_META, result_, false, null);
     return result_;
   }
 

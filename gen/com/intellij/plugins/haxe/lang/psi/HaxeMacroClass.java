@@ -55,4 +55,7 @@ public interface HaxeMacroClass extends HaxePsiCompositeElement {
   @Nullable
   HaxeRequireMeta getRequireMeta();
 
+  @Nullable
+  HaxeSimpleMeta getSimpleMeta();
+
 }

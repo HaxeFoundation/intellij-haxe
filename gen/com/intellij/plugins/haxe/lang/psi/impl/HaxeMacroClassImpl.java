@@ -99,4 +99,10 @@ public class HaxeMacroClassImpl extends HaxePsiCompositeElementImpl implements H
     return findChildByClass(HaxeRequireMeta.class);
   }
 
+  @Override
+  @Nullable
+  public HaxeSimpleMeta getSimpleMeta() {
+    return findChildByClass(HaxeSimpleMeta.class);
+  }
+
 }

@@ -177,8 +177,10 @@ haxeFile ::= packageStatement? topLevelList
   http://haxe.org/manual/metadata
   http://haxe.org/manual/tips_and_tricks
 */
-macroClass ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
-                      | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
+
+simpleMeta ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
+
+macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 private functionMacroMember ::= '@:final' | macroMember | overloadMeta
 private macroMember ::= '@:macro' | '@:protected' | '@:debug' | '@:nodebug' | '@:keep'
