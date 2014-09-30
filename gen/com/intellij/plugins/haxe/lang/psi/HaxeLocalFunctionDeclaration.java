@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeLocalFunctionDeclaration extends HaxeComponent {
+public interface HaxeLocalFunctionDeclaration extends HaxeMethod {
 
   @Nullable
   HaxeBlockStatement getBlockStatement();

@@ -25,12 +25,12 @@ import org.jetbrains.annotations.*;
 
 public class HaxePsiVisitor extends HaxeVisitor {
 
-  public void visitParameterList(@NotNull HaxePsiParameterList o) {
+  public void visitParameterList(@NotNull HaxeParameterListPsiMixinImpl o) {
     visitPsiCompositeElement(o);
   }
 
   public void visitFunctionPrototypeDeclarationWithAttributes(@NotNull HaxeFunctionPrototypeDeclarationWithAttributes o) {
-    visitComponentWithDeclarationList(o);
+    visitMethod(o);
   }
 
 }

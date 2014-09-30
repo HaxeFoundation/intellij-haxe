@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeParameter extends HaxeComponent {
+public interface HaxeParameter extends HaxeParameterPsiMixin {
 
   @NotNull
   HaxeComponentName getComponentName();

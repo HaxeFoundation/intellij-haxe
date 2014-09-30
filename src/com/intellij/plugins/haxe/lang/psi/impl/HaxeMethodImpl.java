@@ -15,17 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.lang.psi.impl;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface HaxeParameterList extends HaxeParameterListPsiMixin {
-
-  @NotNull
-  List<HaxeParameter> getParameterList();
-
+/**
+ * This is effectively an alias for the mixin class, except with a more
+ * memorable and consistent name.
+ *
+ * Created by ebishton on 9/28/14.
+ */
+public abstract class HaxeMethodImpl extends HaxeMethodPsiMixinImpl implements HaxeMethod {
+  public HaxeMethodImpl(ASTNode node) {
+    super(node);
+  }
 }

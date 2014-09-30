@@ -15,17 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.lang.psi.impl;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin;
+import com.intellij.psi.tree.IElementType;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
+/**
+ * Created by ebishton on 9/27/14.
+ */
+public class HaxeIdentifierPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeIdentifierPsiMixin {
 
-public interface HaxeParameterList extends HaxeParameterListPsiMixin {
+  public HaxeIdentifierPsiMixinImpl(ASTNode node) {
+    super(node);
+  }
 
-  @NotNull
-  List<HaxeParameter> getParameterList();
-
+  @Override
+  public IElementType getTokenType() {
+    return HaxeTokenTypes.IDENTIFIER;
+  }
 }
