@@ -20,7 +20,9 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.impl.source.PsiFieldImpl;
@@ -50,7 +52,8 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    return new HaxePsiDocComment(mHaxeNamedComponent);
+    PsiComment psiComment = HaxeResolveUtil.findDocumentation(mHaxeNamedComponent);
+    return ((psiComment != null)? new HaxePsiDocComment(mHaxeNamedComponent, psiComment) : null);
   }
 
   @Override
@@ -66,6 +69,9 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
 
   @Override
   public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    //
+    // TODO: [TiVo]: Verify + Fix, based on learning from fixing hasModifierProperty/getModifierList in AbstractHaxePsiClass
+    //
     if (PsiModifier.PUBLIC.equals(name)) {
       return mHaxeNamedComponent.isPublic();
     }

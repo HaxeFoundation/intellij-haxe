@@ -45,7 +45,6 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent implements HaxeClass {
-
   public AbstractHaxePsiClass(@NotNull ASTNode node) {
     super(node);
   }
@@ -198,6 +197,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getExtendsList() {
+    // TODO: FIX
     final List<HaxeType> haxeTypeList = getHaxeExtendsList();
     HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this, getNode(), PsiReferenceList.Role.EXTENDS_LIST);
     for (HaxeType haxeTypeElement : haxeTypeList) {
@@ -219,6 +219,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getImplementsList() {
+    // TODO: FIX
     final List<HaxeType> haxeTypeList = getHaxeImplementsList();
     HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this, getNode(), PsiReferenceList.Role.IMPLEMENTS_LIST);
     for (HaxeType haxeTypeElement : haxeTypeList) {
@@ -250,7 +251,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiClassInitializer[] getInitializers() {
-    // does this need to be implemented
+    // TODO: FIX
     return PsiClassInitializer.EMPTY_ARRAY;
   }
 
@@ -328,6 +329,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return PsiClassImplUtil.findMethodsAndTheirSubstitutorsByName(this, name, checkBases);
   }
 
+  @Override
   public boolean hasTypeParameters() {
     return PsiImplUtil.hasTypeParameters(this);
   }
@@ -404,15 +406,14 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public PsiModifierList getModifierList() {
 
-    //TODO: UNCOMMENT below code as-and-when-needed e.g. when implementing refactoring actions
+    // XXX: UNCOMMENT below code as-and-when-needed e.g. when implementing refactoring actions
     //      --> (COMPLETED) BNF changes required to fetch annotations/access-modifiers from class declarations.
     //      --> (ABOUT 90% DONE) Accessing those structures here to read those annotations, and
     //      --> (NEED TO DO) translating/loading them into HaxePsiModifierList (is-a PsiModifierList)
 
     ////
     //HaxeMacroClass macroClass = (HaxeMacroClass) UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.MACRO_CLASS);
-    //// Apart from below elements from HaxeMacroClass -
-    //// also, populate 'private' / 'public' (as needed) into this modifier list
+    //// Apart from below elements from HaxeMacroClass - also, populate 'private' / 'public' (as needed) into this modifier list
     ////
     //if (macroClass != null) {
     //  //
@@ -605,10 +606,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiDocComment getDocComment() {
-    //if (null != HaxeResolveUtil.findDocumentation(this)) {
-    //  return new HaxePsiDocComment(this);
-    //}
-    return null;
+    PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
+    return ((psiComment != null)? new HaxePsiDocComment(this, psiComment) : null);
   }
 
   @Override
@@ -629,17 +628,20 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return PsiSuperMethodImplUtil.getVisibleSignatures(this);
   }
 
+  @Override
   @NotNull
   public PsiClass[] getInnerClasses() {
     return PsiClass.EMPTY_ARRAY;
   }
 
+  @Override
   @NotNull
   public PsiClass[] getAllInnerClasses() {
     return PsiClass.EMPTY_ARRAY;
   }
 
   @Override
+  @Nullable
   public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
     return null;
   }

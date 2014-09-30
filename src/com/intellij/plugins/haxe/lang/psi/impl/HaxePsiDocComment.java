@@ -21,14 +21,13 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiDocCommentOwner;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.javadoc.PsiDocCommentImpl;
+import com.intellij.psi.impl.source.tree.SharedImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
-
 import org.jetbrains.annotations.NotNull;
 
 
@@ -37,14 +36,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxePsiDocComment extends PsiDocCommentImpl implements PsiDocComment {
 
-  private PsiComment mComment;
   private HaxeNamedComponent mOwnerComponent;
 
-  public HaxePsiDocComment(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
-    super((HaxeResolveUtil.findDocumentation(inHaxeNamedComponent) != null) ?
-          HaxeResolveUtil.findDocumentation(inHaxeNamedComponent).getText() : "");
-    mOwnerComponent = inHaxeNamedComponent;
-    mComment = HaxeResolveUtil.findDocumentation(inHaxeNamedComponent);
+  public HaxePsiDocComment(@NotNull HaxeNamedComponent owner, @NotNull PsiComment comment) {
+    super(comment.getText());
+    mOwnerComponent = owner;
   }
 
   @Override
@@ -72,8 +68,7 @@ public class HaxePsiDocComment extends PsiDocCommentImpl implements PsiDocCommen
 
   @Override
   public boolean isWritable() {
-    // TODO: [TiVo]: Fix hack
-    return true;
+    return SharedImplUtil.isWritable(mOwnerComponent.getNode());
   }
 
   @NotNull

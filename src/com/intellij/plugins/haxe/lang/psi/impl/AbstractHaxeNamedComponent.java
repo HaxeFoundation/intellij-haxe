@@ -165,44 +165,27 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   private static boolean hasPublicAccessor(HaxePsiCompositeElement element) {
-
-    final HaxePsiCompositeElement publicKeywordObj = UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC);
-    final HaxePsiCompositeElement privateKeywordObj = UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPRIVATE);
-
-    if (privateKeywordObj != null) {
+    // do not change the order of these if-statements
+    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPRIVATE) != null) {
       return false; // private
     }
-    if (publicKeywordObj != null) {
+    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
       return true; // public
     }
 
     final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
-
     if (declarationAttributeList != null) {
-
       final Set<IElementType> declarationTypes = HaxeResolveUtil.getDeclarationTypes((declarationAttributeList));
-
-      final boolean isPublicDeclTypeToken = declarationTypes.contains(HaxeTokenTypes.KPUBLIC);
-      final boolean isPrivateDeclTypeToken = declarationTypes.contains(HaxeTokenTypes.KPRIVATE);
-
-      if (isPrivateDeclTypeToken) {
+      // do not change the order of these if-statements
+      if (declarationTypes.contains(HaxeTokenTypes.KPRIVATE)) {
         return false; // private
       }
-      if (isPublicDeclTypeToken) {
+      if (declarationTypes.contains(HaxeTokenTypes.KPUBLIC)) {
         return true; // public
       }
-
-      if ((null == privateKeywordObj) && (null == publicKeywordObj) && !isPublicDeclTypeToken && !isPrivateDeclTypeToken) {
-        return true; // <default>: public
-      }
-    }
-    else {
-      if ((null == privateKeywordObj) && (null == publicKeywordObj)) {
-        return true; // <default>: public
-      }
     }
 
-    return false; // <unknown state>: not public
+    return true; // <default>: public
   }
 
   @Override
