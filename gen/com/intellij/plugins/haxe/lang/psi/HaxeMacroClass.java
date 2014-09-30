@@ -23,9 +23,36 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeExternOrPrivate extends HaxePsiCompositeElement {
+public interface HaxeMacroClass extends HaxePsiCompositeElement {
 
   @Nullable
-  HaxePrivateKeyWord getPrivateKeyWord();
+  HaxeAutoBuildMacro getAutoBuildMacro();
+
+  @Nullable
+  HaxeBitmapMeta getBitmapMeta();
+
+  @Nullable
+  HaxeBuildMacro getBuildMacro();
+
+  @Nullable
+  HaxeCustomMeta getCustomMeta();
+
+  @Nullable
+  HaxeFakeEnumMeta getFakeEnumMeta();
+
+  @Nullable
+  HaxeJsRequireMeta getJsRequireMeta();
+
+  @Nullable
+  HaxeMetaMeta getMetaMeta();
+
+  @Nullable
+  HaxeNativeMeta getNativeMeta();
+
+  @Nullable
+  HaxeNsMeta getNsMeta();
+
+  @Nullable
+  HaxeRequireMeta getRequireMeta();
 
 }

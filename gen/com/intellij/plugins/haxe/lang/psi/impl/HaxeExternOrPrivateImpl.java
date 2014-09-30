@@ -39,4 +39,10 @@ public class HaxeExternOrPrivateImpl extends HaxePsiCompositeElementImpl impleme
     else super.accept(visitor);
   }
 
+  @Override
+  @Nullable
+  public HaxePrivateKeyWord getPrivateKeyWord() {
+    return findChildByClass(HaxePrivateKeyWord.class);
+  }
+
 }

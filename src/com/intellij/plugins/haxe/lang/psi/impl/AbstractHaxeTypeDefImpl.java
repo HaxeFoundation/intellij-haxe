@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -108,15 +109,10 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
 
   @Override
   public HaxeNamedComponent findHaxeMethodByName(@NotNull String name) {
-    System.out.println(" AbstractHaxeTypeDefImpl >>>>> findHaxeMethodByName('"+name+"')");
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
-    System.out.println(" AbstractHaxeTypeDefImpl >>>>> targetHaxeClass = "+targetHaxeClass);
     if (targetHaxeClass != null) {
-      System.out.println(" AbstractHaxeTypeDefImpl >>>>> targetHaxeClass.findHaxeMethodByName('"+name+"') = "+targetHaxeClass.findHaxeMethodByName(
-        name));
       return targetHaxeClass.findHaxeMethodByName(name);
     }
-    System.out.println(" AbstractHaxeTypeDefImpl >>>>> super.findHaxeMethodByName('"+name+"') = "+super.findHaxeMethodByName(name));
     return super.findHaxeMethodByName(name);
   }
 }

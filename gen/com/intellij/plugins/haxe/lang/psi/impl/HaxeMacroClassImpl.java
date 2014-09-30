@@ -28,51 +28,75 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeAbstractClassDeclarationImpl extends AbstractHaxePsiClass implements HaxeAbstractClassDeclaration {
+public class HaxeMacroClassImpl extends HaxePsiCompositeElementImpl implements HaxeMacroClass {
 
-  public HaxeAbstractClassDeclarationImpl(ASTNode node) {
+  public HaxeMacroClassImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitAbstractClassDeclaration(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitMacroClass(this);
     else super.accept(visitor);
   }
 
   @Override
   @Nullable
-  public HaxeClassBody getClassBody() {
-    return findChildByClass(HaxeClassBody.class);
+  public HaxeAutoBuildMacro getAutoBuildMacro() {
+    return findChildByClass(HaxeAutoBuildMacro.class);
   }
 
   @Override
   @Nullable
-  public HaxeComponentName getComponentName() {
-    return findChildByClass(HaxeComponentName.class);
+  public HaxeBitmapMeta getBitmapMeta() {
+    return findChildByClass(HaxeBitmapMeta.class);
   }
 
   @Override
   @Nullable
-  public HaxeGenericParam getGenericParam() {
-    return findChildByClass(HaxeGenericParam.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeMacroClass> getMacroClassList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroClass.class);
+  public HaxeBuildMacro getBuildMacro() {
+    return findChildByClass(HaxeBuildMacro.class);
   }
 
   @Override
   @Nullable
-  public HaxePrivateKeyWord getPrivateKeyWord() {
-    return findChildByClass(HaxePrivateKeyWord.class);
+  public HaxeCustomMeta getCustomMeta() {
+    return findChildByClass(HaxeCustomMeta.class);
   }
 
   @Override
-  @NotNull
-  public List<HaxeType> getTypeList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
+  @Nullable
+  public HaxeFakeEnumMeta getFakeEnumMeta() {
+    return findChildByClass(HaxeFakeEnumMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeJsRequireMeta getJsRequireMeta() {
+    return findChildByClass(HaxeJsRequireMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeMetaMeta getMetaMeta() {
+    return findChildByClass(HaxeMetaMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeNativeMeta getNativeMeta() {
+    return findChildByClass(HaxeNativeMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeNsMeta getNsMeta() {
+    return findChildByClass(HaxeNsMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeRequireMeta getRequireMeta() {
+    return findChildByClass(HaxeRequireMeta.class);
   }
 
 }

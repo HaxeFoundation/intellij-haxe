@@ -309,6 +309,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitMacroClass(@NotNull HaxeMacroClass o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitMetaKeyValue(@NotNull HaxeMetaKeyValue o) {
     visitPsiCompositeElement(o);
   }
@@ -364,6 +368,10 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitPrefixExpression(@NotNull HaxePrefixExpression o) {
     visitExpression(o);
+  }
+
+  public void visitPrivateKeyWord(@NotNull HaxePrivateKeyWord o) {
+    visitPsiCompositeElement(o);
   }
 
   public void visitPropertyAccessor(@NotNull HaxePropertyAccessor o) {

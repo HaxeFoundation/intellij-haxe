@@ -30,6 +30,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
@@ -163,11 +165,44 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   private static boolean hasPublicAccessor(HaxePsiCompositeElement element) {
-    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
-      return true;
+
+    final HaxePsiCompositeElement publicKeywordObj = UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC);
+    final HaxePsiCompositeElement privateKeywordObj = UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPRIVATE);
+
+    if (privateKeywordObj != null) {
+      return false; // private
     }
+    if (publicKeywordObj != null) {
+      return true; // public
+    }
+
     final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KPUBLIC);
+
+    if (declarationAttributeList != null) {
+
+      final Set<IElementType> declarationTypes = HaxeResolveUtil.getDeclarationTypes((declarationAttributeList));
+
+      final boolean isPublicDeclTypeToken = declarationTypes.contains(HaxeTokenTypes.KPUBLIC);
+      final boolean isPrivateDeclTypeToken = declarationTypes.contains(HaxeTokenTypes.KPRIVATE);
+
+      if (isPrivateDeclTypeToken) {
+        return false; // private
+      }
+      if (isPublicDeclTypeToken) {
+        return true; // public
+      }
+
+      if ((null == privateKeywordObj) && (null == publicKeywordObj) && !isPublicDeclTypeToken && !isPrivateDeclTypeToken) {
+        return true; // <default>: public
+      }
+    }
+    else {
+      if ((null == privateKeywordObj) && (null == publicKeywordObj)) {
+        return true; // <default>: public
+      }
+    }
+
+    return false; // <unknown state>: not public
   }
 
   @Override

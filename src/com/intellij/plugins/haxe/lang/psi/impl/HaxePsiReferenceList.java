@@ -18,11 +18,15 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.source.PsiReferenceListImpl;
+import com.intellij.psi.impl.source.tree.JavaElementType;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.util.ArrayFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -68,14 +72,48 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
     //}
   }
 
+  public int countChildren(IElementType type, PsiElement psiElement) {
+    // no lock is needed because all chameleons are expanded already
+    int count = 0;
+    for (ASTNode child = psiElement.getFirstChild().getNode(); child != null; child = child.getTreeNext()) {
+      if (type == child.getElementType()) {
+        count++;
+      }
+    }
+
+    return count;
+  }
+
+  @NotNull
+  public <T extends PsiElement> T[] getChildrenAsPsiElements(@NotNull IElementType type, ArrayFactory<T> constructor, PsiElement psiElement) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    int count = countChildren(type, psiElement);
+    T[] result = constructor.create(count);
+    if (count == 0) {
+      return result;
+    }
+    int idx = 0;
+    for (ASTNode child = psiElement.getFirstChild().getNode(); child != null && idx < count; child = child.getTreeNext()) {
+      if (type == child.getElementType()) {
+        @SuppressWarnings("unchecked") T element = (T)child.getPsi();
+        // LOG.assertTrue(element != null, child);
+        result[idx++] = element;
+      }
+    }
+    return result;
+  }
+
   @NotNull
   @Override
-  public PsiClass[] getReferenceElements() {
+  public PsiJavaCodeReferenceElement[] getReferenceElements() {
     if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) || mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
-        return ((PsiClass[])(mChildren.toArray(new PsiElement[mChildren.size()])));
+      PsiElement[] array = new PsiElement[mChildren.size()];
+      //array = mChildren.toArray(array);
+      //return getChildrenAsPsiElements(JavaElementType.JAVA_CODE_REFERENCE, PsiJavaCodeReferenceElement.ARRAY_FACTORY, array[0]);
+      return ((PsiJavaCodeReferenceElement[])mChildren.toArray(array));
     }
     else {
-      return ((PsiClass[])((HaxePsiCompositeElement) getNode()).getChildren());
+      return ((PsiJavaCodeReferenceElement[])((HaxePsiCompositeElement) getNode()).getChildren());
     }
   }
 

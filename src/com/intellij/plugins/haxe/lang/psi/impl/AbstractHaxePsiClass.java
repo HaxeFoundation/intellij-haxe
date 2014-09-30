@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.*;
 import com.intellij.psi.impl.source.JavaStubPsiElement;
@@ -86,8 +87,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public List<HaxeType> getHaxeExtendsList() {
-    getProject();
-    getManager();
     return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
   }
 
@@ -363,19 +362,87 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
+  public boolean isPrivate() {
+    AbstractHaxePsiClass self = this;
+    HaxePrivateKeyWord privateKeyWord = null;
+    if ((self instanceof HaxeTypedefDeclaration) ||
+        (self instanceof HaxeExternClassDeclaration) ||
+        (self instanceof HaxeInterfaceDeclaration) ||
+        (self instanceof HaxeEnumDeclaration)) {
+      HaxeExternOrPrivate externOrPrivate = null;
+      if (self instanceof HaxeTypedefDeclaration) {
+        externOrPrivate = ((HaxeTypedefDeclaration) self).getExternOrPrivate();
+      }
+      else if (self instanceof HaxeExternClassDeclaration) {
+        externOrPrivate = ((HaxeTypedefDeclaration) self).getExternOrPrivate();
+      }
+      else if (self instanceof HaxeInterfaceDeclaration) {
+        externOrPrivate = ((HaxeInterfaceDeclaration) self).getExternOrPrivate();
+      }
+      else { // instanceof HaxeEnumDeclaration
+        externOrPrivate = ((HaxeEnumDeclaration) self).getExternOrPrivate();
+      }
+      // check
+      if (null == externOrPrivate) {
+        return false;
+      }
+      privateKeyWord = externOrPrivate.getPrivateKeyWord();
+    }
+    else if ((self instanceof HaxeClassDeclaration) ||
+             (self instanceof HaxeAbstractClassDeclaration)) {
+      if (self instanceof HaxeClassDeclaration) {
+        privateKeyWord = ((HaxeClassDeclaration) self).getPrivateKeyWord();
+      }
+      else { // instanceof HaxeAbstractClassDeclaration
+        privateKeyWord = ((HaxeAbstractClassDeclaration) self).getPrivateKeyWord();
+      }
+    }
+    // check
+    if (null == privateKeyWord) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public boolean isPublic() {
+    return (!isPrivate() && super.isPublic()); // do not change the order of- and the- expressions
+  }
+
+  @Override
   @Nullable
   public PsiModifierList getModifierList() {
     // TODO: [TiVo]: MUST implement
+    /*
+     * A Haxe Class may have any of this annotations/modifiers associated with it:
+     * @debug
+     * @:allow
+     * @author("Author")
+     * @:rtti
+     * @:generic
+     * 'abstract' type that wraps an underlying type (see, http://haxe.org/manual/types-abstract.html)
+     * private
+     */
+
+    //HaxePsiCompositeElement
+    HaxeMacroClass macroClass = (HaxeMacroClass) UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.MACRO_CLASS);
+    if (macroClass != null)
+    System.out.println(macroClass.toString());
+
+
+    System.out.println("\n\t\t >>> " + this.getQualifiedName() + " >>> " + this.isPublic());
+
     return null;
   }
 
   @Override
   public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
     if (PsiModifier.PUBLIC.equals(name)) {
-        return isPublic();
+      return isPublic();
     }
     else if (PsiModifier.PRIVATE.equals(name)) {
-      return (! isPublic());
+      return (isPrivate() || !super.isPublic()); // do not change the order of- and the- expressions
     }
     else if (getModifierList() != null) {
       return getModifierList().hasModifierProperty(name);

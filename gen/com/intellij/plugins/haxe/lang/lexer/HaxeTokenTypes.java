@@ -96,6 +96,7 @@ public interface HaxeTokenTypes {
   IElementType LOGIC_AND_EXPRESSION = new HaxeElementType("LOGIC_AND_EXPRESSION");
   IElementType LOGIC_OR_EXPRESSION = new HaxeElementType("LOGIC_OR_EXPRESSION");
   IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
+  IElementType MACRO_CLASS = new HaxeElementType("MACRO_CLASS");
   IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
   IElementType META_META = new HaxeElementType("META_META");
   IElementType MULTIPLICATIVE_EXPRESSION = new HaxeElementType("MULTIPLICATIVE_EXPRESSION");
@@ -110,6 +111,7 @@ public interface HaxeTokenTypes {
   IElementType PARAMETER_LIST = new HaxeElementType("PARAMETER_LIST");
   IElementType PARENTHESIZED_EXPRESSION = new HaxeElementType("PARENTHESIZED_EXPRESSION");
   IElementType PREFIX_EXPRESSION = new HaxeElementType("PREFIX_EXPRESSION");
+  IElementType PRIVATE_KEY_WORD = new HaxeElementType("PRIVATE_KEY_WORD");
   IElementType PROPERTY_ACCESSOR = new HaxeElementType("PROPERTY_ACCESSOR");
   IElementType PROPERTY_DECLARATION = new HaxeElementType("PROPERTY_DECLARATION");
   IElementType REFERENCE_EXPRESSION = new HaxeElementType("REFERENCE_EXPRESSION");
@@ -494,6 +496,9 @@ public interface HaxeTokenTypes {
       else if (type == LONG_TEMPLATE_ENTRY) {
         return new HaxeLongTemplateEntryImpl(node);
       }
+      else if (type == MACRO_CLASS) {
+        return new HaxeMacroClassImpl(node);
+      }
       else if (type == META_KEY_VALUE) {
         return new HaxeMetaKeyValueImpl(node);
       }
@@ -535,6 +540,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == PREFIX_EXPRESSION) {
         return new HaxePrefixExpressionImpl(node);
+      }
+      else if (type == PRIVATE_KEY_WORD) {
+        return new HaxePrivateKeyWordImpl(node);
       }
       else if (type == PROPERTY_ACCESSOR) {
         return new HaxePropertyAccessorImpl(node);
