@@ -251,7 +251,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiClassInitializer[] getInitializers() {
-    // TODO: FIX
+    // XXX: this needs change in BNF to detect initializer patterns, load them as accessible constructs in a class object
+    // XXX: For now, this will be empty
+    // XXX: This may be needed during implementation of refactoring, but not for class hierarchy.
     return PsiClassInitializer.EMPTY_ARRAY;
   }
 
@@ -283,8 +285,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiMethod[] getMethods() {
     List<HaxeMethod> haxeMethods = getHaxeMethods();
-    PsiMethod[] returntype = new PsiMethod[0];
-    return haxeMethods.toArray(returntype);
+    PsiMethod[] returntype = new PsiMethod[haxeMethods.size()];
+    return haxeMethods.toArray(returntype); // XXX: Verify with EBat (change 49d2848) whether he verified this functionally
   }
 
   @Override
