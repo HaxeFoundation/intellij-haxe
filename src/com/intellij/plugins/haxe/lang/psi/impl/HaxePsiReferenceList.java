@@ -68,7 +68,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
       }
     }
     //else {
-    //  // throw exception?
+    //  // TODO: [TiVo]: should we throw exception?
     //}
   }
 
@@ -110,6 +110,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
       PsiElement[] array = new PsiElement[mChildren.size()];
       //array = mChildren.toArray(array);
       //return getChildrenAsPsiElements(JavaElementType.JAVA_CODE_REFERENCE, PsiJavaCodeReferenceElement.ARRAY_FACTORY, array[0]);
+      // TODO: [TiVo]: Fix ClassCastException here
       return ((PsiJavaCodeReferenceElement[])mChildren.toArray(array));
     }
     else {
@@ -131,7 +132,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
 
   @Override
   public boolean isWritable() {
-    return true; // TODO: [TiVo]: FIX
+    return true;
   }
 
   @Override

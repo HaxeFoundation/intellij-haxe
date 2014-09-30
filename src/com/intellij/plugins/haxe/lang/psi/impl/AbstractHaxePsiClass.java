@@ -413,25 +413,21 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiModifierList getModifierList() {
-    // TODO: [TiVo]: MUST implement
-    /*
-     * A Haxe Class may have any of this annotations/modifiers associated with it:
-     * @debug
-     * @:allow
-     * @author("Author")
-     * @:rtti
-     * @:generic
-     * 'abstract' type that wraps an underlying type (see, http://haxe.org/manual/types-abstract.html)
-     * private
-     */
-
-    //HaxePsiCompositeElement
     HaxeMacroClass macroClass = (HaxeMacroClass) UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.MACRO_CLASS);
-    if (macroClass != null)
-    System.out.println(macroClass.toString());
-
-
-    System.out.println("\n\t\t >>> " + this.getQualifiedName() + " >>> " + this.isPublic());
+    if (macroClass != null) {
+      HaxePsiModifierList psiModifierList = new HaxePsiModifierList(this.getNode());
+      /*
+       * A Haxe Class may have any of this annotations/modifiers associated with it:
+       * @debug
+       * @:allow
+       * @author("Author")
+       * @:rtti
+       * @:generic
+       */
+      // TODO: [TiVo]: populate modifiers from HaxeMacroClass
+      // Also, populate 'extern' / 'private' / 'public' (as applicable) into this modifier list
+      return psiModifierList;
+    }
 
     return null;
   }
