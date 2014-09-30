@@ -186,18 +186,45 @@ public enum HaxeComponentType {
     }
     switch (type) {
       case TYPEDEF:
+            {
+              return ((HaxeClass) element).getQualifiedName();
+            }
       case CLASS:
+            {
+              return ((HaxeClass) element).getQualifiedName();
+            }
       case ENUM:
+            {
+              return ((HaxeClass) element).getQualifiedName();
+            }
       case INTERFACE:
-        return ((HaxeClass)element).getQualifiedName();
+            {
+              return ((HaxeClass) element).getQualifiedName();
+            }
       case FUNCTION:
+            {
+              return ((HaxeNamedComponent) element).getName();
+            }
       case METHOD:
+            {
+              return ((HaxeNamedComponent) element).getName();
+            }
       case FIELD:
+            {
+              return ((HaxeNamedComponent) element).getName();
+            }
       case VARIABLE:
+            {
+              return ((HaxeNamedComponent) element).getName();
+            }
       case PARAMETER:
-        return ((HaxeNamedComponent)element).getName();
+            {
+              return ((HaxeNamedComponent) element).getName();
+            }
       default:
-        return null;
+            {
+              return null;
+            }
     }
   }
 }

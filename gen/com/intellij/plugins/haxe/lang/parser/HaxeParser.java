@@ -248,6 +248,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == LONG_TEMPLATE_ENTRY) {
       result_ = longTemplateEntry(builder_, 0);
     }
+    else if (root_ == MACRO_CLASS) {
+      result_ = macroClass(builder_, 0);
+    }
     else if (root_ == META_KEY_VALUE) {
       result_ = metaKeyValue(builder_, 0);
     }
@@ -289,6 +292,9 @@ public class HaxeParser implements PsiParser {
     }
     else if (root_ == PREFIX_EXPRESSION) {
       result_ = prefixExpression(builder_, 0);
+    }
+    else if (root_ == PRIVATE_KEY_WORD) {
+      result_ = privateKeyWord(builder_, 0);
     }
     else if (root_ == PROPERTY_ACCESSOR) {
       result_ = propertyAccessor(builder_, 0);
@@ -430,7 +436,7 @@ public class HaxeParser implements PsiParser {
   };
 
   /* ********************************************************** */
-  // macroClass* 'private'? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
+  // macroClass* privateKeyWord? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
   public static boolean abstractClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration")) return false;
     boolean result_;
@@ -463,10 +469,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // 'private'?
+  // privateKeyWord?
   private static boolean abstractClassDeclaration_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_1")) return false;
-    consumeToken(builder_, KPRIVATE);
+    privateKeyWord(builder_, level_ + 1);
     return true;
   }
 
@@ -1188,7 +1194,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* 'private'? 'class' componentName genericParam? inheritList? '{' classBody '}'
+  // macroClass* privateKeyWord? 'class' componentName genericParam? inheritList? '{' classBody '}'
   public static boolean classDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classDeclaration")) return false;
     boolean result_;
@@ -1220,10 +1226,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // 'private'?
+  // privateKeyWord?
   private static boolean classDeclaration_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classDeclaration_1")) return false;
-    consumeToken(builder_, KPRIVATE);
+    privateKeyWord(builder_, level_ + 1);
     return true;
   }
 
@@ -2020,14 +2026,14 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'extern' | 'private'
+  // 'extern' | privateKeyWord
   public static boolean externOrPrivate(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externOrPrivate")) return false;
     if (!nextTokenIs(builder_, "<extern or private>", KEXTERN, KPRIVATE)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<extern or private>");
     result_ = consumeToken(builder_, KEXTERN);
-    if (!result_) result_ = consumeToken(builder_, KPRIVATE);
+    if (!result_) result_ = privateKeyWord(builder_, level_ + 1);
     exit_section_(builder_, level_, marker_, EXTERN_OR_PRIVATE, result_, false, null);
     return result_;
   }
@@ -3332,10 +3338,10 @@ public class HaxeParser implements PsiParser {
   /* ********************************************************** */
   // '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
   //                       | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
-  static boolean macroClass(PsiBuilder builder_, int level_) {
+  public static boolean macroClass(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroClass")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, "<macro class>");
     result_ = consumeToken(builder_, KFINAL);
     if (!result_) result_ = consumeToken(builder_, KKEEP);
     if (!result_) result_ = consumeToken(builder_, "@:coreApi");
@@ -3352,7 +3358,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = metaMeta(builder_, level_ + 1);
     if (!result_) result_ = buildMacro(builder_, level_ + 1);
     if (!result_) result_ = autoBuildMacro(builder_, level_ + 1);
-    exit_section_(builder_, marker_, null, result_);
+    exit_section_(builder_, level_, marker_, MACRO_CLASS, result_, false, null);
     return result_;
   }
 
@@ -4025,6 +4031,18 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, ONOT);
     if (!result_) result_ = consumeToken(builder_, OCOMPLEMENT);
     exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // 'private'
+  public static boolean privateKeyWord(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "privateKeyWord")) return false;
+    if (!nextTokenIs(builder_, KPRIVATE)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, KPRIVATE);
+    exit_section_(builder_, marker_, PRIVATE_KEY_WORD, result_);
     return result_;
   }
 

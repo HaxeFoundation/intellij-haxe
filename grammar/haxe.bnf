@@ -177,7 +177,7 @@ haxeFile ::= packageStatement? topLevelList
   http://haxe.org/manual/metadata
   http://haxe.org/manual/tips_and_tricks
 */
-private macroClass ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
+macroClass ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
                       | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 private functionMacroMember ::= '@:final' | macroMember | overloadMeta
@@ -232,7 +232,8 @@ private topLevelDeclaration ::= classDeclaration
                               | enumDeclaration
                               | typedefDeclaration
 
-externOrPrivate ::= 'extern' | 'private'
+privateKeyWord ::= 'private'
+externOrPrivate ::= 'extern' | privateKeyWord
 
 typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -243,10 +244,10 @@ externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverWhile="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
-classDeclaration ::= macroClass* 'private'? 'class' componentName genericParam? inheritList? '{' classBody '}'
+classDeclaration ::= macroClass* privateKeyWord? 'class' componentName genericParam? inheritList? '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-abstractClassDeclaration ::= macroClass* 'private'? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
+abstractClassDeclaration ::= macroClass* privateKeyWord? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 classBody ::= classBodyPart*

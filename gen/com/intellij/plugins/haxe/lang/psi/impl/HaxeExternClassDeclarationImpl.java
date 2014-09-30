@@ -41,32 +41,8 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
 
   @Override
   @NotNull
-  public List<HaxeAutoBuildMacro> getAutoBuildMacroList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeAutoBuildMacro.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeBitmapMeta> getBitmapMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBitmapMeta.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeBuildMacro> getBuildMacroList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBuildMacro.class);
-  }
-
-  @Override
-  @NotNull
   public HaxeComponentName getComponentName() {
     return findNotNullChildByClass(HaxeComponentName.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeCustomMeta> getCustomMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCustomMeta.class);
   }
 
   @Override
@@ -79,12 +55,6 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   @NotNull
   public List<HaxeExternOrPrivate> getExternOrPrivateList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExternOrPrivate.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeFakeEnumMeta> getFakeEnumMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFakeEnumMeta.class);
   }
 
   @Override
@@ -101,32 +71,8 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
 
   @Override
   @NotNull
-  public List<HaxeJsRequireMeta> getJsRequireMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeJsRequireMeta.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeMetaMeta> getMetaMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeNativeMeta> getNativeMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNativeMeta.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeNsMeta> getNsMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNsMeta.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeRequireMeta> getRequireMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeRequireMeta.class);
+  public List<HaxeMacroClass> getMacroClassList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroClass.class);
   }
 
 }
