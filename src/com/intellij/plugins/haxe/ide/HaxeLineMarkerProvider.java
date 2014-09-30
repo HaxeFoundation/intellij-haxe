@@ -123,7 +123,9 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
                               HaxeResolveUtil.getDeclarationTypes(componentWithDeclarationList.getDeclarationAttributeList()).
                                 contains(HaxeTokenTypes.KOVERRIDE);
     final Icon icon = overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
-    assert element != null;
+    if (null == element) {
+      return null;
+    }
     return new LineMarkerInfo<PsiElement>(
       element,
       element.getTextRange(),

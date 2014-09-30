@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -187,7 +188,10 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    return new HaxePsiDocComment(this);
+    //if (null != HaxeResolveUtil.findDocumentation(this)) {
+    //  return new HaxePsiDocComment(this);
+    //}
+    return null;
   }
 
   @Override
@@ -307,8 +311,9 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public PsiModifierList getModifierList() {
-    // TODO: [TiVo]: is this even needed? can we get away without implementing?
-    return null;
+    /* TODO: [TiVo]: Implement */
+    HaxePsiModifierList psiModifierList = new HaxePsiModifierList(this.getNode());
+    return psiModifierList;
   }
 
   @NotNull

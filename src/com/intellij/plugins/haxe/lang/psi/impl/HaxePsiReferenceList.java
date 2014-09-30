@@ -106,16 +106,28 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   @NotNull
   @Override
   public PsiJavaCodeReferenceElement[] getReferenceElements() {
-    if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) || mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
-      PsiElement[] array = new PsiElement[mChildren.size()];
-      //array = mChildren.toArray(array);
-      //return getChildrenAsPsiElements(JavaElementType.JAVA_CODE_REFERENCE, PsiJavaCodeReferenceElement.ARRAY_FACTORY, array[0]);
-      // TODO: [TiVo]: Fix ClassCastException here
-      return ((PsiJavaCodeReferenceElement[])mChildren.toArray(array));
-    }
-    else {
-      return ((PsiJavaCodeReferenceElement[])((HaxePsiCompositeElement) getNode()).getChildren());
-    }
+    PsiJavaCodeReferenceElement[] result = {};
+    //if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) || mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
+    //  PsiElement[] array = new PsiElement[mChildren.size()];
+    //  //array = mChildren.toArray(array);
+    //  //return getChildrenAsPsiElements(JavaElementType.JAVA_CODE_REFERENCE, PsiJavaCodeReferenceElement.ARRAY_FACTORY, array[0]);
+    //  // TODO: [TiVo]: Fix ClassCastException here
+    //  try {
+    //    result = ((PsiJavaCodeReferenceElement[])mChildren.toArray(array));
+    //  }
+    //  catch (Throwable t) {
+    //    t.printStackTrace(); // XXX: don't swallow
+    //  }
+    //}
+    //else {
+    //  try {
+    //    result = ((PsiJavaCodeReferenceElement[])((HaxePsiCompositeElement) getNode()).getChildren());
+    //  }
+    //  catch (Throwable t) {
+    //    t.printStackTrace(); // XXX: don't swallow
+    //  }
+    //}
+    return result;
   }
 
   @NotNull
