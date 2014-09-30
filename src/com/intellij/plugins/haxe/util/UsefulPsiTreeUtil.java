@@ -139,6 +139,24 @@ public class UsefulPsiTreeUtil {
   }
 
   @NotNull
+  public static String getQNameForImportStatementWithWildcardType(HaxeImportStatementWithWildcard importStatement) {
+    final HaxeExpression expression = importStatement.getReferenceExpression();
+    String qName = expression.getText();
+    qName = qName.substring(0, qName.length() - 2);
+    return qName;
+  }
+
+  @NotNull
+  public static boolean importStatementWithWildcardTypeForClassName(HaxeImportStatementWithWildcard importStatement, String className) {
+    if(importStatement != null) {
+      return getQNameForImportStatementWithWildcardType(importStatement).endsWith(className);
+    }
+    // TODO: other import types (inject util logic to ImportStatement?)
+    return false;
+  }
+
+
+  @NotNull
   public static String getPackageStatementForImportStatementWithWildcard(HaxeImportStatementWithWildcard importStatementWithWildcard) {
     String text = importStatementWithWildcard.getReferenceExpression().getText();
     String packageStatement = text.substring(0, text.length() - 2);
@@ -250,6 +268,31 @@ public class UsefulPsiTreeUtil {
     if (haxeImportStatements != null) {
       return Arrays.asList(haxeImportStatements);
     }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public static List<HaxeNamedComponent> getImportStatementWithWildcardTypeNamedSubComponents(HaxeImportStatementWithWildcard importStatementWithWildcard, PsiFile psiFile) {
+    String text = importStatementWithWildcard.getReferenceExpression().getText();
+    String qName = text.substring(0, text.length() - 2);
+    boolean typeImport = Character.isUpperCase(qName.charAt(qName.lastIndexOf(".") + 1));
+
+    if (typeImport) {
+      HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qName, psiFile);
+
+      if (haxeClass != null) {
+        List<HaxeNamedComponent> namedComponents = new ArrayList<HaxeNamedComponent>();
+
+        for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+          if (namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+            namedComponents.add(namedComponent);
+          }
+        }
+
+        return namedComponents;
+      }
+    }
+
     return Collections.emptyList();
   }
 

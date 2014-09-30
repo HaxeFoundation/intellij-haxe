@@ -544,13 +544,61 @@ public class HaxeResolveUtil {
       }
     });
 
-    final HaxeImportStatementWithWildcard importStatementWithWildcard = (HaxeImportStatementWithWildcard)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
+    final List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(fileChildren, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithWildcard;
+      }
+    });
+
+    final HaxeImportStatementWithWildcard importStatementWithWildcard = (HaxeImportStatementWithWildcard)ContainerUtil.find(importStatementWithWildcardList, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
         return element instanceof HaxeImportStatementWithWildcard &&
-               UsefulPsiTreeUtil.importStatementWithWildcardForClassName((HaxeImportStatementWithWildcard)element, result);
+               (UsefulPsiTreeUtil.importStatementWithWildcardForClassName((HaxeImportStatementWithWildcard)element, result) ||
+                UsefulPsiTreeUtil.importStatementWithWildcardTypeForClassName(
+                  (HaxeImportStatementWithWildcard)element, result));
       }
     });
+
+    String qName = null;
+
+    for (PsiElement element : importStatementWithWildcardList) {
+      HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)element;
+      List<HaxeNamedComponent> namedSubComponents = UsefulPsiTreeUtil
+        .getImportStatementWithWildcardTypeNamedSubComponents(importStatementWithWildcard1, element.getContainingFile());
+
+      for (HaxeNamedComponent namedComponent : namedSubComponents) {
+        if (namedComponent.getName().equals(result)) {
+          //namedComponent.getComponentName()
+          //namedComponent.getText()
+          qName = UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard1) + "." + result;
+          break;
+        }
+      }
+    }
+
+    /*
+    final HaxeImportStatementWithWildcard importStatementWithWildcardType = (HaxeImportStatementWithWildcard)ContainerUtil.find(importStatementWithWildcardList, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        if (element instanceof HaxeImportStatementWithWildcard) {
+          HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)element;
+          List<HaxeNamedComponent> namedSubComponents = UsefulPsiTreeUtil
+            .getImportStatementWithWildcardTypeNamedSubComponents(importStatementWithWildcard1, element.getContainingFile());
+
+          for (HaxeNamedComponent namedComponent : namedSubComponents) {
+            if (namedComponent.getName().equals(result)) {
+              qName = UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard1) + "." + result;
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
+    });
+    */
 
     final HaxeExpression importStatementExpression = importStatement == null ? null : importStatement.getReferenceExpression();
     final HaxeExpression importStatementWithInExpression = importStatementWithInSupport == null ? null : importStatementWithInSupport.getReferenceExpression();
@@ -579,7 +627,17 @@ public class HaxeResolveUtil {
       return text;
     }
     else if (importStatementWithWildcard != null) {
-      return UsefulPsiTreeUtil.getPackageStatementForImportStatementWithWildcard(importStatementWithWildcard) + "." + result;
+      String text = importStatementWithWildcard.getReferenceExpression().getText();
+
+      if (text.endsWith("." + result + ".*")) {
+        return text.substring(0, text.length() - 2);
+      }
+      else {
+        return UsefulPsiTreeUtil.getPackageStatementForImportStatementWithWildcard(importStatementWithWildcard) + "." + result;
+      }
+    }
+    else if (qName != null) {
+      return qName;
     }
     else if (searchInSamePackage && !packageName.isEmpty()) {
       return packageName + "." + result;

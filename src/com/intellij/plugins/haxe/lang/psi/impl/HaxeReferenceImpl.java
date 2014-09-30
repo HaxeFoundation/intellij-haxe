@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
@@ -36,6 +37,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -337,6 +339,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (!isChain) {
         PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
+        PsiFile psiFile = this.getContainingFile();
+        addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
       }
     }
 
@@ -351,6 +355,23 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return rootPackage == null ? variants : ArrayUtil.mergeArrays(variants, rootPackage.getSubPackages());
     }
     return variants;
+  }
+
+  private void addImportStatementWithWildcardTypeClassVariants(Set<HaxeComponentName> suggestedVariants, PsiFile psiFile) {
+    List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithWildcard;
+      }
+    });
+
+    for (PsiElement element : importStatementWithWildcardList) {
+      List<HaxeNamedComponent> namedSubComponents =
+        UsefulPsiTreeUtil.getImportStatementWithWildcardTypeNamedSubComponents((HaxeImportStatementWithWildcard)element, psiFile);
+      for (HaxeNamedComponent namedComponent : namedSubComponents) {
+        suggestedVariants.add(namedComponent.getComponentName());
+      }
+    }
   }
 
   private void addChildClassVariants(Set<HaxeComponentName> variants, HaxeClass haxeClass) {
