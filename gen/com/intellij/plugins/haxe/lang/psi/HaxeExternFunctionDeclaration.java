@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarationList {
+public interface HaxeExternFunctionDeclaration extends HaxeMethod {
 
   @NotNull
   List<HaxeAutoBuildMacro> getAutoBuildMacroList();

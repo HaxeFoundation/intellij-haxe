@@ -28,7 +28,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiMethod;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -294,7 +294,7 @@ public class HaxeHierarchyUtils {
    *         null otherwise.
    */
   @Nullable
-  public static HaxePsiMethod getTargetMethod(@NotNull DataContext context) {
+  public static HaxeMethod getTargetMethod(@NotNull DataContext context) {
 
     final PsiElement logicalElement = HaxeHierarchyUtils.getReferencedElement(context);
     if (logicalElement == null) {
@@ -310,9 +310,7 @@ public class HaxeHierarchyUtils {
       // What we need to return is not the element we checked the type of,
       // nor the corresponding parsed file element.
       // Instead, we need to return the composite HaxePsiMethod class.
-      HaxeComponentWithDeclarationList psiElement =
-        (HaxeComponentWithDeclarationList)logicalElement.getParent();
-      HaxePsiMethod psiMethod = new HaxePsiMethod(psiElement);
+      HaxeMethod psiMethod = (HaxeMethod)logicalElement.getParent();
       return psiMethod;
     }
     return null;

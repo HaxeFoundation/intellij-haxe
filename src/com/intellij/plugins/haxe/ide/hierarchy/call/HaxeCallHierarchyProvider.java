@@ -17,26 +17,16 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.call;
 
-import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.ide.hierarchy.CallHierarchyBrowserBase;
 import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
 import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
-import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiMethod;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,7 +103,7 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
     }
     return null;
 */
-    HaxePsiMethod foundMethod = HaxeHierarchyUtils.getTargetMethod(context);
+    HaxeMethod foundMethod = HaxeHierarchyUtils.getTargetMethod(context);
     return foundMethod;
   }
 

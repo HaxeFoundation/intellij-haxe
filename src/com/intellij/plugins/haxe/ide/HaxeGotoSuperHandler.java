@@ -26,10 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentWithDeclarationList;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
@@ -64,7 +61,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
 
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     if (type == HaxeComponentType.METHOD) {
-      final HaxeComponentWithDeclarationList methodDeclaration = (HaxeComponentWithDeclarationList)namedComponent;
+      final HaxeMethod methodDeclaration = (HaxeMethod)namedComponent;
       tryNavigateToSuperMethod(editor, methodDeclaration, superItems);
     }
     else if (!supers.isEmpty() && namedComponent instanceof HaxeClass) {
@@ -79,7 +76,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
   }
 
   private static void tryNavigateToSuperMethod(Editor editor,
-                                               HaxeComponentWithDeclarationList methodDeclaration,
+                                               HaxeMethod methodDeclaration,
                                                List<HaxeNamedComponent> superItems) {
     final String methodName = methodDeclaration.getName();
     if (methodName == null) {
