@@ -82,7 +82,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   @Override
   public PsiClassType[] getReferencedTypes() {
     final PsiElement[] referenceElements = getReferenceElements();
-    final PsiClassType[] psiClassTypes = new PsiClassType[referenceElements.leng  th];
+    final PsiClassType[] psiClassTypes = new PsiClassType[referenceElements.length];
     final PsiElementFactory psiElementFactory = JavaPsiFacade.getElementFactory(mContainingClass.getProject());
     for (int index = 0; index < psiClassTypes.length; index++) {
       psiClassTypes[index] = psiElementFactory.createType((PsiClass)referenceElements[index]);
