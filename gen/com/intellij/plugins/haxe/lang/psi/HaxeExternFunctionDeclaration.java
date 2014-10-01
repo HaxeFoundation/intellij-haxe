@@ -41,10 +41,16 @@ public interface HaxeExternFunctionDeclaration extends HaxeMethod {
   List<HaxeCustomMeta> getCustomMetaList();
 
   @NotNull
+  List<HaxeDebugMeta> getDebugMetaList();
+
+  @NotNull
   List<HaxeDeclarationAttribute> getDeclarationAttributeList();
 
   @Nullable
   HaxeExpression getExpression();
+
+  @NotNull
+  List<HaxeFinalMeta> getFinalMetaList();
 
   @Nullable
   HaxeGenericParam getGenericParam();
@@ -53,7 +59,16 @@ public interface HaxeExternFunctionDeclaration extends HaxeMethod {
   List<HaxeGetterMeta> getGetterMetaList();
 
   @NotNull
+  List<HaxeKeepMeta> getKeepMetaList();
+
+  @NotNull
+  List<HaxeMacroMeta> getMacroMetaList();
+
+  @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
+
+  @NotNull
+  List<HaxeNoDebugMeta> getNoDebugMetaList();
 
   @NotNull
   List<HaxeNsMeta> getNsMetaList();
@@ -63,6 +78,9 @@ public interface HaxeExternFunctionDeclaration extends HaxeMethod {
 
   @Nullable
   HaxeParameterList getParameterList();
+
+  @NotNull
+  List<HaxeProtectedMeta> getProtectedMetaList();
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();

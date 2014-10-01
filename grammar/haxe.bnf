@@ -178,12 +178,23 @@ haxeFile ::= packageStatement? topLevelList
   http://haxe.org/manual/tips_and_tricks
 */
 
-simpleMeta ::= '@:final' | '@:keep' | '@:coreApi' | '@:bind' | '@:macro' | '@:hack'
+finalMeta ::= '@:final'
+keepMeta ::= '@:keep'
+coreApiMeta ::= '@:coreApi'
+bindMeta ::= '@:bind'
+macroMeta ::= '@:macro'
+hackMeta ::= '@:hack'
+protectedMeta ::= '@:protected'
+debugMeta ::= '@:debug'
+noDebugMeta ::= '@:nodebug'
+unreflectiveMeta ::= '@:unreflective'
+
+simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta
 
 macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
-private functionMacroMember ::= '@:final' | macroMember | overloadMeta
-private macroMember ::= '@:macro' | '@:protected' | '@:debug' | '@:nodebug' | '@:keep'
+private functionMacroMember ::= finalMeta | macroMember | overloadMeta
+private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}

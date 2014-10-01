@@ -71,6 +71,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
 
   @Override
   @NotNull
+  public List<HaxeDebugMeta> getDebugMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDebugMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeDeclarationAttribute> getDeclarationAttributeList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDeclarationAttribute.class);
   }
@@ -79,6 +85,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeFinalMeta> getFinalMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFinalMeta.class);
   }
 
   @Override
@@ -95,8 +107,26 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
 
   @Override
   @NotNull
+  public List<HaxeKeepMeta> getKeepMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeKeepMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeMacroMeta> getMacroMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeMetaMeta> getMetaMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeNoDebugMeta> getNoDebugMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNoDebugMeta.class);
   }
 
   @Override
@@ -115,6 +145,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeProtectedMeta> getProtectedMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeProtectedMeta.class);
   }
 
   @Override

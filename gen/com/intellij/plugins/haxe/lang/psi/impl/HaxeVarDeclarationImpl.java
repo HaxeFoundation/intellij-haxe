@@ -59,6 +59,12 @@ public class HaxeVarDeclarationImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @NotNull
+  public List<HaxeDebugMeta> getDebugMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDebugMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeDeclarationAttribute> getDeclarationAttributeList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDeclarationAttribute.class);
   }
@@ -71,14 +77,38 @@ public class HaxeVarDeclarationImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @NotNull
+  public List<HaxeKeepMeta> getKeepMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeKeepMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeMacroMeta> getMacroMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeMetaMeta> getMetaMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
   }
 
   @Override
   @NotNull
+  public List<HaxeNoDebugMeta> getNoDebugMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNoDebugMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeNsMeta> getNsMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNsMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeProtectedMeta> getProtectedMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeProtectedMeta.class);
   }
 
   @Override

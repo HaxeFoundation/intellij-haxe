@@ -39,4 +39,46 @@ public class HaxeSimpleMetaImpl extends HaxePsiCompositeElementImpl implements H
     else super.accept(visitor);
   }
 
+  @Override
+  @Nullable
+  public HaxeBindMeta getBindMeta() {
+    return findChildByClass(HaxeBindMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeCoreApiMeta getCoreApiMeta() {
+    return findChildByClass(HaxeCoreApiMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeFinalMeta getFinalMeta() {
+    return findChildByClass(HaxeFinalMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeHackMeta getHackMeta() {
+    return findChildByClass(HaxeHackMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeKeepMeta getKeepMeta() {
+    return findChildByClass(HaxeKeepMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeMacroMeta getMacroMeta() {
+    return findChildByClass(HaxeMacroMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeUnreflectiveMeta getUnreflectiveMeta() {
+    return findChildByClass(HaxeUnreflectiveMeta.class);
+  }
+
 }

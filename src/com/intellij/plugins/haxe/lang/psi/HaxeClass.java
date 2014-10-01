@@ -60,8 +60,6 @@ public interface HaxeClass extends HaxeComponent, PsiClass {
 
   boolean isGeneric();
 
-  boolean isPrivate();
-
   @Nullable
   HaxeGenericParam getGenericParam();
 }

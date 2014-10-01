@@ -18,14 +18,10 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.source.PsiReferenceListImpl;
-import com.intellij.psi.impl.source.tree.JavaElementType;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.util.ArrayFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -73,9 +69,9 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
     if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) ||
         mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
       PsiJavaCodeReferenceElement[] array = new PsiJavaCodeReferenceElement[mChildren.size()];
-      return mChildren.toArray(array);
+      return mChildren.toArray(array); // XXX: WARNING: Casting error may occur!
     }
-    return null;
+    return super.getReferenceElements();
   }
 
   @NotNull
@@ -93,11 +89,6 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   @Override
   public boolean isWritable() {
     return true;
-  }
-
-  @Override
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    super.accept(visitor);
   }
 
   @Override

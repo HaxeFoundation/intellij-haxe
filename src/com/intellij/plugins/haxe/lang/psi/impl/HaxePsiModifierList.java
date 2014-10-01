@@ -17,70 +17,90 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.impl.source.PsiModifierListImpl;
+import com.intellij.spring.facet.beans.CustomSetting;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO: [TiVo]: Implement
+import java.util.HashMap;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
 public class HaxePsiModifierList extends PsiModifierListImpl implements PsiModifierList {
 
-  public HaxePsiModifierList(final ASTNode node) {
-    super(node);
+  private PsiElement mPsiElement;
+
+  private HashMap<String, String> mModifierStatusMap;
+
+
+  public HaxePsiModifierList(@NotNull final PsiElement psiElement) {
+    super(psiElement.getNode());
+    mPsiElement = psiElement;
+    mModifierStatusMap = new HashMap<String, String>();
   }
 
   @Override
   public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NotNull @NonNls String name) {
-    return false;
+    return mModifierStatusMap.containsKey(name);
   }
 
   @Override
   public boolean hasExplicitModifier(@PsiModifier.ModifierConstant @NotNull @NonNls String name) {
-    return false;
+    return mModifierStatusMap.containsKey(name);
   }
 
   @Override
   public void setModifierProperty(@PsiModifier.ModifierConstant @NotNull @NonNls String name, boolean value)
     throws IncorrectOperationException {
-
+    mModifierStatusMap.put(name, new Boolean(value).toString());
   }
 
   @Override
   public void checkSetModifierProperty(@PsiModifier.ModifierConstant @NotNull @NonNls String name, boolean value)
     throws IncorrectOperationException {
-
+    // XXX: implement when needed
   }
 
   @NotNull
   @Override
   public PsiAnnotation[] getAnnotations() {
+    // XXX: implement when needed
     return new PsiAnnotation[0];
   }
 
   @NotNull
   @Override
   public PsiAnnotation[] getApplicableAnnotations() {
+    // XXX: implement when needed
     return new PsiAnnotation[0];
   }
 
   @Nullable
   @Override
   public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+    if (hasModifierProperty(qualifiedName)) {
+      String value = mModifierStatusMap.get(qualifiedName);
+      // XXX: implement when needed
+      // translate String to PsiAnnotation
+      // return the newly constructed PsiAnnotation object
+    }
     return null;
   }
 
-  @NotNull
+  @Nullable
   @Override
   public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+    mModifierStatusMap.put(qualifiedName, Boolean.TRUE.toString());
+    // XXX: implement when needed
+    // translate String to PsiAnnotation
+    // return the newly constructed PsiAnnotation object
     return null;
   }
 }

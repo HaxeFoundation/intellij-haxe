@@ -18,12 +18,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.Language;
-import com.intellij.navigation.ItemPresentation;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Iconable;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -31,13 +25,9 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.scope.PsiScopeProcessor;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,11 +96,9 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     if (isConstructor()) {
       return null;
     }
-
-    /* TODO: [TiVo]: translate below returned objects into PsiType */
     // A HaxeFunctionType is a PSI Element.
-    HaxeFunctionType type = getTypeTag().getFunctionType();
-    //return type;
+    HaxeFunctionType type = getTypeTag().getFunctionType(); // type could be null
+    /* TODO: [TiVo]: translate above returned objects into PsiType */
     return null;
   }
 
@@ -164,23 +152,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
         !isStatic() &&
         !isOverride()) {
       return true;
-    }
-    return false;
-  }
-
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    if (PsiModifier.PUBLIC.equals(name)) {
-      return isPublic();
-    }
-    else if (PsiModifier.PRIVATE.equals(name)) {
-      return (! isPublic());
-    }
-    else if (PsiModifier.STATIC.equals(name)) {
-      return (isStatic());
-    }
-    else if (getModifierList() != null) {
-      return getModifierList().hasModifierProperty(name);
     }
     return false;
   }
@@ -308,10 +279,30 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   @NotNull
   @Override
-  public PsiModifierList getModifierList() {
-    /* TODO: [TiVo]: Implement */
-    HaxePsiModifierList psiModifierList = new HaxePsiModifierList(this.getNode());
-    return psiModifierList;
+  public HaxePsiModifierList getModifierList() {
+    HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(this);
+
+    if (isStatic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
+    }
+
+    if (isPublic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, true);
+    }
+    else {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PRIVATE, true);
+    }
+
+    // XXX: make changes to bnf, and add code to detect any other missing annotations/modifiers
+    // that can be applied to an identifier declaration... set appropriate elements as above.
+    // E.g. see AbstractHaxeClassPsi
+
+    return haxePsiModifierList;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    return getModifierList().hasModifierProperty(name);
   }
 
   @NotNull
@@ -326,16 +317,4 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     final HaxeParameterList list = PsiTreeUtil.getChildOfType(mHaxeNamedComponent, HaxeParameterList.class);
     return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list")));
   }
-
-
-  // If we get rid of the above type hacks, then we don't need this
-  // exception any more.
-  /** Thrown when an unexpected type is encountered while trying to
-   * disambiguate classes.
-   */
-  class UnknownSubclassEncounteredException extends ProviderException {
-    UnknownSubclassEncounteredException(String s) {super(s);}
-
-  }
-
 }

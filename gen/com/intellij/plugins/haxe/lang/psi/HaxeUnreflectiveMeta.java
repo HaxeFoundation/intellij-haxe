@@ -23,27 +23,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeSimpleMeta extends HaxePsiCompositeElement {
-
-  @Nullable
-  HaxeBindMeta getBindMeta();
-
-  @Nullable
-  HaxeCoreApiMeta getCoreApiMeta();
-
-  @Nullable
-  HaxeFinalMeta getFinalMeta();
-
-  @Nullable
-  HaxeHackMeta getHackMeta();
-
-  @Nullable
-  HaxeKeepMeta getKeepMeta();
-
-  @Nullable
-  HaxeMacroMeta getMacroMeta();
-
-  @Nullable
-  HaxeUnreflectiveMeta getUnreflectiveMeta();
+public interface HaxeUnreflectiveMeta extends HaxePsiCompositeElement {
 
 }

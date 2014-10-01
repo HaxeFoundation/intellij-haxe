@@ -38,7 +38,13 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeMeth
   List<HaxeCustomMeta> getCustomMetaList();
 
   @NotNull
+  List<HaxeDebugMeta> getDebugMetaList();
+
+  @NotNull
   List<HaxeDeclarationAttribute> getDeclarationAttributeList();
+
+  @NotNull
+  List<HaxeFinalMeta> getFinalMetaList();
 
   @Nullable
   HaxeGenericParam getGenericParam();
@@ -47,7 +53,16 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeMeth
   List<HaxeGetterMeta> getGetterMetaList();
 
   @NotNull
+  List<HaxeKeepMeta> getKeepMetaList();
+
+  @NotNull
+  List<HaxeMacroMeta> getMacroMetaList();
+
+  @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
+
+  @NotNull
+  List<HaxeNoDebugMeta> getNoDebugMetaList();
 
   @NotNull
   List<HaxeNsMeta> getNsMetaList();
@@ -57,6 +72,9 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeMeth
 
   @Nullable
   HaxeParameterList getParameterList();
+
+  @NotNull
+  List<HaxeProtectedMeta> getProtectedMetaList();
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();

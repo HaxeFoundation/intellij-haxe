@@ -20,6 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.psi.PsiModifierList;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -55,6 +57,34 @@ public class HaxeParameterImpl extends HaxeParameterPsiMixinImpl implements Haxe
   @Nullable
   public HaxeVarInit getVarInit() {
     return findChildByClass(HaxeVarInit.class);
+  }
+
+  @NotNull
+  @Override
+  public PsiModifierList getModifierList() {
+    HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(this);
+
+    if (isStatic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
+    }
+
+    if (isPublic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, true);
+    }
+    else {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PRIVATE, true);
+    }
+
+    // XXX: make changes to bnf, and add code to detect any other missing annotations/modifiers
+    // that can be applied to an identifier declaration... set appropriate elements as above.
+    // E.g. see AbstractHaxeClassPsi
+
+    return haxePsiModifierList;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    return getModifierList().hasModifierProperty(name);
   }
 
 }

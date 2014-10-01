@@ -197,7 +197,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getExtendsList() {
-    // TODO: FIX
     final List<HaxeType> haxeTypeList = getHaxeExtendsList();
     HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this, getNode(), PsiReferenceList.Role.EXTENDS_LIST);
     for (HaxeType haxeTypeElement : haxeTypeList) {
@@ -219,7 +218,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getImplementsList() {
-    // TODO: FIX
     final List<HaxeType> haxeTypeList = getHaxeImplementsList();
     HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this, getNode(), PsiReferenceList.Role.IMPLEMENTS_LIST);
     for (HaxeType haxeTypeElement : haxeTypeList) {
@@ -251,9 +249,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiClassInitializer[] getInitializers() {
-    // XXX: this needs change in BNF to detect initializer patterns, load them as accessible constructs in a class object
-    // XXX: For now, this will be empty
-    // XXX: This may be needed during implementation of refactoring, but not for class hierarchy.
+    // XXX: This may be needed during implementation of refactoring feature
+    // Needs change in BNF to detect initializer patterns, load them as accessible constructs in a class object
+    // For now, this will be empty
     return PsiClassInitializer.EMPTY_ARRAY;
   }
 
@@ -284,9 +282,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getMethods() {
+    // TODO: Verify with EBat (change 49d2848) whether he verified this functionally
     List<HaxeMethod> haxeMethods = getHaxeMethods();
     PsiMethod[] returntype = new PsiMethod[haxeMethods.size()];
-    return haxeMethods.toArray(returntype); // XXX: Verify with EBat (change 49d2848) whether he verified this functionally
+    return haxeMethods.toArray(returntype);
   }
 
   @Override
@@ -358,8 +357,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return findChildByRoleAsPsiElement(ChildRole.RBRACE);
   }
 
-  @Override
-  public boolean isPrivate() {
+  private boolean isPrivate() {
 
     HaxePrivateKeyWord privateKeyWord = null;
 
@@ -404,205 +402,230 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return (!isPrivate() && super.isPublic()); // do not change the order of- and the- expressions
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public PsiModifierList getModifierList() {
+  public HaxePsiModifierList getModifierList() {
 
-    // XXX: UNCOMMENT below code as-and-when-needed e.g. when implementing refactoring actions
-    //      --> (COMPLETED) BNF changes required to fetch annotations/access-modifiers from class declarations.
-    //      --> (ABOUT 90% DONE) Accessing those structures here to read those annotations, and
-    //      --> (NEED TO DO) translating/loading them into HaxePsiModifierList (is-a PsiModifierList)
+    HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(this);
 
-    ////
-    //HaxeMacroClass macroClass = (HaxeMacroClass) UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.MACRO_CLASS);
-    //// Apart from below elements from HaxeMacroClass - also, populate 'private' / 'public' (as needed) into this modifier list
-    ////
-    //if (macroClass != null) {
-    //  //
-    //  //HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(this.getNode());
-    //  //
-    //  HaxeAutoBuildMacro autoBuildMacro = macroClass.getAutoBuildMacro();
-    //  if (autoBuildMacro != null) {
-    //    HaxeExpression expression = autoBuildMacro.getExpression();
-    //    if (expression != null) {
-    //      // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //    }
-    //  }
-    //  HaxeBitmapMeta bitmapMeta = macroClass.getBitmapMeta();
-    //  if (bitmapMeta != null) {
-    //    HaxeStringLiteralExpression stringLiteralExpression = bitmapMeta.getStringLiteralExpression();
-    //    if (stringLiteralExpression != null) {
-    //      List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
-    //      List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
-    //      for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
-    //        HaxeExpression expression = longTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //      for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
-    //        HaxeExpression expression = shortTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //    }
-    //  }
-    //  HaxeBuildMacro buildMacro = macroClass.getBuildMacro();
-    //  if (buildMacro != null) {
-    //    HaxeExpression expression = buildMacro.getExpression();
-    //    if (expression != null) {
-    //      // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //    }
-    //  }
-    //  HaxeCustomMeta customMeta = macroClass.getCustomMeta();
-    //  if (customMeta != null) {
-    //    HaxeExpressionList haxeExpressionList = customMeta.getExpressionList();
-    //    if (haxeExpressionList != null) {
-    //      List<HaxeExpression> haxeExpressions = haxeExpressionList.getExpressionList();
-    //      for (HaxeExpression expression : haxeExpressions) {
-    //        // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //      }
-    //    }
-    //  }
-    //  HaxeFakeEnumMeta fakeEnumMeta = macroClass.getFakeEnumMeta();
-    //  if (fakeEnumMeta != null) {
-    //    HaxeType haxeType = fakeEnumMeta.getType();
-    //    if (haxeType != null) {
-    //      HaxeReferenceExpression haxeReferenceExpression = haxeType.getReferenceExpression();
-    //      // XXX: populate 'haxeReferenceExpression' into haxePsiModifierList
-    //      HaxeTypeParam haxeTypeParam = haxeType.getTypeParam();
-    //      if (haxeTypeParam != null) {
-    //        List<HaxeTypeListPart> haxeTypeListParts = haxeTypeParam.getTypeList().getTypeListPartList();
-    //        for (HaxeTypeListPart haxeTypeListPart : haxeTypeListParts) {
-    //          // XXX: populate 'haxeTypeListPart.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //    }
-    //  }
-    //  HaxeJsRequireMeta jsRequireMeta = macroClass.getJsRequireMeta();
-    //  if (jsRequireMeta != null) {
-    //    HaxeStringLiteralExpression stringLiteralExpression = jsRequireMeta.getStringLiteralExpression();
-    //    if (stringLiteralExpression != null) {
-    //      List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
-    //      List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
-    //      for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
-    //        HaxeExpression expression = longTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //      for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
-    //        HaxeExpression expression = shortTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //    }
-    //  }
-    //  HaxeMetaMeta metaMeta = macroClass.getMetaMeta();
-    //  if (metaMeta != null) {
-    //    List<HaxeMetaKeyValue> haxeMetaKeyValueList = metaMeta.getMetaKeyValueList();
-    //    for (HaxeMetaKeyValue keyValue : haxeMetaKeyValueList) {
-    //      HaxeStringLiteralExpression stringLiteralExpression = keyValue.getStringLiteralExpression();
-    //      if (stringLiteralExpression != null) {
-    //        List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
-    //        List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
-    //        for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
-    //          HaxeExpression expression = longTemplateEntry.getExpression();
-    //          if (expression != null) {
-    //            // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //          }
-    //        }
-    //        for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
-    //          HaxeExpression expression = shortTemplateEntry.getExpression();
-    //          if (expression != null) {
-    //            // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //          }
-    //        }
-    //      }
-    //    }
-    //  }
-    //  HaxeNativeMeta nativeMeta = macroClass.getNativeMeta();
-    //  if (nativeMeta != null) {
-    //    HaxeStringLiteralExpression stringLiteralExpression = nativeMeta.getStringLiteralExpression();
-    //    if (stringLiteralExpression != null) {
-    //      List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
-    //      List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
-    //      for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
-    //        HaxeExpression expression = longTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //      for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
-    //        HaxeExpression expression = shortTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //    }
-    //  }
-    //  HaxeNsMeta nsMeta = macroClass.getNsMeta();
-    //  if (nsMeta  != null) {
-    //    HaxeStringLiteralExpression stringLiteralExpression = nsMeta.getStringLiteralExpression();
-    //    if (stringLiteralExpression != null) {
-    //      List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
-    //      List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
-    //      for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
-    //        HaxeExpression expression = longTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //      for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
-    //        HaxeExpression expression = shortTemplateEntry.getExpression();
-    //        if (expression != null) {
-    //          // XXX: populate 'expression.getText()' into haxePsiModifierList
-    //        }
-    //      }
-    //    }
-    //  }
-    //  HaxeRequireMeta requireMeta = macroClass.getRequireMeta();
-    //  if (requireMeta != null) {
-    //    HaxeIdentifier identifier = requireMeta.getIdentifier();
-    //    if (identifier != null) {
-    //      // XXX: populate 'identifier.getText()/.toString()' into haxePsiModifierList
-    //    }
-    //  }
-    //  HaxeSimpleMeta simpleMeta = macroClass.getSimpleMeta();
-    //  if (simpleMeta != null) {
-    //    // XXX: populate 'simpleMeta.getText()' into haxePsiModifierList
-    //  }
-    //  //
-    //  //return haxePsiModifierList;
-    //  //
-    //}
+    if (this instanceof HaxeAbstractClassDeclaration) { // is abstract class
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.ABSTRACT, true);
+    }
 
-    return null;
+    if (isPrivate()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PRIVATE, true);
+    }
+
+    // whether this class has public access is anyway provided by isPublic()
+    // do not set PUBLIC modifier (as Haxe classes are public, by default)
+
+    haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, false); // Haxe does not have static classes, yet!
+
+    HaxeMacroClass macroClass = (HaxeMacroClass) UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.MACRO_CLASS);
+    // COMPLETED:
+    //  -->  BNF changes required to fetch annotations/access-modifiers from class declarations.
+    //  -->  Traversing those structures to read those annotations'/modifiers' status
+    if (macroClass != null) {
+
+      HaxeSimpleMeta simpleMeta = macroClass.getSimpleMeta();
+      if (simpleMeta != null) {
+        if (simpleMeta.getBindMeta() != null) {
+          haxePsiModifierList.setModifierProperty(HaxePsiModifier.BIND, true);
+        }
+        if (simpleMeta.getCoreApiMeta() != null) {
+          haxePsiModifierList.setModifierProperty(HaxePsiModifier.COREAPI, true);
+        }
+        if (simpleMeta.getFinalMeta() != null) {
+          haxePsiModifierList.setModifierProperty(HaxePsiModifier.FINAL, true);
+        }
+        if (simpleMeta.getHackMeta() != null) {
+          haxePsiModifierList.setModifierProperty(HaxePsiModifier.HACK, true);
+        }
+        if (simpleMeta.getKeepMeta() != null) {
+          haxePsiModifierList.setModifierProperty(HaxePsiModifier.KEEP, true);
+        }
+        if (simpleMeta.getMacroMeta() != null) {
+          haxePsiModifierList.setModifierProperty(HaxePsiModifier.MACRO, true);
+        }
+        if (simpleMeta.getUnreflectiveMeta() != null) {
+          haxePsiModifierList.setModifierProperty(HaxePsiModifier.UNREFLECTIVE, true);
+        }
+      }
+
+      //
+      // XXX: UNCOMMENT & FIX below code as-and-when-needed e.g. when implementing refactoring actions
+      //  -->  Translating/loading them into HaxePsiModifierList (is-a PsiModifierList)
+      //
+
+      //HaxeAutoBuildMacro autoBuildMacro = macroClass.getAutoBuildMacro();
+      //if (autoBuildMacro != null) {
+      //  HaxeExpression expression = autoBuildMacro.getExpression();
+      //  if (expression != null) {
+      //    // XXX: populate expression's required fields/data into haxePsiModifierList
+      //  }
+      //}
+      //
+      //HaxeBitmapMeta bitmapMeta = macroClass.getBitmapMeta();
+      //if (bitmapMeta != null) {
+      //  HaxeStringLiteralExpression stringLiteralExpression = bitmapMeta.getStringLiteralExpression();
+      //  if (stringLiteralExpression != null) {
+      //    List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
+      //    List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
+      //    for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
+      //      HaxeExpression expression = longTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //    for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
+      //      HaxeExpression expression = shortTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //  }
+      //}
+      //
+      //HaxeBuildMacro buildMacro = macroClass.getBuildMacro();
+      //if (buildMacro != null) {
+      //  HaxeExpression expression = buildMacro.getExpression();
+      //  if (expression != null) {
+      //    // XXX: populate expression's required fields/data into haxePsiModifierList
+      //  }
+      //}
+      //
+      //HaxeCustomMeta customMeta = macroClass.getCustomMeta();
+      //if (customMeta != null) {
+      //  HaxeExpressionList haxeExpressionList = customMeta.getExpressionList();
+      //  if (haxeExpressionList != null) {
+      //    List<HaxeExpression> haxeExpressions = haxeExpressionList.getExpressionList();
+      //    for (HaxeExpression expression : haxeExpressions) {
+      //      // XXX: populate expression's required fields/data into haxePsiModifierList
+      //    }
+      //  }
+      //}
+      //
+      //HaxeFakeEnumMeta fakeEnumMeta = macroClass.getFakeEnumMeta();
+      //if (fakeEnumMeta != null) {
+      //  HaxeType haxeType = fakeEnumMeta.getType();
+      //  if (haxeType != null) {
+      //    HaxeReferenceExpression haxeReferenceExpression = haxeType.getReferenceExpression();
+      //    // XXX: populate 'haxeReferenceExpression' into haxePsiModifierList
+      //    HaxeTypeParam haxeTypeParam = haxeType.getTypeParam();
+      //    if (haxeTypeParam != null) {
+      //      List<HaxeTypeListPart> haxeTypeListParts = haxeTypeParam.getTypeList().getTypeListPartList();
+      //      for (HaxeTypeListPart haxeTypeListPart : haxeTypeListParts) {
+      //        // XXX: populate 'haxeTypeListPart' into haxePsiModifierList
+      //      }
+      //    }
+      //  }
+      //}
+      //
+      //HaxeJsRequireMeta jsRequireMeta = macroClass.getJsRequireMeta();
+      //if (jsRequireMeta != null) {
+      //  HaxeStringLiteralExpression stringLiteralExpression = jsRequireMeta.getStringLiteralExpression();
+      //  if (stringLiteralExpression != null) {
+      //    List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
+      //    List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
+      //    for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
+      //      HaxeExpression expression = longTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //    for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
+      //      HaxeExpression expression = shortTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //  }
+      //}
+      //
+      //HaxeMetaMeta metaMeta = macroClass.getMetaMeta();
+      //if (metaMeta != null) {
+      //  List<HaxeMetaKeyValue> haxeMetaKeyValueList = metaMeta.getMetaKeyValueList();
+      //  for (HaxeMetaKeyValue keyValue : haxeMetaKeyValueList) {
+      //    HaxeStringLiteralExpression stringLiteralExpression = keyValue.getStringLiteralExpression();
+      //    if (stringLiteralExpression != null) {
+      //      List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
+      //      List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
+      //      for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
+      //        HaxeExpression expression = longTemplateEntry.getExpression();
+      //        if (expression != null) {
+      //          // XXX: populate expression's required fields/data into haxePsiModifierList
+      //        }
+      //      }
+      //      for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
+      //        HaxeExpression expression = shortTemplateEntry.getExpression();
+      //        if (expression != null) {
+      //          // XXX: populate expression's required fields/data into haxePsiModifierList
+      //        }
+      //      }
+      //    }
+      //  }
+      //}
+      //
+      //HaxeNativeMeta nativeMeta = macroClass.getNativeMeta();
+      //if (nativeMeta != null) {
+      //  HaxeStringLiteralExpression stringLiteralExpression = nativeMeta.getStringLiteralExpression();
+      //  if (stringLiteralExpression != null) {
+      //    List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
+      //    List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
+      //    for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
+      //      HaxeExpression expression = longTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //    for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
+      //      HaxeExpression expression = shortTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //  }
+      //}
+      //
+      //HaxeNsMeta nsMeta = macroClass.getNsMeta();
+      //if (nsMeta  != null) {
+      //  HaxeStringLiteralExpression stringLiteralExpression = nsMeta.getStringLiteralExpression();
+      //  if (stringLiteralExpression != null) {
+      //    List<HaxeLongTemplateEntry> longTemplateEntries = stringLiteralExpression.getLongTemplateEntryList();
+      //    List<HaxeShortTemplateEntry> shortTemplateEntries = stringLiteralExpression.getShortTemplateEntryList();
+      //    for (HaxeLongTemplateEntry longTemplateEntry : longTemplateEntries) {
+      //      HaxeExpression expression = longTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //    for (HaxeShortTemplateEntry shortTemplateEntry : shortTemplateEntries) {
+      //      HaxeExpression expression = shortTemplateEntry.getExpression();
+      //      if (expression != null) {
+      //        // XXX: populate expression's required fields/data into haxePsiModifierList
+      //      }
+      //    }
+      //  }
+      //}
+      //
+      //HaxeRequireMeta requireMeta = macroClass.getRequireMeta();
+      //if (requireMeta != null) {
+      //  HaxeIdentifier identifier = requireMeta.getIdentifier();
+      //  if (identifier != null) {
+      //    // XXX: populate 'identifier' into haxePsiModifierList
+      //  }
+      //}
+    }
+
+    return haxePsiModifierList;
   }
 
   @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    if (PsiModifier.PUBLIC.equals(name)) {
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    if (HaxePsiModifier.PUBLIC.equals(name)) {
       return isPublic();
     }
-    else if (PsiModifier.PRIVATE.equals(name)) {
-      return (isPrivate() || !super.isPublic()); // do not change the order of- and the- expressions
-    }
-    else if (PsiModifier.ABSTRACT.equals(name)) {
-      return (this instanceof HaxeAbstractClassDeclaration); // is abstract class
-    }
-    else if (PsiModifier.FINAL.equals(name)) {
-      HaxeMacroClass macroClass = (HaxeMacroClass) UsefulPsiTreeUtil.getChildOfType(this,
-                                                                                    HaxeTokenTypes.MACRO_CLASS);
-      return ((macroClass != null) && (macroClass.getSimpleMeta() != null) &&
-              (macroClass.getSimpleMeta().getText().contains("@:final"))); // see 'simpleMeta' in haxe.bnf
-    }
-    else if (getModifierList() != null) {
-      return getModifierList().hasModifierProperty(name);
-    }
-    return false;
+    return getModifierList().hasModifierProperty(name);
   }
 
   @Override

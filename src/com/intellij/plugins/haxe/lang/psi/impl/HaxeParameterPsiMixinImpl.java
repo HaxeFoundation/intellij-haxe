@@ -19,14 +19,9 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,18 +146,5 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   public PsiIdentifier getNameIdentifier() {
     // TODO: [TiVo] Implement.
     return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiModifierList getModifierList() {
-    // TODO: [TiVo] Implement.
-    return null;
-  }
-
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    // TODO: [TiVo] Implement.
-    return false;
   }
 }

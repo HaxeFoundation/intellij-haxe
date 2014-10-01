@@ -17,14 +17,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiModifier;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiFieldImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -39,21 +34,54 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
 
   private HaxeNamedComponent mHaxeNamedComponent;
 
-  public HaxePsiField(@NotNull HaxeNamedComponent inHaxeNamedComponent) {
-    super(inHaxeNamedComponent.getNode());
-    mHaxeNamedComponent = inHaxeNamedComponent;
+  public HaxePsiField(@NotNull HaxeNamedComponent haxeNamedComponent) {
+    super(haxeNamedComponent.getNode());
+    mHaxeNamedComponent = haxeNamedComponent;
+  }
+
+  @NotNull
+  private HaxeNamedComponent getDelegate() {
+    return mHaxeNamedComponent;
   }
 
   @Nullable
   public HaxeComponentName getComponentName() {
-    return mHaxeNamedComponent.getComponentName();
+    return getDelegate().getComponentName();
   }
 
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    PsiComment psiComment = HaxeResolveUtil.findDocumentation(mHaxeNamedComponent);
-    return ((psiComment != null)? new HaxePsiDocComment(mHaxeNamedComponent, psiComment) : null);
+    PsiComment psiComment = HaxeResolveUtil.findDocumentation(getDelegate());
+    return ((psiComment != null)? new HaxePsiDocComment(getDelegate(), psiComment) : null);
+  }
+
+  @NotNull
+  @Override
+  public HaxePsiModifierList getModifierList() {
+    HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(getDelegate());
+
+    if (getDelegate().isStatic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
+    }
+
+    if (getDelegate().isPublic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, true);
+    }
+    else {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PRIVATE, true);
+    }
+
+    // XXX: make changes to bnf, and add code to detect any other missing annotations/modifiers
+    // that can be applied to an identifier declaration... set appropriate elements as above.
+    // E.g. see AbstractHaxeClassPsi
+
+    return haxePsiModifierList;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    return getModifierList().hasModifierProperty(name);
   }
 
   @Override
@@ -65,22 +93,5 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
   @Override
   public PsiClass getContainingClass() {
     return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
-  }
-
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    //
-    // TODO: [TiVo]: Verify + Fix, based on learning from fixing hasModifierProperty/getModifierList in AbstractHaxePsiClass
-    //
-    if (PsiModifier.PUBLIC.equals(name)) {
-      return mHaxeNamedComponent.isPublic();
-    }
-    else if (PsiModifier.PRIVATE.equals(name)) {
-      return (! mHaxeNamedComponent.isPublic());
-    }
-    else if (PsiModifier.STATIC.equals(name)) {
-      return mHaxeNamedComponent.isStatic();
-    }
-    return getModifierList().hasModifierProperty(name);
   }
 }
