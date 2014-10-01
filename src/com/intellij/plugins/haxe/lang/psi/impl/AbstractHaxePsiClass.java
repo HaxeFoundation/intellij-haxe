@@ -282,7 +282,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getMethods() {
-    // TODO: Verify with EBat (change 49d2848) whether he verified this functionally
+    // TODO: broken after change 49d2848 ... EB's fixes are needed
     List<HaxeMethod> haxeMethods = getHaxeMethods();
     PsiMethod[] returntype = new PsiMethod[haxeMethods.size()];
     return haxeMethods.toArray(returntype);
@@ -650,6 +650,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
+    // TODO: broken after change 49d2848 ... EB's fixes are needed
     return PsiSuperMethodImplUtil.getVisibleSignatures(this);
   }
 
