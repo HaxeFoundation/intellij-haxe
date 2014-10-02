@@ -23,24 +23,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeExternClassDeclaration extends HaxeClass {
+public interface HaxeMacroClassList extends HaxeModifierList {
 
   @NotNull
-  HaxeComponentName getComponentName();
-
-  @Nullable
-  HaxeExternClassDeclarationBody getExternClassDeclarationBody();
-
-  @NotNull
-  List<HaxeExternOrPrivate> getExternOrPrivateList();
-
-  @Nullable
-  HaxeGenericParam getGenericParam();
-
-  @Nullable
-  HaxeInheritList getInheritList();
-
-  @Nullable
-  HaxeMacroClassList getMacroClassList();
+  List<HaxeMacroClass> getMacroClassList();
 
 }

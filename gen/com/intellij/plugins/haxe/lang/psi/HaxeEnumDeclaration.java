@@ -37,7 +37,7 @@ public interface HaxeEnumDeclaration extends HaxeClass {
   @Nullable
   HaxeGenericParam getGenericParam();
 
-  @NotNull
-  List<HaxeMacroClass> getMacroClassList();
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
 }

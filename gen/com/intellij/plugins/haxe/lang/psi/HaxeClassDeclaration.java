@@ -37,8 +37,8 @@ public interface HaxeClassDeclaration extends HaxeClass {
   @Nullable
   HaxeInheritList getInheritList();
 
-  @NotNull
-  List<HaxeMacroClass> getMacroClassList();
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
   @Nullable
   HaxePrivateKeyWord getPrivateKeyWord();

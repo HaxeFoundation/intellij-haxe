@@ -15,32 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.lang.psi.impl;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeModifierList;
+import com.intellij.plugins.haxe.lang.psi.HaxeModifierListPsiMixin;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface HaxeExternClassDeclaration extends HaxeClass {
-
-  @NotNull
-  HaxeComponentName getComponentName();
-
-  @Nullable
-  HaxeExternClassDeclarationBody getExternClassDeclarationBody();
-
-  @NotNull
-  List<HaxeExternOrPrivate> getExternOrPrivateList();
-
-  @Nullable
-  HaxeGenericParam getGenericParam();
-
-  @Nullable
-  HaxeInheritList getInheritList();
-
-  @Nullable
-  HaxeMacroClassList getMacroClassList();
-
+/**
+ * Created by ebishton on 10/1/14.
+ */
+public class HaxeModifierListImpl extends HaxeModifierListPsiMixinImpl implements HaxeModifierList {
+  HaxeModifierListImpl(ASTNode node) {
+    super(node);
+  }
 }

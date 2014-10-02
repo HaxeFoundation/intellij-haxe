@@ -337,6 +337,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitMacroClassList(@NotNull HaxeMacroClassList o) {
+    visitModifierList(o);
+  }
+
   public void visitMacroMeta(@NotNull HaxeMacroMeta o) {
     visitPsiCompositeElement(o);
   }
@@ -592,6 +596,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitMethod(@NotNull HaxeMethod o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitModifierList(@NotNull HaxeModifierList o) {
     visitPsiCompositeElement(o);
   }
 

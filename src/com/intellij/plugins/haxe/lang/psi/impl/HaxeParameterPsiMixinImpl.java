@@ -22,6 +22,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,4 +148,36 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     // TODO: [TiVo] Implement.
     return null;
   }
+
+  @NotNull
+  @Override
+  public HaxeModifierList getModifierList() {
+    HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
+
+    if (isStatic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
+    }
+
+    if (isPublic()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, true);
+    }
+    else {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.PRIVATE, true);
+    }
+
+    // XXX: make changes to bnf, and add code to detect any other missing annotations/modifiers
+    // that can be applied to an identifier declaration... set appropriate elements as above.
+    // E.g. see AbstractHaxeClassPsi
+
+    return haxePsiModifierList;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    return getModifierList().hasModifierProperty(name);
+  }
+
+
+
+
 }

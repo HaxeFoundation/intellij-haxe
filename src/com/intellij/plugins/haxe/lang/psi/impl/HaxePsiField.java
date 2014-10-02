@@ -58,8 +58,8 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
 
   @NotNull
   @Override
-  public HaxePsiModifierList getModifierList() {
-    HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(getDelegate());
+  public HaxeModifierList getModifierList() {
+    HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(getDelegate().getNode());
 
     if (getDelegate().isStatic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);

@@ -22,5 +22,5 @@ import com.intellij.psi.PsiParameterList;
 /**
  * Created by ebishton on 9/27/14.
  */
-public interface HaxeParameterListPsiMixin extends  HaxePsiCompositeElement, PsiParameterList {
+public interface HaxeParameterListPsiMixin extends HaxePsiCompositeElement, PsiParameterList {
 }
