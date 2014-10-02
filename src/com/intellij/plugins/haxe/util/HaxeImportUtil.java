@@ -169,15 +169,19 @@ public class HaxeImportUtil {
 
   public static List<HaxeImportStatementWithWildcard> findUnusedInImportsWithWildcards(PsiFile file) {
     final List<HaxeClass> classesInFile = new ArrayList<HaxeClass>();
+    final List<HaxeReference> referenceList = new ArrayList<HaxeReference>();
     file.acceptChildren(new HaxeRecursiveVisitor() {
       @Override
       public void visitElement(PsiElement element) {
         super.visitElement(element);
         if (element instanceof HaxeReference) {
-          HaxeClass haxeClass = ((HaxeReference)element).resolveHaxeClass().getHaxeClass();
+          HaxeReference reference = (HaxeReference)element;
+          HaxeClass haxeClass = reference.resolveHaxeClass().getHaxeClass();
           if (haxeClass != null) {
             classesInFile.add(haxeClass);
           }
+
+          referenceList.add(reference);
         }
       }
 
@@ -226,10 +230,32 @@ public class HaxeImportUtil {
       ContainerUtil.findAll(allImportStatementsWithWildcard, new Condition<HaxeImportStatementWithWildcard>() {
         @Override
         public boolean value(HaxeImportStatementWithWildcard importStatementWithInSupport) {
-          List<HaxeClass>
-            classesForImportStatementWithWildcard = UsefulPsiTreeUtil.getClassesForImportStatementWithWildcard(importStatementWithInSupport);
+          String qName = UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithInSupport);
+          boolean wildcardForType = UsefulPsiTreeUtil
+            .isImportStatementWildcardForType(qName);
 
-          return !classesInFile.isEmpty() && !Collections.disjoint(classesInFile, classesForImportStatementWithWildcard);
+          if (wildcardForType) {
+            HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qName, importStatementWithInSupport.getContext());
+
+            if (haxeClass != null) {
+              for (HaxeReference reference : referenceList) {
+                String referenceText = reference.getText();
+                HaxeNamedComponent namedSubComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, referenceText);
+
+                if (namedSubComponent != null && namedSubComponent.isStatic()) {
+                  return true;
+                }
+              }
+            }
+          }
+          else {
+            List<HaxeClass>
+              classesForImportStatementWithWildcard = UsefulPsiTreeUtil.getClassesForImportStatementWithWildcard(importStatementWithInSupport);
+
+            return !classesInFile.isEmpty() && !Collections.disjoint(classesInFile, classesForImportStatementWithWildcard);
+          }
+
+          return false;
         }
       });
 
