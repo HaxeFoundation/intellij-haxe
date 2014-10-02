@@ -123,7 +123,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         HaxeNamedComponent namedSubComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, referenceText);
 
         if (namedSubComponent != null && namedSubComponent.isStatic()) {
-          result.add(namedSubComponent);
+          result.add(namedSubComponent.getComponentName().getIdentifier());
           return result;
         }
       }
