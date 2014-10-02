@@ -25,11 +25,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.impl.source.PsiModifierListImpl;
-<<<<<<< HEAD:src/com/intellij/plugins/haxe/lang/psi/impl/HaxePsiModifierList.java
-=======
 import com.intellij.psi.tree.IElementType;
 import com.intellij.spring.facet.beans.CustomSetting;
->>>>>>> 513b063bcb7d1a77a7c394d1abae706e7fab264e:src/com/intellij/plugins/haxe/lang/psi/impl/HaxeModifierListPsiMixinImpl.java
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
