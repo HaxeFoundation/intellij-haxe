@@ -269,6 +269,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == MACRO_CLASS) {
       result_ = macroClass(builder_, 0);
     }
+    else if (root_ == MACRO_CLASS_LIST) {
+      result_ = macroClassList(builder_, 0);
+    }
     else if (root_ == MACRO_META) {
       result_ = macroMeta(builder_, 0);
     }
@@ -469,7 +472,7 @@ public class HaxeParser implements PsiParser {
   };
 
   /* ********************************************************** */
-  // macroClass* privateKeyWord? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
+  // macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
   public static boolean abstractClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration")) return false;
     boolean result_;
@@ -490,15 +493,10 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // macroClass*
+  // macroClassList?
   private static boolean abstractClassDeclaration_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_0")) return false;
-    int pos_ = current_position_(builder_);
-    while (true) {
-      if (!macroClass(builder_, level_ + 1)) break;
-      if (!empty_element_parsed_guard_(builder_, "abstractClassDeclaration_0", pos_)) break;
-      pos_ = current_position_(builder_);
-    }
+    macroClassList(builder_, level_ + 1);
     return true;
   }
 
@@ -1239,7 +1237,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* privateKeyWord? 'class' componentName genericParam? inheritList? '{' classBody '}'
+  // macroClassList? privateKeyWord? 'class' componentName genericParam? inheritList? '{' classBody '}'
   public static boolean classDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classDeclaration")) return false;
     boolean result_;
@@ -1259,15 +1257,10 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // macroClass*
+  // macroClassList?
   private static boolean classDeclaration_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classDeclaration_0")) return false;
-    int pos_ = current_position_(builder_);
-    while (true) {
-      if (!macroClass(builder_, level_ + 1)) break;
-      if (!empty_element_parsed_guard_(builder_, "classDeclaration_0", pos_)) break;
-      pos_ = current_position_(builder_);
-    }
+    macroClassList(builder_, level_ + 1);
     return true;
   }
 
@@ -1574,7 +1567,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
+  // macroClassList? externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
   public static boolean enumDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumDeclaration")) return false;
     boolean result_;
@@ -1593,15 +1586,10 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // macroClass*
+  // macroClassList?
   private static boolean enumDeclaration_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumDeclaration_0")) return false;
-    int pos_ = current_position_(builder_);
-    while (true) {
-      if (!macroClass(builder_, level_ + 1)) break;
-      if (!empty_element_parsed_guard_(builder_, "enumDeclaration_0", pos_)) break;
-      pos_ = current_position_(builder_);
-    }
+    macroClassList(builder_, level_ + 1);
     return true;
   }
 
@@ -1898,7 +1886,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+  // macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration")) return false;
     boolean result_;
@@ -1918,15 +1906,10 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // macroClass*
+  // macroClassList?
   private static boolean externClassDeclaration_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration_0")) return false;
-    int pos_ = current_position_(builder_);
-    while (true) {
-      if (!macroClass(builder_, level_ + 1)) break;
-      if (!empty_element_parsed_guard_(builder_, "externClassDeclaration_0", pos_)) break;
-      pos_ = current_position_(builder_);
-    }
+    macroClassList(builder_, level_ + 1);
     return true;
   }
 
@@ -2921,7 +2904,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass* externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
+  // macroClassList? externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
   public static boolean interfaceDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "interfaceDeclaration")) return false;
     boolean result_;
@@ -2941,15 +2924,10 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // macroClass*
+  // macroClassList?
   private static boolean interfaceDeclaration_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "interfaceDeclaration_0")) return false;
-    int pos_ = current_position_(builder_);
-    while (true) {
-      if (!macroClass(builder_, level_ + 1)) break;
-      if (!empty_element_parsed_guard_(builder_, "interfaceDeclaration_0", pos_)) break;
-      pos_ = current_position_(builder_);
-    }
+    macroClassList(builder_, level_ + 1);
     return true;
   }
 
@@ -3457,6 +3435,41 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = buildMacro(builder_, level_ + 1);
     if (!result_) result_ = autoBuildMacro(builder_, level_ + 1);
     exit_section_(builder_, level_, marker_, MACRO_CLASS, result_, false, null);
+    return result_;
+  }
+
+  /* ********************************************************** */
+  // macroClass (',' macroClass)*
+  public static boolean macroClassList(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "macroClassList")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, "<macro class list>");
+    result_ = macroClass(builder_, level_ + 1);
+    result_ = result_ && macroClassList_1(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, MACRO_CLASS_LIST, result_, false, null);
+    return result_;
+  }
+
+  // (',' macroClass)*
+  private static boolean macroClassList_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "macroClassList_1")) return false;
+    int pos_ = current_position_(builder_);
+    while (true) {
+      if (!macroClassList_1_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "macroClassList_1", pos_)) break;
+      pos_ = current_position_(builder_);
+    }
+    return true;
+  }
+
+  // ',' macroClass
+  private static boolean macroClassList_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "macroClassList_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, OCOMMA);
+    result_ = result_ && macroClass(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 

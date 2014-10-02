@@ -103,6 +103,7 @@ public interface HaxeTokenTypes {
   IElementType LOGIC_OR_EXPRESSION = new HaxeElementType("LOGIC_OR_EXPRESSION");
   IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
   IElementType MACRO_CLASS = new HaxeElementType("MACRO_CLASS");
+  IElementType MACRO_CLASS_LIST = new HaxeElementType("MACRO_CLASS_LIST");
   IElementType MACRO_META = new HaxeElementType("MACRO_META");
   IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
   IElementType META_META = new HaxeElementType("META_META");
@@ -527,6 +528,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == MACRO_CLASS) {
         return new HaxeMacroClassImpl(node);
+      }
+      else if (type == MACRO_CLASS_LIST) {
+        return new HaxeMacroClassListImpl(node);
       }
       else if (type == MACRO_META) {
         return new HaxeMacroMetaImpl(node);

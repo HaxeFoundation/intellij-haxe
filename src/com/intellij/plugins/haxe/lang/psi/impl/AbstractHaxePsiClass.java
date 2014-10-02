@@ -404,9 +404,22 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public HaxePsiModifierList getModifierList() {
+  public HaxeModifierList getModifierList() {
 
-    HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(this);
+
+    if (true) {
+      // Now that the modifier list is parsed directly into the tree, we only
+      // have to find it, not create it on the fly.
+
+      HaxeModifierList list = PsiTreeUtil.findChildOfType(this, HaxeMacroClassList.class);
+      if (null == list) {
+        list = new HaxeModifierListImpl(this.getNode());
+      }
+      return list;
+    }
+
+
+    HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
 
     if (this instanceof HaxeAbstractClassDeclaration) { // is abstract class
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.ABSTRACT, true);

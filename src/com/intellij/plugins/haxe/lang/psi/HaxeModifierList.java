@@ -15,32 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface HaxeExternClassDeclaration extends HaxeClass {
-
-  @NotNull
-  HaxeComponentName getComponentName();
-
-  @Nullable
-  HaxeExternClassDeclarationBody getExternClassDeclarationBody();
-
-  @NotNull
-  List<HaxeExternOrPrivate> getExternOrPrivateList();
-
-  @Nullable
-  HaxeGenericParam getGenericParam();
-
-  @Nullable
-  HaxeInheritList getInheritList();
-
-  @Nullable
-  HaxeMacroClassList getMacroClassList();
-
+/**
+ * Container class for modifiers (macros in Haxe vernacular).
+ * For example: @:final, @:fakeEnum
+ *
+ * Created by ebishton on 10/1/14.
+ */
+public interface HaxeModifierList extends HaxeModifierListPsiMixin {
+  // The PsiMixin does all of the work.  This class is to hide the
+  // fact that we're riding on the java code from the rest of the plugin
+  // and to make the code easier to read.
 }

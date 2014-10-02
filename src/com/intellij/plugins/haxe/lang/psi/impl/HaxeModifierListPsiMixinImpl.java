@@ -17,11 +17,19 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeModifierListPsiMixin;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.impl.source.PsiModifierListImpl;
+<<<<<<< HEAD:src/com/intellij/plugins/haxe/lang/psi/impl/HaxePsiModifierList.java
+=======
+import com.intellij.psi.tree.IElementType;
+import com.intellij.spring.facet.beans.CustomSetting;
+>>>>>>> 513b063bcb7d1a77a7c394d1abae706e7fab264e:src/com/intellij/plugins/haxe/lang/psi/impl/HaxeModifierListPsiMixinImpl.java
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -32,16 +40,14 @@ import java.util.HashMap;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiModifierList extends PsiModifierListImpl implements PsiModifierList {
+public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements HaxeModifierListPsiMixin {
 
-  private PsiElement mPsiElement;
 
   private HashMap<String, String> mModifierStatusMap;
 
 
-  public HaxePsiModifierList(@NotNull final PsiElement psiElement) {
-    super(psiElement.getNode());
-    mPsiElement = psiElement;
+  public HaxeModifierListPsiMixinImpl(@NotNull ASTNode node) {
+    super(node);
     mModifierStatusMap = new HashMap<String, String>();
   }
 
@@ -101,5 +107,10 @@ public class HaxePsiModifierList extends PsiModifierListImpl implements PsiModif
     // translate String to PsiAnnotation
     // return the newly constructed PsiAnnotation object
     return null;
+  }
+
+  @Override
+  public IElementType getTokenType() {
+    return HaxeTokenTypes.MACRO_CLASS_LIST;
   }
 }

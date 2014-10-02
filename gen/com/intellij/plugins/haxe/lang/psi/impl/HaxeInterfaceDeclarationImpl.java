@@ -70,9 +70,9 @@ public class HaxeInterfaceDeclarationImpl extends AbstractHaxePsiClass implement
   }
 
   @Override
-  @NotNull
-  public List<HaxeMacroClass> getMacroClassList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroClass.class);
+  @Nullable
+  public HaxeMacroClassList getMacroClassList() {
+    return findChildByClass(HaxeMacroClassList.class);
   }
 
 }

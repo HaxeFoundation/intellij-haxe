@@ -40,7 +40,7 @@ public interface HaxeInterfaceDeclaration extends HaxeClass {
   @Nullable
   HaxeInterfaceBody getInterfaceBody();
 
-  @NotNull
-  List<HaxeMacroClass> getMacroClassList();
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
 }

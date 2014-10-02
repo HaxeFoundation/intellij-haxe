@@ -192,6 +192,7 @@ unreflectiveMeta ::= '@:unreflective'
 simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta
 
 macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
+macroClassList ::= macroClass (',' macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"}
 
 private functionMacroMember ::= finalMeta | macroMember | overloadMeta
 private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta
@@ -251,29 +252,29 @@ externOrPrivate ::= 'extern' | privateKeyWord
 typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-externClassDeclaration ::= macroClass* externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+externClassDeclaration ::= macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverWhile="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
-classDeclaration ::= macroClass* privateKeyWord? 'class' componentName genericParam? inheritList? '{' classBody '}'
+classDeclaration ::= macroClassList? privateKeyWord? 'class' componentName genericParam? inheritList? '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-abstractClassDeclaration ::= macroClass* privateKeyWord? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
+abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
 private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
-interfaceDeclaration ::= macroClass* externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
+interfaceDeclaration ::= macroClassList? externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes {recoverWhile="interface_body_part_recover"}
 private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
-enumDeclaration ::= macroClass* externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
+enumDeclaration ::= macroClassList? externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 enumBody ::= enumValueDeclaration*
 

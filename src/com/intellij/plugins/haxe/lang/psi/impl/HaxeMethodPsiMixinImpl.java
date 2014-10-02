@@ -277,8 +277,15 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   @NotNull
   @Override
-  public HaxePsiModifierList getModifierList() {
-    HaxePsiModifierList haxePsiModifierList = new HaxePsiModifierList(this);
+  public HaxeModifierList getModifierList() {
+
+    if (false) {
+      // Now that the modifier list is a proper part of the tree, we need only find it.
+      // TODO: [TiVo] Use this stanza once PsiParameterList becomes part of the mixin.
+      return PsiTreeUtil.findChildOfType(this, HaxeMacroClassList.class);
+    }
+
+    HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
 
     if (isStatic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
