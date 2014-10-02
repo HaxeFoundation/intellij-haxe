@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -375,15 +376,21 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private void addChildClassVariants(Set<HaxeComponentName> variants, HaxeClass haxeClass) {
-    PsiFile psiFile = haxeClass.getContainingFile();
-    String nameWithoutExtension = psiFile.getVirtualFile().getNameWithoutExtension();
+    if (haxeClass != null) {
+      PsiFile psiFile = haxeClass.getContainingFile();
+      VirtualFile virtualFile = psiFile.getVirtualFile();
 
-    if (haxeClass.getName().equals(nameWithoutExtension)) {
-      List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
+      if (virtualFile != null) {
+        String nameWithoutExtension = virtualFile.getNameWithoutExtension();
 
-      for (HaxeClass aClass : haxeClassList) {
-        if (!aClass.getName().equals(nameWithoutExtension)) {
-          variants.add(aClass.getComponentName());
+        if (haxeClass.getName().equals(nameWithoutExtension)) {
+          List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
+
+          for (HaxeClass aClass : haxeClassList) {
+            if (!aClass.getName().equals(nameWithoutExtension)) {
+              variants.add(aClass.getComponentName());
+            }
+          }
         }
       }
     }
