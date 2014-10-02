@@ -561,7 +561,7 @@ public class HaxeResolveUtil {
       }
     });
 
-    String qName = null;
+    /*String qName = null;
 
     for (PsiElement element : importStatementWithWildcardList) {
       HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)element;
@@ -576,7 +576,7 @@ public class HaxeResolveUtil {
           break;
         }
       }
-    }
+    }*/
 
     /*
     final HaxeImportStatementWithWildcard importStatementWithWildcardType = (HaxeImportStatementWithWildcard)ContainerUtil.find(importStatementWithWildcardList, new Condition<PsiElement>() {
@@ -635,9 +635,6 @@ public class HaxeResolveUtil {
       else {
         return UsefulPsiTreeUtil.getPackageStatementForImportStatementWithWildcard(importStatementWithWildcard) + "." + result;
       }
-    }
-    else if (qName != null) {
-      return qName;
     }
     else if (searchInSamePackage && !packageName.isEmpty()) {
       return packageName + "." + result;

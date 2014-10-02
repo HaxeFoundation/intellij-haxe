@@ -272,10 +272,14 @@ public class UsefulPsiTreeUtil {
   }
 
   @NotNull
+  public static boolean isImportStatementWildcardForType(String qName) {
+    return Character.isUpperCase(qName.charAt(qName.lastIndexOf(".") + 1));
+  }
+
+  @NotNull
   public static List<HaxeNamedComponent> getImportStatementWithWildcardTypeNamedSubComponents(HaxeImportStatementWithWildcard importStatementWithWildcard, PsiFile psiFile) {
-    String text = importStatementWithWildcard.getReferenceExpression().getText();
-    String qName = text.substring(0, text.length() - 2);
-    boolean typeImport = Character.isUpperCase(qName.charAt(qName.lastIndexOf(".") + 1));
+    String qName = getQNameForImportStatementWithWildcardType(importStatementWithWildcard);
+    boolean typeImport = isImportStatementWildcardForType(qName);
 
     if (typeImport) {
       HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qName, psiFile);
