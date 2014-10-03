@@ -26,9 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -43,7 +41,9 @@ import java.util.Set;
 /**
  * @author: Fedor.Korotkov
  */
-abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl implements HaxeNamedComponent, PsiNamedElement {
+abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
+  implements HaxeNamedComponent, PsiNamedElement, HaxeModifierListOwner {
+
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
     super(node);
   }
@@ -226,5 +226,22 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     }
     return 0; //ChildRole.NONE;
   }
+
+
+  // HaxeModifierListOwner implementations
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    HaxeModifierList list = getModifierList();
+    return null == list ? false : list.hasModifierProperty(name);
+  }
+
+  @Nullable
+  @Override
+  public HaxeModifierList getModifierList() {
+    HaxeModifierList list = (HaxeModifierList) this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
+    return list;
+  }
+
 
 }
