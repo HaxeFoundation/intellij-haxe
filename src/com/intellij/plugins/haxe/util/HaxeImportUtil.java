@@ -33,34 +33,7 @@ import java.util.List;
  */
 public class HaxeImportUtil {
   public static List<HaxeImportStatementRegular> findUnusedImports(PsiFile file) {
-    final List<HaxeClass> classesInFile = new ArrayList<HaxeClass>();
-    file.acceptChildren(new HaxeRecursiveVisitor() {
-      @Override
-      public void visitElement(PsiElement element) {
-        super.visitElement(element);
-        if (element instanceof HaxeReference) {
-          HaxeClass haxeClass = ((HaxeReference)element).resolveHaxeClass().getHaxeClass();
-          if (haxeClass != null) {
-            classesInFile.add(haxeClass);
-          }
-        }
-      }
-
-      @Override
-      public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
-        // stop
-      }
-
-      @Override
-      public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport o) {
-        // stop
-      }
-
-      @Override
-      public void visitImportStatementWithWildcard(@NotNull HaxeImportStatementWithWildcard o) {
-        // stop
-      }
-    });
+    final List<HaxeClass> classesInFile = getReferencedClasses(file);
 
     List<HaxeImportStatementRegular> filteredUsefulImports = new ArrayList<HaxeImportStatementRegular>();
 
@@ -90,7 +63,8 @@ public class HaxeImportUtil {
 
     for (int i = 0; i < usefulImportStatements.size(); i++) {
       for (int j = 0; j < filteredUsefulImports.size(); j++) {
-        if (usefulImportStatements.get(i).getReferenceExpression().getText().equals(filteredUsefulImports.get(j).getReferenceExpression().getText())) {
+        if (usefulImportStatements.get(i).getReferenceExpression().getText().equals(
+          filteredUsefulImports.get(j).getReferenceExpression().getText())) {
           alreadyAdded = true;
           break;
         }
@@ -105,6 +79,38 @@ public class HaxeImportUtil {
     uselessImportStatements.removeAll(filteredUsefulImports);
 
     return uselessImportStatements;
+  }
+
+  public static List<HaxeClass> getReferencedClasses(PsiFile file) {
+    final List<HaxeClass> classesInFile = new ArrayList<HaxeClass>();
+    file.acceptChildren(new HaxeRecursiveVisitor() {
+      @Override
+      public void visitElement(PsiElement element) {
+        super.visitElement(element);
+        if (element instanceof HaxeReference) {
+          HaxeClass haxeClass = ((HaxeReference)element).resolveHaxeClass().getHaxeClass();
+          if (haxeClass != null) {
+            classesInFile.add(haxeClass);
+          }
+        }
+      }
+
+      @Override
+      public void visitImportStatementRegular(@NotNull HaxeImportStatementRegular o) {
+        // stop
+      }
+
+      @Override
+      public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport o) {
+        // stop
+      }
+
+      @Override
+      public void visitImportStatementWithWildcard(@NotNull HaxeImportStatementWithWildcard o) {
+        // stop
+      }
+    });
+    return classesInFile;
   }
 
   public static List<HaxeImportStatementWithInSupport> findUnusedInImports(PsiFile file) {
@@ -149,8 +155,10 @@ public class HaxeImportUtil {
 
     for (int i = 0; i < usefulImportStatementWithInSupports.size(); i++) {
       for (int j = 0; j < filteredUsefulImports.size(); j++) {
-        if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(filteredUsefulImports.get(j).getReferenceExpression().getText())
-          && usefulImportStatementWithInSupports.get(i).getIdentifier().getText().equals(filteredUsefulImports.get(j).getIdentifier().getText())) {
+        if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(
+          filteredUsefulImports.get(j).getReferenceExpression().getText())
+          && usefulImportStatementWithInSupports.get(i).getIdentifier().getText().equals(
+          filteredUsefulImports.get(j).getIdentifier().getText())) {
           alreadyAdded = true;
           break;
         }
@@ -201,25 +209,7 @@ public class HaxeImportUtil {
       }
     });
 
-    List<HaxeImportStatementRegular> importStatements = UsefulPsiTreeUtil.getAllImportStatements(file);
-
-    List<HaxeClass> alreadyImportedClassList = new ArrayList<HaxeClass>();
-
-    for (HaxeImportStatementRegular importStatementRegular : importStatements) {
-      HaxeReferenceExpression referenceExpression = importStatementRegular.getReferenceExpression();
-      if (referenceExpression != null) {
-        PsiElement psiElement = referenceExpression.resolve();
-        if (psiElement != null) {
-          for (HaxeClass haxeClass : classesInFile) {
-            if (haxeClass.getContainingFile() == psiElement.getContainingFile()) {
-              if (!alreadyImportedClassList.contains(haxeClass)) {
-                alreadyImportedClassList.add(haxeClass);
-              }
-            }
-          }
-        }
-      }
-    }
+    List<HaxeClass> alreadyImportedClassList = getAlreadyImportedClasses(file, classesInFile);
 
     classesInFile.removeAll(alreadyImportedClassList);
 
@@ -263,7 +253,8 @@ public class HaxeImportUtil {
 
     for (int i = 0; i < usefulImportStatementWithInSupports.size(); i++) {
       for (int j = 0; j < filteredUsefulImports.size(); j++) {
-        if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(filteredUsefulImports.get(j).getReferenceExpression().getText())) {
+        if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(
+          filteredUsefulImports.get(j).getReferenceExpression().getText())) {
           alreadyAdded = true;
           break;
         }
@@ -278,5 +269,49 @@ public class HaxeImportUtil {
     uselessImportStatements.removeAll(filteredUsefulImports);
 
     return uselessImportStatements;
+  }
+
+  public static List<HaxeClass> getAlreadyImportedClasses(PsiFile file, List<HaxeClass> classesInFile) {
+    List<HaxeImportStatementRegular> importStatements = UsefulPsiTreeUtil.getAllImportStatements(file);
+
+    List<HaxeClass> alreadyImportedClassList = new ArrayList<HaxeClass>();
+
+    for (HaxeImportStatementRegular importStatementRegular : importStatements) {
+      HaxeReferenceExpression referenceExpression = importStatementRegular.getReferenceExpression();
+      if (referenceExpression != null) {
+        PsiElement psiElement = referenceExpression.resolve();
+        if (psiElement != null) {
+          for (HaxeClass haxeClass : classesInFile) {
+            if (haxeClass.getContainingFile() == psiElement.getContainingFile()) {
+              if (!alreadyImportedClassList.contains(haxeClass)) {
+                alreadyImportedClassList.add(haxeClass);
+              }
+            }
+          }
+        }
+      }
+    }
+    return alreadyImportedClassList;
+  }
+
+  public static List<HaxeClass> getClassesUsedFromImportStatementWithWildcard(PsiFile file, HaxeImportStatementWithWildcard importStatementWithWildcard) {
+    List<HaxeClass>
+      classesForImportStatementWithWildcard = UsefulPsiTreeUtil.getClassesForImportStatementWithWildcard(importStatementWithWildcard);
+
+    final List<HaxeClass> referencedClasses = getReferencedClasses(file);
+    List<HaxeClass> alreadyImportedClasses = getAlreadyImportedClasses(file, referencedClasses);
+
+    referencedClasses.removeAll(alreadyImportedClasses);
+    classesForImportStatementWithWildcard.removeAll(alreadyImportedClasses);
+
+    List<HaxeClass> classesUsedClassesFromImportStatementWithWildcard =
+      ContainerUtil.findAll(classesForImportStatementWithWildcard, new Condition<HaxeClass>() {
+        @Override
+        public boolean value(HaxeClass haxeClass) {
+          return referencedClasses.contains(haxeClass);
+        }
+      });
+
+    return classesUsedClassesFromImportStatementWithWildcard;
   }
 }

@@ -336,6 +336,10 @@
                      key="haxe.inspection.unresolved.symbol"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
+
+    <intentionAction>
+      <className>com.intellij.plugins.haxe.ide.intention.ReplaceImportStatementWithWildcardWithSingleClassImports</className>
+    </intentionAction>
   </extensions>
 
   <actions>
