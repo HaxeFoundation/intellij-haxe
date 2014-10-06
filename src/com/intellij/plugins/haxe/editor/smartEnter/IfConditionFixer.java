@@ -17,33 +17,29 @@
  */
 package com.intellij.plugins.haxe.editor.smartEnter;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxeIfStatement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 
 /**
  * Created by as3boyan on 06.10.14.
- * Adapted to Haxe from com.intellij.codeInsight.editorActions.smartEnter.MissingClassBodyFixer
  */
-public class MissingClassBodyFixer implements Fixer {
+public class IfConditionFixer implements Fixer {
   @Override
   public void apply(Editor editor, HaxeSmartEnterProcessor processor, PsiElement psiElement) throws IncorrectOperationException {
-    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(psiElement, HaxeClass.class);
-    if (haxeClass == null) return;
+    HaxeIfStatement ifStatement = PsiTreeUtil.getParentOfType(psiElement, HaxeIfStatement.class);
+    if (ifStatement == null || ifStatement.getBlockStatementList().size() > 0) {
+      return;
+    }
 
-    ASTNode node = haxeClass.getNode().findChildByType(HaxeTokenTypes.PLCURLY);
-
-    HaxeComponentName haxeClassComponentName = haxeClass.getComponentName();
-
-    if (node == null && haxeClassComponentName != null) {
-      int offset = haxeClassComponentName.getTextRange().getEndOffset();
-      editor.getDocument().insertString(offset, " {\n}");
-      editor.getCaretModel().moveToOffset(offset);
+    if (ifStatement.getNode().findChildByType(HaxeTokenTypes.PLPAREN) == null) {
+      int offset = ifStatement.getFirstChild().getTextRange().getEndOffset();
+      editor.getDocument().insertString(offset, " () {\n}");
+      editor.getCaretModel().moveToOffset(offset + 2);
+      processor.setSkipEnter(true);
     }
   }
 }

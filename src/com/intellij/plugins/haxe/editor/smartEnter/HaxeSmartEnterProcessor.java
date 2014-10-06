@@ -36,20 +36,29 @@ public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
 
   private static final Fixer[] ourFixers;
 
+  private static boolean skipEnter;
+
   static {
     final List<Fixer> fixers = new ArrayList<Fixer>();
     fixers.add(new MissingClassBodyFixer());
+    fixers.add(new IfConditionFixer());
     ourFixers = fixers.toArray(new Fixer[fixers.size()]);
+  }
+
+  public static void setSkipEnter(boolean skipEnter) {
+    HaxeSmartEnterProcessor.skipEnter = skipEnter;
   }
 
   @Override
   public boolean process(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile psiFile) {
     PsiElement statementAtCaret = getStatementAtCaret(editor, psiFile);
 
+    skipEnter = false;
+
     for (Fixer fixer : ourFixers) {
       fixer.apply(editor, this, statementAtCaret);
     }
 
-    return false;
+    return skipEnter;
   }
 }
