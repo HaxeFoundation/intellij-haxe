@@ -21,8 +21,17 @@ import com.intellij.codeInsight.editorActions.smartEnter.SmartEnterProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeForStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeIfStatement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiForStatement;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.text.CharArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -50,6 +59,27 @@ public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
   }
 
   @Override
+  protected void reformat(PsiElement atCaret) throws IncorrectOperationException {
+    if (atCaret == null) {
+      return;
+    }
+
+    HaxeIfStatement ifStatement = PsiTreeUtil.getParentOfType(atCaret, HaxeIfStatement.class);
+    if (ifStatement != null) {
+      atCaret = ifStatement;
+    }
+
+    /*if (ifStatement == null) {
+      HaxeBlockStatement blockStatement = PsiTreeUtil.getParentOfType(atCaret, HaxeBlockStatement.class);
+      if (blockStatement != null) {
+        atCaret = blockStatement;
+      }
+    }*/
+
+    super.reformat(atCaret);
+  }
+
+  @Override
   public boolean process(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile psiFile) {
     PsiElement statementAtCaret = getStatementAtCaret(editor, psiFile);
 
@@ -58,6 +88,8 @@ public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
     for (Fixer fixer : ourFixers) {
       fixer.apply(editor, this, statementAtCaret);
     }
+
+    reformat(statementAtCaret);
 
     return skipEnter;
   }

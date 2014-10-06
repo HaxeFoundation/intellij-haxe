@@ -19,10 +19,13 @@ package com.intellij.plugins.haxe.editor.smartEnter;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeIfStatement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+
+import java.util.List;
 
 /**
  * Created by as3boyan on 06.10.14.
@@ -39,6 +42,12 @@ public class IfConditionFixer implements Fixer {
       int offset = ifStatement.getFirstChild().getTextRange().getEndOffset();
       editor.getDocument().insertString(offset, " () {\n}");
       editor.getCaretModel().moveToOffset(offset + 2);
+      processor.setSkipEnter(true);
+    }
+    else if (ifStatement.getExpressionList().size() > 0 && ifStatement.getNode().findChildByType(HaxeTokenTypes.PLCURLY) == null) {
+      int offset = ifStatement.getNode().findChildByType(HaxeTokenTypes.PRPAREN).getTextRange().getEndOffset();
+      editor.getDocument().insertString(offset, " {\n\n}");
+      editor.getCaretModel().moveToOffset(offset + 3);
       processor.setSkipEnter(true);
     }
   }
