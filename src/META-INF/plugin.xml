@@ -259,6 +259,7 @@
     <languageInjector implementation="com.intellij.plugins.haxe.lang.RegexLanguageInjector"/>
     <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpressionLiteral"
                              implementationClass="com.intellij.plugins.haxe.lang.psi.manipulators.HaxeRegularExpressionLiteralManipulator"/>
+    <lang.smartEnterProcessor language="Haxe" implementationClass="com.intellij.plugins.haxe.editor.smartEnter.HaxeSmartEnterProcessor"/>
 
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
 
