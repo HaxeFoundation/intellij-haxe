@@ -20,6 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.psi.PsiModifier;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -28,7 +30,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeClassBodyImpl extends HaxePsiCompositeElementImpl implements HaxeClassBody {
+public class HaxeClassBodyImpl extends HaxePsiCompositeElementImpl implements HaxeClassBody, HaxeModifierListOwner {
 
   public HaxeClassBodyImpl(ASTNode node) {
     super(node);
@@ -51,4 +53,16 @@ public class HaxeClassBodyImpl extends HaxePsiCompositeElementImpl implements Ha
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeVarDeclaration.class);
   }
 
+  @Nullable
+  @Override
+  public HaxeModifierList getModifierList() {
+    // a class itself has modifiers... not the sub-element class-body
+    return null;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    // a class itself has modifiers... not the sub-element class-body
+    return false;
+  }
 }

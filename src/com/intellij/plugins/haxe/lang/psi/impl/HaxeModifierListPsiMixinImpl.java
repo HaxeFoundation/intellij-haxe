@@ -21,12 +21,9 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeModifierListPsiMixin;
 import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.impl.source.PsiModifierListImpl;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.spring.facet.beans.CustomSetting;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +35,6 @@ import java.util.HashMap;
  * @author: Srikanth.Ganapavarapu
  */
 public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements HaxeModifierListPsiMixin {
-
 
   private HashMap<String, String> mModifierStatusMap;
 

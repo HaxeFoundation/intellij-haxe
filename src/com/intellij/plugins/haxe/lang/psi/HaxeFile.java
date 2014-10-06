@@ -25,13 +25,18 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiReference;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class HaxeFile extends PsiFileBase {
+public class HaxeFile extends PsiFileBase
+  implements HaxeModifierListOwner {
+
   public HaxeFile(@NotNull FileViewProvider viewProvider) {
     super(viewProvider, HaxeLanguage.INSTANCE);
   }
@@ -66,5 +71,18 @@ public class HaxeFile extends PsiFileBase {
       haxeClass.setName(FileUtil.getNameWithoutExtension(newName));
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public HaxeModifierList getModifierList() {
+    // usually files don't have annotations or modifiers associated with them
+    return null;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    // usually files don't have annotations or modifiers associated with them
+    return false;
   }
 }

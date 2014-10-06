@@ -59,6 +59,7 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
   @NotNull
   @Override
   public HaxeModifierList getModifierList() {
+
     HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(getDelegate().getNode());
 
     if (getDelegate().isStatic()) {
@@ -81,7 +82,7 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
 
   @Override
   public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    return getModifierList().hasModifierProperty(name);
+    return this.getModifierList().hasModifierProperty(name);
   }
 
   @Override

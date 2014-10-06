@@ -253,10 +253,10 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
-    /* TODO: [TiVo]: Implement */
 
-    if (false) {
+    // TODO: [TiVo]: Fix getTypeParameterList();
 
+    //if (false) {
       //ASTNode node = getNode();
       //ASTNode paramList = node.findChildByType(HaxeTokenTypes.PARAMETER_LIST);
       //for (ASTNode astChild = paramList.getFirstChildNode(); astChild != null; astChild = astChild.getTreeNext()) {
@@ -270,44 +270,42 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
       //PARAMETER
       //
       //return getRequiredStubOrPsiChild(JavaStubElementTypes.TYPE_PARAMETER_LIST);
-    }
+    //}
 
     return null;
   }
 
-  //@NotNull
-  //@Override
-  //public HaxeModifierList getModifierList() {
-  //
-  //  if (true) {
-  //    // Now that the modifier list is a proper part of the tree, we need only find it.
-  //    return PsiTreeUtil.findChildOfType(this, HaxeMacroClassList.class);
-  //  }
-  //
-  //  HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
-  //
-  //  if (isStatic()) {
-  //    haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
-  //  }
-  //
-  //  if (isPublic()) {
-  //    haxePsiModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, true);
-  //  }
-  //  else {
-  //    haxePsiModifierList.setModifierProperty(HaxePsiModifier.PRIVATE, true);
-  //  }
-  //
-  //  // XXX: make changes to bnf, and add code to detect any other missing annotations/modifiers
-  //  // that can be applied to an identifier declaration... set appropriate elements as above.
-  //  // E.g. see AbstractHaxeClassPsi
-  //
-  //  return haxePsiModifierList;
-  //}
-  //
-  //@Override
-  //public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
-  //  return getModifierList().hasModifierProperty(name);
-  //}
+  @NotNull
+  @Override
+  public HaxeModifierList getModifierList() {
+
+    HaxeModifierList list = super.getModifierList();
+
+    if (null == list) {
+      list = new HaxeModifierListImpl(this.getNode());
+    }
+
+    // -- below modifiers need to be set individually
+    //    because, they cannot be enforced through macro-list
+
+    if (isStatic()) {
+      list.setModifierProperty(HaxePsiModifier.STATIC, true);
+    }
+
+    if (isPublic()) {
+      list.setModifierProperty(HaxePsiModifier.PUBLIC, true);
+    }
+    else {
+      list.setModifierProperty(HaxePsiModifier.PRIVATE, true);
+    }
+
+    return list;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    return this.getModifierList().hasModifierProperty(name);
+  }
 
   @NotNull
   @Override

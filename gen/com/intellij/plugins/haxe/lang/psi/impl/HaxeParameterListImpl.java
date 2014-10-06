@@ -20,6 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.psi.PsiModifier;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -28,7 +30,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeParameterListImpl extends HaxeParameterListPsiMixinImpl implements HaxeParameterList {
+public class HaxeParameterListImpl extends HaxeParameterListPsiMixinImpl implements HaxeParameterList, HaxeModifierListOwner {
 
   public HaxeParameterListImpl(ASTNode node) {
     super(node);
@@ -43,6 +45,19 @@ public class HaxeParameterListImpl extends HaxeParameterListPsiMixinImpl impleme
   @NotNull
   public List<HaxeParameter> getParameterList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeParameter.class);
+  }
+
+  @Nullable
+  @Override
+  public HaxeModifierList getModifierList() {
+    // apparently, parameter lists don't have any modifiers associated with it
+    return null;
+  }
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    // apparently, parameter lists don't have any modifiers associated with it
+    return false;
   }
 
 }
