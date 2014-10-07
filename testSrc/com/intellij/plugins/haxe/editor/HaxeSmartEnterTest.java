@@ -60,4 +60,8 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  public void testSemicolonFixerFixReturn() {
+    doTest();
+  }
+
 }

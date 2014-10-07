@@ -33,8 +33,13 @@ import java.util.List;
 public class IfConditionFixer implements Fixer {
   @Override
   public void apply(Editor editor, HaxeSmartEnterProcessor processor, PsiElement psiElement) throws IncorrectOperationException {
-    HaxeIfStatement ifStatement = PsiTreeUtil.getParentOfType(psiElement, HaxeIfStatement.class);
-    if (ifStatement == null || ifStatement.getBlockStatementList().size() > 0) {
+    if (!(psiElement instanceof HaxeIfStatement)) {
+      return;
+    }
+
+    HaxeIfStatement ifStatement = (HaxeIfStatement)psiElement;
+
+    if (ifStatement.getBlockStatementList().size() > 0) {
       return;
     }
 

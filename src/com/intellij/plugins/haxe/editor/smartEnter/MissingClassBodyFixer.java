@@ -33,8 +33,11 @@ import com.intellij.util.IncorrectOperationException;
 public class MissingClassBodyFixer implements Fixer {
   @Override
   public void apply(Editor editor, HaxeSmartEnterProcessor processor, PsiElement psiElement) throws IncorrectOperationException {
-    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(psiElement, HaxeClass.class);
-    if (haxeClass == null) return;
+    if (!(psiElement instanceof HaxeClass)) {
+      return;
+    }
+
+    HaxeClass haxeClass = (HaxeClass)psiElement;
 
     ASTNode node = haxeClass.getNode().findChildByType(HaxeTokenTypes.PLCURLY);
 

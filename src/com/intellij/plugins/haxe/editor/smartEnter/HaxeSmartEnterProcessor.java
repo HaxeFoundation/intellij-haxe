@@ -22,6 +22,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeForStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeIfStatement;
 import com.intellij.psi.PsiElement;
@@ -51,10 +52,11 @@ public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
     final List<Fixer> fixers = new ArrayList<Fixer>();
     fixers.add(new MissingClassBodyFixer());
     fixers.add(new IfConditionFixer());
+    fixers.add(new SemicolonFixer());
     ourFixers = fixers.toArray(new Fixer[fixers.size()]);
   }
 
-  public static void setSkipEnter(boolean skipEnter) {
+  public void setSkipEnter(boolean skipEnter) {
     HaxeSmartEnterProcessor.skipEnter = skipEnter;
   }
 
@@ -64,32 +66,38 @@ public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
       return;
     }
 
-    HaxeIfStatement ifStatement = PsiTreeUtil.getParentOfType(atCaret, HaxeIfStatement.class);
-    if (ifStatement != null) {
-      atCaret = ifStatement;
-    }
-
-    /*if (ifStatement == null) {
-      HaxeBlockStatement blockStatement = PsiTreeUtil.getParentOfType(atCaret, HaxeBlockStatement.class);
-      if (blockStatement != null) {
-        atCaret = blockStatement;
-      }
-    }*/
-
     super.reformat(atCaret);
   }
 
   @Override
   public boolean process(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile psiFile) {
+    commit(editor);
+
     PsiElement statementAtCaret = getStatementAtCaret(editor, psiFile);
 
     skipEnter = false;
 
-    for (Fixer fixer : ourFixers) {
-      fixer.apply(editor, this, statementAtCaret);
+    List<PsiElement> psiElements = new ArrayList<PsiElement>();
+
+    PsiElement psiElement;
+
+    psiElement = statementAtCaret;
+
+    while (psiElement != null && !(psiElement instanceof HaxeFile)) {
+      psiElements.add(psiElement);
+      psiElement = psiElement.getParent();
     }
 
-    reformat(statementAtCaret);
+    for (PsiElement element : psiElements) {
+      for (Fixer fixer : ourFixers) {
+        fixer.apply(editor, this, element);
+
+        if (isUncommited(element.getProject())) {
+          reformat(element);
+          return skipEnter;
+        }
+      }
+    }
 
     return skipEnter;
   }
