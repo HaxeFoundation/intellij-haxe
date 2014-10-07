@@ -157,8 +157,9 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
-    return ((psiComment != null)? new HaxePsiDocComment(this, psiComment) : null);
+    //PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
+    //return ((psiComment != null)? new HaxePsiDocComment(this, psiComment) : null);
+    return null;
   }
 
   @Override

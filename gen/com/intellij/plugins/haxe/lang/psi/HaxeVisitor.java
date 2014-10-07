@@ -387,7 +387,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitPackageStatement(@NotNull HaxePackageStatement o) {
-    visitPsiCompositeElement(o);
+    visitPackageStatementPsiMixin(o);
   }
 
   public void visitParameter(@NotNull HaxeParameter o) {
@@ -604,6 +604,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitNamedElement(@NotNull HaxeNamedElement o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitPackageStatementPsiMixin(@NotNull HaxePackageStatementPsiMixin o) {
     visitPsiCompositeElement(o);
   }
 

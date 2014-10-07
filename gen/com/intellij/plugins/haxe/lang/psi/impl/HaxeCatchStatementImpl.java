@@ -19,13 +19,16 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.psi.PsiModifier;
+import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeCatchStatementImpl extends HaxePsiCompositeElementImpl implements HaxeCatchStatement, HaxeModifierListOwner {
+public class HaxeCatchStatementImpl extends HaxePsiCompositeElementImpl implements HaxeCatchStatement {
 
   public HaxeCatchStatementImpl(ASTNode node) {
     super(node);
@@ -126,16 +129,4 @@ public class HaxeCatchStatementImpl extends HaxePsiCompositeElementImpl implemen
     return findChildByClass(HaxeWhileStatement.class);
   }
 
-  @Nullable
-  @Override
-  public HaxeModifierList getModifierList() {
-    // usually try/catch statements don't have annotations or modifiers associated with them
-    return null;
-  }
-
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    // usually try/catch statements don't have annotations or modifiers associated with them
-    return false;
-  }
 }

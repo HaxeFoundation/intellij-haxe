@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.lang.psi.impl;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface HaxePackageStatement extends HaxePackageStatementPsiMixin {
-
-  @Nullable
-  HaxeReferenceExpression getReferenceExpression();
-
+/**
+ * Created by srikanthg on 10/6/14.
+ */
+abstract public class HaxePackageStatementPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxePackageStatementPsiMixin  {
+  public HaxePackageStatementPsiMixinImpl(@NotNull ASTNode node) {
+    super(node);
+  }
 }

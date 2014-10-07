@@ -225,7 +225,8 @@ shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | '<<'
 shiftRightOperator ::= '>' '>'
 unsignedShiftRightOperator ::= '>' '>' '>'
 
-packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';' {pin=1}
+packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
+{pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
 
 private topLevelList ::= topLevel*
 private topLevel ::= importStatementAll | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}

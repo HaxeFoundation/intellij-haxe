@@ -42,7 +42,7 @@ import java.util.Set;
  * @author: Fedor.Korotkov
  */
 abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
-  implements HaxeNamedComponent, PsiNamedElement, HaxeModifierListOwner {
+  implements HaxeNamedComponent, PsiNamedElement {
 
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
     super(node);
@@ -226,22 +226,4 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     }
     return 0; //ChildRole.NONE;
   }
-
-
-  // HaxeModifierListOwner implementations
-
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    HaxeModifierList list = getModifierList();
-    return null == list ? false : list.hasModifierProperty(name);
-  }
-
-  @Nullable
-  @Override
-  public HaxeModifierList getModifierList() {
-    HaxeModifierList list = (HaxeModifierList) this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
-    return list;
-  }
-
-
 }

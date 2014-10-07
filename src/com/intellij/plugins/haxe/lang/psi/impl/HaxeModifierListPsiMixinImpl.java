@@ -38,7 +38,6 @@ public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements
 
   private HashMap<String, String> mModifierStatusMap;
 
-
   public HaxeModifierListPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
     mModifierStatusMap = new HashMap<String, String>();

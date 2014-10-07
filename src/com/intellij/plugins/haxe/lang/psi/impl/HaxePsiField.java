@@ -52,8 +52,9 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    PsiComment psiComment = HaxeResolveUtil.findDocumentation(getDelegate());
-    return ((psiComment != null)? new HaxePsiDocComment(getDelegate(), psiComment) : null);
+    //PsiComment psiComment = HaxeResolveUtil.findDocumentation(getDelegate());
+    //return ((psiComment != null)? new HaxePsiDocComment(getDelegate(), psiComment) : null);
+    return null;
   }
 
   @NotNull

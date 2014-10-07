@@ -57,5 +57,4 @@ public class HaxeParameterImpl extends HaxeParameterPsiMixinImpl implements Haxe
     return findChildByClass(HaxeVarInit.class);
   }
 
-
 }
