@@ -261,6 +261,8 @@
                              implementationClass="com.intellij.plugins.haxe.lang.psi.manipulators.HaxeRegularExpressionLiteralManipulator"/>
     <lang.smartEnterProcessor language="Haxe" implementationClass="com.intellij.plugins.haxe.editor.smartEnter.HaxeSmartEnterProcessor"/>
 
+    <copyPastePostProcessor implementation="com.intellij.plugins.haxe.editor.HaxeReferenceCopyPasteProcessor"/>
+    
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
 
     <codeInsight.lineMarkerProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLineMarkerProvider"/>
