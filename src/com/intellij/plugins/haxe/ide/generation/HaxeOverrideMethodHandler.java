@@ -61,11 +61,6 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
         continue;
       }
 
-      // constructor
-      if ("new".equals(haxeNamedComponent.getName())) {
-        System.out.println("\t\t>>>Adding constructor 'new' to override handler list");
-      }
-
       candidates.add(haxeNamedComponent);
     }
   }

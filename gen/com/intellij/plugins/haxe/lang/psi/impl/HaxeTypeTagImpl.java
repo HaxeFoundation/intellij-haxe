@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypeTagImpl extends HaxeMethodImpl implements HaxeTypeTag {
+public class HaxeTypeTagImpl extends HaxePsiCompositeElementImpl implements HaxeTypeTag {
 
   public HaxeTypeTagImpl(ASTNode node) {
     super(node);

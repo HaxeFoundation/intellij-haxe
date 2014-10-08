@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeAnonymousTypeFieldList extends HaxeMethod {
+public interface HaxeAnonymousTypeFieldList extends HaxePsiCompositeElement {
 
   @NotNull
   List<HaxeAnonymousTypeField> getAnonymousTypeFieldList();

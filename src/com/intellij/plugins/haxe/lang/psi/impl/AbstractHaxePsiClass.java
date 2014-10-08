@@ -334,8 +334,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getConstructors() {
-    LOG.debug("\n>>>\tgetConstructors();");
-    System.out.println("\n>>>\tgetConstructors();");
     return PsiClassImplUtil.findMethodsByName(this, "new", false);
   }
 
@@ -350,7 +348,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
     LOG.debug(">>>\tfindMethodsByName( " + name + " );");
-    System.out.println("\n>>>\tfindMethodsByName( " + name + " );");
     return PsiClassImplUtil.findMethodsByName(this, name, checkBases);
   }
 

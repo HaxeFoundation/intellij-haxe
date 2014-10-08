@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeReturnStatementImpl extends HaxeMethodImpl implements HaxeReturnStatement {
+public class HaxeReturnStatementImpl extends HaxePsiCompositeElementImpl implements HaxeReturnStatement {
 
   public HaxeReturnStatementImpl(ASTNode node) {
     super(node);

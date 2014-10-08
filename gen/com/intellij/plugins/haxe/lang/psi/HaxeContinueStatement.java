@@ -23,6 +23,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeContinueStatement extends HaxeMethod {
+public interface HaxeContinueStatement extends HaxePsiCompositeElement {
 
 }

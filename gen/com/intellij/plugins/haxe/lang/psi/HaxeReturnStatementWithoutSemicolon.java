@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeReturnStatementWithoutSemicolon extends HaxeMethod {
+public interface HaxeReturnStatementWithoutSemicolon extends HaxePsiCompositeElement {
 
   @NotNull
   HaxeExpression getExpression();

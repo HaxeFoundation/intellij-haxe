@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeWildcardImpl extends HaxeMethodImpl implements HaxeWildcard {
+public class HaxeWildcardImpl extends HaxePsiCompositeElementImpl implements HaxeWildcard {
 
   public HaxeWildcardImpl(ASTNode node) {
     super(node);

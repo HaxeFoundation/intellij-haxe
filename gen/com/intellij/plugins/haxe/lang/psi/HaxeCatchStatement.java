@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeCatchStatement extends HaxeMethod {
+public interface HaxeCatchStatement extends HaxePsiCompositeElement {
 
   @Nullable
   HaxeBlockStatement getBlockStatement();
@@ -52,7 +52,7 @@ public interface HaxeCatchStatement extends HaxeMethod {
   @Nullable
   HaxeLocalVarDeclaration getLocalVarDeclaration();
 
-  @NotNull
+  @Nullable
   HaxeParameter getParameter();
 
   @Nullable

@@ -57,6 +57,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   @Override
+  @Nullable @NonNls
   public String getName() {
     final HaxeComponentName name = getComponentName();
     if (name != null) {
@@ -104,7 +105,6 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         else if (HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this) == HaxeComponentType.METHOD) {
           // constructor
           LOG.debug("\t>>>THIS IS A CONSTRUCTOR");
-          System.out.println("\t>>>THIS IS A CONSTRUCTOR");
           result.append("new");
         }
         final HaxeComponentType type = HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this);

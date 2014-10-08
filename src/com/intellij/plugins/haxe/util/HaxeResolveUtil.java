@@ -229,11 +229,6 @@ public class HaxeResolveUtil {
       return unfilteredResult;
     }
 
-    int i = 0;
-    for (HaxeNamedComponent obj : unfilteredResult)
-      if (obj.getText().contains("function new")) System.out.println(obj.toString());
-      else if (3 > i++) System.out.println(obj.toString());
-
     return new ArrayList<HaxeNamedComponent>(namedComponentToMap(unfilteredResult).values());
   }
 

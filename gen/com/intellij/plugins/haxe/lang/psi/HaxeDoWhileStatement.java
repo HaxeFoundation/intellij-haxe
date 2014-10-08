@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeDoWhileStatement extends HaxeMethod {
+public interface HaxeDoWhileStatement extends HaxePsiCompositeElement {
 
   @Nullable
   HaxeBlockStatement getBlockStatement();

@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeSwitchCaseBlockImpl extends HaxeMethodImpl implements HaxeSwitchCaseBlock {
+public class HaxeSwitchCaseBlockImpl extends HaxePsiCompositeElementImpl implements HaxeSwitchCaseBlock {
 
   public HaxeSwitchCaseBlockImpl(ASTNode node) {
     super(node);

@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeSwitchStatementImpl extends HaxeMethodImpl implements HaxeSwitchStatement {
+public class HaxeSwitchStatementImpl extends HaxePsiCompositeElementImpl implements HaxeSwitchStatement {
 
   public HaxeSwitchStatementImpl(ASTNode node) {
     super(node);
@@ -40,15 +40,15 @@ public class HaxeSwitchStatementImpl extends HaxeMethodImpl implements HaxeSwitc
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeExpression getExpression() {
-    return findNotNullChildByClass(HaxeExpression.class);
+    return findChildByClass(HaxeExpression.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeSwitchBlock getSwitchBlock() {
-    return findNotNullChildByClass(HaxeSwitchBlock.class);
+    return findChildByClass(HaxeSwitchBlock.class);
   }
 
 }

@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeWildcard extends HaxeMethod {
+public interface HaxeWildcard extends HaxePsiCompositeElement {
 
   @NotNull
   HaxeReferenceExpression getReferenceExpression();

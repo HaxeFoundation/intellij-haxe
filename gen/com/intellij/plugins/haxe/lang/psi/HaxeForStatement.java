@@ -31,7 +31,7 @@ public interface HaxeForStatement extends HaxeComponent {
   @Nullable
   HaxeBreakStatement getBreakStatement();
 
-  @NotNull
+  @Nullable
   HaxeComponentName getComponentName();
 
   @Nullable

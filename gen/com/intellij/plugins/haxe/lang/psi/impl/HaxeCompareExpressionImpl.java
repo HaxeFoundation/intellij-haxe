@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeCompareExpressionImpl extends HaxeMethodImpl implements HaxeCompareExpression {
+public class HaxeCompareExpressionImpl extends HaxeExpressionImpl implements HaxeCompareExpression {
 
   public HaxeCompareExpressionImpl(ASTNode node) {
     super(node);

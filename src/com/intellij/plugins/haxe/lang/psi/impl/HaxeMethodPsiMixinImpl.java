@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
@@ -50,14 +51,25 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   public HaxeMethodPsiMixinImpl(ASTNode node) {
     super(node);
-    System.out.println("\n>>>\n" + node.getText());
   }
 
-  @NotNull
   @Override
+  @Nullable @NonNls
   public String getName() {
-    if (this.isConstructor()) System.out.println("\t>>>Constructor");
-    return ((super.getName() != null)? super.getName() : "<?>");
+    String name = super.getName();
+    if (null == name) {
+      if (getText().contains("function new")) {
+        return "new";
+      }
+      else {
+        final PsiIdentifier nameIdentifier = getNameIdentifier();
+        if (nameIdentifier != null) {
+          name = nameIdentifier.getText();
+        }
+      }
+    }
+
+    return (name != null) ? name : "<unnamed>";
   }
 
 
@@ -191,6 +203,12 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
   }
 
+  @Override
+  public PsiElement getContext() {
+    final PsiClass cc = getContainingClass();
+    return cc != null ? cc : super.getContext();
+  }
+
   @NotNull
   @Override
   public MethodSignature getSignature(@NotNull PsiSubstitutor substitutor) {
@@ -319,28 +337,12 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list")));
   }
 
-  @Nullable
-  @Override
-  public HaxeComponentName getComponentName() {
-    return null;
-    //HaxeComponentName returnValue = null;
-    //HaxeConstructorName haxeConstructorName = null;
-    //if (this instanceof HaxeExternFunctionDeclaration) {
-    //  haxeConstructorName = ((HaxeExternFunctionDeclaration) this).getConstructorName();
-    //  this.getComponentName();
-    //}
-    //else if (this instanceof HaxeFunctionDeclarationWithAttributes) {
-    //  haxeConstructorName = ((HaxeFunctionDeclarationWithAttributes) this).getConstructorName();
-    //}
-    //else if (this instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-    //  haxeConstructorName = ((HaxeFunctionPrototypeDeclarationWithAttributes) this).getConstructorName();
-    //}
-    //else {
-    //  return returnValue;
-    //}
-    //if (haxeConstructorName != null) {
-    //  System.out.println("\t>>> " + haxeConstructorName.toString() + "\t>>> " + haxeConstructorName.getName());
-    //  return null;
-    //}
-  }
+  //@Nullable
+  //@Override
+  //public HaxeComponentName getComponentName() {
+  //  if (getText().contains(" function ")) {
+  //    throw new Error("FATAL");
+  //  }
+  //  return null;
+  //}
 }

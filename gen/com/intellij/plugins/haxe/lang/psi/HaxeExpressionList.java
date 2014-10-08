@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeExpressionList extends HaxeMethod {
+public interface HaxeExpressionList extends HaxePsiCompositeElement {
 
   @NotNull
   List<HaxeExpression> getExpressionList();

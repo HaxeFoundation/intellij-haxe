@@ -40,9 +40,9 @@ public class HaxeCastExpressionImpl extends HaxeClassReferenceImpl implements Ha
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeExpression getExpression() {
-    return findNotNullChildByClass(HaxeExpression.class);
+    return findChildByClass(HaxeExpression.class);
   }
 
   @Override
