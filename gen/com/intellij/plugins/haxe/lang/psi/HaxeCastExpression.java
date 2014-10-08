@@ -25,7 +25,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeCastExpression extends HaxeExpression, HaxeReference {
 
-  @Nullable
+  @NotNull
   HaxeExpression getExpression();
 
   @Nullable

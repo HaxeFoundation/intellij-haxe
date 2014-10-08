@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -28,6 +29,7 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,26 +42,22 @@ import java.util.List;
  */
 public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeMethodPsiMixin {
 
-  private HaxeNamedComponent mHaxeNamedComponent;
+  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodPsiMixinImpl");
+  {
+    LOG.info("Loaded HaxeMethodPsiMixinImpl");
+    LOG.setLevel(Level.DEBUG);
+  }
 
   public HaxeMethodPsiMixinImpl(ASTNode node) {
     super(node);
+    System.out.println("\n>>>\n" + node.getText());
   }
-
 
   @NotNull
   @Override
   public String getName() {
-    String name = null;
-    name = super.getName();
-    if (null == name) {
-      if (this.isConstructor()) {
-        name = "new";
-      } else {
-        name = "unknown";
-      }
-    }
-    return name;
+    if (this.isConstructor()) System.out.println("\t>>>Constructor");
+    return ((super.getName() != null)? super.getName() : "<?>");
   }
 
 
@@ -95,7 +93,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
       return null;
     }
     // A HaxeFunctionType is a PSI Element.
-    HaxeFunctionType type = getTypeTag().getFunctionType(); // type could be null
+    // HaxeFunctionType type = getTypeTag().getFunctionType(); // type could be null
     /* TODO: [TiVo]: translate above returned objects into PsiType */
     return null;
   }
@@ -317,7 +315,32 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public PsiParameterList getParameterList() {
-    final HaxeParameterList list = PsiTreeUtil.getChildOfType(mHaxeNamedComponent, HaxeParameterList.class);
+    final HaxeParameterList list = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
     return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list")));
+  }
+
+  @Nullable
+  @Override
+  public HaxeComponentName getComponentName() {
+    return null;
+    //HaxeComponentName returnValue = null;
+    //HaxeConstructorName haxeConstructorName = null;
+    //if (this instanceof HaxeExternFunctionDeclaration) {
+    //  haxeConstructorName = ((HaxeExternFunctionDeclaration) this).getConstructorName();
+    //  this.getComponentName();
+    //}
+    //else if (this instanceof HaxeFunctionDeclarationWithAttributes) {
+    //  haxeConstructorName = ((HaxeFunctionDeclarationWithAttributes) this).getConstructorName();
+    //}
+    //else if (this instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+    //  haxeConstructorName = ((HaxeFunctionPrototypeDeclarationWithAttributes) this).getConstructorName();
+    //}
+    //else {
+    //  return returnValue;
+    //}
+    //if (haxeConstructorName != null) {
+    //  System.out.println("\t>>> " + haxeConstructorName.toString() + "\t>>> " + haxeConstructorName.getName());
+    //  return null;
+    //}
   }
 }

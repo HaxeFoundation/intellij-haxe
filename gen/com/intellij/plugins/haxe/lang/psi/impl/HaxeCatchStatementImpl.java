@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeCatchStatementImpl extends HaxePsiCompositeElementImpl implements HaxeCatchStatement {
+public class HaxeCatchStatementImpl extends HaxeMethodImpl implements HaxeCatchStatement {
 
   public HaxeCatchStatementImpl(ASTNode node) {
     super(node);
@@ -94,9 +94,9 @@ public class HaxeCatchStatementImpl extends HaxePsiCompositeElementImpl implemen
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeParameter getParameter() {
-    return findChildByClass(HaxeParameter.class);
+    return findNotNullChildByClass(HaxeParameter.class);
   }
 
   @Override

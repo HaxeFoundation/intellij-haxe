@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeLongTemplateEntryImpl extends HaxePsiCompositeElementImpl implements HaxeLongTemplateEntry {
+public class HaxeLongTemplateEntryImpl extends HaxeMethodImpl implements HaxeLongTemplateEntry {
 
   public HaxeLongTemplateEntryImpl(ASTNode node) {
     super(node);

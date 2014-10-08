@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeBitwiseExpressionImpl extends HaxeExpressionImpl implements HaxeBitwiseExpression {
+public class HaxeBitwiseExpressionImpl extends HaxeMethodImpl implements HaxeBitwiseExpression {
 
   public HaxeBitwiseExpressionImpl(ASTNode node) {
     super(node);

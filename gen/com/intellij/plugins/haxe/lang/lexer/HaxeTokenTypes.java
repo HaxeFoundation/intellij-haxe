@@ -54,6 +54,7 @@ public interface HaxeTokenTypes {
   IElementType COMPARE_EXPRESSION = new HaxeElementType("COMPARE_EXPRESSION");
   IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
   IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
+  IElementType CONSTRUCTOR_NAME = new HaxeElementType("CONSTRUCTOR_NAME");
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
   IElementType CORE_API_META = new HaxeElementType("CORE_API_META");
   IElementType CUSTOM_META = new HaxeElementType("CUSTOM_META");
@@ -381,6 +382,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == COMPONENT_NAME) {
         return new HaxeComponentNameImpl(node);
+      }
+      else if (type == CONSTRUCTOR_NAME) {
+        return new HaxeConstructorNameImpl(node);
       }
       else if (type == CONTINUE_STATEMENT) {
         return new HaxeContinueStatementImpl(node);

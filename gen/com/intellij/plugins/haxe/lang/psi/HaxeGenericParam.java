@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeGenericParam extends HaxePsiCompositeElement {
+public interface HaxeGenericParam extends HaxeMethod {
 
   @NotNull
   List<HaxeGenericListPart> getGenericListPartList();

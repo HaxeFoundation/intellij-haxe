@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeIteratorExpressionImpl extends HaxeExpressionImpl implements HaxeIteratorExpression {
+public class HaxeIteratorExpressionImpl extends HaxeMethodImpl implements HaxeIteratorExpression {
 
   public HaxeIteratorExpressionImpl(ASTNode node) {
     super(node);

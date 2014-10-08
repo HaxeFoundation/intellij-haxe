@@ -23,9 +23,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeThrowStatement extends HaxePsiCompositeElement {
+public interface HaxeThrowStatement extends HaxeMethod {
 
-  @Nullable
+  @NotNull
   HaxeExpression getExpression();
 
 }

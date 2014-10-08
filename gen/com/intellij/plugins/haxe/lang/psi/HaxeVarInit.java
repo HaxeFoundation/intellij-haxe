@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeVarInit extends HaxePsiCompositeElement {
+public interface HaxeVarInit extends HaxeMethod {
 
   @Nullable
   HaxeExpression getExpression();

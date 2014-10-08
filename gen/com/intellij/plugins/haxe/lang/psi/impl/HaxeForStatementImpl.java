@@ -52,9 +52,9 @@ public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements 
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeComponentName getComponentName() {
-    return findChildByClass(HaxeComponentName.class);
+    return findNotNullChildByClass(HaxeComponentName.class);
   }
 
   @Override

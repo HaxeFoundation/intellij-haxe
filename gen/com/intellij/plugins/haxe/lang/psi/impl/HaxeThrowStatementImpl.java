@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeThrowStatementImpl extends HaxePsiCompositeElementImpl implements HaxeThrowStatement {
+public class HaxeThrowStatementImpl extends HaxeMethodImpl implements HaxeThrowStatement {
 
   public HaxeThrowStatementImpl(ASTNode node) {
     super(node);
@@ -40,9 +40,9 @@ public class HaxeThrowStatementImpl extends HaxePsiCompositeElementImpl implemen
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
+    return findNotNullChildByClass(HaxeExpression.class);
   }
 
 }

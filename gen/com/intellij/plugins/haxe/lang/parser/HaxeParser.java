@@ -122,6 +122,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == COMPONENT_NAME) {
       result_ = componentName(builder_, 0);
     }
+    else if (root_ == CONSTRUCTOR_NAME) {
+      result_ = constructorName(builder_, 0);
+    }
     else if (root_ == CONTINUE_STATEMENT) {
       result_ = continueStatement(builder_, 0);
     }
@@ -586,13 +589,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "additiveExpression")) return false;
     if (!nextTokenIs(builder_, "<additive expression>", OPLUS, OMINUS)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, "<additive expression>");
     result_ = additiveExpression_0(builder_, level_ + 1);
-    pinned_ = result_; // pin = 1
     result_ = result_ && multiplicativeExpressionWrapper(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, ADDITIVE_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, ADDITIVE_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   // '+' | '-'
@@ -759,14 +760,12 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "arrayAccessExpression")) return false;
     if (!nextTokenIs(builder_, PLBRACK)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, null);
     result_ = consumeToken(builder_, PLBRACK);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, arrayAccessExpression_1(builder_, level_ + 1));
-    result_ = pinned_ && consumeToken(builder_, PRBRACK) && result_;
-    exit_section_(builder_, level_, marker_, ARRAY_ACCESS_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && arrayAccessExpression_1(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRBRACK);
+    exit_section_(builder_, level_, marker_, ARRAY_ACCESS_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   // expression?
@@ -953,13 +952,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "bitwiseExpression")) return false;
     if (!nextTokenIs(builder_, "<bitwise expression>", OBIT_AND, OBIT_XOR, OBIT_OR)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, "<bitwise expression>");
     result_ = bitOperation(builder_, level_ + 1);
-    pinned_ = result_; // pin = 1
     result_ = result_ && shiftExpressionWrapper(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, BITWISE_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, BITWISE_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -997,14 +994,12 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "blockStatement")) return false;
     if (!nextTokenIs(builder_, PLCURLY)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, PLCURLY);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, blockStatement_1(builder_, level_ + 1));
-    result_ = pinned_ && consumeToken(builder_, PRCURLY) && result_;
-    exit_section_(builder_, level_, marker_, BLOCK_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && blockStatement_1(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRCURLY);
+    exit_section_(builder_, marker_, BLOCK_STATEMENT, result_);
+    return result_;
   }
 
   // statementList?
@@ -1020,13 +1015,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "breakStatement")) return false;
     if (!nextTokenIs(builder_, KBREAK)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, KBREAK);
-    pinned_ = result_; // pin = 1
     result_ = result_ && consumeToken(builder_, OSEMI);
-    exit_section_(builder_, level_, marker_, BREAK_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, marker_, BREAK_STATEMENT, result_);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -1077,14 +1070,12 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "callExpression")) return false;
     if (!nextTokenIs(builder_, PLPAREN)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, null);
     result_ = consumeToken(builder_, PLPAREN);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, callExpression_1(builder_, level_ + 1));
-    result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
-    exit_section_(builder_, level_, marker_, CALL_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && callExpression_1(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    exit_section_(builder_, level_, marker_, CALL_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   // expressionList?
@@ -1149,13 +1140,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "castExpression")) return false;
     if (!nextTokenIs(builder_, KCAST)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, KCAST);
-    pinned_ = result_; // pin = 1
     result_ = result_ && castExpression_1(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, CAST_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, marker_, CAST_EXPRESSION, result_);
+    return result_;
   }
 
   // ('(' expression ',' functionTypeWrapper ')')  | expression
@@ -1192,11 +1181,11 @@ public class HaxeParser implements PsiParser {
     boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
     result_ = consumeToken(builder_, KCATCH);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, parameter(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
-    result_ = pinned_ && report_error_(builder_, statement(builder_, level_ + 1)) && result_;
+    result_ = result_ && consumeToken(builder_, PLPAREN);
+    result_ = result_ && parameter(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    pinned_ = result_; // pin = 4
+    result_ = result_ && report_error_(builder_, statement(builder_, level_ + 1));
     result_ = pinned_ && catchStatement_5(builder_, level_ + 1) && result_;
     exit_section_(builder_, level_, marker_, CATCH_STATEMENT, result_, pinned_, null);
     return result_ || pinned_;
@@ -1327,13 +1316,11 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, "<compare expression>", ONOT_EQ, OLESS,
       OLESS_OR_EQUAL, OEQ, OGREATER, OGREATER_OR_EQUAL)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, "<compare expression>");
     result_ = compareOperation(builder_, level_ + 1);
-    pinned_ = result_; // pin = 1
     result_ = result_ && bitwiseExpressionWrapper(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, COMPARE_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, COMPARE_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -1396,18 +1383,28 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // 'new'
+  public static boolean constructorName(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "constructorName")) return false;
+    if (!nextTokenIs(builder_, ONEW)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, ONEW);
+    exit_section_(builder_, marker_, CONSTRUCTOR_NAME, result_);
+    return result_;
+  }
+
+  /* ********************************************************** */
   // 'continue' ';'
   public static boolean continueStatement(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "continueStatement")) return false;
     if (!nextTokenIs(builder_, KCONTINUE)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, KCONTINUE);
-    pinned_ = result_; // pin = 1
     result_ = result_ && consumeToken(builder_, OSEMI);
-    exit_section_(builder_, level_, marker_, CONTINUE_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, marker_, CONTINUE_STATEMENT, result_);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -1517,11 +1514,11 @@ public class HaxeParser implements PsiParser {
     boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
     result_ = consumeToken(builder_, KDO);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, statement(builder_, level_ + 1));
-    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, KWHILE)) && result_;
-    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLPAREN)) && result_;
-    result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
+    result_ = result_ && statement(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, KWHILE);
+    result_ = result_ && consumeToken(builder_, PLPAREN);
+    pinned_ = result_; // pin = 4
+    result_ = result_ && report_error_(builder_, expression(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && consumeToken(builder_, OSEMI) && result_;
     exit_section_(builder_, level_, marker_, DO_WHILE_STATEMENT, result_, pinned_, null);
@@ -1967,7 +1964,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember| declarationAttribute)* 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
+  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
   public static boolean externFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, "<extern function declaration>", KAUTOBUILD, KBUILD,
@@ -2015,12 +2012,12 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // 'new' | componentName genericParam?
+  // constructorName | componentName genericParam?
   private static boolean externFunctionDeclaration_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_2")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = consumeToken(builder_, ONEW);
+    result_ = constructorName(builder_, level_ + 1);
     if (!result_) result_ = externFunctionDeclaration_2_1(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
@@ -2162,11 +2159,11 @@ public class HaxeParser implements PsiParser {
     boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
     result_ = consumeToken(builder_, KFOR);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, componentName(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, OIN)) && result_;
-    result_ = pinned_ && report_error_(builder_, iterable(builder_, level_ + 1)) && result_;
+    result_ = result_ && consumeToken(builder_, PLPAREN);
+    result_ = result_ && componentName(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, OIN);
+    pinned_ = result_; // pin = 4
+    result_ = result_ && report_error_(builder_, iterable(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, statement(builder_, level_ + 1)) && result_;
     result_ = pinned_ && forStatement_7(builder_, level_ + 1) && result_;
@@ -2202,7 +2199,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember | declarationAttribute)* 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+  // (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
   public static boolean functionDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, "<function declaration with attributes>", KAUTOBUILD, KBUILD,
@@ -2250,12 +2247,12 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // 'new' | componentName genericParam?
+  // constructorName | componentName genericParam?
   private static boolean functionDeclarationWithAttributes_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_2")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = consumeToken(builder_, ONEW);
+    result_ = constructorName(builder_, level_ + 1);
     if (!result_) result_ = functionDeclarationWithAttributes_2_1(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
@@ -2358,7 +2355,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember| declarationAttribute)* 'function' ('new' | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
+  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
   public static boolean functionPrototypeDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, "<function prototype declaration with attributes>", KAUTOBUILD, KBUILD,
@@ -2406,12 +2403,12 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // 'new' | componentName genericParam?
+  // constructorName | componentName genericParam?
   private static boolean functionPrototypeDeclarationWithAttributes_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = consumeToken(builder_, ONEW);
+    result_ = constructorName(builder_, level_ + 1);
     if (!result_) result_ = functionPrototypeDeclarationWithAttributes_2_1(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
@@ -2680,11 +2677,11 @@ public class HaxeParser implements PsiParser {
     boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
     result_ = consumeToken(builder_, KIF);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
-    result_ = pinned_ && report_error_(builder_, statement(builder_, level_ + 1)) && result_;
+    result_ = result_ && consumeToken(builder_, PLPAREN);
+    result_ = result_ && expression(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    pinned_ = result_; // pin = 4
+    result_ = result_ && report_error_(builder_, statement(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, ifStatement_5(builder_, level_ + 1)) && result_;
     result_ = pinned_ && ifStatement_6(builder_, level_ + 1) && result_;
     exit_section_(builder_, level_, marker_, IF_STATEMENT, result_, pinned_, null);
@@ -3009,13 +3006,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "iteratorExpression")) return false;
     if (!nextTokenIs(builder_, OTRIPLE_DOT)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, null);
     result_ = consumeToken(builder_, OTRIPLE_DOT);
-    pinned_ = result_; // pin = 1
     result_ = result_ && ternaryExpressionWrapper(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, ITERATOR_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, ITERATOR_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -3319,13 +3314,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "logicAndExpression")) return false;
     if (!nextTokenIs(builder_, OCOND_AND)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, null);
     result_ = consumeToken(builder_, OCOND_AND);
-    pinned_ = result_; // pin = 1
     result_ = result_ && compareExpressionWrapper(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, LOGIC_AND_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, LOGIC_AND_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -3363,13 +3356,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "logicOrExpression")) return false;
     if (!nextTokenIs(builder_, OCOND_OR)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, null);
     result_ = consumeToken(builder_, OCOND_OR);
-    pinned_ = result_; // pin = 1
     result_ = result_ && logicAndExpressionWrapper(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, LOGIC_OR_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, LOGIC_OR_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -3631,13 +3622,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "multiplicativeExpression")) return false;
     if (!nextTokenIs(builder_, "<multiplicative expression>", OREMAINDER, OMUL, OQUOTIENT)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, "<multiplicative expression>");
     result_ = multiplicativeExpression_0(builder_, level_ + 1);
-    pinned_ = result_; // pin = 1
     result_ = result_ && multiplicativeExpression_1(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, MULTIPLICATIVE_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, MULTIPLICATIVE_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   // '*' | '/' | '%'
@@ -4086,14 +4075,12 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "parenthesizedExpression")) return false;
     if (!nextTokenIs(builder_, PLPAREN)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, PLPAREN);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, parenthesizedExpression_1(builder_, level_ + 1));
-    result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
-    exit_section_(builder_, level_, marker_, PARENTHESIZED_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && parenthesizedExpression_1(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    exit_section_(builder_, marker_, PARENTHESIZED_EXPRESSION, result_);
+    return result_;
   }
 
   // expression | statement
@@ -4232,13 +4219,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "qualifiedReferenceExpression")) return false;
     if (!nextTokenIs(builder_, ODOT)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, null);
     result_ = consumeToken(builder_, ODOT);
-    pinned_ = result_; // pin = 1
     result_ = result_ && referenceExpression(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, REFERENCE_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, REFERENCE_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -4338,14 +4323,12 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "returnStatement")) return false;
     if (!nextTokenIs(builder_, KRETURN)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, KRETURN);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, returnStatement_1(builder_, level_ + 1));
-    result_ = pinned_ && returnStatement_2(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, RETURN_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && returnStatement_1(builder_, level_ + 1);
+    result_ = result_ && returnStatement_2(builder_, level_ + 1);
+    exit_section_(builder_, marker_, RETURN_STATEMENT, result_);
+    return result_;
   }
 
   // expression?
@@ -4398,13 +4381,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "shiftExpression")) return false;
     if (!nextTokenIs(builder_, "<shift expression>", OSHIFT_LEFT, OGREATER)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, "<shift expression>");
     result_ = shiftOperator(builder_, level_ + 1);
-    pinned_ = result_; // pin = 1
     result_ = result_ && additiveExpressionWrapper(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, SHIFT_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, SHIFT_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -4543,13 +4524,11 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "simpleQualifiedReferenceExpression")) return false;
     if (!nextTokenIs(builder_, ID)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _COLLAPSE_, null);
     result_ = referenceExpression(builder_, level_ + 1);
-    pinned_ = result_; // pin = 1
     result_ = result_ && simpleQualifiedReferenceExpression_1(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, REFERENCE_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    exit_section_(builder_, level_, marker_, REFERENCE_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   // qualifiedReferenceExpression *
@@ -4944,14 +4923,12 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "switchStatement")) return false;
     if (!nextTokenIs(builder_, KSWITCH)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, KSWITCH);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, expression(builder_, level_ + 1));
-    result_ = pinned_ && switchBlock(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, SWITCH_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && expression(builder_, level_ + 1);
+    result_ = result_ && switchBlock(builder_, level_ + 1);
+    exit_section_(builder_, marker_, SWITCH_STATEMENT, result_);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -4984,15 +4961,13 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "ternaryExpression")) return false;
     if (!nextTokenIs(builder_, OQUEST)) return false;
     boolean result_;
-    boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _LEFT_, null);
     result_ = consumeToken(builder_, OQUEST);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, expression(builder_, level_ + 1));
-    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, OCOLON)) && result_;
-    result_ = pinned_ && ternaryExpressionWrapper(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, TERNARY_EXPRESSION, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && expression(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, OCOLON);
+    result_ = result_ && ternaryExpressionWrapper(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, TERNARY_EXPRESSION, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
@@ -5037,14 +5012,12 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "throwStatement")) return false;
     if (!nextTokenIs(builder_, KTHROW)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, KTHROW);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, expression(builder_, level_ + 1));
-    result_ = pinned_ && throwStatement_2(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, THROW_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && expression(builder_, level_ + 1);
+    result_ = result_ && throwStatement_2(builder_, level_ + 1);
+    exit_section_(builder_, marker_, THROW_STATEMENT, result_);
+    return result_;
   }
 
   // ';'?
@@ -5142,15 +5115,13 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "tryStatement")) return false;
     if (!nextTokenIs(builder_, KTRY)) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, KTRY);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, statement(builder_, level_ + 1));
-    result_ = pinned_ && report_error_(builder_, tryStatement_2(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && tryStatement_3(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, TRY_STATEMENT, result_, pinned_, null);
-    return result_ || pinned_;
+    result_ = result_ && statement(builder_, level_ + 1);
+    result_ = result_ && tryStatement_2(builder_, level_ + 1);
+    result_ = result_ && tryStatement_3(builder_, level_ + 1);
+    exit_section_(builder_, marker_, TRY_STATEMENT, result_);
+    return result_;
   }
 
   // ';'?
@@ -5626,11 +5597,11 @@ public class HaxeParser implements PsiParser {
     boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
     result_ = consumeToken(builder_, KWHILE);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, expression(builder_, level_ + 1)) && result_;
-    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
-    result_ = pinned_ && report_error_(builder_, statement(builder_, level_ + 1)) && result_;
+    result_ = result_ && consumeToken(builder_, PLPAREN);
+    result_ = result_ && expression(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, PRPAREN);
+    pinned_ = result_; // pin = 4
+    result_ = result_ && report_error_(builder_, statement(builder_, level_ + 1));
     result_ = pinned_ && whileStatement_5(builder_, level_ + 1) && result_;
     exit_section_(builder_, level_, marker_, WHILE_STATEMENT, result_, pinned_, null);
     return result_ || pinned_;

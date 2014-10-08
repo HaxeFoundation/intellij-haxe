@@ -28,27 +28,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeSwitchStatementImpl extends HaxeMethodImpl implements HaxeSwitchStatement {
+public class HaxeConstructorNameImpl extends HaxePsiCompositeElementImpl implements HaxeConstructorName {
 
-  public HaxeSwitchStatementImpl(ASTNode node) {
+  public HaxeConstructorNameImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSwitchStatement(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitConstructorName(this);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public HaxeExpression getExpression() {
-    return findNotNullChildByClass(HaxeExpression.class);
-  }
-
-  @Override
-  @NotNull
-  public HaxeSwitchBlock getSwitchBlock() {
-    return findNotNullChildByClass(HaxeSwitchBlock.class);
   }
 
 }

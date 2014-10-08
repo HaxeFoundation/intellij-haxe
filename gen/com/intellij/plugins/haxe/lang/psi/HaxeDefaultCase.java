@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeDefaultCase extends HaxePsiCompositeElement {
+public interface HaxeDefaultCase extends HaxeMethod {
 
   @Nullable
   HaxeSwitchCaseBlock getSwitchCaseBlock();

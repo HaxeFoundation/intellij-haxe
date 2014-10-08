@@ -23,12 +23,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeSwitchStatement extends HaxePsiCompositeElement {
+public interface HaxeSwitchStatement extends HaxeMethod {
 
-  @Nullable
+  @NotNull
   HaxeExpression getExpression();
 
-  @Nullable
+  @NotNull
   HaxeSwitchBlock getSwitchBlock();
 
 }

@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeDoWhileStatementImpl extends HaxePsiCompositeElementImpl implements HaxeDoWhileStatement {
+public class HaxeDoWhileStatementImpl extends HaxeMethodImpl implements HaxeDoWhileStatement {
 
   public HaxeDoWhileStatementImpl(ASTNode node) {
     super(node);

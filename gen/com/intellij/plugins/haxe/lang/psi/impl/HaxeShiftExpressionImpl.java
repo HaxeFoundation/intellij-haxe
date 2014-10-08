@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeShiftExpressionImpl extends HaxeExpressionImpl implements HaxeShiftExpression {
+public class HaxeShiftExpressionImpl extends HaxeMethodImpl implements HaxeShiftExpression {
 
   public HaxeShiftExpressionImpl(ASTNode node) {
     super(node);

@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeParenthesizedExpressionImpl extends HaxeExpressionImpl implements HaxeParenthesizedExpression {
+public class HaxeParenthesizedExpressionImpl extends HaxeMethodImpl implements HaxeParenthesizedExpression {
 
   public HaxeParenthesizedExpressionImpl(ASTNode node) {
     super(node);

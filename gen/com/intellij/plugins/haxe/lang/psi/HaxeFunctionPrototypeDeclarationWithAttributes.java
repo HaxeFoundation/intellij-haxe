@@ -34,6 +34,9 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeMeth
   @Nullable
   HaxeComponentName getComponentName();
 
+  @Nullable
+  HaxeConstructorName getConstructorName();
+
   @NotNull
   List<HaxeCustomMeta> getCustomMetaList();
 

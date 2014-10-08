@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeAnonymousFunctionDeclaration extends HaxePsiCompositeElement {
+public interface HaxeAnonymousFunctionDeclaration extends HaxeMethod {
 
   @Nullable
   HaxeParameterList getParameterList();

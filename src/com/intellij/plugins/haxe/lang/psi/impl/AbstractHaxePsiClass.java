@@ -334,7 +334,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getConstructors() {
-    // LOG.debug("\n>>>\tgetConstructors();");
+    LOG.debug("\n>>>\tgetConstructors();");
+    System.out.println("\n>>>\tgetConstructors();");
     return PsiClassImplUtil.findMethodsByName(this, "new", false);
   }
 
@@ -348,7 +349,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-    // LOG.debug("\n>>>\tfindMethodsByName( " + name + " );");
+    LOG.debug(">>>\tfindMethodsByName( " + name + " );");
+    System.out.println("\n>>>\tfindMethodsByName( " + name + " );");
     return PsiClassImplUtil.findMethodsByName(this, name, checkBases);
   }
 
@@ -513,12 +515,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
     // TODO: fix
-    LOG.debug("\n>>>\tBEFORE:\tPsiSuperMethodImplUtil.getVisibleSignatures(this);");
-    Collection<HierarchicalMethodSignature> list = PsiSuperMethodImplUtil.getVisibleSignatures(this);
-    LOG.debug(">>>\tRESULT:\t"+ list.size());
-    LOG.debug(">>>\tAFTER:\tPsiSuperMethodImplUtil.getVisibleSignatures(this);\n");
-    return list;
-    //return PsiSuperMethodImplUtil.getVisibleSignatures(this);
+    return PsiSuperMethodImplUtil.getVisibleSignatures(this);
   }
 
   @Override
