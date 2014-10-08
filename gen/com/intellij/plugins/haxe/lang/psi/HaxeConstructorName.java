@@ -23,6 +23,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeConstructorName extends HaxePsiCompositeElement {
+public interface HaxeConstructorName extends HaxeNamedElement {
 
 }

@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
@@ -84,6 +86,20 @@ public class HaxePsiField extends PsiFieldImpl implements PsiField {
   @Override
   public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
     return this.getModifierList().hasModifierProperty(name);
+  }
+
+  @Nullable
+  @Override
+  public PsiIdentifier getNameIdentifier() {
+    PsiIdentifier foundName = null;
+    ASTNode node = getNode();
+    if (null != node) {
+      ASTNode element = node.findChildByType(HaxeTokenTypes.IDENTIFIER);
+      if (null != element) {
+        foundName = (PsiIdentifier) element.getPsi();
+      }
+    }
+    return foundName;
   }
 
   @Override
