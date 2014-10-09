@@ -247,7 +247,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     final List<HaxeType> haxeTypeList = getHaxeImplementsList();
     HaxePsiReferenceList psiReferenceList = new HaxePsiReferenceList(this, getNode(), PsiReferenceList.Role.IMPLEMENTS_LIST);
     for (HaxeType haxeTypeElement : haxeTypeList) {
-      psiReferenceList.addReferenceElements(haxeTypeElement.getReferenceExpression().getIdentifier().getChildren());
+//      psiReferenceList.addReferenceElements(haxeTypeElement.getReferenceExpression().getIdentifier().getChildren());
+      psiReferenceList.addReference(haxeTypeElement);
     }
     return psiReferenceList;
   }

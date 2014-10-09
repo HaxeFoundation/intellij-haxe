@@ -15,17 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
 
-public interface HaxeInherit extends HaxeInheritPsiMixin {
-
-  @Nullable
-  HaxeType getType();
+/**
+ * HaxeInherit is analogous to PsiJavaCodeReferenceElement
+ *
+ * Created by ebishton on 10/8/14.
+ */
+public interface HaxeInheritPsiMixin extends HaxePsiCompositeElement, PsiJavaCodeReferenceElement {
 
 }

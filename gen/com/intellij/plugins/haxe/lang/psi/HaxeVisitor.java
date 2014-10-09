@@ -277,11 +277,11 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitInherit(@NotNull HaxeInherit o) {
-    visitPsiCompositeElement(o);
+    visitInheritPsiMixin(o);
   }
 
   public void visitInheritList(@NotNull HaxeInheritList o) {
-    visitPsiCompositeElement(o);
+    visitInheritListPsiMixin(o);
   }
 
   public void visitInterfaceBody(@NotNull HaxeInterfaceBody o) {
@@ -596,6 +596,14 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitIdentifierPsiMixin(@NotNull HaxeIdentifierPsiMixin o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitInheritListPsiMixin(@NotNull HaxeInheritListPsiMixin o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitInheritPsiMixin(@NotNull HaxeInheritPsiMixin o) {
     visitPsiCompositeElement(o);
   }
 

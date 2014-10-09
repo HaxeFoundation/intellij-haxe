@@ -63,6 +63,14 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
     }
   }
 
+  public void addReference(PsiElement psiElement) {
+    if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) ||
+        mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
+      mChildren.add(psiElement);
+    }
+  }
+
+
   @NotNull
   @Override
   public PsiJavaCodeReferenceElement[] getReferenceElements() {
