@@ -74,6 +74,8 @@
     OIN='in'
     OARROW='->'
 
+    OFAT_ARROW="=>"
+
     oNEW="new"
 
     ppIF="#if"
@@ -388,14 +390,20 @@ catchStatement ::= 'catch' '(' parameter ')' statement ';'?
  * expressions
  */
 
+//mapArrayExpression ::= (expression OFAT_ARROW expression (',' expression OFAT_ARROW expression)*) {recoverWhile="expression_list_recover"}
+//mapArrayExpression
+
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
-expression ::= assignExpressionWrapper {recoverWhile="expression_recover"}
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END)
+expression ::= fatArrowExpressionWrapper {recoverWhile="expression_recover"}
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
+
+private fatArrowExpressionWrapper ::= assignExpressionWrapper fatArrowExpression*
+left fatArrowExpression ::= '=>' assignExpressionWrapper {pin=1 extends="expression"}
 
 private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression*
-left assignExpression ::= assignOperation iteratorExpressionWrapper {pin=1 extends="expression"}
+left assignExpression ::= assignOperation iteratorExpressionWrapper
 
 private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
 left iteratorExpression ::= '...' ternaryExpressionWrapper
