@@ -20,11 +20,10 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
-
-import com.intellij.psi.*;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -45,4 +44,5 @@ public class HaxeLocalVarDeclarationImpl extends HaxePsiFieldImpl implements Hax
   public List<HaxeLocalVarDeclarationPart> getLocalVarDeclarationPartList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeLocalVarDeclarationPart.class);
   }
+
 }

@@ -68,6 +68,7 @@ public interface HaxeTokenTypes {
   IElementType ENUM_VALUE_DECLARATION = new HaxeElementType("ENUM_VALUE_DECLARATION");
   IElementType EXPRESSION = new HaxeElementType("EXPRESSION");
   IElementType EXPRESSION_LIST = new HaxeElementType("EXPRESSION_LIST");
+  IElementType EXTENDS_DECLARATION = new HaxeElementType("EXTENDS_DECLARATION");
   IElementType EXTERN_CLASS_DECLARATION = new HaxeElementType("EXTERN_CLASS_DECLARATION");
   IElementType EXTERN_CLASS_DECLARATION_BODY = new HaxeElementType("EXTERN_CLASS_DECLARATION_BODY");
   IElementType EXTERN_FUNCTION_DECLARATION = new HaxeElementType("EXTERN_FUNCTION_DECLARATION");
@@ -85,10 +86,10 @@ public interface HaxeTokenTypes {
   IElementType HACK_META = new HaxeElementType("HACK_META");
   IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
   IElementType IF_STATEMENT = new HaxeElementType("IF_STATEMENT");
+  IElementType IMPLEMENTS_DECLARATION = new HaxeElementType("IMPLEMENTS_DECLARATION");
   IElementType IMPORT_STATEMENT_REGULAR = new HaxeElementType("IMPORT_STATEMENT_REGULAR");
   IElementType IMPORT_STATEMENT_WITH_IN_SUPPORT = new HaxeElementType("IMPORT_STATEMENT_WITH_IN_SUPPORT");
   IElementType IMPORT_STATEMENT_WITH_WILDCARD = new HaxeElementType("IMPORT_STATEMENT_WITH_WILDCARD");
-  IElementType INHERIT = new HaxeElementType("INHERIT");
   IElementType INHERIT_LIST = new HaxeElementType("INHERIT_LIST");
   IElementType INTERFACE_BODY = new HaxeElementType("INTERFACE_BODY");
   IElementType INTERFACE_DECLARATION = new HaxeElementType("INTERFACE_DECLARATION");
@@ -425,6 +426,9 @@ public interface HaxeTokenTypes {
       else if (type == EXPRESSION_LIST) {
         return new HaxeExpressionListImpl(node);
       }
+      else if (type == EXTENDS_DECLARATION) {
+        return new HaxeExtendsDeclarationImpl(node);
+      }
       else if (type == EXTERN_CLASS_DECLARATION) {
         return new HaxeExternClassDeclarationImpl(node);
       }
@@ -476,6 +480,9 @@ public interface HaxeTokenTypes {
       else if (type == IF_STATEMENT) {
         return new HaxeIfStatementImpl(node);
       }
+      else if (type == IMPLEMENTS_DECLARATION) {
+        return new HaxeImplementsDeclarationImpl(node);
+      }
       else if (type == IMPORT_STATEMENT_REGULAR) {
         return new HaxeImportStatementRegularImpl(node);
       }
@@ -484,9 +491,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == IMPORT_STATEMENT_WITH_WILDCARD) {
         return new HaxeImportStatementWithWildcardImpl(node);
-      }
-      else if (type == INHERIT) {
-        return new HaxeInheritImpl(node);
       }
       else if (type == INHERIT_LIST) {
         return new HaxeInheritListImpl(node);

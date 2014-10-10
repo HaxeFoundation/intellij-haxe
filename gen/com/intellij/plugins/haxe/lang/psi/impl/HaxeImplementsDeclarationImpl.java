@@ -28,27 +28,21 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeInheritListImpl extends HaxeInheritListPsiMixinImpl implements HaxeInheritList {
+public class HaxeImplementsDeclarationImpl extends HaxeInheritPsiMixinImpl implements HaxeImplementsDeclaration {
 
-  public HaxeInheritListImpl(ASTNode node) {
+  public HaxeImplementsDeclarationImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitInheritList(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitImplementsDeclaration(this);
     else super.accept(visitor);
   }
 
   @Override
   @NotNull
-  public List<HaxeExtendsDeclaration> getExtendsDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExtendsDeclaration.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeImplementsDeclaration> getImplementsDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeImplementsDeclaration.class);
+  public List<HaxeType> getTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
   }
 
 }

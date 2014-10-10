@@ -176,12 +176,12 @@ public class HaxeResolveUtil {
       return Collections.emptyList();
     }
     final List<HaxeType> result = new ArrayList<HaxeType>();
-    for (HaxeInherit inherit : extendsList.getInheritList()) {
+    for (HaxeExtendsDeclaration inherit : extendsList.getExtendsDeclarationList()) {
       final PsiElement firstChild = inherit.getFirstChild();
       final IElementType childType = firstChild instanceof ASTNode ? ((ASTNode)firstChild).getElementType() : null;
-      final HaxeType inheritType = inherit.getType();
-      if (childType == expectedKeyword && inheritType != null) {
-        result.add(inheritType);
+      final List<HaxeType> inheritTypes = inherit.getTypeList();
+      if (childType == expectedKeyword && inheritTypes != null) {
+        result.addAll(inheritTypes);
       }
     }
     return result;

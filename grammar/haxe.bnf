@@ -524,9 +524,12 @@ castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expre
 inheritList ::= inherit (','? inherit)*
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritListPsiMixin"}
 
-inherit ::= ('extends' | 'implements') type
+private inherit ::= extendsDeclaration | implementsDeclaration
 {pin=1 recoverWhile="inherit_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
 private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
+
+extendsDeclaration ::= ('extends' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
+implementsDeclaration ::= ('implements' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
 
 anonymousType ::= '{' anonymousTypeBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}

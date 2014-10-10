@@ -164,6 +164,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == EXPRESSION_LIST) {
       result_ = expressionList(builder_, 0);
     }
+    else if (root_ == EXTENDS_DECLARATION) {
+      result_ = extendsDeclaration(builder_, 0);
+    }
     else if (root_ == EXTERN_CLASS_DECLARATION) {
       result_ = externClassDeclaration(builder_, 0);
     }
@@ -215,6 +218,9 @@ public class HaxeParser implements PsiParser {
     else if (root_ == IF_STATEMENT) {
       result_ = ifStatement(builder_, 0);
     }
+    else if (root_ == IMPLEMENTS_DECLARATION) {
+      result_ = implementsDeclaration(builder_, 0);
+    }
     else if (root_ == IMPORT_STATEMENT_REGULAR) {
       result_ = importStatementRegular(builder_, 0);
     }
@@ -223,9 +229,6 @@ public class HaxeParser implements PsiParser {
     }
     else if (root_ == IMPORT_STATEMENT_WITH_WILDCARD) {
       result_ = importStatementWithWildcard(builder_, 0);
-    }
-    else if (root_ == INHERIT) {
-      result_ = inherit(builder_, 0);
     }
     else if (root_ == INHERIT_LIST) {
       result_ = inheritList(builder_, 0);
@@ -1901,6 +1904,35 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // ('extends' type)+
+  public static boolean extendsDeclaration(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "extendsDeclaration")) return false;
+    if (!nextTokenIs(builder_, KEXTENDS)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = extendsDeclaration_0(builder_, level_ + 1);
+    int pos_ = current_position_(builder_);
+    while (result_) {
+      if (!extendsDeclaration_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "extendsDeclaration", pos_)) break;
+      pos_ = current_position_(builder_);
+    }
+    exit_section_(builder_, marker_, EXTENDS_DECLARATION, result_);
+    return result_;
+  }
+
+  // 'extends' type
+  private static boolean extendsDeclaration_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "extendsDeclaration_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, KEXTENDS);
+    result_ = result_ && type(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  /* ********************************************************** */
   // macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externClassDeclaration")) return false;
@@ -2740,6 +2772,35 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // ('implements' type)+
+  public static boolean implementsDeclaration(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "implementsDeclaration")) return false;
+    if (!nextTokenIs(builder_, KIMPLEMENTS)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = implementsDeclaration_0(builder_, level_ + 1);
+    int pos_ = current_position_(builder_);
+    while (result_) {
+      if (!implementsDeclaration_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "implementsDeclaration", pos_)) break;
+      pos_ = current_position_(builder_);
+    }
+    exit_section_(builder_, marker_, IMPLEMENTS_DECLARATION, result_);
+    return result_;
+  }
+
+  // 'implements' type
+  private static boolean implementsDeclaration_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "implementsDeclaration_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, KIMPLEMENTS);
+    result_ = result_ && type(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  /* ********************************************************** */
   // importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
   static boolean importStatementAll(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "importStatementAll")) return false;
@@ -2800,27 +2861,14 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // ('extends' | 'implements') type
-  public static boolean inherit(PsiBuilder builder_, int level_) {
+  // extendsDeclaration | implementsDeclaration
+  static boolean inherit(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "inherit")) return false;
     boolean result_;
-    boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, "<inherit>");
-    result_ = inherit_0(builder_, level_ + 1);
-    pinned_ = result_; // pin = 1
-    result_ = result_ && type(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, INHERIT, result_, pinned_, inherit_recover_parser_);
-    return result_ || pinned_;
-  }
-
-  // 'extends' | 'implements'
-  private static boolean inherit_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "inherit_0")) return false;
-    boolean result_;
-    Marker marker_ = enter_section_(builder_);
-    result_ = consumeToken(builder_, KEXTENDS);
-    if (!result_) result_ = consumeToken(builder_, KIMPLEMENTS);
-    exit_section_(builder_, marker_, null, result_);
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
+    result_ = extendsDeclaration(builder_, level_ + 1);
+    if (!result_) result_ = implementsDeclaration(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, null, result_, false, inherit_recover_parser_);
     return result_;
   }
 
