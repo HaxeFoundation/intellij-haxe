@@ -353,6 +353,7 @@ genericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 typeListPart ::= functionTypeWrapper
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
 typeOrAnonymous ::= type | anonymousType
 
 blockStatement ::= '{' statementList? '}'
@@ -522,14 +523,13 @@ castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expre
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritListPsiMixin"}
 
 private inherit ::= extendsDeclaration | implementsDeclaration
 {pin=1 recoverWhile="inherit_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
 private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 
-extendsDeclaration ::= ('extends' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
-implementsDeclaration ::= ('implements' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
+extendsDeclaration ::= ('extends' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit"}
+implementsDeclaration ::= ('implements' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit"}
 
 anonymousType ::= '{' anonymousTypeBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}

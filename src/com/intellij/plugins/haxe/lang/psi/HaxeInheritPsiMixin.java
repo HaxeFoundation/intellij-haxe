@@ -18,12 +18,13 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiReferenceList;
 
 /**
  * HaxeInherit is analogous to PsiJavaCodeReferenceElement
  *
  * Created by ebishton on 10/8/14.
  */
-public interface HaxeInheritPsiMixin extends HaxePsiCompositeElement, PsiJavaCodeReferenceElement {
+public interface HaxeInheritPsiMixin extends HaxePsiCompositeElement, PsiReferenceList {
 
 }

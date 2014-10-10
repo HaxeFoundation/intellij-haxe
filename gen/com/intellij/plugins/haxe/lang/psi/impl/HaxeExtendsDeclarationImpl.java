@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeExtendsDeclarationImpl extends HaxeInheritPsiMixinImpl implements HaxeExtendsDeclaration {
+public class HaxeExtendsDeclarationImpl extends HaxeInheritImpl implements HaxeExtendsDeclaration {
 
   public HaxeExtendsDeclarationImpl(ASTNode node) {
     super(node);
