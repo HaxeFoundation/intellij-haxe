@@ -185,7 +185,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitEnumValueDeclaration(@NotNull HaxeEnumValueDeclaration o) {
-    visitComponent(o);
+    visitPsiField(o);
   }
 
   public void visitExpression(@NotNull HaxeExpression o) {
@@ -318,11 +318,11 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitLocalVarDeclaration(@NotNull HaxeLocalVarDeclaration o) {
-    visitPsiCompositeElement(o);
+    visitPsiField(o);
   }
 
   public void visitLocalVarDeclarationPart(@NotNull HaxeLocalVarDeclarationPart o) {
-    visitComponent(o);
+    visitPsiField(o);
   }
 
   public void visitLogicAndExpression(@NotNull HaxeLogicAndExpression o) {
@@ -568,11 +568,11 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitVarDeclaration(@NotNull HaxeVarDeclaration o) {
-    visitPsiCompositeElement(o);
+    visitPsiField(o);
   }
 
   public void visitVarDeclarationPart(@NotNull HaxeVarDeclarationPart o) {
-    visitComponent(o);
+    visitPsiField(o);
   }
 
   public void visitVarInit(@NotNull HaxeVarInit o) {
@@ -620,6 +620,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitParameterPsiMixin(@NotNull HaxeParameterPsiMixin o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitPsiField(@NotNull HaxePsiField o) {
     visitPsiCompositeElement(o);
   }
 

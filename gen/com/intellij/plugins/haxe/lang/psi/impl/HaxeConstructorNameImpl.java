@@ -20,8 +20,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
-
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -41,14 +39,4 @@ public class HaxeConstructorNameImpl extends HaxePsiCompositeElementImpl impleme
     else super.accept(visitor);
   }
 
-  @Nullable
-  @Override
-  public PsiElement getNameIdentifier() {
-    return this;
-  }
-
-  @Override
-  public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-    throw new IncorrectOperationException("cannot set constructor name - always 'new'");
-  }
 }

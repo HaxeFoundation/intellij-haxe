@@ -271,7 +271,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     int index = 0;
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
     for (HaxeNamedComponent element : haxeFields) {
-      psiFields[index++] = new HaxePsiField(element);
+      //psiFields[index++] = new HaxePsiField(element);
     }
     return psiFields;
   }
@@ -320,7 +320,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-    System.out.println(">>>\tfindMethodsByName( " + name + " );");
+    if ("main".equals(name)) { checkBases = false; }
     return PsiClassImplUtil.findMethodsByName(this, name, checkBases);
   }
 

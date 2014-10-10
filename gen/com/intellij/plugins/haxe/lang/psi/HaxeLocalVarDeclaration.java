@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeLocalVarDeclaration extends HaxePsiCompositeElement {
+public interface HaxeLocalVarDeclaration extends HaxePsiField {
 
   @NotNull
   List<HaxeLocalVarDeclarationPart> getLocalVarDeclarationPartList();
