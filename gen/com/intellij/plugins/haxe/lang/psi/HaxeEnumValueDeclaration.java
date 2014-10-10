@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeEnumValueDeclaration extends HaxeComponent {
+public interface HaxeEnumValueDeclaration extends HaxePsiField {
 
   @NotNull
   HaxeComponentName getComponentName();

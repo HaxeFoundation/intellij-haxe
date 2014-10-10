@@ -270,26 +270,24 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
-
     // TODO: [TiVo]: Fix getTypeParameterList();
-
-    //if (false) {
-      //ASTNode node = getNode();
-      //ASTNode paramList = node.findChildByType(HaxeTokenTypes.PARAMETER_LIST);
-      //for (ASTNode astChild = paramList.getFirstChildNode(); astChild != null; astChild = astChild.getTreeNext()) {
-      //  if (astChild.getElementType() == HaxeTokenTypes.PARAMETER) {
-      //    Need to get the type from each parameter and drop it into our list.
-      //
-      //  }
-      //  PsiElement psiChild = astChild.getPsi();
-      //  if (psiChild)
-      //}
-      //PARAMETER
-      //
-      //return getRequiredStubOrPsiChild(JavaStubElementTypes.TYPE_PARAMETER_LIST);
-    //}
-
     return null;
+  }
+
+  private boolean isPrivate() {
+    final List<HaxeDeclarationAttribute> declarationAttributeList = getDeclarationAttributeList();
+    for (HaxeDeclarationAttribute declarationAttribute : declarationAttributeList) {
+      HaxeAccess access = declarationAttribute.getAccess();
+      if (access!=null && "private".equals(access.getText())) {
+          return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isPublic() {
+    return (!isPrivate() && super.isPublic()); // do not change the order of- and the- expressions
   }
 
   @NotNull
@@ -336,13 +334,4 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     final HaxeParameterList list = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
     return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list")));
   }
-
-  //@Nullable
-  //@Override
-  //public HaxeComponentName getComponentName() {
-  //  if (getText().contains(" function ")) {
-  //    throw new Error("FATAL");
-  //  }
-  //  return null;
-  //}
 }

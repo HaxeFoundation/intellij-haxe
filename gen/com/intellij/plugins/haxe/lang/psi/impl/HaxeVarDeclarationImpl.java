@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeVarDeclarationImpl extends HaxePsiCompositeElementImpl implements HaxeVarDeclaration {
+public class HaxeVarDeclarationImpl extends HaxePsiFieldImpl implements HaxeVarDeclaration {
 
   public HaxeVarDeclarationImpl(ASTNode node) {
     super(node);
