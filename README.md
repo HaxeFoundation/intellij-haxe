@@ -1,4 +1,4 @@
-Download [intellij-haxe.jar](https://github.com/eliasku/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file and install plugin using "Install plugin from disk..." button in Plugin dialog
+Download [intellij-haxe.jar](https://github.com/JetBrains/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file and install plugin using "Install plugin from disk..." button in Plugin dialog
 
 For those who want to learn and maintain this plugin look at this introductory tutorial:
 http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
@@ -13,7 +13,7 @@ http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
 - JUnit (for unit tests)
 - PsiViewer (for testing grammar)
 
-IntelliJ IDEA uses Grammar-Kit plugin to generate lexer/parser, grammar for Haxe is [haXe.bnf](https://github.com/eliasku/intellij-haxe/blob/master/grammar/haxe.bnf)
+IntelliJ IDEA uses Grammar-Kit plugin to generate lexer/parser, grammar for Haxe is [haXe.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/grammar/haxe.bnf)
 
 ###Steps to configure a IntelliJ Platform Plugin SDK:
 - Open Module Settings
