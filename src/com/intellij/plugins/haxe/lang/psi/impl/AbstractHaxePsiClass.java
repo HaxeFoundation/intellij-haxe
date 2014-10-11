@@ -207,7 +207,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Nullable
   public PsiReferenceList getExtendsList() {
     // LOG.debug("\n>>>\tgetExtendsList();");
-    return PsiTreeUtil.getChildOfType(this, HaxeExtendsDeclaration.class);
+    HaxeInheritList inh = PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return null == inh ? null : PsiTreeUtil.getChildOfType(inh, HaxeExtendsDeclaration.class);
   }
 
   @Override
@@ -223,7 +224,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getImplementsList() {
-    return PsiTreeUtil.getChildOfType(this, HaxeImplementsDeclaration.class);
+    HaxeInheritList inh = PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return null == inh ? null : PsiTreeUtil.getChildOfType(this, HaxeImplementsDeclaration.class);
   }
 
   @Override

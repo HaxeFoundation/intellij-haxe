@@ -21,9 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeList;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeParam;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.util.ArrayFactory;
@@ -31,6 +29,8 @@ import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
 
 /**
  * HaxeInherit is analogous to PsiJavaCodeReferenceElement
@@ -66,17 +66,32 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
   @NotNull
   @Override
   public PsiClassType[] getReferencedTypes() {
-    return new PsiClassType[0];
+    LOG.debug("getReferencedTypes");
+    PsiJavaCodeReferenceElement[] refs = getReferenceElements();
+    PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
+    PsiClassType[] types = new PsiClassType[refs.length];
+    for (int i = 0; i < types.length; i++) {
+      types[i] = factory.createType(refs[i]);
+    }
+
+    return types;
   }
 
   @NotNull
   @Override
   public PsiJavaCodeReferenceElement[] getReferenceElements() {
-    return new PsiJavaCodeReferenceElement[0];
+    LOG.debug("getReferenceElements");
+    return findChildrenByClass(PsiJavaCodeReferenceElement.class);
   }
 
   @Override
   public Role getRole() {
+    if (this instanceof HaxeExtendsDeclaration) {
+      return Role.EXTENDS_LIST;
+    } else if (this instanceof HaxeImplementsDeclaration) {
+      return Role.IMPLEMENTS_LIST;
+    }
+    LOG.assertTrue(false, "Unrecognized/unexpected subclass type.");
     return null;
   }
 }
