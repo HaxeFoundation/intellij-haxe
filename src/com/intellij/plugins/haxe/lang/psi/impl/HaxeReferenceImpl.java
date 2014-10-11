@@ -126,13 +126,40 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (this instanceof HaxeArrayLiteral) {
       HaxeArrayLiteral haxeArrayLiteral = (HaxeArrayLiteral)this;
       HaxeExpressionList expressionList = haxeArrayLiteral.getExpressionList();
-      boolean isMap = true;
+      boolean isMap = false;
+      boolean isString = false;
+      boolean sameClass = false;
+      HaxeClass haxeClass = null;
       List<HaxeExpression> haxeExpressionList = expressionList.getExpressionList();
       if (!haxeExpressionList.isEmpty()) {
+        isMap = true;
+        isString = true;
+        sameClass = true;
+
         for (HaxeExpression expression : haxeExpressionList) {
           if (!(expression instanceof HaxeFatArrowExpression)) {
             isMap = false;
-            break;
+          }
+          if (!(expression instanceof HaxeStringLiteralExpression)) {
+            isString = false;
+          }
+
+          if (sameClass) {
+            HaxeClass haxeClassResolveResultHaxeClass = null;
+            HaxeReferenceExpression haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
+            if (haxeReference != null) {
+              HaxeClassResolveResult haxeClassResolveResult = haxeReference.resolveHaxeClass();
+              haxeClassResolveResultHaxeClass = haxeClassResolveResult.getHaxeClass();
+              if (haxeClassResolveResultHaxeClass != null) {
+                if (haxeClass == null) {
+                  haxeClass = haxeClassResolveResultHaxeClass;
+                }
+              }
+            }
+
+            if (haxeClass == null || !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
+              sameClass = false;
+            }
           }
         }
 
@@ -140,7 +167,22 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
         }
       }
-      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
+      HaxeClassResolveResult resolveResult =
+        HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
+
+      HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+
+      HaxeGenericSpecialization specialization = resolveResult.getSpecialization();
+      if (resolveResultHaxeClass != null && specialization.get(resolveResultHaxeClass, "T") == null) {
+        if (isString) {
+          specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this)));
+        }
+        else if (sameClass) {
+          specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
+        }
+      }
+
+      return resolveResult;
     }
     if (this instanceof HaxeNewExpression) {
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(
@@ -169,7 +211,11 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
         // std Array
         if ("Array".equalsIgnoreCase(resolveResultHaxeClass.getQualifiedName())) {
-          return resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
+          HaxeClassResolveResult arrayResolveResult = resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
+
+          if (arrayResolveResult != null) {
+            return arrayResolveResult;
+          }
         }
         // __get method
         return HaxeResolveUtil.getHaxeClassResolveResult(resolveResultHaxeClass.findMethodByName("__get"),
