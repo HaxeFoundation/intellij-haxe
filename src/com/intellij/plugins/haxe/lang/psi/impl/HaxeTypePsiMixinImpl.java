@@ -58,7 +58,7 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @Nullable
   @Override
   public PsiReferenceParameterList getParameterList() {
-
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getParameterList is unimplemented");
 
     // REFERENCE_PARAMETER_LIST  in Java
@@ -70,18 +70,21 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @NotNull
   @Override
   public PsiType[] getTypeParameters() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getTypeParameters is unimplemented");
     return new PsiType[0];
   }
 
   @Override
   public boolean isQualified() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("isQualified is unimplemented");
     return false;
   }
 
   @Override
   public String getQualifiedName() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getQualifiedName is unimplemented");
     return null;
   }
@@ -91,12 +94,14 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
 
   @Override
   public void processVariants(@NotNull PsiScopeProcessor processor) {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("processVariants is unimplemented");
   }
 
   @NotNull
   @Override
   public JavaResolveResult advancedResolve(boolean incompleteCode) {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("advancedResolve is unimplemented");
     return null;
   }
@@ -104,6 +109,7 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @NotNull
   @Override
   public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("multiResolve is unimplemented");
     return new JavaResolveResult[0];
   }
@@ -113,12 +119,14 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
 
   @Override
   public PsiElement getElement() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getElement is unimplemented");
     return null;
   }
 
   @Override
   public TextRange getRangeInElement() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getRangeInElement is unimplemented");
     return null;
   }
@@ -126,6 +134,7 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @Nullable
   @Override
   public PsiElement resolve() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("resolve is unimplemented");
     return null;
   }
@@ -133,24 +142,28 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @NotNull
   @Override
   public String getCanonicalText() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getCanonicalText is unimplemented");
     return null;
   }
 
   @Override
   public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("handleElementRename is unimplemented");
     return null;
   }
 
   @Override
   public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("bindToElement is unimplemented");
     return null;
   }
 
   @Override
   public boolean isReferenceTo(PsiElement element) {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("isReferenceTo is unimplemented");
     return false;
   }
@@ -158,12 +171,14 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @NotNull
   @Override
   public Object[] getVariants() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getVariants is unimplemented");
     return new Object[0];
   }
 
   @Override
   public boolean isSoft() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("isSoft is unimplemented");
     return false;
   }
@@ -174,6 +189,7 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @Nullable
   @Override
   public PsiElement getQualifier() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getQualifier is unimplemented");
     return null;
   }
@@ -181,6 +197,7 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @Nullable
   @Override
   public String getReferenceName() {
+    // TODO: [TiVo] Unimplemented.
     LOG.warn("getReferenceName is unimplemented");
     return null;
   }
