@@ -1,5 +1,7 @@
 Download [intellij-haxe.jar](https://github.com/JetBrains/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file and install plugin using "Install plugin from disk..." button in Plugin dialog
 
+Please report issues at TiVo repository https://github.com/TiVo/intellij-haxe/issues/new
+
 For those who want to learn and maintain this plugin look at this introductory tutorial:
 http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
 
