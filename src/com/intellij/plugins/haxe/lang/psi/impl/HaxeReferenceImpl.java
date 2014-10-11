@@ -124,6 +124,22 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
     }
     if (this instanceof HaxeArrayLiteral) {
+      HaxeArrayLiteral haxeArrayLiteral = (HaxeArrayLiteral)this;
+      HaxeExpressionList expressionList = haxeArrayLiteral.getExpressionList();
+      boolean isMap = true;
+      List<HaxeExpression> haxeExpressionList = expressionList.getExpressionList();
+      if (!haxeExpressionList.isEmpty()) {
+        for (HaxeExpression expression : haxeExpressionList) {
+          if (!(expression instanceof HaxeFatArrowExpression)) {
+            isMap = false;
+            break;
+          }
+        }
+
+        if (isMap) {
+          return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
+        }
+      }
       return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
     }
     if (this instanceof HaxeNewExpression) {
