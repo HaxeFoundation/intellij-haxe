@@ -383,7 +383,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (virtualFile != null) {
         String nameWithoutExtension = virtualFile.getNameWithoutExtension();
 
-        if (haxeClass.getName().equals(nameWithoutExtension)) {
+        String name = haxeClass.getName();
+        if (name != null && name.equals(nameWithoutExtension)) {
           List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
 
           for (HaxeClass aClass : haxeClassList) {
