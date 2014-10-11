@@ -21,8 +21,11 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
+import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParam;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceParameterList;
@@ -101,17 +104,18 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @NotNull
   @Override
   public JavaResolveResult advancedResolve(boolean incompleteCode) {
-    // TODO: [TiVo] Unimplemented.
-    LOG.warn("advancedResolve is unimplemented");
-    return null;
+    // TODO: [TiVo] Works, but may need correction.
+    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(this, HaxeGenericSpecialization.EMPTY);
+    return result.toJavaResolveResult();
   }
 
   @NotNull
   @Override
   public JavaResolveResult[] multiResolve(boolean incompleteCode) {
-    // TODO: [TiVo] Unimplemented.
-    LOG.warn("multiResolve is unimplemented");
-    return new JavaResolveResult[0];
+    // TODO: [TiVo] Works, but may need correction.
+    final JavaResolveResult javaResolveResult = advancedResolve(incompleteCode);
+    if (javaResolveResult.getElement() == null) return JavaResolveResult.EMPTY_ARRAY;
+    return new JavaResolveResult[]{javaResolveResult};
   }
 
   // PsiReference overrides

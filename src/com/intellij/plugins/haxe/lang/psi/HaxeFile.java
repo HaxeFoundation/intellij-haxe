@@ -18,15 +18,16 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.extapi.psi.PsiFileBase;
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.FileViewProvider;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiJavaFileBaseImpl;
+import com.intellij.psi.impl.source.tree.JavaElementType;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class HaxeFile extends PsiFileBase
-  implements HaxeModifierListOwner {
+  implements HaxeModifierListOwner, PsiClassOwner {
 
   public HaxeFile(@NotNull FileViewProvider viewProvider) {
     super(viewProvider, HaxeLanguage.INSTANCE);
@@ -84,5 +85,28 @@ public class HaxeFile extends PsiFileBase
   public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
     // usually files don't have annotations or modifiers associated with them
     return false;
+  }
+
+  @NotNull
+  @Override
+  public PsiClass[] getClasses() {
+    return HaxeHierarchyUtils.getClassList(this);
+  }
+
+  public PsiPackageStatement getPackageStatement() {
+    ASTNode node = calcTreeElement().findChildByType(JavaElementType.PACKAGE_STATEMENT);
+    return node != null ? (PsiPackageStatement)node.getPsi() : null;
+  }
+
+  @Override
+  public String getPackageName() {
+    PsiPackageStatement statement = getPackageStatement();
+    return statement == null ? "" : statement.getPackageName();
+  }
+
+  @Override
+  public void setPackageName(String packageName) throws IncorrectOperationException {
+    // TODO: [TiVo] Unimplemented.  We don't need this for read-only operations.
+    throw new IncorrectOperationException("Unimplemented");
   }
 }
