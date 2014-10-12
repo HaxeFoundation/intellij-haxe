@@ -264,6 +264,11 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                                          resolveResult.getSpecialization());
       }
     }
+    PsiElement parent = resolve().getParent();
+    if (parent instanceof HaxeFunctionDeclarationWithAttributes || parent instanceof HaxeExternFunctionDeclaration) {
+      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+    }
+
     HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve(), tryGetLeftResolveResult(this).getSpecialization());
     if (result.getHaxeClass() == null) {
       result = HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
