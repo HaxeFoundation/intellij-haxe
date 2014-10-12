@@ -49,7 +49,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitAnonymousTypeField(@NotNull HaxeAnonymousTypeField o) {
-    visitComponent(o);
+    visitPsiField(o);
   }
 
   public void visitAnonymousTypeFieldList(@NotNull HaxeAnonymousTypeFieldList o) {

@@ -261,12 +261,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiField[] getFields() {
     List<HaxeNamedComponent> haxeFields = getHaxeFields();
-    int index = 0;
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
-    for (HaxeNamedComponent element : haxeFields) {
-      //psiFields[index++] = new HaxePsiField(element);
-    }
-    return psiFields;
+    return haxeFields.toArray(psiFields);
   }
 
   @Override
