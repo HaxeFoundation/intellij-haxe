@@ -144,9 +144,16 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             isString = false;
           }
 
-          if (sameClass && (expression instanceof HaxeNewExpression || expression instanceof HaxeReferenceExpression)) {
+          if (sameClass) {
+            HaxeReferenceExpression haxeReference = null;
+            if (expression instanceof HaxeNewExpression || expression instanceof HaxeCallExpression) {
+              haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
+            }
+            if (expression instanceof HaxeReferenceExpression) {
+              haxeReference = (HaxeReferenceExpression)expression;
+            }
+
             HaxeClass haxeClassResolveResultHaxeClass = null;
-            HaxeReferenceExpression haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
             if (haxeReference != null) {
               HaxeClassResolveResult haxeClassResolveResult = haxeReference.resolveHaxeClass();
               haxeClassResolveResultHaxeClass = haxeClassResolveResult.getHaxeClass();
