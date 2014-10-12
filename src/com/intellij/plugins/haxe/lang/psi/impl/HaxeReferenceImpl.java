@@ -267,15 +267,18 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     PsiElement resolve = resolve();
     if (resolve != null) {
       PsiElement parent = resolve.getParent();
-      if (parent instanceof HaxeFunctionDeclarationWithAttributes || parent instanceof HaxeExternFunctionDeclaration) {
-        return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
-      }
-      HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(parent, HaxeTypeTag.class);
 
-      if (typeTag != null) {
-        HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(typeTag, HaxeFunctionType.class);
-        if (functionType != null) {
+      if (parent != null) {
+        if (parent instanceof HaxeFunctionDeclarationWithAttributes || parent instanceof HaxeExternFunctionDeclaration) {
           return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+        }
+        HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(parent, HaxeTypeTag.class);
+
+        if (typeTag != null) {
+          HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(typeTag, HaxeFunctionType.class);
+          if (functionType != null) {
+            return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+          }
         }
       }
     }
@@ -442,11 +445,17 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public Object[] getVariants() {
     final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
 
+
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
-    if (leftReference != null && getParent() instanceof HaxeReference && !leftReference.resolveHaxeClass().isFunctionType()) {
-      addClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
+    if (leftReference != null && getParent() instanceof HaxeReference && leftReference.getText().equals(leftReference.resolveHaxeClass().getHaxeClass().getName())) {
+      addClassStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
+                       !(leftReference instanceof HaxeThisExpression));
+      addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());
+    }
+    else if (leftReference != null && getParent() instanceof HaxeReference && !leftReference.resolveHaxeClass().isFunctionType()) {
+      addClassNonStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        !(leftReference instanceof HaxeThisExpression));
       addUsingVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        HaxeResolveUtil.findUsingClasses(getContainingFile()));
@@ -538,6 +547,30 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       if (!needFilter && namedComponent.getComponentName() != null) {
+        suggestedVariants.add(namedComponent.getComponentName());
+      }
+    }
+  }
+
+  private static void addClassStaticMembersVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+    if (haxeClass == null) {
+      return;
+    }
+    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+      final boolean needFilter = filterByAccess && !namedComponent.isPublic();
+      if (!needFilter && namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+        suggestedVariants.add(namedComponent.getComponentName());
+      }
+    }
+  }
+
+  private static void addClassNonStaticMembersVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+    if (haxeClass == null) {
+      return;
+    }
+    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+      final boolean needFilter = filterByAccess && !namedComponent.isPublic();
+      if (!needFilter && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
       }
     }
