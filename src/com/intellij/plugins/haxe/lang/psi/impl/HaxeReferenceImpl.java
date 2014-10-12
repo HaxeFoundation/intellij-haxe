@@ -144,7 +144,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             isString = false;
           }
 
-          if (sameClass) {
+          if (sameClass && (expression instanceof HaxeNewExpression || expression instanceof HaxeReferenceExpression)) {
             HaxeClass haxeClassResolveResultHaxeClass = null;
             HaxeReferenceExpression haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
             if (haxeReference != null) {
