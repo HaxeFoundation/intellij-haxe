@@ -43,6 +43,8 @@ import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -129,7 +131,9 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       boolean isMap = false;
       boolean isString = false;
       boolean sameClass = false;
+      boolean implementOrExtendSameClass = false;
       HaxeClass haxeClass = null;
+      List<HaxeType> commonTypeList = new ArrayList<HaxeType>();
       List<HaxeExpression> haxeExpressionList = expressionList.getExpressionList();
       if (!haxeExpressionList.isEmpty()) {
         isMap = true;
@@ -144,7 +148,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             isString = false;
           }
 
-          if (sameClass) {
+          if (sameClass || implementOrExtendSameClass) {
             HaxeReferenceExpression haxeReference = null;
             if (expression instanceof HaxeNewExpression || expression instanceof HaxeCallExpression) {
               haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
@@ -160,7 +164,23 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               if (haxeClassResolveResultHaxeClass != null) {
                 if (haxeClass == null) {
                   haxeClass = haxeClassResolveResultHaxeClass;
+                  commonTypeList.addAll(haxeClass.getImplementsList());
+                  commonTypeList.addAll(haxeClass.getExtendsList());
                 }
+              }
+            }
+
+            if (haxeClass != null && !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
+              List<HaxeType> haxeTypeList = new ArrayList<HaxeType>();
+              haxeTypeList.addAll(haxeClass.getImplementsList());
+              haxeTypeList.addAll(haxeClass.getExtendsList());
+
+              commonTypeList.retainAll(haxeTypeList);
+              if (!commonTypeList.isEmpty()) {
+                implementOrExtendSameClass = true;
+              }
+              else {
+                implementOrExtendSameClass = false;
               }
             }
 
@@ -186,6 +206,21 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
         else if (sameClass) {
           specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
+        }
+        else if (implementOrExtendSameClass) {
+          HaxeReferenceExpression haxeReferenceExpression = commonTypeList.get(commonTypeList.size() - 1).getReferenceExpression();
+          if (haxeReferenceExpression != null) {
+            HaxeClassResolveResult resolveHaxeClass = haxeReferenceExpression.resolveHaxeClass();
+
+            if (resolveHaxeClass != null) {
+              HaxeClass resolveHaxeClassHaxeClass = resolveHaxeClass.getHaxeClass();
+
+              if (resolveHaxeClassHaxeClass != null) {
+                specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(
+                  resolveHaxeClassHaxeClass.getQualifiedName(), this)));
+              }
+            }
+          }
         }
       }
 
