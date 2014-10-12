@@ -333,7 +333,7 @@ public class HaxeResolveUtil {
       return null;
     }
     final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterListPsiMixinImpl.class);
-    if (parameterList == null) {
+    if (parameterList == null || parameterList.getParametersCount() == 0) {
       return Collections.emptyList();
     }
     return ContainerUtil.map(parameterList.getParametersAsList(), new Function<HaxeParameter, HaxeType>() {

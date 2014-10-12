@@ -291,7 +291,7 @@ enumValueDeclaration ::= componentName enumConstructorParameters? ';'
 
 private enum_value_declaration_recovery ::= !(ID | '}')
 
-enumConstructorParameters ::= '(' parameterList? ')' {pin=1}
+enumConstructorParameters ::= '(' parameterList ')' {pin=1}
 
 varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
@@ -315,15 +315,15 @@ private functionCommonBody ::= blockStatement | returnStatement | expression | t
 
 constructorName ::= 'new'
 
-externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
+externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
+functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 localFunctionDeclaration ::= 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-anonymousFunctionDeclaration ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? '{' '}' {pin=2}
+anonymousFunctionDeclaration ::= 'function' '(' parameterList ')' typeTag? 'untyped'? '{' '}' {pin=2}
 /* TODO: [TiVo] Should anonymousFunctionDeclaration extend and implement HaxeMethod as well?? */
 
 /*
@@ -334,10 +334,10 @@ varInit ::= '=' expression {pin=1}
 parameter ::= '?'? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 
-parameterList ::= parameter (',' parameter)* {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
+parameterList ::= parameter? (',' parameter)* {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
-functionLiteral ::= 'function' '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody {pin=2}
+functionLiteral ::= 'function' '(' parameterList ')' typeTag? 'untyped'? functionCommonBody {pin=2}
 arrayLiteral ::= '[' expressionList? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
