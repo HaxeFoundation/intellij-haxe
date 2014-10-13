@@ -282,18 +282,15 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getMethods() {
-    // TODO: fix
     List<HaxeMethod> haxeMethods = getHaxeMethods();
     PsiMethod[] returntype = new PsiMethod[haxeMethods.size()];
     return haxeMethods.toArray(returntype);
-    //PsiMethod[] returnValue = {};
-    //return returnValue;
   }
 
   @Override
   @NotNull
   public PsiMethod[] getAllMethods() {
-    return PsiClassImplUtil.getAllMethods(this);
+    return getMethods();
   }
 
   @Override
@@ -457,7 +454,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
-    // TODO: fix
     return PsiSuperMethodImplUtil.getVisibleSignatures(this);
   }
 

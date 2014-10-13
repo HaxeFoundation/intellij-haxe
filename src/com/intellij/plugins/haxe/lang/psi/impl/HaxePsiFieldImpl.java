@@ -101,7 +101,7 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     //    return true;
     //  }
     //}
-    return false;
+    return false; // TODO: Fix
   }
 
   @Override
