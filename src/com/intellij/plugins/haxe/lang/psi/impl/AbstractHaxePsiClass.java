@@ -207,7 +207,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Nullable
   public PsiReferenceList getExtendsList() {
     // LOG.debug("\n>>>\tgetExtendsList();");
-    return PsiTreeUtil.getChildOfType(this, HaxeExtendsDeclaration.class);
+    HaxeInheritList inh = PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return null == inh ? null : PsiTreeUtil.getChildOfType(inh, HaxeExtendsDeclaration.class);
   }
 
   @Override
@@ -223,7 +224,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiReferenceList getImplementsList() {
-    return PsiTreeUtil.getChildOfType(this, HaxeImplementsDeclaration.class);
+    HaxeInheritList inh = PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return null == inh ? null : PsiTreeUtil.getChildOfType(inh, HaxeImplementsDeclaration.class);
   }
 
   @Override
@@ -259,12 +261,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiField[] getFields() {
     List<HaxeNamedComponent> haxeFields = getHaxeFields();
-    int index = 0;
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
-    for (HaxeNamedComponent element : haxeFields) {
-      //psiFields[index++] = new HaxePsiField(element);
-    }
-    return psiFields;
+    return haxeFields.toArray(psiFields);
   }
 
   @Override
@@ -283,8 +281,17 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiMethod[] getMethods() {
     List<HaxeMethod> haxeMethods = getHaxeMethods();
+<<<<<<< HEAD
     PsiMethod[] returntype = new PsiMethod[haxeMethods.size()];
     return haxeMethods.toArray(returntype);
+=======
+    PsiMethod[] returntype = PsiMethod.EMPTY_ARRAY; // size is irrelevant
+    PsiMethod[] ary = haxeMethods.toArray(returntype);
+    if (null == ary) {
+      ary = PsiMethod.EMPTY_ARRAY;
+    }
+    return ary;
+>>>>>>> a4cddcd8219f6ff6cde5c2d1cad8b143cc3c38c0
   }
 
   @Override

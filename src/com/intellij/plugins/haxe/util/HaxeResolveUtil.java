@@ -162,25 +162,25 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static List<HaxeType> findExtendsList(@Nullable HaxeInheritList extendsList) {
-    return findExtendsImplementsListImpl(extendsList, HaxeTokenTypes.KEXTENDS);
+    List<? extends HaxeInherit> ext = null == extendsList  ? null : extendsList.getExtendsDeclarationList();
+    return findExtendsImplementsListImpl(ext);
   }
 
   public static List<HaxeType> getImplementsList(@Nullable HaxeInheritList extendsList) {
-    return findExtendsImplementsListImpl(extendsList, HaxeTokenTypes.KIMPLEMENTS);
+    List<? extends HaxeInherit> ext = null == extendsList  ? null : extendsList.getImplementsDeclarationList();
+    return findExtendsImplementsListImpl(ext);
   }
 
   @NotNull
-  private static List<HaxeType> findExtendsImplementsListImpl(@Nullable HaxeInheritList extendsList,
-                                                              @NotNull IElementType expectedKeyword) {
+  private static List<HaxeType> findExtendsImplementsListImpl(@Nullable List<? extends HaxeInherit> extendsList) {
     if (extendsList == null) {
       return Collections.emptyList();
     }
     final List<HaxeType> result = new ArrayList<HaxeType>();
-    for (HaxeExtendsDeclaration inherit : extendsList.getExtendsDeclarationList()) {
+    for (HaxeInherit inherit : extendsList) {
       final PsiElement firstChild = inherit.getFirstChild();
-      final IElementType childType = firstChild instanceof ASTNode ? ((ASTNode)firstChild).getElementType() : null;
       final List<HaxeType> inheritTypes = inherit.getTypeList();
-      if (childType == expectedKeyword && inheritTypes != null) {
+      if (inheritTypes != null) {
         result.addAll(inheritTypes);
       }
     }
@@ -333,7 +333,7 @@ public class HaxeResolveUtil {
       return null;
     }
     final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterListPsiMixinImpl.class);
-    if (parameterList == null) {
+    if (parameterList == null || parameterList.getParametersCount() == 0) {
       return Collections.emptyList();
     }
     return ContainerUtil.map(parameterList.getParametersAsList(), new Function<HaxeParameter, HaxeType>() {

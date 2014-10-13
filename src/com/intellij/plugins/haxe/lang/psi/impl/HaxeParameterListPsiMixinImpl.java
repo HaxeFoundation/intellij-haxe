@@ -51,7 +51,7 @@ public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl i
   public List<HaxeParameter> getParametersAsList() {
     HaxeParameter[] parameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameter.class, null);
     if (parameters == null) {
-      parameters = new HaxeParameter[0];
+      parameters = new HaxeParameter[0];   // TODO: [TiVo] return an EMPTY.
     }
     return Arrays.asList(parameters);
   }

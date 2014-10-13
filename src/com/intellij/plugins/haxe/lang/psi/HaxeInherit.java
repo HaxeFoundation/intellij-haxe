@@ -17,9 +17,16 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
 /**
  * Created by ebishton on 10/9/14.
  */
 public interface HaxeInherit extends HaxeInheritPsiMixin {
+
+  @NotNull
+  List<HaxeType> getTypeList();
 
 }

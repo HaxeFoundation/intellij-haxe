@@ -18,7 +18,9 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,4 +158,22 @@ public class HaxeClassResolveResult implements Cloneable {
   public boolean isFunctionType() {
     return !functionTypes.isEmpty();
   }
+
+  public JavaResolveResult toJavaResolveResult() {
+    return new JavaResult(this);
+  }
+
+  private class JavaResult implements JavaResolveResult {
+    private HaxeClassResolveResult originalResult = null;
+    public JavaResult(HaxeClassResolveResult result) { originalResult = result; }
+    @Override public PsiElement getElement() { return originalResult.getHaxeClass(); }
+    @NotNull
+    @Override public PsiSubstitutor getSubstitutor() { return PsiSubstitutor.EMPTY; }
+    @Override public boolean isValidResult() { return null != originalResult.getHaxeClass(); }
+    @Override public boolean isAccessible() { return true; }
+    @Override public boolean isStaticsScopeCorrect() { return true; } // TODO: How to check scope?
+    @Override public PsiElement getCurrentFileResolveScope() { return originalResult.getHaxeClass().getOriginalElement(); } // TODO: Verify
+    @Override public boolean isPackagePrefixPackageReference() { return false; }  // TODO: No idea what to do with this.
+  }
+
 }

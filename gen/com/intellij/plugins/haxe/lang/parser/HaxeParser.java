@@ -642,7 +642,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'function' '(' parameterList? ')' typeTag? 'untyped'? '{' '}'
+  // 'function' '(' parameterList ')' typeTag? 'untyped'? '{' '}'
   public static boolean anonymousFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "anonymousFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, KFUNCTION)) return false;
@@ -652,7 +652,7 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, KFUNCTION);
     result_ = result_ && consumeToken(builder_, PLPAREN);
     pinned_ = result_; // pin = 2
-    result_ = result_ && report_error_(builder_, anonymousFunctionDeclaration_2(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, parameterList(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, anonymousFunctionDeclaration_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, anonymousFunctionDeclaration_5(builder_, level_ + 1)) && result_;
@@ -660,13 +660,6 @@ public class HaxeParser implements PsiParser {
     result_ = pinned_ && consumeToken(builder_, PRCURLY) && result_;
     exit_section_(builder_, level_, marker_, ANONYMOUS_FUNCTION_DECLARATION, result_, pinned_, null);
     return result_ || pinned_;
-  }
-
-  // parameterList?
-  private static boolean anonymousFunctionDeclaration_2(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "anonymousFunctionDeclaration_2")) return false;
-    parameterList(builder_, level_ + 1);
-    return true;
   }
 
   // typeTag?
@@ -1562,7 +1555,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '(' parameterList? ')'
+  // '(' parameterList ')'
   public static boolean enumConstructorParameters(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "enumConstructorParameters")) return false;
     if (!nextTokenIs(builder_, PLPAREN)) return false;
@@ -1571,17 +1564,10 @@ public class HaxeParser implements PsiParser {
     Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
     result_ = consumeToken(builder_, PLPAREN);
     pinned_ = result_; // pin = 1
-    result_ = result_ && report_error_(builder_, enumConstructorParameters_1(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, parameterList(builder_, level_ + 1));
     result_ = pinned_ && consumeToken(builder_, PRPAREN) && result_;
     exit_section_(builder_, level_, marker_, ENUM_CONSTRUCTOR_PARAMETERS, result_, pinned_, null);
     return result_ || pinned_;
-  }
-
-  // parameterList?
-  private static boolean enumConstructorParameters_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "enumConstructorParameters_1")) return false;
-    parameterList(builder_, level_ + 1);
-    return true;
   }
 
   /* ********************************************************** */
@@ -2014,7 +2000,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? (functionCommonBody | ';')
+  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
   public static boolean externFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(builder_, "<extern function declaration>", KAUTOBUILD, KBUILD,
@@ -2030,7 +2016,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && externFunctionDeclaration_2(builder_, level_ + 1);
     pinned_ = result_; // pin = 3
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_4(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, parameterList(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, externFunctionDeclaration_7(builder_, level_ + 1)) && result_;
@@ -2088,13 +2074,6 @@ public class HaxeParser implements PsiParser {
   private static boolean externFunctionDeclaration_2_1_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_2_1_1")) return false;
     genericParam(builder_, level_ + 1);
-    return true;
-  }
-
-  // parameterList?
-  private static boolean externFunctionDeclaration_4(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "externFunctionDeclaration_4")) return false;
-    parameterList(builder_, level_ + 1);
     return true;
   }
 
@@ -2249,7 +2228,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+  // (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
   public static boolean functionDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, "<function declaration with attributes>", KAUTOBUILD, KBUILD,
@@ -2265,7 +2244,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && functionDeclarationWithAttributes_2(builder_, level_ + 1);
     pinned_ = result_; // pin = 3
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_4(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, parameterList(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, functionDeclarationWithAttributes_7(builder_, level_ + 1)) && result_;
@@ -2326,13 +2305,6 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // parameterList?
-  private static boolean functionDeclarationWithAttributes_4(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_4")) return false;
-    parameterList(builder_, level_ + 1);
-    return true;
-  }
-
   // typeTag?
   private static boolean functionDeclarationWithAttributes_6(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionDeclarationWithAttributes_6")) return false;
@@ -2348,7 +2320,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'function' '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+  // 'function' '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
   public static boolean functionLiteral(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionLiteral")) return false;
     if (!nextTokenIs(builder_, KFUNCTION)) return false;
@@ -2358,20 +2330,13 @@ public class HaxeParser implements PsiParser {
     result_ = consumeToken(builder_, KFUNCTION);
     result_ = result_ && consumeToken(builder_, PLPAREN);
     pinned_ = result_; // pin = 2
-    result_ = result_ && report_error_(builder_, functionLiteral_2(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, parameterList(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, functionLiteral_4(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, functionLiteral_5(builder_, level_ + 1)) && result_;
     result_ = pinned_ && functionCommonBody(builder_, level_ + 1) && result_;
     exit_section_(builder_, level_, marker_, FUNCTION_LITERAL, result_, pinned_, null);
     return result_ || pinned_;
-  }
-
-  // parameterList?
-  private static boolean functionLiteral_2(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionLiteral_2")) return false;
-    parameterList(builder_, level_ + 1);
-    return true;
   }
 
   // typeTag?
@@ -2405,7 +2370,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList? ')' typeTag? 'untyped'? ';'
+  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? ';'
   public static boolean functionPrototypeDeclarationWithAttributes(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(builder_, "<function prototype declaration with attributes>", KAUTOBUILD, KBUILD,
@@ -2421,7 +2386,7 @@ public class HaxeParser implements PsiParser {
     result_ = result_ && functionPrototypeDeclarationWithAttributes_2(builder_, level_ + 1);
     pinned_ = result_; // pin = 3
     result_ = result_ && report_error_(builder_, consumeToken(builder_, PLPAREN));
-    result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_4(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, parameterList(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
     result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, functionPrototypeDeclarationWithAttributes_7(builder_, level_ + 1)) && result_;
@@ -2479,13 +2444,6 @@ public class HaxeParser implements PsiParser {
   private static boolean functionPrototypeDeclarationWithAttributes_2_1_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_2_1_1")) return false;
     genericParam(builder_, level_ + 1);
-    return true;
-  }
-
-  // parameterList?
-  private static boolean functionPrototypeDeclarationWithAttributes_4(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "functionPrototypeDeclarationWithAttributes_4")) return false;
-    parameterList(builder_, level_ + 1);
     return true;
   }
 
@@ -4098,15 +4056,22 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // parameter (',' parameter)*
+  // parameter? (',' parameter)*
   public static boolean parameterList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "parameterList")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<parameter list>");
-    result_ = parameter(builder_, level_ + 1);
+    result_ = parameterList_0(builder_, level_ + 1);
     result_ = result_ && parameterList_1(builder_, level_ + 1);
     exit_section_(builder_, level_, marker_, PARAMETER_LIST, result_, false, parameterListRecovery_parser_);
     return result_;
+  }
+
+  // parameter?
+  private static boolean parameterList_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "parameterList_0")) return false;
+    parameter(builder_, level_ + 1);
+    return true;
   }
 
   // (',' parameter)*
