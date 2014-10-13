@@ -281,17 +281,12 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiMethod[] getMethods() {
     List<HaxeMethod> haxeMethods = getHaxeMethods();
-<<<<<<< HEAD
-    PsiMethod[] returntype = new PsiMethod[haxeMethods.size()];
-    return haxeMethods.toArray(returntype);
-=======
     PsiMethod[] returntype = PsiMethod.EMPTY_ARRAY; // size is irrelevant
     PsiMethod[] ary = haxeMethods.toArray(returntype);
     if (null == ary) {
       ary = PsiMethod.EMPTY_ARRAY;
     }
     return ary;
->>>>>>> a4cddcd8219f6ff6cde5c2d1cad8b143cc3c38c0
   }
 
   @Override
