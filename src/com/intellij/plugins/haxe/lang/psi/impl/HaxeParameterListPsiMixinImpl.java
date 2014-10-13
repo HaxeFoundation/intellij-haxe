@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
@@ -51,7 +52,7 @@ public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl i
   public List<HaxeParameter> getParametersAsList() {
     HaxeParameter[] parameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameter.class, null);
     if (parameters == null) {
-      parameters = new HaxeParameter[0];   // TODO: [TiVo] return an EMPTY.
+      parameters = new HaxeParameter[0];   // TODO: return an EMPTY.
     }
     return Arrays.asList(parameters);
   }

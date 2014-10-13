@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
@@ -106,7 +107,7 @@ public class HaxeFile extends PsiFileBase
 
   @Override
   public void setPackageName(String packageName) throws IncorrectOperationException {
-    // TODO: [TiVo] Unimplemented.  We don't need this for read-only operations.
+    // TODO: Unimplemented.  We don't need this for read-only operations.
     throw new IncorrectOperationException("Unimplemented");
   }
 }

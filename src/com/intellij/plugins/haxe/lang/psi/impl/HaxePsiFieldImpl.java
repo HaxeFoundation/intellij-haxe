@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
@@ -88,12 +89,14 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
+    // TODO:  Implement 'public PsiDocComment getDocComment()'
     //PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
     //return ((psiComment != null)? new HaxePsiDocComment(getDelegate(), psiComment) : null);
     return null;
   }
 
   private boolean isPrivate() {
+    // TODO:  Implement 'private boolean isPrivate()'
     //final List<HaxeDeclarationAttribute> declarationAttributeList = getDeclarationAttributeList();
     //for (HaxeDeclarationAttribute declarationAttribute : declarationAttributeList) {
     //  HaxeAccess access = declarationAttribute.getAccess();
@@ -101,7 +104,7 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     //    return true;
     //  }
     //}
-    return false; // TODO: Fix
+    return false;
   }
 
   @Override
@@ -116,7 +119,7 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
 
   @Override
   public void setInitializer(@Nullable PsiExpression initializer) throws IncorrectOperationException {
-    // TODO: Fix
+    // XXX: this may need to be implemented for refactoring functionality
   }
 
   @Nullable
@@ -128,31 +131,43 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @NotNull
   @Override
   public PsiType getType() {
+    // TODO:  Implement 'public PsiType getType()'
     HaxeTypeTag haxeTypeTag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
-    return null; // TODO: Fix
+    return null;
   }
 
   @Nullable
   @Override
   public PsiTypeElement getTypeElement() {
-    HaxeTypeTag haxeTypeTag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
-    return null; // TODO: Fix
+    // Lifted, lock, stock, and barrel from PsiParameterImpl.java
+    // which was for the Java language.
+    // TODO:  Need to verify against the Haxe language spec.
+    //              Are there other situations?
+    for (PsiElement child = getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child instanceof PsiTypeElement) {
+        //noinspection unchecked
+        return (PsiTypeElement)child;
+      }
+    }
+    return null;
   }
 
   @Nullable
   @Override
   public PsiExpression getInitializer() {
-    return null; // TODO: Fix
+    // XXX: this may need to be implemented for refactoring functionality
+    return null;
   }
 
   @Override
   public boolean hasInitializer() {
-    return false; // TODO: Fix
+    // XXX: this may need to be implemented for refactoring functionality
+    return false;
   }
 
   @Override
   public void normalizeDeclaration() throws IncorrectOperationException {
-    // TODO: Fix
+    // intentionally left empty
   }
 
   @Nullable

@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
@@ -106,14 +107,14 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     }
     // A HaxeFunctionType is a PSI Element.
     // HaxeFunctionType type = getTypeTag().getFunctionType(); // type could be null
-    /* TODO: [TiVo]: translate above returned objects into PsiType */
+    /* TODO: : 'public PsiType getReturnType()': translate above objects into PsiType */
     return null;
   }
 
   @Nullable
   @Override
   public PsiTypeElement getReturnTypeElement() {
-    /* TODO: [TiVo]: translate below returned objects into PsiTypeElement */
+    /* TODO: : 'public PsiType getReturnType()': translate below objects into PsiTypeElement */
     // return getTypeTag();
     return null;
   }
@@ -167,6 +168,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
+    // TODO: Fix 'public PsiDocComment getDocComment()'
     //PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
     //return ((psiComment != null)? new HaxePsiDocComment(this, psiComment) : null);
     return null;
@@ -212,7 +214,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public MethodSignature getSignature(@NotNull PsiSubstitutor substitutor) {
-    /* TODO: [TiVo]: Implement */
+    // XXX: this may need to be implemented for refactoring functionality
     return null;
   }
 
@@ -270,7 +272,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
-    // TODO: [TiVo]: Fix getTypeParameterList();
+    // TODO:  Implement 'public PsiTypeParameterList getTypeParameterList()'
     return null;
   }
 

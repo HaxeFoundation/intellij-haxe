@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
@@ -52,7 +53,7 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   public PsiElement getDeclarationScope() {
     // Lifted, lock, stock, and barrel from PsiParameterImpl.java
     // which was for the Java language.
-    // TODO: [TiVo] Need to verify against the Haxe language spec.
+    // TODO:  Need to verify against the Haxe language spec.
     //              Are there other situations?
     final PsiElement parent = getParent();
     if (parent == null) return this;
@@ -98,7 +99,7 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   public PsiTypeElement getTypeElement() {
     // Lifted, lock, stock, and barrel from PsiParameterImpl.java
     // which was for the Java language.
-    // TODO: [TiVo] Need to verify against the Haxe language spec.
+    // TODO:  Need to verify against the Haxe language spec.
     //              Are there other situations?
     for (PsiElement child = getFirstChild(); child != null; child = child.getNextSibling()) {
       if (child instanceof PsiTypeElement) {
@@ -113,39 +114,39 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   @Override
   public PsiType getType() {
     // The Haxe language variable type (int, float, etc.), not the psi token type.
-    // TODO: [TiVo] Implement.
+    // TODO:  Implement 'public PsiType getType()'
     return null;
   }
 
   @Nullable
   @Override
   public PsiExpression getInitializer() {
-    // TODO: [TiVo] Implement.
+    // XXX: this may need to be implemented for refactoring functionality
     return null;
   }
 
   @Override
   public boolean hasInitializer() {
-    // TODO: [TiVo] Implement.
+    // XXX: this may need to be implemented for refactoring functionality
     return false;
   }
 
   @Override
   public void normalizeDeclaration() throws IncorrectOperationException {
-    // TODO: [TiVo] Implement.
+    // XXX: this may need to be implemented for refactoring functionality
   }
 
   @Nullable
   @Override
   public Object computeConstantValue() {
-    // TODO: [TiVo] Implement.
+    // XXX: this may need to be implemented for refactoring functionality
     return null;
   }
 
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    // TODO: [TiVo] Implement.
+    // TODO:  Implement 'public PsiIdentifier getNameIdentifier()'
     return null;
   }
 

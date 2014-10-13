@@ -1,5 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
@@ -23,10 +24,8 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.*;
 import com.intellij.psi.impl.source.tree.ChildRole;
@@ -292,7 +291,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getAllMethods() {
-    return getMethods();
+    return PsiClassImplUtil.getAllMethods(this);
   }
 
   @Override
@@ -436,6 +435,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiDocComment getDocComment() {
+    // TODO: Fix 'public PsiDocComment getDocComment()'
     //PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
     //return ((psiComment != null)? new HaxePsiDocComment(this, psiComment) : null);
     return null;
