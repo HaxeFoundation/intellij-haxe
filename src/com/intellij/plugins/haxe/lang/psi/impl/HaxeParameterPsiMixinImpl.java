@@ -21,7 +21,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -99,14 +102,19 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   public PsiTypeElement getTypeElement() {
     // Lifted, lock, stock, and barrel from PsiParameterImpl.java
     // which was for the Java language.
-    // TODO:  Need to verify against the Haxe language spec.
+    // TODO: Broken.  Needs re-implementation.
+    // TODO: Need to verify against the Haxe language spec.
     //              Are there other situations?
+    // XXX: This won't work.  The children are further down the tree, not at the child level.
     for (PsiElement child = getFirstChild(); child != null; child = child.getNextSibling()) {
       if (child instanceof PsiTypeElement) {
         //noinspection unchecked
         return (PsiTypeElement)child;
       }
     }
+
+    // PsiTypeElement t = (HaxeType) PsiTreeUtil.findChildOfType(this, HaxeType.class);
+
     return null;
   }
 
@@ -114,8 +122,9 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   @Override
   public PsiType getType() {
     // The Haxe language variable type (int, float, etc.), not the psi token type.
-    // TODO:  Implement 'public PsiType getType()'
-    return null;
+    PsiTypeElement el = getTypeElement();
+    PsiType type = null != el ? el.getType() : PsiType.VOID;
+    return null != type ? type : PsiType.VOID;
   }
 
   @Nullable

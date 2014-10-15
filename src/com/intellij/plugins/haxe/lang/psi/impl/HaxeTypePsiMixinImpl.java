@@ -27,13 +27,11 @@ import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParam;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.JavaResolveResult;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReferenceParameterList;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Level;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,9 +145,9 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @NotNull
   @Override
   public String getCanonicalText() {
-    // TODO:  Unimplemented.
-    LOG.warn("getCanonicalText is unimplemented");
-    return null;
+    // Fully qualified name: (package/class).type
+    // TODO: Need a more complete implementation.
+    return getText();
   }
 
   @Override
@@ -194,6 +192,9 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @Nullable
   @Override
   public PsiElement getQualifier() {
+    // Package/class that this type is part of; the part before
+    // the last '.'.  However, that may only be partial, so adding
+    // package information may also be necessary.
     // TODO:  Unimplemented.
     LOG.warn("getQualifier is unimplemented");
     return null;
@@ -202,9 +203,10 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
   @Nullable
   @Override
   public String getReferenceName() {
-    // TODO:  Unimplemented.
-    LOG.warn("getReferenceName is unimplemented");
-    return null;
+    // Unqualified name; the base name without any preceding
+    // package/class name.
+    // TODO: Figure out if this needs to split out any prefix.
+    return getText();
   }
 
 }
