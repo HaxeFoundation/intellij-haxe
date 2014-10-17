@@ -95,7 +95,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitBlockStatement(@NotNull HaxeBlockStatement o) {
-    visitPsiCompositeElement(o);
+    visitBlockStatementPsiMixin(o);
   }
 
   public void visitBreakStatement(@NotNull HaxeBreakStatement o) {
@@ -588,6 +588,10 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitWildcard(@NotNull HaxeWildcard o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitBlockStatementPsiMixin(@NotNull HaxeBlockStatementPsiMixin o) {
     visitPsiCompositeElement(o);
   }
 

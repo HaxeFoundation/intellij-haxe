@@ -88,8 +88,11 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @NotNull
   @Override
   public ResolveResult[] multiResolve(boolean incompleteCode) {
-    final List<? extends PsiElement> elements =
-      ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
+    // For the moment (while debugging the resolver) let's do this without caching.
+    boolean skipCaching = true;
+    final List<? extends PsiElement> elements = skipCaching
+                                                ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
+                                                : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
     return toCandidateInfoArray(elements);
   }
 
