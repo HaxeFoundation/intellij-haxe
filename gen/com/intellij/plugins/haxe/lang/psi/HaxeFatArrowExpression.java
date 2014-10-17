@@ -23,15 +23,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeImportStatement extends HaxePsiCompositeElement {
+public interface HaxeFatArrowExpression extends HaxeExpression {
 
-  @Nullable
-  HaxeImportStatementRegular getImportStatementRegular();
-
-  @Nullable
-  HaxeImportStatementWithInSupport getImportStatementWithInSupport();
-
-  @Nullable
-  HaxeImportStatementWithWildcard getImportStatementWithWildcard();
+  @NotNull
+  List<HaxeExpression> getExpressionList();
 
 }

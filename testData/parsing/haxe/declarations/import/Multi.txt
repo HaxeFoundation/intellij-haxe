@@ -1,35 +1,33 @@
 Haxe File
-  IMPORT_STATEMENT
+  IMPORT_STATEMENT_REGULAR
     PsiElement(import)('import')
-    IMPORT_STATEMENT_REGULAR
+    REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
         REFERENCE_EXPRESSION
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('com')
-          PsiElement(.)('.')
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('fedor')
+          IDENTIFIER
+            PsiElement(ID)('com')
         PsiElement(.)('.')
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiElement(ID)('test1')
+            PsiElement(ID)('fedor')
+      PsiElement(.)('.')
+      REFERENCE_EXPRESSION
+        IDENTIFIER
+          PsiElement(ID)('test1')
     PsiElement(;)(';')
-  IMPORT_STATEMENT
+  IMPORT_STATEMENT_REGULAR
     PsiElement(import)('import')
-    IMPORT_STATEMENT_REGULAR
+    REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
         REFERENCE_EXPRESSION
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('com')
-          PsiElement(.)('.')
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('fedor')
+          IDENTIFIER
+            PsiElement(ID)('com')
         PsiElement(.)('.')
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiElement(ID)('test2')
+            PsiElement(ID)('fedor')
+      PsiElement(.)('.')
+      REFERENCE_EXPRESSION
+        IDENTIFIER
+          PsiElement(ID)('test2')
     PsiElement(;)(';')

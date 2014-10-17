@@ -73,9 +73,13 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     myFixture.configureByFiles("ClassName.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("ClassName.txt");
   }
-
   public void testClassName2() throws Throwable {
     doTest();
+  }
+
+  public void testImportInStatement() throws Throwable {
+    myFixture.configureByFiles("ImportInStatement.hx", "com/util/ClassFactory.hx");
+    doTestVariantsInner("ImportInStatement.txt");
   }
 
   public void testPackageCompletionInPackageStatement1() {
@@ -150,4 +154,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     myFixture.configureByFiles("UsingUtil2.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("UsingUtil2.txt");
   }
+
+  //https://github.com/TiVo/intellij-haxe/issues/28
+  public void testTypedefOptionalField() throws Throwable {
+    myFixture.configureByFiles("TypedefOptionalField.hx");
+    doTestVariantsInner("TypedefOptionalField.txt");
+  }
+
 }

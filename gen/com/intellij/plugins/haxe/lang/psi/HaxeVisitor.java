@@ -200,6 +200,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
+  public void visitFatArrowExpression(@NotNull HaxeFatArrowExpression o) {
+    visitExpression(o);
+  }
+
   public void visitForStatement(@NotNull HaxeForStatement o) {
     visitComponent(o);
   }
@@ -237,10 +241,6 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitIfStatement(@NotNull HaxeIfStatement o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitImportStatement(@NotNull HaxeImportStatement o) {
     visitPsiCompositeElement(o);
   }
 

@@ -291,6 +291,7 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 
 ">>="                                     { return OSHIFT_RIGHT_ASSIGN; }
 ">="                                      { return OGREATER_OR_EQUAL; }
+"=>"                                      { return OFAT_ARROW; }
 ">"                                       { return OGREATER; }
 
 "#if"                                     { return PPIF; }

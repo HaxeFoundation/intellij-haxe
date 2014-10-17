@@ -270,7 +270,10 @@
     <languageInjector implementation="com.intellij.plugins.haxe.lang.RegexLanguageInjector"/>
     <lang.elementManipulator forClass="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpressionLiteral"
                              implementationClass="com.intellij.plugins.haxe.lang.psi.manipulators.HaxeRegularExpressionLiteralManipulator"/>
+    <lang.smartEnterProcessor language="Haxe" implementationClass="com.intellij.plugins.haxe.editor.smartEnter.HaxeSmartEnterProcessor"/>
 
+    <copyPastePostProcessor implementation="com.intellij.plugins.haxe.editor.HaxeReferenceCopyPasteProcessor"/>
+    
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
 
     <codeInsight.lineMarkerProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLineMarkerProvider"/>
@@ -346,6 +349,10 @@
                      key="haxe.inspection.unresolved.symbol"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
+
+    <intentionAction>
+      <className>com.intellij.plugins.haxe.ide.intention.ReplaceImportStatementWithWildcardWithSingleClassImports</className>
+    </intentionAction>
   </extensions>
 
   <actions>

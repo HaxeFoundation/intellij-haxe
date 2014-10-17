@@ -69,6 +69,7 @@ public interface HaxeTokenTypes {
   IElementType EXTERN_FUNCTION_DECLARATION = new HaxeElementType("EXTERN_FUNCTION_DECLARATION");
   IElementType EXTERN_OR_PRIVATE = new HaxeElementType("EXTERN_OR_PRIVATE");
   IElementType FAKE_ENUM_META = new HaxeElementType("FAKE_ENUM_META");
+  IElementType FAT_ARROW_EXPRESSION = new HaxeElementType("FAT_ARROW_EXPRESSION");
   IElementType FOR_STATEMENT = new HaxeElementType("FOR_STATEMENT");
   IElementType FUNCTION_DECLARATION_WITH_ATTRIBUTES = new HaxeElementType("FUNCTION_DECLARATION_WITH_ATTRIBUTES");
   IElementType FUNCTION_LITERAL = new HaxeElementType("FUNCTION_LITERAL");
@@ -79,7 +80,6 @@ public interface HaxeTokenTypes {
   IElementType GETTER_META = new HaxeElementType("GETTER_META");
   IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
   IElementType IF_STATEMENT = new HaxeElementType("IF_STATEMENT");
-  IElementType IMPORT_STATEMENT = new HaxeElementType("IMPORT_STATEMENT");
   IElementType IMPORT_STATEMENT_REGULAR = new HaxeElementType("IMPORT_STATEMENT_REGULAR");
   IElementType IMPORT_STATEMENT_WITH_IN_SUPPORT = new HaxeElementType("IMPORT_STATEMENT_WITH_IN_SUPPORT");
   IElementType IMPORT_STATEMENT_WITH_WILDCARD = new HaxeElementType("IMPORT_STATEMENT_WITH_WILDCARD");
@@ -240,6 +240,7 @@ public interface HaxeTokenTypes {
   IElementType OCOND_OR = new HaxeElementType("||");
   IElementType ODOT = new HaxeElementType(".");
   IElementType OEQ = new HaxeElementType("==");
+  IElementType OFAT_ARROW = new HaxeElementType("=>");
   IElementType OGREATER = new HaxeElementType(">");
   IElementType OGREATER_OR_EQUAL = new HaxeElementType(">=");
   IElementType OIN = new HaxeElementType("in");
@@ -414,6 +415,9 @@ public interface HaxeTokenTypes {
       else if (type == FAKE_ENUM_META) {
         return new HaxeFakeEnumMetaImpl(node);
       }
+      else if (type == FAT_ARROW_EXPRESSION) {
+        return new HaxeFatArrowExpressionImpl(node);
+      }
       else if (type == FOR_STATEMENT) {
         return new HaxeForStatementImpl(node);
       }
@@ -443,9 +447,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == IF_STATEMENT) {
         return new HaxeIfStatementImpl(node);
-      }
-      else if (type == IMPORT_STATEMENT) {
-        return new HaxeImportStatementImpl(node);
       }
       else if (type == IMPORT_STATEMENT_REGULAR) {
         return new HaxeImportStatementRegularImpl(node);

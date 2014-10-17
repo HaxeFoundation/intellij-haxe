@@ -40,9 +40,9 @@ public class HaxeImportStatementRegularImpl extends HaxePsiCompositeElementImpl 
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeReferenceExpression getReferenceExpression() {
-    return findNotNullChildByClass(HaxeReferenceExpression.class);
+    return findChildByClass(HaxeReferenceExpression.class);
   }
 
 }

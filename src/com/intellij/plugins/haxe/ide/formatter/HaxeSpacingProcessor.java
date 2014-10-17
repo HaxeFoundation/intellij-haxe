@@ -59,10 +59,16 @@ public class HaxeSpacingProcessor {
     final ASTNode nodeNode2 = node2 == null ? null : node2.getFirstChildNode();
     final IElementType typeType2 = nodeNode2 == null ? null : nodeNode2.getElementType();
 
-    if (type1 == IMPORT_STATEMENT ||
+    if (type1 == IMPORT_STATEMENT_REGULAR ||
+        type1 == IMPORT_STATEMENT_WITH_IN_SUPPORT ||
+        type1 == IMPORT_STATEMENT_WITH_WILDCARD ||
         type1 == PACKAGE_STATEMENT ||
         type1 == USING_STATEMENT) {
       return addSingleSpaceIf(false, true);
+    }
+
+    if (elementType.equals(WILDCARD)) {
+      return addSingleSpaceIf(false);
     }
 
     if (type1 == CLASS_BODY || type1 == EXTERN_CLASS_DECLARATION_BODY || type1 == ENUM_BODY || type1 == INTERFACE_BODY) {
@@ -234,7 +240,7 @@ public class HaxeSpacingProcessor {
     //
     // Spacing around  multiplicative operators ( *, /, %, etc.)
     //
-    if (MULTIPLICATIVE_OPERATORS.contains(type1) || MULTIPLICATIVE_OPERATORS.contains(type2)) {
+    if ((MULTIPLICATIVE_OPERATORS.contains(type1) || MULTIPLICATIVE_OPERATORS.contains(type2))) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_MULTIPLICATIVE_OPERATORS);
     }
     //
