@@ -216,6 +216,7 @@ public class HaxeResolveUtil {
     classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
+      String name = haxeClass.getName();
       for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
         if (namedComponent.getName() != null) {
           unfilteredResult.add(namedComponent);
@@ -460,6 +461,7 @@ public class HaxeResolveUtil {
   public static List<HaxeClass> tyrResolveClassesByQName(@NotNull List<HaxeType> types) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     for (HaxeType haxeType : types) {
+      String text = haxeType.getText();
       final HaxeClass haxeClass = tryResolveClassByQName(haxeType);
       if (haxeClass != null) {
         result.add(haxeClass);
@@ -474,7 +476,8 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    HaxeClass result = findClassByQName(getQName(type, false), type.getContext());
+    String name = getQName(type, false);
+    HaxeClass result = findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;

@@ -92,7 +92,7 @@ public class HaxeReferenceCopyPasteProcessor implements CopyPastePostProcessor  
             final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(referenceExpression);
             final List<HaxeComponent> components =
               HaxeComponentIndex.getItemsByName(referenceExpression.getText(), project, scope);
-            if (!components.isEmpty()) {
+            if (!components.isEmpty() && components.size() == 1) {
               haxeClassList.add(((HaxeClass)components.get(0)).getQualifiedName());
             }
           }
