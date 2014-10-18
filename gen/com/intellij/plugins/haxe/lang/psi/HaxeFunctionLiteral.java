@@ -35,10 +35,7 @@ public interface HaxeFunctionLiteral extends HaxeExpression {
   HaxeParameterList getParameterList();
 
   @Nullable
-  HaxeReturnStatement getReturnStatement();
-
-  @Nullable
-  HaxeThrowStatement getThrowStatement();
+  HaxeStatement getStatement();
 
   @Nullable
   HaxeTypeTag getTypeTag();

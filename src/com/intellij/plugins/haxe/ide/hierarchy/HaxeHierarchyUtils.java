@@ -309,7 +309,7 @@ public class HaxeHierarchyUtils {
     if (ctype == HaxeComponentType.METHOD) {
       // What we need to return is not the element we checked the type of,
       // nor the corresponding parsed file element.
-      // Instead, we need to return the composite HaxePsiMethod class.
+      // Instead, we need to return the HaxeMethod class.
       HaxeMethod psiMethod = (HaxeMethod)logicalElement.getParent();
       return psiMethod;
     }

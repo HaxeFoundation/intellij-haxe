@@ -21,6 +21,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeDoWhileStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementUtils;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public class HaxeDoWhileSurrounder extends HaxeManyStatementsSurrounder {
 
   @Override
   protected TextRange getSurroundSelectionRange(PsiElement element) {
-    final List<HaxeExpression> expressionList = ((HaxeDoWhileStatement)element).getExpressionList();
+    final List<HaxeExpression> expressionList = HaxeStatementUtils.getExpressionList(element);
     return expressionList.get(expressionList.size() - 1).getTextRange();
   }
 

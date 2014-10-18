@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.surroundWith;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeWhileStatement;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementUtils;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ public class HaxeWhileSurrounder extends HaxeManyStatementsSurrounder {
 
   @Override
   protected TextRange getSurroundSelectionRange(PsiElement element) {
-    return ((HaxeWhileStatement)element).getExpressionList().iterator().next().getTextRange();
+    return HaxeStatementUtils.getExpression(element).getTextRange();
   }
 
   @Override

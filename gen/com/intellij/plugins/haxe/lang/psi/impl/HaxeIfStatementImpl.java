@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeIfStatementImpl extends HaxePsiCompositeElementImpl implements HaxeIfStatement {
+public class HaxeIfStatementImpl extends HaxeStatementImpl implements HaxeIfStatement {
 
   public HaxeIfStatementImpl(ASTNode node) {
     super(node);
@@ -40,87 +40,15 @@ public class HaxeIfStatementImpl extends HaxePsiCompositeElementImpl implements 
   }
 
   @Override
-  @NotNull
-  public List<HaxeBlockStatement> getBlockStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBlockStatement.class);
+  @Nullable
+  public HaxeExpression getExpression() {
+    return findChildByClass(HaxeExpression.class);
   }
 
   @Override
   @NotNull
-  public List<HaxeBreakStatement> getBreakStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBreakStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeContinueStatement> getContinueStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeContinueStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeDoWhileStatement> getDoWhileStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDoWhileStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeForStatement> getForStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeForStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeIfStatement> getIfStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeIfStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeLocalFunctionDeclaration> getLocalFunctionDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeLocalFunctionDeclaration.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeLocalVarDeclaration> getLocalVarDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeLocalVarDeclaration.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeReturnStatement> getReturnStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeReturnStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeSwitchStatement> getSwitchStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSwitchStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeThrowStatement> getThrowStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeThrowStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeTryStatement> getTryStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTryStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeWhileStatement> getWhileStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeWhileStatement.class);
+  public List<HaxeStatement> getStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeStatement.class);
   }
 
 }

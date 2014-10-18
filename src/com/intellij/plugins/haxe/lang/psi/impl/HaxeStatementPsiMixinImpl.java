@@ -15,13 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.psi;
+package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.psi.PsiCodeBlock;
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin;
 
 /**
- * Created by ebishton on 10/16/14.
+ * Created by ebishton on 10/17/14.
  */
-public interface HaxeBlockStatementPsiMixin extends HaxeStatement, PsiCodeBlock {
+public class HaxeStatementPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeStatementPsiMixin {
+
+  public HaxeStatementPsiMixinImpl(ASTNode node) {
+    super(node);
+  }
 
 }

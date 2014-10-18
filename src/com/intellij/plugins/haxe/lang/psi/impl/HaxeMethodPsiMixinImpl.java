@@ -150,7 +150,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
       return null;
     }
 
-    return (PsiCodeBlock)bs.getNode().findChildByType(HaxeTokenTypes.BLOCK_STATEMENT);
+    return (PsiCodeBlock)bs.getNode().getPsi(PsiCodeBlock.class);
   }
 
   @Override
@@ -196,6 +196,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public PsiTypeParameter[] getTypeParameters() {
+    // Type parameters are those inside of the type designation (e.g.
+    // inside the '<' and '>').
     return PsiImplUtil.getTypeParameters(this);
   }
 
@@ -272,7 +274,9 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
-    // TODO:  Implement 'public PsiTypeParameterList getTypeParameterList()'
+    // Type parameters are those inside of the type designation (e.g.
+    // inside the '<' and '>').
+// TODO:  Implement 'public PsiTypeParameterList getTypeParameterList()'
     return null;
   }
 

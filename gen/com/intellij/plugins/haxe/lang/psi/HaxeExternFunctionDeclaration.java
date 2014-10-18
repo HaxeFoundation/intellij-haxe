@@ -88,14 +88,11 @@ public interface HaxeExternFunctionDeclaration extends HaxeMethod {
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
 
-  @Nullable
-  HaxeReturnStatement getReturnStatement();
-
   @NotNull
   List<HaxeSetterMeta> getSetterMetaList();
 
   @Nullable
-  HaxeThrowStatement getThrowStatement();
+  HaxeStatement getStatement();
 
   @Nullable
   HaxeTypeTag getTypeTag();
