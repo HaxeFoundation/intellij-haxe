@@ -90,6 +90,9 @@ DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?
 COMMENT_TAIL=([^"*"]*("*"+[^"*""/"])?)*("*"+"/")?
 END_OF_LINE_COMMENT="/""/"[^\r\n]*
 
+CONDITIONAL_IDENTIFIER = [^\r\n]*
+COMPILE_TIME_CONDITIONAL="#"{CONDITIONAL_IDENTIFIER}
+
 mHEX_DIGIT = [0-9A-Fa-f]
 mINT_DIGIT = [0-9]
 mOCT_DIGIT = [0-7]
@@ -294,11 +297,12 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 "=>"                                      { return OFAT_ARROW; }
 ">"                                       { return OGREATER; }
 
-"#if"                                     { return PPIF; }
-"#end"                                    { return PPEND; }
-"#error"                                  { return PPERROR; }
-"#elseif"                                 { return PPELSEIF; }
-"#else"                                   { return PPELSE; }
+{COMPILE_TIME_CONDITIONAL}                { return CONDITIONAL_STATEMENT_ID; }
+//"#if"                                     { return PPIF; }
+//"#end"                                    { return PPEND; }
+//"#error"                                  { return PPERROR; }
+//"#elseif"                                 { return PPELSEIF; }
+//"#else"                                   { return PPELSE; }
 } // <YYINITIAL, LONG_TEMPLATE_ENTRY>
 
 // "

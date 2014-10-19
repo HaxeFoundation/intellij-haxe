@@ -35,6 +35,9 @@ public interface HaxeForStatement extends HaxeComponent {
   HaxeComponentName getComponentName();
 
   @Nullable
+  HaxeConditional getConditional();
+
+  @Nullable
   HaxeContinueStatement getContinueStatement();
 
   @Nullable

@@ -41,6 +41,12 @@ public class HaxeExternClassDeclarationBodyImpl extends HaxePsiCompositeElementI
 
   @Override
   @NotNull
+  public List<HaxeConditional> getConditionalList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeConditional.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeExternFunctionDeclaration> getExternFunctionDeclarationList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExternFunctionDeclaration.class);
   }

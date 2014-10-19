@@ -32,6 +32,9 @@ public interface HaxeWhileStatement extends HaxePsiCompositeElement {
   HaxeBreakStatement getBreakStatement();
 
   @Nullable
+  HaxeConditional getConditional();
+
+  @Nullable
   HaxeContinueStatement getContinueStatement();
 
   @Nullable

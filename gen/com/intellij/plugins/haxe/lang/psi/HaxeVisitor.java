@@ -136,6 +136,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitNamedElement(o);
   }
 
+  public void visitConditional(@NotNull HaxeConditional o) {
+    visitPsiCompositeElement(o);
+  }
+
   public void visitContinueStatement(@NotNull HaxeContinueStatement o) {
     visitPsiCompositeElement(o);
   }
