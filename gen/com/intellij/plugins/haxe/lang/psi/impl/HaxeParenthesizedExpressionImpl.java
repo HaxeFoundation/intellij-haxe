@@ -53,6 +53,12 @@ public class HaxeParenthesizedExpressionImpl extends HaxeExpressionImpl implemen
 
   @Override
   @Nullable
+  public HaxeConditional getConditional() {
+    return findChildByClass(HaxeConditional.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeContinueStatement getContinueStatement() {
     return findChildByClass(HaxeContinueStatement.class);
   }

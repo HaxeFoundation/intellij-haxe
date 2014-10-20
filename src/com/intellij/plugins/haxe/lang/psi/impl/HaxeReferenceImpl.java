@@ -18,8 +18,10 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -36,10 +38,13 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -124,7 +129,105 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
     }
     if (this instanceof HaxeArrayLiteral) {
-      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
+      HaxeArrayLiteral haxeArrayLiteral = (HaxeArrayLiteral)this;
+      HaxeExpressionList expressionList = haxeArrayLiteral.getExpressionList();
+      boolean isMap = false;
+      boolean isString = false;
+      boolean sameClass = false;
+      boolean implementOrExtendSameClass = false;
+      HaxeClass haxeClass = null;
+      List<HaxeType> commonTypeList = new ArrayList<HaxeType>();
+      List<HaxeExpression> haxeExpressionList = expressionList.getExpressionList();
+      if (!haxeExpressionList.isEmpty()) {
+        isMap = true;
+        isString = true;
+        sameClass = true;
+
+        for (HaxeExpression expression : haxeExpressionList) {
+          if (!(expression instanceof HaxeFatArrowExpression)) {
+            isMap = false;
+          }
+          if (!(expression instanceof HaxeStringLiteralExpression)) {
+            isString = false;
+          }
+
+          if (sameClass || implementOrExtendSameClass) {
+            HaxeReferenceExpression haxeReference = null;
+            if (expression instanceof HaxeNewExpression || expression instanceof HaxeCallExpression) {
+              haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
+            }
+            if (expression instanceof HaxeReferenceExpression) {
+              haxeReference = (HaxeReferenceExpression)expression;
+            }
+
+            HaxeClass haxeClassResolveResultHaxeClass = null;
+            if (haxeReference != null) {
+              HaxeClassResolveResult haxeClassResolveResult = haxeReference.resolveHaxeClass();
+              haxeClassResolveResultHaxeClass = haxeClassResolveResult.getHaxeClass();
+              if (haxeClassResolveResultHaxeClass != null) {
+                if (haxeClass == null) {
+                  haxeClass = haxeClassResolveResultHaxeClass;
+                  commonTypeList.addAll(haxeClass.getHaxeImplementsList());
+                  commonTypeList.addAll(haxeClass.getHaxeExtendsList());
+                }
+              }
+            }
+
+            if (haxeClass != null && !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
+              List<HaxeType> haxeTypeList = new ArrayList<HaxeType>();
+              haxeTypeList.addAll(haxeClass.getHaxeImplementsList());
+              haxeTypeList.addAll(haxeClass.getHaxeExtendsList());
+
+              commonTypeList.retainAll(haxeTypeList);
+              if (!commonTypeList.isEmpty()) {
+                implementOrExtendSameClass = true;
+              }
+              else {
+                implementOrExtendSameClass = false;
+              }
+            }
+
+            if (haxeClass == null || !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
+              sameClass = false;
+            }
+          }
+        }
+
+        if (isMap) {
+          return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
+        }
+      }
+      HaxeClassResolveResult resolveResult =
+        HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
+
+      HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+
+      HaxeGenericSpecialization specialization = resolveResult.getSpecialization();
+      if (resolveResultHaxeClass != null && specialization.get(resolveResultHaxeClass, "T") == null) {
+        if (isString) {
+          specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this)));
+        }
+        else if (sameClass) {
+          specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
+        }
+        else if (implementOrExtendSameClass) {
+          HaxeReferenceExpression haxeReferenceExpression = commonTypeList.get(commonTypeList.size() - 1).getReferenceExpression();
+          if (haxeReferenceExpression != null) {
+            HaxeClassResolveResult resolveHaxeClass = haxeReferenceExpression.resolveHaxeClass();
+
+            if (resolveHaxeClass != null) {
+              HaxeClass resolveHaxeClassHaxeClass = resolveHaxeClass.getHaxeClass();
+
+              if (resolveHaxeClassHaxeClass != null) {
+                specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(
+                  resolveHaxeClassHaxeClass.getQualifiedName(), this)));
+              }
+            }
+          }
+        }
+      }
+
+      return resolveResult;
     }
     if (this instanceof HaxeNewExpression) {
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(
@@ -153,13 +256,36 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
         // std Array
         if ("Array".equalsIgnoreCase(resolveResultHaxeClass.getQualifiedName())) {
-          return resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
+          HaxeClassResolveResult arrayResolveResult = resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
+
+          if (arrayResolveResult != null) {
+            return arrayResolveResult;
+          }
         }
         // __get method
         return HaxeResolveUtil.getHaxeClassResolveResult(resolveResultHaxeClass.findHaxeMethodByName("__get"),
                                                          resolveResult.getSpecialization());
       }
     }
+    PsiElement resolve = resolve();
+    if (resolve != null) {
+      PsiElement parent = resolve.getParent();
+
+      if (parent != null) {
+        if (parent instanceof HaxeFunctionDeclarationWithAttributes || parent instanceof HaxeExternFunctionDeclaration) {
+          return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+        }
+        HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(parent, HaxeTypeTag.class);
+
+        if (typeTag != null) {
+          HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(typeTag, HaxeFunctionType.class);
+          if (functionType != null) {
+            return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+          }
+        }
+      }
+    }
+
     HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve(), tryGetLeftResolveResult(this).getSpecialization());
     if (result.getHaxeClass() == null) {
       result = HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
@@ -322,14 +448,21 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public Object[] getVariants() {
     final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
 
+
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
-    if (leftReference != null && getParent() instanceof HaxeReference && !leftReference.resolveHaxeClass().isFunctionType()) {
-      addClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
+    if (leftReference != null && getParent() instanceof HaxeReference && leftReference.getText().equals(leftReference.resolveHaxeClass().getHaxeClass().getName())) {
+      addClassStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
+                       !(leftReference instanceof HaxeThisExpression));
+      addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());
+    }
+    else if (leftReference != null && getParent() instanceof HaxeReference && !leftReference.resolveHaxeClass().isFunctionType()) {
+      addClassNonStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        !(leftReference instanceof HaxeThisExpression));
       addUsingVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        HaxeResolveUtil.findUsingClasses(getContainingFile()));
+      addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());
     }
     else {
       // if chain
@@ -339,6 +472,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (!isChain) {
         PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
+        PsiFile psiFile = this.getContainingFile();
+        addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
       }
     }
 
@@ -353,6 +488,45 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return rootPackage == null ? variants : ArrayUtil.mergeArrays(variants, rootPackage.getSubPackages());
     }
     return variants;
+  }
+
+  private void addImportStatementWithWildcardTypeClassVariants(Set<HaxeComponentName> suggestedVariants, PsiFile psiFile) {
+    List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithWildcard;
+      }
+    });
+
+    for (PsiElement element : importStatementWithWildcardList) {
+      List<HaxeNamedComponent> namedSubComponents =
+        UsefulPsiTreeUtil.getImportStatementWithWildcardTypeNamedSubComponents((HaxeImportStatementWithWildcard)element, psiFile);
+      for (HaxeNamedComponent namedComponent : namedSubComponents) {
+        suggestedVariants.add(namedComponent.getComponentName());
+      }
+    }
+  }
+
+  private void addChildClassVariants(Set<HaxeComponentName> variants, HaxeClass haxeClass) {
+    if (haxeClass != null) {
+      PsiFile psiFile = haxeClass.getContainingFile();
+      VirtualFile virtualFile = psiFile.getVirtualFile();
+
+      if (virtualFile != null) {
+        String nameWithoutExtension = virtualFile.getNameWithoutExtension();
+
+        String name = haxeClass.getName();
+        if (name != null && name.equals(nameWithoutExtension)) {
+          List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
+
+          for (HaxeClass aClass : haxeClassList) {
+            if (!aClass.getName().equals(nameWithoutExtension)) {
+              variants.add(aClass.getComponentName());
+            }
+          }
+        }
+      }
+    }
   }
 
   private static void addUsingVariants(Set<HaxeComponentName> variants, @Nullable HaxeClass ourClass, List<HaxeClass> classes) {
@@ -376,6 +550,30 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       if (!needFilter && namedComponent.getComponentName() != null) {
+        suggestedVariants.add(namedComponent.getComponentName());
+      }
+    }
+  }
+
+  private static void addClassStaticMembersVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+    if (haxeClass == null) {
+      return;
+    }
+    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+      final boolean needFilter = filterByAccess && !namedComponent.isPublic();
+      if (!needFilter && namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+        suggestedVariants.add(namedComponent.getComponentName());
+      }
+    }
+  }
+
+  private static void addClassNonStaticMembersVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+    if (haxeClass == null) {
+      return;
+    }
+    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+      final boolean needFilter = filterByAccess && !namedComponent.isPublic();
+      if (!needFilter && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
       }
     }

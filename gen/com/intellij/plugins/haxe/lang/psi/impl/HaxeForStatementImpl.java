@@ -59,6 +59,12 @@ public class HaxeForStatementImpl extends AbstractHaxeNamedComponent implements 
 
   @Override
   @Nullable
+  public HaxeConditional getConditional() {
+    return findChildByClass(HaxeConditional.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeContinueStatement getContinueStatement() {
     return findChildByClass(HaxeContinueStatement.class);
   }

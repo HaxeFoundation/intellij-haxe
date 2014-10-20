@@ -54,6 +54,7 @@ public interface HaxeTokenTypes {
   IElementType COMPARE_EXPRESSION = new HaxeElementType("COMPARE_EXPRESSION");
   IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
   IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
+  IElementType CONDITIONAL = new HaxeElementType("CONDITIONAL");
   IElementType CONSTRUCTOR_NAME = new HaxeElementType("CONSTRUCTOR_NAME");
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
   IElementType CORE_API_META = new HaxeElementType("CORE_API_META");
@@ -74,6 +75,7 @@ public interface HaxeTokenTypes {
   IElementType EXTERN_FUNCTION_DECLARATION = new HaxeElementType("EXTERN_FUNCTION_DECLARATION");
   IElementType EXTERN_OR_PRIVATE = new HaxeElementType("EXTERN_OR_PRIVATE");
   IElementType FAKE_ENUM_META = new HaxeElementType("FAKE_ENUM_META");
+  IElementType FAT_ARROW_EXPRESSION = new HaxeElementType("FAT_ARROW_EXPRESSION");
   IElementType FINAL_META = new HaxeElementType("FINAL_META");
   IElementType FOR_STATEMENT = new HaxeElementType("FOR_STATEMENT");
   IElementType FUNCTION_DECLARATION_WITH_ATTRIBUTES = new HaxeElementType("FUNCTION_DECLARATION_WITH_ATTRIBUTES");
@@ -167,6 +169,7 @@ public interface HaxeTokenTypes {
   IElementType WILDCARD = new HaxeElementType("WILDCARD");
 
   IElementType CLOSING_QUOTE = new HaxeElementType("CLOSING_QUOTE");
+  IElementType CONDITIONAL_STATEMENT_ID = new HaxeElementType("CONDITIONAL_STATEMENT_ID");
   IElementType ID = new HaxeElementType("ID");
   IElementType KABSTRACT = new HaxeElementType("abstract");
   IElementType KAUTOBUILD = new HaxeElementType("@:autoBuild");
@@ -255,6 +258,7 @@ public interface HaxeTokenTypes {
   IElementType OCOND_OR = new HaxeElementType("||");
   IElementType ODOT = new HaxeElementType(".");
   IElementType OEQ = new HaxeElementType("==");
+  IElementType OFAT_ARROW = new HaxeElementType("=>");
   IElementType OGREATER = new HaxeElementType(">");
   IElementType OGREATER_OR_EQUAL = new HaxeElementType(">=");
   IElementType OIN = new HaxeElementType("in");
@@ -384,6 +388,9 @@ public interface HaxeTokenTypes {
       else if (type == COMPONENT_NAME) {
         return new HaxeComponentNameImpl(node);
       }
+      else if (type == CONDITIONAL) {
+        return new HaxeConditionalImpl(node);
+      }
       else if (type == CONSTRUCTOR_NAME) {
         return new HaxeConstructorNameImpl(node);
       }
@@ -443,6 +450,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == FAKE_ENUM_META) {
         return new HaxeFakeEnumMetaImpl(node);
+      }
+      else if (type == FAT_ARROW_EXPRESSION) {
+        return new HaxeFatArrowExpressionImpl(node);
       }
       else if (type == FINAL_META) {
         return new HaxeFinalMetaImpl(node);
