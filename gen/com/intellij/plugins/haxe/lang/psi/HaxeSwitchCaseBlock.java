@@ -32,6 +32,9 @@ public interface HaxeSwitchCaseBlock extends HaxePsiCompositeElement {
   List<HaxeBreakStatement> getBreakStatementList();
 
   @NotNull
+  List<HaxeConditional> getConditionalList();
+
+  @NotNull
   List<HaxeContinueStatement> getContinueStatementList();
 
   @NotNull

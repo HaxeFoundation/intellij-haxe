@@ -53,6 +53,7 @@ public interface HaxeTokenTypes {
   IElementType COMPARE_EXPRESSION = new HaxeElementType("COMPARE_EXPRESSION");
   IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
   IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
+  IElementType CONDITIONAL = new HaxeElementType("CONDITIONAL");
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
   IElementType CUSTOM_META = new HaxeElementType("CUSTOM_META");
   IElementType DECLARATION_ATTRIBUTE = new HaxeElementType("DECLARATION_ATTRIBUTE");
@@ -152,6 +153,7 @@ public interface HaxeTokenTypes {
   IElementType WILDCARD = new HaxeElementType("WILDCARD");
 
   IElementType CLOSING_QUOTE = new HaxeElementType("CLOSING_QUOTE");
+  IElementType CONDITIONAL_STATEMENT_ID = new HaxeElementType("CONDITIONAL_STATEMENT_ID");
   IElementType ID = new HaxeElementType("ID");
   IElementType KABSTRACT = new HaxeElementType("abstract");
   IElementType KAUTOBUILD = new HaxeElementType("@:autoBuild");
@@ -366,6 +368,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == COMPONENT_NAME) {
         return new HaxeComponentNameImpl(node);
+      }
+      else if (type == CONDITIONAL) {
+        return new HaxeConditionalImpl(node);
       }
       else if (type == CONTINUE_STATEMENT) {
         return new HaxeContinueStatementImpl(node);
