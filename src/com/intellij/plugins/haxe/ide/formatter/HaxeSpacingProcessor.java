@@ -67,6 +67,10 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(false, true);
     }
 
+    if (elementType.equals(WILDCARD)) {
+      return addSingleSpaceIf(false);
+    }
+
     if (type1 == CLASS_BODY || type1 == EXTERN_CLASS_DECLARATION_BODY || type1 == ENUM_BODY || type1 == INTERFACE_BODY) {
       return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
@@ -236,7 +240,7 @@ public class HaxeSpacingProcessor {
     //
     // Spacing around  multiplicative operators ( *, /, %, etc.)
     //
-    if (MULTIPLICATIVE_OPERATORS.contains(type1) || MULTIPLICATIVE_OPERATORS.contains(type2)) {
+    if ((MULTIPLICATIVE_OPERATORS.contains(type1) || MULTIPLICATIVE_OPERATORS.contains(type2))) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_MULTIPLICATIVE_OPERATORS);
     }
     //

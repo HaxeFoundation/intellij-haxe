@@ -53,6 +53,12 @@ public class HaxeBlockStatementImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @NotNull
+  public List<HaxeConditional> getConditionalList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeConditional.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeContinueStatement> getContinueStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeContinueStatement.class);
   }

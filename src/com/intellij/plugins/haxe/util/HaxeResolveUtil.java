@@ -216,6 +216,7 @@ public class HaxeResolveUtil {
     classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
+      String name = haxeClass.getName();
       for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
         if (namedComponent.getName() != null) {
           unfilteredResult.add(namedComponent);
@@ -460,6 +461,7 @@ public class HaxeResolveUtil {
   public static List<HaxeClass> tyrResolveClassesByQName(@NotNull List<HaxeType> types) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     for (HaxeType haxeType : types) {
+      String text = haxeType.getText();
       final HaxeClass haxeClass = tryResolveClassByQName(haxeType);
       if (haxeClass != null) {
         result.add(haxeClass);
@@ -474,7 +476,8 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    HaxeClass result = findClassByQName(getQName(type, false), type.getContext());
+    String name = getQName(type, false);
+    HaxeClass result = findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
@@ -544,6 +547,62 @@ public class HaxeResolveUtil {
       }
     });
 
+    final List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(fileChildren, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithWildcard;
+      }
+    });
+
+    final HaxeImportStatementWithWildcard importStatementWithWildcard = (HaxeImportStatementWithWildcard)ContainerUtil.find(importStatementWithWildcardList, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithWildcard &&
+               (UsefulPsiTreeUtil.importStatementWithWildcardForClassName((HaxeImportStatementWithWildcard)element, result) ||
+                UsefulPsiTreeUtil.importStatementWithWildcardTypeForClassName(
+                  (HaxeImportStatementWithWildcard)element, result));
+      }
+    });
+
+    /*String qName = null;
+
+    for (PsiElement element : importStatementWithWildcardList) {
+      HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)element;
+      List<HaxeNamedComponent> namedSubComponents = UsefulPsiTreeUtil
+        .getImportStatementWithWildcardTypeNamedSubComponents(importStatementWithWildcard1, element.getContainingFile());
+
+      for (HaxeNamedComponent namedComponent : namedSubComponents) {
+        if (namedComponent.getName().equals(result)) {
+          //namedComponent.getComponentName()
+          //namedComponent.getText()
+          qName = UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard1) + "." + result;
+          break;
+        }
+      }
+    }*/
+
+    /*
+    final HaxeImportStatementWithWildcard importStatementWithWildcardType = (HaxeImportStatementWithWildcard)ContainerUtil.find(importStatementWithWildcardList, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        if (element instanceof HaxeImportStatementWithWildcard) {
+          HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)element;
+          List<HaxeNamedComponent> namedSubComponents = UsefulPsiTreeUtil
+            .getImportStatementWithWildcardTypeNamedSubComponents(importStatementWithWildcard1, element.getContainingFile());
+
+          for (HaxeNamedComponent namedComponent : namedSubComponents) {
+            if (namedComponent.getName().equals(result)) {
+              qName = UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard1) + "." + result;
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
+    });
+    */
+
     final HaxeExpression importStatementExpression = importStatement == null ? null : importStatement.getReferenceExpression();
     final HaxeExpression importStatementWithInExpression = importStatementWithInSupport == null ? null : importStatementWithInSupport.getReferenceExpression();
     final String packageName = getPackageName((HaxePackageStatement)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
@@ -569,6 +628,16 @@ public class HaxeResolveUtil {
     else if (importStatementWithInSupport != null && importStatementWithInExpression != null) {
       String text = importStatementWithInExpression.getText();
       return text;
+    }
+    else if (importStatementWithWildcard != null) {
+      String text = importStatementWithWildcard.getReferenceExpression().getText();
+
+      if (text.endsWith("." + result + ".*")) {
+        return text.substring(0, text.length() - 2);
+      }
+      else {
+        return UsefulPsiTreeUtil.getPackageStatementForImportStatementWithWildcard(importStatementWithWildcard) + "." + result;
+      }
     }
     else if (searchInSamePackage && !packageName.isEmpty()) {
       return packageName + "." + result;

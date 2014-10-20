@@ -59,7 +59,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
       return;
     }
 
-    if (!(reference.getParent() instanceof HaxeReference) && !(reference.getParent() instanceof HaxePackageStatement)) {
+    if (!(reference.getParent() instanceof HaxeReference) && !(reference.getParent() instanceof HaxePackageStatement) && !(reference.getParent() instanceof HaxeImportStatementWithWildcard)) {
       // whole reference expression
       handleUnresolvedReference(reference);
     }
@@ -77,6 +77,10 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
     if (parent instanceof HaxePackageStatement) {
       return; // package
+    }
+
+    if (parent instanceof HaxeImportStatementWithWildcard) {
+      return;
     }
 
     handleUnresolvedReference(reference);
