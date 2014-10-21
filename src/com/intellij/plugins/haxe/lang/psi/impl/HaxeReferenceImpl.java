@@ -267,7 +267,12 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                                          resolveResult.getSpecialization());
       }
     }
+
     PsiElement resolve = resolve();
+    if (resolve instanceof PsiPackage) {
+      // Packages don't ever resolve to classes. (And they don't have children!)
+      return HaxeClassResolveResult.EMPTY;
+    }
     if (resolve != null) {
       PsiElement parent = resolve.getParent();
 
