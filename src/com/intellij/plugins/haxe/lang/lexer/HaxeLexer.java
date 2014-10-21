@@ -77,7 +77,8 @@ public class HaxeLexer extends LookAheadLexer {
       }
       advanceAs(baseLexer, PPERROR);
     }
-    else if (baseLexer.getTokenType() == PPIF || baseLexer.getTokenType() == PPELSEIF) {
+
+    /*else if (baseLexer.getTokenType() == PPIF || baseLexer.getTokenType() == PPELSEIF) {
       advanceAs(baseLexer, PPIF);
       while (!lookAheadExpressionIsTrue(baseLexer)) {
         IElementType elementType = eatUntil(baseLexer, PPEND, PPELSE, PPELSEIF);
@@ -88,11 +89,11 @@ public class HaxeLexer extends LookAheadLexer {
         advanceAs(baseLexer, PPBODY);
         break;
       }
-    }
-    else if (baseLexer.getTokenType() == PPELSE) {
+    }*/
+    /*else if (baseLexer.getTokenType() == PPELSE) {
       eatUntil(baseLexer, PPEND);
       advanceAs(baseLexer, PPELSE);
-    }
+    }*/
     else {
       super.lookAhead(baseLexer);
     }
@@ -106,11 +107,16 @@ public class HaxeLexer extends LookAheadLexer {
     do {
       baseLexer.advance();
       type = baseLexer.getTokenType();
-      if (type == PPIF) {
+      /*if (type == PPIF) {
         ++counter;
       }
       if (counter > 0 && type == PPEND) {
         --counter;
+        baseLexer.advance();
+        type = baseLexer.getTokenType();
+      }*/
+
+      if (type == PPIF || type == PPEND) {
         baseLexer.advance();
         type = baseLexer.getTokenType();
       }

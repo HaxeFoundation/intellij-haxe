@@ -24,6 +24,8 @@ import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithInSupport;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +60,15 @@ public class HaxeImportOptimizer implements ImportOptimizer {
     for (HaxeImportStatementRegular unusedImportStatement : HaxeImportUtil.findUnusedImports(file)) {
       unusedImportStatement.delete();
     }
+
+    for (HaxeImportStatementWithInSupport unusedImportStatement : HaxeImportUtil.findUnusedInImports(file)) {
+      unusedImportStatement.delete();
+    }
+
+    for (HaxeImportStatementWithWildcard unusedImportStatement : HaxeImportUtil.findUnusedInImportsWithWildcards(file)) {
+      unusedImportStatement.delete();
+    }
+
     // todo: rearrange
   }
 }

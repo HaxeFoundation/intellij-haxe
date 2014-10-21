@@ -120,6 +120,7 @@ public class HaxeIndentProcessor {
     }
     boolean result = type == BLOCK_STATEMENT;
     result = result || type == CLASS_BODY;
+    result = result || type == EXTERN_CLASS_DECLARATION_BODY;
     result = result || type == ENUM_BODY;
     result = result || type == INTERFACE_BODY;
     result = result || type == SWITCH_BLOCK;

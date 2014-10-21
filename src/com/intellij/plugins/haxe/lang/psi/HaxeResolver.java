@@ -17,12 +17,11 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiPackage;
-import com.intellij.psi.ResolveState;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PackageReferenceSet;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PsiPackageReference;
@@ -99,6 +98,35 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result, reference.getCanonicalText()), reference, null, new ResolveState());
     if (!result.isEmpty()) {
       return result;
+    }
+
+    PsiFile psiFile = reference.getContainingFile();
+
+    List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithWildcard &&
+               UsefulPsiTreeUtil.isImportStatementWildcardForType(UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(
+                 (HaxeImportStatementWithWildcard)element));
+      }
+    });
+
+    for (PsiElement importStatementWithWildcard : importStatementWithWildcardList) {
+      HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)importStatementWithWildcard;
+      String qNameForImportStatementWithWildcardType =
+        UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard1);
+
+      HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qNameForImportStatementWithWildcardType, importStatementWithWildcard1.getContext());
+
+      if (haxeClass != null) {
+        String referenceText = reference.getText();
+        HaxeNamedComponent namedSubComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, referenceText);
+
+        if (namedSubComponent != null && namedSubComponent.isStatic()) {
+          result.add(namedSubComponent.getComponentName().getIdentifier());
+          return result;
+        }
+      }
     }
 
     // try super field
