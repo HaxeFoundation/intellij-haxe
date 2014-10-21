@@ -46,12 +46,6 @@ import java.util.Set;
 abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent");
-  {
-    LOG.info("Loaded AbstractHaxeNamedComponent");
-    LOG.setLevel(Level.DEBUG);
-  }
-
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
     super(node);
   }
@@ -61,12 +55,6 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   public String getName() {
     final HaxeComponentName name = getComponentName();
     if (name != null) {
-      if (this instanceof HaxeMethod) {
-        LOG.debug("\t\t >> [" + ((HaxeMethod) this).getContainingClass().getQualifiedName()  + "]." + name.getText());
-      }
-      if (this instanceof HaxeClass) {
-        LOG.debug("\t > [" + this.getContainingFile().getName()  + "]: " + name.getText());
-      }
       return name.getText();
     }
     return super.getName();
@@ -104,7 +92,6 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
         else if (HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this) == HaxeComponentType.METHOD) {
           // constructor
-          LOG.debug("\t>>>THIS IS A CONSTRUCTOR");
           result.append("new");
         }
         final HaxeComponentType type = HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this);

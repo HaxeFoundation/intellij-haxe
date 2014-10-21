@@ -48,7 +48,8 @@ import java.util.List;
 public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent implements HaxeClass {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass");
-  {
+
+  static {
     LOG.info("Loaded AbstractHaxePsiClass");
     LOG.setLevel(Level.DEBUG);
   }
@@ -67,6 +68,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public String getQualifiedName() {
     final String name = getName();
     if (getParent() == null) {
+      System.out.println("\t>>>\tgetQualifiedName(): [" + name + "]");
       return name == null ? "" : name;
     }
     final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
@@ -188,7 +190,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public PsiElement getScope() {
-    return getParent();
+    return this.getParent();
   }
 
   @Override
@@ -258,7 +260,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   @NotNull
-  public PsiField[] getFields() {
+  public HaxePsiField[] getFields() {
     List<HaxeNamedComponent> haxeFields = getHaxeFields();
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
     return haxeFields.toArray(psiFields);
@@ -280,12 +282,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiMethod[] getMethods() {
     List<HaxeMethod> haxeMethods = getHaxeMethods();
-    PsiMethod[] returntype = PsiMethod.EMPTY_ARRAY; // size is irrelevant
-    PsiMethod[] ary = haxeMethods.toArray(returntype);
-    if (null == ary) {
-      ary = PsiMethod.EMPTY_ARRAY;
-    }
-    return ary;
+    return haxeMethods.toArray(PsiMethod.EMPTY_ARRAY); // size is irrelevant
   }
 
   @Override
@@ -428,8 +425,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    boolean result = this.getModifierList().hasModifierProperty(name);
-    return result;
+    return this.getModifierList().hasModifierProperty(name);
   }
 
   @Override
