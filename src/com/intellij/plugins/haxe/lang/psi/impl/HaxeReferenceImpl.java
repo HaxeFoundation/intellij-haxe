@@ -137,7 +137,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       boolean implementOrExtendSameClass = false;
       HaxeClass haxeClass = null;
       List<HaxeType> commonTypeList = new ArrayList<HaxeType>();
-      List<HaxeExpression> haxeExpressionList = expressionList.getExpressionList();
+      List<HaxeExpression> haxeExpressionList = expressionList != null ? expressionList.getExpressionList() : new ArrayList<HaxeExpression>();
       if (!haxeExpressionList.isEmpty()) {
         isMap = true;
         isString = true;
