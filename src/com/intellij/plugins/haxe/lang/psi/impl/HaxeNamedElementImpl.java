@@ -68,20 +68,13 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
 
   @Override
   public String getName() {
-    String returnValue = "<unknown>";
     try {
-      final HaxeIdentifier identifier = getIdentifier();
-      if (identifier != null) {
-        final String name = identifier.getName();
-        returnValue = ((name != null) ? name : identifier.getText());
-      }
+      return getIdentifier().getText();
     }
-    catch (Exception e) {
+    catch (Throwable t) {
       // log & swallow
-      LOG.error(e.getMessage());
-    }
-    finally {
-      return returnValue;
+      LOG.error(t.getMessage());
+      return "";
     }
   }
 
