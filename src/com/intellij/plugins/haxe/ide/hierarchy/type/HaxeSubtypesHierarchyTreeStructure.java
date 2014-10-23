@@ -20,6 +20,9 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.type.TypeHierarchyNodeDescriptor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
@@ -32,6 +35,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
@@ -57,38 +61,38 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   }
 
   @NotNull
-  protected final Object[] buildChildren(@NotNull final HierarchyNodeDescriptor descriptor) { // FIX THIS
+  protected final Object[] buildChildren(@NotNull final HierarchyNodeDescriptor descriptor) {
 
     final Object element = ((TypeHierarchyNodeDescriptor)descriptor).getPsiClass();
     if (!(element instanceof PsiClass)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
-    final HaxeClass inClass = (HaxeClass) element;
+    final HaxeClass theHaxeClass = (HaxeClass) element;
 
-    if (inClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    if (inClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
-    final Project inClassPsiProject = inClass.getProject();
-    final PsiFile inClassPsiFile = inClass.getContainingFile();
+    final Project inClassPsiProject = theHaxeClass.getProject();
+    final PsiFile inClassPsiFile = theHaxeClass.getContainingFile();
 
-    final List<PsiClass> classes = new ArrayList<PsiClass>(); // add the sub-types to this list, as they are found
+    final List<PsiClass> subTypeList = new ArrayList<PsiClass>(); // add the sub-types to this list, as they are found
 
     // ----
-    // search current file for sub-types that extend/implement from this one
+    // search current file for sub-types that extend/implement from this class/type
     //
-    final HaxeClass[] allClassesInFile = PsiTreeUtil.getChildrenOfType(inClassPsiFile, HaxeClass.class);
-    for (HaxeClass aClassInFile : allClassesInFile) {
-      if (isA(aClassInFile, inClass)) {
-        classes.add(aClassInFile);
+    final HaxeClass[] allHaxeClassesInFile = PsiTreeUtil.getChildrenOfType(inClassPsiFile, HaxeClass.class);
+    for (HaxeClass aClassInFile : allHaxeClassesInFile) {
+      if (isThisTypeASubTypeOfTheSuperType(aClassInFile, theHaxeClass)) {
+        subTypeList.add(aClassInFile);
       }
     }
 
     // if private class, scope ends there
-    if (inClass.hasModifierProperty(HaxePsiModifier.PRIVATE)) { // XXX: how about @:allow occurrences?
-      return clsList2ObjArray(descriptor, classes);
+    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.PRIVATE)) { // XXX: how about @:allow occurrences?
+      return typeListToObjArray(descriptor, subTypeList);
     }
 
     // ----
-    // search current package for sub-types that extend/implement from this one
+    // search current package for sub-types that extend/implement from this class/type
     //
     final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(inClassPsiFile, HaxePackageStatement.class);
     final String packageStatementStr = HaxeResolveUtil.getPackageName(packageStatement);
@@ -98,44 +102,56 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
       for (VirtualFile virtualFile : files)
         if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
           final PsiFile psiFile = PsiManager.getInstance(inClassPsiProject).findFile(virtualFile);
-          final HaxeClass[] classesInFile = PsiTreeUtil.getChildrenOfType(psiFile, HaxeClass.class);
-          for (HaxeClass aClassInFile : classesInFile)
-            if (isA(aClassInFile, inClass)) {
-              classes.add(aClassInFile);
+          final HaxeClass[] allHaxeClassesInThisFile = PsiTreeUtil.getChildrenOfType(psiFile, HaxeClass.class);
+          for (HaxeClass aHaxeClassInFile : allHaxeClassesInThisFile)
+            if (isThisTypeASubTypeOfTheSuperType(aHaxeClassInFile, theHaxeClass)) {
+              subTypeList.add(aHaxeClassInFile);
             }
         }
     }
 
+
+    // TODO: Must be fixed - see below description and comments with "//XXX: FIX:" prefix (in this method)
+    // AllClassesSearch.search calls are returning empty list/array.
+    // Without that fixed, sub-types that are not in the same package (as the type in focus) will not be listed...
+    // even though they are in same module or in a module that's directly listed as being dependent its module.
+    // It will mislead as being functional because, the sub-types within same package continue to be listed.
+
+
     // ----
-    // search all files - this is expensive
+    // search the module (this class belongs to) for sub-types that extend/implement from this class/type
     //
-    /* TODO: optimize - because, below code is searching all files (expensive). */
-    final List<PsiFile> psiRoots = inClassPsiFile.getViewProvider().getAllFiles();
-    for (PsiFile f : psiRoots) {
-      if (f != null) {
-        final VirtualFile virtualFile = f.getVirtualFile();
-        if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
-          final PsiFile psiFile = PsiManager.getInstance(inClassPsiProject).findFile(virtualFile);
-          final HaxeClass[] classesInFile = PsiTreeUtil.getChildrenOfType(psiFile, HaxeClass.class);
-          for (HaxeClass aClassInFile : classesInFile)
-            if (isA(aClassInFile, inClass)) {
-              classes.add(aClassInFile);
-            }
+    Module theModule = ModuleUtil.findModuleForFile(inClassPsiFile.getVirtualFile(), theHaxeClass.getProject());
+    final PsiClass[] allClassesInTheModule = ArrayUtil.toObjectArray(
+      AllClassesSearch.search(theModule.getModuleScope(), inClassPsiProject).findAll(), PsiClass.class); //XXX: FIX: always '0' sized !
+    for (PsiClass aClassInFile : allClassesInTheModule) {
+      final HaxeClass hxClassInFile = (HaxeClass) aClassInFile;
+      if (isThisTypeASubTypeOfTheSuperType(hxClassInFile, theHaxeClass)) {
+        subTypeList.add(aClassInFile);
+      }
+    }
+
+    // ----
+    // search the modules dependent on module (one that, this class belongs to) for sub-types that extend/implement from this class/type
+    //
+    List<Module> dependentModules = ModuleManager.getInstance(theHaxeClass.getProject()).getModuleDependentModules(theModule);
+    for (Module module : dependentModules) {
+      final PsiClass[] allClassesInModule = ArrayUtil.toObjectArray(
+        AllClassesSearch.search(module.getModuleScope(), inClassPsiProject).findAll(), PsiClass.class); //XXX: FIX: always '0' sized !
+      for (PsiClass aClassInFile : allClassesInModule) {
+        final HaxeClass hxClassInFile = (HaxeClass) aClassInFile;
+        if (isThisTypeASubTypeOfTheSuperType(hxClassInFile, theHaxeClass)) {
+          subTypeList.add(aClassInFile);
         }
       }
     }
 
-    /* XXX: optimize tip: use helper methods in PsiTreeUtil, UsefulPsiTreeUtil, HaxeResolveutil etc to narrow search to below list: */
-    /* find current module & then its dependent modules and narrow scope to it. */
-    //Module module = ModuleUtil.findModuleForFile(virtualFile, inClass.getProject()); // module that the class/file belongs to
-    //List<Module> modules = ModuleManager.getInstance(inClass.getProject()).getModuleDependentModules(module); // dependent modules
-
-    return clsList2ObjArray(descriptor, classes);
+    return typeListToObjArray(descriptor, subTypeList);
   }
 
 
   @NotNull
-  protected final Object[] clsList2ObjArray(@NotNull final HierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
+  protected final Object[] typeListToObjArray(@NotNull final HierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
     final int size = classes.size();
     if (size > 0) {
       final List<HierarchyNodeDescriptor> descriptors = new ArrayList<HierarchyNodeDescriptor>(size);
@@ -147,29 +163,27 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
 
-  protected static boolean isA(PsiClass theClass, PsiClass possibleSuperClass) {
-    if (!theClass.isValid()) return false;
-    //if (aClass.isInterface()) return false; // XXX: uncomment ?
-    final String tcfqn = theClass.getQualifiedName();
-    final String pscfqn = possibleSuperClass.getQualifiedName();
+  public static boolean isThisTypeASubTypeOfTheSuperType(PsiClass thisType, PsiClass theSuperType) {
+    if (!thisType.isValid()) return false;
+    final String tcfqn = thisType.getQualifiedName();
+    final String pscfqn = theSuperType.getQualifiedName();
     if (pscfqn.equals(tcfqn)) return false; // it's the same class in LHS & RHS
-    final ArrayList<PsiClass> allSuperClasses = getSuperClassList(theClass);
-    for (PsiClass aSuperClass : allSuperClasses) {
-      if (pscfqn.equals(aSuperClass.getQualifiedName())) {
+    final ArrayList<PsiClass> allSuperTypes = getSuperTypesAsList(thisType);
+    for (PsiClass aSuperType : allSuperTypes) {
+      if (pscfqn.equals(aSuperType.getQualifiedName())) {
         return true;
       }
     }
     return false;
   }
 
-  protected static PsiClass[] createSuperClasses(PsiClass theClass) {
+  public static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
     if (!theClass.isValid()) return PsiClass.EMPTY_ARRAY;
-    //if (aClass.isInterface()) return PsiClass.EMPTY_ARRAY; // XXX: uncomment ?
-    final ArrayList<PsiClass> allSuperClasses = getSuperClassList(theClass);
+    final ArrayList<PsiClass> allSuperClasses = getSuperTypesAsList(theClass);
     return allSuperClasses.toArray(new PsiClass[allSuperClasses.size()]);
   }
 
-  protected static ArrayList<PsiClass> getSuperClassList(PsiClass theClass) {
+  public static ArrayList<PsiClass> getSuperTypesAsList(PsiClass theClass) {
     final ArrayList<PsiClass> allSuperClasses = new ArrayList<PsiClass>();
     while (true) {
       final PsiClass aClass1 = theClass;

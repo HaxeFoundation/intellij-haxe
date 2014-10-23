@@ -37,7 +37,7 @@ public class HaxeTypeHierarchyTreeStructure extends HaxeSubtypesHierarchyTreeStr
 
   private static HierarchyNodeDescriptor buildHierarchyElement(final Project project, final PsiClass aClass) {
     HierarchyNodeDescriptor descriptor = null;
-    final PsiClass[] superClasses = createSuperClasses(aClass);
+    final PsiClass[] superClasses = getSuperTypesAsArray(aClass);
     for(int i = superClasses.length - 1; i >= 0; i--){
       final PsiClass superClass = superClasses[i];
       final HierarchyNodeDescriptor newDescriptor = new TypeHierarchyNodeDescriptor(project, descriptor, superClass, false);
