@@ -89,8 +89,7 @@ public class HaxeHierarchyUtils {
       LOG.debug("findReferencedClassForID found " + resolved);
     }
 
-    HaxeClass pclass = resolved instanceof HaxeClass ? (HaxeClass) resolved : null;
-    return pclass;
+    return ((resolved instanceof HaxeClass) ? ((HaxeClass) resolved) : null);
   }
 
   /**
@@ -146,7 +145,7 @@ public class HaxeHierarchyUtils {
         return null;
       }
 
-      final PsiElement targetElement = TargetElementUtilBase.findTargetElement(editor, //TargetElementUtilBase.ELEMENT_NAME_ACCEPTED |
+      final PsiElement targetElement = TargetElementUtilBase.findTargetElement(editor, TargetElementUtilBase.ELEMENT_NAME_ACCEPTED |
                                                                                        TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
                                                                                        TargetElementUtilBase.LOOKUP_ITEM_ACCEPTED);
       if (LOG.isDebugEnabled()) {

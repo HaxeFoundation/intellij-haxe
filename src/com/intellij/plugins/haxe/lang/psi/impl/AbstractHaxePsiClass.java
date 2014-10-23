@@ -31,6 +31,8 @@ import com.intellij.psi.impl.*;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.search.LocalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.log4j.Level;
@@ -68,7 +70,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public String getQualifiedName() {
     final String name = getName();
     if (getParent() == null) {
-      System.out.println("\t>>>\tgetQualifiedName(): [" + name + "]");
       return name == null ? "" : name;
     }
     final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
@@ -190,7 +191,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public PsiElement getScope() {
-    return this.getParent();
+    String name = this.getName();
+    if (null == name || "".equals(name)) {
+      // anonymous class inherits containing class' search scope
+      return this.getContainingClass();
+    }
+    //if (this.isPrivate()) {
+    //  // private class' scope is limited to within that file
+    //  return this.getContainingFile();
+    //}
+    return this.getContainingFile();
   }
 
   @Override

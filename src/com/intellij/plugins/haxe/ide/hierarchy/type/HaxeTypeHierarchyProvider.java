@@ -17,11 +17,9 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.type;
 
-import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
 import com.intellij.ide.hierarchy.TypeHierarchyBrowserBase;
-import com.intellij.ide.hierarchy.type.TypeHierarchyBrowser;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
@@ -31,6 +29,7 @@ import com.intellij.psi.*;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 
 /**
  * Created by ebishton on 9/3/14.
@@ -55,18 +54,19 @@ public class HaxeTypeHierarchyProvider implements HierarchyProvider {
         return classes.length > 0 ? classes[0] : null;
       }
     }
+
     return clazz;
   }
 
   @NotNull
   @Override
   public HierarchyBrowser createHierarchyBrowser(PsiElement element) {
-    return new TypeHierarchyBrowser(element.getProject(), (PsiClass) element);
+    return new HaxeTypeHierarchyBrowser(element.getProject(), (PsiClass) element);
   }
 
   @Override
   public void browserActivated(@NotNull HierarchyBrowser hierarchyBrowser) {
-    final TypeHierarchyBrowser browser = (TypeHierarchyBrowser)hierarchyBrowser;
+    final HaxeTypeHierarchyBrowser browser = (HaxeTypeHierarchyBrowser)hierarchyBrowser;
     final String typeName =
       browser.isInterface() ? TypeHierarchyBrowserBase.SUBTYPES_HIERARCHY_TYPE : TypeHierarchyBrowserBase.TYPE_HIERARCHY_TYPE;
     browser.changeView(typeName);
