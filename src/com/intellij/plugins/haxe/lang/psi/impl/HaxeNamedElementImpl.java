@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeComponentType;
@@ -40,6 +41,8 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl implements HaxeComponentName {
+  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl");
+
   public HaxeNamedElementImpl(@NotNull ASTNode node) {
     super(node);
   }
@@ -65,7 +68,21 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
 
   @Override
   public String getName() {
-    return getIdentifier().getText();
+    String returnValue = "<unknown>";
+    try {
+      final HaxeIdentifier identifier = getIdentifier();
+      if (identifier != null) {
+        final String name = identifier.getName();
+        returnValue = ((name != null) ? name : identifier.getText());
+      }
+    }
+    catch (Exception e) {
+      // log & swallow
+      LOG.error(e.getMessage());
+    }
+    finally {
+      return returnValue;
+    }
   }
 
   @Override
