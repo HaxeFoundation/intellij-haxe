@@ -22,5 +22,5 @@ import com.intellij.psi.PsiField;
 /**
  * Created by srikanthg on 10/9/14.
  */
-public interface HaxePsiField extends HaxeComponent, PsiField {
+public interface HaxePsiField extends HaxeNamedComponent, PsiField {
 }

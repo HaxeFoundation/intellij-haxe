@@ -47,7 +47,7 @@ import java.util.ArrayList;
 public class HaxeHierarchyUtils {
   private static final Logger LOG = Logger.getInstance("#com.intellij.ide.hierarchy.HaxeHierarchyUtils");
 
-  // EMB: Don't check this line in...
+  static
   {
     LOG.setLevel(Level.DEBUG);
   }
@@ -89,23 +89,7 @@ public class HaxeHierarchyUtils {
       LOG.debug("findReferencedClassForID found " + resolved);
     }
 
-    HaxeClass pclass = resolved instanceof HaxeClass ? (HaxeClass) resolved : null;
-    return pclass;
-
-    //PsiElement element = id.getParent();
-    //while (null != element) {
-    //  if (element instanceof HaxeReferenceExpression) {
-    //    HaxeClass pclass = resolveClassReference((HaxeReferenceExpression) element);
-    //    if (null != pclass) {
-    //      return pclass;
-    //    }
-    //  }
-    //  if (element instanceof HaxeFile) {
-    //    return null;
-    //  }
-    //  element = element.getParent();
-    //}
-    //return null;
+    return ((resolved instanceof HaxeClass) ? ((HaxeClass) resolved) : null);
   }
 
   /**
@@ -296,23 +280,72 @@ public class HaxeHierarchyUtils {
   @Nullable
   public static HaxeMethod getTargetMethod(@NotNull DataContext context) {
 
-    final PsiElement logicalElement = HaxeHierarchyUtils.getReferencedElement(context);
-    if (logicalElement == null) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getTargetMethod " + context);
+    }
+
+    final Project project = CommonDataKeys.PROJECT.getData(context);
+    if (null == project) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No project");
+      }
       return null;
     }
 
-    // Apparently, the tree that referenced element is part of is NOT
-    // the AST tree from the parsed file, but rather a PSI tree that
-    // matches the logical structure of the language.  The parent of a
-    // referenced component is always the element we want the type of.
-    HaxeComponentType ctype = HaxeComponentType.typeOf(logicalElement.getParent());
-    if (ctype == HaxeComponentType.METHOD) {
-      // What we need to return is not the element we checked the type of,
-      // nor the corresponding parsed file element.
-      // Instead, we need to return the HaxeMethod class.
-      HaxeMethod psiMethod = (HaxeMethod)logicalElement.getParent();
-      return psiMethod;
+    final Editor editor = CommonDataKeys.EDITOR.getData(context);
+
+    if (null == editor) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No editor");
+      }
+
+      final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
+      return element instanceof HaxeMethod ? (HaxeMethod) element : null;
     }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("editor " + editor);
+    }
+
+    final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+    if (file == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No file found.");
+      }
+      return null;
+    }
+
+    final PsiElement targetElement = TargetElementUtilBase.findTargetElement(editor,
+                                                                             TargetElementUtilBase.ELEMENT_NAME_ACCEPTED |
+                                                                             TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
+                                                                             TargetElementUtilBase.LOOKUP_ITEM_ACCEPTED);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("target element " + targetElement);
+    }
+
+    if (targetElement instanceof HaxeMethod) {
+      LOG.debug("target element " + targetElement);
+      return ((HaxeMethod) targetElement);
+    }
+
+    // Haven't found it yet, walk the PSI tree toward the root.
+    final int offset = editor.getCaretModel().getOffset();
+    PsiElement element = file.findElementAt(offset);
+    while (element != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("context element " + element);
+      }
+      if (element instanceof HaxeFile) {
+        // If we get to the file node, then we're outside of a class definition.
+        // No need to look further.
+        return null;
+      }
+      if (element instanceof HaxeMethod) {
+          return ((HaxeMethod)element);
+      }
+      element = element.getParent();
+    }
+
     return null;
   }
 

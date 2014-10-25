@@ -31,6 +31,8 @@ import com.intellij.psi.impl.*;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.search.LocalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.log4j.Level;
@@ -48,7 +50,8 @@ import java.util.List;
 public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent implements HaxeClass {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass");
-  {
+
+  static {
     LOG.info("Loaded AbstractHaxePsiClass");
     LOG.setLevel(Level.DEBUG);
   }
@@ -188,7 +191,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public PsiElement getScope() {
-    return getParent();
+    String name = this.getName();
+    if (null == name || "".equals(name)) {
+      // anonymous class inherits containing class' search scope
+      return this.getContainingClass();
+    }
+    //if (this.isPrivate()) {
+    //  // private class' scope is limited to within that file
+    //  return this.getContainingFile();
+    //}
+    return this.getContainingFile();
   }
 
   @Override
@@ -258,7 +270,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   @NotNull
-  public PsiField[] getFields() {
+  public HaxePsiField[] getFields() {
     List<HaxeNamedComponent> haxeFields = getHaxeFields();
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
     return haxeFields.toArray(psiFields);
@@ -280,12 +292,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public PsiMethod[] getMethods() {
     List<HaxeMethod> haxeMethods = getHaxeMethods();
-    PsiMethod[] returntype = PsiMethod.EMPTY_ARRAY; // size is irrelevant
-    PsiMethod[] ary = haxeMethods.toArray(returntype);
-    if (null == ary) {
-      ary = PsiMethod.EMPTY_ARRAY;
-    }
-    return ary;
+    return haxeMethods.toArray(PsiMethod.EMPTY_ARRAY); // size is irrelevant
   }
 
   @Override
@@ -428,8 +435,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    boolean result = this.getModifierList().hasModifierProperty(name);
-    return result;
+    return this.getModifierList().hasModifierProperty(name);
   }
 
   @Override
