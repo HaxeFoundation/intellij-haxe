@@ -39,7 +39,7 @@ public class IfConditionFixer implements Fixer {
 
     HaxeIfStatement ifStatement = (HaxeIfStatement)psiElement;
 
-    if (ifStatement.getBlockStatementList().size() > 0) {
+    if (null != ifStatement.getBlockStatement() && ifStatement.getBlockStatement().getStatementList().size() > 0) {
       return;
     }
 
@@ -49,7 +49,7 @@ public class IfConditionFixer implements Fixer {
       editor.getCaretModel().moveToOffset(offset + 2);
       processor.setSkipEnter(true);
     }
-    else if (ifStatement.getExpressionList().size() > 0 && ifStatement.getNode().findChildByType(HaxeTokenTypes.PLCURLY) == null) {
+    else if (null != ifStatement.getExpression() && ifStatement.getNode().findChildByType(HaxeTokenTypes.PLCURLY) == null) {
       int offset = ifStatement.getNode().findChildByType(HaxeTokenTypes.PRPAREN).getTextRange().getEndOffset();
       editor.getDocument().insertString(offset, " {\n\n}");
       editor.getCaretModel().moveToOffset(offset + 3);

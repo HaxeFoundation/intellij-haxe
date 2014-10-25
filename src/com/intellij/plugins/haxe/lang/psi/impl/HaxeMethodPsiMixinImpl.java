@@ -180,6 +180,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     // We would need the ability to know if a particular run sequence has
     // called such a function.  I don't think we can pull that off without
     // the compiler's help.
+    // TODO: Use compiler completion to detect variable arguments usage.
     return false;
   }
 
@@ -216,8 +217,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public MethodSignature getSignature(@NotNull PsiSubstitutor substitutor) {
-    // XXX: this may need to be implemented for refactoring functionality
-    return null;
+    // XXX: PsiMethod uses a cache for substitutors.
+    return MethodSignatureBackedByPsiMethod.create(this, substitutor);
   }
 
   @Nullable

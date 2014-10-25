@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,12 +35,14 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
+import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +51,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference, PsiPolyVariantReference {
+public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
+
+  Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl");
+  {
+    LOG.setLevel(Level.DEBUG);
+  }
 
   public HaxeReferenceImpl(ASTNode node) {
     super(node);
@@ -83,22 +91,38 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public PsiElement resolve() {
-    final ResolveResult[] resolveResults = multiResolve(true);
-
-    return resolveResults.length == 0 ||
-           resolveResults.length > 1 ||
-           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
+    return resolve(true);
   }
 
   @NotNull
   @Override
-  public ResolveResult[] multiResolve(boolean incompleteCode) {
+  public JavaResolveResult advancedResolve(boolean incompleteCode) {
+    final PsiElement resolved = resolve(incompleteCode);
+    return null != resolved ? new CandidateInfo(resolved, null) : JavaResolveResult.EMPTY;
+  }
+
+  @NotNull
+  @Override
+  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+    return toCandidateInfoArray(multiResolveToList(incompleteCode));
+  }
+
+  @Nullable
+  public PsiElement resolve(boolean incompleteCode) {
+    final List<? extends PsiElement> resolvedList = multiResolveToList(incompleteCode);
+    if (null == resolvedList || resolvedList.size() != 1) {
+      return null;
+    }
+    final PsiElement resolved = resolvedList.get(0);
+    return resolved.isValid() ? resolved : null;
+  }
+
+  @Nullable
+  private List<? extends PsiElement> multiResolveToList(boolean incompleteCode) {
     // For the moment (while debugging the resolver) let's do this without caching.
     boolean skipCaching = true;
-    final List<? extends PsiElement> elements = skipCaching
-                                                ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
-                                                : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
-    return toCandidateInfoArray(elements);
+    return skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
+                       : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
   }
 
   @NotNull
@@ -339,16 +363,16 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  private static ResolveResult[] toCandidateInfoArray(@Nullable PsiElement element) {
+  private static JavaResolveResult[] toCandidateInfoArray(@Nullable PsiElement element) {
     if (element == null) {
-      return ResolveResult.EMPTY_ARRAY;
+      return JavaResolveResult.EMPTY_ARRAY;
     }
-    return new ResolveResult[]{new CandidateInfo(element, null)};
+    return new JavaResolveResult[]{new CandidateInfo(element, null)};
   }
 
   @NotNull
-  private static ResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
-    final ResolveResult[] result = new ResolveResult[elements.size()];
+  private static JavaResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
+    final JavaResolveResult[] result = new JavaResolveResult[elements.size()];
     for (int i = 0, size = elements.size(); i < size; i++) {
       result[i] = new CandidateInfo(elements.get(i), EmptySubstitutor.getInstance());
     }
@@ -583,4 +607,80 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
   }
+
+  @Nullable
+  @Override
+  public PsiElement getReferenceNameElement() {
+    PsiElement child = findChildByType(HaxeTokenTypes.REFERENCE_EXPRESSION); // REFERENCE_NAME in Java
+    return child;
+  }
+
+  @Nullable
+  @Override
+  public PsiReferenceParameterList getParameterList() {
+    // TODO:  Unimplemented.
+    LOG.warn("getParameterList is unimplemented");
+
+    // REFERENCE_PARAMETER_LIST  in Java
+    HaxeTypeParam child = (HaxeTypeParam) findChildByType(HaxeTokenTypes.TYPE_PARAM);
+    //return child == null ? null : child.getTypeList();
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public PsiType[] getTypeParameters() {
+    // TODO:  Unimplemented.
+    LOG.warn("getTypeParameters is unimplemented");
+    return new PsiType[0];
+  }
+
+  @Override
+  public boolean isQualified() {
+    // TODO:  Unimplemented.
+    LOG.warn("isQualified is unimplemented");
+    return false;
+  }
+
+  @Override
+  public String getQualifiedName() {
+    // TODO:  Unimplemented.
+    LOG.warn("getQualifiedName is unimplemented");
+    return null;
+  }
+
+
+  // PsiJavaReference overrides
+
+
+  @Override
+  public void processVariants(@NotNull PsiScopeProcessor processor) {
+    // TODO:  Unimplemented.
+    LOG.warn("processVariants is unimplemented");
+  }
+
+
+  // PsiQualifiedReference overrides
+
+
+  @Nullable
+  @Override
+  public PsiElement getQualifier() {
+    // Package/class that this type is part of; the part before
+    // the last '.'.  However, that may only be partial, so adding
+    // package information may also be necessary.
+    // TODO:  Unimplemented.
+    LOG.warn("getQualifier is unimplemented");
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public String getReferenceName() {
+    // Unqualified name; the base name without any preceding
+    // package/class name.
+    // TODO: Figure out if this needs to split out any prefix.
+    return getText();
+  }
+
 }

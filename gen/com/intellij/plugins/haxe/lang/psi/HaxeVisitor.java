@@ -553,7 +553,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitTypeListPart(@NotNull HaxeTypeListPart o) {
-    visitPsiCompositeElement(o);
+    visitTypeListPartPsiMixin(o);
   }
 
   public void visitTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous o) {
@@ -561,7 +561,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitTypeParam(@NotNull HaxeTypeParam o) {
-    visitPsiCompositeElement(o);
+    visitTypeParamPsiMixin(o);
   }
 
   public void visitTypeTag(@NotNull HaxeTypeTag o) {
@@ -649,6 +649,14 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitStatementPsiMixin(@NotNull HaxeStatementPsiMixin o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitTypeListPartPsiMixin(@NotNull HaxeTypeListPartPsiMixin o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitTypeParamPsiMixin(@NotNull HaxeTypeParamPsiMixin o) {
     visitPsiCompositeElement(o);
   }
 

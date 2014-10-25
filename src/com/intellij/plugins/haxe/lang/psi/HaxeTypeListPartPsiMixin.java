@@ -15,17 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiTypeParameter;
 
-public interface HaxeTypeParam extends HaxeTypeParamPsiMixin {
-
-  @NotNull
-  HaxeTypeList getTypeList();
+/**
+ * Created by ebishton on 10/22/14.
+ */
+public interface HaxeTypeListPartPsiMixin extends HaxePsiCompositeElement, PsiTypeParameter {
 
 }

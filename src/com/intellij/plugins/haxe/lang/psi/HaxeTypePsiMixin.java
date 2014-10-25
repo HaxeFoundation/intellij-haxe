@@ -17,11 +17,25 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiTypeAdapter;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeParameterListOwner;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by ebishton on 10/9/14.
  */
-public interface HaxeTypePsiMixin extends HaxePsiCompositeElement, PsiJavaCodeReferenceElement {
+public interface HaxeTypePsiMixin extends HaxePsiCompositeElement, PsiTypeParameterListOwner {
+
+  /**
+   * Gets the (Java) PsiType (Actually the HaxePsiTypeAdapter) that
+   * corresponds to the given HaxeType.
+   *
+   * @return A usable PsiType corresponding to this type.
+   */
+  @Nullable
+  public PsiType getPsiType();
 
 }

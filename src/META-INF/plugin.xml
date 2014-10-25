@@ -248,6 +248,7 @@
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
     <lang.rearranger language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.rearranger.HaxeRearrangerModel" />
+    <lang.ast.factory language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
 
     <lang.syntaxHighlighterFactory key="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
 
