@@ -98,7 +98,8 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
   @Override
   public JavaResolveResult advancedResolve(boolean incompleteCode) {
     final PsiElement resolved = resolve(incompleteCode);
-    return null != resolved ? new CandidateInfo(resolved, null) : JavaResolveResult.EMPTY;
+    // TODO: Determine if we are using the right substitutor.
+    return null != resolved ? new CandidateInfo(resolved, EmptySubstitutor.getInstance()) : JavaResolveResult.EMPTY;
   }
 
   @NotNull
