@@ -277,8 +277,11 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   public PsiTypeParameterList getTypeParameterList() {
     // Type parameters are those inside of the type designation (e.g.
     // inside the '<' and '>').
-// TODO:  Implement 'public PsiTypeParameterList getTypeParameterList()'
-    return null;
+    HaxeTypeTag         tag =   (HaxeTypeTag) findChildByType(HaxeTokenTypes.TYPE_TAG);
+    HaxeTypeOrAnonymous toa =   null == tag ? null : tag.getTypeOrAnonymous();
+    HaxeType            type =  null == toa ? null : toa.getType();
+    HaxeTypeParam       param = null == type ? null : type.getTypeParam();// XXX: Java<->Haxe list & type inversion -- See BNF.
+    return param;
   }
 
   private boolean isPrivate() {
