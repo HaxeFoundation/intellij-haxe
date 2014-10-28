@@ -99,31 +99,58 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
   public JavaResolveResult advancedResolve(boolean incompleteCode) {
     final PsiElement resolved = resolve(incompleteCode);
     // TODO: Determine if we are using the right substitutor.
+    // ?? XXX: Is the internal element here supposed to be a PsiClass sub-class ??
     return null != resolved ? new CandidateInfo(resolved, EmptySubstitutor.getInstance()) : JavaResolveResult.EMPTY;
   }
 
   @NotNull
   @Override
   public JavaResolveResult[] multiResolve(boolean incompleteCode) {
-    return toCandidateInfoArray(multiResolveToList(incompleteCode));
+    //
+    // Resolving through this.resolve, or through the ResolveCache.resolve,
+    // resolves to the *name* of the component.  That's what is cached, that's
+    // what is returned.  For the Java code, the various reference types are
+    // overridden, along with the base reference being aware of the type of the
+    // entity.  Still, the base reference (PsiJavaReference) resolves to the
+    // COMPONENT_NAME element, NOT the element type.  The various sub-classes
+    // of PsiJavaReference (and PsiJavaCodeReferenceElement) return the actual
+    // element type.  For example, you have to have to use PsiClassType.resolve
+    // to get back a PsiClassType.
+    //
+    // For the Haxe code, we don't have a large number of reference sub-classes,
+    // so we have to figure out what the expected parent type is and return that.
+    // Luckily, most references have a COMPONENT_NAME element located immediately
+    // below the parent in the PSI tree.  Therefore, we're going to return the
+    // parent type.
+    //
+
+    // For the moment (while debugging the resolver) let's do this without caching.
+    boolean skipCaching = false;
+    List<? extends PsiElement> cachedNames
+              = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
+                            : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
+
+    List<PsiElement> result = new ArrayList<PsiElement>();
+    for (PsiElement element : cachedNames) {
+      PsiElement parent = element.getParent();
+      if (null != parent && parent.isValid()) {
+        result.add(parent);
+      }
+    }
+
+    // CandidateInfo does some extra resolution work when checking validity, so
+    // the results have to be turned into a CandidateInfoArray, and not just passed
+    // around as the list that HaxeResolver returns.
+    return toCandidateInfoArray(result);
   }
 
   @Nullable
   public PsiElement resolve(boolean incompleteCode) {
-    final List<? extends PsiElement> resolvedList = multiResolveToList(incompleteCode);
-    if (null == resolvedList || resolvedList.size() != 1) {
-      return null;
-    }
-    final PsiElement resolved = resolvedList.get(0);
-    return resolved.isValid() ? resolved : null;
-  }
+    final ResolveResult[] resolveResults = multiResolve(true);
 
-  @Nullable
-  private List<? extends PsiElement> multiResolveToList(boolean incompleteCode) {
-    // For the moment (while debugging the resolver) let's do this without caching.
-    boolean skipCaching = true;
-    return skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
-                       : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
+    return resolveResults.length == 0 ||
+           resolveResults.length > 1 ||
+           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
   }
 
   @NotNull
