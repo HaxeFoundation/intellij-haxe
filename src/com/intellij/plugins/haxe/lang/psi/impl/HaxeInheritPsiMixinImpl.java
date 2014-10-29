@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayFactory;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Level;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * HaxeInherit is analogous to PsiJavaCodeReferenceElement
@@ -81,7 +83,12 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
   @Override
   public PsiJavaCodeReferenceElement[] getReferenceElements() {
     LOG.debug("getReferenceElements");
-    return findChildrenByClass(PsiJavaCodeReferenceElement.class);
+    List<HaxeType> typeList = getTypeList();
+    PsiJavaCodeReferenceElement[] refList = new PsiJavaCodeReferenceElement[typeList.size()];
+    for (int i = 0; i < typeList.size(); ++i) {
+      refList[i] = typeList.get(i).getReferenceExpression();
+    }
+    return refList;
   }
 
   @Override
@@ -94,4 +101,14 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
     LOG.assertTrue(false, "Unrecognized/unexpected subclass type.");
     return null;
   }
+
+  // Pushed down from HaxeInherit
+  // Implementation is the same as the sub-class implementations that are generated
+  // from the BNF.  If you have to change this code, then there may be complications,
+  // because their implementations will be called.
+  @NotNull
+  public List<HaxeType> getTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
+  }
+
 }

@@ -47,20 +47,8 @@ public class HaxePrefixExpressionImpl extends HaxeExpressionImpl implements Haxe
 
   @Override
   @Nullable
-  public HaxeIfStatement getIfStatement() {
-    return findChildByClass(HaxeIfStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeSwitchStatement getSwitchStatement() {
-    return findChildByClass(HaxeSwitchStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeTryStatement getTryStatement() {
-    return findChildByClass(HaxeTryStatement.class);
+  public HaxeStatement getStatement() {
+    return findChildByClass(HaxeStatement.class);
   }
 
 }

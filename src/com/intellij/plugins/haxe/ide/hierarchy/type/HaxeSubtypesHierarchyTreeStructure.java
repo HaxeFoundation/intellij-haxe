@@ -103,10 +103,12 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
         if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
           final PsiFile psiFile = PsiManager.getInstance(inClassPsiProject).findFile(virtualFile);
           final HaxeClass[] allHaxeClassesInThisFile = PsiTreeUtil.getChildrenOfType(psiFile, HaxeClass.class);
-          for (HaxeClass aHaxeClassInFile : allHaxeClassesInThisFile)
-            if (isThisTypeASubTypeOfTheSuperType(aHaxeClassInFile, theHaxeClass)) {
-              subTypeList.add(aHaxeClassInFile);
-            }
+          if (null != allHaxeClassesInThisFile) {
+            for (HaxeClass aHaxeClassInFile : allHaxeClassesInThisFile)
+              if (isThisTypeASubTypeOfTheSuperType(aHaxeClassInFile, theHaxeClass)) {
+                subTypeList.add(aHaxeClassInFile);
+              }
+          }
         }
     }
 

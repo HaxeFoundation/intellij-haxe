@@ -47,14 +47,8 @@ public class HaxeExpressionListImpl extends HaxePsiCompositeElementImpl implemen
 
   @Override
   @Nullable
-  public HaxeForStatement getForStatement() {
-    return findChildByClass(HaxeForStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeWhileStatement getWhileStatement() {
-    return findChildByClass(HaxeWhileStatement.class);
+  public HaxeStatement getStatement() {
+    return findChildByClass(HaxeStatement.class);
   }
 
 }

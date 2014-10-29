@@ -28,15 +28,27 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeSuffixExpressionImpl extends HaxeExpressionImpl implements HaxeSuffixExpression {
+public class HaxeStatementImpl extends HaxeStatementPsiMixinImpl implements HaxeStatement {
 
-  public HaxeSuffixExpressionImpl(ASTNode node) {
+  public HaxeStatementImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSuffixExpression(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitStatement(this);
     else super.accept(visitor);
+  }
+
+  @Override
+  @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeConditional getConditional() {
+    return findChildByClass(HaxeConditional.class);
   }
 
   @Override
@@ -47,8 +59,14 @@ public class HaxeSuffixExpressionImpl extends HaxeExpressionImpl implements Haxe
 
   @Override
   @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
+  public HaxeLocalFunctionDeclaration getLocalFunctionDeclaration() {
+    return findChildByClass(HaxeLocalFunctionDeclaration.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeLocalVarDeclaration getLocalVarDeclaration() {
+    return findChildByClass(HaxeLocalVarDeclaration.class);
   }
 
 }

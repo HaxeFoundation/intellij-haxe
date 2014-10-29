@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by srikanthg on 10/6/14.
  */
-abstract public class HaxePackageStatementPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxePackageStatementPsiMixin  {
+abstract public class HaxePackageStatementPsiMixinImpl extends HaxeStatementImpl implements HaxePackageStatementPsiMixin  {
   public HaxePackageStatementPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
   }

@@ -41,10 +41,7 @@ public interface HaxeLocalFunctionDeclaration extends HaxeMethod {
   HaxeParameterList getParameterList();
 
   @Nullable
-  HaxeReturnStatement getReturnStatement();
-
-  @Nullable
-  HaxeThrowStatement getThrowStatement();
+  HaxeStatement getStatement();
 
   @Nullable
   HaxeTypeTag getTypeTag();

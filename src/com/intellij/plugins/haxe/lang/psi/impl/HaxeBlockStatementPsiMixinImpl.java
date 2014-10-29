@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by ebishton on 10/16/14.
  */
-public class HaxeBlockStatementPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeBlockStatementPsiMixin {
+public class HaxeBlockStatementPsiMixinImpl extends HaxeStatementImpl implements HaxeBlockStatementPsiMixin {
 
   public HaxeBlockStatementPsiMixinImpl(ASTNode node) {
     super(node);

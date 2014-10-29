@@ -19,6 +19,10 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * HaxeInherit is analogous to PsiJavaCodeReferenceElement
@@ -26,5 +30,8 @@ import com.intellij.psi.PsiReferenceList;
  * Created by ebishton on 10/8/14.
  */
 public interface HaxeInheritPsiMixin extends HaxePsiCompositeElement, PsiReferenceList {
+
+  @NotNull
+  public List<HaxeType> getTypeList();
 
 }

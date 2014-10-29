@@ -20,18 +20,11 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeParam;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
-import com.intellij.psi.scope.PsiScopeProcessor;
-import com.intellij.util.IncorrectOperationException;
+import com.intellij.psi.impl.PsiImplUtil;
 import org.apache.log4j.Level;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,161 +45,41 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
 
   @Nullable
   @Override
-  public PsiElement getReferenceNameElement() {
-    PsiElement child = findChildByType(HaxeTokenTypes.REFERENCE_EXPRESSION); // REFERENCE_NAME in Java
-    return child;
+  public PsiType getPsiType() {
+    return (this instanceof HaxeType) ? new HaxePsiTypeAdapter((HaxeType)this) : null;
+  }
+
+  @Override
+  public boolean hasTypeParameters() {
+    return getTypeParameters().length != 0;
   }
 
   @Nullable
   @Override
-  public PsiReferenceParameterList getParameterList() {
-    // TODO:  Unimplemented.
-    LOG.warn("getParameterList is unimplemented");
-
-    // REFERENCE_PARAMETER_LIST  in Java
-    HaxeTypeParam child = (HaxeTypeParam) findChildByType(HaxeTokenTypes.TYPE_PARAM);
-    //return child == null ? null : child.getTypeList();
-    return null;
+  public PsiTypeParameterList getTypeParameterList() {
+    return (HaxeTypeParam) findChildByType(HaxeTokenTypes.TYPE_PARAM);
   }
 
   @NotNull
   @Override
-  public PsiType[] getTypeParameters() {
-    // TODO:  Unimplemented.
-    LOG.warn("getTypeParameters is unimplemented");
-    return new PsiType[0];
-  }
-
-  @Override
-  public boolean isQualified() {
-    // TODO:  Unimplemented.
-    LOG.warn("isQualified is unimplemented");
-    return false;
-  }
-
-  @Override
-  public String getQualifiedName() {
-    // TODO:  Unimplemented.
-    LOG.warn("getQualifiedName is unimplemented");
-    return null;
-  }
-
-
-  // PsiJavaReference overrides
-
-  @Override
-  public void processVariants(@NotNull PsiScopeProcessor processor) {
-    // TODO:  Unimplemented.
-    LOG.warn("processVariants is unimplemented");
-  }
-
-  @NotNull
-  @Override
-  public JavaResolveResult advancedResolve(boolean incompleteCode) {
-    // TODO:  Works, but may need correction.
-    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(this, HaxeGenericSpecialization.EMPTY);
-    return result.toJavaResolveResult();
-  }
-
-  @NotNull
-  @Override
-  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
-    // TODO:  Works, but may need correction.
-    final JavaResolveResult javaResolveResult = advancedResolve(incompleteCode);
-    if (javaResolveResult.getElement() == null) return JavaResolveResult.EMPTY_ARRAY;
-    return new JavaResolveResult[]{javaResolveResult};
-  }
-
-  // PsiReference overrides
-
-
-  @Override
-  public PsiElement getElement() {
-    // TODO:  Unimplemented.
-    LOG.warn("getElement is unimplemented");
-    return null;
-  }
-
-  @Override
-  public TextRange getRangeInElement() {
-    // TODO:  Unimplemented.
-    LOG.warn("getRangeInElement is unimplemented");
-    return null;
+  public PsiTypeParameter[] getTypeParameters() {
+    return PsiImplUtil.getTypeParameters(this);
   }
 
   @Nullable
   @Override
-  public PsiElement resolve() {
-    // TODO:  Unimplemented.
-    LOG.warn("resolve is unimplemented");
+  public PsiClass getContainingClass() {
+    PsiElement parent = getParent();
+    while (parent != null) {
+      if (parent instanceof HaxeFile) {
+        // If we get to the file node, we've gone too far.
+        return null;
+      }
+      if (parent instanceof HaxeClass) {
+        return (HaxeClass)parent;
+      }
+      parent = parent.getParent();
+    }
     return null;
   }
-
-  @NotNull
-  @Override
-  public String getCanonicalText() {
-    // Fully qualified name: (package/class).type
-    // TODO: Need a more complete implementation.
-    return getText();
-  }
-
-  @Override
-  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-    // TODO:  Unimplemented.
-    LOG.warn("handleElementRename is unimplemented");
-    return null;
-  }
-
-  @Override
-  public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
-    // TODO:  Unimplemented.
-    LOG.warn("bindToElement is unimplemented");
-    return null;
-  }
-
-  @Override
-  public boolean isReferenceTo(PsiElement element) {
-    // TODO:  Unimplemented.
-    LOG.warn("isReferenceTo is unimplemented");
-    return false;
-  }
-
-  @NotNull
-  @Override
-  public Object[] getVariants() {
-    // TODO:  Unimplemented.
-    LOG.warn("getVariants is unimplemented");
-    return new Object[0];
-  }
-
-  @Override
-  public boolean isSoft() {
-    // TODO:  Unimplemented.
-    LOG.warn("isSoft is unimplemented");
-    return false;
-  }
-
-  // PsiQualifiedReference overrides
-
-
-  @Nullable
-  @Override
-  public PsiElement getQualifier() {
-    // Package/class that this type is part of; the part before
-    // the last '.'.  However, that may only be partial, so adding
-    // package information may also be necessary.
-    // TODO:  Unimplemented.
-    LOG.warn("getQualifier is unimplemented");
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public String getReferenceName() {
-    // Unqualified name; the base name without any preceding
-    // package/class name.
-    // TODO: Figure out if this needs to split out any prefix.
-    return getText();
-  }
-
 }

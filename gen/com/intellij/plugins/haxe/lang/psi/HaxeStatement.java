@@ -17,38 +17,27 @@
  */
 
 // This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi.impl;
+package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
 import org.jetbrains.annotations.*;
-import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.util.PsiTreeUtil;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeSuffixExpressionImpl extends HaxeExpressionImpl implements HaxeSuffixExpression {
+public interface HaxeStatement extends HaxeStatementPsiMixin {
 
-  public HaxeSuffixExpressionImpl(ASTNode node) {
-    super(node);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitSuffixExpression(this);
-    else super.accept(visitor);
-  }
-
-  @Override
   @Nullable
-  public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
-  }
+  HaxeBlockStatement getBlockStatement();
 
-  @Override
   @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
-  }
+  HaxeConditional getConditional();
+
+  @Nullable
+  HaxeExpression getExpression();
+
+  @Nullable
+  HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();
+
+  @Nullable
+  HaxeLocalVarDeclaration getLocalVarDeclaration();
 
 }
