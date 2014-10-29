@@ -17,11 +17,11 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiTypeParameter;
 
 /**
- * Created by ebishton on 10/16/14.
+ * Created by ebishton on 10/22/14.
  */
-public interface HaxeBlockStatementPsiMixin extends HaxeStatement, PsiCodeBlock {
+public interface HaxeTypeListPartPsiMixin extends HaxePsiCompositeElement, PsiTypeParameter {
 
 }

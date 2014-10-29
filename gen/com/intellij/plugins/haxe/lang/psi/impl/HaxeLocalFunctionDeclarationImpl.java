@@ -71,14 +71,8 @@ public class HaxeLocalFunctionDeclarationImpl extends HaxeMethodImpl implements 
 
   @Override
   @Nullable
-  public HaxeReturnStatement getReturnStatement() {
-    return findChildByClass(HaxeReturnStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeThrowStatement getThrowStatement() {
-    return findChildByClass(HaxeThrowStatement.class);
+  public HaxeStatement getStatement() {
+    return findChildByClass(HaxeStatement.class);
   }
 
   @Override

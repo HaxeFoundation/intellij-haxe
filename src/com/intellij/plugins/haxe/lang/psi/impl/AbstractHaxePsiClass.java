@@ -482,4 +482,20 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
     return null;
   }
+
+
+  public static AbstractHaxePsiClass EMPTY_FACADE = new AbstractHaxePsiClass(new HaxeDummyASTNode("EMPTY_FACADE")) {
+    @Nullable
+    @Override
+    public HaxeGenericParam getGenericParam() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public HaxeComponentName getComponentName() {
+      return null;
+    }
+  };
+
 }

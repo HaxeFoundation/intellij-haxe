@@ -29,12 +29,6 @@ public interface HaxeSuffixExpression extends HaxeExpression {
   HaxeExpression getExpression();
 
   @Nullable
-  HaxeIfStatement getIfStatement();
-
-  @Nullable
-  HaxeSwitchStatement getSwitchStatement();
-
-  @Nullable
-  HaxeTryStatement getTryStatement();
+  HaxeStatement getStatement();
 
 }

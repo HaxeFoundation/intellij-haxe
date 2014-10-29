@@ -150,7 +150,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
       return null;
     }
 
-    return (PsiCodeBlock)bs.getNode().findChildByType(HaxeTokenTypes.BLOCK_STATEMENT);
+    return (PsiCodeBlock)bs.getNode().getPsi(PsiCodeBlock.class);
   }
 
   @Override
@@ -180,6 +180,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     // We would need the ability to know if a particular run sequence has
     // called such a function.  I don't think we can pull that off without
     // the compiler's help.
+    // TODO: Use compiler completion to detect variable arguments usage.
     return false;
   }
 
@@ -196,6 +197,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public PsiTypeParameter[] getTypeParameters() {
+    // Type parameters are those inside of the type designation (e.g.
+    // inside the '<' and '>').
     return PsiImplUtil.getTypeParameters(this);
   }
 
@@ -214,8 +217,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public MethodSignature getSignature(@NotNull PsiSubstitutor substitutor) {
-    // XXX: this may need to be implemented for refactoring functionality
-    return null;
+    // XXX: PsiMethod uses a cache for substitutors.
+    return MethodSignatureBackedByPsiMethod.create(this, substitutor);
   }
 
   @Nullable
@@ -272,8 +275,13 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
-    // TODO:  Implement 'public PsiTypeParameterList getTypeParameterList()'
-    return null;
+    // Type parameters are those inside of the type designation (e.g.
+    // inside the '<' and '>').
+    HaxeTypeTag         tag =   (HaxeTypeTag) findChildByType(HaxeTokenTypes.TYPE_TAG);
+    HaxeTypeOrAnonymous toa =   null == tag ? null : tag.getTypeOrAnonymous();
+    HaxeType            type =  null == toa ? null : toa.getType();
+    HaxeTypeParam       param = null == type ? null : type.getTypeParam();// XXX: Java<->Haxe list & type inversion -- See BNF.
+    return param;
   }
 
   private boolean isPrivate() {

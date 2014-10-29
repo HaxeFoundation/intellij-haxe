@@ -168,6 +168,7 @@
     ppElseIf="#elseif"
 
     extends(".*(Expression|Literal)")="expression"
+    extends(".*Statement")="statement"
     pin(".*Expression")=1
     pin(".*Statement")=1
     pin(".*Meta")=1
@@ -349,22 +350,38 @@ private functionTypeWrapper ::= functionTypeOrWrapper functionType*
 private functionTypeOrWrapper ::= typeOrAnonymous | '(' functionTypeWrapper ')'
 left functionType ::= '->' '?'? typeOrAnonymous
 
+
+/*
+ * Haxe and Java have this backward from each other.
+ *
+ * Haxe PSI type:                      Corresponding Java PSI Type:
+ * =======================             =============================
+ * TYPE_PARAM..........................PsiTypeParameterList
+ * TYPE_LIST...........................n/a
+ * TYPE_LIST_PART......................PsiTypeParameter
+ *
+ * There is a PsiType class but its not an element of the PSI.
+ * There is a PsiTypeElement class that /is/ part of the tree, though it's pretty low-level.
+ *
+ */
 typeTag ::= ':' functionTypeWrapper
-typeParam ::= '<' typeList '>'
+typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
 genericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 typeListPart ::= functionTypeWrapper
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
 typeOrAnonymous ::= type | anonymousType
 
-blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
+blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
-private statement ::= blockStatement | notBlockStatement | conditional
+statement ::= blockStatement | notBlockStatement | conditional
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
 
 
 private notBlockStatement ::= ('untyped' statement ';'?)
@@ -387,7 +404,8 @@ private conditional_recover ::= conditional
 ifStatement ::= 'if' '(' expression ')' statement ';'? ('else' statement ';'?)?
 
 forStatement ::= 'for' '(' componentName 'in' iterable')' statement ';'?
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+// XXX: Not sure why Fedor declared this: {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+// XXX: We'll use the default "statement" (e.g. HaxeStatement)
 
 iterable ::= expression
 

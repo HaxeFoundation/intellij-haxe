@@ -99,7 +99,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitBreakStatement(@NotNull HaxeBreakStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitBuildMacro(@NotNull HaxeBuildMacro o) {
@@ -117,7 +117,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitCatchStatement(@NotNull HaxeCatchStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitClassBody(@NotNull HaxeClassBody o) {
@@ -149,7 +149,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitContinueStatement(@NotNull HaxeContinueStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitCoreApiMeta(@NotNull HaxeCoreApiMeta o) {
@@ -173,7 +173,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitDoWhileStatement(@NotNull HaxeDoWhileStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitEnumBody(@NotNull HaxeEnumBody o) {
@@ -233,7 +233,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitForStatement(@NotNull HaxeForStatement o) {
-    visitComponent(o);
+    visitStatement(o);
   }
 
   public void visitFunctionDeclarationWithAttributes(@NotNull HaxeFunctionDeclarationWithAttributes o) {
@@ -273,7 +273,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitIfStatement(@NotNull HaxeIfStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitImplementsDeclaration(@NotNull HaxeImplementsDeclaration o) {
@@ -403,7 +403,8 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitPackageStatement(@NotNull HaxePackageStatement o) {
-    visitPackageStatementPsiMixin(o);
+    visitStatement(o);
+    // visitPackageStatementPsiMixin(o);
   }
 
   public void visitParameter(@NotNull HaxeParameter o) {
@@ -453,7 +454,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitReturnStatement(@NotNull HaxeReturnStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitReturnStatementWithoutSemicolon(@NotNull HaxeReturnStatementWithoutSemicolon o) {
@@ -482,6 +483,10 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitSimpleMeta(@NotNull HaxeSimpleMeta o) {
     visitPsiCompositeElement(o);
+  }
+
+  public void visitStatement(@NotNull HaxeStatement o) {
+    visitStatementPsiMixin(o);
   }
 
   public void visitStringLiteralExpression(@NotNull HaxeStringLiteralExpression o) {
@@ -515,7 +520,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitSwitchStatement(@NotNull HaxeSwitchStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitTernaryExpression(@NotNull HaxeTernaryExpression o) {
@@ -528,11 +533,11 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitThrowStatement(@NotNull HaxeThrowStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitTryStatement(@NotNull HaxeTryStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitType(@NotNull HaxeType o) {
@@ -548,7 +553,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitTypeListPart(@NotNull HaxeTypeListPart o) {
-    visitPsiCompositeElement(o);
+    visitTypeListPartPsiMixin(o);
   }
 
   public void visitTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous o) {
@@ -556,7 +561,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitTypeParam(@NotNull HaxeTypeParam o) {
-    visitPsiCompositeElement(o);
+    visitTypeParamPsiMixin(o);
   }
 
   public void visitTypeTag(@NotNull HaxeTypeTag o) {
@@ -576,7 +581,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitUsingStatement(@NotNull HaxeUsingStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitVarDeclaration(@NotNull HaxeVarDeclaration o) {
@@ -592,7 +597,7 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitWhileStatement(@NotNull HaxeWhileStatement o) {
-    visitPsiCompositeElement(o);
+    visitStatement(o);
   }
 
   public void visitWildcard(@NotNull HaxeWildcard o) {
@@ -631,10 +636,6 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitPsiCompositeElement(o);
   }
 
-  public void visitPackageStatementPsiMixin(@NotNull HaxePackageStatementPsiMixin o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitParameterListPsiMixin(@NotNull HaxeParameterListPsiMixin o) {
     visitPsiCompositeElement(o);
   }
@@ -644,6 +645,18 @@ public class HaxeVisitor extends PsiElementVisitor {
   }
 
   public void visitPsiField(@NotNull HaxePsiField o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitStatementPsiMixin(@NotNull HaxeStatementPsiMixin o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitTypeListPartPsiMixin(@NotNull HaxeTypeListPartPsiMixin o) {
+    visitPsiCompositeElement(o);
+  }
+
+  public void visitTypeParamPsiMixin(@NotNull HaxeTypeParamPsiMixin o) {
     visitPsiCompositeElement(o);
   }
 

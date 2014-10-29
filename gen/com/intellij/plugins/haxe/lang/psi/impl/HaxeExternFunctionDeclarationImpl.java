@@ -166,12 +166,6 @@ public class HaxeExternFunctionDeclarationImpl extends HaxeMethodImpl implements
   }
 
   @Override
-  @Nullable
-  public HaxeReturnStatement getReturnStatement() {
-    return findChildByClass(HaxeReturnStatement.class);
-  }
-
-  @Override
   @NotNull
   public List<HaxeSetterMeta> getSetterMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSetterMeta.class);
@@ -179,8 +173,8 @@ public class HaxeExternFunctionDeclarationImpl extends HaxeMethodImpl implements
 
   @Override
   @Nullable
-  public HaxeThrowStatement getThrowStatement() {
-    return findChildByClass(HaxeThrowStatement.class);
+  public HaxeStatement getStatement() {
+    return findChildByClass(HaxeStatement.class);
   }
 
   @Override

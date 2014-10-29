@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.surroundWith;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeIfStatement;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementUtils;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +34,13 @@ public class HaxeIfSurrounder extends HaxeManyStatementsSurrounder {
   protected PsiElement doSurroundElements(PsiElement[] elements, PsiElement parent) {
     final HaxeIfStatement ifStatement =
       (HaxeIfStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "if(a){\n}");
-    addStatements(ifStatement.getBlockStatementList().iterator().next(), elements);
+    addStatements(HaxeStatementUtils.getBlockStatement(parent), elements);
     return ifStatement;
   }
 
   @Override
   protected TextRange getSurroundSelectionRange(PsiElement element) {
-    return ((HaxeIfStatement)element).getExpressionList().iterator().next().getTextRange();
+    return HaxeStatementUtils.getExpression(element).getTextRange();
   }
 
   @Override
