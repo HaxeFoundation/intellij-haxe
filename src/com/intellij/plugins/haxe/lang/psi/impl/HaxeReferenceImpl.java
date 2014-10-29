@@ -89,6 +89,26 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     return false;
   }
 
+  private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
+    List<PsiElement> result = new ArrayList<PsiElement>();
+    for (PsiElement element : nameList) {
+      PsiElement parent = element.getParent();
+      if (null != parent && parent.isValid()) {
+
+        if (parent instanceof PsiPackage) {
+          // Don't look for package parents. It turns 'com' into 'com.xx'.
+          // XXX: May need to walk the tree until we get to the PACKAGE_STATEMENT
+          // element;
+          result.add(element);
+        } else {
+          result.add(parent);
+        }
+      }
+    }
+    return result;
+  }
+
+
   @Override
   public PsiElement resolve() {
     return resolve(true);
@@ -130,13 +150,7 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
               = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
                             : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
 
-    List<PsiElement> result = new ArrayList<PsiElement>();
-    for (PsiElement element : cachedNames) {
-      PsiElement parent = element.getParent();
-      if (null != parent && parent.isValid()) {
-        result.add(parent);
-      }
-    }
+    List<? extends PsiElement> result = resolveNamesToParents(cachedNames);
 
     // CandidateInfo does some extra resolution work when checking validity, so
     // the results have to be turned into a CandidateInfoArray, and not just passed
