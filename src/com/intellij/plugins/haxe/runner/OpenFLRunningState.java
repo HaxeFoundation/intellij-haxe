@@ -85,8 +85,8 @@ public class OpenFLRunningState extends CommandLineState {
     commandLine.addParameter("lime");
     commandLine.addParameter(myRunInTest ? "test" : "run");
 
-    if(!StringUtil.isEmpty(settings.getOpenFLXmlPath())) {
-      commandLine.addParameter(settings.getOpenFLXmlPath());
+    if(!StringUtil.isEmpty(settings.getOpenFLPath())) {
+      commandLine.addParameter(settings.getOpenFLPath());
     }
 
     for (String flag : settings.getOpenFLTarget().getFlags()) {
