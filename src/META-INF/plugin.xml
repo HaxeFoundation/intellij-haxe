@@ -368,6 +368,12 @@
 
   </extensions>
 
+  <module-components>
+    <component>
+      <implementation-class>com.intellij.plugins.haxe.haxelib.HaxelibManager</implementation-class>
+    </component>
+  </module-components>
+
   <actions>
     <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"
             text="Haxe Class" description="Create new Haxe class/interface/enum">
