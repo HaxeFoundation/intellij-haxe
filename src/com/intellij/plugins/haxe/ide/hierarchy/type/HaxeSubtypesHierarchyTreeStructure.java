@@ -20,12 +20,15 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.type.TypeHierarchyNodeDescriptor;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor;
+import com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
@@ -38,6 +41,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -74,7 +78,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     final Project inClassPsiProject = theHaxeClass.getProject();
     final PsiFile inClassPsiFile = theHaxeClass.getContainingFile();
 
-    final List<PsiClass> subTypeList = new ArrayList<PsiClass>(); // add the sub-types to this list, as they are found
+    List<PsiClass> subTypeList = new ArrayList<PsiClass>(); // add the sub-types to this list, as they are found
 
     // ----
     // search current file for sub-types that extend/implement from this class/type
@@ -91,62 +95,9 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
       return typeListToObjArray(descriptor, subTypeList);
     }
 
-    // ----
-    // search current package for sub-types that extend/implement from this class/type
-    //
-    final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(inClassPsiFile, HaxePackageStatement.class);
-    final String packageStatementStr = HaxeResolveUtil.getPackageName(packageStatement);
-    final VirtualFile[] packageVirtualDirs = UsefulPsiTreeUtil.getVirtualDirectoriesForPackage(packageStatementStr, inClassPsiProject);
-    for (VirtualFile file : packageVirtualDirs) {
-      final VirtualFile[] files = file.getChildren();
-      for (VirtualFile virtualFile : files)
-        if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
-          final PsiFile psiFile = PsiManager.getInstance(inClassPsiProject).findFile(virtualFile);
-          final HaxeClass[] allHaxeClassesInThisFile = PsiTreeUtil.getChildrenOfType(psiFile, HaxeClass.class);
-          if (null != allHaxeClassesInThisFile) {
-            for (HaxeClass aHaxeClassInFile : allHaxeClassesInThisFile)
-              if (isThisTypeASubTypeOfTheSuperType(aHaxeClassInFile, theHaxeClass)) {
-                subTypeList.add(aHaxeClassInFile);
-              }
-          }
-        }
-    }
-
-
-    // TODO: Must be fixed - see below description and comments with "//XXX: FIX:" prefix (in this method)
-    // AllClassesSearch.search calls are returning empty list/array.
-    // Without that fixed, sub-types that are not in the same package (as the type in focus) will not be listed...
-    // even though they are in same module or in a module that's directly listed as being dependent its module.
-    // It will mislead as being functional because, the sub-types within same package continue to be listed.
-
-
-    // ----
-    // search the module (this class belongs to) for sub-types that extend/implement from this class/type
-    //
-    Module theModule = ModuleUtil.findModuleForFile(inClassPsiFile.getVirtualFile(), theHaxeClass.getProject());
-    final PsiClass[] allClassesInTheModule = ArrayUtil.toObjectArray(
-      AllClassesSearch.search(theModule.getModuleScope(), inClassPsiProject).findAll(), PsiClass.class); //XXX: FIX: always '0' sized !
-    for (PsiClass aClassInFile : allClassesInTheModule) {
-      final HaxeClass hxClassInFile = (HaxeClass) aClassInFile;
-      if (isThisTypeASubTypeOfTheSuperType(hxClassInFile, theHaxeClass)) {
-        subTypeList.add(aClassInFile);
-      }
-    }
-
-    // ----
-    // search the modules dependent on module (one that, this class belongs to) for sub-types that extend/implement from this class/type
-    //
-    List<Module> dependentModules = ModuleManager.getInstance(theHaxeClass.getProject()).getModuleDependentModules(theModule);
-    for (Module module : dependentModules) {
-      final PsiClass[] allClassesInModule = ArrayUtil.toObjectArray(
-        AllClassesSearch.search(module.getModuleScope(), inClassPsiProject).findAll(), PsiClass.class); //XXX: FIX: always '0' sized !
-      for (PsiClass aClassInFile : allClassesInModule) {
-        final HaxeClass hxClassInFile = (HaxeClass) aClassInFile;
-        if (isThisTypeASubTypeOfTheSuperType(hxClassInFile, theHaxeClass)) {
-          subTypeList.add(aClassInFile);
-        }
-      }
-    }
+    // Get the list of subtypes from the file-based indices.  Stub-based would
+    // be faster, but we'll have to re-parent all of the PsiClass sub-classes.
+    subTypeList.addAll(getSubTypes(theHaxeClass));
 
     return typeListToObjArray(descriptor, subTypeList);
   }
@@ -204,5 +155,10 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
       theClass = superType;
     }
     return allSuperClasses;
+  }
+
+  public static List<HaxeClass> getSubTypes(HaxeClass theClass) {
+    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(theClass);
+    return subClasses;
   }
 }
