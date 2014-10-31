@@ -3214,53 +3214,67 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+  // localFunctionDeclarationAttribute? 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
   public static boolean localFunctionDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "localFunctionDeclaration")) return false;
-    if (!nextTokenIs(builder_, KFUNCTION)) return false;
+    if (!nextTokenIs(builder_, "<local function declaration>", KFUNCTION, KINLINE)) return false;
     boolean result_;
     boolean pinned_;
-    Marker marker_ = enter_section_(builder_, level_, _NONE_, null);
-    result_ = consumeToken(builder_, KFUNCTION);
-    result_ = result_ && componentName(builder_, level_ + 1);
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, "<local function declaration>");
+    result_ = localFunctionDeclaration_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, KFUNCTION);
     pinned_ = result_; // pin = 2
-    result_ = result_ && report_error_(builder_, localFunctionDeclaration_2(builder_, level_ + 1));
+    result_ = result_ && report_error_(builder_, componentName(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_3(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PLPAREN)) && result_;
-    result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_4(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_5(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, PRPAREN)) && result_;
-    result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_6(builder_, level_ + 1)) && result_;
     result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_7(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && report_error_(builder_, localFunctionDeclaration_8(builder_, level_ + 1)) && result_;
     result_ = pinned_ && functionCommonBody(builder_, level_ + 1) && result_;
     exit_section_(builder_, level_, marker_, LOCAL_FUNCTION_DECLARATION, result_, pinned_, null);
     return result_ || pinned_;
   }
 
+  // localFunctionDeclarationAttribute?
+  private static boolean localFunctionDeclaration_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_0")) return false;
+    localFunctionDeclarationAttribute(builder_, level_ + 1);
+    return true;
+  }
+
   // genericParam?
-  private static boolean localFunctionDeclaration_2(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_2")) return false;
+  private static boolean localFunctionDeclaration_3(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_3")) return false;
     genericParam(builder_, level_ + 1);
     return true;
   }
 
   // parameterList?
-  private static boolean localFunctionDeclaration_4(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_4")) return false;
+  private static boolean localFunctionDeclaration_5(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_5")) return false;
     parameterList(builder_, level_ + 1);
     return true;
   }
 
   // typeTag?
-  private static boolean localFunctionDeclaration_6(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_6")) return false;
+  private static boolean localFunctionDeclaration_7(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_7")) return false;
     typeTag(builder_, level_ + 1);
     return true;
   }
 
   // 'untyped'?
-  private static boolean localFunctionDeclaration_7(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_7")) return false;
+  private static boolean localFunctionDeclaration_8(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "localFunctionDeclaration_8")) return false;
     consumeToken(builder_, KUNTYPED);
     return true;
+  }
+
+  /* ********************************************************** */
+  // 'inline'
+  static boolean localFunctionDeclarationAttribute(PsiBuilder builder_, int level_) {
+    return consumeToken(builder_, KINLINE);
   }
 
   /* ********************************************************** */
@@ -3898,10 +3912,10 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KBREAK, KCAST,
       KCONTINUE, KDO, KFALSE, KFOR, KFUNCTION, KIF,
-      ONEW, KNULL, KRETURN, KSUPER, KSWITCH, KTHIS,
-      KTHROW, KTRUE, KTRY, KUNTYPED, KVAR, KWHILE,
-      PLCURLY, OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT,
-      LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KINLINE, ONEW, KNULL, KRETURN, KSUPER, KSWITCH,
+      KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED, KVAR,
+      KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT, LITHEX,
+      LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = notBlockStatement_0(builder_, level_ + 1);
@@ -4716,10 +4730,10 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, "<statement>", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KBREAK, KCAST,
       KCONTINUE, KDO, KFALSE, KFOR, KFUNCTION, KIF,
-      ONEW, KNULL, KRETURN, KSUPER, KSWITCH, KTHIS,
-      KTHROW, KTRUE, KTRY, KUNTYPED, KVAR, KWHILE,
-      PLCURLY, OCOMPLEMENT, CONDITIONAL_STATEMENT_ID, ID, LITFLOAT, LITHEX,
-      LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KINLINE, ONEW, KNULL, KRETURN, KSUPER, KSWITCH,
+      KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED, KVAR,
+      KWHILE, PLCURLY, OCOMPLEMENT, CONDITIONAL_STATEMENT_ID, ID, LITFLOAT,
+      LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _COLLAPSE_, "<statement>");
     result_ = blockStatement(builder_, level_ + 1);
@@ -4996,10 +5010,10 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, "<switch case block>", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KBREAK, KCAST,
       KCONTINUE, KDO, KFALSE, KFOR, KFUNCTION, KIF,
-      ONEW, KNULL, KRETURN, KSUPER, KSWITCH, KTHIS,
-      KTHROW, KTRUE, KTRY, KUNTYPED, KVAR, KWHILE,
-      PLCURLY, OCOMPLEMENT, CONDITIONAL_STATEMENT_ID, ID, LITFLOAT, LITHEX,
-      LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KINLINE, ONEW, KNULL, KRETURN, KSUPER, KSWITCH,
+      KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED, KVAR,
+      KWHILE, PLCURLY, OCOMPLEMENT, CONDITIONAL_STATEMENT_ID, ID, LITFLOAT,
+      LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<switch case block>");
     result_ = switchCaseBlock_0(builder_, level_ + 1);

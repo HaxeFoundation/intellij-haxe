@@ -28,7 +28,7 @@ public interface HaxeLocalFunctionDeclaration extends HaxeMethod {
   @Nullable
   HaxeBlockStatement getBlockStatement();
 
-  @NotNull
+  @Nullable
   HaxeComponentName getComponentName();
 
   @Nullable
