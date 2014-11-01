@@ -40,4 +40,8 @@ public class HXMLLibImpl extends ASTWrapperPsiElement implements HXMLLib {
     else super.accept(visitor);
   }
 
+  public String getValue() {
+    return HXMLPsiImplUtil.getValue(this);
+  }
+
 }

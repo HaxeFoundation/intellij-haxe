@@ -25,4 +25,6 @@ import com.intellij.psi.PsiElement;
 
 public interface HXMLLib extends PsiElement {
 
+  String getValue();
+
 }
