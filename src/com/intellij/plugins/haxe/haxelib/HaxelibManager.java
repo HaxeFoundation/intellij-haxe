@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -29,7 +28,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -84,19 +82,19 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     }
   }*/
 
-  /*
-  public static List<String> getAllLibrariesClasspaths(Module myModule) {
+  public static List<String> getAllLibrariesClasspathsUrls(Module myModule) {
     List<String> classpath = new ArrayList<String>();
 
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(myModule.getProject());
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
-      classpath.addAll(Arrays.asList(library.getUrls(OrderRootType.SOURCES)));
-      classpath.addAll(Arrays.asList(library.getUrls(OrderRootType.CLASSES)));
+      if (HaxelibParser.parseHaxelib(library.getName()) == null) {
+        classpath.addAll(Arrays.asList(library.getUrls(OrderRootType.SOURCES)));
+        classpath.addAll(Arrays.asList(library.getUrls(OrderRootType.CLASSES)));
+      }
     }
     return classpath;
   }
-  */
 
   public static List<String> getHaxelibPathUrl(Module myModule, String name) {
     List<String> classpathUrls = new ArrayList<String>();
@@ -108,7 +106,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
 
     //"nme"
 
-    //List<String> classpath = getAllLibrariesClasspaths(myModule);
+    //List<String> classpath = getAllLibrariesClasspathsUrls(myModule);
 
     List<String> strings = getProcessStdout(commandLineArguments);
 
@@ -356,7 +354,17 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
 
         List<String> strings = new ArrayList<String>();
 
+        List<String> allLibrariesClasspaths = getAllLibrariesClasspathsUrls(module);
+
+        List<HaxelibNewItem> haxelibNewItems1 = new ArrayList<HaxelibNewItem>();
+
         for (HaxelibNewItem haxelibNewItem : haxelibNewItems) {
+          if (!allLibrariesClasspaths.contains(haxelibNewItem.classpath)) {
+            haxelibNewItems1.add(haxelibNewItem);
+          }
+        }
+
+        for (HaxelibNewItem haxelibNewItem : haxelibNewItems1) {
           String haxelib = HaxelibParser.stringifyHaxelib(new HaxelibItem(haxelibNewItem.name));
           strings.add(haxelib);
         }
@@ -371,14 +379,14 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
 
         //libraryTableModifiableModel.commit();
 
-        for (int i = 0; i < haxelibNewItems.size(); i++) {
+        for (int i = 0; i < haxelibNewItems1.size(); i++) {
           Library libraryByName = libraryTableModifiableModel.getLibraryByName(strings.get(i));
           if (libraryByName == null) {
             libraryByName = libraryTableModifiableModel.createLibrary(strings.get(i));
             Library[] libraries = libraryTableModifiableModel.getLibraries();
             Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
-            libraryModifiableModel.addRoot(haxelibNewItems.get(i).classpath, OrderRootType.CLASSES);
-            libraryModifiableModel.addRoot(haxelibNewItems.get(i).classpath, OrderRootType.SOURCES);
+            libraryModifiableModel.addRoot(haxelibNewItems1.get(i).classpath, OrderRootType.CLASSES);
+            libraryModifiableModel.addRoot(haxelibNewItems1.get(i).classpath, OrderRootType.SOURCES);
             libraryModifiableModel.commit();
 
             ModuleRootModificationUtil.addDependency(module, libraryByName);
