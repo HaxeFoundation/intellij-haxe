@@ -25,19 +25,18 @@ import java.util.ArrayList;
  * Created by as3boyan on 31.10.14.
  */
 public class HaxelibParser {
-  public static String stringifyHaxelib(String name, String version) {
+  public static String stringifyHaxelib(HaxelibItem haxelibItem) {
     ArrayList<String> strings = new ArrayList<String>();
     strings.add("haxelib");
-    strings.add(name);
-    strings.add(version);
+    strings.add(haxelibItem.classpath);
     return Joiner.on("|").join(strings);
   }
 
   public static HaxelibItem parseHaxelib(String data) {
     String[] strings = data.split("|");
 
-    if (strings.length == 3 && strings[0].equals("haxelib")) {
-      return new HaxelibItem(strings[1], strings[2]);
+    if (strings.length == 2 && strings[0].equals("haxelib")) {
+      return new HaxelibItem(strings[1]);
     }
 
     return null;

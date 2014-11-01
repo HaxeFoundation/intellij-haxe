@@ -23,8 +23,10 @@ import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -37,6 +39,7 @@ import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -45,6 +48,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.webcore.ModuleHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
@@ -68,9 +72,11 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
 
         //String name = "3,3,5";
         //"/usr/lib/haxe/lib/flixel/3,3,5"
-        Library libraryByName = libraryTableModifiableModel.getLibraryByName(name);
+        String haxelib = HaxelibParser.stringifyHaxelib(new HaxelibItem(name));
+
+        Library libraryByName = libraryTableModifiableModel.getLibraryByName(haxelib);
         if (libraryByName == null) {
-          libraryByName = libraryTableModifiableModel.createLibrary(name);
+          libraryByName = libraryTableModifiableModel.createLibrary(haxelib);
           Library[] libraries = libraryTableModifiableModel.getLibraries();
           Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
           libraryModifiableModel.addRoot(classpathUrl, OrderRootType.CLASSES);
@@ -162,23 +168,23 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     return getProcessStdout(commandLineArguments, null);
   }
 
-  public static List<HaxelibItem> getAllLibraries(Module myModule) {
-    List<HaxelibItem> haxelibItems = new ArrayList<HaxelibItem>();
+  public static List<Library> getAllLibraries(Module myModule) {
+    List<Library> haxelibItems = new ArrayList<Library>();
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(myModule.getProject());
 
     for (Library library : libraryTable.getLibraries()) {
-      HaxelibItem haxelibItem = HaxelibParser.parseHaxelib(library.getName());
-      if (haxelibItem != null) {
-        haxelibItems.add(haxelibItem);
-      }
+      //HaxelibItem haxelibItem = HaxelibParser.parseHaxelib(library.getName());
+      //if (haxelibItem != null) {
+        haxelibItems.add(library);
+      //}
     }
 
     return haxelibItems;
   }
 
-  public static boolean isLibraryAdded(List<HaxelibItem> haxelibItems, String name) {
+  public static boolean isLibraryAdded(List<HaxelibItem> haxelibItems, String classpath) {
     for (HaxelibItem item : haxelibItems) {
-      if (item.name.equals(name)) {
+      if (item.classpath.equals(classpath)) {
         return true;
       }
     }
@@ -187,10 +193,12 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
   }
 
   public static boolean isNMELibraryAdded(List<HaxelibItem> haxelibItems) {
-    return isLibraryAdded(haxelibItems, "nme");
+    //return isLibraryAdded(haxelibItems, "nme");
+    return false;
   }
   public static boolean isOpenFLLibraryAdded(List<HaxelibItem> haxelibItems) {
-    return isLibraryAdded(haxelibItems, "openfl");
+    //return isLibraryAdded(haxelibItems, "openfl");
+    return false;
   }
 
   public static List<String> getInstalledLibraries() {
@@ -251,16 +259,32 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
   public void projectOpened() {
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
 
-    for (Project project : projects) {
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        List<HaxelibItem> allLibraries = HaxelibManager.getAllLibraries(module);
+    for (final Project project : projects) {
+      for (final Module module : ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance())) {
+        /*ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            List<Library> allLibraries = HaxelibManager.getAllLibraries(module);
+
+            LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+            LibraryTable.ModifiableModel modifiableModel = libraryTable.getModifiableModel();
+
+            for (Library library : allLibraries) {
+              if (HaxelibParser.parseHaxelib(library.getName()) != null) {
+                ModuleHelper.removeDependency(ModuleRootManager.getInstance(module), library);
+                modifiableModel.removeLibrary(library);
+              }
+            }
+            modifiableModel.commit();
+          }
+        });*/
 
         HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
         switch (settings.getBuildConfig()) {
           case HaxeModuleSettings.USE_NMML:
-            if (!HaxelibManager.isNMELibraryAdded(allLibraries)) {
+            //if (!HaxelibManager.isNMELibraryAdded(allLibraries)) {
               HaxelibManager.addLibraryWithClasspath(module, "nme");
-            }
+            //}
 
             String nmmlPath = settings.getNmmlPath();
             if (nmmlPath != null && !nmmlPath.isEmpty()) {
@@ -287,9 +311,9 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
             }
             break;
           case HaxeModuleSettings.USE_OPENFL:
-            if (!HaxelibManager.isOpenFLLibraryAdded(allLibraries)) {
+            //if (!HaxelibManager.isOpenFLLibraryAdded(allLibraries)) {
               HaxelibManager.addLibraryWithClasspath(module, "openfl");
-            }
+            //}
 
             String openFLXmlPath = settings.getOpenFLXmlPath();
             if (openFLXmlPath != null && !openFLXmlPath.isEmpty()) {
@@ -350,6 +374,8 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
                 HaxelibManager.addLibraryWithClasspath(module, classpath, VfsUtil.pathToUrl(classpath));
               }
             }
+
+            break;
         }
       }
     }

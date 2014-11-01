@@ -23,11 +23,9 @@ import java.util.List;
  * Created by as3boyan on 31.10.14.
  */
 public class HaxelibItem {
-  public String name;
-  public String version;
+  public String classpath;
 
-  public HaxelibItem(String name, String version) {
-    this.name = name;
-    this.version = version;
+  public HaxelibItem(String classpath) {
+    this.classpath = classpath;
   }
 }
