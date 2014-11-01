@@ -49,4 +49,8 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
   public void testConstants() throws Throwable {
     doTest(true);
   }
+
+  public void testTivo_42() throws Throwable {
+    doTest(true);
+  }
 }

@@ -222,8 +222,8 @@ private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro'
 
 conditional ::= CONDITIONAL_STATEMENT_ID {recoverWhile="conditional_recover"}
 
-assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>='
-compareOperation ::= '==' | '!=' | '<=' | '<' | '>' | '>='
+assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | ('>' '>' '=') | ('>' '>' '>' '=')
+compareOperation ::= '==' | '!=' | '<=' | '<' | ('>' '=') | '>'
 bitOperation ::= '|' | '&' | '^'
 shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | '<<'
 
@@ -444,7 +444,7 @@ expressionList ::= forStatement | whileStatement | (expression (',' expression)*
 private expression_list_recover ::= !(')' | ']')
 
 expression ::= fatArrowExpressionWrapper {recoverWhile="expression_recover"}
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>=' | '>>>=' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
 private fatArrowExpressionWrapper ::= assignExpressionWrapper fatArrowExpression*
 left fatArrowExpression ::= '=>' assignExpressionWrapper {pin=1 extends="expression"}

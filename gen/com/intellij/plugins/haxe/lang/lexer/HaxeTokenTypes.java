@@ -261,7 +261,6 @@ public interface HaxeTokenTypes {
   IElementType OEQ = new HaxeElementType("==");
   IElementType OFAT_ARROW = new HaxeElementType("=>");
   IElementType OGREATER = new HaxeElementType(">");
-  IElementType OGREATER_OR_EQUAL = new HaxeElementType(">=");
   IElementType OIN = new HaxeElementType("in");
   IElementType OLESS = new HaxeElementType("<");
   IElementType OLESS_OR_EQUAL = new HaxeElementType("<=");
@@ -285,7 +284,6 @@ public interface HaxeTokenTypes {
   IElementType OSEMI = new HaxeElementType(";");
   IElementType OSHIFT_LEFT = new HaxeElementType("<<");
   IElementType OSHIFT_LEFT_ASSIGN = new HaxeElementType("<<=");
-  IElementType OSHIFT_RIGHT_ASSIGN = new HaxeElementType(">>=");
   IElementType OTRIPLE_DOT = new HaxeElementType("...");
   IElementType PLBRACK = new HaxeElementType("[");
   IElementType PLCURLY = new HaxeElementType("{");
