@@ -17,30 +17,19 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.google.common.base.Joiner;
-import com.intellij.openapi.util.text.StringUtil;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.intellij.openapi.module.Module;
 
 /**
- * Created by as3boyan on 31.10.14.
+ * Created by as3boyan on 01.11.14.
  */
-public class HaxelibParser {
-  public static String stringifyHaxelib(HaxelibItem haxelibItem) {
-    ArrayList<String> strings = new ArrayList<String>();
-    strings.add("haxelib");
-    strings.add(haxelibItem.classpath);
-    return Joiner.on("|").join(strings);
-  }
+public class HaxelibNewItem {
+  public Module module;
+  public String name;
+  public String classpath;
 
-  public static HaxelibItem parseHaxelib(String data) {
-    List<String> strings = StringUtil.split(data, "|");
-
-    if (strings.size() == 2 && strings.get(0).equals("haxelib")) {
-      return new HaxelibItem(strings.get(1));
-    }
-
-    return null;
+  public HaxelibNewItem(Module module, String name, String classpath) {
+    this.module = module;
+    this.name = name;
+    this.classpath = classpath;
   }
 }
