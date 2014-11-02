@@ -62,26 +62,6 @@ import java.util.*;
  * Created by as3boyan on 31.10.14.
  */
 public class HaxelibManager implements com.intellij.openapi.module.ModuleComponent {
-  //static Module module;
-  //static List<String> names = new ArrayList<String>();
-  //static List<String> classpathUrls = new ArrayList<String>();
-
-  /*public static void addLibraryWithClasspath(final Module myModule, final String name, final String classpathUrl) {
-    module = myModule;
-    names.add(name);
-    classpathUrls.add(classpathUrl);
-  }
-
-  public static void addLibraryWithClasspath(final Module myModule, final String name) {
-    if (getInstalledLibraries().contains(name)) {
-      String haxelibPathUrl = getHaxelibPathUrl(myModule, name);
-
-      if (haxelibPathUrl != null) {
-        addLibraryWithClasspath(myModule, VfsUtilCore.urlToPath(haxelibPathUrl), haxelibPathUrl);
-      }
-    }
-  }*/
-
   public static List<String> getAllLibrariesClasspathsUrls(Module myModule) {
     List<String> classpath = new ArrayList<String>();
 
@@ -104,10 +84,6 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     commandLineArguments.add("path");
     commandLineArguments.add(name);
 
-    //"nme"
-
-    //List<String> classpath = getAllLibrariesClasspathsUrls(myModule);
-
     List<String> strings = getProcessStdout(commandLineArguments);
 
     for (String string : strings) {
@@ -116,7 +92,6 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
         if (file != null) {
           classpathUrls.add(file.getUrl());
         }
-        //!classpath.contains(file.getUrl())
       }
     }
 
@@ -154,41 +129,6 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
   public static List<String> getProcessStdout(ArrayList<String> commandLineArguments) {
     return getProcessStdout(commandLineArguments, null);
   }
-
-  public static List<Library> getAllLibraries(Module myModule) {
-    List<Library> haxelibItems = new ArrayList<Library>();
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myModule.getProject());
-
-    for (Library library : libraryTable.getLibraries()) {
-      //HaxelibItem haxelibItem = HaxelibParser.parseHaxelib(library.getName());
-      //if (haxelibItem != null) {
-        haxelibItems.add(library);
-      //}
-    }
-
-    return haxelibItems;
-  }
-
-  public static boolean isLibraryAdded(List<HaxelibItem> haxelibItems, String classpath) {
-    for (HaxelibItem item : haxelibItems) {
-      if (item.classpath.equals(classpath)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /*
-  public static boolean isNMELibraryAdded(List<HaxelibItem> haxelibItems) {
-    //return isLibraryAdded(haxelibItems, "nme");
-    return false;
-  }
-  */
-  /*public static boolean isOpenFLLibraryAdded(List<HaxelibItem> haxelibItems) {
-    //return isLibraryAdded(haxelibItems, "openfl");
-    return false;
-  }*/
 
   public static List<String> getInstalledLibraries() {
     ArrayList<String> commandLineArguments = new ArrayList<String>();
@@ -244,84 +184,21 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     return strings1;
   }
 
-  /*
-  public static void commit() {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        //List<Library> allLibraries = HaxelibManager.getAllLibraries(myModule);
-
-          */
-/*LibraryTable libraryTable2 = ProjectLibraryTable.getInstance(myModule.getProject());
-        LibraryTable.ModifiableModel modifiableModel = libraryTable2.getModifiableModel();
-
-        for (Library library : allLibraries) {
-          if (HaxelibParser.parseHaxelib(library.getName()) != null) {
-            ModuleHelper.removeDependency(ModuleRootManager.getInstance(myModule), library);
-            modifiableModel.removeLibrary(library);
-          }
-        }*/  /*
-
-        //modifiableModel.commit();
-
-        LibraryTable libraryTable = ProjectLibraryTable.getInstance(module.getProject());
-
-        LibraryTable.ModifiableModel libraryTableModifiableModel = libraryTable.getModifiableModel();
-
-        //String name = "3,3,5";
-        //"/usr/lib/haxe/lib/flixel/3,3,5"
-
-        Library[] libraryTableModifiableModelLibraries = libraryTableModifiableModel.getLibraries();
-        for (Library library : libraryTableModifiableModelLibraries) {
-          if (HaxelibParser.parseHaxelib(library.getName()) != null) {
-            ModuleHelper.removeDependency(ModuleRootManager.getInstance(module), library);
-            libraryTableModifiableModel.removeLibrary(library);
-          }
-        }
-
-        //libraryTableModifiableModel.commit();
-
-        for (int i = 0; i < names.size(); i++) {
-          String haxelib = HaxelibParser.stringifyHaxelib(new HaxelibItem(names.get(i)));
-
-          Library libraryByName = libraryTableModifiableModel.getLibraryByName(haxelib);
-          if (libraryByName == null) {
-            libraryByName = libraryTableModifiableModel.createLibrary(haxelib);
-            Library[] libraries = libraryTableModifiableModel.getLibraries();
-            Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
-            libraryModifiableModel.addRoot(classpathUrls.get(i), OrderRootType.CLASSES);
-            libraryModifiableModel.addRoot(classpathUrls.get(i), OrderRootType.SOURCES);
-            libraryModifiableModel.commit();
-
-            ModuleRootModificationUtil.addDependency(module, libraryByName);
-          }
-        }
-
-        libraryTableModifiableModel.commit();
-
-        //module = null;
-        //names.clear();
-        //classpathUrls.clear();
-      }
-    });
-  }
-  */
-
-  public static List<HaxelibNewItem> findHaxelibPath(Module myModule, String name) {
-    List<HaxelibNewItem> haxelibNewItems = new ArrayList<HaxelibNewItem>();
+  public static List<HaxelibItem> findHaxelibPath(Module myModule, String name) {
+    List<HaxelibItem> haxelibNewItems = new ArrayList<HaxelibItem>();
 
     if (getInstalledLibraries().contains(name)) {
       List<String> haxelibPathUrls = getHaxelibPathUrl(myModule, name);
 
       for (String url : haxelibPathUrls) {
-        haxelibNewItems.add(new HaxelibNewItem(myModule, VfsUtilCore.urlToPath(url), url));
+        haxelibNewItems.add(new HaxelibItem(VfsUtilCore.urlToPath(url), url));
       }
     }
 
     return haxelibNewItems;
   }
 
-  public static void addLibraries(final List<HaxelibNewItem> haxelibNewItems) {
+  public static void addLibraries(final Module module, final List<HaxelibItem> haxelibNewItems) {
     if (haxelibNewItems.isEmpty()) {
       return;
     }
@@ -329,42 +206,23 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        //List<Library> allLibraries = HaxelibManager.getAllLibraries(myModule);
-
-
-/*LibraryTable libraryTable2 = ProjectLibraryTable.getInstance(myModule.getProject());
-        LibraryTable.ModifiableModel modifiableModel = libraryTable2.getModifiableModel();
-
-        for (Library library : allLibraries) {
-          if (HaxelibParser.parseHaxelib(library.getName()) != null) {
-            ModuleHelper.removeDependency(ModuleRootManager.getInstance(myModule), library);
-            modifiableModel.removeLibrary(library);
-          }
-        }*/
-
-        //modifiableModel.commit();
-
-        Module module = haxelibNewItems.get(0).module;
         LibraryTable libraryTable = ProjectLibraryTable.getInstance(module.getProject());
 
         LibraryTable.ModifiableModel libraryTableModifiableModel = libraryTable.getModifiableModel();
-
-        //String name = "3,3,5";
-        //"/usr/lib/haxe/lib/flixel/3,3,5"
 
         List<String> strings = new ArrayList<String>();
 
         List<String> allLibrariesClasspaths = getAllLibrariesClasspathsUrls(module);
 
-        List<HaxelibNewItem> haxelibNewItems1 = new ArrayList<HaxelibNewItem>();
+        List<HaxelibItem> haxelibNewItems1 = new ArrayList<HaxelibItem>();
 
-        for (HaxelibNewItem haxelibNewItem : haxelibNewItems) {
-          if (!allLibrariesClasspaths.contains(haxelibNewItem.classpath)) {
+        for (HaxelibItem haxelibNewItem : haxelibNewItems) {
+          if (!allLibrariesClasspaths.contains(haxelibNewItem.classpathUrl)) {
             haxelibNewItems1.add(haxelibNewItem);
           }
         }
 
-        for (HaxelibNewItem haxelibNewItem : haxelibNewItems1) {
+        for (HaxelibItem haxelibNewItem : haxelibNewItems1) {
           String haxelib = HaxelibParser.stringifyHaxelib(new HaxelibItem(haxelibNewItem.name));
           strings.add(haxelib);
         }
@@ -377,16 +235,13 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
           }
         }
 
-        //libraryTableModifiableModel.commit();
-
         for (int i = 0; i < haxelibNewItems1.size(); i++) {
           Library libraryByName = libraryTableModifiableModel.getLibraryByName(strings.get(i));
           if (libraryByName == null) {
             libraryByName = libraryTableModifiableModel.createLibrary(strings.get(i));
-            Library[] libraries = libraryTableModifiableModel.getLibraries();
             Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
-            libraryModifiableModel.addRoot(haxelibNewItems1.get(i).classpath, OrderRootType.CLASSES);
-            libraryModifiableModel.addRoot(haxelibNewItems1.get(i).classpath, OrderRootType.SOURCES);
+            libraryModifiableModel.addRoot(haxelibNewItems1.get(i).classpathUrl, OrderRootType.CLASSES);
+            libraryModifiableModel.addRoot(haxelibNewItems1.get(i).classpathUrl, OrderRootType.SOURCES);
             libraryModifiableModel.commit();
 
             ModuleRootModificationUtil.addDependency(module, libraryByName);
@@ -394,10 +249,6 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
         }
 
         libraryTableModifiableModel.commit();
-
-        //module = null;
-        //names.clear();
-        //classpathUrls.clear();
       }
     });
   }
@@ -412,19 +263,16 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
 
     for (final Project project : projects) {
       for (final Module module : ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance())) {
-        List<HaxelibNewItem> haxelibNewItems = new ArrayList<HaxelibNewItem>();
+        List<HaxelibItem> haxelibNewItems = new ArrayList<HaxelibItem>();
 
         HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
         int buildConfig = settings.getBuildConfig();
-        List<HaxelibNewItem> haxelibNewItemList;
+        List<HaxelibItem> haxelibNewItemList;
 
         switch (buildConfig) {
           case HaxeModuleSettings.USE_NMML:
-            //if (!HaxelibManager.isNMELibraryAdded(allLibraries)) {
-            //HaxelibManager.addLibraryWithClasspath(module, "nme");
             haxelibNewItemList = findHaxelibPath(module, "nme");
             haxelibNewItems.addAll(haxelibNewItemList);
-            //}
 
             String nmmlPath = settings.getNmmlPath();
             if (nmmlPath != null && !nmmlPath.isEmpty()) {
@@ -441,11 +289,8 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
             }
             break;
           case HaxeModuleSettings.USE_OPENFL:
-            //if (!HaxelibManager.isOpenFLLibraryAdded(allLibraries)) {
-            //HaxelibManager.addLibraryWithClasspath(module, "openfl");
             haxelibNewItemList = findHaxelibPath(module, "openfl");
             haxelibNewItems.addAll(haxelibNewItemList);
-            //}
 
             String openFLXmlPath = settings.getOpenFLXmlPath();
             if (openFLXmlPath != null && !openFLXmlPath.isEmpty()) {
@@ -466,8 +311,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
               for (String classpath : projectClasspaths) {
                 VirtualFile file = LocalFileFinder.findFile(classpath);
                 if (file != null) {
-                  //HaxelibManager.addLibraryWithClasspath(module, classpath, file.getUrl());
-                  haxelibNewItems.add(new HaxelibNewItem(module, classpath, file.getUrl()));
+                  haxelibNewItems.add(new HaxelibItem(classpath, file.getUrl()));
                 }
               }
             }
@@ -484,14 +328,12 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
                   Collection<HXMLClasspath> hxmlClasspaths = PsiTreeUtil.findChildrenOfType(psiFile, HXMLClasspath.class);
                   for (HXMLClasspath hxmlClasspath : hxmlClasspaths) {
                     String classpath = hxmlClasspath.getValue();
-                    //HaxelibManager.addLibraryWithClasspath(module, classpath, VfsUtil.pathToUrl(classpath));
-                    haxelibNewItems.add(new HaxelibNewItem(module, classpath, VfsUtil.pathToUrl(classpath)));
+                    haxelibNewItems.add(new HaxelibItem(classpath, VfsUtil.pathToUrl(classpath)));
                   }
 
                   Collection<HXMLLib> hxmlLibs = PsiTreeUtil.findChildrenOfType(psiFile, HXMLLib.class);
                   for (HXMLLib hxmlLib : hxmlLibs) {
                     String name = hxmlLib.getValue();
-                    //HaxelibManager.addLibraryWithClasspath(module, name);
                     haxelibNewItemList = findHaxelibPath(module, name);
                     haxelibNewItems.addAll(haxelibNewItemList);
                   }
@@ -507,22 +349,20 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
               List<String> classpaths = getHXMLFileClasspaths(project, arguments);
 
               for (String classpath : classpaths) {
-                //HaxelibManager.addLibraryWithClasspath(module, classpath, VfsUtil.pathToUrl(classpath));
-                haxelibNewItems.add(new HaxelibNewItem(module, classpath, VfsUtil.pathToUrl(classpath)));
+                haxelibNewItems.add(new HaxelibItem(classpath, VfsUtil.pathToUrl(classpath)));
               }
             }
 
             break;
         }
 
-        //HaxelibManager.commit();
-        addLibraries(haxelibNewItems);
+        addLibraries(module, haxelibNewItems);
       }
     }
   }
 
-  public List<HaxelibNewItem> getHaxelibsFromXmlProjectFile(Module module, XmlFile psiFile) {
-    List<HaxelibNewItem> haxelibNewItems = new ArrayList<HaxelibNewItem>();
+  public List<HaxelibItem> getHaxelibsFromXmlProjectFile(Module module, XmlFile psiFile) {
+    List<HaxelibItem> haxelibNewItems = new ArrayList<HaxelibItem>();
 
     XmlFile xmlFile = (XmlFile)psiFile;
     XmlDocument document = xmlFile.getDocument();
@@ -534,8 +374,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
         for (XmlTag haxelibTag : haxelibTags) {
           String name = haxelibTag.getAttributeValue("name");
           if (name != null) {
-            //HaxelibManager.addLibraryWithClasspath(module, name);
-            List<HaxelibNewItem> haxelibNewItemList = findHaxelibPath(module, name);
+            List<HaxelibItem> haxelibNewItemList = findHaxelibPath(module, name);
             haxelibNewItems.addAll(haxelibNewItemList);
           }
         }

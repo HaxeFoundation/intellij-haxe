@@ -30,7 +30,7 @@ public class HaxelibParser {
   public static String stringifyHaxelib(HaxelibItem haxelibItem) {
     ArrayList<String> strings = new ArrayList<String>();
     strings.add("haxelib");
-    strings.add(haxelibItem.classpath);
+    strings.add(haxelibItem.classpathUrl);
     return Joiner.on("|").join(strings);
   }
 

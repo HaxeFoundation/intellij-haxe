@@ -23,9 +23,15 @@ import java.util.List;
  * Created by as3boyan on 31.10.14.
  */
 public class HaxelibItem {
-  public String classpath;
+  public String name;
+  public String classpathUrl;
 
-  public HaxelibItem(String classpath) {
-    this.classpath = classpath;
+  public HaxelibItem(String name, String classpathUrl) {
+    this.name = name;
+    this.classpathUrl = classpathUrl;
+  }
+
+  public HaxelibItem(String classpathUrl) {
+    this.classpathUrl = classpathUrl;
   }
 }
