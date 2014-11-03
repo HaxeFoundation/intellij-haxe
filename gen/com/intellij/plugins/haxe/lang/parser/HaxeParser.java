@@ -2327,21 +2327,25 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // blockStatement | returnStatement | expression | throwStatement
+  // blockStatement | returnStatement | expression | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
   static boolean functionCommonBody(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionCommonBody")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
-      OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KRETURN, KSUPER,
-      KSWITCH, KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED,
-      PLCURLY, OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT,
-      LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KDO,
+      KFALSE, KFOR, KFUNCTION, KIF, ONEW, KNULL,
+      KRETURN, KSUPER, KSWITCH, KTHIS, KTHROW, KTRUE,
+      KTRY, KUNTYPED, KWHILE, PLCURLY, OCOMPLEMENT, ID,
+      LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = blockStatement(builder_, level_ + 1);
     if (!result_) result_ = returnStatement(builder_, level_ + 1);
     if (!result_) result_ = expression(builder_, level_ + 1);
     if (!result_) result_ = throwStatement(builder_, level_ + 1);
+    if (!result_) result_ = ifStatement(builder_, level_ + 1);
+    if (!result_) result_ = forStatement(builder_, level_ + 1);
+    if (!result_) result_ = whileStatement(builder_, level_ + 1);
+    if (!result_) result_ = doWhileStatement(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }

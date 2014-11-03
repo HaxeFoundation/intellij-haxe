@@ -316,7 +316,7 @@ propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | referenceExpression
 
-private functionCommonBody ::= blockStatement | returnStatement | expression | throwStatement
+private functionCommonBody ::= blockStatement | returnStatement | expression | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
 
 constructorName ::= 'new'
 

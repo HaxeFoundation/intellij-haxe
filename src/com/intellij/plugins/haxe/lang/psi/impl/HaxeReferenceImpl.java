@@ -545,6 +545,21 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
         PsiFile psiFile = this.getContainingFile();
         addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
+
+        /*HaxeFunctionDeclarationWithAttributes[] functionDeclarationWithAttributes = PsiTreeUtil.getChildrenOfType(body, HaxeFunctionDeclarationWithAttributes.class);
+        if (functionDeclarationWithAttributes != null) {
+          for (HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttribute : functionDeclarationWithAttributes) {
+            HaxeLocalFunctionDeclaration[] localFunctionDeclarations =
+              PsiTreeUtil.getChildrenOfType(functionDeclarationWithAttribute, HaxeLocalFunctionDeclaration.class);
+            for (HaxeLocalFunctionDeclaration localFunctionDeclaration : localFunctionDeclarations) {
+              HaxeNamedComponent[] haxeNamedComponents = PsiTreeUtil.getChildrenOfType(localFunctionDeclaration, HaxeNamedComponent.class);
+
+              if (haxeNamedComponents != null) {
+                ContainerUtil.addAll(result, haxeNamedComponents);
+              }
+            }
+          }
+        }*/
       }
     }
 
