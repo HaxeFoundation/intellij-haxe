@@ -129,6 +129,34 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
+    if (reference instanceof HaxeReferenceExpression) {
+      String text1 = reference.getText();
+      PsiElement element = null;
+      if (reference.getParent() instanceof HaxeReferenceExpression) {
+        element = reference;
+        while (element.getParent() instanceof HaxeReferenceExpression) {
+          element = element.getParent();
+        }
+
+        if (element != null) {
+            element = element.getFirstChild();
+            PsiElement lastChild = element.getLastChild();
+            if (element instanceof HaxeReferenceExpression && lastChild instanceof HaxeReferenceExpression && element.getChildren().length == 3) {
+              HaxeClass classByQName = HaxeResolveUtil.findClassByQName(element.getText(), element.getContext());
+              if (classByQName != null) {
+                HaxeNamedComponent namedSubComponent =
+                  HaxeResolveUtil.findNamedSubComponent(classByQName, ((HaxeReferenceExpression)lastChild).getIdentifier().getText());
+
+                if (namedSubComponent != null) {
+                  result.add(namedSubComponent.getComponentName().getIdentifier());
+                  return result;
+                }
+              }
+            }
+        }
+      }
+    }
+
     // try super field
     List<? extends PsiElement> superElements = resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
     if (!superElements.isEmpty()) {

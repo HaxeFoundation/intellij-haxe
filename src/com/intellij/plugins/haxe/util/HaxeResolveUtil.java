@@ -514,7 +514,9 @@ public class HaxeResolveUtil {
   }
 
   public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
-    HaxeImportStatementWithInSupport importStatementWithInSupport = PsiTreeUtil.getParentOfType(type, HaxeImportStatementWithInSupport.class, false);
+    HaxeImportStatementWithInSupport importStatementWithInSupport = PsiTreeUtil.getParentOfType(type,
+                                                                                                HaxeImportStatementWithInSupport.class,
+                                                                                                false);
     if (importStatementWithInSupport != null) {
       return importStatementWithInSupport.getReferenceExpression().getText();
     }
@@ -522,6 +524,31 @@ public class HaxeResolveUtil {
     HaxeUsingStatement usingStatement = PsiTreeUtil.getParentOfType(type, HaxeUsingStatement.class, false);
     if (usingStatement != null) {
       return usingStatement.getReferenceExpression().getText();
+    }
+
+    String text = type.getText();
+    if (type instanceof HaxeReferenceExpression) {
+      String text1 = type.getText();
+      PsiElement element = null;
+      if (type.getParent() instanceof HaxeReferenceExpression) {
+        element = type;
+        while (element.getParent() instanceof HaxeReferenceExpression) {
+          element = element.getParent();
+        }
+
+        if (element != null) {
+          HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
+          if (haxeClass != null) {
+            return element.getText();
+          }
+        }
+
+        PsiElement parent = type.getParent();
+        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
+        if (classByQName != null) {
+          return parent.getText();
+        }
+      }
     }
 
     if (type instanceof HaxeType) {
