@@ -32,6 +32,9 @@ public interface HaxeAbstractClassDeclaration extends HaxeClass {
   HaxeComponentName getComponentName();
 
   @Nullable
+  HaxeFunctionType getFunctionType();
+
+  @Nullable
   HaxeGenericParam getGenericParam();
 
   @Nullable
@@ -42,5 +45,8 @@ public interface HaxeAbstractClassDeclaration extends HaxeClass {
 
   @NotNull
   List<HaxeType> getTypeList();
+
+  @Nullable
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

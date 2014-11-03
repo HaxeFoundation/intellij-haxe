@@ -53,6 +53,12 @@ public class HaxeAbstractClassDeclarationImpl extends AbstractHaxePsiClass imple
 
   @Override
   @Nullable
+  public HaxeFunctionType getFunctionType() {
+    return findChildByClass(HaxeFunctionType.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeGenericParam getGenericParam() {
     return findChildByClass(HaxeGenericParam.class);
   }
@@ -73,6 +79,12 @@ public class HaxeAbstractClassDeclarationImpl extends AbstractHaxePsiClass imple
   @NotNull
   public List<HaxeType> getTypeList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
+    return findChildByClass(HaxeTypeOrAnonymous.class);
   }
 
 }

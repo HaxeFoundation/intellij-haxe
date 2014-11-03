@@ -492,7 +492,7 @@ public class HaxeParser implements PsiParser {
   };
 
   /* ********************************************************** */
-  // macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' type ')')? (('from' | 'to') type)* '{' classBody '}'
+  // macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' functionTypeWrapper ')')? (('from' | 'to') type)* '{' classBody '}'
   public static boolean abstractClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration")) return false;
     boolean result_;
@@ -534,20 +534,20 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ('(' type ')')?
+  // ('(' functionTypeWrapper ')')?
   private static boolean abstractClassDeclaration_5(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_5")) return false;
     abstractClassDeclaration_5_0(builder_, level_ + 1);
     return true;
   }
 
-  // '(' type ')'
+  // '(' functionTypeWrapper ')'
   private static boolean abstractClassDeclaration_5_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_5_0")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, PLPAREN);
-    result_ = result_ && type(builder_, level_ + 1);
+    result_ = result_ && functionTypeWrapper(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, PRPAREN);
     exit_section_(builder_, marker_, null, result_);
     return result_;
