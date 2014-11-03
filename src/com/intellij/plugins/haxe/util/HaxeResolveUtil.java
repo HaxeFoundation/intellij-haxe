@@ -519,6 +519,11 @@ public class HaxeResolveUtil {
       return importStatementWithInSupport.getReferenceExpression().getText();
     }
 
+    HaxeUsingStatement usingStatement = PsiTreeUtil.getParentOfType(type, HaxeUsingStatement.class, false);
+    if (usingStatement != null) {
+      return usingStatement.getReferenceExpression().getText();
+    }
+
     if (type instanceof HaxeType) {
       type = ((HaxeType)type).getReferenceExpression();
     }
