@@ -165,8 +165,8 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 "cast"                                    { return( KCAST );  }
 
 "abstract"                                {  return( KABSTRACT );  }
-"from"                                    {  return( KFROM);  }
-"to"                                      {  return( KTO );  }
+//"from"                                    {  return( KFROM);  }
+//"to"                                      {  return( KTO );  }
 
 "class"                                   {  return( KCLASS );  }
 "enum"                                    {  return( KENUM );  }

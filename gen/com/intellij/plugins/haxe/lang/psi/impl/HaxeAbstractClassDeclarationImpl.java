@@ -64,6 +64,12 @@ public class HaxeAbstractClassDeclarationImpl extends AbstractHaxePsiClass imple
   }
 
   @Override
+  @NotNull
+  public List<HaxeIdentifier> getIdentifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeIdentifier.class);
+  }
+
+  @Override
   @Nullable
   public HaxeMacroClassList getMacroClassList() {
     return findChildByClass(HaxeMacroClassList.class);

@@ -492,7 +492,7 @@ public class HaxeParser implements PsiParser {
   };
 
   /* ********************************************************** */
-  // macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' functionTypeWrapper ')')? (('from' | 'to') type)* '{' classBody '}'
+  // macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' functionTypeWrapper ')')? ((identifier) type)* '{' classBody '}'
   public static boolean abstractClassDeclaration(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration")) return false;
     boolean result_;
@@ -553,7 +553,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (('from' | 'to') type)*
+  // ((identifier) type)*
   private static boolean abstractClassDeclaration_6(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_6")) return false;
     int pos_ = current_position_(builder_);
@@ -565,7 +565,7 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ('from' | 'to') type
+  // (identifier) type
   private static boolean abstractClassDeclaration_6_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_6_0")) return false;
     boolean result_;
@@ -576,13 +576,12 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // 'from' | 'to'
+  // (identifier)
   private static boolean abstractClassDeclaration_6_0_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "abstractClassDeclaration_6_0_0")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = consumeToken(builder_, KFROM);
-    if (!result_) result_ = consumeToken(builder_, KTO);
+    result_ = identifier(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }

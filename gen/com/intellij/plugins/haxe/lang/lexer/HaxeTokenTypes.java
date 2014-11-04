@@ -196,7 +196,6 @@ public interface HaxeTokenTypes {
   IElementType KFALSE = new HaxeElementType("false");
   IElementType KFINAL = new HaxeElementType("@:final");
   IElementType KFOR = new HaxeElementType("for");
-  IElementType KFROM = new HaxeElementType("from");
   IElementType KFUNCTION = new HaxeElementType("function");
   IElementType KGETTER = new HaxeElementType("@:getter");
   IElementType KHACK = new HaxeElementType("@:hack");
@@ -229,7 +228,6 @@ public interface HaxeTokenTypes {
   IElementType KSWITCH = new HaxeElementType("switch");
   IElementType KTHIS = new HaxeElementType("this");
   IElementType KTHROW = new HaxeElementType("throw");
-  IElementType KTO = new HaxeElementType("to");
   IElementType KTRUE = new HaxeElementType("true");
   IElementType KTRY = new HaxeElementType("try");
   IElementType KTYPEDEF = new HaxeElementType("typedef");

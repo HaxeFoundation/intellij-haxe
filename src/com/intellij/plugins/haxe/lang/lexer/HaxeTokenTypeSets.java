@@ -143,8 +143,8 @@ public interface HaxeTokenTypeSets {
     KUSING,
     KSUPER,
     MACRO_ID,
-    KFROM,
-    KTO,
+    //KFROM,
+    //KTO,
     KNEVER,
     ONEW
   );

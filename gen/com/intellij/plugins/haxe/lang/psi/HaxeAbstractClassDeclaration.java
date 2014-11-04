@@ -37,6 +37,9 @@ public interface HaxeAbstractClassDeclaration extends HaxeClass {
   @Nullable
   HaxeGenericParam getGenericParam();
 
+  @NotNull
+  List<HaxeIdentifier> getIdentifierList();
+
   @Nullable
   HaxeMacroClassList getMacroClassList();
 

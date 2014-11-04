@@ -67,6 +67,13 @@ public class HaxeColorAnnotator implements Annotator {
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
       }
     }
+    String elementText = element.getText();
+    if (element instanceof HaxeIdentifier && (elementText.equals("from") || elementText.equals("to")) ) {
+      if (element.getParent() instanceof HaxeAbstractClassDeclaration) {
+        TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
+        holder.createInfoAnnotation(node, null).setTextAttributes(attributesKey);
+      }
+    }
     final ASTNode astNode = node.getNode();
     if (astNode != null) {
       IElementType tt = astNode.getElementType();
