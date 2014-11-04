@@ -4256,7 +4256,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '(' (expression | statement) ')'
+  // '(' (expression typeTag | expression | statement) ')'
   public static boolean parenthesizedExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "parenthesizedExpression")) return false;
     if (!nextTokenIs(builder_, PLPAREN)) return false;
@@ -4271,13 +4271,25 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // expression | statement
+  // expression typeTag | expression | statement
   private static boolean parenthesizedExpression_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "parenthesizedExpression_1")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = expression(builder_, level_ + 1);
+    result_ = parenthesizedExpression_1_0(builder_, level_ + 1);
+    if (!result_) result_ = expression(builder_, level_ + 1);
     if (!result_) result_ = statement(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // expression typeTag
+  private static boolean parenthesizedExpression_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "parenthesizedExpression_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = expression(builder_, level_ + 1);
+    result_ = result_ && typeTag(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }

@@ -31,4 +31,7 @@ public interface HaxeParenthesizedExpression extends HaxeExpression {
   @Nullable
   HaxeStatement getStatement();
 
+  @Nullable
+  HaxeTypeTag getTypeTag();
+
 }

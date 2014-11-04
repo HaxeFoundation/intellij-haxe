@@ -515,7 +515,7 @@ regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
-parenthesizedExpression ::= '(' (expression | statement) ')'
+parenthesizedExpression ::= '(' (expression typeTag | expression | statement) ')'
 
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*

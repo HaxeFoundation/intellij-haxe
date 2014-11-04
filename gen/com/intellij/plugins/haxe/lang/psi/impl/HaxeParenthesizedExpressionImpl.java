@@ -51,4 +51,10 @@ public class HaxeParenthesizedExpressionImpl extends HaxeExpressionImpl implemen
     return findChildByClass(HaxeStatement.class);
   }
 
+  @Override
+  @Nullable
+  public HaxeTypeTag getTypeTag() {
+    return findChildByClass(HaxeTypeTag.class);
+  }
+
 }
