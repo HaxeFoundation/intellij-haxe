@@ -3595,7 +3595,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClass (',' macroClass)*
+  // macroClass (macroClass)*
   public static boolean macroClassList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroClassList")) return false;
     boolean result_;
@@ -3606,7 +3606,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // (',' macroClass)*
+  // (macroClass)*
   private static boolean macroClassList_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroClassList_1")) return false;
     int pos_ = current_position_(builder_);
@@ -3618,13 +3618,12 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // ',' macroClass
+  // (macroClass)
   private static boolean macroClassList_1_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "macroClassList_1_0")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
-    result_ = consumeToken(builder_, OCOMMA);
-    result_ = result_ && macroClass(builder_, level_ + 1);
+    result_ = macroClass(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }
