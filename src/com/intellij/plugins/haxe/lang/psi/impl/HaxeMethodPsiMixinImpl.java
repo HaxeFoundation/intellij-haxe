@@ -304,6 +304,25 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Override
   public HaxeModifierList getModifierList() {
 
+    //
+    // Note Haxe's rules for visibility:
+    // (from http://haxe.org/manual/class-field-visibility.html)
+    //
+    // Omitting the visibility modifier usually defaults the visibility to private,
+    // but there are exceptions where it becomes public instead:
+    //
+    // - If the class is declared as extern.
+    // - If the field id declared on an interface.
+    // - If the field overrides a public field.
+    //
+    // Trivia: Protected
+    //
+    //   Haxe has no notion of a protected keyword known from Java, C++ and
+    //   other object-oriented languages. However, its private behavior is
+    //   equal to those language's protected behavior, so Haxe actually
+    //   lacks their real private behavior.
+    //
+
     HaxeModifierList list = super.getModifierList();
 
     if (null == list) {

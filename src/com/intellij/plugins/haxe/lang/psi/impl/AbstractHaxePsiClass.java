@@ -106,6 +106,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public List<HaxeMethod> getHaxeMethods() {
+    // XXX: This implementation is equivalent to getAllMethods().  That
+    //      may not be what we want.
     final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(this);
     final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
     final List<HaxeMethod> result = new ArrayList<HaxeMethod>();
@@ -291,8 +293,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getMethods() {
-    List<HaxeMethod> haxeMethods = getHaxeMethods();
-    return haxeMethods.toArray(PsiMethod.EMPTY_ARRAY); // size is irrelevant
+    final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.getNamedSubComponents(this);
+    final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
+    return methods.toArray(PsiMethod.EMPTY_ARRAY); // size is irrelevant
   }
 
   @Override

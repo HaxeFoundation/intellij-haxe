@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.util.MethodSignatureUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -363,5 +364,40 @@ public class HaxeHierarchyUtils {
     HaxeClass pclass = result == null ? null : result.getHaxeClass();
     return pclass;
   }
+
+
+
+  // Lifted from MethodHierarchyUtil, which was inaccessible.
+  /**
+   * Locates a potentially overridden method in a class or one of its base classes.
+   * @param baseMethod The method that may be overridden
+   * @param aClass The class to start inspecting at.
+   * @param checkBases Whether to continue to further base classes.
+   * @return The PsiMethod in the given class or the closest superclass.
+   */
+  public static PsiMethod findBaseMethodInClass(final PsiMethod baseMethod, final PsiClass aClass, final boolean checkBases) {
+    if (baseMethod == null) return null; // base method is invalid
+    if (cannotBeOverridding(baseMethod)) return null;
+    return MethodSignatureUtil.findMethodBySuperMethod(aClass, baseMethod, checkBases);
+  }
+
+  // Lifted from MethodHierarchyUtil, which was inaccessible.
+  /**
+   * Figure out if a method can override a lower one.
+   * @param method The method to test.
+   * @return true if the method can override one in a superclass, false if not.
+   */
+  private static boolean cannotBeOverridding(final PsiMethod method) {
+    // Note that in Haxe, a private method can override another private
+    // method, and so can a public method (but private can't override public).
+    final PsiClass parentClass = method.getContainingClass();
+    return parentClass == null
+           || method.isConstructor()
+           || method.hasModifierProperty(PsiModifier.STATIC);
+  }
+
+
+
+
 
 } // END class HaxeHierarchyUtils
