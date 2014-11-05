@@ -18,28 +18,37 @@
 package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.FileASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.ide.intention.HaxeDefineIntention;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.tree.LeafElement;
+import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -74,6 +83,45 @@ public class HaxeColorAnnotator implements Annotator {
         holder.createInfoAnnotation(node, null).setTextAttributes(attributesKey);
       }
     }
+
+    FileASTNode node1 = node.getContainingFile().getNode();
+    LeafElement leaf = TreeUtil.findFirstLeaf(node1);
+
+    int conditionalCount = 0;
+
+    List<ASTNode> nodes = new ArrayList<ASTNode>();
+
+    ASTNode node2 = leaf;
+    do {
+      if (node2.getElementType().equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
+        if (node2.getText().startsWith("#if")) {
+          conditionalCount++;
+        }
+        nodes.add(node2);
+      }
+      else if (node2.getElementType().equals(HaxeTokenTypes.PPEND)) {
+        conditionalCount--;
+        nodes.add(node2);
+      }
+      else if (node2.getElementType().equals(HaxeTokenTypes.PPELSE)) {
+        nodes.add(node2);
+      }
+    }
+    while ((node2 = TreeUtil.nextLeaf(node2)) != null);
+
+    if (conditionalCount != 0) {
+      for (int i = 0, size = nodes.size(); i < size; i++) {
+        ASTNode astNode = nodes.get(i);
+
+        if (astNode.getElementType().equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
+          holder.createInfoAnnotation(astNode, null).setTextAttributes(HaxeSyntaxHighlighterColors.BAD_CHARACTER);
+        }
+        else if (astNode.getElementType().equals(HaxeTokenTypes.PPEND) || node2.getElementType().equals(HaxeTokenTypes.PPELSE)) {
+          holder.createInfoAnnotation(astNode, null).setTextAttributes(HaxeSyntaxHighlighterColors.BAD_CHARACTER);
+        }
+      }
+    }
+
     final ASTNode astNode = node.getNode();
     if (astNode != null) {
       IElementType tt = astNode.getElementType();
