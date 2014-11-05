@@ -631,9 +631,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "additiveExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = multiplicativeExpressionWrapper(builder_, level_ + 1);
@@ -832,9 +832,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "assignExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = iteratorExpressionWrapper(builder_, level_ + 1);
@@ -1011,9 +1011,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "bitwiseExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = shiftExpressionWrapper(builder_, level_ + 1);
@@ -1385,9 +1385,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "compareExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = bitwiseExpressionWrapper(builder_, level_ + 1);
@@ -2253,9 +2253,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "fatArrowExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = assignExpressionWrapper(builder_, level_ + 1);
@@ -2322,10 +2322,10 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "functionCommonBody")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KDO,
-      KFALSE, KFOR, KFUNCTION, KIF, ONEW, KNULL,
-      KRETURN, KSUPER, KSWITCH, KTHIS, KTHROW, KTRUE,
-      KTRY, KUNTYPED, KWHILE, PLCURLY, OCOMPLEMENT, ID,
-      LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFALSE, KFOR, KFUNCTION, KIF, KMACRO2, ONEW,
+      KNULL, KRETURN, KSUPER, KSWITCH, KTHIS, KTHROW,
+      KTRUE, KTRY, KUNTYPED, KWHILE, PLCURLY, OCOMPLEMENT,
+      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = blockStatement(builder_, level_ + 1);
@@ -3135,9 +3135,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "iterable")) return false;
     if (!nextTokenIs(builder_, "<iterable>", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<iterable>");
     result_ = expression(builder_, level_ + 1);
@@ -3166,9 +3166,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "iteratorExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = ternaryExpressionWrapper(builder_, level_ + 1);
@@ -3490,9 +3490,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "logicAndExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = compareExpressionWrapper(builder_, level_ + 1);
@@ -3534,9 +3534,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "logicOrExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = logicAndExpressionWrapper(builder_, level_ + 1);
@@ -3825,9 +3825,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "multiplicativeExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = prefixExpression(builder_, level_ + 1);
@@ -3942,10 +3942,10 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KBREAK, KCAST,
       KCONTINUE, KDO, KFALSE, KFOR, KFUNCTION, KIF,
-      KINLINE, ONEW, KNULL, KRETURN, KSUPER, KSWITCH,
-      KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED, KVAR,
-      KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT, LITHEX,
-      LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KINLINE, KMACRO2, ONEW, KNULL, KRETURN, KSUPER,
+      KSWITCH, KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED,
+      KVAR, KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT,
+      LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = notBlockStatement_0(builder_, level_ + 1);
@@ -4308,9 +4308,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "prefixExpression")) return false;
     if (!nextTokenIs(builder_, "<prefix expression>", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _COLLAPSE_, "<prefix expression>");
     result_ = prefixExpression_0(builder_, level_ + 1);
@@ -4588,9 +4588,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "shiftExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = additiveExpressionWrapper(builder_, level_ + 1);
@@ -4772,10 +4772,10 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, "<statement>", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KBREAK, KCAST,
       KCONTINUE, KDO, KFALSE, KFOR, KFUNCTION, KIF,
-      KINLINE, ONEW, KNULL, KRETURN, KSUPER, KSWITCH,
-      KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED, KVAR,
-      KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT, LITHEX,
-      LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KINLINE, KMACRO2, ONEW, KNULL, KRETURN, KSUPER,
+      KSWITCH, KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED,
+      KVAR, KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT,
+      LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _COLLAPSE_, "<statement>");
     result_ = blockStatement(builder_, level_ + 1);
@@ -4900,9 +4900,10 @@ public class HaxeParser implements PsiParser {
   static boolean suffixExpressionWrapper(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "suffixExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", PLPAREN, PLBRACK,
-      KCAST, KFALSE, KFUNCTION, KIF, ONEW, KNULL,
-      KSUPER, KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED,
-      PLCURLY, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KCAST, KFALSE, KFUNCTION, KIF, KMACRO2, ONEW,
+      KNULL, KSUPER, KSWITCH, KTHIS, KTRUE, KTRY,
+      KUNTYPED, PLCURLY, ID, LITFLOAT, LITHEX, LITINT,
+      LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = value(builder_, level_ + 1);
@@ -5051,10 +5052,10 @@ public class HaxeParser implements PsiParser {
     if (!nextTokenIs(builder_, "<switch case block>", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KBREAK, KCAST,
       KCONTINUE, KDO, KFALSE, KFOR, KFUNCTION, KIF,
-      KINLINE, ONEW, KNULL, KRETURN, KSUPER, KSWITCH,
-      KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED, KVAR,
-      KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT, LITHEX,
-      LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KINLINE, KMACRO2, ONEW, KNULL, KRETURN, KSUPER,
+      KSWITCH, KTHIS, KTHROW, KTRUE, KTRY, KUNTYPED,
+      KVAR, KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT,
+      LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<switch case block>");
     result_ = switchCaseBlock_0(builder_, level_ + 1);
@@ -5080,9 +5081,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "switchCaseExpression")) return false;
     if (!nextTokenIs(builder_, "<switch case expression>", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     boolean pinned_;
     Marker marker_ = enter_section_(builder_, level_, _COLLAPSE_, "<switch case expression>");
@@ -5176,9 +5177,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(builder_, level_, "ternaryExpressionWrapper")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KCAST, KFALSE,
-      KFUNCTION, KIF, ONEW, KNULL, KSUPER, KSWITCH,
-      KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY, OCOMPLEMENT,
-      ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KFUNCTION, KIF, KMACRO2, ONEW, KNULL, KSUPER,
+      KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED, PLCURLY,
+      OCOMPLEMENT, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = logicOrExpressionWrapper(builder_, level_ + 1);
@@ -5565,6 +5566,7 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // 'untyped' expression
+  //                 | 'macro' expression
   //                 | (literalExpression qualifiedReferenceTail?)
   //                 | ifStatement
   //                 | castExpression qualifiedReferenceTail?
@@ -5576,15 +5578,17 @@ public class HaxeParser implements PsiParser {
   static boolean value(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "value")) return false;
     if (!nextTokenIs(builder_, "", PLPAREN, PLBRACK,
-      KCAST, KFALSE, KFUNCTION, KIF, ONEW, KNULL,
-      KSUPER, KSWITCH, KTHIS, KTRUE, KTRY, KUNTYPED,
-      PLCURLY, ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
+      KCAST, KFALSE, KFUNCTION, KIF, KMACRO2, ONEW,
+      KNULL, KSUPER, KSWITCH, KTHIS, KTRUE, KTRY,
+      KUNTYPED, PLCURLY, ID, LITFLOAT, LITHEX, LITINT,
+      LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = value_0(builder_, level_ + 1);
     if (!result_) result_ = value_1(builder_, level_ + 1);
+    if (!result_) result_ = value_2(builder_, level_ + 1);
     if (!result_) result_ = ifStatement(builder_, level_ + 1);
-    if (!result_) result_ = value_3(builder_, level_ + 1);
+    if (!result_) result_ = value_4(builder_, level_ + 1);
     if (!result_) result_ = newExpressionOrCall(builder_, level_ + 1);
     if (!result_) result_ = parenthesizedExpressionOrCall(builder_, level_ + 1);
     if (!result_) result_ = callOrArrayAccess(builder_, level_ + 1);
@@ -5605,38 +5609,49 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // literalExpression qualifiedReferenceTail?
+  // 'macro' expression
   private static boolean value_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "value_1")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, KMACRO2);
+    result_ = result_ && expression(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // literalExpression qualifiedReferenceTail?
+  private static boolean value_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "value_2")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
     result_ = literalExpression(builder_, level_ + 1);
-    result_ = result_ && value_1_1(builder_, level_ + 1);
+    result_ = result_ && value_2_1(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
   // qualifiedReferenceTail?
-  private static boolean value_1_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "value_1_1")) return false;
+  private static boolean value_2_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "value_2_1")) return false;
     qualifiedReferenceTail(builder_, level_ + 1);
     return true;
   }
 
   // castExpression qualifiedReferenceTail?
-  private static boolean value_3(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "value_3")) return false;
+  private static boolean value_4(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "value_4")) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = castExpression(builder_, level_ + 1);
-    result_ = result_ && value_3_1(builder_, level_ + 1);
+    result_ = result_ && value_4_1(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
   // qualifiedReferenceTail?
-  private static boolean value_3_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "value_3_1")) return false;
+  private static boolean value_4_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "value_4_1")) return false;
     qualifiedReferenceTail(builder_, level_ + 1);
     return true;
   }

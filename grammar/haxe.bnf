@@ -487,6 +487,7 @@ private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
 private value ::= 'untyped' expression
+                | 'macro' expression
                 | (literalExpression qualifiedReferenceTail?)
                 | ifStatement
                 | castExpression qualifiedReferenceTail?
