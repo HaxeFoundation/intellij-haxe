@@ -127,6 +127,7 @@ public interface HaxeTokenTypeSets {
     KHACK,
     KNATIVE,
     KMACRO,
+    KMACRO2,
     KBUILD,
     KAUTOBUILD,
     KKEEP,
