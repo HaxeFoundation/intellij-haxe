@@ -29,9 +29,6 @@ public interface HaxeStatement extends HaxeStatementPsiMixin {
   HaxeBlockStatement getBlockStatement();
 
   @Nullable
-  HaxeConditional getConditional();
-
-  @Nullable
   HaxeExpression getExpression();
 
   @Nullable

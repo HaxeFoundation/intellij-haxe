@@ -57,7 +57,8 @@ public interface HaxeTokenTypeSets {
     PPELSE,
     PPERROR,
     PPBODY,
-    PPEXPRESSION
+    PPEXPRESSION,
+    CONDITIONAL_STATEMENT_ID
   );
 
   TokenSet CONDITIONALLY_NOT_COMPILED = TokenSet.create(
@@ -66,7 +67,8 @@ public interface HaxeTokenTypeSets {
     PPELSE,
     PPERROR,
     PPBODY,
-    PPEXPRESSION
+    PPEXPRESSION,
+    CONDITIONAL_STATEMENT_ID
   );
 
   TokenSet BAD_TOKENS = TokenSet.create(

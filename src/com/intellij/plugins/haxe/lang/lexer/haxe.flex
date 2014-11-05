@@ -90,8 +90,13 @@ DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?
 COMMENT_TAIL=([^"*"]*("*"+[^"*""/"])?)*("*"+"/")?
 END_OF_LINE_COMMENT="/""/"[^\r\n]*
 
-CONDITIONAL_IDENTIFIER = [^\r\n]*
-COMPILE_TIME_CONDITIONAL="#"{CONDITIONAL_IDENTIFIER}
+CONDITIONAL_IF = "#if" [\t\ ]+ (("(" [^\r\n]+ ")") | ([^\r\n\t\ ]+))
+CONDITIONAL_ELSEIF = "#elseif" [\t\ ]+ [^\r\n\t\ ]+
+//CONDITIONAL_END = "#end"
+
+//(("!"?[a-zA-Z]+) | ()?
+//CONDITIONAL_IDENTIFIER = [^\r\n]+
+//COMPILE_TIME_CONDITIONAL="#"{CONDITIONAL_IDENTIFIER}
 
 mHEX_DIGIT = [0-9A-Fa-f]
 mINT_DIGIT = [0-9]
@@ -297,12 +302,12 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 "=>"                                      { return OFAT_ARROW; }
 ">"                                       { return OGREATER; }
 
-{COMPILE_TIME_CONDITIONAL}                { return CONDITIONAL_STATEMENT_ID; }
+{CONDITIONAL_IF} | {CONDITIONAL_ELSEIF}                          { return CONDITIONAL_STATEMENT_ID; }
 //"#if"                                     { return PPIF; }
-//"#end"                                    { return PPEND; }
-//"#error"                                  { return PPERROR; }
+"#end"                                    { return PPEND; }
+"#error"                                  { return PPERROR; }
 //"#elseif"                                 { return PPELSEIF; }
-//"#else"                                   { return PPELSE; }
+"#else"                                   { return PPELSE; }
 } // <YYINITIAL, LONG_TEMPLATE_ENTRY>
 
 // "

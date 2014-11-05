@@ -94,6 +94,9 @@ public class HaxeLexer extends LookAheadLexer {
       eatUntil(baseLexer, PPEND);
       advanceAs(baseLexer, PPELSE);
     }*/
+    //else if (baseLexer.getTokenType() == CONDITIONAL_STATEMENT_ID) {
+    //  advanceAs(baseLexer, CONDITIONAL_STATEMENT_ID);
+    //}
     else {
       super.lookAhead(baseLexer);
     }
@@ -116,10 +119,10 @@ public class HaxeLexer extends LookAheadLexer {
         type = baseLexer.getTokenType();
       }*/
 
-      if (type == PPIF || type == PPEND) {
-        baseLexer.advance();
-        type = baseLexer.getTokenType();
-      }
+      //if (type == PPIF || type == PPEND) {
+      //  baseLexer.advance();
+      //  type = baseLexer.getTokenType();
+      //}
     }
     while (type != null && (!typeSet.contains(type) || counter > 0));
     return type;

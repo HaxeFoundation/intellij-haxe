@@ -47,12 +47,6 @@ public class HaxeStatementImpl extends HaxeStatementPsiMixinImpl implements Haxe
 
   @Override
   @Nullable
-  public HaxeConditional getConditional() {
-    return findChildByClass(HaxeConditional.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
   }
