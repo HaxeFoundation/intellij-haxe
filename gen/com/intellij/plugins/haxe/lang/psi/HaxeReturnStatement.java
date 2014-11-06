@@ -26,6 +26,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeReturnStatement extends HaxeStatement {
 
   @Nullable
+  HaxeBlockStatement getBlockStatement();
+
+  @Nullable
   HaxeExpression getExpression();
 
 }

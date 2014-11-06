@@ -3923,6 +3923,7 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // ('untyped' statement ';'?)
+  //                             | ('macro' statement ';'?)
   //                             | localVarDeclaration
   //                             | localFunctionDeclaration
   //                             | ifStatement
@@ -3948,6 +3949,7 @@ public class HaxeParser implements PsiParser {
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = notBlockStatement_0(builder_, level_ + 1);
+    if (!result_) result_ = notBlockStatement_1(builder_, level_ + 1);
     if (!result_) result_ = localVarDeclaration(builder_, level_ + 1);
     if (!result_) result_ = localFunctionDeclaration(builder_, level_ + 1);
     if (!result_) result_ = ifStatement(builder_, level_ + 1);
@@ -3980,6 +3982,25 @@ public class HaxeParser implements PsiParser {
   // ';'?
   private static boolean notBlockStatement_0_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "notBlockStatement_0_2")) return false;
+    consumeToken(builder_, OSEMI);
+    return true;
+  }
+
+  // 'macro' statement ';'?
+  private static boolean notBlockStatement_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "notBlockStatement_1")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, KMACRO2);
+    result_ = result_ && statement(builder_, level_ + 1);
+    result_ = result_ && notBlockStatement_1_2(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // ';'?
+  private static boolean notBlockStatement_1_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "notBlockStatement_1_2")) return false;
     consumeToken(builder_, OSEMI);
     return true;
   }
@@ -4507,7 +4528,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'return' expression? ';'?
+  // 'return' (("macro"? blockStatement) | expression)? ';'?
   public static boolean returnStatement(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "returnStatement")) return false;
     if (!nextTokenIs(builder_, KRETURN)) return false;
@@ -4522,10 +4543,39 @@ public class HaxeParser implements PsiParser {
     return result_ || pinned_;
   }
 
-  // expression?
+  // (("macro"? blockStatement) | expression)?
   private static boolean returnStatement_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "returnStatement_1")) return false;
-    expression(builder_, level_ + 1);
+    returnStatement_1_0(builder_, level_ + 1);
+    return true;
+  }
+
+  // ("macro"? blockStatement) | expression
+  private static boolean returnStatement_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "returnStatement_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = returnStatement_1_0_0(builder_, level_ + 1);
+    if (!result_) result_ = expression(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // "macro"? blockStatement
+  private static boolean returnStatement_1_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "returnStatement_1_0_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = returnStatement_1_0_0_0(builder_, level_ + 1);
+    result_ = result_ && blockStatement(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // "macro"?
+  private static boolean returnStatement_1_0_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "returnStatement_1_0_0_0")) return false;
+    consumeToken(builder_, KMACRO2);
     return true;
   }
 

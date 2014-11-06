@@ -41,6 +41,12 @@ public class HaxeReturnStatementImpl extends HaxeStatementImpl implements HaxeRe
 
   @Override
   @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
   }

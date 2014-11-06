@@ -390,6 +390,7 @@ statement ::= blockStatement | notBlockStatement
 
 
 private notBlockStatement ::= ('untyped' statement ';'?)
+                            | ('macro' statement ';'?)
                             | localVarDeclaration
                             | localFunctionDeclaration
                             | ifStatement
@@ -417,7 +418,7 @@ iterable ::= expression
 whileStatement ::= 'while' '(' expression ')' statement ';'?
 doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
 
-returnStatement ::= 'return' expression? ';'?
+returnStatement ::= 'return' (("macro"? blockStatement) | expression)? ';'?
 returnStatementWithoutSemicolon ::= 'return' expression
 
 breakStatement ::= 'break' ';'
