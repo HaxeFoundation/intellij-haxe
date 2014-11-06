@@ -579,7 +579,7 @@ typeExtends ::= '>' type
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 
-anonymousTypeField ::= componentName typeTag
+anonymousTypeField ::= "?"? componentName typeTag
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 objectLiteral ::= '{' objectLiteralElementList? '}'

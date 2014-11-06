@@ -717,28 +717,36 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // componentName typeTag
+  // "?"? componentName typeTag
   public static boolean anonymousTypeField(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "anonymousTypeField")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, "<anonymous type field>", OQUEST, ID)) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
-    result_ = componentName(builder_, level_ + 1);
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, "<anonymous type field>");
+    result_ = anonymousTypeField_0(builder_, level_ + 1);
+    result_ = result_ && componentName(builder_, level_ + 1);
     result_ = result_ && typeTag(builder_, level_ + 1);
-    exit_section_(builder_, marker_, ANONYMOUS_TYPE_FIELD, result_);
+    exit_section_(builder_, level_, marker_, ANONYMOUS_TYPE_FIELD, result_, false, null);
     return result_;
+  }
+
+  // "?"?
+  private static boolean anonymousTypeField_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "anonymousTypeField_0")) return false;
+    consumeToken(builder_, OQUEST);
+    return true;
   }
 
   /* ********************************************************** */
   // anonymousTypeField (',' anonymousTypeField)*
   public static boolean anonymousTypeFieldList(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "anonymousTypeFieldList")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, "<anonymous type field list>", OQUEST, ID)) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, "<anonymous type field list>");
     result_ = anonymousTypeField(builder_, level_ + 1);
     result_ = result_ && anonymousTypeFieldList_1(builder_, level_ + 1);
-    exit_section_(builder_, marker_, ANONYMOUS_TYPE_FIELD_LIST, result_);
+    exit_section_(builder_, level_, marker_, ANONYMOUS_TYPE_FIELD_LIST, result_, false, null);
     return result_;
   }
 
@@ -4718,7 +4726,7 @@ public class HaxeParser implements PsiParser {
   // anonymousTypeFieldList (',' interfaceBody)?
   static boolean simpleAnonymousTypeBody(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "simpleAnonymousTypeBody")) return false;
-    if (!nextTokenIs(builder_, ID)) return false;
+    if (!nextTokenIs(builder_, "", OQUEST, ID)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = anonymousTypeFieldList(builder_, level_ + 1);
