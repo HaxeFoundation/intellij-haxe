@@ -26,6 +26,20 @@
         <li>Class Hierarchy partial implementation.</li>
         <li>SuperTypes work.  Sub-types work within the same module.</li>
         <li>All recent changes from github.com/Jetbrains/intellij-haxe/master</li>
+        <li>Support typedef optional parameters</li>
+        <li>Support optional function types</li>
+        <li>Eat compile-time conditional statements only (prevent eating conditional body as it was before)</li>
+        <li>Fix multiple metas issue on class</li>
+        <li>Highlight compile-time conditional statements if they don't have matching closing statements</li>
+        <li>Remove "from" and "to" from keywords, instead highlight them only if they used in abstract declaration</li>
+        <li>Prevent suggesting imports for using statements</li>
+        <li>Resolve references that have full path to type/field</li>
+        <li>Support function types, anonymous types as abstract type</li>
+        <li>Automatically add and remove dependencies when project gets opened</li>
+        <li>Remove ">=" and ">>=" tokens from lexer, instead parse ('>' '=') to avoid issues(https://github.com/TiVo/intellij-haxe/issues/42)</li>
+        <li>Support "inline" declaration attribute on local functions</li>
+        <li>Suggest to import class on code paste</li>
+        <li>Support macro expressions(including ECheckType)</li>
         <li>Lots more... TODO: Get a complete list of updates.
       </ul>
       <p>0.8.1.1: (community version)</p>
