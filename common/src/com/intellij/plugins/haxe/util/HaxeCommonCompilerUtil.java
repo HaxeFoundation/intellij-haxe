@@ -275,8 +275,8 @@ public class HaxeCommonCompilerUtil {
     commandLine.add("lime");
     commandLine.add("build");
 
-    if(!StringUtil.isEmpty(settings.getOpenFLXmlPath())) {
-      commandLine.add(settings.getOpenFLXmlPath());
+    if(!StringUtil.isEmpty(settings.getOpenFLPath())) {
+      commandLine.add(settings.getOpenFLPath());
     }
 
     commandLine.add(settings.getOpenFLTarget().getTargetFlag());
