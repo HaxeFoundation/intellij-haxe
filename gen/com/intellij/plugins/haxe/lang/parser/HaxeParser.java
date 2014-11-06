@@ -1329,7 +1329,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
   static boolean class_body_part_recover(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "class_body_part_recover")) return false;
     boolean result_;
@@ -1339,7 +1339,7 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
+  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro'
   private static boolean class_body_part_recover_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "class_body_part_recover_0")) return false;
     boolean result_;
@@ -1359,6 +1359,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = consumeToken(builder_, KSTATIC);
     if (!result_) result_ = consumeToken(builder_, KVAR);
     if (!result_) result_ = consumeToken(builder_, PRCURLY);
+    if (!result_) result_ = consumeToken(builder_, KMACRO2);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }

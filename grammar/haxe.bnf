@@ -275,7 +275,7 @@ abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componen
 
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
-private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
 
 interfaceDeclaration ::= macroClassList? externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
