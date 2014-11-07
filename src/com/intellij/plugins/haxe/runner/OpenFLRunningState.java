@@ -44,16 +44,24 @@ public class OpenFLRunningState extends CommandLineState {
   private final Module module;
   private final boolean myRunInTest;
   private final boolean myDebug;
+  private final int myDebugPort;
 
   public OpenFLRunningState(ExecutionEnvironment env, Module module, boolean runInTest) {
     this(env, module, runInTest, false);
   }
 
   public OpenFLRunningState(ExecutionEnvironment env, Module module, boolean runInTest, boolean debug) {
+      this(env, module, runInTest, debug, 6972);
+  }
+
+  public OpenFLRunningState(ExecutionEnvironment env, Module module,
+                         boolean runInTest, boolean debug, int debugPort)
+  {
     super(env);
     this.module = module;
     myRunInTest = runInTest;
     myDebug = debug;
+    myDebugPort = debugPort;
   }
 
   @NotNull
@@ -98,6 +106,9 @@ public class OpenFLRunningState extends CommandLineState {
     if (myDebug) {
       commandLine.addParameter("-Ddebug");
       commandLine.addParameter("-debug");
+      commandLine.addParameter("-args");
+      commandLine.addParameter("-start_debugger");
+      commandLine.addParameter("-debugger_host=localhost:" + myDebugPort);
 
       if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
         commandLine.addParameter("-Dfdb");
