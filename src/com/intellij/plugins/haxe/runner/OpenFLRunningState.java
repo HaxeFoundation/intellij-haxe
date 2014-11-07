@@ -44,6 +44,7 @@ public class OpenFLRunningState extends CommandLineState {
   private final Module module;
   private final boolean myRunInTest;
   private final boolean myDebug;
+  private final int myDebugPort;
 
   public OpenFLRunningState(ExecutionEnvironment env, Module module, boolean runInTest) {
     this(env, module, runInTest, false);
@@ -53,15 +54,15 @@ public class OpenFLRunningState extends CommandLineState {
       this(env, module, runInTest, debug, 6972);
   }
 
-    public OpenFLRunningState(ExecutionEnvironment env, Module module,
-                           boolean runInTest, boolean debug, int debugPort)
-    {
-        super(env);
-        this.module = module;
-        myRunInTest = runInTest;
-        myDebug = debug;
-        myDebugPort = debugPort;
-    }
+  public OpenFLRunningState(ExecutionEnvironment env, Module module,
+                         boolean runInTest, boolean debug, int debugPort)
+  {
+    super(env);
+    this.module = module;
+    myRunInTest = runInTest;
+    myDebug = debug;
+    myDebugPort = debugPort;
+  }
 
   @NotNull
   @Override
