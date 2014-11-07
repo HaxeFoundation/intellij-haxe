@@ -292,7 +292,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
             haxelibNewItemList = findHaxelibPath(module, "openfl");
             haxelibNewItems.addAll(haxelibNewItemList);
 
-            String openFLXmlPath = settings.getOpenFLXmlPath();
+            String openFLXmlPath = settings.getOpenFLPath();
             if (openFLXmlPath != null && !openFLXmlPath.isEmpty()) {
               VirtualFile file = LocalFileFinder.findFile(openFLXmlPath);
 

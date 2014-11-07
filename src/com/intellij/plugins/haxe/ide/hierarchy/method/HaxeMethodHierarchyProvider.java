@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.hierarchy.method;
 
 import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
+import com.intellij.ide.hierarchy.MethodHierarchyBrowserBase;
 import com.intellij.ide.hierarchy.method.MethodHierarchyBrowser;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
@@ -58,7 +59,7 @@ public class HaxeMethodHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "createHierarchyBrowser " + element );
     }
-    return new MethodHierarchyBrowser(element.getProject(), (PsiMethod) element);
+    return new HaxeMethodHierarchyBrowser(element.getProject(), (PsiMethod) element);
   }
 
   @Override
@@ -66,7 +67,7 @@ public class HaxeMethodHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "browserActivated " + browser );
     }
-
+    ((MethodHierarchyBrowser) browser).changeView(MethodHierarchyBrowserBase.METHOD_TYPE);
   }
 
 }

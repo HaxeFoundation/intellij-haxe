@@ -21,8 +21,9 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.8.1.1.TiVo.ClassHierarchy.2: (community version, TiVo WIP)</p>
+      <p>0.8.1.1.EBAtTiVo.ClassHierarchy.4: (community version, TiVo WIP)</p>
       <ul>
+        <li>Merged with version 0.8.1.1.TiVo.2 from the TiVo/master branch.
         <li>Class Hierarchy partial implementation.</li>
         <li>SuperTypes work.  Sub-types work within the same module.</li>
         <li>All recent changes from github.com/Jetbrains/intellij-haxe/master</li>
@@ -41,6 +42,9 @@
         <li>Suggest to import class on code paste</li>
         <li>Support macro expressions(including ECheckType)</li>
         <li>Lots more... TODO: Get a complete list of updates.
+      <p>0.8.1.1.TiVo.2: (TiVo version)</p>
+      <ul>
+        <li>openFL path can now be retrieved from an .iml file</li>
       </ul>
       <p>0.8.1.1: (community version)</p>
       <ul>
@@ -222,7 +226,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.2 (community version, TiVo WIP)</version>
+  <version>0.8.1.1.EBAtTiVo.ClassHierarchy.4: (community version, TiVo WIP)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
