@@ -31,6 +31,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -62,6 +63,12 @@ import java.util.*;
  * Created by as3boyan on 31.10.14.
  */
 public class HaxelibManager implements com.intellij.openapi.module.ModuleComponent {
+
+  Module mMyModule = null;
+  public HaxelibManager(Module myModule) {
+    mMyModule = myModule;
+  }
+
   public static List<String> getAllLibrariesClasspathsUrls(Module myModule) {
     List<String> classpath = new ArrayList<String>();
 
@@ -253,9 +260,14 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     });
   }
 
+
   @Override
   public void projectOpened() {
-    findUsedLibrariesAndAddToProject();
+    StartupManager.getInstance(mMyModule.getProject()).runWhenProjectIsInitialized(new Runnable() {
+      public void run() {
+        findUsedLibrariesAndAddToProject();
+      }
+    });
   }
 
   public void findUsedLibrariesAndAddToProject() {
