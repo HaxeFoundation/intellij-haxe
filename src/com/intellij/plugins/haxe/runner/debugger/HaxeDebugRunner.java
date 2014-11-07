@@ -278,9 +278,19 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                     }
                     // Else, start the being-debugged process and make the
                     // local debug process instance aware of it.
-                    else {
+                    else if (isNmeProject) {
                         debugProcess.setExecutionResult
                             (new NMERunningState
+                             (env, module,
+                              // runInTest if android or ios
+                            ((settings.getNmeTarget() == NMETarget.ANDROID) ||
+                             (settings.getNmeTarget() == NMETarget.IOS)),
+                              true, port).
+                             execute(executor, HaxeDebugRunner.this));
+                    }
+                    else if (isOpenFLProject) {
+                        debugProcess.setExecutionResult
+                            (new OpenFLRunningState
                              (env, module,
                               // runInTest if android or ios
                             ((settings.getNmeTarget() == NMETarget.ANDROID) ||
