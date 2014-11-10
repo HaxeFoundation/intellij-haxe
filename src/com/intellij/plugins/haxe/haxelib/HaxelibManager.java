@@ -19,12 +19,17 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.google.common.base.Joiner;
 import com.intellij.compiler.ant.BuildProperties;
+import com.intellij.execution.process.BaseOSProcessHandler;
+import com.intellij.execution.process.CapturingProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
@@ -32,10 +37,12 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
@@ -87,7 +94,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     List<String> classpathUrls = new ArrayList<String>();
 
     ArrayList<String> commandLineArguments = new ArrayList<String>();
-    commandLineArguments.add("haxelib");
+    commandLineArguments.add(getHaxelibPath(myModule));
     commandLineArguments.add("path");
     commandLineArguments.add(name);
 
@@ -105,6 +112,57 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     return classpathUrls;
   }
 
+  public static String getHaxelibPath(Module myModule) {
+    assert myModule != null;
+    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+    String haxelibPath = "haxelib";
+    if (sdk != null) {
+      SdkAdditionalData data = sdk.getSdkAdditionalData();
+
+      if (data instanceof HaxeSdkData) {
+        HaxeSdkData sdkData;
+        sdkData = (HaxeSdkData)data;
+        String path = sdkData.getHaxelibPath();
+        if (!path.isEmpty()) {
+          haxelibPath = path;
+        }
+      }
+    }
+
+    return haxelibPath;
+  }
+
+  /*
+  public static void startProcess(ArrayList<String> commandLineArguments, @Nullable File dir) {
+    ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
+    if (dir != null) {
+      builder = builder.directory(dir);
+    }
+    try {
+      Process process = builder.start();
+      BaseOSProcessHandler handler = new BaseOSProcessHandler(process, null, null);
+      handler.addProcessListener(new CapturingProcessAdapter()
+      {
+        @Override
+        public void onTextAvailable(ProcessEvent event, Key outputType) {
+          super.onTextAvailable(event, outputType);
+          String text = event.getText();
+          String text2 = event.getText();
+        }
+
+        @Override
+        public void processTerminated(@NotNull ProcessEvent event) {
+          super.processTerminated(event);
+        }
+      });
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+
+  }
+  */
+
   public static List<String> getProcessStdout(ArrayList<String> commandLineArguments, @Nullable File dir) {
     List<String> strings = new ArrayList<String>();
 
@@ -116,17 +174,30 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
       Process process = builder.start();
       InputStreamReader reader = new InputStreamReader(process.getInputStream());
       Scanner scanner = new Scanner(reader);
-      process.waitFor();
+      //process.waitFor();
 
       while (scanner.hasNextLine()) {
         String nextLine = scanner.nextLine();
         strings.add(nextLine);
       }
+
+      /*
+      try {
+        Thread.sleep(250);
+
+        try {
+          process.exitValue();
+        }
+        catch (IllegalThreadStateException e) {
+          process.destroy();
+        }
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      */
     }
     catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (InterruptedException e) {
       e.printStackTrace();
     }
 
@@ -137,9 +208,9 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     return getProcessStdout(commandLineArguments, null);
   }
 
-  public static List<String> getInstalledLibraries() {
+  public static List<String> getInstalledLibraries(Module myModule) {
     ArrayList<String> commandLineArguments = new ArrayList<String>();
-    commandLineArguments.add("haxelib");
+    commandLineArguments.add(getHaxelibPath(myModule));
     commandLineArguments.add("list");
 
     List<String> installedHaxelibs = new ArrayList<String>();
@@ -151,21 +222,21 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     return installedHaxelibs;
   }
 
-  public static List<String> getAvailableLibraries() {
+  public static List<String> getAvailableLibraries(Module myModule) {
     ArrayList<String> commandLineArguments = new ArrayList<String>();
-    commandLineArguments.add("haxelib");
+    commandLineArguments.add(getHaxelibPath(myModule));
     commandLineArguments.add("search");
     commandLineArguments.add("");
 
     return getProcessStdout(commandLineArguments);
   }
 
-  public static List<String> getProjectDisplayInformation(Project project, File dir, String executable) {
+  public static List<String> getProjectDisplayInformation(Project project, File dir, String executable, Module myModule) {
     List<String> strings1 = Collections.EMPTY_LIST;
 
-    if (getInstalledLibraries().contains(executable)) {
+    if (getInstalledLibraries(myModule).contains(executable)) {
       ArrayList<String> commandLineArguments = new ArrayList<String>();
-      commandLineArguments.add("haxelib");
+      commandLineArguments.add(getHaxelibPath(myModule));
       commandLineArguments.add("run");
       commandLineArguments.add(executable);
       commandLineArguments.add("display");
@@ -194,7 +265,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
   public static List<HaxelibItem> findHaxelibPath(Module myModule, String name) {
     List<HaxelibItem> haxelibNewItems = new ArrayList<HaxelibItem>();
 
-    if (getInstalledLibraries().contains(name)) {
+    if (getInstalledLibraries(myModule).contains(name)) {
       List<String> haxelibPathUrls = getHaxelibPathUrl(myModule, name);
 
       for (String url : haxelibPathUrls) {
@@ -318,7 +389,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
             }
             else {
               File dir = BuildProperties.getProjectBaseDir(project);
-              List<String> projectClasspaths = getProjectDisplayInformation(project, dir, "openfl");
+              List<String> projectClasspaths = getProjectDisplayInformation(project, dir, "openfl", module);
 
               for (String classpath : projectClasspaths) {
                 VirtualFile file = LocalFileFinder.findFile(classpath);
