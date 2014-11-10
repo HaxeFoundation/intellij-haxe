@@ -76,7 +76,10 @@ public class HaxeColorAnnotator implements Annotator {
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
       }
     }
-    String elementText = element.getText();
+    String elementText = null;
+    if (element != null) {
+      elementText = element.getText();
+    }
     if (element instanceof HaxeIdentifier && (elementText.equals("from") || elementText.equals("to")) ) {
       if (element.getParent() instanceof HaxeAbstractClassDeclaration) {
         TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);

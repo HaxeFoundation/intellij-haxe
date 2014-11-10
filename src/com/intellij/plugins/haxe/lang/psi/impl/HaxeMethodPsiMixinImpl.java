@@ -286,10 +286,12 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   private boolean isPrivate() {
     final List<HaxeDeclarationAttribute> declarationAttributeList = getDeclarationAttributeList();
-    for (HaxeDeclarationAttribute declarationAttribute : declarationAttributeList) {
-      HaxeAccess access = declarationAttribute.getAccess();
-      if (access!=null && "private".equals(access.getText())) {
-          return true;
+    if (declarationAttributeList != null) {
+      for (HaxeDeclarationAttribute declarationAttribute : declarationAttributeList) {
+        HaxeAccess access = declarationAttribute.getAccess();
+        if (access!=null && "private".equals(access.getText())) {
+            return true;
+        }
       }
     }
     return false;

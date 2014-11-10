@@ -2326,7 +2326,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // blockStatement | returnStatement | expression | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
+  // blockStatement | returnStatement | (expression ';'?) | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
   static boolean functionCommonBody(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "functionCommonBody")) return false;
     if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
@@ -2339,7 +2339,7 @@ public class HaxeParser implements PsiParser {
     Marker marker_ = enter_section_(builder_);
     result_ = blockStatement(builder_, level_ + 1);
     if (!result_) result_ = returnStatement(builder_, level_ + 1);
-    if (!result_) result_ = expression(builder_, level_ + 1);
+    if (!result_) result_ = functionCommonBody_2(builder_, level_ + 1);
     if (!result_) result_ = throwStatement(builder_, level_ + 1);
     if (!result_) result_ = ifStatement(builder_, level_ + 1);
     if (!result_) result_ = forStatement(builder_, level_ + 1);
@@ -2347,6 +2347,24 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = doWhileStatement(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
+  }
+
+  // expression ';'?
+  private static boolean functionCommonBody_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionCommonBody_2")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = expression(builder_, level_ + 1);
+    result_ = result_ && functionCommonBody_2_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // ';'?
+  private static boolean functionCommonBody_2_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "functionCommonBody_2_1")) return false;
+    consumeToken(builder_, OSEMI);
+    return true;
   }
 
   /* ********************************************************** */
