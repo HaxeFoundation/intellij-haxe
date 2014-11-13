@@ -23,8 +23,8 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.openapi.compiler.*;
-import com.intellij.openapi.compiler.Compiler;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -35,6 +35,7 @@ import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -42,16 +43,22 @@ import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
+import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.util.PathUtil;
+import com.intellij.util.containers.HashMap;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class HaxeCompiler implements SourceProcessingCompiler {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompiler");
+
+  private static HashMap<Module, Boolean> moduleState = new HashMap<Module, Boolean>();
 
   @NotNull
   public String getDescription() {
@@ -74,10 +81,29 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   }
 
   private static List<Module> getModulesToCompile(CompileScope scope) {
+    final FileDocumentManager fdm = FileDocumentManager.getInstance();
     final List<Module> result = new ArrayList<Module>();
     for (final Module module : scope.getAffectedModules()) {
       if (ModuleType.get(module) != HaxeModuleType.getInstance()) continue;
-      result.add(module);
+      // XXX: HaxeFileType.HAXE_FILE_TYPE may be changed to 'all' files type
+      Collection<VirtualFile> vFileCollection = FileTypeIndex.getFiles(HaxeFileType.HAXE_FILE_TYPE, module.getModuleWithDependenciesScope());
+      final int numberOfVirtualFiles = vFileCollection.size();
+      VirtualFile[] virtualFiles = new VirtualFile[numberOfVirtualFiles];
+      virtualFiles = vFileCollection.toArray(virtualFiles);
+      boolean quit = false;
+      for (int index = 0; (! quit) && (index < numberOfVirtualFiles); index++) {
+        VirtualFile vf = virtualFiles[index];
+        vf.refresh(false, false);
+        if (fdm.isFileModified(vf) ||
+            fdm.fileForDocumentCheckedOutSuccessfully(fdm.getDocument(vf), module.getProject())) {
+          result.add(module);
+          moduleState.put(module, Boolean.TRUE);
+          quit = true;
+        }
+      }
+      if (null == moduleState.get(module)) {
+        moduleState.put(module, Boolean.FALSE);
+      }
     }
     return result;
   }
@@ -116,7 +142,6 @@ public class HaxeCompiler implements SourceProcessingCompiler {
         continue;
       }
       final MyProcessingItem myProcessingItem = (MyProcessingItem)processingItem;
-
       if (compileModule(context, myProcessingItem.myModule)) {
         result.add(processingItem);
       }
@@ -125,6 +150,10 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   }
 
   private static boolean compileModule(final CompileContext context, @NotNull final Module module) {
+    final Boolean isCompilationNeeded = moduleState.get(module);
+    if ((isCompilationNeeded != null) && (Boolean.FALSE == isCompilationNeeded)) {
+      return false;
+    }
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final boolean isDebug = ExecutorRegistry.getInstance()
       .isStarting(context.getProject(), DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
