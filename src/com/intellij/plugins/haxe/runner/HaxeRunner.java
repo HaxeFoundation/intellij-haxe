@@ -80,7 +80,7 @@ public class HaxeRunner extends DefaultProgramRunner {
     }
 
     if (settings.isUseOpenFLToBuild()) {
-      final OpenFLRunningState openflRunningState = new OpenFLRunningState(env, module, true);
+      final OpenFLRunningState openflRunningState = new OpenFLRunningState(env, module, false);
       return super.doExecute(project, openflRunningState, contentToReuse, env);
     }
 
