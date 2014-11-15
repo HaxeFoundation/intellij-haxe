@@ -24,14 +24,16 @@ import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
+import com.intellij.openapi.vcs.FileStatus;
+import com.intellij.openapi.vcs.FileStatusManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -45,8 +47,9 @@ import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.util.PathUtil;
-import com.intellij.util.containers.HashMap;
 
+import com.intellij.util.containers.HashMap;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
@@ -54,11 +57,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class HaxeCompiler implements SourceProcessingCompiler {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompiler");
 
-  private static HashMap<Module, Boolean> moduleState = new HashMap<Module, Boolean>();
+  /*
+  // flag to indicate whether a module needs to be built
+  private static HashMap<Module, Boolean> skipBuildMap = new HashMap<Module, Boolean>();
+  // holds the change set for each module to track whether anything changed since last build
+  private static HashMap<Module, Set<String>> changeSetMap = new HashMap<Module, Set<String>>();
+  */
 
   @NotNull
   public String getDescription() {
@@ -74,36 +83,41 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   @Override
   public ProcessingItem[] getProcessingItems(CompileContext context) {
     final List<ProcessingItem> itemList = new ArrayList<ProcessingItem>();
-    for (final Module module : getModulesToCompile(context.getCompileScope())) {
+    for (final Module module : getModulesToCompile(context.getCompileScope() /*, context.getProject() */ )) {
       itemList.add(new MyProcessingItem(module));
     }
     return itemList.toArray(new ProcessingItem[itemList.size()]);
   }
 
-  private static List<Module> getModulesToCompile(CompileScope scope) {
-    final FileDocumentManager fdm = FileDocumentManager.getInstance();
+  private static List<Module> getModulesToCompile(final CompileScope scope /*, final Project project */) {
     final List<Module> result = new ArrayList<Module>();
     for (final Module module : scope.getAffectedModules()) {
       if (ModuleType.get(module) != HaxeModuleType.getInstance()) continue;
-      // XXX: HaxeFileType.HAXE_FILE_TYPE may be changed to 'all' files type
-      Collection<VirtualFile> vFileCollection = FileTypeIndex.getFiles(HaxeFileType.HAXE_FILE_TYPE, module.getModuleWithDependenciesScope());
-      final int numberOfVirtualFiles = vFileCollection.size();
-      VirtualFile[] virtualFiles = new VirtualFile[numberOfVirtualFiles];
-      virtualFiles = vFileCollection.toArray(virtualFiles);
-      boolean quit = false;
-      for (int index = 0; (! quit) && (index < numberOfVirtualFiles); index++) {
-        VirtualFile vf = virtualFiles[index];
-        vf.refresh(false, false);
-        if (fdm.isFileModified(vf) ||
-            fdm.fileForDocumentCheckedOutSuccessfully(fdm.getDocument(vf), module.getProject())) {
-          result.add(module);
-          moduleState.put(module, Boolean.TRUE);
-          quit = true;
+      result.add(module);
+      /*
+      boolean skipBuilding = false; // default: always build
+      //-- are any changes since last build
+      if (changeSetMap.get(module) != null) { // was built at least once, in past ...
+        final Set<String> latestChangeSet = new HashSet<String>();
+        Collection<VirtualFile> vFileCollection = FileTypeIndex
+          .getFiles(HaxeFileType.HAXE_FILE_TYPE, module.getModuleWithDependenciesScope());
+        final VirtualFile[] virtualFiles = vFileCollection.toArray(new VirtualFile[0]);
+        for (VirtualFile file : virtualFiles) {
+          final FileStatus fileStatus = FileStatusManager.getInstance(project).getStatus(file);
+          if (fileStatus.equals(FileStatus.NOT_CHANGED) || fileStatus.equals(FileStatus.UNKNOWN)) continue;
+          latestChangeSet.add(file.getPath());
         }
+        skipBuilding = latestChangeSet.equals(changeSetMap.get(module));
+        changeSetMap.put(module, latestChangeSet);
       }
-      if (null == moduleState.get(module)) {
-        moduleState.put(module, Boolean.FALSE);
+      else {
+        changeSetMap.put(module, new HashSet<String>());
       }
+      skipBuildMap.put(module, new Boolean(skipBuilding));
+      if (! skipBuilding) {
+        result.add(module);
+      }
+      */
     }
     return result;
   }
@@ -150,10 +164,13 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   }
 
   private static boolean compileModule(final CompileContext context, @NotNull final Module module) {
-    final Boolean isCompilationNeeded = moduleState.get(module);
-    if ((isCompilationNeeded != null) && (Boolean.FALSE == isCompilationNeeded)) {
+
+    /*
+    if ((skipBuildMap.get(module) != null) && (skipBuildMap.get(module).booleanValue())) {
       return false;
     }
+    */
+
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final boolean isDebug = ExecutorRegistry.getInstance()
       .isStarting(context.getProject(), DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
