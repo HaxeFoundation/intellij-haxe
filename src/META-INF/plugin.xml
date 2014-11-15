@@ -325,9 +325,10 @@
     <completion.contributor language="any" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeMetaTagsCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
-    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionProvider"/>
-    <completion.contributor language="XML" implementationClass="com.intellij.plugins.haxe.ide.XmlHaxelibCompletionProvider"/>
+    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
+    <completion.contributor language="XML" implementationClass="com.intellij.plugins.haxe.ide.XmlHaxelibCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 

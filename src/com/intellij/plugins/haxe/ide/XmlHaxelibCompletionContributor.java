@@ -19,40 +19,34 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
+import com.intellij.patterns.PlatformPatterns;
+import com.intellij.patterns.XmlPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
-import com.intellij.plugins.haxe.haxelib.HaxelibManager;
-import com.intellij.plugins.haxe.hxml.HXMLLanguage;
-import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
-import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
-import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.intellij.patterns.PlatformPatterns.psiElement;
-
 /**
  * Created by as3boyan on 15.11.14.
  */
-public class HXMLHaxelibCompletionProvider extends CompletionContributor {
+public class XmlHaxelibCompletionContributor extends CompletionContributor {
 
   protected static List<String> availableHaxelibs = null;
   protected static List<String> localHaxelibs = null;
 
-  public static final Logger LOGGER = Logger.getInstance("com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionProvider");
+  public static final Logger LOGGER = Logger.getInstance("com.intellij.plugins.haxe.ide.XmlHaxelibCompletionProvider");
 
-  public HXMLHaxelibCompletionProvider() {
+  public XmlHaxelibCompletionContributor() {
     HaxelibCache haxelibCache = HaxelibCache.getInstance();
     availableHaxelibs = haxelibCache.getAvailableHaxelibs();
     localHaxelibs = haxelibCache.getLocalHaxelibs();
 
-    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement().inside(
+      XmlPatterns.xmlAttributeValue().withParent(XmlPatterns.xmlAttribute("name"))
+        .withSuperParent(2, XmlPatterns.xmlTag().withName("haxelib")).withLanguage(XMLLanguage.INSTANCE)),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,

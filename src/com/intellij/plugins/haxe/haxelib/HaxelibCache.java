@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,10 +40,10 @@ public class HaxelibCache {
     return localHaxelibs;
   }
 
-  protected static List<String> availableHaxelibs = null;
-  protected static List<String> localHaxelibs = null;
+  protected static List<String> availableHaxelibs = Collections.emptyList();
+  protected static List<String> localHaxelibs = Collections.emptyList();
 
-  public HaxelibCache() {
+  private HaxelibCache() {
     load();
   }
 
@@ -55,19 +56,24 @@ public class HaxelibCache {
   }
 
   private void load() {
-    Module haxeModule = null;
-    if (availableHaxelibs == null) {
-      Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-      for (Project project : openProjects) {
-        for (Module module : ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance())) {
-          haxeModule = module;
-          break;
-        }
-      }
+    Module haxeModule = getHaxeModule();
 
+    if (haxeModule != null) {
       localHaxelibs = HaxelibManager.getInstalledLibraries(haxeModule);
       availableHaxelibs = HaxelibManager.getAvailableLibraries(haxeModule);
       availableHaxelibs.removeAll(localHaxelibs);
     }
+  }
+
+  public static Module getHaxeModule() {
+    Module haxeModule = null;
+    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+    for (Project project : openProjects) {
+      for (Module module : ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance())) {
+        haxeModule = module;
+        break;
+      }
+    }
+    return haxeModule;
   }
 }
