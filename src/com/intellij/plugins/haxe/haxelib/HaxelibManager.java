@@ -228,7 +228,9 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
     commandLineArguments.add("search");
     commandLineArguments.add("");
 
-    return getProcessStdout(commandLineArguments);
+    List<String> stringList = getProcessStdout(commandLineArguments);
+    stringList.remove(stringList.size() - 1);
+    return stringList;
   }
 
   public static List<String> getProjectDisplayInformation(Project project, File dir, String executable, Module myModule) {
