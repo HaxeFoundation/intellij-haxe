@@ -47,28 +47,38 @@ import java.util.regex.Pattern;
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
 
   public static List<String> COMPILER_ARGUMENTS = null;
-  public static final Pattern PATTERN = Pattern.compile("--?([a-z-_0-9]+)");
+  public static List<String> COMPILER_ARGUMENTS2 = null;
+  public static final Pattern PATTERN = Pattern.compile("-([a-z-_0-9]+)");
+  public static final Pattern PATTERN2 = Pattern.compile("--([a-z-_0-9]+)");
 
-  private List<String> getCompilerArguments() {
+  private void getCompilerArguments() {
     List<String> compilerArguments = new ArrayList<String>();
+    List<String> compilerArguments2 = new ArrayList<String>();
     ArrayList<String> commandLine = new ArrayList<String>();
-    commandLine.add(HaxeHelpUtil.getHaxePath(HaxelibCache.getHaxeModule()));
-    commandLine.add("--help");
+    List<String> strings = getStrings(commandLine);
 
-    List<String> strings = HaxelibManager.getProcessStderr(commandLine);
-    if (strings.size() > 0) {
-      strings.remove(0);
-    }
-
+    Matcher matcher;
     for (int i = 0; i < strings.size(); i++) {
       String text = strings.get(i);
-      Matcher matcher = PATTERN.matcher(text);
+      matcher = PATTERN2.matcher(text);
 
       if (matcher.find()) {
         String group = matcher.group(1);
 
-        if (!compilerArguments.contains(group)) {
-          compilerArguments.add(group);
+        if (!compilerArguments2.contains(group)) {
+          compilerArguments2.add(group);
+        }
+      }
+      else
+      {
+        matcher = PATTERN.matcher(text);
+
+        if (matcher.find()) {
+          String group = matcher.group(1);
+
+          if (!compilerArguments.contains(group)) {
+            compilerArguments.add(group);
+          }
         }
       }
     }
@@ -77,12 +87,24 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
       compilerArguments.add("D");
     }
 
-    return compilerArguments;
+    COMPILER_ARGUMENTS = compilerArguments;
+    COMPILER_ARGUMENTS2 = compilerArguments2;
+  }
+
+  private List<String> getStrings(ArrayList<String> commandLine) {
+    commandLine.add(HaxeHelpUtil.getHaxePath(HaxelibCache.getHaxeModule()));
+    commandLine.add("--help");
+
+    List<String> strings = HaxelibManager.getProcessStderr(commandLine);
+    if (strings.size() > 0) {
+      strings.remove(0);
+    }
+    return strings;
   }
 
   public HXMLCompilerArgumentsCompletionContributor() {
     if (COMPILER_ARGUMENTS == null) {
-      COMPILER_ARGUMENTS = getCompilerArguments();
+      getCompilerArguments();
     }
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
@@ -103,7 +125,14 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                //  "dce
                //};
 
-               if (COMPILER_ARGUMENTS != null) {
+               String text = parameters.getPosition().getText();
+
+               if (text.startsWith("--")) {
+                 for (String argument : COMPILER_ARGUMENTS2) {
+                   set.addElement(LookupElementBuilder.create(argument));
+                 }
+               }
+               else {
                  for (String argument : COMPILER_ARGUMENTS) {
                    set.addElement(LookupElementBuilder.create(argument));
                  }
