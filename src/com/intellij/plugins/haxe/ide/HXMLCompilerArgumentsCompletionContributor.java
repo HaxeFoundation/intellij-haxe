@@ -24,8 +24,11 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.util.Key;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.plugins.haxe.haxelib.HaxelibCache;
+import com.intellij.plugins.haxe.haxelib.HaxelibManager;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
+import com.intellij.plugins.haxe.util.HaxeHelpUtil;
 import com.intellij.util.ProcessingContext;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,53 +45,45 @@ import java.util.regex.Pattern;
  * Created by as3boyan on 10.08.14.
  */
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
-  private static final Set<String> compilerArguments = new THashSet<String>() {
-    {
-      // TODO: get path to Haxe instead of using global alias
 
-      try {
-        ArrayList<String> commandLine = new ArrayList<String>();
-        //final String sdkExePath = HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath());
-        commandLine.add("haxe");
-        commandLine.add("--help");
+  public static List<String> COMPILER_ARGUMENTS = null;
+  public static final Pattern PATTERN = Pattern.compile("--?([a-z-_0-9]+)");
 
-        BaseOSProcessHandler processHandler =
-          new BaseOSProcessHandler(new ProcessBuilder(commandLine).start(), null, Charset.defaultCharset());
+  private List<String> getCompilerArguments() {
+    List<String> compilerArguments = new ArrayList<String>();
+    ArrayList<String> commandLine = new ArrayList<String>();
+    commandLine.add(HaxeHelpUtil.getHaxePath(HaxelibCache.getHaxeModule()));
+    commandLine.add("--help");
 
-        processHandler.addProcessListener(new ProcessAdapter() {
-          @Override
-          public void onTextAvailable(ProcessEvent event, Key outputType) {
-            String text = event.getText();
-            Pattern pattern = Pattern.compile("-([a-z-_0-9]+)");
-            Matcher matcher = pattern.matcher(text);
+    List<String> strings = HaxelibManager.getProcessStderr(commandLine);
+    if (strings.size() > 0) {
+      strings.remove(0);
+    }
 
-            while (matcher.find()) {
-              String group = matcher.group();
+    for (int i = 0; i < strings.size(); i++) {
+      String text = strings.get(i);
+      Matcher matcher = PATTERN.matcher(text);
 
-              if (!contains(group)) {
-                add(group);
-              }
-            }
-          }
+      if (matcher.find()) {
+        String group = matcher.group(1);
 
-          @Override
-          public void processTerminated(ProcessEvent event) {
-            super.processTerminated(event);
-          }
-        });
-
-        processHandler.startNotify();
-        processHandler.waitFor();
-        processHandler.detachProcess();
-        processHandler.getProcess().destroy();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
+        if (!compilerArguments.contains(group)) {
+          compilerArguments.add(group);
+        }
       }
     }
-  };
+
+    if (!compilerArguments.contains("D")) {
+      compilerArguments.add("D");
+    }
+
+    return compilerArguments;
+  }
 
   public HXMLCompilerArgumentsCompletionContributor() {
+    if (COMPILER_ARGUMENTS == null) {
+      COMPILER_ARGUMENTS = getCompilerArguments();
+    }
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
              @Override
@@ -107,8 +103,8 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                //  "dce
                //};
 
-               if (compilerArguments != null) {
-                 for (String argument : compilerArguments) {
+               if (COMPILER_ARGUMENTS != null) {
+                 for (String argument : COMPILER_ARGUMENTS) {
                    set.addElement(LookupElementBuilder.create(argument));
                  }
                }

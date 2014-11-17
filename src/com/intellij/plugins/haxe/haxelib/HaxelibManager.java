@@ -174,7 +174,7 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
       Process process = builder.start();
       InputStreamReader reader = new InputStreamReader(process.getInputStream());
       Scanner scanner = new Scanner(reader);
-      //process.waitFor();
+      process.waitFor();
 
       while (scanner.hasNextLine()) {
         String nextLine = scanner.nextLine();
@@ -198,6 +198,49 @@ public class HaxelibManager implements com.intellij.openapi.module.ModuleCompone
       */
     }
     catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+
+    return strings;
+  }
+  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments) {
+    List<String> strings = new ArrayList<String>();
+
+    try {
+      ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
+      Process process = builder.start();
+      InputStreamReader reader = new InputStreamReader(process.getErrorStream());
+      Scanner scanner = new Scanner(reader);
+      process.waitFor();
+
+      while (scanner.hasNextLine()) {
+        String nextLine = scanner.nextLine();
+        strings.add(nextLine);
+      }
+
+      /*
+      try {
+        Thread.sleep(250);
+
+        try {
+          process.exitValue();
+        }
+        catch (IllegalThreadStateException e) {
+          process.destroy();
+        }
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      */
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (InterruptedException e) {
       e.printStackTrace();
     }
 

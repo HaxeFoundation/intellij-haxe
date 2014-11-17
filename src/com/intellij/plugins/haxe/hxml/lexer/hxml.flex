@@ -25,7 +25,7 @@ import com.intellij.psi.TokenType;
 CRLF= \n|\r|\r\n
 WHITE_SPACE=[\ \t\f]
 FIRST_VALUE_CHARACTER=[^ \n\r\f\\]
-FIRST_KEY_CHARACTER=-
+FIRST_KEY_CHARACTER="-""-"?
 FIRST_CLASS_CHARACTER=[A-Z]
 VALUE_CHARACTER=[^\n\r\f\\]
 END_OF_LINE_COMMENT=("#")[^\r\n]*
