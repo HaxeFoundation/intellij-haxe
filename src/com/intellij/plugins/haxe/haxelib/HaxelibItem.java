@@ -17,12 +17,16 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by as3boyan on 31.10.14.
  */
 public class HaxelibItem {
+
+  public static final List<HaxelibItem> EMPTY_LIST = new ArrayList<HaxelibItem>(0);
+
   public String name;
   public String classpathUrl;
 

@@ -388,7 +388,7 @@
 
   <module-components>
     <component>
-      <implementation-class>com.intellij.plugins.haxe.haxelib.HaxelibManager</implementation-class>
+      <implementation-class>com.intellij.plugins.haxe.haxelib.HaxelibModuleManager</implementation-class>
     </component>
   </module-components>
 

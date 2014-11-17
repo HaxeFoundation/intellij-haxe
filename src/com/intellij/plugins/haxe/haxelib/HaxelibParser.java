@@ -34,6 +34,15 @@ public class HaxelibParser {
     return Joiner.on("|").join(strings);
   }
 
+  public static StringBuilder gSB = new StringBuilder("haxelib|");
+  public static String stringifyHaxelib(String path) {
+    synchronized(gSB) {
+      gSB.setLength(8); // re-initialize.
+      gSB.append(path);
+      return gSB.toString();
+    }
+  }
+
   public static HaxelibItem parseHaxelib(String data) {
     List<String> strings = StringUtil.split(data, "|");
 
