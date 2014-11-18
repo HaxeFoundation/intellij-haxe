@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
  */
 public class HaxeHelpCache {
   static HaxeHelpCache instance = null;
+  public static final Pattern PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)");
 
   public List<String> getMetaTags() {
     return metaTags;
@@ -61,11 +62,10 @@ public class HaxeHelpCache {
 
     for (int i = 0, size = strings.size(); i < size; i++) {
       String string = strings.get(i);
-      Pattern pattern = Pattern.compile("(@:[^\\r\\n\\t\\s]+)");
-      Matcher matcher = pattern.matcher(string);
+      Matcher matcher = PATTERN.matcher(string);
 
       if (matcher.find()) {
-        metaTags.add(matcher.group());
+        metaTags.add(matcher.group(1));
       }
     }
   }
