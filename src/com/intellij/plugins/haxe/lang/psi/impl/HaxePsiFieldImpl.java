@@ -40,7 +40,7 @@ import java.util.List;
 public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implements HaxePsiField {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl");
-  {
+  static {
     LOG.info("Loaded HaxePsiFieldImpl");
     LOG.setLevel(Level.DEBUG);
   }

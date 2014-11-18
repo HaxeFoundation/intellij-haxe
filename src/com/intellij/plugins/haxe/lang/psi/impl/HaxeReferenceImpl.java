@@ -523,7 +523,8 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
-    if (leftReference != null && getParent() instanceof HaxeReference && leftReference.getText().equals(leftReference.resolveHaxeClass().getHaxeClass().getName())) {
+    // TODO: This should use getName() instead of getQualifiedName(), but it isn't implemented properly and getName() NPEs.
+    if (leftReference != null && getParent() instanceof HaxeReference && leftReference.getText().equals(leftReference.resolveHaxeClass().getHaxeClass().getQualifiedName())) {
       addClassStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        !(leftReference instanceof HaxeThisExpression));
       addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());

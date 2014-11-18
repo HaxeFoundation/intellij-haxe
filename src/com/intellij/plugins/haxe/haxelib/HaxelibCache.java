@@ -21,6 +21,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 
 import java.util.Collections;
@@ -28,6 +29,8 @@ import java.util.List;
 
 /**
  * Created by as3boyan on 15.11.14.
+ *
+ * TODO: EBatTiVo -- this class has to go away to be replaced by calls to HaxelibLibraryManager.
  */
 public class HaxelibCache {
   protected static HaxelibCache instance = null;
@@ -59,8 +62,14 @@ public class HaxelibCache {
     Module haxeModule = getHaxeModule();
 
     if (haxeModule != null) {
-      localHaxelibs = HaxelibManager.getInstalledLibraries(haxeModule);
-      availableHaxelibs = HaxelibManager.getAvailableLibraries(haxeModule);
+      Sdk sdk = HaxelibClasspathUtils.lookupSdk(haxeModule);
+      HaxelibSdkManager sdkManager = HaxelibProjectUpdater.getInstance().getSdkManager(haxeModule);
+      HaxelibLibraryManager libManager = sdkManager == null ? null : sdkManager.getLibraryManager(haxeModule);
+      localHaxelibs = libManager != null
+                    ? libManager.getKnownLibraries()  // Use the cache
+                    : HaxelibClasspathUtils.getInstalledLibraries(sdk); // the slow way
+
+      availableHaxelibs = HaxelibClasspathUtils.getAvailableLibrariesMatching(sdk, "");  // Empty string means all of them.
       availableHaxelibs.removeAll(localHaxelibs);
     }
   }

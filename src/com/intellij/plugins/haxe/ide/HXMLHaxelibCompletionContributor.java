@@ -25,7 +25,6 @@ import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
-import com.intellij.plugins.haxe.haxelib.HaxelibManager;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;

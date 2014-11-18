@@ -45,7 +45,7 @@ import java.util.List;
 public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeMethodPsiMixin {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodPsiMixinImpl");
-  {
+  static {
     LOG.info("Loaded HaxeMethodPsiMixinImpl");
     LOG.setLevel(Level.DEBUG);
   }

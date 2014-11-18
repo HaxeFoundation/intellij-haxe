@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
-import com.intellij.plugins.haxe.haxelib.HaxelibManager;
+import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public class HaxeHelpCache {
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-metas");
 
-    List<String> strings = HaxelibManager.getProcessStdout(commandLineArguments);
+    List<String> strings = HaxelibClasspathUtils.getProcessStdout(commandLineArguments);
 
     metaTags = new ArrayList<String>();
 
