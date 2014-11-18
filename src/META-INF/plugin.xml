@@ -21,6 +21,20 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.5: (community version, TiVo WIP)</p>
+      <ul>
+        <li>Decreased time to load large projects considerably.
+            Note that project loading is still on the UI thread, so
+            it may appear to lock up for a short period of time.
+            For very large projects, 90 seconds is not out of the ordinary.
+        </li>
+        <li>HXML completion: Provide available libraries list</li>
+        <li>HXML completion: show installed haxelibs(also installed libs removed from available haxelibs list)</li>
+        <li>Fix meta tag parsing issues</li>
+        <li>HaxeMetaTagsCompletionContributor provides completion for meta tags</li>
+        <li>Project Xml(NME, OpenFL project project) completion: show available and installed haxelibs</li>
+        <li>SplitIntoDeclarationAndAssignment intention action</li>
+      </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.4: (community version, TiVo WIP)</p>
       <ul>
         <li>Merged with version 0.8.1.1.TiVo.2 from the TiVo/master branch.
@@ -226,7 +240,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.4: (community version, TiVo WIP)</version>
+  <version>0.8.1.1.TiVo.ClassHierarchy.5: (community version, TiVo WIP)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
