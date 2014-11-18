@@ -145,7 +145,7 @@ public final class HaxelibLibraryManager {
    * @return a (possibly empty) list of all known libraries.
    */
   public List<String> getKnownLibraries() {
-    Collection<String> knownLibs = getKnownLibraries();
+    Collection<String> knownLibs = retrieveKnownLibraries();
     ArrayList<String> aryLibs = new ArrayList<String>(knownLibs.size());
     aryLibs.addAll(knownLibs);
     return aryLibs;
