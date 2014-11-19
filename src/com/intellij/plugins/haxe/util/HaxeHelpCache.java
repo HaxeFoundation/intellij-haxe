@@ -30,13 +30,18 @@ import java.util.regex.Pattern;
  */
 public class HaxeHelpCache {
   static HaxeHelpCache instance = null;
-  public static final Pattern PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)");
+  public static final Pattern META_TAG_PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)");
+  public static final Pattern DEFINE_PATTERN = Pattern.compile("([^\\r\\n\\t\\s]+)");
 
   public List<String> getMetaTags() {
     return metaTags;
   }
+  public List<String> getDefines() {
+    return defines;
+  }
 
   private static List<String> metaTags;
+  private static List<String> defines;
 
   public HaxeHelpCache() {
     load();
@@ -62,10 +67,27 @@ public class HaxeHelpCache {
 
     for (int i = 0, size = strings.size(); i < size; i++) {
       String string = strings.get(i);
-      Matcher matcher = PATTERN.matcher(string);
+      Matcher matcher = META_TAG_PATTERN.matcher(string);
 
       if (matcher.find()) {
         metaTags.add(matcher.group(1));
+      }
+    }
+
+    commandLineArguments.clear();
+    commandLineArguments.add(haxePath);
+    commandLineArguments.add("--help-defines");
+
+    strings = HaxelibClasspathUtils.getProcessStdout(commandLineArguments);
+
+    defines = new ArrayList<String>();
+
+    for (int i = 0; i < strings.size(); i++) {
+      String string = strings.get(i);
+      Matcher matcher = DEFINE_PATTERN.matcher(string);
+
+      if (matcher.find()) {
+        defines.add(matcher.group(1));
       }
     }
   }
