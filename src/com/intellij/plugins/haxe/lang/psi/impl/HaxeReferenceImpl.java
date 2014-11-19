@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,12 +35,14 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
+import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +51,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference, PsiPolyVariantReference {
+public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference, PsiPolyVariantReference {
+
+  Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl");
+  {
+    LOG.setLevel(Level.DEBUG);
+  }
 
   public HaxeReferenceImpl(ASTNode node) {
     super(node);
@@ -81,21 +89,81 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     return false;
   }
 
+  private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
+    List<PsiElement> result = new ArrayList<PsiElement>();
+    for (PsiElement element : nameList) {
+      PsiElement parent = element.getParent();
+      if (null != parent && parent.isValid()) {
+
+        if (parent instanceof PsiPackage) {
+          // Don't look for package parents. It turns 'com' into 'com.xx'.
+          // XXX: May need to walk the tree until we get to the PACKAGE_STATEMENT
+          // element;
+          result.add(element);
+        } else {
+          result.add(parent);
+        }
+      }
+    }
+    return result;
+  }
+
+
   @Override
   public PsiElement resolve() {
+    return resolve(true);
+  }
+
+  @NotNull
+  public JavaResolveResult advancedResolve(boolean incompleteCode) {
+    final PsiElement resolved = resolve(incompleteCode);
+    // TODO: Determine if we are using the right substitutor.
+    // ?? XXX: Is the internal element here supposed to be a PsiClass sub-class ??
+    return null != resolved ? new CandidateInfo(resolved, EmptySubstitutor.getInstance()) : JavaResolveResult.EMPTY;
+  }
+
+  @NotNull
+  @Override
+  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+    //
+    // Resolving through this.resolve, or through the ResolveCache.resolve,
+    // resolves to the *name* of the component.  That's what is cached, that's
+    // what is returned.  For the Java code, the various reference types are
+    // overridden, along with the base reference being aware of the type of the
+    // entity.  Still, the base reference (PsiJavaReference) resolves to the
+    // COMPONENT_NAME element, NOT the element type.  The various sub-classes
+    // of PsiJavaReference (and PsiJavaCodeReferenceElement) return the actual
+    // element type.  For example, you have to have to use PsiClassType.resolve
+    // to get back a PsiClassType.
+    //
+    // For the Haxe code, we don't have a large number of reference sub-classes,
+    // so we have to figure out what the expected parent type is and return that.
+    // Luckily, most references have a COMPONENT_NAME element located immediately
+    // below the parent in the PSI tree.  Therefore, we're going to return the
+    // parent type.
+    //
+
+    // For the moment (while debugging the resolver) let's do this without caching.
+    boolean skipCaching = false;
+    List<? extends PsiElement> cachedNames
+              = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
+                            : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
+
+    List<? extends PsiElement> result = resolveNamesToParents(cachedNames);
+
+    // CandidateInfo does some extra resolution work when checking validity, so
+    // the results have to be turned into a CandidateInfoArray, and not just passed
+    // around as the list that HaxeResolver returns.
+    return toCandidateInfoArray(result);
+  }
+
+  @Nullable
+  public PsiElement resolve(boolean incompleteCode) {
     final ResolveResult[] resolveResults = multiResolve(true);
 
     return resolveResults.length == 0 ||
            resolveResults.length > 1 ||
            !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
-  }
-
-  @NotNull
-  @Override
-  public ResolveResult[] multiResolve(boolean incompleteCode) {
-    final List<? extends PsiElement> elements =
-      ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
-    return toCandidateInfoArray(elements);
   }
 
   @NotNull
@@ -134,7 +202,7 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       boolean implementOrExtendSameClass = false;
       HaxeClass haxeClass = null;
       List<HaxeType> commonTypeList = new ArrayList<HaxeType>();
-      List<HaxeExpression> haxeExpressionList = expressionList.getExpressionList();
+      List<HaxeExpression> haxeExpressionList = expressionList != null ? expressionList.getExpressionList() : new ArrayList<HaxeExpression>();
       if (!haxeExpressionList.isEmpty()) {
         isMap = true;
         isString = true;
@@ -264,7 +332,12 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                                          resolveResult.getSpecialization());
       }
     }
+
     PsiElement resolve = resolve();
+    if (resolve instanceof PsiPackage) {
+      // Packages don't ever resolve to classes. (And they don't have children!)
+      return HaxeClassResolveResult.EMPTY;
+    }
     if (resolve != null) {
       PsiElement parent = resolve.getParent();
 
@@ -331,16 +404,16 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  private static ResolveResult[] toCandidateInfoArray(@Nullable PsiElement element) {
+  private static JavaResolveResult[] toCandidateInfoArray(@Nullable PsiElement element) {
     if (element == null) {
-      return ResolveResult.EMPTY_ARRAY;
+      return JavaResolveResult.EMPTY_ARRAY;
     }
-    return new ResolveResult[]{new CandidateInfo(element, null)};
+    return new JavaResolveResult[]{new CandidateInfo(element, null)};
   }
 
   @NotNull
-  private static ResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
-    final ResolveResult[] result = new ResolveResult[elements.size()];
+  private static JavaResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
+    final JavaResolveResult[] result = new JavaResolveResult[elements.size()];
     for (int i = 0, size = elements.size(); i < size; i++) {
       result[i] = new CandidateInfo(elements.get(i), EmptySubstitutor.getInstance());
     }
@@ -449,7 +522,8 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
-    if (leftReference != null && getParent() instanceof HaxeReference && leftReference.getText().equals(leftReference.resolveHaxeClass().getHaxeClass().getName())) {
+    // TODO: This should use getName() instead of getQualifiedName(), but it isn't implemented properly and getName() NPEs.
+    if (leftReference != null && getParent() instanceof HaxeReference && leftReference.getText().equals(leftReference.resolveHaxeClass().getHaxeClass().getQualifiedName())) {
       addClassStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
                        !(leftReference instanceof HaxeThisExpression));
       addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());
@@ -471,6 +545,21 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
         PsiFile psiFile = this.getContainingFile();
         addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
+
+        /*HaxeFunctionDeclarationWithAttributes[] functionDeclarationWithAttributes = PsiTreeUtil.getChildrenOfType(body, HaxeFunctionDeclarationWithAttributes.class);
+        if (functionDeclarationWithAttributes != null) {
+          for (HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttribute : functionDeclarationWithAttributes) {
+            HaxeLocalFunctionDeclaration[] localFunctionDeclarations =
+              PsiTreeUtil.getChildrenOfType(functionDeclarationWithAttribute, HaxeLocalFunctionDeclaration.class);
+            for (HaxeLocalFunctionDeclaration localFunctionDeclaration : localFunctionDeclarations) {
+              HaxeNamedComponent[] haxeNamedComponents = PsiTreeUtil.getChildrenOfType(localFunctionDeclaration, HaxeNamedComponent.class);
+
+              if (haxeNamedComponents != null) {
+                ContainerUtil.addAll(result, haxeNamedComponents);
+              }
+            }
+          }
+        }*/
       }
     }
 
@@ -575,4 +664,69 @@ public abstract class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
   }
+
+  @Nullable
+  public PsiElement getReferenceNameElement() {
+    PsiElement child = findChildByType(HaxeTokenTypes.REFERENCE_EXPRESSION); // REFERENCE_NAME in Java
+    return child;
+  }
+
+  @Nullable
+  public PsiReferenceParameterList getParameterList() {
+    // TODO:  Unimplemented.
+    LOG.warn("getParameterList is unimplemented");
+
+    // REFERENCE_PARAMETER_LIST  in Java
+    HaxeTypeParam child = (HaxeTypeParam) findChildByType(HaxeTokenTypes.TYPE_PARAM);
+    //return child == null ? null : child.getTypeList();
+    return null;
+  }
+
+  @NotNull
+  public PsiType[] getTypeParameters() {
+    // TODO:  Unimplemented.
+    LOG.warn("getTypeParameters is unimplemented");
+    return new PsiType[0];
+  }
+
+  public boolean isQualified() {
+    // TODO:  Unimplemented.
+    LOG.warn("isQualified is unimplemented");
+    return false;
+  }
+
+  public String getQualifiedName() {
+    // TODO:  Unimplemented.
+    LOG.warn("getQualifiedName is unimplemented");
+    return null;
+  }
+
+
+  // PsiJavaReference overrides
+
+  public void processVariants(@NotNull PsiScopeProcessor processor) {
+    // TODO:  Unimplemented.
+    LOG.warn("processVariants is unimplemented");
+  }
+
+  // PsiQualifiedReference overrides
+
+  @Nullable
+  public PsiElement getQualifier() {
+    // Package/class that this type is part of; the part before
+    // the last '.'.  However, that may only be partial, so adding
+    // package information may also be necessary.
+    // TODO:  Unimplemented.
+    LOG.warn("getQualifier is unimplemented");
+    return null;
+  }
+
+  @Nullable
+  public String getReferenceName() {
+    // Unqualified name; the base name without any preceding
+    // package/class name.
+    // TODO: Figure out if this needs to split out any prefix.
+    return getText();
+  }
+
 }
