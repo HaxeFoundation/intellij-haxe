@@ -21,7 +21,7 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
-      <p>0.8.1.2: (TiVo version)</p>
+      <p>0.8.1.1.TiVo.3: (TiVo version)</p>
       <ul>
         <li>Fix for 'Throwable: method unimplemented' error from HaxeReferenceImpl.java</li>
       </ul>
@@ -209,7 +209,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.2: (TiVo version)</version>
+  <version>0.8.1.1.TiVo.3: (TiVo version)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
