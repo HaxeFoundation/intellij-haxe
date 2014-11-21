@@ -59,12 +59,6 @@ public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleC
           new Task.Backgroundable(project, "Looking for used libraries", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
-              try {
-                Thread.sleep(10000);
-              }
-              catch (InterruptedException e) {
-                e.printStackTrace();
-              }
               HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
             }
           });
