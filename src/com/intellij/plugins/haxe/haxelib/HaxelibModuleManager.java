@@ -17,8 +17,15 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +49,27 @@ public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleC
   @Override
   public void projectOpened() {
     debugQueueCounter++;
-    LOG.debug("Project opened event (" + debugQueueCounter + ") for " + mMyModule.getProject());
+    final Project project = mMyModule.getProject();
+    LOG.debug("Project opened event (" + debugQueueCounter + ") for " + project);
 
-    HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        ProgressManager.getInstance().run(
+          new Task.Backgroundable(project, "Looking for used libraries", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+              try {
+                Thread.sleep(10000);
+              }
+              catch (InterruptedException e) {
+                e.printStackTrace();
+              }
+              HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
+            }
+          });
+      }
+    });
   }
 
   @Override

@@ -107,7 +107,7 @@ public class HaxelibProjectUpdater  {
     ProjectTracker tracker = myProjects.add(project);
     tracker.setDirty(true);
     myQueue.add(tracker);
-  }
+                                                             }
 
   /**
    * Close and possibly remove a project, if the reference count has been exhausted.
