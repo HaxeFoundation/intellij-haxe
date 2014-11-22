@@ -62,6 +62,7 @@ public class HaxelibSdkManager {
                                     sdkType.getVersionString(sdkType.suggestHomePath()));
     sdkType.setupSdkPaths(DefaultSDK);
   }
+  static boolean myDefaultSdkErrorHasBeenLogged = false;
 
 
   final SdkCache mySdkCache;
@@ -88,8 +89,12 @@ public class HaxelibSdkManager {
     // We can argue whether this is just a warning, because we "fix" the
     // problem.  However, an error pops out on the user log, so that they
     // can take action.
-    // XXX: I have a suspicion we hit this condition under a race condition.
-    LOG.error("Project or module SDK was not found!  Module=" + module);
+    // We only log one error, as only one gets displayed to the user via
+    // the UI anyway, and it floods the logs.
+    if (!myDefaultSdkErrorHasBeenLogged) {
+      LOG.error("Project or module SDK was not found: " + module);
+      myDefaultSdkErrorHasBeenLogged = true;
+    }
     return getLibraryManager(DefaultSDK);
   }
 
