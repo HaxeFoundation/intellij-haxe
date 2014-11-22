@@ -23,6 +23,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
@@ -80,13 +84,18 @@ public class HaxelibProjectUpdater  {
     LOG.setLevel(Level.DEBUG);
   }
 
+  /**
+   *  Set this to run in the foreground for speed testing.
+   */
+  private static final boolean myTestInForeground = true; // Running in the background doesn't work for now.
+
   public static final HaxelibProjectUpdater INSTANCE = new HaxelibProjectUpdater();
   public static final List<HaxelibItem> EMPTY_CLASSPATH_LIST = new ArrayList<HaxelibItem>(0);
 
   private ProjectUpdateQueue myQueue = null;
   private ProjectMap myProjects = null;
 
-  HaxelibProjectUpdater() {
+  private HaxelibProjectUpdater() {
     myQueue = new ProjectUpdateQueue();
     myProjects = new ProjectMap();
   }
@@ -772,6 +781,13 @@ public class HaxelibProjectUpdater  {
     public String toString() {
       return "ProjectTracker:" + myProject.getName();
     }
+
+    public boolean equalsName(@Nullable ProjectTracker tracker) {
+      if (null == tracker) {
+        return false;
+      }
+      return myProject.getName().equals(tracker.getProject().getName());
+    }
   } // end class ProjectTracker
 
 
@@ -879,7 +895,11 @@ public class HaxelibProjectUpdater  {
      */
     public boolean add(@NotNull ProjectTracker tracker) {
       boolean ret = false;
-      if (!tracker.equals(getUpdatingProject())) {
+      // XXX: Something seems wrong about skipping the currently updating project.
+      //      What if a project change happens while the project is already running?
+      //      Should we cancel and restart instead?  And, if so, should we have a
+      //      short delay to ensure that all identical messages are already queued?
+      if (!tracker.equalsName(getUpdatingProject())) {
         if (queue.isEmpty() || !queue.contains(tracker)) {
           ret = queue.add(tracker);
           if (null == getUpdatingProject()) {
@@ -947,13 +967,46 @@ public class HaxelibProjectUpdater  {
       // fully loaded and accessible.  Otherwise, we crash. ;)
       StartupManager.getInstance(updatingProject.getProject()).runWhenProjectIsInitialized(new Runnable() {
         public void run() {
-          LOG.debug("Loading referenced libraries...");
-          findUsedLibrariesAndAddToProject(updatingProject);
-          finishUpdate(updatingProject);
+          LOG.debug("Starting haxelib library sync on background thread.");
+          runUpdate();
         }
       });
 
     }
+
+    /**
+     * Runs the update, either in the foreground or background, depending upon
+     * the state of the myTestInForeground debug flag.
+     */
+    private void runUpdate() {
+      if (myTestInForeground) {
+        doUpdateWork();
+      } else {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            ProgressManager.getInstance().run(
+              new Task.Backgroundable(getUpdatingProject().getProject(), "Synchronizing with haxelib libraries...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+                @Override
+                public void run(@NotNull ProgressIndicator indicator) {
+                  doUpdateWork();
+                }
+              });
+          }
+        });
+      }
+    }
+
+
+    /**
+     * The basic bit of work that an update does.
+     */
+    private void doUpdateWork() {
+      LOG.debug("Loading referenced libraries...");
+      findUsedLibrariesAndAddToProject(updatingProject);
+      finishUpdate(updatingProject);
+    }
+
 
     /**
      * Cleanup and queue the next in line, if any.

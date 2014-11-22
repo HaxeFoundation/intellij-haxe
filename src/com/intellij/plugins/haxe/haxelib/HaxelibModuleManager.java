@@ -52,18 +52,7 @@ public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleC
     final Project project = mMyModule.getProject();
     LOG.debug("Project opened event (" + debugQueueCounter + ") for " + project);
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        ProgressManager.getInstance().run(
-          new Task.Backgroundable(project, "Looking for used libraries", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
-            @Override
-            public void run(@NotNull ProgressIndicator indicator) {
-              HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
-            }
-          });
-      }
-    });
+    HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
   }
 
   @Override
