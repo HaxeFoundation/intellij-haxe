@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
+import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,18 +31,18 @@ import java.util.regex.Pattern;
  */
 public class HaxeHelpCache {
   static HaxeHelpCache instance = null;
-  public static final Pattern META_TAG_PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)");
-  public static final Pattern DEFINE_PATTERN = Pattern.compile("([^\\r\\n\\t\\s]+)");
+  public static final Pattern META_TAG_PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
+  public static final Pattern DEFINE_PATTERN = Pattern.compile("([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]([^\\r\\n]+)");
 
-  public List<String> getMetaTags() {
+  public List<HXMLCompletionItem> getMetaTags() {
     return metaTags;
   }
-  public List<String> getDefines() {
+  public List<HXMLCompletionItem> getDefines() {
     return defines;
   }
 
-  private static List<String> metaTags;
-  private static List<String> defines;
+  private static List<HXMLCompletionItem> metaTags;
+  private static List<HXMLCompletionItem> defines;
 
   public HaxeHelpCache() {
     load();
@@ -63,14 +64,14 @@ public class HaxeHelpCache {
 
     List<String> strings = HaxelibClasspathUtils.getProcessStdout(commandLineArguments);
 
-    metaTags = new ArrayList<String>();
+    metaTags = new ArrayList<HXMLCompletionItem>();
 
     for (int i = 0, size = strings.size(); i < size; i++) {
       String string = strings.get(i);
       Matcher matcher = META_TAG_PATTERN.matcher(string);
 
       if (matcher.find()) {
-        metaTags.add(matcher.group(1));
+        metaTags.add(new HXMLCompletionItem(matcher.group(1), matcher.group(2)));
       }
     }
 
@@ -80,14 +81,14 @@ public class HaxeHelpCache {
 
     strings = HaxelibClasspathUtils.getProcessStdout(commandLineArguments);
 
-    defines = new ArrayList<String>();
+    defines = new ArrayList<HXMLCompletionItem>();
 
     for (int i = 0; i < strings.size(); i++) {
       String string = strings.get(i);
       Matcher matcher = DEFINE_PATTERN.matcher(string);
 
       if (matcher.find()) {
-        defines.add(matcher.group(1));
+        defines.add(new HXMLCompletionItem(matcher.group(1), matcher.group(2)));
       }
     }
   }

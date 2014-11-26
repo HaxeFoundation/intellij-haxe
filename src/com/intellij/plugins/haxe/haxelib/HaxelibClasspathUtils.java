@@ -295,11 +295,14 @@ public class HaxelibClasspathUtils {
     return strings;
   }
 
-  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments) {
+  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, File dir) {
     List<String> strings = new ArrayList<String>();
 
     try {
       ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
+      if (dir != null) {
+        builder = builder.directory(dir);
+      }
       Process process = builder.start();
       InputStreamReader reader = new InputStreamReader(process.getErrorStream());
       Scanner scanner = new Scanner(reader);
@@ -466,6 +469,7 @@ public class HaxelibClasspathUtils {
   }
 
 
-
-
+  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments) {
+    return getProcessStderr(commandLineArguments, null);
+  }
 }

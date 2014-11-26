@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class HXMLDefineCompletionContributor extends CompletionContributor {
   public HXMLDefineCompletionContributor() {
-    final List<String> defines = HaxeHelpCache.getInstance().getDefines();
+    final List<HXMLCompletionItem> defines = HaxeHelpCache.getInstance().getDefines();
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.VALUE).withParent(HXMLDefine.class),
            new CompletionProvider<CompletionParameters>() {
              @Override
@@ -41,7 +41,8 @@ public class HXMLDefineCompletionContributor extends CompletionContributor {
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
                for (int i = 0; i < defines.size(); i++) {
-                 result.addElement(LookupElementBuilder.create(defines.get(i)));
+                 HXMLCompletionItem completionItem = defines.get(i);
+                 result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
                }
              }
            });

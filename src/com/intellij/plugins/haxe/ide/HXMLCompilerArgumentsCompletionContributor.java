@@ -46,14 +46,14 @@ import java.util.regex.Pattern;
  */
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
 
-  public static List<String> COMPILER_ARGUMENTS = null;
-  public static List<String> COMPILER_ARGUMENTS2 = null;
-  public static final Pattern PATTERN = Pattern.compile("-([a-z-_0-9]+)");
-  public static final Pattern PATTERN2 = Pattern.compile("--([a-z-_0-9]+)");
+  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS = null;
+  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS2 = null;
+  public static final Pattern PATTERN = Pattern.compile("-([a-z-_0-9]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
+  public static final Pattern PATTERN2 = Pattern.compile("--([a-z-_0-9]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
 
   private void getCompilerArguments() {
-    List<String> compilerArguments = new ArrayList<String>();
-    List<String> compilerArguments2 = new ArrayList<String>();
+    List<HXMLCompletionItem> compilerArguments = new ArrayList<HXMLCompletionItem>();
+    List<HXMLCompletionItem> compilerArguments2 = new ArrayList<HXMLCompletionItem>();
     ArrayList<String> commandLine = new ArrayList<String>();
     List<String> strings = getStrings(commandLine);
 
@@ -66,7 +66,7 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
         String group = matcher.group(1);
 
         if (!compilerArguments2.contains(group)) {
-          compilerArguments2.add(group);
+          compilerArguments2.add(new HXMLCompletionItem(group, matcher.group(2)));
         }
       }
       else
@@ -77,14 +77,14 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
           String group = matcher.group(1);
 
           if (!compilerArguments.contains(group)) {
-            compilerArguments.add(group);
+            compilerArguments.add(new HXMLCompletionItem(group, matcher.group(2)));
           }
         }
       }
     }
 
     if (!compilerArguments.contains("D")) {
-      compilerArguments.add("D");
+      compilerArguments.add(new HXMLCompletionItem("D"));
     }
 
     COMPILER_ARGUMENTS = compilerArguments;
@@ -128,13 +128,13 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                String text = parameters.getPosition().getText();
 
                if (text.startsWith("--")) {
-                 for (String argument : COMPILER_ARGUMENTS2) {
-                   set.addElement(LookupElementBuilder.create(argument));
+                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS2) {
+                   set.addElement(LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true));
                  }
                }
                else {
-                 for (String argument : COMPILER_ARGUMENTS) {
-                   set.addElement(LookupElementBuilder.create(argument));
+                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS) {
+                   set.addElement(LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true));
                  }
                }
              }

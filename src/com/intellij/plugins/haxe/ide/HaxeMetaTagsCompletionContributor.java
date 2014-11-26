@@ -33,14 +33,15 @@ import java.util.List;
  */
 public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
   public HaxeMetaTagsCompletionContributor() {
-    final List<String> metaTags = HaxeHelpCache.getInstance().getMetaTags();
+    final List<HXMLCompletionItem> metaTags = HaxeHelpCache.getInstance().getMetaTags();
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.MACRO_ID), new CompletionProvider<CompletionParameters>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         for (int i = 0; i < metaTags.size(); i++) {
-          result.addElement(LookupElementBuilder.create(metaTags.get(i)));
+          HXMLCompletionItem completionItem = metaTags.get(i);
+          result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
         }
       }
     });
