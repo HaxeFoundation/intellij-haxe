@@ -524,17 +524,30 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
     // TODO: This should use getName() instead of getQualifiedName(), but it isn't implemented properly and getName() NPEs.
-    if (leftReference != null && getParent() instanceof HaxeReference && leftReference.getText().equals(leftReference.resolveHaxeClass().getHaxeClass().getQualifiedName())) {
-      addClassStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
-                       !(leftReference instanceof HaxeThisExpression));
-      addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());
+    HaxeClassResolveResult result = null;
+    HaxeClass haxeClass;
+    String qualifiedName = null;
+    if (leftReference != null) {
+      result = leftReference.resolveHaxeClass();
+
+      if (result != null) {
+        haxeClass = result.getHaxeClass();
+        if (haxeClass != null) {
+          qualifiedName = haxeClass.getQualifiedName();
+        }
+      }
     }
-    else if (leftReference != null && getParent() instanceof HaxeReference && !leftReference.resolveHaxeClass().isFunctionType()) {
-      addClassNonStaticMembersVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
+    if (leftReference != null && getParent() instanceof HaxeReference && qualifiedName != null && leftReference.getText().equals(qualifiedName)) {
+      addClassStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
+                                    !(leftReference instanceof HaxeThisExpression));
+      addChildClassVariants(suggestedVariants, result.getHaxeClass());
+    }
+    else if (leftReference != null && getParent() instanceof HaxeReference && !result.isFunctionType()) {
+      addClassNonStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
                        !(leftReference instanceof HaxeThisExpression));
-      addUsingVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass(),
+      addUsingVariants(suggestedVariants, result.getHaxeClass(),
                        HaxeResolveUtil.findUsingClasses(getContainingFile()));
-      addChildClassVariants(suggestedVariants, leftReference.resolveHaxeClass().getHaxeClass());
+      addChildClassVariants(suggestedVariants, result.getHaxeClass());
     }
     else {
       // if chain
