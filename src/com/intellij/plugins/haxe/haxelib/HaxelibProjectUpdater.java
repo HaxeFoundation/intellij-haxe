@@ -28,6 +28,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
@@ -49,10 +50,13 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.Consumer;
 import com.intellij.webcore.ModuleHelper;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.debugger.ContextDependentAsyncResultConsumer;
+import org.jetbrains.debugger.Vm;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
@@ -223,10 +227,18 @@ public class HaxelibProjectUpdater  {
 
         // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
         ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-        for (Library library : libraryTableModifiableModelLibraries) {
+        for (final Library library : libraryTableModifiableModelLibraries) {
           // parseHaxeLib returns null if the name isn't packed.
           if (HaxelibParser.parseHaxelib(library.getName()) != null && !newPackedEntries.contains(library.getName())) {
-            ModuleHelper.removeDependency(rootManager, library);
+            //ModuleHelper.removeDependency(rootManager, library);
+
+            ModuleRootModificationUtil.updateModel(module, new Consumer<ModifiableRootModel>() {
+              @Override
+              public void consume(ModifiableRootModel model) {
+                model.getModuleLibraryTable().removeLibrary(library);
+              }
+            });
+
             projectModifiableModel.removeLibrary(library);
             timeLog.stamp("Removed library " + library.getName());
           }
