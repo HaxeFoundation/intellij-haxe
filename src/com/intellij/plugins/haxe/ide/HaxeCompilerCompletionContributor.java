@@ -186,9 +186,11 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
             LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(n);
             if (t != null) {
-              String text = t.getValue().getText();
+              String text = getFormattedText(t.getValue().getText());
               if (d != null) {
-                text += " " + d.getValue().getText();
+                String text1 = d.getValue().getText();
+                text1 = getFormattedText(text1);
+                text += " " + text1;
               }
               lookupElementBuilder = lookupElementBuilder.withTailText(" " + text, true);
             }
@@ -197,5 +199,14 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
         }
       }
     }
+  }
+
+  private String getFormattedText(String text1) {
+    text1 = text1.replaceAll("\t", "");
+    text1 = text1.replaceAll("\n", "");
+    text1 = text1.replaceAll("&lt;", "<");
+    text1 = text1.replaceAll("&gt;", ">");
+    text1 = text1.trim();
+    return text1;
   }
 }
