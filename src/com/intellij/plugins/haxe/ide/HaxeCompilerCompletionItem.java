@@ -17,28 +17,17 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import java.util.List;
+
 /**
- * Created by as3boyan on 25.11.14.
+ * Created by as3boyan on 27.11.14.
  */
-public class HXMLCompletionItem {
-  public String name;
-  public String description;
+public class HaxeCompilerCompletionItem {
+  public List<String> parameters;
+  public String retType;
 
-  public HXMLCompletionItem(String name, String description, String presentableText) {
-    this.name = name;
-    this.description = description;
-    this.presentableText = presentableText;
-  }
-
-  public String presentableText = null;
-
-  public HXMLCompletionItem(String name, String description) {
-    this.name = name;
-    this.description = description;
-  }
-
-  public HXMLCompletionItem(String name) {
-    this.name = name;
-    this.description = "";
+  public HaxeCompilerCompletionItem(List<String> parameters, String retType) {
+    this.parameters = parameters;
+    this.retType = retType;
   }
 }

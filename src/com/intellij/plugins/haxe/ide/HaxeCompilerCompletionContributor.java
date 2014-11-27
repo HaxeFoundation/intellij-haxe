@@ -185,13 +185,30 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
             XmlTag d = xmlTag.findFirstSubTag("d");
 
             LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(n);
+
+            String formattedType = "";
+            String formattedDescription = "";
+
             if (t != null) {
-              String text = getFormattedText(t.getValue().getText());
+              formattedType = getFormattedText(t.getValue().getText());
+              HaxeCompilerCompletionItem item = parseFunctionParams(formattedType);
+              String text = "";
+
+              if (item.parameters != null) {
+                String presentableText = n + "(" + Joiner.on(", ").join(item.parameters) + "):" + item.retType;
+                lookupElementBuilder = lookupElementBuilder.withPresentableText(presentableText);
+              }
+              else {
+                text = formattedType;
+              }
+
               if (d != null) {
                 String text1 = d.getValue().getText();
                 text1 = getFormattedText(text1);
-                text += " " + text1;
+                formattedDescription = text1;
+                text += " " + formattedDescription;
               }
+
               lookupElementBuilder = lookupElementBuilder.withTailText(" " + text, true);
             }
             result.addElement(lookupElementBuilder);
@@ -208,5 +225,61 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     text1 = text1.replaceAll("&gt;", ">");
     text1 = text1.trim();
     return text1;
+  }
+
+  //Ported from HIDE
+  //https://github.com/HaxeIDE/HIDE/blob/master/src/core/FunctionParametersHelper.hx#L193
+  public HaxeCompilerCompletionItem parseFunctionParams(String type)
+  {
+    List<String> parameters = null;
+    String retType = null;
+    if (type != null && type.indexOf("->") != -1)
+    {
+      int openBracketsCount = 0;
+      List<Integer> startPositions = new ArrayList<Integer>();
+      List<Integer> endPositions = new ArrayList<Integer>();
+      int i = 0;
+      int lastPos = 0;
+      while (i < type.length())
+      {
+        switch (type.charAt(i))
+        {
+          case '-':
+            if (openBracketsCount == 0 && type.charAt(i + 1) == '>') {
+              startPositions.add(lastPos);
+              endPositions.add(i - 1);
+              i++;
+              i++;
+              lastPos = i;
+            }
+          case '(':
+            openBracketsCount++;
+          case ')':
+            openBracketsCount--;
+          default:
+        }
+        i++;
+      }
+      startPositions.add(lastPos);
+      endPositions.add(type.length());
+      parameters = new ArrayList<String>();
+
+      for (int j = 0; j < startPositions.size(); j++) {
+        String param = type.substring(startPositions.get(j), endPositions.get(j));
+        if (j < startPositions.size() - 1)
+        {
+          parameters.add(param);
+        }
+        else
+        {
+          retType = param;
+        }
+      }
+      if (parameters.size() == 1 && parameters.get(0) == "Void")
+      {
+        parameters.clear();
+      }
+    }
+    return new HaxeCompilerCompletionItem(parameters, retType);
   }
 }

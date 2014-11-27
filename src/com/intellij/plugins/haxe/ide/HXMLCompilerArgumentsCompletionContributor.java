@@ -48,7 +48,7 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
 
   public static List<HXMLCompletionItem> COMPILER_ARGUMENTS = null;
   public static List<HXMLCompletionItem> COMPILER_ARGUMENTS2 = null;
-  public static final Pattern PATTERN = Pattern.compile("-([a-z-_0-9]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
+  public static final Pattern PATTERN = Pattern.compile("-([a-z-_0-9]+)[\\s](<[^>]+>)?[^:]+:[\\t\\s]+([^\\r\\n]+)");
   public static final Pattern PATTERN2 = Pattern.compile("--([a-z-_0-9]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
 
   private void getCompilerArguments() {
@@ -77,7 +77,12 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
           String group = matcher.group(1);
 
           if (!compilerArguments.contains(group)) {
-            compilerArguments.add(new HXMLCompletionItem(group, matcher.group(2)));
+            String description = matcher.group(3);
+            String group2 = matcher.group(2);
+            if (group2 != null) {
+              group2 = group + " " + group2;
+            }
+            compilerArguments.add(new HXMLCompletionItem(group, description, group2));
           }
         }
       }
@@ -134,7 +139,11 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                }
                else {
                  for (HXMLCompletionItem argument : COMPILER_ARGUMENTS) {
-                   set.addElement(LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true));
+                   LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true);
+                   if (argument.presentableText != null) {
+                     lookupElementBuilder = lookupElementBuilder.withPresentableText(argument.presentableText);
+                   }
+                   set.addElement(lookupElementBuilder);
                  }
                }
              }
