@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.google.common.base.Joiner;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.compiler.ant.BuildProperties;
@@ -42,6 +41,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.LineSeparator;
 import com.intellij.util.ProcessingContext;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.io.LocalFileFinder;
 
@@ -169,7 +169,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
   private void getCompletionFromXml(CompletionResultSet result, Project project, List<String> stderr) {
     if (!stderr.isEmpty() && !stderr.get(0).contains("Error") && stderr.size() > 1) {
-      String s = Joiner.on("").join(stderr);
+      String s = StringUtils.join(stderr, "");
       PsiFile fileFromText = PsiFileFactory.getInstance(project).createFileFromText("data.xml", XmlFileType.INSTANCE, s);
 
       XmlFile xmlFile = (XmlFile)fileFromText;
@@ -195,7 +195,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
               String text = "";
 
               if (item.parameters != null) {
-                String presentableText = n + "(" + Joiner.on(", ").join(item.parameters) + "):" + item.retType;
+                String presentableText = n + "(" + StringUtils.join(item.parameters, ", ") + "):" + item.retType;
                 lookupElementBuilder = lookupElementBuilder.withPresentableText(presentableText);
               }
               else {

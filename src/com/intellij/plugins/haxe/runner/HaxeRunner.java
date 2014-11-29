@@ -42,6 +42,7 @@ import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -56,15 +57,7 @@ public class HaxeRunner extends DefaultProgramRunner {
   }
 
   @Override
-  public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
-    return DefaultRunExecutor.EXECUTOR_ID.equals(executorId) && profile instanceof HaxeApplicationConfiguration;
-  }
-
-  @Override
-  protected RunContentDescriptor doExecute(Project project,
-                                           RunProfileState state,
-                                           RunContentDescriptor contentToReuse,
-                                           ExecutionEnvironment env) throws ExecutionException {
+  protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env) throws ExecutionException {
     final HaxeApplicationConfiguration configuration = (HaxeApplicationConfiguration)env.getRunProfile();
     final Module module = configuration.getConfigurationModule().getModule();
 
@@ -76,24 +69,24 @@ public class HaxeRunner extends DefaultProgramRunner {
 
     if (settings.isUseNmmlToBuild()) {
       final NMERunningState nmeRunningState = new NMERunningState(env, module, false);
-      return super.doExecute(project, nmeRunningState, contentToReuse, env);
+      return super.doExecute(nmeRunningState, env);
     }
 
     if (settings.isUseOpenFLToBuild()) {
       final OpenFLRunningState openflRunningState = new OpenFLRunningState(env, module, true);
-      return super.doExecute(project, openflRunningState, contentToReuse, env);
+      return super.doExecute(openflRunningState, env);
     }
 
     if (configuration.isCustomFileToLaunch() && FileUtilRt.extensionEquals(configuration.getCustomFileToLaunchPath(), "n")) {
       final NekoRunningState nekoRunningState = new NekoRunningState(env, module, configuration.getCustomFileToLaunchPath());
-      return super.doExecute(project, nekoRunningState, contentToReuse, env);
+      return super.doExecute(nekoRunningState, env);
     }
 
     if (configuration.isCustomExecutable()) {
       final String filePath = configuration.isCustomFileToLaunch()
                               ? configuration.getCustomFileToLaunchPath()
                               : getOutputFilePath(module, settings);
-      return super.doExecute(project, new CommandLineState(env) {
+      return super.doExecute(new CommandLineState(env) {
         @NotNull
         @Override
         protected ProcessHandler startProcess() throws ExecutionException {
@@ -107,7 +100,7 @@ public class HaxeRunner extends DefaultProgramRunner {
 
           return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
         }
-      }, contentToReuse, env);
+      }, env);
     }
 
     if (configuration.isCustomFileToLaunch()) {
@@ -125,9 +118,14 @@ public class HaxeRunner extends DefaultProgramRunner {
     }
 
     final NekoRunningState nekoRunningState = new NekoRunningState(env, module, null);
-    return super.doExecute(project, nekoRunningState, contentToReuse, env);
+    return super.doExecute(nekoRunningState, env);
   }
 
+  @Override
+  public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
+    return DefaultRunExecutor.EXECUTOR_ID.equals(executorId) && profile instanceof HaxeApplicationConfiguration;
+  }
+  
   static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
     FileDocumentManager.getInstance().saveAllDocuments();
     final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);

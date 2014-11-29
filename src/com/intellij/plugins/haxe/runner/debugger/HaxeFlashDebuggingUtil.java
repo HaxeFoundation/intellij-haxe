@@ -43,9 +43,7 @@ import java.io.IOException;
  * @author: Fedor.Korotkov
  */
 public class HaxeFlashDebuggingUtil {
-  public static RunContentDescriptor getDescriptor(HaxeDebugRunner runner,
-                                                   final Module module,
-                                                   RunContentDescriptor contentToReuse,
+  public static RunContentDescriptor getDescriptor(final Module module,
                                                    ExecutionEnvironment env,
                                                    String urlToLaunch,
                                                    String flexSdkName) throws ExecutionException {
@@ -57,7 +55,7 @@ public class HaxeFlashDebuggingUtil {
     final FlexBuildConfiguration bc = new FakeFlexBuildConfiguration(flexSdk, urlToLaunch);
 
     final XDebugSession debugSession =
-      XDebuggerManager.getInstance(module.getProject()).startSession(runner, env, contentToReuse, new XDebugProcessStarter() {
+      XDebuggerManager.getInstance(module.getProject()).startSession(env, new XDebugProcessStarter() {
         @NotNull
         public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
           try {
@@ -76,7 +74,6 @@ public class HaxeFlashDebuggingUtil {
 
   public static RunContentDescriptor getNMEDescriptor(final HaxeDebugRunner runner,
                                                       final Module module,
-                                                      RunContentDescriptor contentToReuse,
                                                       final ExecutionEnvironment env,
                                                       final Executor executor, String flexSdkName) throws ExecutionException {
     final Sdk flexSdk = FlexSdkUtils.findFlexOrFlexmojosSdk(flexSdkName);
@@ -87,7 +84,7 @@ public class HaxeFlashDebuggingUtil {
     final FlexBuildConfiguration bc = new FakeFlexBuildConfiguration(flexSdk, null);
 
     final XDebugSession debugSession =
-      XDebuggerManager.getInstance(module.getProject()).startSession(runner, env, contentToReuse, new XDebugProcessStarter() {
+      XDebuggerManager.getInstance(module.getProject()).startSession(env, new XDebugProcessStarter() {
         @NotNull
         public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
           try {
@@ -107,10 +104,9 @@ public class HaxeFlashDebuggingUtil {
   }
 
   public static RunContentDescriptor getOpenFLDescriptor(final HaxeDebugRunner runner,
-                                                      final Module module,
-                                                      RunContentDescriptor contentToReuse,
-                                                      final ExecutionEnvironment env,
-                                                      final Executor executor, String flexSdkName) throws ExecutionException {
+                                                         final Module module,
+                                                         final ExecutionEnvironment env,
+                                                         final Executor executor, String flexSdkName) throws ExecutionException {
     final Sdk flexSdk = FlexSdkUtils.findFlexOrFlexmojosSdk(flexSdkName);
     if (flexSdk == null) {
       throw new ExecutionException(HaxeBundle.message("flex.sdk.not.found", flexSdkName));
@@ -119,7 +115,7 @@ public class HaxeFlashDebuggingUtil {
     final FlexBuildConfiguration bc = new FakeFlexBuildConfiguration(flexSdk, null);
 
     final XDebugSession debugSession =
-      XDebuggerManager.getInstance(module.getProject()).startSession(runner, env, contentToReuse, new XDebugProcessStarter() {
+      XDebuggerManager.getInstance(module.getProject()).startSession(env, new XDebugProcessStarter() {
         @NotNull
         public XDebugProcess start(@NotNull final XDebugSession session) throws ExecutionException {
           try {

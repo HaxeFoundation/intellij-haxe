@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.google.common.base.Joiner;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -39,6 +38,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -404,7 +404,7 @@ public class HaxelibClasspathUtils {
       commandLineArguments.add("flash");
 
       List<String> strings = getProcessStdout(commandLineArguments, dir);
-      String s = Joiner.on("\n").join(strings);
+      String s = StringUtils.join(strings, "\n");
       strings1 = getHXMLFileClasspaths(project, s);
     }
 
