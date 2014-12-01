@@ -35,30 +35,57 @@ import java.util.concurrent.ConcurrentSkipListSet;
 /**
  * Manages library retrieval and caching.
  *
- * This should be instantiated once for each project opened.  (Projects,
+ * This should be instantiated once for each SDK in the project.  (Projects,
  * particularly those that keep separate versions of the libraries in
  * source control using separate branches, are not necessarily using the
  * same haxe installation.)
  */
-public final class HaxelibLibraryManager {
+public final class HaxelibLibraryCache {
 
   static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryManager");
   {
     LOG.setLevel(Level.DEBUG);
   }
 
-  final HaxelibLibraryCache myCache;
+  private final InternalCache myCache;
   ConcurrentSkipListSet<String> knownLibraries;
   final Sdk mySdk;
 
 
-  public HaxelibLibraryManager(@NotNull Sdk sdk) {
-    myCache = new HaxelibLibraryCache();
+  public HaxelibLibraryCache(@NotNull Sdk sdk) {
+    myCache = new InternalCache();
     knownLibraries = null;
     mySdk = sdk;
   }
 
-  public List<HaxelibItem> getClasspathForLibrary(String libraryName) {
+  /**
+   * Get a union of all of the classpaths for the given libraries.
+   *
+   * @param libraryNames a set of libraries of current interest.
+   * @return a (possibly empty) collection of classpaths.
+   */
+  @NotNull
+  public HaxeClasspath getClasspathForHaxelibs(@Nullable List<String> libraryNames) {
+    if (null == libraryNames || libraryNames.isEmpty())
+      return HaxeClasspath.EMPTY_CLASSPATH;
+
+    HaxeClasspath paths = new HaxeClasspath(libraryNames.size());
+    for (String libName : libraryNames) {
+      HaxeClasspath libPath = getClasspathForHaxelib(libName);
+      paths.addAll(libPath);
+    }
+    return paths;
+  }
+
+  /**
+   * Get the classpath for a specific library.  If it does not reside in
+   * the cache, it will be looked up and cached for future use.
+   *
+   * @param libraryName name of the library of interest.
+   * @return a (possibly empty) list of classpaths known for that library.
+   */
+  @NotNull
+  public HaxeClasspath getClasspathForHaxelib(String libraryName) {
 
     HaxeDebugTimeLog timeLog = HaxeDebugTimeLog.startNew("getClasspathForLibrary",
                                                          HaxeDebugTimeLog.Since.Start);
@@ -77,7 +104,7 @@ public final class HaxelibLibraryManager {
         timeLog.stamp("Cache miss");
 
         // It's not in the cache, so go get it and cache the results.
-        List<HaxelibItem> itemList = findHaxelibPath(libraryName);
+        HaxeClasspath itemList = findHaxelibPath(libraryName);
         myCache.add(new HaxelibLibraryEntry(libraryName, itemList));
 
         timeLog.stamp("haxelib finished with " + itemList.size() + " entries");
@@ -86,7 +113,7 @@ public final class HaxelibLibraryManager {
 
       timeLog.stamp("Unknown library !!!  " + libraryName + " !!! ");
 
-      return HaxelibItem.EMPTY_LIST;
+      return HaxeClasspath.EMPTY_CLASSPATH;
     }
     finally {
 
@@ -96,19 +123,19 @@ public final class HaxelibLibraryManager {
 
 
   /**
-   * Find a file on the haxelib path and return its complete path name.
+   * Find a library on the haxelib path and return its complete class path.
    *
    * @param libraryName file to find.
-   * @return a list of possible path names for the requested file, if any.
+   * @return a list of path names in the requested library, if any.
    */
   @NotNull
-  public List<HaxelibItem> findHaxelibPath(@NotNull String libraryName) {
-    List<HaxelibItem> haxelibNewItems;
+  public HaxeClasspath findHaxelibPath(@NotNull String libraryName) {
+    HaxeClasspath haxelibNewItems;
 
     if (libraryIsKnown(libraryName)) {
       haxelibNewItems = HaxelibClasspathUtils.getHaxelibLibraryPath(mySdk, libraryName);
     } else {
-      haxelibNewItems = HaxelibItem.EMPTY_LIST;
+      haxelibNewItems = HaxeClasspath.EMPTY_CLASSPATH;
     }
 
     return haxelibNewItems;
@@ -154,21 +181,20 @@ public final class HaxelibLibraryManager {
   /**
    * Encapsulate haxelib output so that it can be cached.
    */
-  final class HaxelibLibraryEntry {
+  private final class HaxelibLibraryEntry {
     final String myName;
-    final ArrayList<HaxelibItem> myClasspathEntries;
+    final HaxeClasspath myClasspathEntries;
 
-    public HaxelibLibraryEntry(String name, List<HaxelibItem> classpathEntries) {
-      // Deep copy.   XXX: May not be necessary.
+    public HaxelibLibraryEntry(String name, HaxeClasspath classpathEntries) {
       myName = name;
-      myClasspathEntries = new ArrayList<HaxelibItem>(classpathEntries);
+      myClasspathEntries = new HaxeClasspath(classpathEntries);
     }
 
     public String getName() {
       return myName;
     }
 
-    public ArrayList<HaxelibItem> getClasspathEntries() {
+    public HaxeClasspath getClasspathEntries() {
       return myClasspathEntries;
     }
   }
@@ -178,10 +204,10 @@ public final class HaxelibLibraryManager {
    * from the haxelib command.  It should be checked before running
    * haxelib.
    */
-  final class HaxelibLibraryCache {
+  private final class InternalCache {
     final Hashtable<String, HaxelibLibraryEntry> myCache;
 
-    public HaxelibLibraryCache() {
+    public InternalCache() {
       myCache = new Hashtable<String, HaxelibLibraryEntry>();
     }
 

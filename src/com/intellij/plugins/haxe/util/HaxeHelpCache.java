@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
+import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,7 @@ public class HaxeHelpCache {
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-metas");
 
-    List<String> strings = HaxelibClasspathUtils.getProcessStdout(commandLineArguments);
+    List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments);
 
     metaTags = new ArrayList<String>();
 
@@ -78,7 +79,7 @@ public class HaxeHelpCache {
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-defines");
 
-    strings = HaxelibClasspathUtils.getProcessStdout(commandLineArguments);
+    strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments);
 
     defines = new ArrayList<String>();
 

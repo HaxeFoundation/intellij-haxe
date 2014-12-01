@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
+import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
@@ -95,7 +96,7 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
     commandLine.add(HaxeHelpUtil.getHaxePath(HaxelibCache.getHaxeModule()));
     commandLine.add("--help");
 
-    List<String> strings = HaxelibClasspathUtils.getProcessStderr(commandLine);
+    List<String> strings = HaxelibCommandUtils.getProcessStderr(commandLine);
     if (strings.size() > 0) {
       strings.remove(0);
     }
