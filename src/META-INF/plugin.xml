@@ -254,9 +254,7 @@
     <extensionPoint name="module.config" interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
-    <!--classpath attribute is highlighted as not valid since IntelliJ IDEA 13.1.2-->
-    <!--<compileServer.plugin classpath="haxe-jps-plugin.jar;haxe-common.jar"/>-->
-
+    <compileServer.plugin classpath="haxe-jps-plugin.jar;haxe-common.jar"/>
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 

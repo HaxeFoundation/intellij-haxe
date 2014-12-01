@@ -37,7 +37,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.datatransfer.DataFlavor;
@@ -45,22 +44,22 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by as3boyan on 08.10.14.
  */
-public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor  {
-  @NotNull
+public class HaxeReferenceCopyPasteProcessor implements CopyPastePostProcessor  {
+
+  @Nullable
   @Override
-  public List collectTransferableData(PsiFile file, Editor editor, int[] startOffsets, int[] endOffsets) {
+  public TextBlockTransferableData collectTransferableData(PsiFile file, Editor editor, int[] startOffsets, int[] endOffsets) {
     return null;
   }
 
   @Nullable
   @Override
-  public List extractTransferableData(Transferable content) {
+  public TextBlockTransferableData extractTransferableData(Transferable content) {
     Object transferData = null;
     try {
       transferData = content.getTransferData(DataFlavor.stringFlavor);
@@ -71,11 +70,11 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor  {
     catch (IOException e) {
       e.printStackTrace();
     }
-    return Collections.singletonList(new HaxeTextBlockTransferableData());
+    return new HaxeTextBlockTransferableData();
   }
 
   @Override
-  public void processTransferableData(Project project, Editor editor, RangeMarker marker, int i, Ref ref, List values) {
+  public void processTransferableData(Project project, Editor editor, RangeMarker marker, int i, Ref ref, TextBlockTransferableData data) {
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
     int[] startOffsets = new int[]{marker.getStartOffset()};

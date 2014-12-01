@@ -17,8 +17,8 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.google.common.base.Joiner;
 import com.intellij.openapi.util.text.StringUtil;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ public class HaxelibParser {
     ArrayList<String> strings = new ArrayList<String>();
     strings.add("haxelib");
     strings.add(haxelibItem.classpathUrl);
-    return StringUtils.join(strings, "|");
+    return Joiner.on("|").join(strings);
   }
 
   public static StringBuilder gSB = new StringBuilder("haxelib|");
