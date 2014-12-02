@@ -23,12 +23,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
@@ -60,30 +58,34 @@ public class HaxelibClasspathUtils {
   }
 
   /**
-   * Gets all of the libraries specified for the IDEA project; source paths
-   * class paths for global libraries, SDK, and exported module dependencies.
+   * Gets the libraries specified for the IDEA project; source paths and
+   * class paths for project libraries excepting those named "haxelib|<lib_name>".
    *
    * @param project a project to get the class path settings for.
    * @return a list of class path URLs.
    */
   @NotNull
-  public static List<String> getAllProjectLibraryClasspathsAsUrls(@NotNull Project project) {
-    List<String> classpath = new ArrayList<String>();
-
+  public static HaxeClasspath getUnmanagedProjectLibraryClasspath(@NotNull Project project) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    if (null == libraryTable) return HaxeClasspath.EMPTY_CLASSPATH;
+
+    HaxeClasspath classpath = new HaxeClasspath();
+
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
-      // XXX: What's the deal with checking that the library name is null?
-      // XXX: Actually, this is checking that the library name doesn't match "haxelib|lib_name".
-      // XXX: That is, if it /is/ a haxelib, ignore it; grab the classpaths for libs that aren't haxelibs.
-      // XXX: Doing the addAll for every library duplicates a large number (most!) of the entries.
-      if (HaxelibParser.parseHaxelib(library.getName()) == null) {
-        String sources[] = library.getUrls(OrderRootType.SOURCES);
-        String classes[] = library.getUrls(OrderRootType.CLASSES);
-        classpath.addAll(Arrays.asList(sources));  // Library source root
-        // Rudimentary attempt to not add duplicate entries from libraries.
-        if (!Arrays.equals(classes, sources)) {
-          classpath.addAll(Arrays.asList(classes));  // Library class root
+      //
+      // This is checking that the library name doesn't match "haxelib|lib_name".
+      // That is, if it /is/ a haxelib entry, ignore it; grab the classpaths for
+      // libs that aren't haxelibs.
+      //
+      if (!HaxelibParser.isManagedLibrary(library.getName())) {
+        OrderRootType interestingRootTypes[] = {OrderRootType.SOURCES, OrderRootType.CLASSES};
+        for (OrderRootType rootType : interestingRootTypes) {
+          for (String url : library.getUrls(rootType)) {
+            if (!classpath.containsUrl(url)) {  // The if just keeps us from churning.
+              classpath.add(new HaxeIdeaItem(library.getName(), url));
+            }
+          }
         }
       }
     }
@@ -91,24 +93,124 @@ public class HaxelibClasspathUtils {
   }
 
   /**
-   * Issue a 'haxelib' command to the OS, capturing its output.
+   * Get the list of library names specified on the project.  This *does not*
+   * filter managed libraries of the form "haxelib|<lib_name>".
    *
-   * @param args arguments to be provided to the haxelib command.
-   * @return a set of Strings, possibly empty, one per line of command output.
+   * @param project to get the libraries for.
+   * @return a (possibly empty) list of libraries that are specified for the
+   *         project (in the library pane).
    */
   @NotNull
-  private static List<String> issueHaxelibCommand(@NotNull Sdk sdk, String ... args) {
-    // TODO: Wrap this invocation with a timer??
-
-    ArrayList<String> commandLineArguments = new ArrayList<String>();
-    commandLineArguments.add(getHaxelibPath(sdk));
-    for (String arg : args) {
-      commandLineArguments.add(arg);
-    }
-
-    List<String> strings = getProcessStdout(commandLineArguments);
-    return strings;
+  public static List<String> getProjectLibraryNames(@NotNull Project project) {
+    return getProjectLibraryNames(project, false);
   }
+
+  /**
+   * Get the list of library names specified on the project.  Managed haxelib
+   * (of the form "haxelib|<lib_name>") libraries are included unless
+   * filterManagedLibs is true.
+   *
+   * @param project to get the libraries for.
+   * @param filterManagedLibs whether to remove managed haxelibs from the list.
+   * @return a (possibly empty) list of libraries that are specified for the
+   *         project (in the library pane).
+   */
+  @NotNull
+  public static List<String> getProjectLibraryNames(@NotNull Project project, boolean filterManagedLibs) {
+    List<String> nameList = new ArrayList<String>();
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    Library[] libraries = libraryTable.getLibraries();
+    for (Library library : libraries) {
+      if (filterManagedLibs && HaxelibParser.isManagedLibrary(library.getName())) {
+        continue;
+      }
+      nameList.add(library.getName());
+    }
+    return nameList;
+  }
+
+  /**
+   * Loads a classpath from the given library table.  Workhorse for other APIs
+   * in this class.
+   *
+   * @param libraryTable to load
+   * @return the classpath
+   */
+  @NotNull
+  private static HaxeClasspath loadClasspathFrom(LibraryTable libraryTable) {
+    HaxeClasspath classpath = new HaxeClasspath();
+    Library[] libraries = libraryTable.getLibraries();
+    OrderRootType interestingRootTypes[] = {OrderRootType.SOURCES, OrderRootType.CLASSES};
+    for (Library library : libraries) {
+      for (OrderRootType rootType : interestingRootTypes) {
+        for (String url : library.getUrls(rootType)) {
+          if (!classpath.containsUrl(url)) {
+            classpath.add(new HaxeIdeaItem(library.getName(), url));
+          }
+        }
+      }
+    }
+    return classpath;
+  }
+
+  /**
+   * Get the classpath for all libraries in the project.  This *does not*
+   * filter managed libraries of the form "haxelib|<lib_name>".
+   *
+   * @param project to get the classpath for.
+   * @return a (possibly empty) list of the classpaths for all of the libraries
+   *         that are specified on the project (in the library pane).
+   */
+  @NotNull
+  public static HaxeClasspath getProjectLibraryClasspath(@NotNull Project project) {
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    if (null == libraryTable) return HaxeClasspath.EMPTY_CLASSPATH;
+    return loadClasspathFrom(libraryTable);
+  }
+
+  /**
+   * Get the classpath for the given SDK.  This does not include
+   * any paths from the project or modules.
+   *
+   * @param sdk to get path info from.
+   * @return a (possibly empty) collection of class paths.  These are NOT
+   *         necessarily properly ordered, but they are unique.
+   */
+  @NotNull
+  public static HaxeClasspath getSdkClasspath(@NotNull Sdk sdk) {
+    HaxeClasspath classpath = new HaxeClasspath();
+    RootProvider rootProvider = sdk.getRootProvider();
+    OrderRootType interestingRootTypes[] = {OrderRootType.SOURCES, OrderRootType.CLASSES};
+    for (OrderRootType rootType : interestingRootTypes) {
+      for (VirtualFile file : rootProvider.getFiles(rootType)) {
+        if (!classpath.containsUrl(file.getUrl())) {
+          classpath.add(new HaxelibItem(file.getName(), file.getUrl()));
+        }
+      }
+    }
+    return classpath;
+  }
+
+  /**
+   * Get the classpath for the given module.  This does not include any
+   * paths from projects or SDKs.
+   *
+   * @param module to look up haxelib for.
+   * @return a (possibly empty) collection of classpaths.  These are NOT
+   *         necessarily properly ordered, but they are unique.
+   */
+  @NotNull
+  public static HaxeClasspath getModuleClasspath(@NotNull Module module) {
+    ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+    if (null == rootManager) return HaxeClasspath.EMPTY_CLASSPATH;
+
+    ModifiableRootModel rootModel = rootManager.getModifiableModel();
+    LibraryTable libraryTable = rootModel.getModuleLibraryTable();
+    HaxeClasspath moduleClasspath = loadClasspathFrom(libraryTable);
+    rootModel.dispose();    // MUST dispose of the model.
+    return moduleClasspath;
+  }
+
 
   /**
    * Locate files and dependencies using 'haxelib path <name>'
@@ -118,7 +220,8 @@ public class HaxelibClasspathUtils {
    */
   @NotNull
   public static List<String> getHaxelibLibraryPathUrl(@NotNull Sdk sdk, @NotNull String name) {
-    List<String> strings = issueHaxelibCommand(sdk, "path", name);
+    List<String> strings = HaxelibCommandUtils.issueHaxelibCommand(sdk, "path",
+                                                                   name);
     List<String> classpathUrls = new ArrayList<String>(strings.size());
 
     for (String string : strings) {
@@ -140,214 +243,21 @@ public class HaxelibClasspathUtils {
    * @return a set of HaxelibItems, may be an empty list.
    */
   @NotNull
-  public static List<HaxelibItem> getHaxelibLibraryPath(@NotNull Sdk sdk, @NotNull String name) {
-    List<String> strings = issueHaxelibCommand(sdk, "path", name);
-    List<HaxelibItem> classpathUrls = new ArrayList<HaxelibItem>(strings.size());
+  public static HaxeClasspath getHaxelibLibraryPath(@NotNull Sdk sdk, @NotNull String name) {
+    List<String> strings = HaxelibCommandUtils.issueHaxelibCommand(sdk, "path", name);
+    HaxeClasspath classpath = new HaxeClasspath(strings.size());
 
     for (String string : strings) {
       if (!string.startsWith("-L") && !string.startsWith("-D")) {
         VirtualFile file = LocalFileFinder.findFile(string);
         if (file != null) {
-          classpathUrls.add(new HaxelibItem(file.getPath(), file.getUrl()));
+          // There are no duplicates in the return from haxelib, so no need to check contains().
+          classpath.add(new HaxelibItem(file.getPath(), file.getUrl()));
         }
       }
     }
 
-    return classpathUrls;
-  }
-
-  /**
-   * Look up the actual SDK in use by a module.  The SDK may be specified by
-   * the module, or it may be inherited from the Project.  Either way, the
-   * correct SDK will be returned.
-   *
-   * @param module - the module to check
-   * @return the SDK in use.
-   */
-  @Nullable
-  public static Sdk lookupSdk(@NotNull Module module) {
-    return ModuleRootManager.getInstance(module).getSdk();
-  }
-
-  /**
-   * Find the path to the 'haxelib' executable, using the module paths.
-   *
-   * @param myModule - module to look up haxelib for.
-   * @return the configured haxelib for the module (or project, if the module
-   *         uses the project Sdk); "haxelib" if not specified.
-   */
-  @NotNull
-  public static String getHaxelibPath(@NotNull Module module) {
-
-    // ModuleRootManager.getInstance returns either a ModuleJdkOrderEntryImpl
-    // or an InheritedJdgOrderEntryImpl, as appropriate.
-    Sdk sdk = lookupSdk(module);
-    return sdk == null ? "haxelib" : getHaxelibPath(sdk);
-  }
-
-  /**
-   * Find the path to the 'haxelib' executable, using a specific SDK.
-   *
-   * @param sdk - SDK to look up haxelib for.
-   * @return the configured haxelib for the SDK; "haxelib" if not specified.
-   */
-  @NotNull
-  public static String getHaxelibPath(@NotNull Sdk sdk) {
-
-    String haxelibPath = "haxelib";
-    if (sdk != null) {
-      SdkAdditionalData data = sdk.getSdkAdditionalData();
-
-      if (data instanceof HaxeSdkData) {
-        HaxeSdkData sdkData = (HaxeSdkData)data;
-        String path = sdkData.getHaxelibPath();
-        if (!path.isEmpty()) {
-          haxelibPath = path;
-        }
-      }
-    }
-
-    return haxelibPath;
-  }
-
-
-
-  /*
-  public static void startProcess(ArrayList<String> commandLineArguments, @Nullable File dir) {
-    ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
-    if (dir != null) {
-      builder = builder.directory(dir);
-    }
-    try {
-      Process process = builder.start();
-      BaseOSProcessHandler handler = new BaseOSProcessHandler(process, null, null);
-      handler.addProcessListener(new CapturingProcessAdapter()
-      {
-        @Override
-        public void onTextAvailable(ProcessEvent event, Key outputType) {
-          super.onTextAvailable(event, outputType);
-          String text = event.getText();
-          String text2 = event.getText();
-        }
-
-        @Override
-        public void processTerminated(@NotNull ProcessEvent event) {
-          super.processTerminated(event);
-        }
-      });
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-
-  }
-  */
-
-
-  /**
-   * Run a shell command, capturing its standard output.
-   *
-   * @param commandLineArguments a command and its arguments, as a list of strings.
-   * @param dir directory in which to run the command.
-   * @return the output of the command, as a list of strings, one line per string.
-   */
-  @NotNull
-  public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments, @Nullable File dir) {
-    List<String> strings = new ArrayList<String>();
-
-    try {
-      ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
-      if (dir != null) {
-        builder = builder.directory(dir);
-      }
-      Process process = builder.start();
-      InputStreamReader reader = new InputStreamReader(process.getInputStream());
-      Scanner scanner = new Scanner(reader);
-      process.waitFor();
-
-      while (scanner.hasNextLine()) {
-        String nextLine = scanner.nextLine();
-        strings.add(nextLine);
-      }
-
-      /*
-      try {
-        Thread.sleep(250);
-        try {
-          process.exitValue();
-        }
-        catch (IllegalThreadStateException e) {
-          process.destroy();
-        }
-      }
-      catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      */
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-
-    return strings;
-  }
-
-  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, File dir) {
-    List<String> strings = new ArrayList<String>();
-
-    try {
-      ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
-      if (dir != null) {
-        builder = builder.directory(dir);
-      }
-      Process process = builder.start();
-      InputStreamReader reader = new InputStreamReader(process.getErrorStream());
-      Scanner scanner = new Scanner(reader);
-      process.waitFor();
-
-      while (scanner.hasNextLine()) {
-        String nextLine = scanner.nextLine();
-        strings.add(nextLine);
-      }
-
-      /*
-      try {
-        Thread.sleep(250);
-        try {
-          process.exitValue();
-        }
-        catch (IllegalThreadStateException e) {
-          process.destroy();
-        }
-      }
-      catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      */
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-
-    return strings;
-  }
-
-
-  /**
-   * Run a shell command in the (IDEA's) current directory, capturing its standard output.
-   *
-   * @param commandLineArguments a command and its arguments, as a list of strings.
-   * @return the output of the command, as a list of strings, one line per string.
-   */
-  @NotNull
-  public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments) {
-    return getProcessStdout(commandLineArguments, null);
+    return classpath;
   }
 
   /**
@@ -366,7 +276,7 @@ public class HaxelibClasspathUtils {
     // list of the available versions.
 
     List<String> installedHaxelibs = new ArrayList<String>();
-    for (String s : issueHaxelibCommand(sdk,"list")) {
+    for (String s : HaxelibCommandUtils.issueHaxelibCommand(sdk, "list")) {
       installedHaxelibs.add(s.split(":")[0]);
     }
 
@@ -385,32 +295,38 @@ public class HaxelibClasspathUtils {
    */
   @NotNull
   public static List<String> getAvailableLibrariesMatching(@NotNull Sdk sdk, @NotNull String word) {
-    List<String> stringList = issueHaxelibCommand(sdk, "search", word);
+    List<String> stringList = HaxelibCommandUtils.issueHaxelibCommand(sdk, "search", word);
     stringList.remove(stringList.size() - 1);
     return stringList;
   }
 
-
+  /**
+   *
+   * @param project
+   * @param dir
+   * @param executable
+   * @param sdk
+   * @return
+   */
   @NotNull
   public static List<String> getProjectDisplayInformation(@NotNull Project project, @NotNull File dir, @NotNull String executable, @NotNull Sdk sdk) {
     List<String> strings1 = Collections.EMPTY_LIST;
 
     if (getInstalledLibraries(sdk).contains(executable)) {
       ArrayList<String> commandLineArguments = new ArrayList<String>();
-      commandLineArguments.add(getHaxelibPath(sdk));
+      commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(sdk));
       commandLineArguments.add("run");
       commandLineArguments.add(executable);
       commandLineArguments.add("display");
       commandLineArguments.add("flash");
 
-      List<String> strings = getProcessStdout(commandLineArguments, dir);
+      List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, dir);
       String s = Joiner.on("\n").join(strings);
       strings1 = getHXMLFileClasspaths(project, s);
     }
 
     return strings1;
   }
-
 
   /**
    * Turn some text into a file, parse it using the .hxml parser, and
@@ -442,11 +358,12 @@ public class HaxelibClasspathUtils {
    * configuration file.
    *
    * @param psiFile name of the configuration file to read
-   * @return a list of dependent libraries; may be empty.
+   * @return a list of dependent libraries; may be empty, may have duplicates.
+   * TODO: Collect names and pass them all to libraryManager.getClasspathForHaxelib(List) at once.
    */
   @NotNull
-  public static List<HaxelibItem> getHaxelibsFromXmlFile(@NotNull XmlFile psiFile, HaxelibLibraryManager libraryManager) {
-    List<HaxelibItem> haxelibNewItems = new ArrayList<HaxelibItem>();
+  public static HaxeClasspath getHaxelibsFromXmlFile(@NotNull XmlFile psiFile, HaxelibLibraryCache libraryManager) {
+    HaxeClasspath haxelibNewItems = new HaxeClasspath();
 
     XmlFile xmlFile = (XmlFile)psiFile;
     XmlDocument document = xmlFile.getDocument();
@@ -458,8 +375,8 @@ public class HaxelibClasspathUtils {
         for (XmlTag haxelibTag : haxelibTags) {
           String name = haxelibTag.getAttributeValue("name");
           if (name != null) {
-            List<HaxelibItem> haxelibNewItemList = libraryManager.getClasspathForLibrary(name);
-            haxelibNewItems.addAll(haxelibNewItemList);
+            HaxeClasspath newPath = libraryManager.getClasspathForHaxelib(name);
+            haxelibNewItems.addAll(newPath);
           }
         }
       }
@@ -469,7 +386,4 @@ public class HaxelibClasspathUtils {
   }
 
 
-  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments) {
-    return getProcessStderr(commandLineArguments, null);
-  }
 }

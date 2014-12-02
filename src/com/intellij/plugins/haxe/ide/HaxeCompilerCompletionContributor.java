@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
+import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -102,7 +103,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                            commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
                            List<String> stderr =
-                             HaxelibClasspathUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
+                             HaxelibCommandUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
 
                            getCompletionFromXml(result, project, stderr);
                          }
@@ -113,7 +114,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        //Export/flash/haxe contains build.hxml which gets generated after build
                        break;
                      case HaxeModuleSettingsBaseImpl.USE_OPENFL:
-                       commandLineArguments.add(HaxelibClasspathUtils.getHaxelibPath(moduleForFile));
+                       commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(moduleForFile));
                        commandLineArguments.add("run");
                        commandLineArguments.add("lime");
                        commandLineArguments.add("display");
@@ -121,8 +122,8 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        String targetFlag = moduleSettings.getNmeTarget().getTargetFlag();
                        commandLineArguments.add(targetFlag);
 
-                       List<String> stdout = HaxelibClasspathUtils.getProcessStdout(commandLineArguments,
-                                                                                    BuildProperties.getProjectBaseDir(project));
+                       List<String> stdout = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
+                                                                                  BuildProperties.getProjectBaseDir(project));
                        commandLineArguments.clear();
 
                        commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
@@ -133,7 +134,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
                        List<String> stderr =
-                         HaxelibClasspathUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
+                         HaxelibCommandUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
 
                        getCompletionFromXml(result, project, stderr);
                        break;
@@ -146,7 +147,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                          commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
                          List<String> stderr1 =
-                           HaxelibClasspathUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
+                           HaxelibCommandUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
 
                          getCompletionFromXml(result, project, stderr1);
                        }

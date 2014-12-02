@@ -17,25 +17,33 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by as3boyan on 31.10.14.
+ * A single item in a class path, originating from an invocation of the
+ * 'haxelib' command.
+ *
+ * TODO: Be able to create an item from a name, especially a managed library.
  */
-public class HaxelibItem {
+public class HaxelibItem extends HaxeClasspathEntry {
+
+  Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibItem");
 
   public static final List<HaxelibItem> EMPTY_LIST = new ArrayList<HaxelibItem>(0);
 
-  public String name;
-  public String classpathUrl;
-
-  public HaxelibItem(String name, String classpathUrl) {
-    this.name = name;
-    this.classpathUrl = classpathUrl;
+  public HaxelibItem(@NotNull String name, @NotNull String classpathUrl) {
+    super(name, classpathUrl);
   }
 
-  public HaxelibItem(String classpathUrl) {
-    this.classpathUrl = classpathUrl;
+  public HaxelibItem(@NotNull String classpathUrl) {
+    super(null, classpathUrl);
+
+    // XXX: Can we just steal the last part of the url path as the name?
+    myName = HaxelibParser.parseHaxelibNameFromPath(classpathUrl);
   }
 }

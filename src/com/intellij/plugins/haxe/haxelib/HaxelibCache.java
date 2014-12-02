@@ -62,9 +62,9 @@ public class HaxelibCache {
     Module haxeModule = getHaxeModule();
 
     if (haxeModule != null) {
-      Sdk sdk = HaxelibClasspathUtils.lookupSdk(haxeModule);
-      HaxelibSdkManager sdkManager = HaxelibProjectUpdater.getInstance().getSdkManager(haxeModule);
-      HaxelibLibraryManager libManager = sdkManager == null ? null : sdkManager.getLibraryManager(haxeModule);
+      Sdk sdk = HaxelibSdkUtils.lookupSdk(haxeModule);
+      HaxelibLibraryCacheManager sdkManager = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(haxeModule);
+      HaxelibLibraryCache libManager = sdkManager == null ? null : sdkManager.getLibraryManager(haxeModule);
       localHaxelibs = libManager != null
                     ? libManager.getKnownLibraries()  // Use the cache
                     : HaxelibClasspathUtils.getInstalledLibraries(sdk); // the slow way

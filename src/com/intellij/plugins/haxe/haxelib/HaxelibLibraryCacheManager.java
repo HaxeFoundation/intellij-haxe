@@ -21,7 +21,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Hashtable;
 
 /**
- * Manage a cache of SDKs.  In actuality, this SDK manager is really just a
+ * Manage a cache of SDKs.  In actuality, this class is really just a
  * cache of library managers, keyed by SDK name.  For most projects, there
  * will only be one in use.
  *
@@ -43,31 +42,17 @@ import java.util.Hashtable;
  * fewer changes to that api, which was becoming less useful/manageable as I
  * started adding SDK and/or Module parameters everywhere.
  */
-public class HaxelibSdkManager {
+public class HaxelibLibraryCacheManager {
 
   static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryManager");
   static {
     LOG.setLevel(Level.DEBUG);
   }
 
-  /**
-   * An SDK that can be used/returned when project lookup fails.
-   */
-  static public Sdk DefaultSDK;
-  static {
-    HaxeSdkType sdkType = HaxeSdkType.getInstance();
-    DefaultSDK = new ProjectJdkImpl(sdkType.suggestSdkName(null, sdkType.suggestHomePath()),
-                                    sdkType,
-                                    sdkType.suggestHomePath(),
-                                    sdkType.getVersionString(sdkType.suggestHomePath()));
-    sdkType.setupSdkPaths(DefaultSDK);
-  }
-  static boolean myDefaultSdkErrorHasBeenLogged = false;
-
 
   final SdkCache mySdkCache;
 
-  public HaxelibSdkManager() {
+  public HaxelibLibraryCacheManager() {
     mySdkCache = new SdkCache();
   }
 
@@ -80,22 +65,9 @@ public class HaxelibSdkManager {
    * @return a library manager for the given module.
    */
   @NotNull
-  public HaxelibLibraryManager getLibraryManager(@NotNull Module module) {
-    Sdk sdk = HaxelibClasspathUtils.lookupSdk(module);
-    if (null != sdk) {
-      return getLibraryManager(sdk);
-    }
-
-    // We can argue whether this is just a warning, because we "fix" the
-    // problem.  However, an error pops out on the user log, so that they
-    // can take action.
-    // We only log one error, as only one gets displayed to the user via
-    // the UI anyway, and it floods the logs.
-    if (!myDefaultSdkErrorHasBeenLogged) {
-      LOG.error("Project or module SDK was not found: " + module);
-      myDefaultSdkErrorHasBeenLogged = true;
-    }
-    return getLibraryManager(DefaultSDK);
+  public HaxelibLibraryCache getLibraryManager(@NotNull Module module) {
+    Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
+    return getLibraryCache(sdk);
   }
 
   /**
@@ -109,14 +81,14 @@ public class HaxelibSdkManager {
    * @return a library manager for the given SDK.
    */
   @NotNull
-  public HaxelibLibraryManager getLibraryManager(@NotNull Sdk sdk) {
+  public HaxelibLibraryCache getLibraryCache(@NotNull Sdk sdk) {
     SdkEntry entry = mySdkCache.get(sdk.getName());
     if (null == entry) {
       // Not in the cache?  Put it there.
       entry = new SdkEntry(sdk);
       mySdkCache.add(entry);
     }
-    return entry.getLibraryManager();
+    return entry.getLibraryCache();
   }
 
   /**
@@ -124,11 +96,11 @@ public class HaxelibSdkManager {
    */
   final class SdkEntry {
     final Sdk mySdk;
-    final HaxelibLibraryManager myMgr;
+    final HaxelibLibraryCache myMgr;
 
     public SdkEntry(@NotNull Sdk sdk) {
       mySdk = sdk;
-      myMgr = new HaxelibLibraryManager(sdk);
+      myMgr = new HaxelibLibraryCache(sdk);
     }
 
     @NotNull
@@ -137,7 +109,7 @@ public class HaxelibSdkManager {
     }
 
     @NotNull
-    public HaxelibLibraryManager getLibraryManager() {
+    public HaxelibLibraryCache getLibraryCache() {
       return myMgr;
     }
 
