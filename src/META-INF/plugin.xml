@@ -21,6 +21,32 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.6: (community version, TiVo WIP)</p>
+      <ul>
+        <li>Further optimized load time for large projects.</li>
+        <li>Run haxelib->Project/SDK/Module library dependency synchronization 
+            in the background.
+        </li>
+        <li>HXML completion: add parameters for compiler argument to 
+            presentable text of completion item
+        </li>
+        <li>Completion from Haxe compiler: parse function parameters and 
+            return type to generate completion item with parameters and return 
+            type
+        </li>
+        <li>Completion from Haxe compiler: format data from compiler replace 
+            "&lt;" to "<" and "&gt;" to ">"
+        </li>
+        <li>HaxeReferenceImpl.java getVariants(completion): Handle case when 
+            "var d:Array<Int> = []; d.|" when d is not resolved
+        </li>
+        <li>Add description to completion recived from Haxe compiler: 
+            HaxeMetaTagsCompletionContributor.java 
+            HXMLDefineCompletionContributor.java 
+            HXMLCompilerArgumentsCompletionContributor.java
+        </li>
+        <li>Preliminary Haxe compiler completion support (OpenFL only)</li>
+      </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.5: (community version, TiVo WIP)</p>
       <ul>
         <li>Decreased time to load large projects considerably.
@@ -240,7 +266,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.5: (community version, TiVo WIP)</version>
+  <version>0.8.1.1.TiVo.ClassHierarchy.6: (community version, TiVo WIP)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
