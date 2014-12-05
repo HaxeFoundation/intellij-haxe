@@ -168,7 +168,10 @@
     ppElseIf="#elseif"
 
     extends(".*(Expression|Literal)")="expression"
-    extends(".*Statement")="statement"
+    /* extends(".*Statement")="statement"
+     */
+    implements(".*Statement")="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"
+    mixin(".*Statement")="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl"
     pin(".*Expression")=1
     pin(".*Statement")=1
     pin(".*Meta")=1
@@ -385,7 +388,7 @@ blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
-statement ::= blockStatement | notBlockStatement
+private statement ::= blockStatement | notBlockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
 
 
@@ -410,8 +413,8 @@ private notBlockStatement ::= ('untyped' statement ';'?)
 ifStatement ::= 'if' '(' expression ')' statement ';'? ('else' statement ';'?)?
 
 forStatement ::= 'for' '(' componentName 'in' iterable')' statement ';'?
-// XXX: Not sure why Fedor declared this: {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-// XXX: We'll use the default "statement" (e.g. HaxeStatement)
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin"}
+// XXX: Somehow or another, forStatement must derive from AbstractHaxeNamedComponent, or variable resolution will break.
 
 iterable ::= expression
 

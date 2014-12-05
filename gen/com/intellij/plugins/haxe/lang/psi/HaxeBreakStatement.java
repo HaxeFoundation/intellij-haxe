@@ -23,6 +23,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeBreakStatement extends HaxeStatement {
+public interface HaxeBreakStatement extends HaxeStatementPsiMixin {
 
 }

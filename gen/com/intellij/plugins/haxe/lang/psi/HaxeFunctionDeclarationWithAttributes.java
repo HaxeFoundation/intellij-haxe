@@ -50,16 +50,25 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeMethod {
   List<HaxeDeclarationAttribute> getDeclarationAttributeList();
 
   @Nullable
+  HaxeDoWhileStatement getDoWhileStatement();
+
+  @Nullable
   HaxeExpression getExpression();
 
   @NotNull
   List<HaxeFinalMeta> getFinalMetaList();
 
   @Nullable
+  HaxeForStatement getForStatement();
+
+  @Nullable
   HaxeGenericParam getGenericParam();
 
   @NotNull
   List<HaxeGetterMeta> getGetterMetaList();
+
+  @Nullable
+  HaxeIfStatement getIfStatement();
 
   @NotNull
   List<HaxeKeepMeta> getKeepMetaList();
@@ -88,13 +97,19 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeMethod {
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
 
+  @Nullable
+  HaxeReturnStatement getReturnStatement();
+
   @NotNull
   List<HaxeSetterMeta> getSetterMetaList();
 
   @Nullable
-  HaxeStatement getStatement();
+  HaxeThrowStatement getThrowStatement();
 
   @Nullable
   HaxeTypeTag getTypeTag();
+
+  @Nullable
+  HaxeWhileStatement getWhileStatement();
 
 }

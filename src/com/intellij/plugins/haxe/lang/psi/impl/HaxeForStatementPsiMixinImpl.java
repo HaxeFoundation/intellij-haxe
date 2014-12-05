@@ -15,26 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.lang.psi.impl;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
+/**
+ * Created by ebishton on 12/4/14.
+ */
+public abstract class HaxeForStatementPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeForStatementPsiMixin {
 
-public interface HaxePrefixExpression extends HaxeExpression {
-
-  @Nullable
-  HaxeExpression getExpression();
-
-  @Nullable
-  HaxeIfStatement getIfStatement();
-
-  @Nullable
-  HaxeSwitchStatement getSwitchStatement();
-
-  @Nullable
-  HaxeTryStatement getTryStatement();
+  public HaxeForStatementPsiMixinImpl(ASTNode node) {
+    super(node);
+  }
 
 }

@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeCatchStatementImpl extends HaxeStatementImpl implements HaxeCatchStatement {
+public class HaxeCatchStatementImpl extends HaxeStatementPsiMixinImpl implements HaxeCatchStatement {
 
   public HaxeCatchStatementImpl(ASTNode node) {
     super(node);
@@ -41,14 +41,92 @@ public class HaxeCatchStatementImpl extends HaxeStatementImpl implements HaxeCat
 
   @Override
   @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeBreakStatement getBreakStatement() {
+    return findChildByClass(HaxeBreakStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeContinueStatement getContinueStatement() {
+    return findChildByClass(HaxeContinueStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeDoWhileStatement getDoWhileStatement() {
+    return findChildByClass(HaxeDoWhileStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeExpression getExpression() {
+    return findChildByClass(HaxeExpression.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeForStatement getForStatement() {
+    return findChildByClass(HaxeForStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeIfStatement getIfStatement() {
+    return findChildByClass(HaxeIfStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeLocalFunctionDeclaration getLocalFunctionDeclaration() {
+    return findChildByClass(HaxeLocalFunctionDeclaration.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeLocalVarDeclaration getLocalVarDeclaration() {
+    return findChildByClass(HaxeLocalVarDeclaration.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeParameter getParameter() {
     return findChildByClass(HaxeParameter.class);
   }
 
   @Override
   @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
+  public HaxeReturnStatement getReturnStatement() {
+    return findChildByClass(HaxeReturnStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeSwitchStatement getSwitchStatement() {
+    return findChildByClass(HaxeSwitchStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeThrowStatement getThrowStatement() {
+    return findChildByClass(HaxeThrowStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeTryStatement getTryStatement() {
+    return findChildByClass(HaxeTryStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeWhileStatement getWhileStatement() {
+    return findChildByClass(HaxeWhileStatement.class);
   }
 
 }

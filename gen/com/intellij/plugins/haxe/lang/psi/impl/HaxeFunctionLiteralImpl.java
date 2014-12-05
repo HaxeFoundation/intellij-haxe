@@ -47,8 +47,26 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
 
   @Override
   @Nullable
+  public HaxeDoWhileStatement getDoWhileStatement() {
+    return findChildByClass(HaxeDoWhileStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeForStatement getForStatement() {
+    return findChildByClass(HaxeForStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeIfStatement getIfStatement() {
+    return findChildByClass(HaxeIfStatement.class);
   }
 
   @Override
@@ -59,14 +77,26 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
 
   @Override
   @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
+  public HaxeReturnStatement getReturnStatement() {
+    return findChildByClass(HaxeReturnStatement.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeThrowStatement getThrowStatement() {
+    return findChildByClass(HaxeThrowStatement.class);
   }
 
   @Override
   @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeWhileStatement getWhileStatement() {
+    return findChildByClass(HaxeWhileStatement.class);
   }
 
 }

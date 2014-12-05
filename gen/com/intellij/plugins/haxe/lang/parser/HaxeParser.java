@@ -377,9 +377,6 @@ public class HaxeParser implements PsiParser {
     else if (root_ == SIMPLE_META) {
       result_ = simpleMeta(builder_, 0);
     }
-    else if (root_ == STATEMENT) {
-      result_ = statement(builder_, 0);
-    }
     else if (root_ == STRING_LITERAL_EXPRESSION) {
       result_ = stringLiteralExpression(builder_, 0);
     }
@@ -485,10 +482,6 @@ public class HaxeParser implements PsiParser {
       SUFFIX_EXPRESSION, SUPER_EXPRESSION, SWITCH_CASE_EXPRESSION, TERNARY_EXPRESSION,
       THIS_EXPRESSION),
     create_token_set_(LITERAL_EXPRESSION, REGULAR_EXPRESSION_LITERAL),
-    create_token_set_(BREAK_STATEMENT, CATCH_STATEMENT, CONTINUE_STATEMENT, DO_WHILE_STATEMENT,
-      FOR_STATEMENT, IF_STATEMENT, PACKAGE_STATEMENT, RETURN_STATEMENT,
-      STATEMENT, SWITCH_STATEMENT, THROW_STATEMENT, TRY_STATEMENT,
-      USING_STATEMENT, WHILE_STATEMENT),
   };
 
   /* ********************************************************** */
@@ -4843,9 +4836,9 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // blockStatement | notBlockStatement
-  public static boolean statement(PsiBuilder builder_, int level_) {
+  static boolean statement(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "statement")) return false;
-    if (!nextTokenIs(builder_, "<statement>", ONOT, PLPAREN,
+    if (!nextTokenIs(builder_, "", ONOT, PLPAREN,
       OPLUS_PLUS, OMINUS, OMINUS_MINUS, PLBRACK, KBREAK, KCAST,
       KCONTINUE, KDO, KFALSE, KFOR, KFUNCTION, KIF,
       KINLINE, KMACRO2, ONEW, KNULL, KRETURN, KSUPER,
@@ -4853,10 +4846,10 @@ public class HaxeParser implements PsiParser {
       KVAR, KWHILE, PLCURLY, OCOMPLEMENT, ID, LITFLOAT,
       LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP)) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_, level_, _COLLAPSE_, "<statement>");
+    Marker marker_ = enter_section_(builder_);
     result_ = blockStatement(builder_, level_ + 1);
     if (!result_) result_ = notBlockStatement(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, STATEMENT, result_, false, null);
+    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 

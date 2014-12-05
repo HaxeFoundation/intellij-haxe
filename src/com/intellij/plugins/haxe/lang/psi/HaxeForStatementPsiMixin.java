@@ -15,26 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
+/**
+ * We need a mixin specifically for the 'for' statement in order for it
+ * to be both a statement and an AbstractHaxeNamedComponent.  The
+ * former for Java functionality interfacing, and the latter so that
+ * variable name lookup -- for variables declared within the statement
+ * -- doesn't fail.
+ * See HaxePsiCompositeElementImpl.getDeclarationToProcess() to see how
+ * that works.
+ */
+public interface HaxeForStatementPsiMixin extends HaxeStatementPsiMixin {
 
-public interface HaxePrefixExpression extends HaxeExpression {
-
-  @Nullable
-  HaxeExpression getExpression();
-
-  @Nullable
-  HaxeIfStatement getIfStatement();
-
-  @Nullable
-  HaxeSwitchStatement getSwitchStatement();
-
-  @Nullable
-  HaxeTryStatement getTryStatement();
-
+  // The funny thing is that we don't need any interfaces at this level.
+  // We just need to introduce a specific inheritance.
 }

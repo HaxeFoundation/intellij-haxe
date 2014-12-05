@@ -35,8 +35,7 @@ public class HaxeStatementImpl extends HaxeStatementPsiMixinImpl implements Haxe
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitStatement(this);
-    else super.accept(visitor);
+    super.accept(visitor);
   }
 
   @Override
