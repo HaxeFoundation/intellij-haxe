@@ -291,16 +291,22 @@ public class HaxeResolveUtil {
       return result;
     }
     final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(body, HaxeNamedComponent.class);
-    final HaxeVarDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeVarDeclaration.class);
     if (namedComponents != null) {
-      ContainerUtil.addAll(result, namedComponents);
+      for (HaxeNamedComponent namedComponent : namedComponents) {
+        // Variable declarations are named components, but don't have the
+        // same Psi structure as most. So, go find the actual sub-element(s)
+        // that are named (that themselves have COMPONENT_NAME sub-elements).
+        if (namedComponent instanceof HaxeVarDeclaration) {
+          HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)namedComponent;
+          result.addAll(varDeclaration.getVarDeclarationPartList());
+        }
+        else {
+          result.add(namedComponent);
+        }
+      }
     }
-    if (variables == null) {
-      return result;
-    }
-    for (HaxeVarDeclaration varDeclaration : variables) {
-      result.addAll(varDeclaration.getVarDeclarationPartList());
-    }
+
+
     return result;
   }
 
