@@ -45,7 +45,7 @@ public class HaxeImportUtil {
         if(regularImport != null) {
           final HaxeReferenceExpression referenceExpression = regularImport.getReferenceExpression();
 
-          if (referenceExpression.resolve() == null) {
+          if (null == referenceExpression || referenceExpression.resolve() == null) {
             // don't know for sure
             return true;
           }
