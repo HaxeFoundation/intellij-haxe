@@ -121,6 +121,9 @@ public class UsefulPsiTreeUtil {
     final HaxeImportStatementRegular regularImport = importStatement;
     if(regularImport != null) {
       final HaxeExpression expression = regularImport.getReferenceExpression();
+      if (null == expression) {
+        return false;
+      }
       final String qName = expression.getText();
       return qName.endsWith("." + className);
     }
@@ -230,6 +233,9 @@ public class UsefulPsiTreeUtil {
       final HaxeImportStatementRegular regularImport = importStatement;
       if(regularImport != null) {
         final HaxeExpression expression = regularImport.getReferenceExpression();
+        if (null == expression) {
+          return null;
+        }
         final String qName = expression.getText();
         final PsiElement resolve = HaxeResolveUtil.findClassByQName(qName, context);
         if (resolve != null && HaxeResolveUtil.findComponentDeclaration(resolve.getContainingFile(), className) != null) {
@@ -371,6 +377,9 @@ public class UsefulPsiTreeUtil {
     final HaxeImportStatementRegular regularImport = importStatement;
     if(regularImport != null) {
       HaxeReferenceExpression importReferenceExpression = regularImport.getReferenceExpression();
+      if (importReferenceExpression == null) {
+        return false;
+      }
       PsiElement importTarget = importReferenceExpression.resolve();
       if (importTarget == null) {
         return false;
