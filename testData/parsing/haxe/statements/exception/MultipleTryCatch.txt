@@ -1,121 +1,123 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('TryCatch')
-    PsiElement({)('{')
+        PsiJavaToken:ID('TryCatch')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           TRY_STATEMENT
-            PsiElement(try)('try')
+            PsiJavaToken:try('try')
             BLOCK_STATEMENT
-              PsiElement({)('{')
+              PsiJavaToken:{('{')
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('bar')
-                PsiElement(()('(')
-                PsiElement())(')')
-              PsiElement(;)(';')
-              PsiElement(})('}')
+                    PsiJavaToken:ID('bar')
+                PsiJavaToken:(('(')
+                PsiJavaToken:)(')')
+              PsiJavaToken:;(';')
+              PsiJavaToken:}('}')
             CATCH_STATEMENT
-              PsiElement(catch)('catch')
-              PsiElement(()('(')
+              PsiJavaToken:catch('catch')
+              PsiJavaToken:(('(')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiElement(ID)('e')
+                    PsiJavaToken:ID('e')
                 TYPE_TAG
-                  PsiElement(:)(':')
+                  PsiJavaToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('String')
-              PsiElement())(')')
+                          PsiJavaToken:ID('String')
+              PsiJavaToken:)(')')
               BLOCK_STATEMENT
-                PsiElement({)('{')
+                PsiJavaToken:{('{')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('trace')
-                  PsiElement(()('(')
+                      PsiJavaToken:ID('trace')
+                  PsiJavaToken:(('(')
                   EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
-                      PsiElement(OPEN_QUOTE)('"')
-                      PsiElement(REGULAR_STRING_PART)('String')
-                      PsiElement(CLOSING_QUOTE)('"')
-                  PsiElement())(')')
-                PsiElement(;)(';')
-                PsiElement(})('}')
+                      PsiJavaToken:OPEN_QUOTE('"')
+                      PsiJavaToken:REGULAR_STRING_PART('String')
+                      PsiJavaToken:CLOSING_QUOTE('"')
+                  PsiJavaToken:)(')')
+                PsiJavaToken:;(';')
+                PsiJavaToken:}('}')
             CATCH_STATEMENT
-              PsiElement(catch)('catch')
-              PsiElement(()('(')
+              PsiJavaToken:catch('catch')
+              PsiJavaToken:(('(')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiElement(ID)('e')
+                    PsiJavaToken:ID('e')
                 TYPE_TAG
-                  PsiElement(:)(':')
+                  PsiJavaToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('Error')
-              PsiElement())(')')
+                          PsiJavaToken:ID('Error')
+              PsiJavaToken:)(')')
               BLOCK_STATEMENT
-                PsiElement({)('{')
+                PsiJavaToken:{('{')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('trace')
-                  PsiElement(()('(')
+                      PsiJavaToken:ID('trace')
+                  PsiJavaToken:(('(')
                   EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
-                      PsiElement(OPEN_QUOTE)('"')
-                      PsiElement(REGULAR_STRING_PART)('Error')
-                      PsiElement(CLOSING_QUOTE)('"')
-                  PsiElement())(')')
-                PsiElement(;)(';')
-                PsiElement(})('}')
+                      PsiJavaToken:OPEN_QUOTE('"')
+                      PsiJavaToken:REGULAR_STRING_PART('Error')
+                      PsiJavaToken:CLOSING_QUOTE('"')
+                  PsiJavaToken:)(')')
+                PsiJavaToken:;(';')
+                PsiJavaToken:}('}')
             CATCH_STATEMENT
-              PsiElement(catch)('catch')
-              PsiElement(()('(')
+              PsiJavaToken:catch('catch')
+              PsiJavaToken:(('(')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiElement(ID)('e')
+                    PsiJavaToken:ID('e')
                 TYPE_TAG
-                  PsiElement(:)(':')
+                  PsiJavaToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('Dynamic')
-              PsiElement())(')')
+                          PsiJavaToken:ID('Dynamic')
+              PsiJavaToken:)(')')
               BLOCK_STATEMENT
-                PsiElement({)('{')
+                PsiJavaToken:{('{')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('trace')
-                  PsiElement(()('(')
+                      PsiJavaToken:ID('trace')
+                  PsiJavaToken:(('(')
                   EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
-                      PsiElement(OPEN_QUOTE)('"')
-                      PsiElement(REGULAR_STRING_PART)('Dynamic')
-                      PsiElement(CLOSING_QUOTE)('"')
-                  PsiElement())(')')
-                PsiElement(;)(';')
-                PsiElement(})('}')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                      PsiJavaToken:OPEN_QUOTE('"')
+                      PsiJavaToken:REGULAR_STRING_PART('Dynamic')
+                      PsiJavaToken:CLOSING_QUOTE('"')
+                  PsiJavaToken:)(')')
+                PsiJavaToken:;(';')
+                PsiJavaToken:}('}')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

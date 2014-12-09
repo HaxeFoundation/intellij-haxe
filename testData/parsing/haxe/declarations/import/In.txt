@@ -1,20 +1,20 @@
 Haxe File
   IMPORT_STATEMENT_WITH_IN_SUPPORT
-    PsiElement(import)('import')
+    PsiJavaToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiElement(ID)('flash')
-        PsiElement(.)('.')
+            PsiJavaToken:ID('flash')
+        PsiJavaToken:.('.')
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiElement(ID)('display')
-      PsiElement(.)('.')
+            PsiJavaToken:ID('display')
+      PsiJavaToken:.('.')
       REFERENCE_EXPRESSION
         IDENTIFIER
-          PsiElement(ID)('Sprite')
-    PsiElement(in)('in')
+          PsiJavaToken:ID('Sprite')
+    PsiJavaToken:in('in')
     IDENTIFIER
-      PsiElement(ID)('FDSprite')
-    PsiElement(;)(';')
+      PsiJavaToken:ID('FDSprite')
+    PsiJavaToken:;(';')

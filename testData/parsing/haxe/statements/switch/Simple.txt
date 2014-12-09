@@ -1,89 +1,91 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Simple')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Simple')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           SWITCH_STATEMENT
-            PsiElement(switch)('switch')
+            PsiJavaToken:switch('switch')
             PARENTHESIZED_EXPRESSION
-              PsiElement(()('(')
+              PsiJavaToken:(('(')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('v')
-              PsiElement())(')')
+                  PsiJavaToken:ID('v')
+              PsiJavaToken:)(')')
             SWITCH_BLOCK
-              PsiElement({)('{')
+              PsiJavaToken:{('{')
               SWITCH_CASE
-                PsiElement(case)('case')
+                PsiJavaToken:case('case')
                 LITERAL_EXPRESSION
-                  PsiElement(LITINT)('0')
-                PsiElement(:)(':')
+                  PsiJavaToken:LITINT('0')
+                PsiJavaToken::(':')
                 SWITCH_CASE_BLOCK
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('e1')
-                    PsiElement(()('(')
-                    PsiElement())(')')
-                  PsiElement(;)(';')
+                        PsiJavaToken:ID('e1')
+                    PsiJavaToken:(('(')
+                    PsiJavaToken:)(')')
+                  PsiJavaToken:;(';')
               SWITCH_CASE
-                PsiElement(case)('case')
+                PsiJavaToken:case('case')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('foo')
-                  PsiElement(()('(')
+                      PsiJavaToken:ID('foo')
+                  PsiJavaToken:(('(')
                   EXPRESSION_LIST
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('1')
-                  PsiElement())(')')
-                PsiElement(:)(':')
+                      PsiJavaToken:LITINT('1')
+                  PsiJavaToken:)(')')
+                PsiJavaToken::(':')
                 SWITCH_CASE_BLOCK
                   BREAK_STATEMENT
-                    PsiElement(break)('break')
-                    PsiElement(;)(';')
+                    PsiJavaToken:break('break')
+                    PsiJavaToken:;(';')
               SWITCH_CASE
-                PsiElement(case)('case')
+                PsiJavaToken:case('case')
                 LITERAL_EXPRESSION
-                  PsiElement(LITINT)('65')
-                PsiElement(,)(',')
+                  PsiJavaToken:LITINT('65')
+                PsiJavaToken:,(',')
                 LITERAL_EXPRESSION
-                  PsiElement(LITINT)('90')
-                PsiElement(:)(':')
+                  PsiJavaToken:LITINT('90')
+                PsiJavaToken::(':')
                 SWITCH_CASE_BLOCK
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('e3')
-                    PsiElement(()('(')
-                    PsiElement())(')')
-                  PsiElement(;)(';')
+                        PsiJavaToken:ID('e3')
+                    PsiJavaToken:(('(')
+                    PsiJavaToken:)(')')
+                  PsiJavaToken:;(';')
               SWITCH_CASE
-                PsiElement(case)('case')
+                PsiJavaToken:case('case')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('bar')
-                PsiElement(:)(':')
-              PsiComment(MSL_COMMENT)('//<– haxe plugin says 'or case expected, got default'')
+                    PsiJavaToken:ID('bar')
+                PsiJavaToken::(':')
+              PsiJavaToken:MSL_COMMENT('//<– haxe plugin says 'or case expected, got default'')
               DEFAULT_CASE
-                PsiElement(default)('default')
-                PsiElement(:)(':')
+                PsiJavaToken:default('default')
+                PsiJavaToken::(':')
                 SWITCH_CASE_BLOCK
                   RETURN_STATEMENT
-                    PsiElement(return)('return')
-                    PsiElement(;)(';')
-              PsiElement(})('}')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                    PsiJavaToken:return('return')
+                    PsiJavaToken:;(';')
+              PsiJavaToken:}('}')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

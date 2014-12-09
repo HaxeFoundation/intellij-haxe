@@ -1,112 +1,112 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Constraint')
+        PsiJavaToken:ID('Constraint')
     GENERIC_PARAM
-      PsiElement(<)('<')
+      PsiJavaToken:<('<')
       GENERIC_LIST_PART
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('T')
-        PsiElement(:)(':')
-        PsiElement(()('(')
+            PsiJavaToken:ID('T')
+        PsiJavaToken::(':')
+        PsiJavaToken:(('(')
         TYPE_LIST
           TYPE_LIST_PART
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('Event')
-          PsiElement(,)(',')
+                    PsiJavaToken:ID('Event')
+          PsiJavaToken:,(',')
           TYPE_LIST_PART
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('EventDispatcher')
-        PsiElement())(')')
-      PsiElement(>)('>')
-    PsiElement({)('{')
+                    PsiJavaToken:ID('EventDispatcher')
+        PsiJavaToken:)(')')
+      PsiJavaToken:>('>')
+    PsiJavaToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiElement(var)('var')
+        PsiJavaToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiElement(ID)('evt')
+              PsiJavaToken:ID('evt')
           TYPE_TAG
-            PsiElement(:)(':')
+            PsiJavaToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('T')
-        PsiElement(;)(';')
-    PsiElement(})('}')
+                    PsiJavaToken:ID('T')
+        PsiJavaToken:;(';')
+    PsiJavaToken:}('}')
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Constraint')
+        PsiJavaToken:ID('Constraint')
     GENERIC_PARAM
-      PsiElement(<)('<')
+      PsiJavaToken:<('<')
       GENERIC_LIST_PART
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('T')
-        PsiElement(:)(':')
+            PsiJavaToken:ID('T')
+        PsiJavaToken::(':')
         TYPE_LIST_PART
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('EventDispatcher')
-      PsiElement(>)('>')
-    PsiElement({)('{')
+                  PsiJavaToken:ID('EventDispatcher')
+      PsiJavaToken:>('>')
+    PsiJavaToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiElement(var)('var')
+        PsiJavaToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiElement(ID)('evt')
+              PsiJavaToken:ID('evt')
           TYPE_TAG
-            PsiElement(:)(':')
+            PsiJavaToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('T')
-        PsiElement(;)(';')
-    PsiElement(})('}')
+                    PsiJavaToken:ID('T')
+        PsiJavaToken:;(';')
+    PsiJavaToken:}('}')
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Constraint')
+        PsiJavaToken:ID('Constraint')
     GENERIC_PARAM
-      PsiElement(<)('<')
+      PsiJavaToken:<('<')
       GENERIC_LIST_PART
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('T')
-      PsiElement(>)('>')
-    PsiElement({)('{')
+            PsiJavaToken:ID('T')
+      PsiJavaToken:>('>')
+    PsiJavaToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiElement(var)('var')
+        PsiJavaToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiElement(ID)('evt')
+              PsiJavaToken:ID('evt')
           TYPE_TAG
-            PsiElement(:)(':')
+            PsiJavaToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('T')
-        PsiElement(;)(';')
-    PsiElement(})('}')
+                    PsiJavaToken:ID('T')
+        PsiJavaToken:;(';')
+    PsiJavaToken:}('}')

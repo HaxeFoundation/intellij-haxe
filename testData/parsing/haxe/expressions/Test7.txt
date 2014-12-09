@@ -1,84 +1,86 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Test7')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Test7')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           RETURN_STATEMENT
-            PsiElement(return)('return')
+            PsiJavaToken:return('return')
             PREFIX_EXPRESSION
               SWITCH_STATEMENT
-                PsiElement(switch)('switch')
+                PsiJavaToken:switch('switch')
                 PARENTHESIZED_EXPRESSION
-                  PsiElement(()('(')
+                  PsiJavaToken:(('(')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('obj')
-                  PsiElement())(')')
+                      PsiJavaToken:ID('obj')
+                  PsiJavaToken:)(')')
                 SWITCH_BLOCK
-                  PsiElement({)('{')
+                  PsiJavaToken:{('{')
                   SWITCH_CASE
-                    PsiElement(case)('case')
+                    PsiJavaToken:case('case')
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('0')
-                    PsiElement(:)(':')
+                      PsiJavaToken:LITINT('0')
+                    PsiJavaToken::(':')
                     SWITCH_CASE_BLOCK
                       CAST_EXPRESSION
-                        PsiElement(cast)('cast')
-                        PsiElement(()('(')
+                        PsiJavaToken:cast('cast')
+                        PsiJavaToken:(('(')
                         OBJECT_LITERAL
-                          PsiElement({)('{')
-                          PsiElement(})('}')
-                        PsiElement(,)(',')
+                          PsiJavaToken:{('{')
+                          PsiJavaToken:}('}')
+                        PsiJavaToken:,(',')
                         TYPE_OR_ANONYMOUS
                           TYPE
                             REFERENCE_EXPRESSION
                               IDENTIFIER
-                                PsiElement(ID)('Test7')
-                        PsiElement())(')')
-                      PsiElement(;)(';')
+                                PsiJavaToken:ID('Test7')
+                        PsiJavaToken:)(')')
+                      PsiJavaToken:;(';')
                   DEFAULT_CASE
-                    PsiElement(default)('default')
-                    PsiElement(:)(':')
+                    PsiJavaToken:default('default')
+                    PsiJavaToken::(':')
                     SWITCH_CASE_BLOCK
                       STRING_LITERAL_EXPRESSION
-                        PsiElement(OPEN_QUOTE)('"')
-                        PsiElement(REGULAR_STRING_PART)('NotZero')
-                        PsiElement(CLOSING_QUOTE)('"')
-                      PsiElement(;)(';')
-                  PsiElement(})('}')
-            PsiElement(;)(';')
+                        PsiJavaToken:OPEN_QUOTE('"')
+                        PsiJavaToken:REGULAR_STRING_PART('NotZero')
+                        PsiJavaToken:CLOSING_QUOTE('"')
+                      PsiJavaToken:;(';')
+                  PsiJavaToken:}('}')
+            PsiJavaToken:;(';')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION
               CAST_EXPRESSION
-                PsiElement(cast)('cast')
-                PsiElement(()('(')
+                PsiJavaToken:cast('cast')
+                PsiJavaToken:(('(')
                 LITERAL_EXPRESSION
-                  PsiElement(LITFLOAT)('0.')
-                PsiElement(,)(',')
+                  PsiJavaToken:LITFLOAT('0.')
+                PsiJavaToken:,(',')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('ITest')
-                PsiElement())(')')
-              PsiElement(.)('.')
+                        PsiJavaToken:ID('ITest')
+                PsiJavaToken:)(')')
+              PsiJavaToken:.('.')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('test')
-            PsiElement(()('(')
-            PsiElement())(')')
-          PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                  PsiJavaToken:ID('test')
+            PsiJavaToken:(('(')
+            PsiJavaToken:)(')')
+          PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

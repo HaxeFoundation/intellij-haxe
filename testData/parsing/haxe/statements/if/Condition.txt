@@ -1,59 +1,61 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Condition')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Condition')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         TYPE_TAG
-          PsiElement(:)(':')
+          PsiJavaToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('void')
+                  PsiJavaToken:ID('void')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           IF_STATEMENT
-            PsiElement(if)('if')
-            PsiElement(()('(')
+            PsiJavaToken:if('if')
+            PsiJavaToken:(('(')
             LOGIC_AND_EXPRESSION
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('isPrime')
-                PsiElement(()('(')
+                    PsiJavaToken:ID('isPrime')
+                PsiJavaToken:(('(')
                 EXPRESSION_LIST
                   LITERAL_EXPRESSION
-                    PsiElement(LITINT)('239')
-                PsiElement())(')')
-              PsiElement(&&)('&&')
+                    PsiJavaToken:LITINT('239')
+                PsiJavaToken:)(')')
+              PsiJavaToken:&&('&&')
               PARENTHESIZED_EXPRESSION
-                PsiElement(()('(')
+                PsiJavaToken:(('(')
                 COMPARE_EXPRESSION
                   BITWISE_EXPRESSION
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('3')
+                      PsiJavaToken:LITINT('3')
                     BIT_OPERATION
-                      PsiElement(^)('^')
+                      PsiJavaToken:^('^')
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('5')
+                      PsiJavaToken:LITINT('5')
                   COMPARE_OPERATION
-                    PsiElement(==)('==')
+                    PsiJavaToken:==('==')
                   LITERAL_EXPRESSION
-                    PsiElement(LITINT)('6')
-                PsiElement())(')')
-            PsiElement())(')')
+                    PsiJavaToken:LITINT('6')
+                PsiJavaToken:)(')')
+            PsiJavaToken:)(')')
             BLOCK_STATEMENT
-              PsiElement({)('{')
-              PsiElement(})('}')
-          PsiElement(})('}')
-    PsiElement(})('}')
+              PsiJavaToken:{('{')
+              PsiJavaToken:}('}')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

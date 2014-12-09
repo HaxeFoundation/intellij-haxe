@@ -1,68 +1,68 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('AssignArray')
-    PsiElement({)('{')
+        PsiJavaToken:ID('AssignArray')
+    PsiJavaToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiElement(var)('var')
+        PsiJavaToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiElement(ID)('matrix')
+              PsiJavaToken:ID('matrix')
           TYPE_TAG
-            PsiElement(:)(':')
+            PsiJavaToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('Array')
+                    PsiJavaToken:ID('Array')
                 TYPE_PARAM
-                  PsiElement(<)('<')
+                  PsiJavaToken:<('<')
                   TYPE_LIST
                     TYPE_LIST_PART
                       TYPE_OR_ANONYMOUS
                         TYPE
                           REFERENCE_EXPRESSION
                             IDENTIFIER
-                              PsiElement(ID)('Array')
+                              PsiJavaToken:ID('Array')
                           TYPE_PARAM
-                            PsiElement(<)('<')
+                            PsiJavaToken:<('<')
                             TYPE_LIST
                               TYPE_LIST_PART
                                 TYPE_OR_ANONYMOUS
                                   TYPE
                                     REFERENCE_EXPRESSION
                                       IDENTIFIER
-                                        PsiElement(ID)('Int')
-                            PsiElement(>)('>')
-                  PsiElement(>)('>')
+                                        PsiJavaToken:ID('Int')
+                            PsiJavaToken:>('>')
+                  PsiJavaToken:>('>')
           VAR_INIT
-            PsiElement(=)('=')
+            PsiJavaToken:=('=')
             ARRAY_LITERAL
-              PsiElement([)('[')
+              PsiJavaToken:[('[')
               EXPRESSION_LIST
                 ARRAY_LITERAL
-                  PsiElement([)('[')
+                  PsiJavaToken:[('[')
                   EXPRESSION_LIST
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('1')
-                    PsiElement(,)(',')
+                      PsiJavaToken:LITINT('1')
+                    PsiJavaToken:,(',')
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('1')
-                  PsiElement(])(']')
-                PsiElement(,)(',')
+                      PsiJavaToken:LITINT('1')
+                  PsiJavaToken:](']')
+                PsiJavaToken:,(',')
                 ARRAY_LITERAL
-                  PsiElement([)('[')
+                  PsiJavaToken:[('[')
                   EXPRESSION_LIST
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('1')
-                    PsiElement(,)(',')
+                      PsiJavaToken:LITINT('1')
+                    PsiJavaToken:,(',')
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('0')
-                  PsiElement(])(']')
-              PsiElement(])(']')
-        PsiElement(;)(';')
-    PsiElement(})('}')
+                      PsiJavaToken:LITINT('0')
+                  PsiJavaToken:](']')
+              PsiJavaToken:](']')
+        PsiJavaToken:;(';')
+    PsiJavaToken:}('}')
