@@ -22,6 +22,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.module.Module;
@@ -76,7 +77,9 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                int offset = parent;
 
                Editor editor = parameters.getEditor();
-               String separator = FileDocumentManagerImpl.getLineSeparator(editor.getDocument(), file.getVirtualFile());
+               Document document = editor.getDocument();
+               VirtualFile file2 = file.getVirtualFile();
+               String separator = FileDocumentManagerImpl.getLineSeparator(document, file2);
 
                //IntelliJ IDEA normalizes file line endings, so if file line endings is CRLF - then we have to shift an offset so Haxe compiler could get proper offset
                if (LineSeparator.CRLF.getSeparatorString().equals(separator)) {
