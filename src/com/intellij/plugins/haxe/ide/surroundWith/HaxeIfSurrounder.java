@@ -34,7 +34,7 @@ public class HaxeIfSurrounder extends HaxeManyStatementsSurrounder {
   protected PsiElement doSurroundElements(PsiElement[] elements, PsiElement parent) {
     final HaxeIfStatement ifStatement =
       (HaxeIfStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "if(a){\n}");
-    addStatements(HaxeStatementUtils.getBlockStatement(parent), elements);
+    addStatements(HaxeStatementUtils.getBlockStatement(ifStatement), elements);
     return ifStatement;
   }
 

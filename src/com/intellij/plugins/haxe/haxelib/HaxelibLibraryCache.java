@@ -56,6 +56,31 @@ public final class HaxelibLibraryCache {
     myCache = new InternalCache();
     knownLibraries = null;
     mySdk = sdk;
+
+    /* haxelib is enhanced (by tivo) to support 'list-path' command. Once it
+       is committed to open source, check the version of haxelib to determine
+       whether the command 'list-path' may be invoked. In short-term, using
+       HAXELIB_LIST_PATH_SUPPORTED env var for the same. */
+    if (System.getProperty("HAXELIB_LIST_PATH_SUPPORTED") != null) {
+      /**
+       * Initialize the internal cache with the list of libraries known to haxelib,
+       * using the version of haxelib specified in the SDK.
+       */
+      final List<String> installedHaxelibs = new ArrayList<String>();
+      final List<String> haxelibOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list-path");
+      for (String s : haxelibOutput) {
+            /* haxelib list output looks like:
+                    lime-tools:1.4.0://haxe/lib/lime-tools/1,4,0/
+               The library name comes first, followed by a colon, followed by
+               version, followed by a colon, followed by haxelib installed path */
+        final String[] haxelibProperties = s.split(":");
+        installedHaxelibs.add(haxelibProperties[0]);
+        final HaxeClasspath classpath = new HaxeClasspath();
+        classpath.add(new HaxelibItem(haxelibProperties[0], haxelibProperties[2]));
+        myCache.add(new HaxelibLibraryEntry(haxelibProperties[0], classpath));
+      }
+      knownLibraries = new ConcurrentSkipListSet<String>(installedHaxelibs);
+    }
   }
 
   /**
@@ -121,7 +146,6 @@ public final class HaxelibLibraryCache {
     }
   }
 
-
   /**
    * Find a library on the haxelib path and return its complete class path.
    *
@@ -130,15 +154,16 @@ public final class HaxelibLibraryCache {
    */
   @NotNull
   public HaxeClasspath findHaxelibPath(@NotNull String libraryName) {
-    HaxeClasspath haxelibNewItems;
-
-    if (libraryIsKnown(libraryName)) {
-      haxelibNewItems = HaxelibClasspathUtils.getHaxelibLibraryPath(mySdk, libraryName);
-    } else {
-      haxelibNewItems = HaxeClasspath.EMPTY_CLASSPATH;
+    if (! libraryIsKnown(libraryName)) {
+      return HaxeClasspath.EMPTY_CLASSPATH;
     }
 
-    return haxelibNewItems;
+    HaxelibLibraryEntry cacheEntry = myCache.get(libraryName);
+    if (cacheEntry != null) {
+      return cacheEntry.getClasspathEntries();
+    }
+
+    return HaxelibClasspathUtils.getHaxelibLibraryPath(mySdk, libraryName);
   }
 
   /**
