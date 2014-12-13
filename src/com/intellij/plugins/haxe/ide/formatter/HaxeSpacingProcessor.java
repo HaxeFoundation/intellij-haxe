@@ -106,6 +106,10 @@ public class HaxeSpacingProcessor {
       }
     }
 
+    if (type1 == OGREATER && type2 == OASSIGN) {
+      return addSingleSpaceIf(false);
+    }
+
     //
     //Spacing before left braces
     //

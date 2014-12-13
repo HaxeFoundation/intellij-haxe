@@ -1,37 +1,39 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Test3')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Test3')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           REFERENCE_EXPRESSION
             CALL_EXPRESSION
               REFERENCE_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('a')
-                PsiElement(.)('.')
+                    PsiJavaToken:ID('a')
+                PsiJavaToken:.('.')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('b')
-              PsiElement(()('(')
-              PsiElement())(')')
-            PsiElement(.)('.')
+                    PsiJavaToken:ID('b')
+              PsiJavaToken:(('(')
+              PsiJavaToken:)(')')
+            PsiJavaToken:.('.')
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('c')
-          PsiElement(;)(';')
+                PsiJavaToken:ID('c')
+          PsiJavaToken:;(';')
           ARRAY_ACCESS_EXPRESSION
             REFERENCE_EXPRESSION
               REFERENCE_EXPRESSION
@@ -39,24 +41,24 @@ Haxe File
                   REFERENCE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('a')
-                    PsiElement(.)('.')
+                        PsiJavaToken:ID('a')
+                    PsiJavaToken:.('.')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('b')
-                  PsiElement(()('(')
-                  PsiElement())(')')
-                PsiElement(.)('.')
+                        PsiJavaToken:ID('b')
+                  PsiJavaToken:(('(')
+                  PsiJavaToken:)(')')
+                PsiJavaToken:.('.')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('c')
-              PsiElement(.)('.')
+                    PsiJavaToken:ID('c')
+              PsiJavaToken:.('.')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('d')
-            PsiElement([)('[')
-            PsiElement(])(']')
-          PsiElement(;)(';')
+                  PsiJavaToken:ID('d')
+            PsiJavaToken:[('[')
+            PsiJavaToken:](']')
+          PsiJavaToken:;(';')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION
               REFERENCE_EXPRESSION
@@ -64,23 +66,23 @@ Haxe File
                   REFERENCE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('a')
-                    PsiElement(.)('.')
+                        PsiJavaToken:ID('a')
+                    PsiJavaToken:.('.')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('b')
-                  PsiElement([)('[')
-                  PsiElement(])(']')
-                PsiElement(.)('.')
+                        PsiJavaToken:ID('b')
+                  PsiJavaToken:[('[')
+                  PsiJavaToken:](']')
+                PsiJavaToken:.('.')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('c')
-              PsiElement(.)('.')
+                    PsiJavaToken:ID('c')
+              PsiJavaToken:.('.')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('d')
-            PsiElement(()('(')
-            PsiElement())(')')
-          PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                  PsiJavaToken:ID('d')
+            PsiJavaToken:(('(')
+            PsiJavaToken:)(')')
+          PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

@@ -1,21 +1,23 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Main')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Main')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('test')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('test')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         RETURN_STATEMENT
-          PsiElement(return)('return')
+          PsiJavaToken:return('return')
           LITERAL_EXPRESSION
-            PsiElement(LITINT)('1')
-          PsiElement(;)(';')
-    PsiElement(})('}')
+            PsiJavaToken:LITINT('1')
+          PsiJavaToken:;(';')
+    PsiJavaToken:}('}')

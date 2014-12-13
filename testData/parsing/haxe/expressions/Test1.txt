@@ -1,42 +1,46 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Test1')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Test1')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('f')
+                  PsiJavaToken:ID('f')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 FUNCTION_LITERAL
-                  PsiElement(function)('function')
-                  PsiElement(()('(')
-                  PsiElement())(')')
+                  PsiJavaToken:function('function')
+                  PsiJavaToken:(('(')
+                  PARAMETER_LIST
+                    <empty list>
+                  PsiJavaToken:)(')')
                   BLOCK_STATEMENT
-                    PsiElement({)('{')
-                    PsiElement(})('}')
-            PsiElement(;)(';')
+                    PsiJavaToken:{('{')
+                    PsiJavaToken:}('}')
+            PsiJavaToken:;(';')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('f')
-            PsiElement(()('(')
-            PsiElement())(')')
-          PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                PsiJavaToken:ID('f')
+            PsiJavaToken:(('(')
+            PsiJavaToken:)(')')
+          PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

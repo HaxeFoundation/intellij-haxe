@@ -1,168 +1,170 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Test5')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Test5')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('bar1')
+                  PsiJavaToken:ID('bar1')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 ADDITIVE_EXPRESSION
                   MULTIPLICATIVE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('a')
-                    PsiElement(*)('*')
+                        PsiJavaToken:ID('a')
+                    PsiJavaToken:*('*')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('b')
-                  PsiElement(+)('+')
+                        PsiJavaToken:ID('b')
+                  PsiJavaToken:+('+')
                   MULTIPLICATIVE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('c')
-                    PsiElement(*)('*')
+                        PsiJavaToken:ID('c')
+                    PsiJavaToken:*('*')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('d')
-            PsiElement(;)(';')
+                        PsiJavaToken:ID('d')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('bar2')
+                  PsiJavaToken:ID('bar2')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 MULTIPLICATIVE_EXPRESSION
                   MULTIPLICATIVE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('a')
-                    PsiElement(*)('*')
+                        PsiJavaToken:ID('a')
+                    PsiJavaToken:*('*')
                     PARENTHESIZED_EXPRESSION
-                      PsiElement(()('(')
+                      PsiJavaToken:(('(')
                       ADDITIVE_EXPRESSION
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            PsiElement(ID)('b')
-                        PsiElement(+)('+')
+                            PsiJavaToken:ID('b')
+                        PsiJavaToken:+('+')
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            PsiElement(ID)('c')
-                      PsiElement())(')')
-                  PsiElement(*)('*')
+                            PsiJavaToken:ID('c')
+                      PsiJavaToken:)(')')
+                  PsiJavaToken:*('*')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('d')
-            PsiElement(;)(';')
+                      PsiJavaToken:ID('d')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('bar3')
+                  PsiJavaToken:ID('bar3')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 ADDITIVE_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('b')
-                  PsiElement(+)('+')
+                      PsiJavaToken:ID('b')
+                  PsiJavaToken:+('+')
                   PREFIX_EXPRESSION
-                    PsiElement(--)('--')
+                    PsiJavaToken:--('--')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('c')
-            PsiElement(;)(';')
+                        PsiJavaToken:ID('c')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('bar4')
+                  PsiJavaToken:ID('bar4')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 ADDITIVE_EXPRESSION
                   SUFFIX_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('b')
-                    PsiElement(--)('--')
-                  PsiElement(+)('+')
+                        PsiJavaToken:ID('b')
+                    PsiJavaToken:--('--')
+                  PsiJavaToken:+('+')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('c')
-            PsiElement(;)(';')
+                      PsiJavaToken:ID('c')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('bar5')
+                  PsiJavaToken:ID('bar5')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 ADDITIVE_EXPRESSION
                   SUFFIX_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('b')
-                    PsiElement(--)('--')
-                  PsiElement(+)('+')
+                        PsiJavaToken:ID('b')
+                    PsiJavaToken:--('--')
+                  PsiJavaToken:+('+')
                   PREFIX_EXPRESSION
-                    PsiElement(--)('--')
+                    PsiJavaToken:--('--')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('c')
-            PsiElement(;)(';')
+                        PsiJavaToken:ID('c')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('bar6')
+                  PsiJavaToken:ID('bar6')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 MULTIPLICATIVE_EXPRESSION
                   PARENTHESIZED_EXPRESSION
-                    PsiElement(()('(')
+                    PsiJavaToken:(('(')
                     ADDITIVE_EXPRESSION
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('a')
-                      PsiElement(+)('+')
+                          PsiJavaToken:ID('a')
+                      PsiJavaToken:+('+')
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('b')
-                    PsiElement())(')')
-                  PsiElement(*)('*')
+                          PsiJavaToken:ID('b')
+                    PsiJavaToken:)(')')
+                  PsiJavaToken:*('*')
                   PARENTHESIZED_EXPRESSION
-                    PsiElement(()('(')
+                    PsiJavaToken:(('(')
                     ADDITIVE_EXPRESSION
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('c')
-                      PsiElement(+)('+')
+                          PsiJavaToken:ID('c')
+                      PsiJavaToken:+('+')
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('d')
-                    PsiElement())(')')
-            PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                          PsiJavaToken:ID('d')
+                    PsiJavaToken:)(')')
+            PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

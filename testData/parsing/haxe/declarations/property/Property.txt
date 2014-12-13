@@ -1,49 +1,51 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Main')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Main')
+    PsiJavaToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
-        PsiElement(var)('var')
+            PsiJavaToken:public('public')
+        PsiJavaToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiElement(ID)('x')
+              PsiJavaToken:ID('x')
           PROPERTY_DECLARATION
-            PsiElement(()('(')
+            PsiJavaToken:(('(')
             PROPERTY_ACCESSOR
-              PsiElement(default)('default')
-            PsiElement(,)(',')
+              PsiJavaToken:default('default')
+            PsiJavaToken:,(',')
             PROPERTY_ACCESSOR
-              PsiElement(null)('null')
-            PsiElement())(')')
+              PsiJavaToken:null('null')
+            PsiJavaToken:)(')')
           TYPE_TAG
-            PsiElement(:)(':')
+            PsiJavaToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('Int')
-        PsiElement(;)(';')
+                    PsiJavaToken:ID('Int')
+        PsiJavaToken:;(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
-          PsiElement(static)('static')
+          PsiJavaToken:static('static')
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
-        PsiElement(function)('function')
+            PsiJavaToken:public('public')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('main')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('main')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
-          PsiElement(})('}')
-    PsiElement(})('}')
+          PsiJavaToken:{('{')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

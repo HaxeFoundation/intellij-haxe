@@ -1,90 +1,92 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Test6')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Test6')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('o')
+                  PsiJavaToken:ID('o')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 OBJECT_LITERAL
-                  PsiElement({)('{')
+                  PsiJavaToken:{('{')
                   OBJECT_LITERAL_ELEMENT
                     IDENTIFIER
-                      PsiElement(ID)('age')
-                    PsiElement(:)(':')
+                      PsiJavaToken:ID('age')
+                    PsiJavaToken::(':')
                     LITERAL_EXPRESSION
-                      PsiElement(LITINT)('26')
-                  PsiElement(,)(',')
+                      PsiJavaToken:LITINT('26')
+                  PsiJavaToken:,(',')
                   OBJECT_LITERAL_ELEMENT
                     IDENTIFIER
-                      PsiElement(ID)('name')
-                    PsiElement(:)(':')
+                      PsiJavaToken:ID('name')
+                    PsiJavaToken::(':')
                     STRING_LITERAL_EXPRESSION
-                      PsiElement(OPEN_QUOTE)('"')
-                      PsiElement(REGULAR_STRING_PART)('Tom')
-                      PsiElement(CLOSING_QUOTE)('"')
-                  PsiElement(})('}')
-            PsiElement(;)(';')
+                      PsiJavaToken:OPEN_QUOTE('"')
+                      PsiJavaToken:REGULAR_STRING_PART('Tom')
+                      PsiJavaToken:CLOSING_QUOTE('"')
+                  PsiJavaToken:}('}')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('regExp')
+                  PsiJavaToken:ID('regExp')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 REGULAR_EXPRESSION_LITERAL
-                  PsiElement(REG_EXP)('~/Hello/i')
-            PsiElement(;)(';')
+                  PsiJavaToken:REG_EXP('~/Hello/i')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('mail')
+                  PsiJavaToken:ID('mail')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 REGULAR_EXPRESSION_LITERAL
-                  PsiElement(REG_EXP)('~/[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z][A-Z][A-Z]?/i')
-            PsiElement(;)(';')
+                  PsiJavaToken:REG_EXP('~/[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z][A-Z][A-Z]?/i')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('example1')
+                  PsiJavaToken:ID('example1')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 REGULAR_EXPRESSION_LITERAL
-                  PsiElement(REG_EXP)('~/([A-Za-z]+) is ([0-9]+) years old/')
-            PsiElement(;)(';')
+                  PsiJavaToken:REG_EXP('~/([A-Za-z]+) is ([0-9]+) years old/')
+            PsiJavaToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('example2')
+                  PsiJavaToken:ID('example2')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 REGULAR_EXPRESSION_LITERAL
-                  PsiElement(REG_EXP)('~/(.+)Test/ig')
-            PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                  PsiJavaToken:REG_EXP('~/(.+)Test/ig')
+            PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')
