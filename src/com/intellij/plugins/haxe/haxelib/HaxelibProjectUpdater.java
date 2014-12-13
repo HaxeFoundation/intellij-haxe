@@ -576,11 +576,11 @@ public class HaxelibProjectUpdater  {
     HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("syncProjectClasspath");
     timeLog.stamp("Start synchronizing project " + tracker.getProject().getName());
 
+    Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
+    HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
     HaxeClasspath currentProjectClasspath = HaxelibClasspathUtils.getProjectLibraryClasspath(
       tracker.getProject());
     List<String> currentLibraryNames = HaxelibClasspathUtils.getProjectLibraryNames(tracker.getProject(), true);
-    Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
-    HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
     HaxeClasspath haxelibClasspaths = libCache.getClasspathForHaxelibs(currentLibraryNames);
 
     // Libraries that we want to remove are those specified as 'haxelib' entries and are
