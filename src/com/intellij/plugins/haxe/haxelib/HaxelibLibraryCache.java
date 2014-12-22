@@ -69,10 +69,7 @@ public final class HaxelibLibraryCache {
       final List<String> installedHaxelibs = new ArrayList<String>();
       final List<String> haxelibOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list-path");
       for (String s : haxelibOutput) {
-            /* haxelib list output looks like:
-                    lime-tools:1.4.0://haxe/lib/lime-tools/1,4,0/
-               The library name comes first, followed by a colon, followed by
-               version, followed by a colon, followed by haxelib installed path */
+            // haxelib list-path output format is, library-name:version:install/path 
         final String[] haxelibProperties = s.split(":");
         installedHaxelibs.add(haxelibProperties[0]);
         final HaxeClasspath classpath = new HaxeClasspath();
