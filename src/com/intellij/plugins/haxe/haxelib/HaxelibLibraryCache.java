@@ -57,26 +57,27 @@ public final class HaxelibLibraryCache {
     knownLibraries = null;
     mySdk = sdk;
 
-    /* haxelib is enhanced (by tivo) to support 'list-path' command. Once it
-       is committed to open source, check the version of haxelib to determine
-       whether the command 'list-path' may be invoked. In short-term, using
-       HAXELIB_LIST_PATH_SUPPORTED env var for the same. */
-    if (System.getProperty("HAXELIB_LIST_PATH_SUPPORTED") != null) {
-      /**
-       * Initialize the internal cache with the list of libraries known to haxelib,
-       * using the version of haxelib specified in the SDK.
-       */
-      final List<String> installedHaxelibs = new ArrayList<String>();
-      final List<String> haxelibOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list-path");
-      for (String s : haxelibOutput) {
-            // haxelib list-path output format is, library-name:version:install/path 
-        final String[] haxelibProperties = s.split(":");
-        installedHaxelibs.add(haxelibProperties[0]);
-        final HaxeClasspath classpath = new HaxeClasspath();
-        classpath.add(new HaxelibItem(haxelibProperties[0], haxelibProperties[2]));
-        myCache.add(new HaxelibLibraryEntry(haxelibProperties[0], classpath));
+    final List<String> haxelibCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list-path");
+    boolean listpathCmdSupported = true;
+    for (String s : haxelibCmdOutput) {
+      if (s.contains("Unknown command")) {
+        listpathCmdSupported = false;
+        break;
       }
-      knownLibraries = new ConcurrentSkipListSet<String>(installedHaxelibs);
+    }
+    if (listpathCmdSupported) {
+        final List<String> installedHaxelibs = new ArrayList<String>();
+        // Initialize the internal cache with the list of libraries known to haxelib,
+        // using the haxelib path specified in the SDK.
+        for (String s : haxelibCmdOutput) {
+            // haxelib list-path output format is, library-name:version:install/path
+            final String[] haxelibProperties = s.split(":");
+            installedHaxelibs.add(haxelibProperties[0]);
+            final HaxeClasspath classpath = new HaxeClasspath();
+            classpath.add(new HaxelibItem(haxelibProperties[0], haxelibProperties[2]));
+            myCache.add(new HaxelibLibraryEntry(haxelibProperties[0], classpath));
+        }
+        knownLibraries = new ConcurrentSkipListSet<String>(installedHaxelibs);
     }
   }
 
