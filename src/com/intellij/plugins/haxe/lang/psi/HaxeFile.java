@@ -51,7 +51,7 @@ public class HaxeFile extends PsiFileBase
 
   @Override
   public String toString() {
-    return "Haxe File";
+    return getName();
   }
 
   @Override

@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
-import com.intellij.ide.hierarchy.type.TypeHierarchyNodeDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -60,14 +59,14 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   }
 
   public HaxeSubtypesHierarchyTreeStructure(Project project, PsiClass psiClass, String currentScopeType) {
-    super(project, new TypeHierarchyNodeDescriptor(project, null, psiClass, true));
+    super(project, new HaxeTypeHierarchyNodeDescriptor(project, null, psiClass, true));
     myCurrentScopeType = currentScopeType;
   }
 
   @NotNull
   protected final Object[] buildChildren(@NotNull final HierarchyNodeDescriptor descriptor) {
 
-    final Object element = ((TypeHierarchyNodeDescriptor)descriptor).getPsiClass();
+    final Object element = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
     if (!(element instanceof PsiClass)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
     final HaxeClass theHaxeClass = (HaxeClass) element;
@@ -102,14 +101,13 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return typeListToObjArray(descriptor, subTypeList);
   }
 
-
   @NotNull
   protected final Object[] typeListToObjArray(@NotNull final HierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
     final int size = classes.size();
     if (size > 0) {
       final List<HierarchyNodeDescriptor> descriptors = new ArrayList<HierarchyNodeDescriptor>(size);
       for (PsiClass aClass : classes) {
-        descriptors.add(new TypeHierarchyNodeDescriptor(myProject, descriptor, aClass, false));
+        descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aClass, false));
       }
       return descriptors.toArray(new HierarchyNodeDescriptor[descriptors.size()]);
     }

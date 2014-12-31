@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.ide.hierarchy.type;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
-import com.intellij.ide.hierarchy.type.TypeHierarchyNodeDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -40,13 +39,13 @@ public class HaxeTypeHierarchyTreeStructure extends HaxeSubtypesHierarchyTreeStr
     final PsiClass[] superClasses = getSuperTypesAsArray(aClass);
     for(int i = superClasses.length - 1; i >= 0; i--){
       final PsiClass superClass = superClasses[i];
-      final HierarchyNodeDescriptor newDescriptor = new TypeHierarchyNodeDescriptor(project, descriptor, superClass, false);
+      final HierarchyNodeDescriptor newDescriptor = new HaxeTypeHierarchyNodeDescriptor(project, descriptor, aClass, false);
       if (descriptor != null){
         descriptor.setCachedChildren(new HierarchyNodeDescriptor[] {newDescriptor});
       }
       descriptor = newDescriptor;
     }
-    final HierarchyNodeDescriptor newDescriptor = new TypeHierarchyNodeDescriptor(project, descriptor, aClass, true);
+    final HierarchyNodeDescriptor newDescriptor = new HaxeTypeHierarchyNodeDescriptor(project, descriptor, aClass, true);
     if (descriptor != null) {
       descriptor.setCachedChildren(new HierarchyNodeDescriptor[] {newDescriptor});
     }
