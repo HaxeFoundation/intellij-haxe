@@ -66,7 +66,7 @@ public class HaxeTypeHierarchyProvider implements HierarchyProvider {
 
   @Override
   public void browserActivated(@NotNull HierarchyBrowser hierarchyBrowser) {
-    final HaxeTypeHierarchyBrowser browser = (HaxeTypeHierarchyBrowser)hierarchyBrowser;
+    final HaxeTypeHierarchyBrowser browser = (HaxeTypeHierarchyBrowser) hierarchyBrowser;
     final String typeName =
       browser.isInterface() ? TypeHierarchyBrowserBase.SUBTYPES_HIERARCHY_TYPE : TypeHierarchyBrowserBase.TYPE_HIERARCHY_TYPE;
     browser.changeView(typeName);

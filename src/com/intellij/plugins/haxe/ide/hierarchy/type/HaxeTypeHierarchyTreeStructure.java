@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.type;
 
-import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -29,25 +28,24 @@ public class HaxeTypeHierarchyTreeStructure extends HaxeSubtypesHierarchyTreeStr
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyTreeStructure");
 
-  public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass, String currentScopeType) {
-    super(project, buildHierarchyElement(project, aClass), currentScopeType);
+  public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass) {
+    super(project, buildHierarchyElement(project, aClass));
     setBaseElement(myBaseDescriptor); //to set myRoot
   }
 
-  private static HierarchyNodeDescriptor buildHierarchyElement(final Project project, final PsiClass aClass) {
-    HierarchyNodeDescriptor descriptor = null;
-    final PsiClass[] superClasses = getSuperTypesAsArray(aClass);
-    for(int i = superClasses.length - 1; i >= 0; i--){
-      final PsiClass superClass = superClasses[i];
-      final HierarchyNodeDescriptor newDescriptor = new HaxeTypeHierarchyNodeDescriptor(project, descriptor, aClass, false);
+  private static HaxeTypeHierarchyNodeDescriptor buildHierarchyElement(final Project project, final PsiClass aClass) {
+    HaxeTypeHierarchyNodeDescriptor descriptor = null;
+    final PsiClass[] superTypes = getSuperTypesAsArray(aClass);
+    for(int i = superTypes.length - 1; i >= 0; i--){
+      final HaxeTypeHierarchyNodeDescriptor newDescriptor = new HaxeTypeHierarchyNodeDescriptor(project, descriptor, superTypes[i], false);
       if (descriptor != null){
-        descriptor.setCachedChildren(new HierarchyNodeDescriptor[] {newDescriptor});
+        descriptor.setCachedChildren(new HaxeTypeHierarchyNodeDescriptor[] {newDescriptor});
       }
       descriptor = newDescriptor;
     }
-    final HierarchyNodeDescriptor newDescriptor = new HaxeTypeHierarchyNodeDescriptor(project, descriptor, aClass, true);
+    final HaxeTypeHierarchyNodeDescriptor newDescriptor = new HaxeTypeHierarchyNodeDescriptor(project, descriptor, aClass, true);
     if (descriptor != null) {
-      descriptor.setCachedChildren(new HierarchyNodeDescriptor[] {newDescriptor});
+      descriptor.setCachedChildren(new HaxeTypeHierarchyNodeDescriptor[] {newDescriptor});
     }
     return newDescriptor;
   }

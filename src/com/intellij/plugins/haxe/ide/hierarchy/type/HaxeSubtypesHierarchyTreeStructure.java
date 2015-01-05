@@ -51,16 +51,12 @@ import java.util.List;
  */
 public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
 
-  private final String myCurrentScopeType;
-
-  protected HaxeSubtypesHierarchyTreeStructure(final Project project, final HierarchyNodeDescriptor descriptor, String currentScopeType) {
+  protected HaxeSubtypesHierarchyTreeStructure(final Project project, final HaxeTypeHierarchyNodeDescriptor descriptor) {
     super(project, descriptor);
-    myCurrentScopeType = currentScopeType;
   }
 
-  public HaxeSubtypesHierarchyTreeStructure(Project project, PsiClass psiClass, String currentScopeType) {
+  public HaxeSubtypesHierarchyTreeStructure(final Project project, final PsiClass psiClass) {
     super(project, new HaxeTypeHierarchyNodeDescriptor(project, null, psiClass, true));
-    myCurrentScopeType = currentScopeType;
   }
 
   @NotNull
@@ -74,7 +70,6 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
     if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
-    final Project inClassPsiProject = theHaxeClass.getProject();
     final PsiFile inClassPsiFile = theHaxeClass.getContainingFile();
 
     List<PsiClass> subTypeList = new ArrayList<PsiClass>(); // add the sub-types to this list, as they are found
@@ -91,25 +86,25 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
 
     // if private class, scope ends there
     if (theHaxeClass.hasModifierProperty(HaxePsiModifier.PRIVATE)) { // XXX: how about @:allow occurrences?
-      return typeListToObjArray(descriptor, subTypeList);
+      return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
     }
 
     // Get the list of subtypes from the file-based indices.  Stub-based would
     // be faster, but we'll have to re-parent all of the PsiClass sub-classes.
     subTypeList.addAll(getSubTypes(theHaxeClass));
 
-    return typeListToObjArray(descriptor, subTypeList);
+    return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
   }
 
   @NotNull
-  protected final Object[] typeListToObjArray(@NotNull final HierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
+  protected final Object[] typeListToObjArray(@NotNull final HaxeTypeHierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
     final int size = classes.size();
     if (size > 0) {
-      final List<HierarchyNodeDescriptor> descriptors = new ArrayList<HierarchyNodeDescriptor>(size);
+      final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>(size);
       for (PsiClass aClass : classes) {
         descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aClass, false));
       }
-      return descriptors.toArray(new HierarchyNodeDescriptor[descriptors.size()]);
+      return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[descriptors.size()]);
     }
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }

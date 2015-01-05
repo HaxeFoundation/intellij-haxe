@@ -38,13 +38,13 @@ public class HaxeTypeHierarchyBrowser extends TypeHierarchyBrowser {
 
   protected HierarchyTreeStructure createHierarchyTreeStructure(@NotNull final String typeName, @NotNull final PsiElement psiElement) {
     if (SUPERTYPES_HIERARCHY_TYPE.equals(typeName)) {
-      return new SupertypesHierarchyTreeStructure(myProject, (PsiClass)psiElement);
+      return new HaxeSupertypesHierarchyTreeStructure(myProject, (PsiClass) psiElement);
     }
     else if (SUBTYPES_HIERARCHY_TYPE.equals(typeName)) {
-      return new HaxeSubtypesHierarchyTreeStructure(myProject, (PsiClass)psiElement, getCurrentScopeType());
+      return new HaxeSubtypesHierarchyTreeStructure(myProject, (PsiClass) psiElement);
     }
     else if (TYPE_HIERARCHY_TYPE.equals(typeName)) {
-      return new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass)psiElement, getCurrentScopeType());
+      return new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass) psiElement);
     }
     else {
       LOG.error("unexpected type: " + typeName);

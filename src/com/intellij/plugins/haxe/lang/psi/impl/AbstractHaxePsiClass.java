@@ -72,18 +72,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     if (getParent() == null) {
       return name == null ? "" : name;
     }
-    final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
-    String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
-    if (isAncillaryClass(name, fileName)) {
-      packageName = HaxeResolveUtil.joinQName(packageName, fileName);
-    }
-    return HaxeResolveUtil.joinQName(packageName, name);
-  }
-
-  private boolean isAncillaryClass(String name, String fileName) {
-    return (!(this instanceof  HaxeExternClassDeclaration)) &&
-           (!fileName.equals(name)) &&
-           (HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null);
+    return HaxeResolveUtil.joinQName(HaxeResolveUtil.getPackageName(getContainingFile()), name);
   }
 
   @Override
@@ -198,10 +187,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       // anonymous class inherits containing class' search scope
       return this.getContainingClass();
     }
-    //if (this.isPrivate()) {
-    //  // private class' scope is limited to within that file
-    //  return this.getContainingFile();
-    //}
     return this.getContainingFile();
   }
 

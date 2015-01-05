@@ -24,7 +24,12 @@ import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.util.CompositeAppearance;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeExternClassDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.LayeredIcon;
@@ -50,19 +55,19 @@ final public class HaxeTypeHierarchyNodeDescriptor extends HierarchyNodeDescript
   }
 
   @Nullable
-  public final AbstractHaxePsiClass getHaxeClass() {
-    return (myElement instanceof AbstractHaxePsiClass) ? (AbstractHaxePsiClass) myElement : null;
+  public final HaxeClass getHaxeClass() {
+    return (myElement instanceof HaxeClass) ? (HaxeClass) myElement : null;
   }
 
   public final boolean isValid() {
-    final AbstractHaxePsiClass haxePsiClass = getHaxeClass();
+    final HaxeClass haxePsiClass = getHaxeClass();
     return haxePsiClass != null && haxePsiClass.isValid();
   }
 
   public final boolean update() {
     boolean changes = super.update();
 
-    final AbstractHaxePsiClass haxePsiClass = getHaxeClass();
+    final HaxeClass haxePsiClass = getHaxeClass();
 
     if (haxePsiClass == null) {
       final String invalidPrefix = IdeBundle.message("node.hierarchy.invalid");
@@ -88,11 +93,26 @@ final public class HaxeTypeHierarchyNodeDescriptor extends HierarchyNodeDescript
       classNameAttributes = new TextAttributes(myColor, null, null, null, Font.PLAIN);
     }
 
+    final PsiFile psiFile = haxePsiClass.getContainingFile();
+    final String noExtensionFilename = FileUtil.getNameWithoutExtension(psiFile.getName());
+    final boolean isNonPrimaryClassOfTheFile = ((! (haxePsiClass instanceof HaxeExternClassDeclaration)) &&
+                                                (! (noExtensionFilename.equals(haxePsiClass.getName()))) &&
+                                                (HaxeResolveUtil.findComponentDeclaration(psiFile, noExtensionFilename) != null));
+
+    String packageScopeStr = "";
+    final String packageStr = HaxeResolveUtil.getPackageName(psiFile);
+    if ((packageStr != null) && (! packageStr.equals(""))) {
+      packageScopeStr = "  (" + packageStr + ") ";
+    }
+
+    String fileScopeStr = "";
+    if (isNonPrimaryClassOfTheFile || "".equals(packageScopeStr)) {
+      fileScopeStr = "  (" + psiFile + ") ";
+    }
+
     myHighlightedText.getEnding().addText(haxePsiClass.getName(), classNameAttributes);
-    myHighlightedText.getEnding().addText(" (" + haxePsiClass.getQualifiedName() + ", " +
-                                                 haxePsiClass.getContainingFile() + ")",
-                                          HierarchyNodeDescriptor.getPackageNameAttributes());
     myName = myHighlightedText.getText();
+    myHighlightedText.getEnding().addText(packageScopeStr + fileScopeStr, HierarchyNodeDescriptor.getPackageNameAttributes());
 
     if (!Comparing.equal(myHighlightedText, oldText)) {
       changes = true;
