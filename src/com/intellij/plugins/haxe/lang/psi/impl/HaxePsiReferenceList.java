@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.source.PsiReferenceListImpl;
@@ -34,19 +35,20 @@ import java.util.List;
 public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiReferenceList {
 
   private Role mRole;
-  private AbstractHaxePsiClass mContainingClass;
+  private HaxeClass mContainingClass;
   private List<PsiElement> mChildren;
 
   public HaxePsiReferenceList(ASTNode node) {
     super(node);
     mRole = null;
+    mContainingClass = null;
     mChildren = new ArrayList<PsiElement>();
   }
 
-  public HaxePsiReferenceList(AbstractHaxePsiClass containingClass, ASTNode node, Role inRole) {
+  public HaxePsiReferenceList(PsiClass containingClass, ASTNode node, Role inRole) {
     super(node);
     mRole = inRole;
-    mContainingClass = containingClass;
+    mContainingClass = (HaxeClass) containingClass;
     mChildren = new ArrayList<PsiElement>();
   }
 
@@ -57,6 +59,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   }
 
   public void addReferenceElements(PsiElement[] psiElements) {
+    if (null == mRole) return;
     if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) ||
         mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
       mChildren.addAll(Arrays.asList(psiElements));
@@ -64,6 +67,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   }
 
   public void addReference(PsiElement psiElement) {
+    if (null == mRole) return;
     if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) ||
         mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
       mChildren.add(psiElement);
@@ -74,6 +78,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   @NotNull
   @Override
   public PsiJavaCodeReferenceElement[] getReferenceElements() {
+    if (null == mRole) return super.getReferenceElements();
     if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) ||
         mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
       PsiJavaCodeReferenceElement[] array = new PsiJavaCodeReferenceElement[mChildren.size()];
@@ -87,7 +92,9 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   public PsiClassType[] getReferencedTypes() {
     final PsiElement[] referenceElements = getReferenceElements();
     final PsiClassType[] psiClassTypes = new PsiClassType[referenceElements.length];
-    final PsiElementFactory psiElementFactory = JavaPsiFacade.getElementFactory(mContainingClass.getProject());
+    final PsiElementFactory psiElementFactory = JavaPsiFacade.getElementFactory(mContainingClass != null ?
+                                                                                mContainingClass.getProject() :
+                                                                                super.getProject());
     for (int index = 0; index < psiClassTypes.length; index++) {
       psiClassTypes[index] = psiElementFactory.createType((PsiClass)referenceElements[index]);
     }
@@ -106,7 +113,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
 
   @Override
   public PsiManagerEx getManager() {
-    return mContainingClass.getManager();
+    return (PsiManagerEx) mContainingClass.getManager();
   }
 
   @NotNull

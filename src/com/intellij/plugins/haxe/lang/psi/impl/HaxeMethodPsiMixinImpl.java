@@ -131,8 +131,9 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Override
   public PsiReferenceList getThrowsList() {
     HaxeThrowStatement ts = getThrowStatement();
-    return new HaxePsiReferenceList(ts == null ? new HaxeDummyASTNode("ThrowsList")
-                                                : ts.getNode());
+    return new HaxePsiReferenceList(this.getContainingClass(),
+                                    (ts == null ? new HaxeDummyASTNode("ThrowsList") : ts.getNode()),
+                                    null);
   }
 
   @Nullable
