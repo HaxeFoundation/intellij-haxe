@@ -21,6 +21,23 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.8: (community version, TiVo WIP)</p>
+      <ul>
+        <li> More load-time optimizations using new 'haxelib list-path' command. </li>
+        <li> Add package and file names to Type hierarchy window.  (File names only
+             display if the file name differs from the type name.)
+        </li>
+        <li> Fixed supertypes list in the combo view of the Type hierarchy window. </li>
+        <li> Allow block statements everywhere. </li>
+        <li> Allow array literals to have additional comma [1,] </li>
+        <li> Moving a file from one package to another no longer displays "Unimplemented"
+             and now moves the file, however references are not yet updated.
+             Issue #88 -- still unresolved.
+        </li>
+        <li> Updated unit tests. Issues: #71, #68.</li>
+        <li> Fix formatting for ">=", which is used be to reformatted to "> =". Issue </li>
+        <li> Fix logic for HaxeIfSurrounder.java /testIf test case/ </li>
+      </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.7: (community version, TiVo WIP)</p>
       <ul>
         <li>Repaired resolving references to classes and variables.</li>
@@ -270,7 +287,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.7: (community version, TiVo WIP)</version>
+  <version>0.8.1.1.TiVo.ClassHierarchy.8: (community version, TiVo WIP)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
