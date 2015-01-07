@@ -57,6 +57,17 @@ public final class HaxelibLibraryCache {
     knownLibraries = null;
     mySdk = sdk;
 
+    /* TODO: EMB Note: This block of code belongs in HaxelibUtils.getInstalledLibraries.
+     *       I'm leaving it here for now, to simplify the merge, but really should be moved.
+     */
+
+    /* 'haxelib' has been  enhanced to support 'list-path' command.
+     *  (Changes may not have made it out to Open Source yet.)
+     * Here, we're checking the output to see if the version of haxelib
+     * currently installed supports the new command.  If so, we'll
+     * use the new functionality (and save many seconds by not having to
+     * fork a new process for each installed library).
+     */
     final List<String> haxelibCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list-path");
     boolean listpathCmdSupported = true;
     for (String s : haxelibCmdOutput) {
@@ -79,6 +90,7 @@ public final class HaxelibLibraryCache {
         }
         knownLibraries = new ConcurrentSkipListSet<String>(installedHaxelibs);
     }
+    /* END of code that should be moved to HaxelibUtils.getInstalledLibraries. */
   }
 
   /**

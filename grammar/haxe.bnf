@@ -351,7 +351,7 @@ parameterList ::= parameter? (',' parameter)* {recoverWhile="parameterListRecove
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
 functionLiteral ::= 'function' '(' parameterList ')' typeTag? 'untyped'? functionCommonBody {pin=2}
-arrayLiteral ::= '[' expressionList? ']'
+arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionTypeWrapper ::= functionTypeOrWrapper functionType*
@@ -509,6 +509,7 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | arrayLiteral
                     | objectLiteral
                     | stringLiteralExpression
+                    | blockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry | longTemplateEntry)* CLOSING_QUOTE
