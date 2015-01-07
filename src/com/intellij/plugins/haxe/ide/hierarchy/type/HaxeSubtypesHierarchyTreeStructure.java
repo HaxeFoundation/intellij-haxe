@@ -97,7 +97,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   }
 
   @NotNull
-  protected final Object[] typeListToObjArray(@NotNull final HaxeTypeHierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
+  private final Object[] typeListToObjArray(@NotNull final HaxeTypeHierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
     final int size = classes.size();
     if (size > 0) {
       final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>(size);
@@ -109,7 +109,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
 
-  public static boolean isThisTypeASubTypeOfTheSuperType(PsiClass thisType, PsiClass theSuperType) {
+  private static boolean isThisTypeASubTypeOfTheSuperType(PsiClass thisType, PsiClass theSuperType) {
     if (!thisType.isValid()) return false;
     final String tcfqn = thisType.getQualifiedName();
     final String pscfqn = theSuperType.getQualifiedName();
@@ -123,13 +123,13 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return false;
   }
 
-  public static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
+  protected static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
     if (!theClass.isValid()) return PsiClass.EMPTY_ARRAY;
     final ArrayList<PsiClass> allSuperClasses = getSuperTypesAsList(theClass);
     return allSuperClasses.toArray(new PsiClass[allSuperClasses.size()]);
   }
 
-  public static ArrayList<PsiClass> getSuperTypesAsList(PsiClass theClass) {
+  private static ArrayList<PsiClass> getSuperTypesAsList(PsiClass theClass) {
     final ArrayList<PsiClass> allSuperClasses = new ArrayList<PsiClass>();
     while (true) {
       final PsiClass aClass1 = theClass;
@@ -150,7 +150,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return allSuperClasses;
   }
 
-  public static List<HaxeClass> getSubTypes(HaxeClass theClass) {
+  private static List<HaxeClass> getSubTypes(HaxeClass theClass) {
     final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(theClass);
     return subClasses;
   }

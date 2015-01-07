@@ -101,11 +101,11 @@ final public class HaxeTypeHierarchyNodeDescriptor extends HierarchyNodeDescript
 
     String packageScopeStr = "";
     final String packageStr = HaxeResolveUtil.getPackageName(psiFile);
-    if ((packageStr != null) && (! packageStr.equals(""))) {
+    if (! packageStr.equals("")) {
       packageScopeStr = "  (" + packageStr + ") ";
     }
 
-    String fileScopeStr = "";
+    String fileScopeStr = ""; // for classes that are in a file that doesn't match their name, display filename too
     if (isNonPrimaryClassOfTheFile || "".equals(packageScopeStr)) {
       fileScopeStr = "  (" + psiFile + ") ";
     }
