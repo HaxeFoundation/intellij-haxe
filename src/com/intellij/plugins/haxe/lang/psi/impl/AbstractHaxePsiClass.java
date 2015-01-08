@@ -444,7 +444,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiIdentifier getNameIdentifier() {
-    return ((PsiIdentifier) findChildByRoleAsPsiElement(ChildRole.NAME));
+    // For a HaxeClass, the identifier is three children below.  The first is
+    // the component name, then a reference, and finally the identifier.
+    HaxeComponentName name = PsiTreeUtil.getChildOfType(this, HaxeComponentName.class);
+    return null == name ? null : name.getIdentifier();
   }
 
   @Override
