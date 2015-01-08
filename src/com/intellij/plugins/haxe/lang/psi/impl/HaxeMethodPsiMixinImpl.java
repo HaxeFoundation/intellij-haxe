@@ -239,38 +239,38 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods() {
-    return PsiSuperMethodImplUtil.findSuperMethods(this);
+    return HaxeMethodUtils.findSuperMethods(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods(boolean checkAccess) {
-    return PsiSuperMethodImplUtil.findSuperMethods(this, checkAccess);
+    return HaxeMethodUtils.findSuperMethods(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods(PsiClass parentClass) {
-    return PsiSuperMethodImplUtil.findSuperMethods(this, parentClass);
+    return HaxeMethodUtils.findSuperMethods(this, parentClass);
   }
 
   @NotNull
   @Override
   public List<MethodSignatureBackedByPsiMethod> findSuperMethodSignaturesIncludingStatic(boolean checkAccess) {
-    return PsiSuperMethodImplUtil.findSuperMethodSignaturesIncludingStatic(this, checkAccess);
+    return HaxeMethodUtils.findSuperMethodSignaturesIncludingStatic(this);
   }
 
   @Deprecated
   @Nullable
   @Override
   public PsiMethod findDeepestSuperMethod() {
-    return PsiSuperMethodImplUtil.findDeepestSuperMethod(this);
+    return HaxeMethodUtils.findDeepestSuperMethod(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findDeepestSuperMethods() {
-    return PsiSuperMethodImplUtil.findDeepestSuperMethods(this);
+    return HaxeMethodUtils.findDeepestSuperMethods(this);
   }
 
   @Nullable
