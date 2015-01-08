@@ -68,15 +68,12 @@ public final class HaxelibLibraryCache {
      * use the new functionality (and save many seconds by not having to
      * fork a new process for each installed library).
      */
+    boolean isHaxelibListPathCmdSupported = true;
     final List<String> haxelibCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list-path");
-    boolean listpathCmdSupported = true;
-    for (String s : haxelibCmdOutput) {
-      if (s.contains("Unknown command")) {
-        listpathCmdSupported = false;
-        break;
-      }
+    if ((haxelibCmdOutput.size() < 1) || (haxelibCmdOutput.get(0).contains("Unknown command"))) {
+      isHaxelibListPathCmdSupported = false;
     }
-    if (listpathCmdSupported) {
+    if (isHaxelibListPathCmdSupported) {
         final List<String> installedHaxelibs = new ArrayList<String>();
         // Initialize the internal cache with the list of libraries known to haxelib,
         // using the haxelib path specified in the SDK.
@@ -151,7 +148,6 @@ public final class HaxelibLibraryCache {
       return HaxeClasspath.EMPTY_CLASSPATH;
     }
     finally {
-
       timeLog.printIfTimeExceeds(2); // Short-timed logs just clutter up the ouput.
     }
   }
