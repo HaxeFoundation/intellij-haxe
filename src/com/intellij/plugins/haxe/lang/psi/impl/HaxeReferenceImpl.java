@@ -34,6 +34,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.impl.source.tree.SourceUtil;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
@@ -715,9 +716,7 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
 
   @Override
   public String getQualifiedName() {
-    // TODO:  Unimplemented.
-    LOG.warn("getQualifiedName is unimplemented");
-    return null;
+    return SourceUtil.getReferenceText(this);
   }
 
 
