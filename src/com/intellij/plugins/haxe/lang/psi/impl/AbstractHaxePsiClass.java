@@ -416,7 +416,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       list.setModifierProperty(HaxePsiModifier.ABSTRACT, true);
     }
 
-    list.setModifierProperty(HaxePsiModifier.STATIC, false); // Haxe does not have static classes, yet!
+    // XXX: Users of HaxeModifierList generally check for the existence of the property, not it's value.
+    //      So, don't set it.
+    //list.setModifierProperty(HaxePsiModifier.STATIC, false); // Haxe does not have static classes, yet!
+    LOG.assertTrue(!list.hasModifierProperty(HaxePsiModifier.STATIC), "Haxe classes cannot be static.");
 
     return list;
   }

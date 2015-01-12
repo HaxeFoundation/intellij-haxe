@@ -445,6 +445,7 @@
     <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
     <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
     <methodHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyProvider"/>
+    <hierarchy.referenceProcessor implementation="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor"/>
 
     <intentionAction>
       <className>com.intellij.plugins.haxe.ide.intention.ReplaceImportStatementWithWildcardWithSingleClassImports</className>

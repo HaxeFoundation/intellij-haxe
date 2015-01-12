@@ -32,14 +32,17 @@ import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.impl.source.tree.SourceUtil;
+import com.intellij.psi.impl.source.tree.*;
+import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.CharTable;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
@@ -52,7 +55,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
+abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
   Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl");
   {
@@ -709,9 +712,7 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
 
   @Override
   public boolean isQualified() {
-    // TODO:  Unimplemented.
-    LOG.warn("isQualified is unimplemented");
-    return false;
+    return null != getQualifier();
   }
 
   @Override
@@ -739,10 +740,25 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     // Package/class that this type is part of; the part before
     // the last '.'.  However, that may only be partial, so adding
     // package information may also be necessary.
-    // TODO:  Unimplemented.
-    LOG.warn("getQualifier is unimplemented");
-    return null;
+    PsiElement left = UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.REFERENCE_EXPRESSION);
+    boolean hasDot = nextSiblingIsADot(left);
+    return hasDot ? left : null;
   }
+
+  /* Determine if the element to the right of the given element in the AST
+   * (at the same level) is a dot '.' separator.
+   * Workhorse for getQualifier().
+   * XXX: If we use this more than once, move it to a utility class, such as UsefulPsiTreeUtil.
+   */
+  private static boolean nextSiblingIsADot(PsiElement element) {
+    if (null == element) return false;
+
+    PsiElement next = element.getNextSibling();
+    ASTNode node = null != next ? next.getNode() : null;
+    IElementType type = null != node ? node.getElementType() : null;
+    return type.equals(HaxeTokenTypes.ODOT);
+  }
+
 
   @Nullable
   @Override
@@ -753,4 +769,83 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     return getText();
   }
 
+  // PsiExpression implementations
+
+  @Nullable
+  public PsiType getPsiType() {
+    // XXX: EMB: Not sure about this.  Does a reference really have a sub-node giving the type?
+    HaxeType ht = findNotNullChildByClass(HaxeType.class);
+    return null == ht ? null : ht.getPsiType();
+  }
+
+  // PsiReferenceExpression implementations
+
+  @Nullable
+//  @Override
+  public PsiExpression getQualifierExpression() {
+    final PsiElement qualifier = getQualifier();
+    return qualifier instanceof PsiExpression ? (PsiExpression)qualifier : null;
+  }
+
+//  @Override
+  public PsiElement bindToElementViaStaticImport(@NotNull PsiClass qualifierClass) throws IncorrectOperationException {
+    // Lifted from PsiReferenceExpressionImpl function of the same name.
+    // TODO: Verify correct operation for Haxe.
+
+    String qualifiedName = qualifierClass.getQualifiedName();
+    if (qualifiedName == null) throw new IncorrectOperationException();
+
+    if (getQualifierExpression() != null) {
+      throw new IncorrectOperationException("Reference is qualified: "+getText());
+    }
+    if (!isPhysical()) {
+      // don't qualify reference: the isReferenceTo() check fails anyway, whether we have a static import for this member or not
+      return this;
+    }
+    String staticName = getReferenceName();
+    PsiFile containingFile = getContainingFile();
+    PsiImportList importList = null;
+    boolean doImportStatic;
+    if (containingFile instanceof PsiJavaFile) {
+      importList = ((PsiJavaFile)containingFile).getImportList();
+      PsiImportStatementBase singleImportStatement = importList.findSingleImportStatement(staticName);
+      doImportStatic = singleImportStatement == null;
+      if (singleImportStatement instanceof PsiImportStaticStatement) {
+        String qName = qualifierClass.getQualifiedName() + "." + staticName;
+        if (qName.equals(singleImportStatement.getImportReference().getQualifiedName())) return this;
+      }
+    }
+    else {
+      doImportStatic = false;
+    }
+    if (doImportStatic) {
+      PsiReferenceExpressionImpl.bindToElementViaStaticImport(qualifierClass, staticName, importList);
+    }
+    else {
+      PsiManagerEx manager = getManager();
+      PsiReferenceExpression classRef = JavaPsiFacade.getInstance(manager.getProject()).getElementFactory().createReferenceExpression(
+        qualifierClass);
+      final CharTable treeCharTab = SharedImplUtil.findCharTableByTree(getNode());
+      LeafElement dot = Factory.createSingleLeafElement(JavaTokenType.DOT, ".", 0, 1, treeCharTab, manager);
+      addInternal(dot, dot, SourceTreeToPsiMap.psiElementToTree(getParameterList()), Boolean.TRUE);
+      addBefore(classRef, SourceTreeToPsiMap.treeElementToPsi(dot));
+    }
+    return this;
+  }
+
+//  @Override
+  public void setQualifierExpression(@Nullable PsiExpression newQualifier) throws IncorrectOperationException {
+    // TODO: Implement if needed.
+    throw new IncorrectOperationException("Setting qualifier is not implemented.");
+  }
+
+  @Override
+  public String toString() {
+    String ss = super.toString();
+    String clazzName = this.getClass().getSimpleName();
+    String text = getCanonicalText();
+    ss += ":" + (null == clazzName ? "<anonymous>" : clazzName);
+    ss += ":" + (null == text ? "<empty>" : text);
+    return ss;
+  }
 }

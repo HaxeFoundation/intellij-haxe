@@ -66,53 +66,24 @@ public class HaxeMethodUtils {
     return findSuperMethodsInternal(method, parentClass);
   }
 
-
+  //  XXX: The old version of findSuperMethodsInternal called FindSuperMethodSignatures,
+  //       which may be a better place for us to put the revised code.
   @NotNull
   private static PsiMethod[] findSuperMethodsInternal(PsiMethod method, PsiClass parentClass) {
-    if (null == parentClass || null == method || HaxeHierarchyUtils.cannotBeOverriding(method)) return PsiMethod.EMPTY_ARRAY;
+    if (null == parentClass || null == method) return PsiMethod.EMPTY_ARRAY;
     List<PsiMethod> sooperMethods = new ArrayList<PsiMethod>();
-    PsiClass[] soopers = parentClass.getSupers();
-    for (PsiClass sooper : soopers) {
-      PsiMethod sooperMethod = MethodSignatureUtil.findMethodBySignature(sooper, method, false);
+    LinkedList<PsiClass> soopers = new LinkedList<PsiClass>(Arrays.asList(parentClass.getSupers()));
+    while (!soopers.isEmpty()) {
+      PsiClass sooper = soopers.pollFirst();
+      // Get the super-method on the closest superclass that contains the method.
+      PsiMethod sooperMethod = MethodSignatureUtil.findMethodBySignature(sooper, method, true);
       if (null != sooperMethod) {
         sooperMethods.add(sooperMethod);
+        soopers.addAll(Arrays.asList(sooperMethod.getContainingClass().getSupers()));
       }
     }
     return sooperMethods.toArray(PsiMethod.EMPTY_ARRAY);
   }
-
-//  TODO: Probably need to traverse all levels, not just the first one.  The code below has a collection algorithm
-//  we can steal.
-//
-//  Also, the old version of findSuperMethodsInternal called FindSuperMethodSignatures, which may be a better
-//  place for us to put the revised code.
-
-  //
-  //@NotNull
-  //public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @NotNull HaxeClass... rootHaxeClasses) {
-  //  final List<HaxeNamedComponent> unfilteredResult = new ArrayList<HaxeNamedComponent>();
-  //  final LinkedList<HaxeClass> classes = new LinkedList<HaxeClass>();
-  //  classes.addAll(Arrays.asList(rootHaxeClasses));
-  //  while (!classes.isEmpty()) {
-  //    final HaxeClass haxeClass = classes.pollFirst();
-  //    String name = haxeClass.getName();
-  //    for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
-  //      if (namedComponent.getName() != null) {
-  //        unfilteredResult.add(namedComponent);
-  //      }
-  //    }
-  //    classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeExtendsList()));
-  //    classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
-  //  }
-  //  if (!unique) {
-  //    return unfilteredResult;
-  //  }
-  //
-  //  return new ArrayList<HaxeNamedComponent>(namedComponentToMap(unfilteredResult).values());
-  //}
-
-
-
 
   @NotNull
   public static List<MethodSignatureBackedByPsiMethod> findSuperMethodSignaturesIncludingStatic(PsiMethod method) {
