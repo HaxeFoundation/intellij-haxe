@@ -51,20 +51,6 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
     setBaseElement(myBaseDescriptor); //to set myRoot
   }
 
-  //@NotNull
-  //@Override
-  //protected Object[] buildChildren(@NotNull com.intellij.ide.hierarchy.HierarchyNodeDescriptor descriptor) {
-  //  MethodHierarchyNodeDescriptor methodDescriptor = (MethodHierarchyNodeDescriptor) descriptor;
-  //  PsiClass xlass = (PsiClass) methodDescriptor.getPsiClass();
-  //  List<HaxeClass> subClasses = getSubTypes((HaxeClass)xlass);
-  //  // TODO: Finish this method.  I think we have to return the list of types so that
-  //  //       each type can be queried as to whether it contains the method.  That's
-  //  //       not quite what the Java code does, though.  Docs don't say much; need to
-  //  //       look at the code and test it in the Java UI.
-  //
-  //  return new Object[0];
-  //}
-
   // This is really the only thing we were overriding from MethodHierarchyTreeStructure.
   public static List<HaxeClass> getSubclasses(HaxeClass theClass) {
     final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(theClass);

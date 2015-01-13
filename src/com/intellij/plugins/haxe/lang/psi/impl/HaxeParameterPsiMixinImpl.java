@@ -103,7 +103,7 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     // Lifted, lock, stock, and barrel from PsiParameterImpl.java
     // which was for the Java language.
     // TODO: Broken.  Needs re-implementation.
-    // TODO: Need to verify against the Haxe language spec.
+    //       Need to verify against the Haxe language spec.
     //              Are there other situations?
     // XXX: This won't work.  The children are further down the tree, not at the child level.
     for (PsiElement child = getFirstChild(); child != null; child = child.getNextSibling()) {

@@ -1190,7 +1190,6 @@ public class HaxelibProjectUpdater  {
         updatingProject.setUpdating(true);
       }
 
-      // TODO: Put project classpath updating on a worker thread (including progress indicators)...
       // Waiting for runWhenProjectIsInitialized() ensures that the project is
       // fully loaded and accessible.  Otherwise, we crash. ;)
       StartupManager.getInstance(updatingProject.getProject()).runWhenProjectIsInitialized(new Runnable() {

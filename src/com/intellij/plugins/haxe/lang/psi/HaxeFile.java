@@ -110,8 +110,7 @@ public class HaxeFile extends PsiFileBase
 
   @Override
   public void setPackageName(String packageName) throws IncorrectOperationException {
-    // TODO: Unimplemented.  We don't need this for read-only operations. We need it to move file (from one package to another)
-    //throw new IncorrectOperationException("Unimplemented");
+    // TODO: verify
     HaxePackageStatement packageStatementFromPath = HaxeElementGenerator.createPackageStatementFromPath(getProject(), packageName);
 
     HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(this, HaxePackageStatement.class);

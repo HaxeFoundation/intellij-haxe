@@ -787,57 +787,57 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     return qualifier instanceof PsiExpression ? (PsiExpression)qualifier : null;
   }
 
-//  @Override
-  public PsiElement bindToElementViaStaticImport(@NotNull PsiClass qualifierClass) throws IncorrectOperationException {
-    // Lifted from PsiReferenceExpressionImpl function of the same name.
-    // TODO: Verify correct operation for Haxe.
+////  @Override
+//  public PsiElement bindToElementViaStaticImport(@NotNull PsiClass qualifierClass) throws IncorrectOperationException {
+//    // Lifted from PsiReferenceExpressionImpl function of the same name.
+//    // XXX: Verify correct operation for Haxe.
+//
+//    String qualifiedName = qualifierClass.getQualifiedName();
+//    if (qualifiedName == null) throw new IncorrectOperationException();
+//
+//    if (getQualifierExpression() != null) {
+//      throw new IncorrectOperationException("Reference is qualified: "+getText());
+//    }
+//    if (!isPhysical()) {
+//      // don't qualify reference: the isReferenceTo() check fails anyway, whether we have a static import for this member or not
+//      return this;
+//    }
+//    String staticName = getReferenceName();
+//    PsiFile containingFile = getContainingFile();
+//    PsiImportList importList = null;
+//    boolean doImportStatic;
+//    if (containingFile instanceof PsiJavaFile) {
+//      importList = ((PsiJavaFile)containingFile).getImportList();
+//      PsiImportStatementBase singleImportStatement = importList.findSingleImportStatement(staticName);
+//      doImportStatic = singleImportStatement == null;
+//      if (singleImportStatement instanceof PsiImportStaticStatement) {
+//        String qName = qualifierClass.getQualifiedName() + "." + staticName;
+//        if (qName.equals(singleImportStatement.getImportReference().getQualifiedName())) return this;
+//      }
+//    }
+//    else {
+//      doImportStatic = false;
+//    }
+//    if (doImportStatic) {
+//      PsiReferenceExpressionImpl.bindToElementViaStaticImport(qualifierClass, staticName, importList);
+//    }
+//    else {
+//      PsiManagerEx manager = getManager();
+//      PsiReferenceExpression classRef = JavaPsiFacade.getInstance(manager.getProject()).getElementFactory().createReferenceExpression(
+//        qualifierClass);
+//      final CharTable treeCharTab = SharedImplUtil.findCharTableByTree(getNode());
+//      LeafElement dot = Factory.createSingleLeafElement(JavaTokenType.DOT, ".", 0, 1, treeCharTab, manager);
+//      addInternal(dot, dot, SourceTreeToPsiMap.psiElementToTree(getParameterList()), Boolean.TRUE);
+//      addBefore(classRef, SourceTreeToPsiMap.treeElementToPsi(dot));
+//    }
+//    return this;
+//  }
 
-    String qualifiedName = qualifierClass.getQualifiedName();
-    if (qualifiedName == null) throw new IncorrectOperationException();
-
-    if (getQualifierExpression() != null) {
-      throw new IncorrectOperationException("Reference is qualified: "+getText());
-    }
-    if (!isPhysical()) {
-      // don't qualify reference: the isReferenceTo() check fails anyway, whether we have a static import for this member or not
-      return this;
-    }
-    String staticName = getReferenceName();
-    PsiFile containingFile = getContainingFile();
-    PsiImportList importList = null;
-    boolean doImportStatic;
-    if (containingFile instanceof PsiJavaFile) {
-      importList = ((PsiJavaFile)containingFile).getImportList();
-      PsiImportStatementBase singleImportStatement = importList.findSingleImportStatement(staticName);
-      doImportStatic = singleImportStatement == null;
-      if (singleImportStatement instanceof PsiImportStaticStatement) {
-        String qName = qualifierClass.getQualifiedName() + "." + staticName;
-        if (qName.equals(singleImportStatement.getImportReference().getQualifiedName())) return this;
-      }
-    }
-    else {
-      doImportStatic = false;
-    }
-    if (doImportStatic) {
-      PsiReferenceExpressionImpl.bindToElementViaStaticImport(qualifierClass, staticName, importList);
-    }
-    else {
-      PsiManagerEx manager = getManager();
-      PsiReferenceExpression classRef = JavaPsiFacade.getInstance(manager.getProject()).getElementFactory().createReferenceExpression(
-        qualifierClass);
-      final CharTable treeCharTab = SharedImplUtil.findCharTableByTree(getNode());
-      LeafElement dot = Factory.createSingleLeafElement(JavaTokenType.DOT, ".", 0, 1, treeCharTab, manager);
-      addInternal(dot, dot, SourceTreeToPsiMap.psiElementToTree(getParameterList()), Boolean.TRUE);
-      addBefore(classRef, SourceTreeToPsiMap.treeElementToPsi(dot));
-    }
-    return this;
-  }
-
-//  @Override
-  public void setQualifierExpression(@Nullable PsiExpression newQualifier) throws IncorrectOperationException {
-    // TODO: Implement if needed.
-    throw new IncorrectOperationException("Setting qualifier is not implemented.");
-  }
+////  @Override
+//  public void setQualifierExpression(@Nullable PsiExpression newQualifier) throws IncorrectOperationException {
+//    // XXX: Implement if needed.
+//    throw new IncorrectOperationException("Setting qualifier is not implemented.");
+//  }
 
   @Override
   public String toString() {
