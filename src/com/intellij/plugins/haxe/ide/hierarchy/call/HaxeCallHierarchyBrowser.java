@@ -42,8 +42,7 @@ public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
       return new HaxeCallerMethodsTreeStructure(myProject, (PsiMethod)psiElement, getCurrentScopeType());
     }
     else if (CALLEE_TYPE.equals(typeName)) {
-// TODO: EMB -- Make a haxe version of CalleedMethodsTreeStructure
-      return new CalleeMethodsTreeStructure(myProject, (PsiMethod)psiElement, getCurrentScopeType());
+      return new HaxeCalleeMethodsTreeStructure(myProject, (PsiMethod)psiElement, getCurrentScopeType());
     }
     else {
       LOG.error("unexpected type: " + typeName);

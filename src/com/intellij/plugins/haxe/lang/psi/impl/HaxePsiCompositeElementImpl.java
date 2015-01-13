@@ -56,8 +56,12 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     return getNode().getElementType();
   }
 
+  public String getDebugName() {
+    return "'" + getName() + "'";
+  }
+
   public String toString() {
-    return getTokenType().toString();
+    return getTokenType().toString() + " " + getDebugName();
   }
 
   @Override
