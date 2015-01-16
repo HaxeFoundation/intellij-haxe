@@ -19,12 +19,14 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +34,16 @@ import org.jetbrains.annotations.Nullable;
  * @author: Fedor.Korotkov
  */
 public class HaxeFindUsagesProvider implements FindUsagesProvider {
+
+  final static boolean LogQueries = true; // Turn off when done debugging.
+  final static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider");
+  static {
+    if (LogQueries) {
+      LOG.setLevel(Level.DEBUG);
+    }
+  }
+
+
   @Override
   public WordsScanner getWordsScanner() {
     return null;
@@ -39,11 +51,13 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
 
   @Override
   public boolean canFindUsagesFor(@NotNull PsiElement psiElement) {
+    boolean ret = false;
     PsiElement parent = getTargetElement(psiElement);
-    if (null == parent) {
-      return false;
+    if (null != parent) {
+      ret = true;
     }
-    return true;
+    LOG.debug("canFindUsagesFor("+psiElement.toString()+")->"+(ret?"true":"false"));
+    return ret;
   }
 
   @Override
@@ -57,6 +71,7 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     if (null == result) {
       result = "reference";
     }
+    LOG.debug("getType("+element.toString()+")->"+result);
     return result;
   }
 
