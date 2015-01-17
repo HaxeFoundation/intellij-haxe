@@ -523,7 +523,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public Object[] getVariants() {
     final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
 
-
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
@@ -563,21 +562,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
         PsiFile psiFile = this.getContainingFile();
         addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
-
-        /*HaxeFunctionDeclarationWithAttributes[] functionDeclarationWithAttributes = PsiTreeUtil.getChildrenOfType(body, HaxeFunctionDeclarationWithAttributes.class);
-        if (functionDeclarationWithAttributes != null) {
-          for (HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttribute : functionDeclarationWithAttributes) {
-            HaxeLocalFunctionDeclaration[] localFunctionDeclarations =
-              PsiTreeUtil.getChildrenOfType(functionDeclarationWithAttribute, HaxeLocalFunctionDeclaration.class);
-            for (HaxeLocalFunctionDeclaration localFunctionDeclaration : localFunctionDeclarations) {
-              HaxeNamedComponent[] haxeNamedComponents = PsiTreeUtil.getChildrenOfType(localFunctionDeclaration, HaxeNamedComponent.class);
-
-              if (haxeNamedComponents != null) {
-                ContainerUtil.addAll(result, haxeNamedComponents);
-              }
-            }
-          }
-        }*/
       }
     }
 
@@ -720,9 +704,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     return SourceUtil.getReferenceText(this);
   }
 
-
   // PsiJavaReference overrides
-
 
   @Override
   public void processVariants(@NotNull PsiScopeProcessor processor) {
@@ -730,9 +712,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     LOG.warn("processVariants is unimplemented");
   }
 
-
   // PsiQualifiedReference overrides
-
 
   @Nullable
   @Override
@@ -754,11 +734,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (null == element) return false;
 
     PsiElement next = element.getNextSibling();
-    ASTNode node = null != next ? next.getNode() : null;
-    IElementType type = null != node ? node.getElementType() : null;
-    return type.equals(HaxeTokenTypes.ODOT);
+    ASTNode node = ((null != next) ? next.getNode() : null);
+    IElementType type = ((null != node) ? node.getElementType() : null);
+    return ((null != type) ? type.equals(HaxeTokenTypes.ODOT) : false);
   }
-
 
   @Nullable
   @Override
@@ -774,70 +753,17 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Nullable
   public PsiType getPsiType() {
     // XXX: EMB: Not sure about this.  Does a reference really have a sub-node giving the type?
-    HaxeType ht = findNotNullChildByClass(HaxeType.class);
-    return null == ht ? null : ht.getPsiType();
+    HaxeType ht = findChildByClass(HaxeType.class);
+    return ((null == ht) ? null : ht.getPsiType());
   }
 
-  // PsiReferenceExpression implementations
+  // PsiExpression implementations
 
-  @Nullable
-//  @Override
-  public PsiExpression getQualifierExpression() {
-    final PsiElement qualifier = getQualifier();
-    return qualifier instanceof PsiExpression ? (PsiExpression)qualifier : null;
-  }
-
-////  @Override
-//  public PsiElement bindToElementViaStaticImport(@NotNull PsiClass qualifierClass) throws IncorrectOperationException {
-//    // Lifted from PsiReferenceExpressionImpl function of the same name.
-//    // XXX: Verify correct operation for Haxe.
-//
-//    String qualifiedName = qualifierClass.getQualifiedName();
-//    if (qualifiedName == null) throw new IncorrectOperationException();
-//
-//    if (getQualifierExpression() != null) {
-//      throw new IncorrectOperationException("Reference is qualified: "+getText());
-//    }
-//    if (!isPhysical()) {
-//      // don't qualify reference: the isReferenceTo() check fails anyway, whether we have a static import for this member or not
-//      return this;
-//    }
-//    String staticName = getReferenceName();
-//    PsiFile containingFile = getContainingFile();
-//    PsiImportList importList = null;
-//    boolean doImportStatic;
-//    if (containingFile instanceof PsiJavaFile) {
-//      importList = ((PsiJavaFile)containingFile).getImportList();
-//      PsiImportStatementBase singleImportStatement = importList.findSingleImportStatement(staticName);
-//      doImportStatic = singleImportStatement == null;
-//      if (singleImportStatement instanceof PsiImportStaticStatement) {
-//        String qName = qualifierClass.getQualifiedName() + "." + staticName;
-//        if (qName.equals(singleImportStatement.getImportReference().getQualifiedName())) return this;
-//      }
-//    }
-//    else {
-//      doImportStatic = false;
-//    }
-//    if (doImportStatic) {
-//      PsiReferenceExpressionImpl.bindToElementViaStaticImport(qualifierClass, staticName, importList);
-//    }
-//    else {
-//      PsiManagerEx manager = getManager();
-//      PsiReferenceExpression classRef = JavaPsiFacade.getInstance(manager.getProject()).getElementFactory().createReferenceExpression(
-//        qualifierClass);
-//      final CharTable treeCharTab = SharedImplUtil.findCharTableByTree(getNode());
-//      LeafElement dot = Factory.createSingleLeafElement(JavaTokenType.DOT, ".", 0, 1, treeCharTab, manager);
-//      addInternal(dot, dot, SourceTreeToPsiMap.psiElementToTree(getParameterList()), Boolean.TRUE);
-//      addBefore(classRef, SourceTreeToPsiMap.treeElementToPsi(dot));
-//    }
-//    return this;
-//  }
-
-////  @Override
-//  public void setQualifierExpression(@Nullable PsiExpression newQualifier) throws IncorrectOperationException {
-//    // XXX: Implement if needed.
-//    throw new IncorrectOperationException("Setting qualifier is not implemented.");
-//  }
+  //@Nullable
+  //public PsiExpression getQualifierExpression() {
+  //  final PsiElement qualifier = getQualifier();
+  //  return qualifier instanceof PsiExpression ? (PsiExpression)qualifier : null;
+  //}
 
   @Override
   public String toString() {
