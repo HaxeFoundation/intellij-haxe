@@ -27,10 +27,12 @@ import com.intellij.openapi.roots.ui.util.CompositeAppearance;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.*;
 import com.intellij.psi.presentation.java.ClassPresentationUtil;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.RowIcon;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +47,6 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HierarchyNodeDescri
   // hacked on for Haxe purposes.  The original MethodHierarchyNodeDescriptor,
   // while not final, had methods that were, and we needed to override them.
   //
-
 
   private Icon myRawIcon;
   private Icon myStateIcon;
@@ -69,26 +70,25 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HierarchyNodeDescri
     return HaxeHierarchyUtils.findBaseMethodInClass(myTreeStructure.getBaseMethod(), aClass, checkBases);
   }
 
-  public final PsiElement getPsiClass() {
-    return myElement;
+  @Nullable
+  public final HaxeClass getHaxeClass() {
+    return (myElement instanceof HaxeClass) ? (HaxeClass) myElement : null;
   }
 
   /**
-   * Element for OpenFileDescriptor
-   */
+  * Element for OpenFileDescriptor
+  */
   public final PsiElement getTargetElement() {
-    final PsiElement element = getPsiClass();
-    if (!(element instanceof PsiClass)) return element;
-    final PsiClass aClass = (PsiClass)getPsiClass();
-    if (!aClass.isValid()) return null;
-    final PsiMethod method = getMethod(aClass, false);
+    final HaxeClass theHaxeClass = getHaxeClass();
+    if ((null == theHaxeClass) || (! theHaxeClass.isValid())) return null;
+    final PsiMethod method = getMethod(theHaxeClass, false);
     if (method != null) return method;
-    return aClass;
+    return theHaxeClass;
   }
 
   public final boolean isValid() {
-    final PsiElement psiElement = getPsiClass();
-    return psiElement != null && psiElement.isValid();
+    final HaxeClass haxePsiClass = getHaxeClass();
+    return haxePsiClass != null && haxePsiClass.isValid();
   }
 
   public final boolean update() {
@@ -99,7 +99,7 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HierarchyNodeDescri
 
     boolean changes = super.update();
 
-    final PsiElement psiClass = getPsiClass();
+    final PsiElement psiClass = getHaxeClass();
 
     if (psiClass == null){
       final String invalidPrefix = IdeBundle.message("node.hierarchy.invalid");
@@ -177,15 +177,13 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HierarchyNodeDescri
     if (hasBaseImplementation ) {
       return AllIcons.Hierarchy.MethodNotDefined;
     }
-    else {
-      // Can't return AllIcons.Hierarchy.ShouldDefineMethod
-      // because Haxe doesn't have Java's idea of abstract methods.
-      // (In Haxe, abstract refers to /adding/ to an existing class or type.)
+    //else {
+    //  Can't "return AllIcons.Hierarchy.ShouldDefineMethod;"
+    //  because Haxe doesn't have Java's idea of abstract methods.
+    //  (In Haxe, abstract refers to /adding/ to an existing class or type.)
+    //}
 
-      // return AllIcons.Hierarchy.ShouldDefineMethod;
-    }
     return null;
   }
-
 
 }

@@ -19,8 +19,6 @@ package com.intellij.plugins.haxe.ide.hierarchy.call;
 
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
-import com.intellij.ide.hierarchy.call.CalleeMethodsTreeStructure;
-import com.intellij.ide.hierarchy.call.CallerMethodsTreeStructure;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -50,4 +48,33 @@ public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
     }
   }
 
+  /*
+  // --------
+  // if you implement HaxeCallHierarchyNodeDescriptor, uncomment this block
+  //
+
+  // --------
+  // this is essential for auto-scrolling to source
+  //
+  @Override
+  protected PsiElement getElementFromDescriptor(@NotNull HierarchyNodeDescriptor descriptor) {
+    if (descriptor instanceof HaxeCallHierarchyNodeDescriptor) {
+      CallHierarchyNodeDescriptor nodeDescriptor = (HaxeCallHierarchyNodeDescriptor)descriptor;
+      return nodeDescriptor.getEnclosingElement();
+    }
+    return null;
+  }
+
+  // --------
+  // this is essential for auto-scrolling to source
+  //
+  @Override
+  protected PsiElement getOpenFileElementFromDescriptor(@NotNull HierarchyNodeDescriptor descriptor) {
+    if (descriptor instanceof HaxeCallHierarchyNodeDescriptor) {
+      CallHierarchyNodeDescriptor nodeDescriptor = (HaxeCallHierarchyNodeDescriptor)descriptor;
+      return nodeDescriptor.getTargetElement();
+    }
+    return null;
+  }
+  */
 }

@@ -21,6 +21,7 @@ import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
+import com.intellij.util.ArrayUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +37,9 @@ public final class HaxeSupertypesHierarchyTreeStructure extends HierarchyTreeStr
   }
 
   protected final Object[] buildChildren(final HierarchyNodeDescriptor descriptor) {
-    final PsiClass psiClass = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
-    final PsiClass[] supers = psiClass.getSupers();
+    final PsiClass theHaxeClass = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
+    if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    final PsiClass[] supers = theHaxeClass.getSupers();
     final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>();
     for (PsiClass aSuper : supers) {
         descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aSuper, false));

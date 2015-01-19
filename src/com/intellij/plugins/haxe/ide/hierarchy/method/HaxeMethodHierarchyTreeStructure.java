@@ -23,11 +23,11 @@ import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor;
+import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.FunctionalExpressionSearch;
-import com.intellij.psi.util.MethodSignatureUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
@@ -72,10 +72,14 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
   @NotNull
   @Override
   protected Object[] buildChildren(@NotNull final HierarchyNodeDescriptor descriptor) {
-    final PsiElement psiElement = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getPsiClass();
-    if (!(psiElement instanceof PsiClass)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    final HaxeClass psiClass = (HaxeClass)psiElement;
-    final Collection<HaxeClass> subclasses = getSubclasses(psiClass);
+
+    final HaxeClass theHaxeClass = ((HaxeMethodHierarchyNodeDescriptor) descriptor).getHaxeClass();
+    if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+
+    if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+
+    final Collection<HaxeClass> subclasses = getSubclasses(theHaxeClass);
 
     final List<HierarchyNodeDescriptor> descriptors = new ArrayList<HierarchyNodeDescriptor>(subclasses.size());
     for (final PsiClass aClass : subclasses) {
@@ -89,7 +93,7 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
       descriptors.add(d);
     }
 
-    final PsiMethod existingMethod = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getMethod(psiClass, false);
+    final PsiMethod existingMethod = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getMethod(theHaxeClass, false);
     if (existingMethod != null) {
       FunctionalExpressionSearch.search(existingMethod).forEach(new Processor<PsiFunctionalExpression>() {
         @Override
