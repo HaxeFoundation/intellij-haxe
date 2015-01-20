@@ -47,34 +47,4 @@ public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
       return null;
     }
   }
-
-  /*
-  // --------
-  // if you implement HaxeCallHierarchyNodeDescriptor, uncomment this block
-  //
-
-  // --------
-  // this is essential for auto-scrolling to source
-  //
-  @Override
-  protected PsiElement getElementFromDescriptor(@NotNull HierarchyNodeDescriptor descriptor) {
-    if (descriptor instanceof HaxeCallHierarchyNodeDescriptor) {
-      CallHierarchyNodeDescriptor nodeDescriptor = (HaxeCallHierarchyNodeDescriptor)descriptor;
-      return nodeDescriptor.getEnclosingElement();
-    }
-    return null;
-  }
-
-  // --------
-  // this is essential for auto-scrolling to source
-  //
-  @Override
-  protected PsiElement getOpenFileElementFromDescriptor(@NotNull HierarchyNodeDescriptor descriptor) {
-    if (descriptor instanceof HaxeCallHierarchyNodeDescriptor) {
-      CallHierarchyNodeDescriptor nodeDescriptor = (HaxeCallHierarchyNodeDescriptor)descriptor;
-      return nodeDescriptor.getTargetElement();
-    }
-    return null;
-  }
-  */
 }
