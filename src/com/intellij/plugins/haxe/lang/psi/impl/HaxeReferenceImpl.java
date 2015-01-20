@@ -128,13 +128,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  @Override
-  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+  private JavaResolveResult[] multiResolve(boolean incompleteCode, boolean resolveToParents) {
     //
     // Resolving through this.resolve, or through the ResolveCache.resolve,
     // resolves to the *name* of the component.  That's what is cached, that's
-    // what is returned.  For the Java code, the various reference types are
-    // overridden, along with the base reference being aware of the type of the
+    // what is returned.  For the Java processing code, the various reference types
+    // are sub-classed, along with the base reference being aware of the type of the
     // entity.  Still, the base reference (PsiJavaReference) resolves to the
     // COMPONENT_NAME element, NOT the element type.  The various sub-classes
     // of PsiJavaReference (and PsiJavaCodeReferenceElement) return the actual
@@ -144,8 +143,17 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // For the Haxe code, we don't have a large number of reference sub-classes,
     // so we have to figure out what the expected parent type is and return that.
     // Luckily, most references have a COMPONENT_NAME element located immediately
-    // below the parent in the PSI tree.  Therefore, we're going to return the
-    // parent type.
+    // below the parent in the PSI tree.  Therefore, when requested, we're going
+    // to return the parent type.
+    //
+    // The root of the problem appears to be that the Java language processing
+    // always expected the COMPONENT_NAME field.  However, the Haxe processing
+    // (plugin) code was written to expect the type *containing* the
+    // COMPONENT_NAME element (e.g. the named element not the name of the element).
+    // Therefore, we now have an adapter, and have to tweak some things to make them
+    // compatible.  Perhaps the proper answer is to make all of the plug-in code
+    // expect the COMPONENT_NAME field, to be consistent, and then we won't need
+    // the resolveToParents logic (here, at least).
     //
 
     // For the moment (while debugging the resolver) let's do this without caching.
@@ -154,17 +162,56 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
                             : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
 
-    List<? extends PsiElement> result = resolveNamesToParents(cachedNames);
 
     // CandidateInfo does some extra resolution work when checking validity, so
     // the results have to be turned into a CandidateInfoArray, and not just passed
     // around as the list that HaxeResolver returns.
-    return toCandidateInfoArray(result);
+    JavaResolveResult [] result = toCandidateInfoArray(resolveToParents ? resolveNamesToParents(cachedNames) : cachedNames);
+    return result;
   }
 
+  /**
+   * Resolve a reference, returning the COMPONENT_NAME field of the found
+   * PsiElement.
+   *
+   * @return the component name of the found element, or null if not (or
+   *         more than one) found.
+   */
+  @Nullable
+  public PsiElement resolveToComponentName() {
+    final ResolveResult[] resolveResults = multiResolve(true, false);
+
+    return resolveResults.length == 0 ||
+           resolveResults.length > 1 ||
+           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
+  }
+
+  /**
+   * Resolve a reference, returning a list of possible candidates.
+   *
+   * @param incompleteCode Whether to treat the code as a fragment or not.
+   *                       Usually, code is considered incomplete.
+   *
+   * @return a (possibly empty) list of candidates that this reference matches.
+   */
+  @NotNull
+  @Override
+  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+    return multiResolve(incompleteCode, true);
+  }
+
+  /**
+   * Resolve this reference to a PsiElement -- *NOT* it's name.
+   *
+   * @param incompleteCode  Whether to treat the code as a fragment or not.
+   *                        Usually, code is considered incomplete.
+   *
+   * @return the element this reference refers to, or null if none (or more
+   *         than one) is found.
+   */
   @Nullable
   public PsiElement resolve(boolean incompleteCode) {
-    final ResolveResult[] resolveResults = multiResolve(true);
+    final ResolveResult[] resolveResults = multiResolve(incompleteCode);
 
     return resolveResults.length == 0 ||
            resolveResults.length > 1 ||
@@ -507,7 +554,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public boolean isReferenceTo(PsiElement element) {
-    final PsiElement resolve = resolve();
+    final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
     if (element instanceof HaxeFile &&
         resolve instanceof HaxeComponentName &&
         resolve.getParent() instanceof HaxeClass) {
@@ -753,10 +800,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private static boolean nextSiblingIsADot(PsiElement element) {
     if (null == element) return false;
 
-    PsiElement next = element.getNextSibling();
-    ASTNode node = null != next ? next.getNode() : null;
+    PsiElement   next = element.getNextSibling();
+    ASTNode      node = null != next ? next.getNode() : null;
     IElementType type = null != node ? node.getElementType() : null;
-    return type.equals(HaxeTokenTypes.ODOT);
+    boolean      ret  = null != type ? type.equals(HaxeTokenTypes.ODOT) : false;
+    return ret;
   }
 
 
