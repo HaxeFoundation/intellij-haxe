@@ -19,8 +19,6 @@ package com.intellij.plugins.haxe.ide.hierarchy.call;
 
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
-import com.intellij.ide.hierarchy.call.CalleeMethodsTreeStructure;
-import com.intellij.ide.hierarchy.call.CallerMethodsTreeStructure;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -49,5 +47,4 @@ public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
       return null;
     }
   }
-
 }

@@ -17,12 +17,11 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.method;
 
+import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.method.MethodHierarchyBrowser;
-import com.intellij.ide.hierarchy.method.MethodHierarchyTreeStructure;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
@@ -45,5 +44,16 @@ public class HaxeMethodHierarchyBrowser extends MethodHierarchyBrowser {
       return null;
     }
     return new HaxeMethodHierarchyTreeStructure(myProject, (PsiMethod)psiElement);
+  }
+
+  // --------
+  // this is essential for auto-scrolling to source
+  //
+  @Override
+  protected PsiElement getElementFromDescriptor(@NotNull final HierarchyNodeDescriptor descriptor) {
+    if (descriptor instanceof HaxeMethodHierarchyNodeDescriptor) {
+      return ((HaxeMethodHierarchyNodeDescriptor) descriptor).getTargetElement();
+    }
+    return null;
   }
 }

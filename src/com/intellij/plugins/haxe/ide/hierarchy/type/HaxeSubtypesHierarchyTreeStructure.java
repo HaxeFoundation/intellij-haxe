@@ -44,6 +44,7 @@ import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,10 +63,8 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   @NotNull
   protected final Object[] buildChildren(@NotNull final HierarchyNodeDescriptor descriptor) {
 
-    final Object element = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
-    if (!(element instanceof PsiClass)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-
-    final HaxeClass theHaxeClass = (HaxeClass) element;
+    final HaxeClass theHaxeClass = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
+    if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
     if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
     if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
