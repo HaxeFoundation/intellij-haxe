@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.execution.process.BaseOSProcessHandler;
+import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.notification.Notification;
@@ -181,7 +182,7 @@ public class HaxeCommonCompilerUtil {
       if (!workingDirectory.exists()) {
         if (!workingDirectory.mkdirs()) throw new IOException("Cannot create directory " + workingPath);
       }
-      final BaseOSProcessHandler handler = new BaseOSProcessHandler(
+      final BaseOSProcessHandler handler = new ColoredProcessHandler(
         new ProcessBuilder(commandLine).directory(workingDirectory).start(),
         null,
         Charset.defaultCharset()
