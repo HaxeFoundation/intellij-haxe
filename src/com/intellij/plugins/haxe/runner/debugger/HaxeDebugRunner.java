@@ -55,6 +55,7 @@ import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.NMERunningState;
+import com.intellij.plugins.haxe.runner.OpenFLRunningState;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -279,14 +280,26 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                     // Else, start the being-debugged process and make the
                     // local debug process instance aware of it.
                     else {
+                      if (settings.isUseOpenFLToBuild()) {
                         debugProcess.setExecutionResult
-                            (new NMERunningState
+                          (new OpenFLRunningState
                              (env, module,
                               // runInTest if android or ios
-                            ((settings.getNmeTarget() == NMETarget.ANDROID) ||
-                             (settings.getNmeTarget() == NMETarget.IOS)),
+                              ((settings.getOpenFLTarget() == OpenFLTarget.ANDROID) ||
+                               (settings.getOpenFLTarget() == OpenFLTarget.IOS)),
                               true, port).
-                             execute(executor, HaxeDebugRunner.this));
+                            execute(executor, HaxeDebugRunner.this));
+                      }
+                      else {
+                        debugProcess.setExecutionResult
+                          (new NMERunningState
+                             (env, module,
+                              // runInTest if android or ios
+                              ((settings.getNmeTarget() == NMETarget.ANDROID) ||
+                               (settings.getNmeTarget() == NMETarget.IOS)),
+                              true, port).
+                            execute(executor, HaxeDebugRunner.this));
+                      }
                     }
 
                     // Now accept the connection from the being-debugged
