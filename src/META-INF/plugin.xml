@@ -21,6 +21,10 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.10: (community version, TiVo WIP)</p>
+      <ul>
+        <li> Added timeout to long-running call hierarchy searches. </li>
+      </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.9: (community version, TiVo WIP)</p>
       <ul>
         <li> Fixed Haxe command-line debugger integration for OpenFL projects that
@@ -297,7 +301,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.8: (community version, TiVo WIP)</version>
+  <version>0.8.1.1.TiVo.ClassHierarchy.10: (community version, TiVo WIP)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
