@@ -21,14 +21,16 @@ import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeNewExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.psi.*;
-import com.intellij.psi.search.searches.OverridingMethodsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.Processor;
+import com.intellij.util.Query;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,53 +52,75 @@ public class HaxeCalleeMethodsTreeStructure extends HierarchyTreeStructure {
 
   @NotNull
   protected final Object[] buildChildren(@NotNull final HierarchyNodeDescriptor descriptor) {
-    final PsiMember enclosingElement = ((CallHierarchyNodeDescriptor)descriptor).getEnclosingElement();
-    if (!(enclosingElement instanceof PsiMethod)) {
-      return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    }
-    final PsiMethod method = (PsiMethod)enclosingElement;
+    final HaxeHierarchyTimeoutHandler timeoutHandler = new HaxeHierarchyTimeoutHandler();
 
-    final ArrayList<PsiMethod> methods = new ArrayList<PsiMethod>();
-
-    final PsiCodeBlock body = method.getBody();
-    if (body != null) {
-      visitor(body, methods);
-    }
-
-    final PsiMethod baseMethod = (PsiMethod)((CallHierarchyNodeDescriptor)getBaseDescriptor()).getTargetElement();
-    final PsiClass baseClass = baseMethod.getContainingClass();
-
-    final HashMap<PsiMethod,CallHierarchyNodeDescriptor> methodToDescriptorMap = new HashMap<PsiMethod, CallHierarchyNodeDescriptor>();
-
-    final ArrayList<CallHierarchyNodeDescriptor> result = new ArrayList<CallHierarchyNodeDescriptor>();
-
-    for (final PsiMethod calledMethod : methods) {
-      if (!isInScope(baseClass, calledMethod, myScopeType)) continue;
-
-      CallHierarchyNodeDescriptor d = methodToDescriptorMap.get(calledMethod);
-      if (d == null) {
-        d = new CallHierarchyNodeDescriptor(myProject, descriptor, calledMethod, false, false);
-        methodToDescriptorMap.put(calledMethod, d);
-        result.add(d);
+    try {
+      final PsiMember enclosingElement = ((CallHierarchyNodeDescriptor)descriptor).getEnclosingElement();
+      if (!(enclosingElement instanceof PsiMethod)) {
+        return ArrayUtil.EMPTY_OBJECT_ARRAY;
       }
-      else {
-        d.incrementUsageCount();
+      final PsiMethod method = (PsiMethod)enclosingElement;
+
+      final ArrayList<PsiMethod> methods = new ArrayList<PsiMethod>();
+
+      final PsiCodeBlock body = method.getBody();
+      if (body != null) {
+        visitor(body, methods);
+      }
+
+      final PsiMethod baseMethod = (PsiMethod)((CallHierarchyNodeDescriptor)getBaseDescriptor()).getTargetElement();
+      final PsiClass baseClass = baseMethod.getContainingClass();
+
+      final HashMap<PsiMethod, CallHierarchyNodeDescriptor> methodToDescriptorMap = new HashMap<PsiMethod, CallHierarchyNodeDescriptor>();
+
+      final ArrayList<CallHierarchyNodeDescriptor> result = new ArrayList<CallHierarchyNodeDescriptor>();
+
+      for (final PsiMethod calledMethod : methods) {
+        if (timeoutHandler.checkAndCancelIfNecessary()) {
+          break;
+        }
+
+        if (!isInScope(baseClass, calledMethod, myScopeType)) continue;
+
+        CallHierarchyNodeDescriptor d = methodToDescriptorMap.get(calledMethod);
+        if (d == null) {
+          d = new CallHierarchyNodeDescriptor(myProject, descriptor, calledMethod, false, false);
+          methodToDescriptorMap.put(calledMethod, d);
+          result.add(d);
+        }
+        else {
+          d.incrementUsageCount();
+        }
+      }
+
+      // also add overriding methods as children
+      if (!timeoutHandler.isCanceled()) {
+        Query<PsiMethod> query = HaxeMethodsSearch.search(method, timeoutHandler);
+        query.forEach(new Processor<PsiMethod>() {
+          @Override
+          public boolean process(PsiMethod overridingMethod) {
+            if (isInScope(baseClass, overridingMethod, myScopeType)) {
+              final CallHierarchyNodeDescriptor node =
+                new CallHierarchyNodeDescriptor(myProject, descriptor, overridingMethod, false, false);
+              if (!result.contains(node)) result.add(node);
+            }
+            return timeoutHandler.checkAndCancelIfNecessary();
+          }
+        });
+      }
+
+      return ArrayUtil.toObjectArray(result);
+
+    } finally {
+      // This is in a finally clause because a cancellation would otherwise throw
+      // right past us.
+
+      timeoutHandler.stop(); // Clean up.
+      if (timeoutHandler.isCanceled()) {
+        timeoutHandler.postCanceledDialog(myProject);
       }
     }
-
-    // also add overriding methods as children
-    final PsiMethod[] overridingMethods = OverridingMethodsSearch.search(method, true).toArray(PsiMethod.EMPTY_ARRAY);
-    for (final PsiMethod overridingMethod : overridingMethods) {
-      if (!isInScope(baseClass, overridingMethod, myScopeType)) continue;
-      final CallHierarchyNodeDescriptor node = new CallHierarchyNodeDescriptor(myProject, descriptor, overridingMethod, false, false);
-      if (!result.contains(node)) result.add(node);
-    }
-
-    return ArrayUtil.toObjectArray(result);
   }
-
-
-
 
   private static void visitor(final PsiElement element, final ArrayList<PsiMethod> methods) {
     final PsiElement[] children = element.getChildren();

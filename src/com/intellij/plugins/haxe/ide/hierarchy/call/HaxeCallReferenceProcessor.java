@@ -21,7 +21,9 @@ import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.call.CallReferenceProcessor;
 import com.intellij.ide.hierarchy.call.JavaCallHierarchyData;
 import com.intellij.ide.util.treeView.NodeDescriptor;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.psi.*;
@@ -36,9 +38,39 @@ import java.util.Set;
  * Created by ebishton on 1/9/15.  Lifted from JavaCallReferenceProcessor.
  */
 public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
+  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor");
+
+  public static class CallData extends JavaCallHierarchyData {
+    HaxeHierarchyTimeoutHandler myTimeoutHandler;
+
+    public CallData(PsiClass originalClass,
+                                 PsiMethod methodToFind,
+                                 PsiClassType originalType,
+                                 PsiMethod method,
+                                 Set<PsiMethod> methodsToFind,
+                                 NodeDescriptor nodeDescriptor,
+                                 Map<PsiMember, NodeDescriptor> resultMap,
+                                 Project project,
+                                 HaxeHierarchyTimeoutHandler timeoutHandler) {
+      super(originalClass, methodToFind, originalType, method, methodsToFind, nodeDescriptor, resultMap, project);
+      myTimeoutHandler = timeoutHandler;
+    }
+
+    public HaxeHierarchyTimeoutHandler getTimeoutHandler() {
+      return myTimeoutHandler;
+    }
+  }
+
 
   @Override
-  public boolean process(@NotNull PsiReference reference, @NotNull JavaCallHierarchyData data) {
+  public boolean process(@NotNull PsiReference reference, @NotNull JavaCallHierarchyData jchdata) {
+    if (!(jchdata instanceof CallData)) {
+      String msg = "Internal error, unexpected call data type passed in.";
+      LOG.error(msg);
+      throw new UnsupportedOperationException(msg);
+    }
+    CallData data = (CallData)jchdata;
+
     PsiClass originalClass = data.getOriginalClass();
     PsiMethod method = data.getMethod();
     Set<PsiMethod> methodsToFind = data.getMethodsToFind();
@@ -46,6 +78,12 @@ public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
     PsiClassType originalType = data.getOriginalType();
     Map<PsiMember, NodeDescriptor> methodToDescriptorMap = data.getResultMap();
     Project myProject = data.getProject();
+    HaxeHierarchyTimeoutHandler timeoutHandler = data.getTimeoutHandler();
+
+    // All done, if we time out.
+    if (timeoutHandler.checkAndCancelIfNecessary()) {
+      return false;
+    }
 
     if (reference instanceof HaxeReferenceExpression) {
       final PsiElement qualifierElement = ((HaxeReferenceExpression)reference).getQualifier();
