@@ -21,6 +21,16 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.9: (community version, TiVo WIP)</p>
+      <ul>
+        <li> Fixed Haxe command-line debugger integration for OpenFL projects that
+             are targetting C++ native runtime environments.
+        </li>
+        <li> Fixed method hierarchy runtime exceptions, and auto-scrolling to source. </li>
+        <li> Fixed type hierarchy auto-scrolling to source. </li>
+        <li> Enhanced run & debug output to be color-coded for improved readability. </li>
+        <li> Fixed find-usages regression. </li>
+      </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.8: (community version, TiVo WIP)</p>
       <ul>
         <li> More load-time optimizations using new 'haxelib list-path' command. </li>
