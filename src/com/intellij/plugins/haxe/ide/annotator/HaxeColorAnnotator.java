@@ -119,7 +119,7 @@ public class HaxeColorAnnotator implements Annotator {
         if (astNode.getElementType().equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
           holder.createInfoAnnotation(astNode, null).setTextAttributes(HaxeSyntaxHighlighterColors.BAD_CHARACTER);
         }
-        else if (astNode.getElementType().equals(HaxeTokenTypes.PPEND) || node2.getElementType().equals(HaxeTokenTypes.PPELSE)) {
+        else if (astNode.getElementType().equals(HaxeTokenTypes.PPEND) || astNode.getElementType().equals(HaxeTokenTypes.PPELSE)) {
           holder.createInfoAnnotation(astNode, null).setTextAttributes(HaxeSyntaxHighlighterColors.BAD_CHARACTER);
         }
       }
