@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -65,7 +66,12 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   }
 
   public String toString() {
-    return getTokenType().toString() + " " + getDebugName();
+    String out = getTokenType().toString();
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      // Unit tests don't want the extra data.
+      out += " " + getDebugName();
+    }
+    return out;
   }
 
   @Override

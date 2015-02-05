@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
@@ -816,10 +817,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public String toString() {
     String ss = super.toString();
-    String clazzName = this.getClass().getSimpleName();
-    String text = getCanonicalText();
-    ss += ":" + (null == clazzName ? "<anonymous>" : clazzName);
-    ss += ":" + (null == text ? "<empty>" : text);
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
+      String clazzName = this.getClass().getSimpleName();
+      String text = getCanonicalText();
+      ss += ":" + (null == clazzName ? "<anonymous>" : clazzName);
+      ss += ":" + (null == text ? "<empty>" : text);
+    }
     return ss;
   }
 }

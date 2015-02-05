@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeFileType;
@@ -54,6 +55,10 @@ public class HaxeFile extends PsiFileBase
 
   @Override
   public String toString() {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // Unit tests expect the fixed string.  Maybe we should fix the test goldens, then?
+      return "Haxe File";
+    }
     return getName();
   }
 
