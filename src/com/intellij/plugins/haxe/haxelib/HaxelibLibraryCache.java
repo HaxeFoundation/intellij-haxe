@@ -80,6 +80,10 @@ public final class HaxelibLibraryCache {
         for (String s : haxelibCmdOutput) {
             // haxelib list-path output format is, library-name:version:install/path
             final String[] haxelibProperties = s.split(":");
+            if (haxelibProperties.length < 3) continue; // avoid ArrayIndexOutOfBoundsException
+            // Note: when the class HaxelibItem is enhanced to support creating a new instance
+            // of it just from name... above line should be changed to '< 1'... also... below
+            // code should create only using element [0]... there's a TODO in HaxelibItem.java
             installedHaxelibs.add(haxelibProperties[0]);
             final HaxeClasspath classpath = new HaxeClasspath();
             classpath.add(new HaxelibItem(haxelibProperties[0], haxelibProperties[2]));
