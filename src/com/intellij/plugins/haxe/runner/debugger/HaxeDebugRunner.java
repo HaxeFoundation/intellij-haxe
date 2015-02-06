@@ -271,7 +271,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                     // indicating that the debugger is waiting for the remote
                     // process to start.
                     if (remoteDebugging) {
-                        Messages.showInfoMessage
+                        showInfoMessage
                             (project, "Listening for debugged process " +
                              "on port " + port + " ... Press OK after " +
                              "remote debugged process has started.",
@@ -461,17 +461,17 @@ public class HaxeDebugRunner extends DefaultProgramRunner
 
         private void info(String message)
         {
-            Messages.showInfoMessage(mProject, message, "Haxe Debugger");
+            showInfoMessage(mProject, message, "Haxe Debugger");
         }
 
         private void warn(String message)
         {
-            Messages.showInfoMessage(mProject, message, "Haxe Debugger Warning");
+            showInfoMessage(mProject, message, "Haxe Debugger Warning");
         }
 
         private void error(String message)
         {
-            Messages.showInfoMessage(mProject, message, "Haxe Debugger Error");
+            showInfoMessage(mProject, message, "Haxe Debugger Error");
             this.stop();
         }
 
@@ -1295,4 +1295,14 @@ public class HaxeDebugRunner extends DefaultProgramRunner
 
         return packageName.replaceAll("\\.", "/") + "/" + fileName;
     }
+
+    private static void showInfoMessage(final Project project, final String message, final String title) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                Messages.showInfoMessage(project, message, title);
+            }
+        });
+    }
+
 }
