@@ -45,7 +45,12 @@ public class HaxeImportUtil {
         if(regularImport != null) {
           final HaxeReferenceExpression referenceExpression = regularImport.getReferenceExpression();
 
-          if (null == referenceExpression || referenceExpression.resolve() == null) {
+          if (null == referenceExpression) {
+            // It's an incomplete statement.  It can't be useful.
+            return false;
+          }
+
+          if (referenceExpression.resolve() == null) {
             // don't know for sure
             return true;
           }
