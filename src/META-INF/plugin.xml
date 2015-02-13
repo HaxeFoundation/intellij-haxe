@@ -21,9 +21,18 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.12: (community version, TiVo RC1+Fixes)</p>
+      <ul>
+        <li>Auto-indent when adding curly brackets now works correctly. Fixes github tivo/intellij-haxe Issue #119. (Thanks, Jérémy!)</li>
+        <li>Fix IDE hang on completion for Haxe compiler completions.</li>
+        <li>Fix auto-adding new import statements above package declaration and/or comments.</li>
+        <li>Fix NPE when manually adding new import statements.</li>
+        <li>Put debugging dialogs on the UI thread.</li>
+        <li>Fix ArrayOutOfBounds exception when initializing haxelib cache.</li>
+      </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.11: (community version, TiVo RC1)</p>
       <ul>
-        </li>Fix NPE when colorizing.</li>
+        <li>Fix NPE when colorizing.</li>
       </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.10: (community version, TiVo WIP)</p>
       <ul>
@@ -305,7 +314,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.11: (community version, TiVo RC1)</version>
+  <version>0.8.1.1.TiVo.ClassHierarchy.12: (community version, TiVo RC1+Fixes)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
