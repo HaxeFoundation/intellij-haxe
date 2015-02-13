@@ -126,6 +126,9 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
     if (prevType == HaxeTokenTypes.PLPAREN) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
+    if (prevType == HaxeTokenTypes.PLCURLY) {
+      return new ChildAttributes(Indent.getNormalIndent(), null);
+    }
     if (isEndsWithRPAREN(elementType, prevType)) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
