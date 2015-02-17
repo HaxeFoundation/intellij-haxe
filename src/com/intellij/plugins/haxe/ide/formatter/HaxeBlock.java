@@ -135,6 +135,12 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
     if (index == 0) {
       return new ChildAttributes(Indent.getNoneIndent(), null);
     }
+    if (prevType == HaxeTokenTypes.CONDITIONAL_STATEMENT_ID || prevType == HaxeTokenTypes.PPELSE || prevType == HaxeTokenTypes.PPEND || prevType == HaxeTokenTypes.PPELSEIF) {
+      return new ChildAttributes(Indent.getNormalIndent(), null);
+    }
+    if (prevType.toString().equals("MSL_COMMENT") || prevType.toString().equals("MML_COMMENT") || prevType.toString().equals("DOC_COMMENT")) {
+      return new ChildAttributes(Indent.getNormalIndent(), null);
+    }
     return new ChildAttributes(prev.getIndent(), prev.getAlignment());
   }
 
