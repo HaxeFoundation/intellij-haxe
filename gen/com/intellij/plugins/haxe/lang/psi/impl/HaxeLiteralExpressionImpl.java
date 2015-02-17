@@ -39,4 +39,10 @@ public class HaxeLiteralExpressionImpl extends HaxeReferenceImpl implements Haxe
     else super.accept(visitor);
   }
 
+  @Override
+  @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
+  }
+
 }

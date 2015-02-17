@@ -790,7 +790,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '[' expressionList? ']'
+  // '[' (expressionList ','?)? ']'
   public static boolean arrayLiteral(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "arrayLiteral")) return false;
     if (!nextTokenIs(builder_, PLBRACK)) return false;
@@ -803,10 +803,28 @@ public class HaxeParser implements PsiParser {
     return result_;
   }
 
-  // expressionList?
+  // (expressionList ','?)?
   private static boolean arrayLiteral_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "arrayLiteral_1")) return false;
-    expressionList(builder_, level_ + 1);
+    arrayLiteral_1_0(builder_, level_ + 1);
+    return true;
+  }
+
+  // expressionList ','?
+  private static boolean arrayLiteral_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "arrayLiteral_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = expressionList(builder_, level_ + 1);
+    result_ = result_ && arrayLiteral_1_0_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // ','?
+  private static boolean arrayLiteral_1_0_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "arrayLiteral_1_0_1")) return false;
+    consumeToken(builder_, OCOMMA);
     return true;
   }
 
@@ -3241,6 +3259,7 @@ public class HaxeParser implements PsiParser {
   //                     | arrayLiteral
   //                     | objectLiteral
   //                     | stringLiteralExpression
+  //                     | blockStatement
   public static boolean literalExpression(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "literalExpression")) return false;
     if (!nextTokenIs(builder_, "<literal expression>", PLBRACK, KFALSE,
@@ -3260,6 +3279,7 @@ public class HaxeParser implements PsiParser {
     if (!result_) result_ = arrayLiteral(builder_, level_ + 1);
     if (!result_) result_ = objectLiteral(builder_, level_ + 1);
     if (!result_) result_ = stringLiteralExpression(builder_, level_ + 1);
+    if (!result_) result_ = blockStatement(builder_, level_ + 1);
     exit_section_(builder_, level_, marker_, LITERAL_EXPRESSION, result_, false, null);
     return result_;
   }

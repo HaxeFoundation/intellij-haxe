@@ -25,4 +25,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeLiteralExpression extends HaxeExpression, HaxeReference {
 
+  @Nullable
+  HaxeBlockStatement getBlockStatement();
+
 }
