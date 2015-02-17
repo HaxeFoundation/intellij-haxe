@@ -68,15 +68,16 @@ public class HaxeClassResolveResult implements Cloneable {
       resolveResult = new HaxeClassResolveResult(aClass);
       HaxeClassResolveCache.getInstance(aClass.getProject()).put(aClass, resolveResult);
 
-      HaxeGenericParam genericParam = aClass.getGenericParam();
+      final HaxeGenericParam genericParam = aClass.getGenericParam();
       List<HaxeGenericListPart> genericListPartList = genericParam != null ?
                                                       genericParam.getGenericListPartList() :
                                                       Collections.<HaxeGenericListPart>emptyList();
       for (HaxeGenericListPart genericListPart : genericListPartList) {
-        HaxeComponentName componentName = genericListPart.getComponentName();
-        HaxeTypeListPart typeListPart = genericListPart.getTypeListPart();
-        HaxeTypeOrAnonymous typeOrAnonymous = typeListPart != null ? typeListPart.getTypeOrAnonymous() : null;
-        HaxeType specializedType = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
+        final HaxeComponentName componentName = genericListPart.getComponentName();
+        final HaxeTypeListPart typeListPart = genericListPart.getTypeListPart();
+        final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
+        final HaxeTypeOrAnonymous typeOrAnonymous = ((typeOrAnonymousList != null) ? typeOrAnonymousList.get(0) : null);
+        final HaxeType specializedType = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
         if (specializedType != null) {
           resolveResult.specialization.put(aClass,
                                            componentName.getName(),
@@ -146,12 +147,14 @@ public class HaxeClassResolveResult implements Cloneable {
     final HaxeTypeList typeList = param.getTypeList();
     int size = Math.min(genericParam.getGenericListPartList().size(), typeList.getTypeListPartList().size());
     for (int i = 0; i < size; i++) {
-      HaxeGenericListPart haxeGenericListPart = genericParam.getGenericListPartList().get(i);
-      final HaxeTypeOrAnonymous typeOrAnonymous = typeList.getTypeListPartList().get(i).getTypeOrAnonymous();
-      final HaxeType specializedType = typeOrAnonymous == null ? null : typeOrAnonymous.getType();
-      if (haxeGenericListPart.getText() == null || specializedType == null) continue;
+      final HaxeGenericListPart genericListPart = genericParam.getGenericListPartList().get(i);
+      final HaxeTypeListPart typeListPart = typeList.getTypeListPartList().get(i);
+      final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
+      final HaxeTypeOrAnonymous typeOrAnonymous = ((typeOrAnonymousList != null) ? typeOrAnonymousList.get(0) : null);
+      final HaxeType specializedType = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
+      if (genericListPart.getText() == null || specializedType == null) continue;
       specialization
-        .put(haxeClass, haxeGenericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization));
+        .put(haxeClass, genericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization));
     }
   }
 

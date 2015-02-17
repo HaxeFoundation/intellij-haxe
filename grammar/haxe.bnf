@@ -328,11 +328,11 @@ constructorName ::= 'new'
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
+externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
+functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? ';'
+functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
@@ -557,7 +557,7 @@ thisExpression ::= 'this'
 superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-newExpression ::= 'new' type '(' expressionList? ')'
+newExpression ::= 'new' type '(' expressionList? ')' ';'?
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)

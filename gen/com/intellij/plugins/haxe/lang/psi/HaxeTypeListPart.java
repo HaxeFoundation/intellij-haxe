@@ -25,10 +25,10 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeTypeListPart extends HaxeTypeListPartPsiMixin {
 
-  @Nullable
-  HaxeFunctionType getFunctionType();
+  @NotNull
+  List<HaxeFunctionType> getFunctionTypeList();
 
-  @Nullable
-  HaxeTypeOrAnonymous getTypeOrAnonymous();
+  @NotNull
+  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
 
 }

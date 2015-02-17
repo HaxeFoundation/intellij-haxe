@@ -34,11 +34,8 @@ public interface HaxeExternFunctionDeclaration extends HaxeMethod {
   @NotNull
   List<HaxeBuildMacro> getBuildMacroList();
 
-  @Nullable
+  @NotNull
   HaxeComponentName getComponentName();
-
-  @Nullable
-  HaxeConstructorName getConstructorName();
 
   @NotNull
   List<HaxeCustomMeta> getCustomMetaList();

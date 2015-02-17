@@ -58,15 +58,9 @@ public class HaxeExternFunctionDeclarationImpl extends HaxeMethodImpl implements
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeComponentName getComponentName() {
-    return findChildByClass(HaxeComponentName.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeConstructorName getConstructorName() {
-    return findChildByClass(HaxeConstructorName.class);
+    return findNotNullChildByClass(HaxeComponentName.class);
   }
 
   @Override

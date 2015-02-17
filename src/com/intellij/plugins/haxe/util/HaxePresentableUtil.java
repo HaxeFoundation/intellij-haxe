@@ -86,7 +86,8 @@ public class HaxePresentableUtil {
   public static String buildTypeText(HaxeNamedComponent element,
                                      @Nullable HaxeTypeListPart typeTag,
                                      HaxeGenericSpecialization specializations) {
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    final List<HaxeTypeOrAnonymous> haxeTypeOrAnonymousList = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = haxeTypeOrAnonymousList.get(0);
     if (typeOrAnonymous == null) {
       return "";
     }
