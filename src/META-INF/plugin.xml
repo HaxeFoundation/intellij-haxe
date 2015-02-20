@@ -470,6 +470,11 @@
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspection.preprocessor.symbol.name"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxePreprocessorInspection"/>
+
     <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
     <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
     <methodHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyProvider"/>
