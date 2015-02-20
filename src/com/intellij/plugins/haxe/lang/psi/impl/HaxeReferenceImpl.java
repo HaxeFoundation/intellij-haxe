@@ -33,17 +33,13 @@ import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.PsiManagerEx;
-import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.*;
-import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.CharTable;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
@@ -52,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -97,18 +92,19 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
     List<PsiElement> result = new ArrayList<PsiElement>();
     for (PsiElement element : nameList) {
-      PsiElement parent = element.getParent();
-      if (null != parent && parent.isValid()) {
-
-        if (parent instanceof PsiPackage) {
+      PsiElement elementToAdd = element;
+      if (element instanceof HaxeComponentName) {
+        PsiElement parent = element.getParent();
+        if (null != parent && parent.isValid()) {
           // Don't look for package parents. It turns 'com' into 'com.xx'.
           // XXX: May need to walk the tree until we get to the PACKAGE_STATEMENT
           // element;
-          result.add(element);
-        } else {
-          result.add(parent);
+          if (!(parent instanceof PsiPackage)) {
+            elementToAdd = parent;
+          }
         }
       }
+      result.add(elementToAdd);
     }
     return result;
   }
@@ -555,15 +551,30 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public boolean isReferenceTo(PsiElement element) {
+    //final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
+    //if (element instanceof HaxeFile &&
+    //    resolve instanceof HaxeComponentName &&
+    //    resolve.getParent() instanceof HaxeClass) {
+    //  return element == resolve.getContainingFile();
+    //}
+    //final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
+    //final boolean chain = references != null && references.length == 2;
+    //return !chain && resolve == element;
+
+
+    // Resolving is (relatively) expensive, so if we're going to ignore the answer anyway, then don't bother.
+    if (!(element instanceof HaxeFile)) {
+      final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
+      final boolean chain = references != null && references.length == 2;
+      if (chain) return false;
+    }
     final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
     if (element instanceof HaxeFile &&
         resolve instanceof HaxeComponentName &&
         resolve.getParent() instanceof HaxeClass) {
       return element == resolve.getContainingFile();
     }
-    final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
-    final boolean chain = references != null && references.length == 2;
-    return !chain && resolve == element;
+    return resolve == element;
   }
 
   @NotNull
@@ -821,8 +832,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
       String clazzName = this.getClass().getSimpleName();
       String text = getCanonicalText();
+      ss += ":" + (null == text ? "<no text>" : text);
       ss += ":" + (null == clazzName ? "<anonymous>" : clazzName);
-      ss += ":" + (null == text ? "<empty>" : text);
     }
     return ss;
   }
