@@ -347,7 +347,9 @@ public class HaxeResolveUtil {
       @Override
       public HaxeType fun(HaxeParameter parameter) {
         final HaxeTypeTag typeTag = parameter.getTypeTag();
-        return typeTag == null ? null : typeTag.getTypeOrAnonymous().getType();
+        if (null == typeTag) return null;
+        final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymousList().get(0);
+        return (null == typeOrAnonymous) ? null : typeOrAnonymous.getType();
       }
     });
   }
@@ -421,9 +423,10 @@ public class HaxeResolveUtil {
   public static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag == null ? null : typeTag.getTypeOrAnonymous();
-    final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() :
-                          element instanceof HaxeType ? (HaxeType)element : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = ((typeTag != null) && (typeTag.getTypeOrAnonymousList().size() > 0)) ?
+                                                typeTag.getTypeOrAnonymousList().get(0) : null;
+    final HaxeType type = (typeOrAnonymous != null) ? typeOrAnonymous.getType() :
+                            ((element instanceof HaxeType) ? (HaxeType)element : null);
 
     HaxeClass haxeClass = type == null ? null : tryResolveClassByQName(type);
     if (haxeClass == null && type != null && specialization.containsKey(element, type.getText())) {
@@ -436,8 +439,8 @@ public class HaxeResolveUtil {
       return result;
     }
 
-    if (typeTag != null) {
-      return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
+    if ((typeTag != null) && (typeTag.getFunctionTypeList().size() > 0)) {
+      return tryResolveFunctionType(typeTag.getFunctionTypeList().get(0), specialization);
     }
 
     return HaxeClassResolveResult.EMPTY;

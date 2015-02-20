@@ -131,10 +131,13 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @NotNull
   @Override
   public PsiType getType() {
-    HaxeTypeTag haxeTypeTag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
-    HaxeTypeOrAnonymous toa = (null == haxeTypeTag) ? null : haxeTypeTag.getTypeOrAnonymous();
-    HaxeType type = (null == toa) ? null : toa.getType();
-    PsiType psiType = (null == type) ? null : type.getPsiType();
+    PsiType                     psiType   = null;
+    final HaxeTypeTag           tag       = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
+    if (tag != null) {
+      final HaxeTypeOrAnonymous toa       = (tag.getTypeOrAnonymousList().size() > 0) ? tag.getTypeOrAnonymousList().get(0) : null;
+      final HaxeType            type      = (toa != null) ? toa.getType() : null;
+      psiType                             = (type != null) ? type.getPsiType() : null;
+    }
     return psiType;
   }
 

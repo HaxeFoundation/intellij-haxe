@@ -3810,7 +3810,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'new' type '(' expressionList? ')' ';'?
+  // 'new' type '(' expressionList? ')'
   public static boolean newExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "newExpression")) return false;
     if (!nextTokenIs(b, ONEW)) return false;
@@ -3821,8 +3821,7 @@ public class HaxeParser implements PsiParser {
     p = r; // pin = 2
     r = r && report_error_(b, consumeToken(b, PLPAREN));
     r = p && report_error_(b, newExpression_3(b, l + 1)) && r;
-    r = p && report_error_(b, consumeToken(b, PRPAREN)) && r;
-    r = p && newExpression_5(b, l + 1) && r;
+    r = p && consumeToken(b, PRPAREN) && r;
     exit_section_(b, l, m, NEW_EXPRESSION, r, p, null);
     return r || p;
   }
@@ -3831,13 +3830,6 @@ public class HaxeParser implements PsiParser {
   private static boolean newExpression_3(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "newExpression_3")) return false;
     expressionList(b, l + 1);
-    return true;
-  }
-
-  // ';'?
-  private static boolean newExpression_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "newExpression_5")) return false;
-    consumeToken(b, OSEMI);
     return true;
   }
 

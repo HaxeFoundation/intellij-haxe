@@ -70,9 +70,9 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(")");
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    if (typeTag != null) {
+    if ((typeTag != null) && (typeTag.getTypeOrAnonymousList().size() > 0)) {
       result.append(":");
-      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymous().getType(), specializations));
+      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymousList().get(0).getType(), specializations));
     }
     result.append(componentType == HaxeComponentType.FIELD ? ";" : "{\n}");
     return result.toString();

@@ -557,7 +557,7 @@ thisExpression ::= 'this'
 superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-newExpression ::= 'new' type '(' expressionList? ')' ';'?
+newExpression ::= 'new' type '(' expressionList? ')' 
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)

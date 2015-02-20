@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -101,7 +102,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
           final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
-          final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+          final List<HaxeTypeOrAnonymous> listOfTypeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
+          final HaxeTypeOrAnonymous typeOrAnonymous = ((listOfTypeOrAnonymous != null) && (listOfTypeOrAnonymous.size() > 0)) ? listOfTypeOrAnonymous.get(0) : null;
           if (typeOrAnonymous != null) {
             result.append(":");
             result.append(HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeOrAnonymous.getType()));
@@ -141,8 +143,9 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Override
   public HaxeNamedComponent getTypeComponent() {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
-    final HaxeType type = typeTag == null ? null : typeTag.getTypeOrAnonymous().getType();
-    final PsiReference reference = type == null ? null : type.getReference();
+    final List<HaxeTypeOrAnonymous> listOfType = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
+    final HaxeType type = ((listOfType != null) && (listOfType.size() > 0)) ? listOfType.get(0).getType() : null;
+    final PsiReference reference = type != null ? type.getReference() : null;
     if (reference != null) {
       final PsiElement result = reference.resolve();
       if (result instanceof HaxeNamedComponent) {
