@@ -102,8 +102,9 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
           final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
-          final List<HaxeTypeOrAnonymous> listOfTypeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
-          final HaxeTypeOrAnonymous typeOrAnonymous = ((listOfTypeOrAnonymous != null) && (listOfTypeOrAnonymous.size() > 0)) ? listOfTypeOrAnonymous.get(0) : null;
+          //final List<HaxeTypeOrAnonymous> listOfTypeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
+          //final HaxeTypeOrAnonymous typeOrAnonymous = ((listOfTypeOrAnonymous != null) && (listOfTypeOrAnonymous.size() > 0)) ? listOfTypeOrAnonymous.get(0) : null;
+          final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
           if (typeOrAnonymous != null) {
             result.append(":");
             result.append(HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeOrAnonymous.getType()));
@@ -143,8 +144,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Override
   public HaxeNamedComponent getTypeComponent() {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
-    final List<HaxeTypeOrAnonymous> listOfType = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
-    final HaxeType type = ((listOfType != null) && (listOfType.size() > 0)) ? listOfType.get(0).getType() : null;
+    //final List<HaxeTypeOrAnonymous> listOfType = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
+    //final HaxeType type = ((listOfType != null) && (listOfType.size() > 0)) ? listOfType.get(0).getType() : null;
+    HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
     final PsiReference reference = type != null ? type.getReference() : null;
     if (reference != null) {
       final PsiElement result = reference.resolve();

@@ -280,7 +280,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     HaxeTypeParam               param   = null;
     final HaxeTypeTag           tag     = (HaxeTypeTag) findChildByType(HaxeTokenTypes.TYPE_TAG);
     if (tag != null) {
-      final HaxeTypeOrAnonymous toa     = (tag.getTypeOrAnonymousList().size() > 0) ? tag.getTypeOrAnonymousList().get(0) : null;
+      //final HaxeTypeOrAnonymous toa     = (tag.getTypeOrAnonymousList().size() > 0) ? tag.getTypeOrAnonymousList().get(0) : null;
+      final HaxeTypeOrAnonymous toa     = (tag.getTypeOrAnonymous() != null) ? tag.getTypeOrAnonymous() : null;
       final HaxeType            type    = (toa != null) ? toa.getType() : null;
       param                             = (type != null) ? type.getTypeParam() : null;// XXX: Java<->Haxe list & type inversion -- See BNF.
     }

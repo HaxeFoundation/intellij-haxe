@@ -134,10 +134,10 @@ public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements Haxe
   }
 
   // HaxeLiteralExpression
-  @Nullable
-  @Override
-  public HaxeBlockStatement getBlockStatement() {
-    return HaxeStatementUtils.getBlockStatement(this);
-  }
+  //@Nullable
+  //@Override
+  //public HaxeBlockStatement getBlockStatement() {
+  //  return HaxeStatementUtils.getBlockStatement(this);
+  //}
 
 }
