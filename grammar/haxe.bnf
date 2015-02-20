@@ -260,8 +260,8 @@ private topLevelDeclaration ::= classDeclaration
 privateKeyWord ::= 'private'
 externOrPrivate ::= 'extern' | privateKeyWord
 
-typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
+{pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}

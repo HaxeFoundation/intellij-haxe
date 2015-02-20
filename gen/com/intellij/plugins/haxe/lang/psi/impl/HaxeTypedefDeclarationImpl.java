@@ -40,9 +40,9 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeComponentName getComponentName() {
-    return findChildByClass(HaxeComponentName.class);
+    return findNotNullChildByClass(HaxeComponentName.class);
   }
 
   @Override
@@ -61,6 +61,12 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
   @Nullable
   public HaxeGenericParam getGenericParam() {
     return findChildByClass(HaxeGenericParam.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeMacroClassList getMacroClassList() {
+    return findChildByClass(HaxeMacroClassList.class);
   }
 
   @Override
