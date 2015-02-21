@@ -5455,41 +5455,48 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
+  // macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
   public static boolean typedefDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "typedefDeclaration")) return false;
-    if (!nextTokenIs(b, "<typedef declaration>", KEXTERN, KPRIVATE, KTYPEDEF)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<typedef declaration>");
     r = typedefDeclaration_0(b, l + 1);
+    r = r && typedefDeclaration_1(b, l + 1);
     r = r && consumeToken(b, KTYPEDEF);
-    p = r; // pin = 2
-    r = r && report_error_(b, componentName(b, l + 1));
-    r = p && report_error_(b, typedefDeclaration_3(b, l + 1)) && r;
-    r = p && report_error_(b, consumeToken(b, OASSIGN)) && r;
+    r = r && componentName(b, l + 1);
+    r = r && typedefDeclaration_4(b, l + 1);
+    p = r; // pin = 5
+    r = r && report_error_(b, consumeToken(b, OASSIGN));
     r = p && report_error_(b, functionTypeWrapper(b, l + 1)) && r;
-    r = p && typedefDeclaration_6(b, l + 1) && r;
+    r = p && typedefDeclaration_7(b, l + 1) && r;
     exit_section_(b, l, m, TYPEDEF_DECLARATION, r, p, null);
     return r || p;
   }
 
-  // externOrPrivate?
+  // macroClassList?
   private static boolean typedefDeclaration_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "typedefDeclaration_0")) return false;
+    macroClassList(b, l + 1);
+    return true;
+  }
+
+  // externOrPrivate?
+  private static boolean typedefDeclaration_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typedefDeclaration_1")) return false;
     externOrPrivate(b, l + 1);
     return true;
   }
 
   // genericParam?
-  private static boolean typedefDeclaration_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "typedefDeclaration_3")) return false;
+  private static boolean typedefDeclaration_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typedefDeclaration_4")) return false;
     genericParam(b, l + 1);
     return true;
   }
 
   // ';'?
-  private static boolean typedefDeclaration_6(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "typedefDeclaration_6")) return false;
+  private static boolean typedefDeclaration_7(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typedefDeclaration_7")) return false;
     consumeToken(b, OSEMI);
     return true;
   }
