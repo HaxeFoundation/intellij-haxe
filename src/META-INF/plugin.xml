@@ -21,6 +21,16 @@
   <description>Support for Haxe programming language</description>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.13: (community version, TiVo RC2)</p>
+      <ul>
+        <li>Resolve 'convenience' imports that do not export a class named similarly to the file. (TiVo Issue #55)</li>
+        <li>Update unbalanced preprocessor token highlighting and detection.</li>
+        <li>Improve indentation of comments and preprocessor macros.</li>
+        <li>Update for Grammar-Kit 1.2.0.1 </li>
+        <li>Fixed syntax rules (BNF) for constructors and external functions.</li>
+        <li>Fixed syntax rules (BNF) for code blocks; removed them from being valid syntax everywhere an expression can appear.</li>
+        <li>Fixed syntax rules (BNF) to allow meta tags on typedefs.</li>
+      </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.12: (community version, TiVo RC1+Fixes)</p>
       <ul>
         <li>Auto-indent when adding curly brackets now works correctly. Fixes github tivo/intellij-haxe Issue #119. (Thanks, Jérémy!)</li>
@@ -314,7 +324,7 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.12: (community version, TiVo RC1+Fixes)</version>
+  <version>0.8.1.1.TiVo.ClassHierarchy.13: (community version, TiVo RC2)</version>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400"/>
   <depends>com.intellij.modules.lang</depends>
