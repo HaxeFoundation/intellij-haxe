@@ -348,7 +348,7 @@ public class HaxeResolveUtil {
       public HaxeType fun(HaxeParameter parameter) {
         final HaxeTypeTag typeTag = parameter.getTypeTag();
         if (null == typeTag) return null;
-        final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymousList().get(0);
+        final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
         return (null == typeOrAnonymous) ? null : typeOrAnonymous.getType();
       }
     });
@@ -423,8 +423,7 @@ public class HaxeResolveUtil {
   public static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = ((typeTag != null) && (typeTag.getTypeOrAnonymousList().size() > 0)) ?
-                                                typeTag.getTypeOrAnonymousList().get(0) : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = (typeOrAnonymous != null) ? typeOrAnonymous.getType() :
                             ((element instanceof HaxeType) ? (HaxeType)element : null);
 
@@ -439,8 +438,8 @@ public class HaxeResolveUtil {
       return result;
     }
 
-    if ((typeTag != null) && (typeTag.getFunctionTypeList().size() > 0)) {
-      return tryResolveFunctionType(typeTag.getFunctionTypeList().get(0), specialization);
+    if (typeTag != null) {
+      return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
     }
 
     return HaxeClassResolveResult.EMPTY;
