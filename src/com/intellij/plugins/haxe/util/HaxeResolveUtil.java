@@ -438,7 +438,7 @@ public class HaxeResolveUtil {
       return result;
     }
 
-    if ((typeTag != null) && (typeTag.getFunctionType() != null)) {
+    if (typeTag != null) {
       return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
     }
 

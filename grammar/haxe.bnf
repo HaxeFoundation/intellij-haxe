@@ -358,7 +358,6 @@ private functionTypeWrapper ::= functionTypeOrWrapper functionType*
 private functionTypeOrWrapper ::= typeOrAnonymous | '(' functionTypeWrapper ')'
 left functionType ::= '->' '?'? typeOrAnonymous
 
-
 /*
  * Haxe and Java have this backward from each other.
  *
@@ -372,6 +371,7 @@ left functionType ::= '->' '?'? typeOrAnonymous
  * There is a PsiTypeElement class that /is/ part of the tree, though it's pretty low-level.
  *
  */
+
 typeTag ::= ':' functionTypeWrapper
 typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
@@ -390,7 +390,6 @@ private statement_recovery ::= !('case' | 'default' | '}')
 
 private statement ::= blockStatement | notBlockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
-
 
 private notBlockStatement ::= ('untyped' statement ';'?)
                             | ('macro' statement ';'?)
@@ -518,7 +517,6 @@ stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry
 shortTemplateEntry ::= SHORT_TEMPLATE_ENTRY_START (thisExpression | referenceExpression) {pin=1}
 longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1}
 
-
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
@@ -593,10 +591,3 @@ private object_literal_list_recover ::= !('}')
 
 objectLiteralElement ::= identifier ':' expression {recoverWhile="object_literal_part_recover"}
 private object_literal_part_recover ::= !(',' | '}')
-
-
-
-
-
-
-
