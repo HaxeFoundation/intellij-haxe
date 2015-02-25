@@ -19,8 +19,19 @@
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Support</name>
   <description>Support for Haxe programming language</description>
+  <vendor>JetBrains, Haxe community</vendor>
+  <idea-version since-build="132.400"/>
+  <depends>com.intellij.modules.lang</depends>
+  <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
+  <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
+
+  <version>0.8.1.1.TiVo.ClassHierarchy.14: (community version, TiVo RC3)</version>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.14: (community version, TiVo RC3)</p>
+      <ul>
+        <li>Fixed NPE causing the structure view to not populate, resulting from an errant merge.</li>
+      <ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.13: (community version, TiVo RC2)</p>
       <ul>
         <li>Resolve 'convenience' imports that do not export a class named similarly to the file. (TiVo Issue #55)</li>
@@ -324,12 +335,6 @@
       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.13: (community version, TiVo RC2)</version>
-  <vendor>JetBrains, Haxe community</vendor>
-  <idea-version since-build="132.400"/>
-  <depends>com.intellij.modules.lang</depends>
-  <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
-  <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
   <application-components>
     <!-- Add your application components here -->
