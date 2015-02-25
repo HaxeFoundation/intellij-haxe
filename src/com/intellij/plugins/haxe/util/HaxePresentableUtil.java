@@ -107,22 +107,22 @@ public class HaxePresentableUtil {
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
     if (typeTag != null)
     {
-      final HaxeFunctionType haxeFunctionType = (typeTag.getFunctionType() != null) ? null :
+      final HaxeFunctionType haxeFunctionType = (typeTag.getFunctionType() == null) ? null :
                                                 typeTag.getFunctionType().getFunctionType();
       if (haxeFunctionType != null) {
         return buildTypeText(element, haxeFunctionType, specialization);
       }
 
       final HaxeTypeOrAnonymous haxeTypeOrAnonymous = typeTag.getTypeOrAnonymous();
-
-      final HaxeAnonymousType anonymousType = (haxeTypeOrAnonymous != null) ? haxeTypeOrAnonymous.getAnonymousType() : null;
-      if (anonymousType != null) {
-        return anonymousType.getText();
-      }
-
-      final HaxeType haxeType = (haxeTypeOrAnonymous != null) ? haxeTypeOrAnonymous.getType() : null;
-      if (haxeType != null) {
-        return buildTypeText(element, haxeType, specialization);
+      if (haxeTypeOrAnonymous != null) {
+        final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous.getAnonymousType();
+        if (anonymousType != null) {
+          return anonymousType.getText();
+        }
+        final HaxeType haxeType = haxeTypeOrAnonymous.getType();
+        if (haxeType != null) {
+          return buildTypeText(element, haxeType, specialization);
+        }
       }
     }
     return "";
