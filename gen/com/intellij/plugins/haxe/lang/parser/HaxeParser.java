@@ -3885,7 +3885,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !(')' | '}' | ';')
+  // !(')' | '}' | ';' | '.')
   static boolean new_recovery(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "new_recovery")) return false;
     boolean r;
@@ -3895,7 +3895,7 @@ public class HaxeParser implements PsiParser {
     return r;
   }
 
-  // ')' | '}' | ';'
+  // ')' | '}' | ';' | '.'
   private static boolean new_recovery_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "new_recovery_0")) return false;
     boolean r;
@@ -3903,6 +3903,7 @@ public class HaxeParser implements PsiParser {
     r = consumeToken(b, PRPAREN);
     if (!r) r = consumeToken(b, PRCURLY);
     if (!r) r = consumeToken(b, OSEMI);
+    if (!r) r = consumeToken(b, ODOT);
     exit_section_(b, m, null, r);
     return r;
   }
