@@ -555,8 +555,9 @@ thisExpression ::= 'this'
 superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-newExpression ::= 'new' type '(' expressionList? ')' 
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+newExpression ::= 'new' type '(' (expression (',' expression)*)? ')'
+{pin=2 recoverWhile="new_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+private new_recovery ::= !(')' | '}' | ';')
 
 castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}

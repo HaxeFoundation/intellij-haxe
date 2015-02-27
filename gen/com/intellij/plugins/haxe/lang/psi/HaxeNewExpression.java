@@ -25,8 +25,8 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeNewExpression extends HaxeExpression, HaxeReference {
 
-  @Nullable
-  HaxeExpressionList getExpressionList();
+  @NotNull
+  List<HaxeExpression> getExpressionList();
 
   @NotNull
   HaxeType getType();

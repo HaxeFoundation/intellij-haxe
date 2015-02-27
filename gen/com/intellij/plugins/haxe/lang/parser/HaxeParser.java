@@ -3808,27 +3808,60 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'new' type '(' expressionList? ')'
+  // 'new' type '(' (expression (',' expression)*)? ')'
   public static boolean newExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "newExpression")) return false;
-    if (!nextTokenIs(b, ONEW)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_, "<new expression>");
     r = consumeToken(b, ONEW);
     r = r && type(b, l + 1);
     p = r; // pin = 2
     r = r && report_error_(b, consumeToken(b, PLPAREN));
     r = p && report_error_(b, newExpression_3(b, l + 1)) && r;
     r = p && consumeToken(b, PRPAREN) && r;
-    exit_section_(b, l, m, NEW_EXPRESSION, r, p, null);
+    exit_section_(b, l, m, NEW_EXPRESSION, r, p, new_recovery_parser_);
     return r || p;
   }
 
-  // expressionList?
+  // (expression (',' expression)*)?
   private static boolean newExpression_3(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "newExpression_3")) return false;
-    expressionList(b, l + 1);
+    newExpression_3_0(b, l + 1);
     return true;
+  }
+
+  // expression (',' expression)*
+  private static boolean newExpression_3_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "newExpression_3_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = expression(b, l + 1);
+    r = r && newExpression_3_0_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // (',' expression)*
+  private static boolean newExpression_3_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "newExpression_3_0_1")) return false;
+    int c = current_position_(b);
+    while (true) {
+      if (!newExpression_3_0_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "newExpression_3_0_1", c)) break;
+      c = current_position_(b);
+    }
+    return true;
+  }
+
+  // ',' expression
+  private static boolean newExpression_3_0_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "newExpression_3_0_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, OCOMMA);
+    r = r && expression(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -3849,6 +3882,29 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "newExpressionOrCall_1")) return false;
     qualifiedReferenceTail(b, l + 1);
     return true;
+  }
+
+  /* ********************************************************** */
+  // !(')' | '}' | ';')
+  static boolean new_recovery(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "new_recovery")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_, null);
+    r = !new_recovery_0(b, l + 1);
+    exit_section_(b, l, m, null, r, false, null);
+    return r;
+  }
+
+  // ')' | '}' | ';'
+  private static boolean new_recovery_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "new_recovery_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, PRPAREN);
+    if (!r) r = consumeToken(b, PRCURLY);
+    if (!r) r = consumeToken(b, OSEMI);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -5858,6 +5914,11 @@ public class HaxeParser implements PsiParser {
   final static Parser local_var_declaration_part_recover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return local_var_declaration_part_recover(b, l + 1);
+    }
+  };
+  final static Parser new_recovery_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return new_recovery(b, l + 1);
     }
   };
   final static Parser object_literal_list_recover_parser_ = new Parser() {
