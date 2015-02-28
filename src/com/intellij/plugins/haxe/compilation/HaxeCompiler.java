@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.ExecutorRegistry;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -26,38 +27,29 @@ import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
-import com.intellij.openapi.vcs.FileStatus;
-import com.intellij.openapi.vcs.FileStatusManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
-import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
+import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
-import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.util.PathUtil;
 
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class HaxeCompiler implements SourceProcessingCompiler {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompiler");
@@ -83,7 +75,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   @Override
   public ProcessingItem[] getProcessingItems(CompileContext context) {
     final List<ProcessingItem> itemList = new ArrayList<ProcessingItem>();
-    for (final Module module : getModulesToCompile(context.getCompileScope() /*, context.getProject() */ )) {
+    for (final Module module : getModulesToCompile(context.getCompileScope() /*, context.getProject() */)) {
       itemList.add(new MyProcessingItem(module));
     }
     return itemList.toArray(new ProcessingItem[itemList.size()]);
@@ -125,23 +117,27 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   @Override
   public ProcessingItem[] process(CompileContext context, ProcessingItem[] items) {
     final RunConfiguration runConfiguration = CompileStepBeforeRun.getRunConfiguration(context.getCompileScope());
-    if (runConfiguration instanceof HaxeApplicationConfiguration) {
-      return run(context, items, (HaxeApplicationConfiguration)runConfiguration);
+    if (runConfiguration instanceof ModuleBasedConfiguration) {
+      return run(context, items, (ModuleBasedConfiguration)runConfiguration);
     }
     return make(context, items);
   }
 
   private static ProcessingItem[] run(CompileContext context,
                                       ProcessingItem[] items,
-                                      HaxeApplicationConfiguration haxeApplicationConfiguration) {
-    final Module module = haxeApplicationConfiguration.getConfigurationModule().getModule();
+                                      ModuleBasedConfiguration configuration) {
+    final Module module = configuration.getConfigurationModule().getModule();
     if (module == null) {
       context.addMessage(CompilerMessageCategory.ERROR,
-                         HaxeBundle.message("no.module.for.run.configuration", haxeApplicationConfiguration.getName()), null, -1, -1);
+                         HaxeBundle.message("no.module.for.run.configuration", configuration.getName()), null, -1, -1);
       return ProcessingItem.EMPTY_ARRAY;
     }
-    if (compileModule(context, module)) {
-      final int index = findProcessingItemIndexByModule(items, haxeApplicationConfiguration.getConfigurationModule());
+    HaxeCommonCompilerUtil.CompilationContext compilationContext = createCompilationContext(context, module, configuration);
+
+
+
+    if (compileModule(context, compilationContext)) {
+      final int index = findProcessingItemIndexByModule(items, configuration.getConfigurationModule());
       if (index != -1) {
         return new ProcessingItem[]{items[index]};
       }
@@ -156,20 +152,34 @@ public class HaxeCompiler implements SourceProcessingCompiler {
         continue;
       }
       final MyProcessingItem myProcessingItem = (MyProcessingItem)processingItem;
-      if (compileModule(context, myProcessingItem.myModule)) {
+      if (compileModule(context, createCompilationContext(context, myProcessingItem.myModule, null))) {
         result.add(processingItem);
       }
     }
     return result.toArray(new ProcessingItem[result.size()]);
   }
 
-  private static boolean compileModule(final CompileContext context, @NotNull final Module module) {
+  private static boolean compileModule(final CompileContext context, @NotNull final HaxeCommonCompilerUtil.CompilationContext compilationContext) {
 
     /*
     if ((skipBuildMap.get(module) != null) && (skipBuildMap.get(module).booleanValue())) {
       return false;
     }
     */
+
+
+    boolean compiled = HaxeCommonCompilerUtil.compile(compilationContext);
+
+    if (!compiled) {
+      context.addMessage(CompilerMessageCategory.ERROR, "Compilation failed", null, 0, 0);
+    }
+
+    return compiled;
+  }
+
+  private static HaxeCommonCompilerUtil.CompilationContext createCompilationContext(final CompileContext context,
+                                                                                    final Module module,
+                                                                                    ModuleBasedConfiguration configuration) {
 
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final boolean isDebug = ExecutorRegistry.getInstance()
@@ -178,9 +188,18 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     final Sdk sdk = moduleRootManager.getSdk();
     if (sdk == null) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.sdk.for.module", module.getName()), null, -1, -1);
-      return false;
+      return null;
     }
-    boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+
+    HaxeTestsConfiguration haxeTestsConfiguration = null;
+
+    if(configuration != null && configuration instanceof HaxeTestsConfiguration) {
+      haxeTestsConfiguration = (HaxeTestsConfiguration)configuration;
+    }
+
+    final HaxeTestsConfiguration finalHaxeTestsConfiguration = haxeTestsConfiguration;
+
+    return new HaxeCommonCompilerUtil.CompilationContext() {
       private String myErrorRoot;
 
       @NotNull
@@ -192,6 +211,16 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       @Override
       public String getModuleName() {
         return module.getName();
+      }
+
+      @Override
+      public String getCompilationClass() {
+        return getIsTestBuild() ? finalHaxeTestsConfiguration.getRunnerClass() : getModuleSettings().getMainClass();
+      }
+
+      @Override
+      public Boolean getIsTestBuild() {
+        return finalHaxeTestsConfiguration != null;
       }
 
       @Override
@@ -263,13 +292,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       public String getModuleDirPath() {
         return PathUtil.getParentPath(module.getModuleFilePath());
       }
-    });
-
-    if (!compiled) {
-      context.addMessage(CompilerMessageCategory.ERROR, "Compilation failed", null, 0, 0);
-    }
-
-    return compiled;
+    };
   }
 
   private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {

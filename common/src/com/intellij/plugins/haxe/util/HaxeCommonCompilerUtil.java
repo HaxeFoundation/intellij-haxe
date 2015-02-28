@@ -53,6 +53,9 @@ public class HaxeCommonCompilerUtil {
 
     String getModuleName();
 
+    String getCompilationClass();
+    Boolean getIsTestBuild();
+
     void errorHandler(String message);
 
     void log(String message);
@@ -84,7 +87,7 @@ public class HaxeCommonCompilerUtil {
       context.log("Module " + context.getModuleName() + " is excluded from compilation.");
       return true;
     }
-    final String mainClass = settings.getMainClass();
+    final String mainClass = context.getCompilationClass();
     final String fileName = settings.getOutputFileName();
 
     if (settings.isUseUserPropertiesToBuild()) {
@@ -225,7 +228,7 @@ public class HaxeCommonCompilerUtil {
   private static void setupUserProperties(List<String> commandLine, CompilationContext context) {
     final HaxeModuleSettingsBase settings = context.getModuleSettings();
     commandLine.add("-main");
-    commandLine.add(settings.getMainClass());
+    commandLine.add(context.getCompilationClass());
 
     final StringTokenizer argumentsTokenizer = new StringTokenizer(settings.getArguments());
     while (argumentsTokenizer.hasMoreTokens()) {
@@ -246,7 +249,8 @@ public class HaxeCommonCompilerUtil {
     }
 
     commandLine.add(settings.getHaxeTarget().getCompilerFlag());
-    commandLine.add(settings.getOutputFileName());
+    String folder = settings.getOutputFolder() != null ? (settings.getOutputFolder() + "/") : "";
+    commandLine.add(folder + settings.getOutputFileName());
   }
 
   private static void setupNME(List<String> commandLine, CompilationContext context) {

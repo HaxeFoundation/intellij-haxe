@@ -134,6 +134,16 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       }
 
       @Override
+      public String getCompilationClass() {
+        return getModuleSettings().getMainClass();
+      }
+
+      @Override
+      public Boolean getIsTestBuild() {
+        return false;
+      }
+
+      @Override
       public void errorHandler(String message) {
         context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, message));
       }
