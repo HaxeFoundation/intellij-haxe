@@ -23,20 +23,22 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.filters.TextConsoleBuilder;
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
-import com.intellij.execution.process.*;
+import com.intellij.execution.filters.*;
+import com.intellij.execution.process.OSProcessHandler;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.tests.runner.filters.ErrorFilter;
 import com.intellij.util.PathUtil;
-import org.jetbrains.annotations.NotNull;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;;
 
 public class HaxeTestsRunner extends DefaultProgramRunner {
 
@@ -69,17 +71,27 @@ public class HaxeTestsRunner extends DefaultProgramRunner {
       @NotNull
       @Override
       protected ProcessHandler startProcess() throws ExecutionException {
+        //actually only neko target is supported for tests
+        HaxeTarget currentTarget = HaxeTarget.NEKO;
         final GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
-        commandLine.setExePath("neko");
+        commandLine.setExePath(currentTarget.getFlag());
         final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
         String folder = settings.getOutputFolder() != null ? (settings.getOutputFolder() + "/") : "";
-        commandLine.addParameter(folder + settings.getOutputFileName());
+        commandLine.addParameter(getFileNameWithCurrentExtension(currentTarget, folder + settings.getOutputFileName()));
 
         final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
+        consoleBuilder.addFilter(new ErrorFilter(module.getProject()));
         setConsoleBuilder(consoleBuilder);
 
         return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
+      }
+
+      private String getFileNameWithCurrentExtension(HaxeTarget haxeTarget, String fileName) {
+        if (haxeTarget != null) {
+          return haxeTarget.getTargetFileNameWithExtension(FileUtil.getNameWithoutExtension(fileName));
+        }
+        return fileName;
       }
     }, descriptor, environment);
   }

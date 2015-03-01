@@ -32,9 +32,11 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -219,6 +221,11 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       }
 
       @Override
+      public String getOutputFileName() {
+        return getFileNameWithCurrentExtension(getModuleSettings().getOutputFileName());
+      }
+
+      @Override
       public Boolean getIsTestBuild() {
         return finalHaxeTestsConfiguration != null;
       }
@@ -286,6 +293,19 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       @Override
       public void handleOutput(String[] lines) {
         HaxeCompilerUtil.fillContext(context, getErrorRoot(), lines);
+      }
+
+      @Override
+      public HaxeTarget getHaxeTarget() {
+        //actually only neko target is supported for tests
+        return getIsTestBuild() ? HaxeTarget.NEKO : getModuleSettings().getHaxeTarget();
+      }
+
+      private String getFileNameWithCurrentExtension(String fileName) {
+        if (getHaxeTarget() != null) {
+          return getHaxeTarget().getTargetFileNameWithExtension(FileUtil.getNameWithoutExtension(fileName));
+        }
+        return fileName;
       }
 
       @Override

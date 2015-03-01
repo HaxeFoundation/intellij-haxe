@@ -54,6 +54,7 @@ public class HaxeCommonCompilerUtil {
     String getModuleName();
 
     String getCompilationClass();
+    String getOutputFileName();
     Boolean getIsTestBuild();
 
     void errorHandler(String message);
@@ -78,6 +79,8 @@ public class HaxeCommonCompilerUtil {
 
     void handleOutput(String[] lines);
 
+    HaxeTarget getHaxeTarget();
+
     String getModuleDirPath();
   }
 
@@ -88,7 +91,7 @@ public class HaxeCommonCompilerUtil {
       return true;
     }
     final String mainClass = context.getCompilationClass();
-    final String fileName = settings.getOutputFileName();
+    final String fileName = context.getOutputFileName();
 
     if (settings.isUseUserPropertiesToBuild()) {
       if (mainClass == null || mainClass.length() == 0) {
@@ -101,7 +104,7 @@ public class HaxeCommonCompilerUtil {
       }
     }
 
-    final HaxeTarget target = settings.getHaxeTarget();
+    final HaxeTarget target = context.getHaxeTarget();
     final NMETarget nmeTarget = settings.getNmeTarget();
     final OpenFLTarget openFLTarget = settings.getOpenFLTarget();
 
@@ -167,7 +170,7 @@ public class HaxeCommonCompilerUtil {
       if (endIndex > 0) {
         workingPath = hxmlPath.substring(0, endIndex);
       }
-      if (context.isDebug() && settings.getHaxeTarget() == HaxeTarget.FLASH) {
+      if (context.isDebug() && context.getHaxeTarget() == HaxeTarget.FLASH) {
         commandLine.add("-D");
         commandLine.add("fdb");
         commandLine.add("-debug");
@@ -238,7 +241,7 @@ public class HaxeCommonCompilerUtil {
     if (context.isDebug()) {
       commandLine.add("-debug");
     }
-    if (settings.getHaxeTarget() == HaxeTarget.FLASH && context.isDebug()) {
+    if (context.getHaxeTarget() == HaxeTarget.FLASH && context.isDebug()) {
       commandLine.add("-D");
       commandLine.add("fdb");
     }
@@ -248,9 +251,9 @@ public class HaxeCommonCompilerUtil {
       commandLine.add(sourceRoot);
     }
 
-    commandLine.add(settings.getHaxeTarget().getCompilerFlag());
+    commandLine.add(context.getHaxeTarget().getCompilerFlag());
     String folder = settings.getOutputFolder() != null ? (settings.getOutputFolder() + "/") : "";
-    commandLine.add(folder + settings.getOutputFileName());
+    commandLine.add(folder + context.getOutputFileName());
   }
 
   private static void setupNME(List<String> commandLine, CompilationContext context) {
