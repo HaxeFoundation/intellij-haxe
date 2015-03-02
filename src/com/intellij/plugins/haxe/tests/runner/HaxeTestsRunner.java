@@ -77,7 +77,7 @@ public class HaxeTestsRunner extends DefaultProgramRunner {
         commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
         commandLine.setExePath(currentTarget.getFlag());
         final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
-        String folder = settings.getOutputFolder() != null ? (settings.getOutputFolder() + "/") : "";
+        String folder = settings.getOutputFolder() != null ? (settings.getOutputFolder() + "/release/") : "";
         commandLine.addParameter(getFileNameWithCurrentExtension(currentTarget, folder + settings.getOutputFileName()));
 
         final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());

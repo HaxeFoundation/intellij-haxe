@@ -252,8 +252,7 @@ public class HaxeCommonCompilerUtil {
     }
 
     commandLine.add(context.getHaxeTarget().getCompilerFlag());
-    String folder = settings.getOutputFolder() != null ? (settings.getOutputFolder() + "/") : "";
-    commandLine.add(folder + context.getOutputFileName());
+    commandLine.add(context.getOutputFileName());
   }
 
   private static void setupNME(List<String> commandLine, CompilationContext context) {
