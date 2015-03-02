@@ -73,6 +73,6 @@ public class ErrorFilter implements Filter {
         break;
       }
     }
-    return virtualFile == null ? null : new OpenFileHyperlinkInfo(myModule.getProject(), virtualFile, line);
+    return virtualFile == null ? null : new OpenFileHyperlinkInfo(myModule.getProject(), virtualFile, line - 1);
   }
 }

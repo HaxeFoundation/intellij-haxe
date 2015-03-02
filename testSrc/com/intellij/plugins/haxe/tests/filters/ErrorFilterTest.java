@@ -38,7 +38,8 @@ public class ErrorFilterTest {
     assertEquals("ERR: ".length(), result.highlightStartOffset);
     assertEquals("ERR: CoordinatesDetectionTest.hx:22".length(), result.highlightEndOffset);
     HLInfo info = (HLInfo) result.hyperlinkInfo;
-    info.checkInfo(fileName, 22);
+    //idea count lines starting from 0
+    info.checkInfo(fileName, 22 - 1);
 
 
   }
