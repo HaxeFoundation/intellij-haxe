@@ -20,19 +20,27 @@ package com.intellij.plugins.haxe.tests.runner.filters;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.OpenFileHyperlinkInfo;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ErrorFilter implements Filter {
 
-  private Project myProject;
+  private Module myModule;
 
   private final String START_TOKEN = "ERR: ";
 
-  public ErrorFilter(Project project) {
-    myProject = project;
+  public ErrorFilter(Module module) {
+    myModule = module;
   }
 
   @Nullable
@@ -55,8 +63,16 @@ public class ErrorFilter implements Filter {
   }
 
   protected HyperlinkInfo createOpenFileHyperlink(String filePath, int line) {
-    String fullPath = "/Users/vaukalak/Documents/work/projects/farm/iso-model/test/" + filePath;
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fullPath);
-    return new OpenFileHyperlinkInfo(myProject, virtualFile, line);
+    ModuleRootManager rootManager = ModuleRootManager.getInstance(myModule);
+    List<VirtualFile> roots = rootManager.getSourceRoots(JavaSourceRootType.TEST_SOURCE);
+    VirtualFile virtualFile = null;
+    for (VirtualFile testSourceRoot : roots) {
+      String fullPath = testSourceRoot.getPath() + "/" + filePath;
+      virtualFile = LocalFileSystem.getInstance().findFileByPath(fullPath);
+      if(virtualFile != null) {
+        break;
+      }
+    }
+    return virtualFile == null ? null : new OpenFileHyperlinkInfo(myModule.getProject(), virtualFile, line);
   }
 }

@@ -81,7 +81,7 @@ public class HaxeTestsRunner extends DefaultProgramRunner {
         commandLine.addParameter(getFileNameWithCurrentExtension(currentTarget, folder + settings.getOutputFileName()));
 
         final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
-        consoleBuilder.addFilter(new ErrorFilter(module.getProject()));
+        consoleBuilder.addFilter(new ErrorFilter(module));
         setConsoleBuilder(consoleBuilder);
 
         return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
