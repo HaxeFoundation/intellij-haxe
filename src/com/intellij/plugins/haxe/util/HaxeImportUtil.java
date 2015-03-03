@@ -59,9 +59,10 @@ public class HaxeImportUtil {
       }
     });
 
-    boolean alreadyAdded = false;
 
     for (int i = 0; i < usefulImportStatements.size(); i++) {
+      boolean alreadyAdded = false;
+
       for (int j = 0; j < filteredUsefulImports.size(); j++) {
         if (usefulImportStatements.get(i).getReferenceExpression().getText().equals(
           filteredUsefulImports.get(j).getReferenceExpression().getText())) {
@@ -151,9 +152,10 @@ public class HaxeImportUtil {
         }
       });
 
-    boolean alreadyAdded = false;
 
     for (int i = 0; i < usefulImportStatementWithInSupports.size(); i++) {
+      boolean alreadyAdded = false;
+
       for (int j = 0; j < filteredUsefulImports.size(); j++) {
         if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(
           filteredUsefulImports.get(j).getReferenceExpression().getText())
@@ -249,9 +251,11 @@ public class HaxeImportUtil {
         }
       });
 
-    boolean alreadyAdded = false;
 
     for (int i = 0; i < usefulImportStatementWithInSupports.size(); i++) {
+
+      boolean alreadyAdded = false;
+
       for (int j = 0; j < filteredUsefulImports.size(); j++) {
         if (usefulImportStatementWithInSupports.get(i).getReferenceExpression().getText().equals(
           filteredUsefulImports.get(j).getReferenceExpression().getText())) {
