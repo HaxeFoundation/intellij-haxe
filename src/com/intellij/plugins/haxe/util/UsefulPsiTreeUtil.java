@@ -22,7 +22,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
@@ -184,25 +183,35 @@ public class UsefulPsiTreeUtil {
     Project project = importStatementWithWildcard.getProject();
     VirtualFile[] virtualDirectoriesForPackage = getVirtualDirectoriesForPackage(packageStatement, project);
     for (VirtualFile file : virtualDirectoriesForPackage) {
-      VirtualFile[] files = file.getChildren();
-      for (VirtualFile virtualFile : files) {
-        if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
-          PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+      populateClassesList(classList, project, file);
+    }
+    return classList;
+  }
 
-          String nameWithoutExtension = virtualFile.getNameWithoutExtension();
+  private static void populateClassesList(List<HaxeClass> classList, Project project, VirtualFile file) {
+    VirtualFile[] files = file.getChildren();
+    for (VirtualFile virtualFile : files) {
+      if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
 
-          List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
-          for (HaxeClass haxeClass : haxeClassList) {
-            if (haxeClass.getName().equals(nameWithoutExtension)) {
-              classList.add(haxeClass);
-            }
+        String nameWithoutExtension = virtualFile.getNameWithoutExtension();
+
+        List<HaxeClass> haxeClassList = HaxeResolveUtil.findComponentDeclarations(psiFile);
+        for (HaxeClass haxeClass : haxeClassList) {
+          if (haxeClass.getName().equals(nameWithoutExtension)) {
+            classList.add(haxeClass);
           }
         }
       }
     }
+  }
+
+  public static List<HaxeClass> getClassesInDirectory(Project project, VirtualFile file) {
+    List<HaxeClass> classList = new ArrayList<HaxeClass>();
+    populateClassesList(classList, project, file);
     return classList;
   }
-  
+
   @NotNull
   public static boolean importStatementWithWildcardForClassName(HaxeImportStatementWithWildcard importStatementWithWildcard, String classname) {
     if (!Character.isUpperCase(classname.charAt(0))) {
