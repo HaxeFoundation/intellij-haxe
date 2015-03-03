@@ -252,6 +252,7 @@
     <!-- HXML END -->
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.tests.runner.HaxeTestsRunner"/>
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
@@ -310,6 +311,7 @@
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
+    <configurationType implementation="com.intellij.plugins.haxe.tests.runner.HaxeTestsRunConfigurationType"/>
 
     <moduleService serviceInterface="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"
                    serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
