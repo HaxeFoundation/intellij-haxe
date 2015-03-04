@@ -56,6 +56,15 @@ public class HaxeResolveUtil {
          sibling != null;
          sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling, true)) {
       if (".".equals(sibling.getText())) continue;
+      if (sibling instanceof HaxeParenthesizedExpression) {
+        HaxeExpression haxeExpression = ((HaxeParenthesizedExpression) sibling).getExpression();
+        if (haxeExpression != null) {
+          HaxeReference haxeReference = (HaxeReference) (haxeExpression.getReference());
+          if (haxeReference != null) {
+            sibling = haxeReference;
+          }
+        }
+      }
       return sibling instanceof HaxeReference && sibling != node ? (HaxeReference)sibling : null;
     }
     return null;
