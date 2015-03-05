@@ -59,51 +59,49 @@ public class HaxeResolveUtil {
     {
       if (".".equals(sibling.getText())) continue;
 
-      HaxeReference theHaxeRef = null;
-
+      HaxeExpression tmpExpression = null;
       if (sibling instanceof HaxeExpression) {
+        tmpExpression = (HaxeExpression) sibling;
+      }
 
-        HaxeExpression tmpExpression = (HaxeExpression) sibling;
+      if (tmpExpression != null && tmpExpression instanceof HaxeParenthesizedExpression) {
+        tmpExpression = ((HaxeParenthesizedExpression) tmpExpression).getExpression();
+      }
 
-        if (tmpExpression instanceof HaxeParenthesizedExpression) {
-          final HaxeParenthesizedExpression paranthesizedExpr = ((HaxeParenthesizedExpression) tmpExpression);
-          tmpExpression = paranthesizedExpr.getExpression();
-        }
-
-        if (tmpExpression != null) {
-
-          if (tmpExpression instanceof HaxeAssignExpression) {
-            if (2 == ((HaxeAssignExpression) tmpExpression).getExpressionList().size()) {
+      HaxeReference theHaxeRef = null;
+      if (tmpExpression != null) {
+        if (tmpExpression instanceof HaxeAssignExpression) {
+          if (2 == ((HaxeAssignExpression) tmpExpression).getExpressionList().size()) {
+            final HaxeExpression rhsHaxeExpr = ((HaxeAssignExpression) tmpExpression).getExpressionList().get(1);
+            final HaxeReference rhsHaxeReference = (HaxeReference) rhsHaxeExpr.getReference();
+            if ((rhsHaxeReference != null) && (rhsHaxeReference.resolveHaxeClass().getHaxeClass() != null)) {
+              theHaxeRef = rhsHaxeReference;
+            }
+            else {
               final HaxeExpression lhsHaxeExpr = ((HaxeAssignExpression) tmpExpression).getExpressionList().get(0);
-              final HaxeExpression rhsHaxeExpr = ((HaxeAssignExpression) tmpExpression).getExpressionList().get(1);
               final HaxeReference lhsHaxeReference = (HaxeReference) lhsHaxeExpr.getReference();
-              final HaxeReference rhsHaxeReference = (HaxeReference) rhsHaxeExpr.getReference();
-
-              if ((rhsHaxeReference != null) && (rhsHaxeReference.resolveHaxeClass().getHaxeClass() != null)) {
-                theHaxeRef = rhsHaxeReference;
-              }
-              else
               if ((lhsHaxeReference != null) && (lhsHaxeReference.resolveHaxeClass().getHaxeClass() != null)) {
                 theHaxeRef = lhsHaxeReference;
               }
             }
           }
-          else
-          if (tmpExpression instanceof HaxeReferenceExpression) {
-            theHaxeRef = (HaxeReference) tmpExpression;
-          }
-          else {
-            theHaxeRef = (HaxeReference) tmpExpression.getReference();
-          }
+        }
+        else
+        if (tmpExpression instanceof HaxeReferenceExpression) {
+          theHaxeRef = (HaxeReference) tmpExpression; // TODO: FIX: not correct for identifiers - HaxeReferenceExpresssion.getIdentifier() -- but, that's not a reference?!
+        }
+        else {
+          theHaxeRef = (HaxeReference) tmpExpression.getReference();
         }
       }
 
-      if (theHaxeRef != null && theHaxeRef != sibling && theHaxeRef != node) {
+      if (theHaxeRef != null && theHaxeRef != sibling) {
         sibling = theHaxeRef;
       }
 
-      return ((sibling instanceof HaxeReference) && (sibling != node)) ? (HaxeReference)sibling : null;
+      return ((sibling instanceof HaxeReference) && (sibling != node)) ? (HaxeReference) sibling : null;
     }
+
     return null;
   }
 

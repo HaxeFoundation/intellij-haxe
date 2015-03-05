@@ -169,13 +169,13 @@ public class HaxeClassResolveResult implements Cloneable {
   private class JavaResult implements JavaResolveResult {
     private HaxeClassResolveResult originalResult = null;
     public JavaResult(HaxeClassResolveResult result) { originalResult = result; }
-    @Override public PsiElement getElement() { return originalResult.getHaxeClass(); }
+    @Override public PsiElement getElement() { return (originalResult != null ? originalResult.getHaxeClass() : null); }
     @NotNull
     @Override public PsiSubstitutor getSubstitutor() { return PsiSubstitutor.EMPTY; }
-    @Override public boolean isValidResult() { return null != originalResult.getHaxeClass(); }
+    @Override public boolean isValidResult() { return null != this.getElement(); }
     @Override public boolean isAccessible() { return true; }
     @Override public boolean isStaticsScopeCorrect() { return true; } // TODO: How to check scope?
-    @Override public PsiElement getCurrentFileResolveScope() { return originalResult.getHaxeClass().getOriginalElement(); } // TODO: Verify
+    @Override public PsiElement getCurrentFileResolveScope() { return (this.getElement() != null ? this.getElement().getOriginalElement() : null); } // TODO: Verify
     @Override public boolean isPackagePrefixPackageReference() { return false; }  // TODO: No idea what to do with this.
   }
 

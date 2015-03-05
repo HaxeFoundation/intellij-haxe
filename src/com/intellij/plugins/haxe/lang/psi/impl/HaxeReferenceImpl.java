@@ -551,17 +551,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public boolean isReferenceTo(PsiElement element) {
-    //final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
-    //if (element instanceof HaxeFile &&
-    //    resolve instanceof HaxeComponentName &&
-    //    resolve.getParent() instanceof HaxeClass) {
-    //  return element == resolve.getContainingFile();
-    //}
-    //final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
-    //final boolean chain = references != null && references.length == 2;
-    //return !chain && resolve == element;
-
-
     // Resolving is (relatively) expensive, so if we're going to ignore the answer anyway, then don't bother.
     if (!(element instanceof HaxeFile)) {
       final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
@@ -587,11 +576,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
     // TODO: This should use getName() instead of getQualifiedName(), but it isn't implemented properly and getName() NPEs.
     HaxeClassResolveResult result = null;
-    HaxeClass haxeClass;
+    HaxeClass haxeClass = null;
     String qualifiedName = null;
     if (leftReference != null) {
       result = leftReference.resolveHaxeClass();
-
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
@@ -605,11 +593,16 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       addChildClassVariants(suggestedVariants, result.getHaxeClass());
     }
     else if (leftReference != null && getParent() instanceof HaxeReference && !result.isFunctionType()) {
-      addClassNonStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
-                       !(leftReference instanceof HaxeThisExpression));
-      addUsingVariants(suggestedVariants, result.getHaxeClass(),
-                       HaxeResolveUtil.findUsingClasses(getContainingFile()));
-      addChildClassVariants(suggestedVariants, result.getHaxeClass());
+      if (null == haxeClass) {
+        // TODO: fix haxeClass by type inference. Use compiler code assist?!
+      }
+      if (haxeClass != null) {
+        addClassNonStaticMembersVariants(suggestedVariants, haxeClass,
+                                         !(leftReference instanceof HaxeThisExpression));
+        addUsingVariants(suggestedVariants, haxeClass,
+                         HaxeResolveUtil.findUsingClasses(getContainingFile()));
+        addChildClassVariants(suggestedVariants, haxeClass);
+      }
     }
     else {
       // if chain
