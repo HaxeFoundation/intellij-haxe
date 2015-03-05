@@ -76,6 +76,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (leftReference != null && reference.getParent() instanceof HaxeReference) {
       return resolveChain(leftReference, reference);
     }
+    else
+    if (leftReference != null && leftReference instanceof HaxeReferenceExpression) {
+      try {
+        final HaxeIdentifier haxeIdentifier = ((HaxeReferenceExpression)leftReference).getIdentifier();
+        if (haxeIdentifier != null) {
+          // TODO: implement HaxeIdentifier to HaxeReference mapping (in HaxeIdentifierPsiMixInImpl)
+          // TODO: then, invoke resolveChain(...)
+        }
+      }
+      catch (NullPointerException e) {
+      // ignore
+      }
+    }
 
     // then maybe chain
     // node(foo.node(bar)).node(baz)

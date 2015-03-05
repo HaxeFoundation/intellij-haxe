@@ -52,20 +52,57 @@ public class HaxeResolveUtil {
   @Nullable
   public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
     if (node == null) return null;
+
     for (PsiElement sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(node, true);
          sibling != null;
-         sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling, true)) {
+         sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling, true))
+    {
       if (".".equals(sibling.getText())) continue;
-      if (sibling instanceof HaxeParenthesizedExpression) {
-        HaxeExpression haxeExpression = ((HaxeParenthesizedExpression) sibling).getExpression();
-        if (haxeExpression != null) {
-          HaxeReference haxeReference = (HaxeReference) (haxeExpression.getReference());
-          if (haxeReference != null) {
-            sibling = haxeReference;
+
+      HaxeReference theHaxeRef = null;
+
+      if (sibling instanceof HaxeExpression) {
+
+        HaxeExpression tmpExpression = (HaxeExpression) sibling;
+
+        if (tmpExpression instanceof HaxeParenthesizedExpression) {
+          final HaxeParenthesizedExpression paranthesizedExpr = ((HaxeParenthesizedExpression) tmpExpression);
+          tmpExpression = paranthesizedExpr.getExpression();
+        }
+
+        if (tmpExpression != null) {
+
+          if (tmpExpression instanceof HaxeAssignExpression) {
+            if (2 == ((HaxeAssignExpression) tmpExpression).getExpressionList().size()) {
+              final HaxeExpression lhsHaxeExpr = ((HaxeAssignExpression) tmpExpression).getExpressionList().get(0);
+              final HaxeExpression rhsHaxeExpr = ((HaxeAssignExpression) tmpExpression).getExpressionList().get(1);
+              final HaxeReference lhsHaxeReference = (HaxeReference) lhsHaxeExpr.getReference();
+              final HaxeReference rhsHaxeReference = (HaxeReference) rhsHaxeExpr.getReference();
+
+              if ((rhsHaxeReference != null) && (rhsHaxeReference.resolveHaxeClass().getHaxeClass() != null)) {
+                theHaxeRef = rhsHaxeReference;
+              }
+              else
+              if ((lhsHaxeReference != null) && (lhsHaxeReference.resolveHaxeClass().getHaxeClass() != null)) {
+                theHaxeRef = lhsHaxeReference;
+              }
+            }
+          }
+          else
+          if (tmpExpression instanceof HaxeReferenceExpression) {
+            theHaxeRef = (HaxeReference) tmpExpression;
+          }
+          else {
+            theHaxeRef = (HaxeReference) tmpExpression.getReference();
           }
         }
       }
-      return sibling instanceof HaxeReference && sibling != node ? (HaxeReference)sibling : null;
+
+      if (theHaxeRef != null && theHaxeRef != sibling && theHaxeRef != node) {
+        sibling = theHaxeRef;
+      }
+
+      return ((sibling instanceof HaxeReference) && (sibling != node)) ? (HaxeReference)sibling : null;
     }
     return null;
   }
