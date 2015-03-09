@@ -24,7 +24,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -249,6 +249,8 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         movedElement = (PsiMember)superClassMethod.replace(convertMethodToLanguage(methodCopy, language));
       }
       else {
+        methodCopy = HaxeElementGenerator.creatPrototypeDeclarationWithAttributes(myProject, methodCopy.getText().trim() + ";");
+
         movedElement =
           anchor != null ? (PsiMember)myTargetSuperClass.addBefore(methodCopy, anchor) : (PsiMember)myTargetSuperClass.add(methodCopy);
       }
