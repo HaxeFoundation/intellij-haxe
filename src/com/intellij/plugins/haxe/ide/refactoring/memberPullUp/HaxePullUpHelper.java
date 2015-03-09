@@ -21,11 +21,14 @@ import com.intellij.codeInsight.PsiEquivalenceUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.lang.Language;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.search.LocalSearchScope;
@@ -103,7 +106,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
 
   @Override
   public void postProcessMember(PsiMember member) {
-    member.accept(myExplicitSuperDeleter);
+    /*member.accept(myExplicitSuperDeleter);
     member.accept(myThisSuperAdjuster);
 
     ChangeContextUtil.decodeContextInfo(member, null, null);
@@ -121,7 +124,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         }
         super.visitReferenceExpression(expression);
       }
-    });
+    });*/
 
   }
 
@@ -253,6 +256,8 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
 
         movedElement =
           anchor != null ? (PsiMember)myTargetSuperClass.addBefore(methodCopy, anchor) : (PsiMember)myTargetSuperClass.add(methodCopy);
+
+        reformat(movedElement);
       }
       CodeStyleSettings styleSettings = CodeStyleSettingsManager.getSettings(method.getProject());
       if (styleSettings.INSERT_OVERRIDE_ANNOTATION) {
@@ -289,10 +294,22 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
                                                                                            language), anchor) : (PsiMember)myTargetSuperClass.add(
             convertMethodToLanguage(
               methodCopy, language));
+        reformat(movedElement);
         myMembersAfterMove.add(movedElement);
       }
       method.delete();
     }
+  }
+
+  private void reformat(PsiMember movedElement) {
+    PsiDocumentManager manager = PsiDocumentManager.getInstance(myProject);
+    Document document = manager.getDocument(myTargetSuperClass.getContainingFile());
+    manager.commitDocument(document);
+
+    final TextRange range = movedElement.getTextRange();
+    final PsiFile file = movedElement.getContainingFile();
+    final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+    CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
   }
 
   private static PsiMethod convertMethodToLanguage(PsiMethod method, Language language) {
