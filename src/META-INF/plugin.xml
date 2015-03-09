@@ -30,8 +30,12 @@
     <![CDATA[
       <p>0.8.1.1.TiVo.ClassHierarchy.15: (community version, TiVo RC4)</p>
        <ul>
-        <li>Fixed reference semantics intepretation for paranthesized expressions - otherwise code assist does not work for those.</li>
-        <li>Fixed issue 37 at https://github.com/TiVo/intellij-haxe/issues/37, Parser doesn't recover after new A</li>
+        <li>Fixed issue 37 (Parser doesn't recover after new A)</li>
+        <li>Fixed issue 95 (Local and class variable names resolving to similar package names)</li>
+        <li>Fixed issue 132 (incorrect processing of duplicate imports)</li>
+        <li>Fixed issue 134 (incorrect reformat of object and array children)</li>
+        <li>Fixed reference resolution for expressions in parenthesis - otherwise, code assist does not work for those.</li>
+        <li>Fixed: launching test with neko, overriding haxe build parameters for test run configuration, filtering test result output, compilation path of non test build, line number for ErrorFilter; and removed hard-coded path for ErrorFilter</li>
        </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.14: (community version, TiVo RC3)</p>
        <ul>
