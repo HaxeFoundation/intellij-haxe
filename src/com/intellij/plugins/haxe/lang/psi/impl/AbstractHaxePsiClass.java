@@ -34,6 +34,7 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
@@ -90,6 +91,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public List<HaxeType> getHaxeImplementsList() {
     return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
+  }
+
+  @Override
+   public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {
+    if (getRBrace() != null) {
+      return addBefore(element, getRBrace());
+    }
+    else {
+      return super.add(element);
+    }
   }
 
   @NotNull
@@ -349,7 +360,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public PsiElement getRBrace() {
+   public PsiElement getRBrace() {
     return findChildByRoleAsPsiElement(ChildRole.RBRACE);
   }
 

@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
+import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -221,7 +222,14 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   public int getChildRole(ASTNode child) {
-    return 0; //ChildRole.NONE;
+    if (child.getElementType() == HaxeTokenTypes.PLCURLY) {
+      return ChildRole.LBRACE;
+    }
+    else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
+      return ChildRole.RBRACE;
+    }
+
+    return 0;
   }
 
   protected final int getChildRole(ASTNode child, int roleCandidate) {

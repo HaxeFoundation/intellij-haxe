@@ -17,38 +17,52 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.memberPullUp;
 
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.RefactoringBundle;
+import com.intellij.refactoring.classMembers.MemberInfoBase;
 import com.intellij.refactoring.lang.ElementsHandler;
+import com.intellij.refactoring.memberPullUp.PullUpConflictsUtil;
 import com.intellij.refactoring.memberPullUp.PullUpDialog;
+import com.intellij.refactoring.ui.ConflictsDialog;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
+import com.intellij.refactoring.util.classMembers.MemberInfo;
+import com.intellij.refactoring.util.classMembers.MemberInfoStorage;
+import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by as3boyan on 10.09.14.
  * Based on https://github.com/JetBrains/intellij-community/blob/master/java/java-impl/src/com/intellij/refactoring/memberPullUp/JavaPullUpHandler.java
  */
-public class HaxePullUpHandler implements RefactoringActionHandler, PullUpDialog.Callback, ElementsHandler {
+public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDialog.Callback, ElementsHandler {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpHandler");
   public static final String REFACTORING_NAME = RefactoringBundle.message("pull.members.up.title");
   private PsiClass mySubclass;
   private Project myProject;
 
-  @Override
+  /*@Override
   public boolean checkConflicts(PullUpDialog dialog) {
     return false;
-  }
+  }*/
 
   @Override
   public boolean isEnabledOnElements(PsiElement[] elements) {
@@ -60,8 +74,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, PullUpDialog
     int offset = editor.getCaretModel().getOffset();
     editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
     PsiElement element = file.findElementAt(offset);
-    HaxeClassDeclaration classDeclaration;
-    PsiElement parentElement;
+    //HaxeClassDeclaration classDeclaration;
+    //PsiElement parentElement;
 
     while (true) {
       if (element == null || element instanceof PsiFile) {
@@ -72,18 +86,23 @@ public class HaxePullUpHandler implements RefactoringActionHandler, PullUpDialog
       }
       if (!CommonRefactoringUtil.checkReadOnlyStatus(project, element)) return;
 
-      classDeclaration = PsiTreeUtil.getParentOfType(element, HaxeClassDeclaration.class, false);
+      /*classDeclaration = PsiTreeUtil.getParentOfType(element, HaxeClassDeclaration.class, false);
 
       parentElement = null;
       parentElement = PsiTreeUtil.getParentOfType(element, HaxeVarDeclaration.class, false);
       if (parentElement == null) {
         parentElement = PsiTreeUtil.getParentOfType(element, HaxeFunctionDeclarationWithAttributes.class, false);
-      }
+      }*/
 
-      if (classDeclaration != null) {
-        //invoke(project, context, classDeclaration, parentElement);
+      if (element instanceof HaxeClassDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes) {
+        invoke(project, new PsiElement[]{element}, context);
         return;
       }
+
+      //if (classDeclaration != null) {
+      //  invoke(project, context, classDeclaration, parentElement);
+      //  return;
+      //}
       element = element.getParent();
     }
   }
@@ -96,23 +115,24 @@ public class HaxePullUpHandler implements RefactoringActionHandler, PullUpDialog
     PsiClass aClass;
     PsiElement aMember = null;
     if (element instanceof HaxeClassDeclaration) {
-      aClass = (PsiClass)element;
+      aClass = (HaxeClassDeclaration)element;
     }
     else if (element instanceof HaxeFunctionDeclarationWithAttributes) {
-      aClass = ((PsiMethod)element).getContainingClass();
+      aClass = ((HaxeFunctionDeclarationWithAttributes)element).getContainingClass();
       aMember = element;
     }
     else if (element instanceof HaxeVarDeclaration) {
-      aClass = ((PsiField)element).getContainingClass();
+      aClass = ((HaxeVarDeclaration)element).getContainingClass();
       aMember = element;
     }
     else {
       return;
     }
-    //invoke(project, context, aClass, aMember);
+    invoke(project, context, aClass, aMember);
   }
 
- /* private void invoke(Project project, DataContext dataContext, HaxeClassDeclaration aClass, PsiElement aMember) {
+  private void invoke(Project project, DataContext dataContext, PsiClass psiClass, PsiElement aMember) {
+    HaxeClassDeclaration aClass = (HaxeClassDeclaration)psiClass;
     final Editor editor = dataContext != null ? CommonDataKeys.EDITOR.getData(dataContext) : null;
     if (aClass == null) {
       String message =
@@ -120,9 +140,10 @@ public class HaxePullUpHandler implements RefactoringActionHandler, PullUpDialog
       CommonRefactoringUtil.showErrorHint(project, editor, message, REFACTORING_NAME, HelpID.MEMBERS_PULL_UP);
       return;
     }
-    ArrayList<PsiClass> bases = RefactoringHierarchyUtil.createBasesList(aClass, false, true);
-    if (bases.isEmpty()) {
-      final PsiClass containingClass = aClass;
+    List<HaxeType> extendsList = aClass.getHaxeExtendsList();
+    List<HaxeType> implementsList = aClass.getHaxeImplementsList();
+    if (extendsList.isEmpty() && implementsList.isEmpty()) {
+      final HaxeClassDeclaration containingClass = aClass;
       if (containingClass != null) {
         invoke(project, dataContext, containingClass, aClass);
         return;
@@ -147,8 +168,61 @@ public class HaxePullUpHandler implements RefactoringActionHandler, PullUpDialog
         break;
       }
     }
-    final PullUpDialog dialog = new PullUpDialog(project, aClass, bases, memberInfoStorage, this);
+
+    List<PsiClass> psiClasses = new ArrayList<PsiClass>();
+
+    for (int i = 0; i < extendsList.size(); i++) {
+      psiClasses.add(extendsList.get(i).getReferenceExpression().resolveHaxeClass().getHaxeClass());
+    }
+
+    for (int i = 0; i < implementsList.size(); i++) {
+      psiClasses.add(implementsList.get(i).getReferenceExpression().resolveHaxeClass().getHaxeClass());
+    }
+
+    final HaxePullUpDialog dialog = new HaxePullUpDialog(project, aClass, psiClasses, memberInfoStorage, this);
     dialog.show();
-  }*/
+  }
+
+  @Override
+  public boolean checkConflicts(final HaxePullUpDialog dialog) {
+    final List<MemberInfo> infos = dialog.getSelectedMemberInfos();
+    final MemberInfo[] memberInfos = infos.toArray(new MemberInfo[infos.size()]);
+    final PsiClass superClass = dialog.getSuperClass();
+    if (!checkWritable(superClass, memberInfos)) return false;
+    final MultiMap<PsiElement, String> conflicts = new MultiMap<PsiElement, String>();
+    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
+          public void run() {
+            //final PsiDirectory targetDirectory = superClass.getContainingFile().getContainingDirectory();
+            //final PsiPackage targetPackage = targetDirectory != null ? JavaDirectoryService.getInstance().getPackage(targetDirectory) : null;
+            //conflicts
+            //  .putAllValues(PullUpConflictsUtil.checkConflicts(memberInfos, mySubclass, superClass, targetPackage, targetDirectory,
+            //                                                   dialog.getContainmentVerifier()));
+          }
+        });
+      }
+    }, RefactoringBundle.message("detecting.possible.conflicts"), true, myProject)) return false;
+    if (!conflicts.isEmpty()) {
+      ConflictsDialog conflictsDialog = new ConflictsDialog(myProject, conflicts);
+      conflictsDialog.show();
+      final boolean ok = conflictsDialog.isOK();
+      if (!ok && conflictsDialog.isShowConflicts()) dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
+      return ok;
+    }
+    return true;
+  }
+
+  private boolean checkWritable(PsiClass superClass, MemberInfo[] infos) {
+    if (!CommonRefactoringUtil.checkReadOnlyStatus(myProject, superClass)) return false;
+    for (MemberInfo info : infos) {
+      if (info.getMember() instanceof PsiClass && info.getOverrides() != null) continue;
+      if (!CommonRefactoringUtil.checkReadOnlyStatus(myProject, info.getMember())) return false;
+    }
+    return true;
+  }
+
 
 }

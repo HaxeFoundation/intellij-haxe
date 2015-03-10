@@ -309,6 +309,18 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_AROUND_ARROW);
     }
 
+    if (type1 == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES && type2 == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES) {
+      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (type1 == PLCURLY && (type2 == INTERFACE_BODY || type2 == CLASS_BODY || type2 == ENUM_BODY || type2 == ABSTRACT_CLASS_DECLARATION)) {
+      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_BEFORE_METHOD_BODY, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (type1 == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES && type2 == PRCURLY) {
+      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
     return Spacing.createSpacing(0, 1, 0, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
 
