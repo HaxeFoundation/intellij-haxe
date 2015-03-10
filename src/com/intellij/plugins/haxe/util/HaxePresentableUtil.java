@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -62,11 +63,11 @@ public class HaxePresentableUtil {
   @NotNull
   public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericSpecialization specialization) {
     final StringBuilder result = new StringBuilder();
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterList.class);
+    final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterListPsiMixinImpl.class);
     if (parameterList == null) {
       return "";
     }
-    final List<HaxeParameter> list = parameterList.getParameterList();
+    final List<HaxeParameter> list = parameterList.getParametersAsList();
     for (int i = 0, size = list.size(); i < size; i++) {
       HaxeParameter parameter = list.get(i);
       result.append(parameter.getName());
@@ -85,7 +86,8 @@ public class HaxePresentableUtil {
   public static String buildTypeText(HaxeNamedComponent element,
                                      @Nullable HaxeTypeListPart typeTag,
                                      HaxeGenericSpecialization specializations) {
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    final List<HaxeTypeOrAnonymous> haxeTypeOrAnonymousList = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = haxeTypeOrAnonymousList.get(0);
     if (typeOrAnonymous == null) {
       return "";
     }
@@ -103,23 +105,25 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
-    if (typeTag == null) {
-      return "";
-    }
+    if (typeTag != null)
+    {
+      final HaxeFunctionType haxeFunctionType = (typeTag.getFunctionType() == null) ? null :
+                                                typeTag.getFunctionType().getFunctionType();
+      if (haxeFunctionType != null) {
+        return buildTypeText(element, haxeFunctionType, specialization);
+      }
 
-    final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
-    if (haxeFunctionType != null) {
-      return buildTypeText(element, haxeFunctionType, specialization);
-    }
-
-    final HaxeAnonymousType anonymousType = typeTag.getTypeOrAnonymous().getAnonymousType();
-    if (anonymousType != null) {
-      return anonymousType.getText();
-    }
-
-    final HaxeType haxeType = typeTag.getTypeOrAnonymous().getType();
-    if (haxeType != null) {
-      return buildTypeText(element, haxeType, specialization);
+      final HaxeTypeOrAnonymous haxeTypeOrAnonymous = typeTag.getTypeOrAnonymous();
+      if (haxeTypeOrAnonymous != null) {
+        final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous.getAnonymousType();
+        if (anonymousType != null) {
+          return anonymousType.getText();
+        }
+        final HaxeType haxeType = haxeTypeOrAnonymous.getType();
+        if (haxeType != null) {
+          return buildTypeText(element, haxeType, specialization);
+        }
+      }
     }
     return "";
   }

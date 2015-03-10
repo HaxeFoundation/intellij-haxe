@@ -1,100 +1,108 @@
 Haxe File
   EXTERN_CLASS_DECLARATION
-    PsiElement(@:final)('@:final')
+    PsiModifierList:@:final
+      MACRO_CLASS
+        SIMPLE_META
+          FINAL_META
+            PsiJavaToken:@:final('@:final')
     EXTERN_OR_PRIVATE
-      PsiElement(extern)('extern')
-    PsiElement(class)('class')
+      PsiJavaToken:extern('extern')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('NativeRandom')
-    PsiElement({)('{')
+        PsiJavaToken:ID('NativeRandom')
+    PsiJavaToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
       EXTERN_FUNCTION_DECLARATION
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
+            PsiJavaToken:public('public')
         DECLARATION_ATTRIBUTE
-          PsiElement(static)('static')
-        PsiElement(function)('function')
+          PsiJavaToken:static('static')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('rand')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('rand')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         TYPE_TAG
-          PsiElement(:)(':')
+          PsiJavaToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('Int')
-        PsiElement(;)(';')
+                  PsiJavaToken:ID('Int')
+        PsiJavaToken:;(';')
       EXTERN_FUNCTION_DECLARATION
-        PsiElement(@:macro)('@:macro')
+        MACRO_META
+          PsiJavaToken:@:macro('@:macro')
         REQUIRE_META
-          PsiElement(@:require)('@:require')
-          PsiElement(()('(')
+          PsiJavaToken:@:require('@:require')
+          PsiJavaToken:(('(')
           IDENTIFIER
-            PsiElement(ID)('something')
-          PsiElement())(')')
+            PsiJavaToken:ID('something')
+          PsiJavaToken:)(')')
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
+            PsiJavaToken:public('public')
         DECLARATION_ATTRIBUTE
-          PsiElement(static)('static')
-        PsiElement(function)('function')
+          PsiJavaToken:static('static')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('rand')
-        PsiElement(()('(')
+            PsiJavaToken:ID('rand')
+        PsiJavaToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiElement(ID)('n')
+                PsiJavaToken:ID('n')
             TYPE_TAG
-              PsiElement(:)(':')
+              PsiJavaToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('Int')
-        PsiElement())(')')
+                      PsiJavaToken:ID('Int')
+        PsiJavaToken:)(')')
         TYPE_TAG
-          PsiElement(:)(':')
+          PsiJavaToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('Int')
+                  PsiJavaToken:ID('Int')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           RETURN_STATEMENT
-            PsiElement(return)('return')
+            PsiJavaToken:return('return')
             MULTIPLICATIVE_EXPRESSION
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('rand')
-                PsiElement(()('(')
-                PsiElement())(')')
-              PsiElement(%)('%')
+                    PsiJavaToken:ID('rand')
+                PsiJavaToken:(('(')
+                PsiJavaToken:)(')')
+              PsiJavaToken:%('%')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('n')
-            PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                  PsiJavaToken:ID('n')
+            PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')
   EXTERN_CLASS_DECLARATION
     EXTERN_OR_PRIVATE
-      PsiElement(private)('private')
+      PRIVATE_KEY_WORD
+        PsiJavaToken:private('private')
     EXTERN_OR_PRIVATE
-      PsiElement(extern)('extern')
-    PsiElement(class)('class')
+      PsiJavaToken:extern('extern')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('RandomImpl')
-    PsiElement({)('{')
+        PsiJavaToken:ID('RandomImpl')
+    PsiJavaToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
       <empty list>
-    PsiElement(})('}')
+    PsiJavaToken:}('}')

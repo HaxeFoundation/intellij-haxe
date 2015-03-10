@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeWhileStatementImpl extends HaxePsiCompositeElementImpl implements HaxeWhileStatement {
+public class HaxeWhileStatementImpl extends HaxeStatementPsiMixinImpl implements HaxeWhileStatement {
 
   public HaxeWhileStatementImpl(ASTNode node) {
     super(node);
@@ -49,12 +49,6 @@ public class HaxeWhileStatementImpl extends HaxePsiCompositeElementImpl implemen
   @Nullable
   public HaxeBreakStatement getBreakStatement() {
     return findChildByClass(HaxeBreakStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeConditional getConditional() {
-    return findChildByClass(HaxeConditional.class);
   }
 
   @Override

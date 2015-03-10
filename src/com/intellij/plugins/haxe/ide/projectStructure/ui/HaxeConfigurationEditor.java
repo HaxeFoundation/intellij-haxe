@@ -378,7 +378,7 @@ public class HaxeConfigurationEditor {
 
     result = result || !FileUtil.toSystemIndependentName(myHxmlFileChooserTextField.getText()).equals(settings.getHxmlPath());
 
-    result = result || !FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()).equals(settings.getOpenFLXmlPath());
+    result = result || !FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()).equals(settings.getOpenFLPath());
 
     result = result || !settings.getArguments().equals(myAppArguments.getText());
     result = result || !settings.getNmeFlags().equals(myNMEArguments.getText());
@@ -413,7 +413,7 @@ public class HaxeConfigurationEditor {
     final String url = myExtension.getCompilerOutputUrl();
     myFolderTextField.setText(VfsUtil.urlToPath(url));
     myHxmlFileChooserTextField.setText(settings.getHxmlPath());
-    myOpenFLFileChooserTextField.setText(settings.getOpenFLXmlPath());
+    myOpenFLFileChooserTextField.setText(settings.getOpenFLPath());
     myNMEFileChooserTextField.setText(settings.getNmmlPath());
     myNMEArguments.setText(settings.getNmeFlags());
 
@@ -445,7 +445,7 @@ public class HaxeConfigurationEditor {
     settings.setOutputFolder(myFolderTextField.getText());
 
     settings.setHxmlPath(FileUtil.toSystemIndependentName(myHxmlFileChooserTextField.getText()));
-    settings.setOpenFLXMLPath(FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()));
+    settings.setOpenFLPath(FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()));
     settings.setNmmlPath(FileUtil.toSystemIndependentName(myNMEFileChooserTextField.getText()));
 
     settings.setBuildConfig(getCurrentBuildConfig());

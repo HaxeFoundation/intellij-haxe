@@ -1,72 +1,74 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Simple')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Simple')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('i')
+                  PsiJavaToken:ID('i')
               VAR_INIT
-                PsiElement(=)('=')
+                PsiJavaToken:=('=')
                 LITERAL_EXPRESSION
-                  PsiElement(LITINT)('0')
-            PsiElement(;)(';')
+                  PsiJavaToken:LITINT('0')
+            PsiJavaToken:;(';')
           WHILE_STATEMENT
-            PsiElement(while)('while')
-            PsiElement(()('(')
+            PsiJavaToken:while('while')
+            PsiJavaToken:(('(')
             COMPARE_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('i')
+                  PsiJavaToken:ID('i')
               COMPARE_OPERATION
-                PsiElement(<)('<')
+                PsiJavaToken:<('<')
               LITERAL_EXPRESSION
-                PsiElement(LITINT)('10')
-            PsiElement())(')')
+                PsiJavaToken:LITINT('10')
+            PsiJavaToken:)(')')
             BLOCK_STATEMENT
-              PsiElement({)('{')
+              PsiJavaToken:{('{')
               PREFIX_EXPRESSION
-                PsiElement(++)('++')
+                PsiJavaToken:++('++')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('i')
-              PsiElement(;)(';')
+                    PsiJavaToken:ID('i')
+              PsiJavaToken:;(';')
               IF_STATEMENT
-                PsiElement(if)('if')
-                PsiElement(()('(')
+                PsiJavaToken:if('if')
+                PsiJavaToken:(('(')
                 COMPARE_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('i')
+                      PsiJavaToken:ID('i')
                   COMPARE_OPERATION
-                    PsiElement(<)('<')
+                    PsiJavaToken:<('<')
                   LITERAL_EXPRESSION
-                    PsiElement(LITINT)('5')
-                PsiElement())(')')
+                    PsiJavaToken:LITINT('5')
+                PsiJavaToken:)(')')
                 CONTINUE_STATEMENT
-                  PsiElement(continue)('continue')
-                  PsiElement(;)(';')
+                  PsiJavaToken:continue('continue')
+                  PsiJavaToken:;(';')
               PREFIX_EXPRESSION
-                PsiElement(++)('++')
+                PsiJavaToken:++('++')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('i')
-              PsiElement(;)(';')
-              PsiElement(})('}')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                    PsiJavaToken:ID('i')
+              PsiJavaToken:;(';')
+              PsiJavaToken:}('}')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

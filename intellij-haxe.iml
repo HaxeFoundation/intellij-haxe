@@ -10,11 +10,13 @@
       <sourceFolder url="file://$MODULE_DIR$/grammar" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/testData" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/intellij/plugins/haxe/runner/debugger/JavaProtocol/src" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="jps-plugin" />
+    <orderEntry type="module" module-name="hxcpp-debugger-protocol" />
   </component>
 </module>
 

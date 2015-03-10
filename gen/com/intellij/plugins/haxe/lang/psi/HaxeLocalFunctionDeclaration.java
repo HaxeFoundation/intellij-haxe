@@ -23,19 +23,28 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeLocalFunctionDeclaration extends HaxeComponent {
+public interface HaxeLocalFunctionDeclaration extends HaxeMethod {
 
   @Nullable
   HaxeBlockStatement getBlockStatement();
 
-  @NotNull
+  @Nullable
   HaxeComponentName getComponentName();
+
+  @Nullable
+  HaxeDoWhileStatement getDoWhileStatement();
 
   @Nullable
   HaxeExpression getExpression();
 
   @Nullable
+  HaxeForStatement getForStatement();
+
+  @Nullable
   HaxeGenericParam getGenericParam();
+
+  @Nullable
+  HaxeIfStatement getIfStatement();
 
   @Nullable
   HaxeParameterList getParameterList();
@@ -48,5 +57,8 @@ public interface HaxeLocalFunctionDeclaration extends HaxeComponent {
 
   @Nullable
   HaxeTypeTag getTypeTag();
+
+  @Nullable
+  HaxeWhileStatement getWhileStatement();
 
 }

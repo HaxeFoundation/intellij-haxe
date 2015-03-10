@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeCatchStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeTryStatement;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementUtils;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ public class HaxeTryCatchSurrounder extends HaxeManyStatementsSurrounder {
 
   @Override
   protected TextRange getSurroundSelectionRange(PsiElement element) {
-    final HaxeCatchStatement catchStatement = ((HaxeTryStatement)element).getCatchStatementList().iterator().next();
+    final HaxeCatchStatement catchStatement = HaxeStatementUtils.getCatchStatement(element);
     final HaxeParameter parameter = catchStatement.getParameter();
     return parameter == null ? catchStatement.getTextRange() : parameter.getTextRange();
   }

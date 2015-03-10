@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hxcpp-debugger-protocol/hxcpp-debugger-protocol.iml" filepath="$PROJECT_DIR$/hxcpp-debugger-protocol/hxcpp-debugger-protocol.iml" />
       <module fileurl="file://$PROJECT_DIR$/intellij-haxe.iml" filepath="$PROJECT_DIR$/intellij-haxe.iml" />
       <module fileurl="file://$PROJECT_DIR$/jps-plugin/jps-plugin.iml" filepath="$PROJECT_DIR$/jps-plugin/jps-plugin.iml" />
     </modules>

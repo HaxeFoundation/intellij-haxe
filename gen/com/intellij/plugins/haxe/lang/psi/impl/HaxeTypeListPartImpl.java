@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypeListPartImpl extends HaxePsiCompositeElementImpl implements HaxeTypeListPart {
+public class HaxeTypeListPartImpl extends HaxeTypeListPartPsiMixinImpl implements HaxeTypeListPart {
 
   public HaxeTypeListPartImpl(ASTNode node) {
     super(node);
@@ -40,15 +40,15 @@ public class HaxeTypeListPartImpl extends HaxePsiCompositeElementImpl implements
   }
 
   @Override
-  @Nullable
-  public HaxeFunctionType getFunctionType() {
-    return findChildByClass(HaxeFunctionType.class);
+  @NotNull
+  public List<HaxeFunctionType> getFunctionTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionType.class);
   }
 
   @Override
-  @Nullable
-  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
-    return findChildByClass(HaxeTypeOrAnonymous.class);
+  @NotNull
+  public List<HaxeTypeOrAnonymous> getTypeOrAnonymousList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeOrAnonymous.class);
   }
 
 }

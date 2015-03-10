@@ -189,15 +189,15 @@ public enum HaxeComponentType {
       case CLASS:
       case ENUM:
       case INTERFACE:
-        return ((HaxeClass)element).getQualifiedName();
+            return ((HaxeClass) element).getQualifiedName();
       case FUNCTION:
       case METHOD:
       case FIELD:
       case VARIABLE:
       case PARAMETER:
-        return ((HaxeNamedComponent)element).getName();
+            return ((HaxeNamedComponent) element).getName();
       default:
-        return null;
+            return null;
     }
   }
 }

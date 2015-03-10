@@ -26,9 +26,6 @@ import com.intellij.psi.PsiElement;
 public interface HaxeExternClassDeclarationBody extends HaxePsiCompositeElement {
 
   @NotNull
-  List<HaxeConditional> getConditionalList();
-
-  @NotNull
   List<HaxeExternFunctionDeclaration> getExternFunctionDeclarationList();
 
   @NotNull

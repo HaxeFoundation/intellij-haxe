@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -50,22 +51,22 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
 
   @NotNull
   @Override
-  public List<HaxeType> getExtendsList() {
+  public List<HaxeType> getHaxeExtendsList() {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.getExtendsList();
+      return targetHaxeClass.getHaxeExtendsList();
     }
-    return super.getExtendsList();
+    return super.getHaxeExtendsList();
   }
 
   @NotNull
   @Override
-  public List<HaxeType> getImplementsList() {
+  public List<HaxeType> getHaxeImplementsList() {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.getImplementsList();
+      return targetHaxeClass.getHaxeImplementsList();
     }
-    return super.getImplementsList();
+    return super.getHaxeImplementsList();
   }
 
   @Override
@@ -79,39 +80,39 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getMethods() {
+  public List<HaxeMethod> getHaxeMethods() {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.getMethods();
+      return targetHaxeClass.getHaxeMethods();
     }
-    return super.getMethods();
+    return super.getHaxeMethods();
   }
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getFields() {
+  public List<HaxeNamedComponent> getHaxeFields() {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.getFields();
+      return targetHaxeClass.getHaxeFields();
     }
-    return super.getFields();
+    return super.getHaxeFields();
   }
 
   @Override
-  public HaxeNamedComponent findFieldByName(@NotNull String name) {
+  public HaxeNamedComponent findHaxeFieldByName(@NotNull String name) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.findFieldByName(name);
+      return targetHaxeClass.findHaxeFieldByName(name);
     }
-    return super.findFieldByName(name);
+    return super.findHaxeFieldByName(name);
   }
 
   @Override
-  public HaxeNamedComponent findMethodByName(@NotNull String name) {
+  public HaxeNamedComponent findHaxeMethodByName(@NotNull String name) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.findMethodByName(name);
+      return targetHaxeClass.findHaxeMethodByName(name);
     }
-    return super.findMethodByName(name);
+    return super.findHaxeMethodByName(name);
   }
 }

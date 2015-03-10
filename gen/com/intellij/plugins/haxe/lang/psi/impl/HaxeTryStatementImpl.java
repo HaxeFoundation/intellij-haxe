@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTryStatementImpl extends HaxePsiCompositeElementImpl implements HaxeTryStatement {
+public class HaxeTryStatementImpl extends HaxeStatementPsiMixinImpl implements HaxeTryStatement {
 
   public HaxeTryStatementImpl(ASTNode node) {
     super(node);
@@ -55,12 +55,6 @@ public class HaxeTryStatementImpl extends HaxePsiCompositeElementImpl implements
   @NotNull
   public List<HaxeCatchStatement> getCatchStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCatchStatement.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeConditional getConditional() {
-    return findChildByClass(HaxeConditional.class);
   }
 
   @Override

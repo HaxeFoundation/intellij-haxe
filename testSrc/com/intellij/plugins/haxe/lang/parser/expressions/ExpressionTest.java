@@ -66,4 +66,8 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testTest8() throws Throwable {
     doTest(true);
   }
+
+  public void testTivo_42() throws Throwable {
+    doTest(true);
+  }
 }

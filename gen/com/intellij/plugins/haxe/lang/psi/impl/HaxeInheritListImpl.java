@@ -41,8 +41,14 @@ public class HaxeInheritListImpl extends HaxePsiCompositeElementImpl implements 
 
   @Override
   @NotNull
-  public List<HaxeInherit> getInheritList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeInherit.class);
+  public List<HaxeExtendsDeclaration> getExtendsDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExtendsDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeImplementsDeclaration> getImplementsDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeImplementsDeclaration.class);
   }
 
 }

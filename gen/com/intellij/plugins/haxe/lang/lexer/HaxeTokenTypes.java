@@ -39,6 +39,7 @@ public interface HaxeTokenTypes {
   IElementType ASSIGN_EXPRESSION = new HaxeElementType("ASSIGN_EXPRESSION");
   IElementType ASSIGN_OPERATION = new HaxeElementType("ASSIGN_OPERATION");
   IElementType AUTO_BUILD_MACRO = new HaxeElementType("AUTO_BUILD_MACRO");
+  IElementType BIND_META = new HaxeElementType("BIND_META");
   IElementType BITMAP_META = new HaxeElementType("BITMAP_META");
   IElementType BITWISE_EXPRESSION = new HaxeElementType("BITWISE_EXPRESSION");
   IElementType BIT_OPERATION = new HaxeElementType("BIT_OPERATION");
@@ -54,8 +55,11 @@ public interface HaxeTokenTypes {
   IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
   IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
   IElementType CONDITIONAL = new HaxeElementType("CONDITIONAL");
+  IElementType CONSTRUCTOR_NAME = new HaxeElementType("CONSTRUCTOR_NAME");
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
+  IElementType CORE_API_META = new HaxeElementType("CORE_API_META");
   IElementType CUSTOM_META = new HaxeElementType("CUSTOM_META");
+  IElementType DEBUG_META = new HaxeElementType("DEBUG_META");
   IElementType DECLARATION_ATTRIBUTE = new HaxeElementType("DECLARATION_ATTRIBUTE");
   IElementType DEFAULT_CASE = new HaxeElementType("DEFAULT_CASE");
   IElementType DO_WHILE_STATEMENT = new HaxeElementType("DO_WHILE_STATEMENT");
@@ -65,12 +69,14 @@ public interface HaxeTokenTypes {
   IElementType ENUM_VALUE_DECLARATION = new HaxeElementType("ENUM_VALUE_DECLARATION");
   IElementType EXPRESSION = new HaxeElementType("EXPRESSION");
   IElementType EXPRESSION_LIST = new HaxeElementType("EXPRESSION_LIST");
+  IElementType EXTENDS_DECLARATION = new HaxeElementType("EXTENDS_DECLARATION");
   IElementType EXTERN_CLASS_DECLARATION = new HaxeElementType("EXTERN_CLASS_DECLARATION");
   IElementType EXTERN_CLASS_DECLARATION_BODY = new HaxeElementType("EXTERN_CLASS_DECLARATION_BODY");
   IElementType EXTERN_FUNCTION_DECLARATION = new HaxeElementType("EXTERN_FUNCTION_DECLARATION");
   IElementType EXTERN_OR_PRIVATE = new HaxeElementType("EXTERN_OR_PRIVATE");
   IElementType FAKE_ENUM_META = new HaxeElementType("FAKE_ENUM_META");
   IElementType FAT_ARROW_EXPRESSION = new HaxeElementType("FAT_ARROW_EXPRESSION");
+  IElementType FINAL_META = new HaxeElementType("FINAL_META");
   IElementType FOR_STATEMENT = new HaxeElementType("FOR_STATEMENT");
   IElementType FUNCTION_DECLARATION_WITH_ATTRIBUTES = new HaxeElementType("FUNCTION_DECLARATION_WITH_ATTRIBUTES");
   IElementType FUNCTION_LITERAL = new HaxeElementType("FUNCTION_LITERAL");
@@ -79,18 +85,20 @@ public interface HaxeTokenTypes {
   IElementType GENERIC_LIST_PART = new HaxeElementType("GENERIC_LIST_PART");
   IElementType GENERIC_PARAM = new HaxeElementType("GENERIC_PARAM");
   IElementType GETTER_META = new HaxeElementType("GETTER_META");
+  IElementType HACK_META = new HaxeElementType("HACK_META");
   IElementType IDENTIFIER = new HaxeElementType("IDENTIFIER");
   IElementType IF_STATEMENT = new HaxeElementType("IF_STATEMENT");
+  IElementType IMPLEMENTS_DECLARATION = new HaxeElementType("IMPLEMENTS_DECLARATION");
   IElementType IMPORT_STATEMENT_REGULAR = new HaxeElementType("IMPORT_STATEMENT_REGULAR");
   IElementType IMPORT_STATEMENT_WITH_IN_SUPPORT = new HaxeElementType("IMPORT_STATEMENT_WITH_IN_SUPPORT");
   IElementType IMPORT_STATEMENT_WITH_WILDCARD = new HaxeElementType("IMPORT_STATEMENT_WITH_WILDCARD");
-  IElementType INHERIT = new HaxeElementType("INHERIT");
   IElementType INHERIT_LIST = new HaxeElementType("INHERIT_LIST");
   IElementType INTERFACE_BODY = new HaxeElementType("INTERFACE_BODY");
   IElementType INTERFACE_DECLARATION = new HaxeElementType("INTERFACE_DECLARATION");
   IElementType ITERABLE = new HaxeElementType("ITERABLE");
   IElementType ITERATOR_EXPRESSION = new HaxeElementType("ITERATOR_EXPRESSION");
   IElementType JS_REQUIRE_META = new HaxeElementType("JS_REQUIRE_META");
+  IElementType KEEP_META = new HaxeElementType("KEEP_META");
   IElementType LITERAL_EXPRESSION = new HaxeElementType("LITERAL_EXPRESSION");
   IElementType LOCAL_FUNCTION_DECLARATION = new HaxeElementType("LOCAL_FUNCTION_DECLARATION");
   IElementType LOCAL_VAR_DECLARATION = new HaxeElementType("LOCAL_VAR_DECLARATION");
@@ -98,11 +106,15 @@ public interface HaxeTokenTypes {
   IElementType LOGIC_AND_EXPRESSION = new HaxeElementType("LOGIC_AND_EXPRESSION");
   IElementType LOGIC_OR_EXPRESSION = new HaxeElementType("LOGIC_OR_EXPRESSION");
   IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
+  IElementType MACRO_CLASS = new HaxeElementType("MACRO_CLASS");
+  IElementType MACRO_CLASS_LIST = new HaxeElementType("MACRO_CLASS_LIST");
+  IElementType MACRO_META = new HaxeElementType("MACRO_META");
   IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
   IElementType META_META = new HaxeElementType("META_META");
   IElementType MULTIPLICATIVE_EXPRESSION = new HaxeElementType("MULTIPLICATIVE_EXPRESSION");
   IElementType NATIVE_META = new HaxeElementType("NATIVE_META");
   IElementType NEW_EXPRESSION = new HaxeElementType("NEW_EXPRESSION");
+  IElementType NO_DEBUG_META = new HaxeElementType("NO_DEBUG_META");
   IElementType NS_META = new HaxeElementType("NS_META");
   IElementType OBJECT_LITERAL = new HaxeElementType("OBJECT_LITERAL");
   IElementType OBJECT_LITERAL_ELEMENT = new HaxeElementType("OBJECT_LITERAL_ELEMENT");
@@ -112,8 +124,10 @@ public interface HaxeTokenTypes {
   IElementType PARAMETER_LIST = new HaxeElementType("PARAMETER_LIST");
   IElementType PARENTHESIZED_EXPRESSION = new HaxeElementType("PARENTHESIZED_EXPRESSION");
   IElementType PREFIX_EXPRESSION = new HaxeElementType("PREFIX_EXPRESSION");
+  IElementType PRIVATE_KEY_WORD = new HaxeElementType("PRIVATE_KEY_WORD");
   IElementType PROPERTY_ACCESSOR = new HaxeElementType("PROPERTY_ACCESSOR");
   IElementType PROPERTY_DECLARATION = new HaxeElementType("PROPERTY_DECLARATION");
+  IElementType PROTECTED_META = new HaxeElementType("PROTECTED_META");
   IElementType REFERENCE_EXPRESSION = new HaxeElementType("REFERENCE_EXPRESSION");
   IElementType REGULAR_EXPRESSION_LITERAL = new HaxeElementType("REGULAR_EXPRESSION_LITERAL");
   IElementType REQUIRE_META = new HaxeElementType("REQUIRE_META");
@@ -124,6 +138,7 @@ public interface HaxeTokenTypes {
   IElementType SHIFT_OPERATOR = new HaxeElementType("SHIFT_OPERATOR");
   IElementType SHIFT_RIGHT_OPERATOR = new HaxeElementType("SHIFT_RIGHT_OPERATOR");
   IElementType SHORT_TEMPLATE_ENTRY = new HaxeElementType("SHORT_TEMPLATE_ENTRY");
+  IElementType SIMPLE_META = new HaxeElementType("SIMPLE_META");
   IElementType STRING_LITERAL_EXPRESSION = new HaxeElementType("STRING_LITERAL_EXPRESSION");
   IElementType SUFFIX_EXPRESSION = new HaxeElementType("SUFFIX_EXPRESSION");
   IElementType SUPER_EXPRESSION = new HaxeElementType("SUPER_EXPRESSION");
@@ -144,6 +159,7 @@ public interface HaxeTokenTypes {
   IElementType TYPE_OR_ANONYMOUS = new HaxeElementType("TYPE_OR_ANONYMOUS");
   IElementType TYPE_PARAM = new HaxeElementType("TYPE_PARAM");
   IElementType TYPE_TAG = new HaxeElementType("TYPE_TAG");
+  IElementType UNREFLECTIVE_META = new HaxeElementType("UNREFLECTIVE_META");
   IElementType UNSIGNED_SHIFT_RIGHT_OPERATOR = new HaxeElementType("UNSIGNED_SHIFT_RIGHT_OPERATOR");
   IElementType USING_STATEMENT = new HaxeElementType("USING_STATEMENT");
   IElementType VAR_DECLARATION = new HaxeElementType("VAR_DECLARATION");
@@ -179,7 +195,6 @@ public interface HaxeTokenTypes {
   IElementType KFALSE = new HaxeElementType("false");
   IElementType KFINAL = new HaxeElementType("@:final");
   IElementType KFOR = new HaxeElementType("for");
-  IElementType KFROM = new HaxeElementType("from");
   IElementType KFUNCTION = new HaxeElementType("function");
   IElementType KGETTER = new HaxeElementType("@:getter");
   IElementType KHACK = new HaxeElementType("@:hack");
@@ -212,7 +227,6 @@ public interface HaxeTokenTypes {
   IElementType KSWITCH = new HaxeElementType("switch");
   IElementType KTHIS = new HaxeElementType("this");
   IElementType KTHROW = new HaxeElementType("throw");
-  IElementType KTO = new HaxeElementType("to");
   IElementType KTRUE = new HaxeElementType("true");
   IElementType KTRY = new HaxeElementType("try");
   IElementType KTYPEDEF = new HaxeElementType("typedef");
@@ -244,7 +258,6 @@ public interface HaxeTokenTypes {
   IElementType OEQ = new HaxeElementType("==");
   IElementType OFAT_ARROW = new HaxeElementType("=>");
   IElementType OGREATER = new HaxeElementType(">");
-  IElementType OGREATER_OR_EQUAL = new HaxeElementType(">=");
   IElementType OIN = new HaxeElementType("in");
   IElementType OLESS = new HaxeElementType("<");
   IElementType OLESS_OR_EQUAL = new HaxeElementType("<=");
@@ -268,7 +281,6 @@ public interface HaxeTokenTypes {
   IElementType OSEMI = new HaxeElementType(";");
   IElementType OSHIFT_LEFT = new HaxeElementType("<<");
   IElementType OSHIFT_LEFT_ASSIGN = new HaxeElementType("<<=");
-  IElementType OSHIFT_RIGHT_ASSIGN = new HaxeElementType(">>=");
   IElementType OTRIPLE_DOT = new HaxeElementType("...");
   IElementType PLBRACK = new HaxeElementType("[");
   IElementType PLCURLY = new HaxeElementType("{");
@@ -327,6 +339,9 @@ public interface HaxeTokenTypes {
       else if (type == AUTO_BUILD_MACRO) {
         return new HaxeAutoBuildMacroImpl(node);
       }
+      else if (type == BIND_META) {
+        return new HaxeBindMetaImpl(node);
+      }
       else if (type == BITMAP_META) {
         return new HaxeBitmapMetaImpl(node);
       }
@@ -372,11 +387,20 @@ public interface HaxeTokenTypes {
       else if (type == CONDITIONAL) {
         return new HaxeConditionalImpl(node);
       }
+      else if (type == CONSTRUCTOR_NAME) {
+        return new HaxeConstructorNameImpl(node);
+      }
       else if (type == CONTINUE_STATEMENT) {
         return new HaxeContinueStatementImpl(node);
       }
+      else if (type == CORE_API_META) {
+        return new HaxeCoreApiMetaImpl(node);
+      }
       else if (type == CUSTOM_META) {
         return new HaxeCustomMetaImpl(node);
+      }
+      else if (type == DEBUG_META) {
+        return new HaxeDebugMetaImpl(node);
       }
       else if (type == DECLARATION_ATTRIBUTE) {
         return new HaxeDeclarationAttributeImpl(node);
@@ -405,6 +429,9 @@ public interface HaxeTokenTypes {
       else if (type == EXPRESSION_LIST) {
         return new HaxeExpressionListImpl(node);
       }
+      else if (type == EXTENDS_DECLARATION) {
+        return new HaxeExtendsDeclarationImpl(node);
+      }
       else if (type == EXTERN_CLASS_DECLARATION) {
         return new HaxeExternClassDeclarationImpl(node);
       }
@@ -422,6 +449,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == FAT_ARROW_EXPRESSION) {
         return new HaxeFatArrowExpressionImpl(node);
+      }
+      else if (type == FINAL_META) {
+        return new HaxeFinalMetaImpl(node);
       }
       else if (type == FOR_STATEMENT) {
         return new HaxeForStatementImpl(node);
@@ -447,11 +477,17 @@ public interface HaxeTokenTypes {
       else if (type == GETTER_META) {
         return new HaxeGetterMetaImpl(node);
       }
+      else if (type == HACK_META) {
+        return new HaxeHackMetaImpl(node);
+      }
       else if (type == IDENTIFIER) {
         return new HaxeIdentifierImpl(node);
       }
       else if (type == IF_STATEMENT) {
         return new HaxeIfStatementImpl(node);
+      }
+      else if (type == IMPLEMENTS_DECLARATION) {
+        return new HaxeImplementsDeclarationImpl(node);
       }
       else if (type == IMPORT_STATEMENT_REGULAR) {
         return new HaxeImportStatementRegularImpl(node);
@@ -461,9 +497,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == IMPORT_STATEMENT_WITH_WILDCARD) {
         return new HaxeImportStatementWithWildcardImpl(node);
-      }
-      else if (type == INHERIT) {
-        return new HaxeInheritImpl(node);
       }
       else if (type == INHERIT_LIST) {
         return new HaxeInheritListImpl(node);
@@ -482,6 +515,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == JS_REQUIRE_META) {
         return new HaxeJsRequireMetaImpl(node);
+      }
+      else if (type == KEEP_META) {
+        return new HaxeKeepMetaImpl(node);
       }
       else if (type == LITERAL_EXPRESSION) {
         return new HaxeLiteralExpressionImpl(node);
@@ -504,6 +540,15 @@ public interface HaxeTokenTypes {
       else if (type == LONG_TEMPLATE_ENTRY) {
         return new HaxeLongTemplateEntryImpl(node);
       }
+      else if (type == MACRO_CLASS) {
+        return new HaxeMacroClassImpl(node);
+      }
+      else if (type == MACRO_CLASS_LIST) {
+        return new HaxeMacroClassListImpl(node);
+      }
+      else if (type == MACRO_META) {
+        return new HaxeMacroMetaImpl(node);
+      }
       else if (type == META_KEY_VALUE) {
         return new HaxeMetaKeyValueImpl(node);
       }
@@ -518,6 +563,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == NEW_EXPRESSION) {
         return new HaxeNewExpressionImpl(node);
+      }
+      else if (type == NO_DEBUG_META) {
+        return new HaxeNoDebugMetaImpl(node);
       }
       else if (type == NS_META) {
         return new HaxeNsMetaImpl(node);
@@ -546,11 +594,17 @@ public interface HaxeTokenTypes {
       else if (type == PREFIX_EXPRESSION) {
         return new HaxePrefixExpressionImpl(node);
       }
+      else if (type == PRIVATE_KEY_WORD) {
+        return new HaxePrivateKeyWordImpl(node);
+      }
       else if (type == PROPERTY_ACCESSOR) {
         return new HaxePropertyAccessorImpl(node);
       }
       else if (type == PROPERTY_DECLARATION) {
         return new HaxePropertyDeclarationImpl(node);
+      }
+      else if (type == PROTECTED_META) {
+        return new HaxeProtectedMetaImpl(node);
       }
       else if (type == REFERENCE_EXPRESSION) {
         return new HaxeReferenceExpressionImpl(node);
@@ -581,6 +635,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == SHORT_TEMPLATE_ENTRY) {
         return new HaxeShortTemplateEntryImpl(node);
+      }
+      else if (type == SIMPLE_META) {
+        return new HaxeSimpleMetaImpl(node);
       }
       else if (type == STRING_LITERAL_EXPRESSION) {
         return new HaxeStringLiteralExpressionImpl(node);
@@ -641,6 +698,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == TYPE_TAG) {
         return new HaxeTypeTagImpl(node);
+      }
+      else if (type == UNREFLECTIVE_META) {
+        return new HaxeUnreflectiveMetaImpl(node);
       }
       else if (type == UNSIGNED_SHIFT_RIGHT_OPERATOR) {
         return new HaxeUnsignedShiftRightOperatorImpl(node);

@@ -1,71 +1,75 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Offers')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Offers')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
-        PsiElement(function)('function')
+            PsiJavaToken:public('public')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('toString')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('toString')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           RETURN_STATEMENT
-            PsiElement(return)('return')
+            PsiJavaToken:return('return')
             STRING_LITERAL_EXPRESSION
-              PsiElement(OPEN_QUOTE)(''')
-              PsiElement(REGULAR_STRING_PART)('{Offers: num:')
+              PsiJavaToken:OPEN_QUOTE(''')
+              PsiJavaToken:REGULAR_STRING_PART('{Offers: num:')
               SHORT_TEMPLATE_ENTRY
-                PsiElement(SHORT_TEMPLATE_ENTRY_START)('$')
+                PsiJavaToken:SHORT_TEMPLATE_ENTRY_START('$')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('offersNum')
-              PsiElement(REGULAR_STRING_PART)(',')
-              PsiElement(REGULAR_STRING_PART)('\n')
+                    PsiJavaToken:ID('offersNum')
+              PsiJavaToken:REGULAR_STRING_PART(',')
+              PsiJavaToken:REGULAR_STRING_PART('\n')
               LONG_TEMPLATE_ENTRY
-                PsiElement(LONG_TEMPLATE_ENTRY_START)('${')
+                PsiJavaToken:LONG_TEMPLATE_ENTRY_START('${')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('l')
-                    PsiElement(.)('.')
+                        PsiJavaToken:ID('l')
+                    PsiJavaToken:.('.')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('toString')
-                  PsiElement(()('(')
-                  PsiElement())(')')
-                  PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign operation>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
+                        PsiJavaToken:ID('toString')
+                  PsiJavaToken:(('(')
+                  PsiJavaToken:)(')')
+                  PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign expression>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
                     PsiElement(BAD_CHARACTER)('\')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiElement(ID)('n')
-          PsiErrorElement:'!', '(', '++', '-', '--', ';', ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, new, null, return, super, switch, this, throw, true, try, untyped, var, while, '{' or '~' expected, got '}'
-            PsiElement(LONG_TEMPLATE_ENTRY_END)('}')
-          PsiElement(REGULAR_STRING_PART)('\n')
-          PsiElement(REGULAR_STRING_PART)('}')
-          PsiElement(CLOSING_QUOTE)(''')
-          PsiElement(;)(';')
-          PsiElement(})('}')
+              PsiJavaToken:ID('n')
+          PsiErrorElement:'!', '(', '++', '-', '--', ';', ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, inline, macro, new, null, return, super, switch, this, throw, true, try, untyped, var, while, '{' or '~' expected, got '}'
+            PsiJavaToken:LONG_TEMPLATE_ENTRY_END('}')
+          PsiJavaToken:REGULAR_STRING_PART('\n')
+          PsiJavaToken:REGULAR_STRING_PART('}')
+          PsiJavaToken:CLOSING_QUOTE(''')
+          PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
-        PsiElement(function)('function')
+            PsiJavaToken:public('public')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
-          PsiElement(})('}')
-    PsiElement(})('}')
+          PsiJavaToken:{('{')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

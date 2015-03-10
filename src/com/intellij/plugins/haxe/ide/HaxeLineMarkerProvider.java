@@ -67,8 +67,8 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
   }
 
   private static void collectClassMarkers(Collection<LineMarkerInfo> result, @NotNull HaxeClass haxeClass) {
-    final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getExtendsList());
-    supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getImplementsList()));
+    final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeExtendsList());
+    supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(supers.toArray(new HaxeClass[supers.size()]));
 
     final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(haxeClass);
@@ -123,7 +123,9 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
                               HaxeResolveUtil.getDeclarationTypes(componentWithDeclarationList.getDeclarationAttributeList()).
                                 contains(HaxeTokenTypes.KOVERRIDE);
     final Icon icon = overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
-    assert element != null;
+    if (null == element) {
+      return null;
+    }
     return new LineMarkerInfo<PsiElement>(
       element,
       element.getTextRange(),

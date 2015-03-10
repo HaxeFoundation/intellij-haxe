@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeReturnStatementImpl extends HaxePsiCompositeElementImpl implements HaxeReturnStatement {
+public class HaxeReturnStatementImpl extends HaxeStatementPsiMixinImpl implements HaxeReturnStatement {
 
   public HaxeReturnStatementImpl(ASTNode node) {
     super(node);
@@ -37,6 +37,12 @@ public class HaxeReturnStatementImpl extends HaxePsiCompositeElementImpl impleme
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitReturnStatement(this);
     else super.accept(visitor);
+  }
+
+  @Override
+  @Nullable
+  public HaxeBlockStatement getBlockStatement() {
+    return findChildByClass(HaxeBlockStatement.class);
   }
 
   @Override

@@ -21,10 +21,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
+import org.apache.velocity.texen.util.FileUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,11 +81,13 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
     throws ProjectBuildException, IOException {
     boolean doneSomething = false;
 
-    for (final JpsModule module : chunk.getModules()) {
-      if (module.getModuleType() == JpsHaxeModuleType.INSTANCE) {
-        doneSomething |= processModule(context, dirtyFilesHolder, module);
-      }
-    }
+    // Don't do this.  HaxeCompiler already does it, and doing it here just
+    // does it again.
+//    for (final JpsModule module : chunk.getModules()) {
+//      if (module.getModuleType() == JpsHaxeModuleType.INSTANCE) {
+//        doneSomething |= processModule(context, dirtyFilesHolder, module);
+//      }
+//    }
 
     return doneSomething ? ExitCode.OK : ExitCode.NOTHING_DONE;
   }
@@ -129,6 +133,21 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       @Override
       public String getModuleName() {
         return module.getName();
+      }
+
+      @Override
+      public String getCompilationClass() {
+        return getModuleSettings().getMainClass();
+      }
+
+      @Override
+      public String getOutputFileName() {
+        return getModuleSettings().getOutputFileName();
+      }
+
+      @Override
+      public Boolean getIsTestBuild() {
+        return false;
       }
 
       @Override
@@ -201,6 +220,11 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
             compilerError != null ? (long)compilerError.getColumn() : -1L
           ));
         }*/
+      }
+
+      @Override
+      public HaxeTarget getHaxeTarget() {
+        return getModuleSettings().getHaxeTarget();
       }
 
       @Override

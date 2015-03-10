@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarationList {
+public interface HaxeExternFunctionDeclaration extends HaxeMethod {
 
   @NotNull
   List<HaxeAutoBuildMacro> getAutoBuildMacroList();
@@ -34,17 +34,29 @@ public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarat
   @NotNull
   List<HaxeBuildMacro> getBuildMacroList();
 
-  @Nullable
+  @NotNull
   HaxeComponentName getComponentName();
 
   @NotNull
   List<HaxeCustomMeta> getCustomMetaList();
 
   @NotNull
+  List<HaxeDebugMeta> getDebugMetaList();
+
+  @NotNull
   List<HaxeDeclarationAttribute> getDeclarationAttributeList();
 
   @Nullable
+  HaxeDoWhileStatement getDoWhileStatement();
+
+  @Nullable
   HaxeExpression getExpression();
+
+  @NotNull
+  List<HaxeFinalMeta> getFinalMetaList();
+
+  @Nullable
+  HaxeForStatement getForStatement();
 
   @Nullable
   HaxeGenericParam getGenericParam();
@@ -52,8 +64,20 @@ public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarat
   @NotNull
   List<HaxeGetterMeta> getGetterMetaList();
 
+  @Nullable
+  HaxeIfStatement getIfStatement();
+
+  @NotNull
+  List<HaxeKeepMeta> getKeepMetaList();
+
+  @NotNull
+  List<HaxeMacroMeta> getMacroMetaList();
+
   @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
+
+  @NotNull
+  List<HaxeNoDebugMeta> getNoDebugMetaList();
 
   @NotNull
   List<HaxeNsMeta> getNsMetaList();
@@ -63,6 +87,9 @@ public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarat
 
   @Nullable
   HaxeParameterList getParameterList();
+
+  @NotNull
+  List<HaxeProtectedMeta> getProtectedMetaList();
 
   @NotNull
   List<HaxeRequireMeta> getRequireMetaList();
@@ -78,5 +105,8 @@ public interface HaxeExternFunctionDeclaration extends HaxeComponentWithDeclarat
 
   @Nullable
   HaxeTypeTag getTypeTag();
+
+  @Nullable
+  HaxeWhileStatement getWhileStatement();
 
 }

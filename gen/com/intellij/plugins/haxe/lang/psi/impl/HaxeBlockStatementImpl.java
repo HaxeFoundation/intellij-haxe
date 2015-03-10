@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeBlockStatementImpl extends HaxePsiCompositeElementImpl implements HaxeBlockStatement {
+public class HaxeBlockStatementImpl extends HaxeBlockStatementPsiMixinImpl implements HaxeBlockStatement {
 
   public HaxeBlockStatementImpl(ASTNode node) {
     super(node);
@@ -49,12 +49,6 @@ public class HaxeBlockStatementImpl extends HaxePsiCompositeElementImpl implemen
   @NotNull
   public List<HaxeBreakStatement> getBreakStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBreakStatement.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeConditional> getConditionalList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeConditional.class);
   }
 
   @Override

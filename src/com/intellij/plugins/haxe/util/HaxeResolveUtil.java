@@ -30,6 +30,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -51,12 +52,56 @@ public class HaxeResolveUtil {
   @Nullable
   public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
     if (node == null) return null;
+
     for (PsiElement sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(node, true);
          sibling != null;
-         sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling, true)) {
+         sibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling, true))
+    {
       if (".".equals(sibling.getText())) continue;
-      return sibling instanceof HaxeReference && sibling != node ? (HaxeReference)sibling : null;
+
+      HaxeExpression tmpExpression = null;
+      if (sibling instanceof HaxeExpression) {
+        tmpExpression = (HaxeExpression) sibling;
+      }
+
+      if (tmpExpression != null && tmpExpression instanceof HaxeParenthesizedExpression) {
+        tmpExpression = ((HaxeParenthesizedExpression) tmpExpression).getExpression();
+      }
+
+      HaxeReference theHaxeRef = null;
+      if (tmpExpression != null) {
+        if (tmpExpression instanceof HaxeAssignExpression) {
+          if (2 == ((HaxeAssignExpression) tmpExpression).getExpressionList().size()) {
+            final HaxeExpression rhsHaxeExpr = ((HaxeAssignExpression) tmpExpression).getExpressionList().get(1);
+            final HaxeReference rhsHaxeReference = (HaxeReference) rhsHaxeExpr.getReference();
+            if ((rhsHaxeReference != null) && (rhsHaxeReference.resolveHaxeClass().getHaxeClass() != null)) {
+              theHaxeRef = rhsHaxeReference;
+            }
+            else {
+              final HaxeExpression lhsHaxeExpr = ((HaxeAssignExpression) tmpExpression).getExpressionList().get(0);
+              final HaxeReference lhsHaxeReference = (HaxeReference) lhsHaxeExpr.getReference();
+              if ((lhsHaxeReference != null) && (lhsHaxeReference.resolveHaxeClass().getHaxeClass() != null)) {
+                theHaxeRef = lhsHaxeReference;
+              }
+            }
+          }
+        }
+        else
+        if (tmpExpression instanceof HaxeReferenceExpression) {
+          theHaxeRef = (HaxeReference) tmpExpression; // TODO: FIX: not correct for identifiers - HaxeReferenceExpresssion.getIdentifier() -- but, that's not a reference?!
+        }
+        else {
+          theHaxeRef = (HaxeReference) tmpExpression.getReference();
+        }
+      }
+
+      if (theHaxeRef != null && theHaxeRef != sibling) {
+        sibling = theHaxeRef;
+      }
+
+      return ((sibling instanceof HaxeReference) && (sibling != node)) ? (HaxeReference) sibling : null;
     }
+
     return null;
   }
 
@@ -161,26 +206,26 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static List<HaxeType> findExtendsList(@Nullable HaxeInheritList extendsList) {
-    return findExtendsImplementsListImpl(extendsList, HaxeTokenTypes.KEXTENDS);
+    List<? extends HaxeInherit> ext = null == extendsList  ? null : extendsList.getExtendsDeclarationList();
+    return findExtendsImplementsListImpl(ext);
   }
 
   public static List<HaxeType> getImplementsList(@Nullable HaxeInheritList extendsList) {
-    return findExtendsImplementsListImpl(extendsList, HaxeTokenTypes.KIMPLEMENTS);
+    List<? extends HaxeInherit> ext = null == extendsList  ? null : extendsList.getImplementsDeclarationList();
+    return findExtendsImplementsListImpl(ext);
   }
 
   @NotNull
-  private static List<HaxeType> findExtendsImplementsListImpl(@Nullable HaxeInheritList extendsList,
-                                                              @NotNull IElementType expectedKeyword) {
+  private static List<HaxeType> findExtendsImplementsListImpl(@Nullable List<? extends HaxeInherit> extendsList) {
     if (extendsList == null) {
       return Collections.emptyList();
     }
     final List<HaxeType> result = new ArrayList<HaxeType>();
-    for (HaxeInherit inherit : extendsList.getInheritList()) {
+    for (HaxeInherit inherit : extendsList) {
       final PsiElement firstChild = inherit.getFirstChild();
-      final IElementType childType = firstChild instanceof ASTNode ? ((ASTNode)firstChild).getElementType() : null;
-      final HaxeType inheritType = inherit.getType();
-      if (childType == expectedKeyword && inheritType != null) {
-        result.add(inheritType);
+      final List<HaxeType> inheritTypes = inherit.getTypeList();
+      if (inheritTypes != null) {
+        result.addAll(inheritTypes);
       }
     }
     return result;
@@ -200,8 +245,8 @@ public class HaxeResolveUtil {
     if (haxeClass == null) {
       return null;
     }
-    final HaxeNamedComponent result = haxeClass.findMethodByName(name);
-    return result != null ? result : haxeClass.findFieldByName(name);
+    final HaxeNamedComponent result = haxeClass.findHaxeMethodByName(name);
+    return result != null ? result : haxeClass.findHaxeFieldByName(name);
   }
 
   @NotNull
@@ -222,12 +267,13 @@ public class HaxeResolveUtil {
           unfilteredResult.add(namedComponent);
         }
       }
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getExtendsList()));
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getImplementsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeExtendsList()));
+      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     }
     if (!unique) {
       return unfilteredResult;
     }
+
     return new ArrayList<HaxeNamedComponent>(namedComponentToMap(unfilteredResult).values());
   }
 
@@ -289,16 +335,22 @@ public class HaxeResolveUtil {
       return result;
     }
     final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(body, HaxeNamedComponent.class);
-    final HaxeVarDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeVarDeclaration.class);
     if (namedComponents != null) {
-      ContainerUtil.addAll(result, namedComponents);
+      for (HaxeNamedComponent namedComponent : namedComponents) {
+        // Variable declarations are named components, but don't have the
+        // same Psi structure as most. So, go find the actual sub-element(s)
+        // that are named (that themselves have COMPONENT_NAME sub-elements).
+        if (namedComponent instanceof HaxeVarDeclaration) {
+          HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)namedComponent;
+          result.addAll(varDeclaration.getVarDeclarationPartList());
+        }
+        else {
+          result.add(namedComponent);
+        }
+      }
     }
-    if (variables == null) {
-      return result;
-    }
-    for (HaxeVarDeclaration varDeclaration : variables) {
-      result.addAll(varDeclaration.getVarDeclarationPartList());
-    }
+
+
     return result;
   }
 
@@ -331,15 +383,17 @@ public class HaxeResolveUtil {
     if (HaxeComponentType.typeOf(component) != HaxeComponentType.METHOD) {
       return null;
     }
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterList.class);
-    if (parameterList == null) {
+    final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(component, HaxeParameterListPsiMixinImpl.class);
+    if (parameterList == null || parameterList.getParametersCount() == 0) {
       return Collections.emptyList();
     }
-    return ContainerUtil.map(parameterList.getParameterList(), new Function<HaxeParameter, HaxeType>() {
+    return ContainerUtil.map(parameterList.getParametersAsList(), new Function<HaxeParameter, HaxeType>() {
       @Override
       public HaxeType fun(HaxeParameter parameter) {
         final HaxeTypeTag typeTag = parameter.getTypeTag();
-        return typeTag == null ? null : typeTag.getTypeOrAnonymous().getType();
+        if (null == typeTag) return null;
+        final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+        return (null == typeOrAnonymous) ? null : typeOrAnonymous.getType();
       }
     });
   }
@@ -376,13 +430,13 @@ public class HaxeResolveUtil {
         final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
         // try next
         HaxeClassResolveResult result =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("next"),
+          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("next"),
                                     resolveResult.getSpecialization());
         if (result.getHaxeClass() != null) {
           return result;
         }
         // try iterator
-        result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findMethodByName("iterator"),
+        result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator"),
                                            resolveResult.getSpecialization());
         return result.getSpecialization().containsKey(null, "T")
                ? result.getSpecialization().get(null, "T")
@@ -413,9 +467,9 @@ public class HaxeResolveUtil {
   public static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag == null ? null : typeTag.getTypeOrAnonymous();
-    final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() :
-                          element instanceof HaxeType ? (HaxeType)element : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? typeTag.getTypeOrAnonymous() : null;
+    final HaxeType type = (typeOrAnonymous != null) ? typeOrAnonymous.getType() :
+                            ((element instanceof HaxeType) ? (HaxeType)element : null);
 
     HaxeClass haxeClass = type == null ? null : tryResolveClassByQName(type);
     if (haxeClass == null && type != null && specialization.containsKey(element, type.getText())) {
@@ -512,9 +566,41 @@ public class HaxeResolveUtil {
   }
 
   public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
-    HaxeImportStatementWithInSupport importStatementWithInSupport = PsiTreeUtil.getParentOfType(type, HaxeImportStatementWithInSupport.class, false);
+    HaxeImportStatementWithInSupport importStatementWithInSupport = PsiTreeUtil.getParentOfType(type,
+                                                                                                HaxeImportStatementWithInSupport.class,
+                                                                                                false);
     if (importStatementWithInSupport != null) {
       return importStatementWithInSupport.getReferenceExpression().getText();
+    }
+
+    HaxeUsingStatement usingStatement = PsiTreeUtil.getParentOfType(type, HaxeUsingStatement.class, false);
+    if (usingStatement != null) {
+      return usingStatement.getReferenceExpression().getText();
+    }
+
+    String text = type.getText();
+    if (type instanceof HaxeReferenceExpression) {
+      String text1 = type.getText();
+      PsiElement element = null;
+      if (type.getParent() instanceof HaxeReferenceExpression) {
+        element = type;
+        while (element.getParent() instanceof HaxeReferenceExpression) {
+          element = element.getParent();
+        }
+
+        if (element != null) {
+          HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
+          if (haxeClass != null) {
+            return element.getText();
+          }
+        }
+
+        PsiElement parent = type.getParent();
+        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
+        if (classByQName != null) {
+          return parent.getText();
+        }
+      }
     }
 
     if (type instanceof HaxeType) {
@@ -706,15 +792,19 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static HaxeClassResolveResult findFirstParameterClass(HaxeNamedComponent haxeNamedComponent) {
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterList.class);
+    final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(haxeNamedComponent, HaxeParameterListPsiMixinImpl.class);
     if (parameterList == null) {
       return HaxeClassResolveResult.EMPTY;
     }
-    final List<HaxeParameter> parameters = parameterList.getParameterList();
+    final List<HaxeParameter> parameters = parameterList.getParametersAsList();
     if (!parameters.isEmpty()) {
       final HaxeParameter parameter = parameters.iterator().next();
       return getHaxeClassResolveResult(parameter, HaxeGenericSpecialization.EMPTY);
     }
     return HaxeClassResolveResult.EMPTY;
+  }
+
+  public static HaxeParameterListPsiMixinImpl toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
+    return new HaxeParameterListPsiMixinImpl(haxeParameterList.getNode());
   }
 }

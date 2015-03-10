@@ -19,13 +19,17 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +37,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements HaxePsiCompositeElement {
+/*
+ * This class, ideally, must not derive from HaxeModifierListOwner because every element cannot be prefixed with modifiers/annotations.
+ * E.g. try/catch blocks, Interface body, Class body etc. do not have annotations attached to them.
+ *
+ * Unfortunately, it is observed that individual words read from the file are being validated whether they are methods, fields or have
+ * annotations attached to them. This is causing .findMethodByName("void"), .findFieldByName("var"), .hasModifierByName("catch") etc
+ * calls to be made and resulting in runtime errors / class-cast exceptions.
+ *
+ * To work around that, this 'is-a' relationship is introduced :(
+ */
+
+public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements HaxePsiCompositeElement, HaxeModifierListOwner {
   public HaxePsiCompositeElementImpl(@NotNull ASTNode node) {
     super(node);
   }
@@ -42,8 +57,21 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     return getNode().getElementType();
   }
 
+  public String getDebugName() {
+    String name = getName();
+    if (null != name) {
+      return "'" + getName() + "'";
+    }
+    return "";
+  }
+
   public String toString() {
-    return getTokenType().toString();
+    String out = getTokenType().toString();
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      // Unit tests don't want the extra data.
+      out += " " + getDebugName();
+    }
+    return out;
   }
 
   @Override
@@ -113,4 +141,21 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       result.addAll(Arrays.asList(items));
     }
   }
+
+
+  // HaxeModifierListOwner implementations
+
+  @Override
+  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    HaxeModifierList list = getModifierList();
+    return null == list ? false : list.hasModifierProperty(name);
+  }
+
+  @Nullable
+  @Override
+  public HaxeModifierList getModifierList() {
+    HaxeModifierList list = (HaxeModifierList) this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
+    return list;
+  }
+
 }

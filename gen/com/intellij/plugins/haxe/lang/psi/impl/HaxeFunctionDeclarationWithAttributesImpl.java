@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamedComponent implements HaxeFunctionDeclarationWithAttributes {
+public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl implements HaxeFunctionDeclarationWithAttributes {
 
   public HaxeFunctionDeclarationWithAttributesImpl(ASTNode node) {
     super(node);
@@ -64,9 +64,21 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
   }
 
   @Override
+  @Nullable
+  public HaxeConstructorName getConstructorName() {
+    return findChildByClass(HaxeConstructorName.class);
+  }
+
+  @Override
   @NotNull
   public List<HaxeCustomMeta> getCustomMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCustomMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeDebugMeta> getDebugMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDebugMeta.class);
   }
 
   @Override
@@ -77,8 +89,26 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
 
   @Override
   @Nullable
+  public HaxeDoWhileStatement getDoWhileStatement() {
+    return findChildByClass(HaxeDoWhileStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeFinalMeta> getFinalMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFinalMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeForStatement getForStatement() {
+    return findChildByClass(HaxeForStatement.class);
   }
 
   @Override
@@ -94,9 +124,33 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
   }
 
   @Override
+  @Nullable
+  public HaxeIfStatement getIfStatement() {
+    return findChildByClass(HaxeIfStatement.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeKeepMeta> getKeepMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeKeepMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeMacroMeta> getMacroMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroMeta.class);
+  }
+
+  @Override
   @NotNull
   public List<HaxeMetaMeta> getMetaMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeNoDebugMeta> getNoDebugMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNoDebugMeta.class);
   }
 
   @Override
@@ -115,6 +169,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
   @Nullable
   public HaxeParameterList getParameterList() {
     return findChildByClass(HaxeParameterList.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeProtectedMeta> getProtectedMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeProtectedMeta.class);
   }
 
   @Override
@@ -145,6 +205,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends AbstractHaxeNamed
   @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeWhileStatement getWhileStatement() {
+    return findChildByClass(HaxeWhileStatement.class);
   }
 
 }

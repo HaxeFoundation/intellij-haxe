@@ -71,7 +71,7 @@ public class HXMLParser implements PsiParser {
   // '-cp' SEPARATOR VALUE
   public static boolean classpath(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "classpath")) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<classpath>");
     result_ = consumeToken(builder_, "-cp");
     result_ = result_ && consumeTokens(builder_, 0, SEPARATOR, VALUE);
@@ -83,7 +83,7 @@ public class HXMLParser implements PsiParser {
   // '-D' SEPARATOR VALUE
   public static boolean define(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "define")) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<define>");
     result_ = consumeToken(builder_, "-D");
     result_ = result_ && consumeTokens(builder_, 0, SEPARATOR, VALUE);
@@ -95,7 +95,7 @@ public class HXMLParser implements PsiParser {
   // lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF
   static boolean item_(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "item_")) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = lib(builder_, level_ + 1);
     if (!result_) result_ = define(builder_, level_ + 1);
@@ -113,7 +113,7 @@ public class HXMLParser implements PsiParser {
   // '-lib' SEPARATOR VALUE (':' VALUE)?
   public static boolean lib(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "lib")) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<lib>");
     result_ = consumeToken(builder_, "-lib");
     result_ = result_ && consumeTokens(builder_, 0, SEPARATOR, VALUE);
@@ -132,7 +132,7 @@ public class HXMLParser implements PsiParser {
   // ':' VALUE
   private static boolean lib_3_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "lib_3_0")) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, ":");
     result_ = result_ && consumeToken(builder_, VALUE);
@@ -144,7 +144,7 @@ public class HXMLParser implements PsiParser {
   // '-main' SEPARATOR qualifiedName
   public static boolean main(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "main")) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, "<main>");
     result_ = consumeToken(builder_, "-main");
     result_ = result_ && consumeToken(builder_, SEPARATOR);
@@ -158,7 +158,7 @@ public class HXMLParser implements PsiParser {
   public static boolean property(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "property")) return false;
     if (!nextTokenIs(builder_, KEY)) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = property_0(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, KEY);
@@ -169,7 +169,7 @@ public class HXMLParser implements PsiParser {
   // KEY SEPARATOR VALUE
   private static boolean property_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "property_0")) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = consumeTokens(builder_, 0, KEY, SEPARATOR, VALUE);
     exit_section_(builder_, marker_, null, result_);
@@ -181,7 +181,7 @@ public class HXMLParser implements PsiParser {
   public static boolean qualifiedName(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "qualifiedName")) return false;
     if (!nextTokenIs(builder_, QUALIFIEDCLASSNAME)) return false;
-    boolean result_ = false;
+    boolean result_;
     Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, QUALIFIEDCLASSNAME);
     exit_section_(builder_, marker_, QUALIFIED_NAME, result_);

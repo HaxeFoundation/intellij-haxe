@@ -27,6 +27,8 @@ public class HaxeCodeGenerateUtil {
 
   public static final String CLASS_PREFIX = "class Main{";
   public static final String CLASS_SUFFIX = "}";
+  public static final String INTERFACE_PREFIX = "interface Main{";
+  public static final String INTERFACE_SUFFIX = "}";
   public static final String FUNCTION_PREFIX = "function main(){";
   public static final String FUNCTION_SUFFIX = "}";
 
@@ -40,6 +42,11 @@ public class HaxeCodeGenerateUtil {
   public static Pair<String, Integer> wrapFunction(String function) {
     function = trimDummy(function);
     return new Pair<String, Integer>(CLASS_PREFIX + function + CLASS_SUFFIX, CLASS_SUFFIX.length());
+  }
+
+  public static Pair<String, Integer> wrapInterfaceFunction(String function) {
+    function = trimDummy(function);
+    return new Pair<String, Integer>(INTERFACE_PREFIX + function + INTERFACE_SUFFIX, INTERFACE_SUFFIX.length());
   }
 
   private static String trimDummy(String text) {

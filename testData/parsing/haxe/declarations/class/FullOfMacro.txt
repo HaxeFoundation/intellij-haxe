@@ -1,268 +1,296 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(@:keep)('@:keep')
-    PsiElement(@:final)('@:final')
-    PsiElement(@:hack)('@:hack')
-    NATIVE_META
-      PsiElement(@:native)('@:native')
-      PsiElement(()('(')
-      STRING_LITERAL_EXPRESSION
-        PsiElement(OPEN_QUOTE)('"')
-        PsiElement(REGULAR_STRING_PART)('my.real.Path')
-        PsiElement(CLOSING_QUOTE)('"')
-      PsiElement())(')')
-    NS_META
-      PsiElement(@:ns)('@:ns')
-      PsiElement(()('(')
-      STRING_LITERAL_EXPRESSION
-        PsiElement(OPEN_QUOTE)('"')
-        PsiElement(REGULAR_STRING_PART)('namespace')
-        PsiElement(CLOSING_QUOTE)('"')
-      PsiElement())(')')
-    META_META
-      PsiElement(@:meta)('@:meta')
-      PsiElement(()('(')
-      PsiElement(ID)('Event')
-      PsiElement(()('(')
-      META_KEY_VALUE
-        PsiElement(ID)('name')
-        PsiElement(=)('=')
-        STRING_LITERAL_EXPRESSION
-          PsiElement(OPEN_QUOTE)('"')
-          PsiElement(REGULAR_STRING_PART)('test')
-          PsiElement(CLOSING_QUOTE)('"')
-      PsiElement(,)(',')
-      META_KEY_VALUE
-        PsiElement(ID)('type')
-        PsiElement(=)('=')
-        STRING_LITERAL_EXPRESSION
-          PsiElement(OPEN_QUOTE)('"')
-          PsiElement(REGULAR_STRING_PART)('Foo')
-          PsiElement(CLOSING_QUOTE)('"')
-      PsiElement())(')')
-      PsiElement())(')')
-    BITMAP_META
-      PsiElement(@:bitmap)('@:bitmap')
-      PsiElement(()('(')
-      STRING_LITERAL_EXPRESSION
-        PsiElement(OPEN_QUOTE)('"')
-        PsiElement(REGULAR_STRING_PART)('myfile.png')
-        PsiElement(CLOSING_QUOTE)('"')
-      PsiElement())(')')
-    BUILD_MACRO
-      PsiElement(@:build)('@:build')
-      PsiElement(()('(')
-      CALL_EXPRESSION
-        REFERENCE_EXPRESSION
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('MacroGenerator')
-          PsiElement(.)('.')
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('build')
-        PsiElement(()('(')
-        PsiElement())(')')
-      PsiElement())(')')
-    CUSTOM_META
-      PsiElement(MACRO_ID)('@superClass')
-      PsiElement(()('(')
-      EXPRESSION_LIST
-        STRING_LITERAL_EXPRESSION
-          PsiElement(OPEN_QUOTE)('"')
-          PsiElement(REGULAR_STRING_PART)('user name')
-          PsiElement(CLOSING_QUOTE)('"')
-        PsiElement(,)(',')
-        OBJECT_LITERAL
-          PsiElement({)('{')
-          OBJECT_LITERAL_ELEMENT
-            IDENTIFIER
-              PsiElement(ID)('name')
-            PsiElement(:)(':')
+    PsiModifierList:@:keep
+@:final @:hack
+@:native("my.real.Path")
+@:ns("namespace")
+@:meta(Event(name="test",type="Foo"))
+@:bitmap("myfile.png")
+@:build(MacroGenerator.build())
+@superClass("user name", {name:"user"})
+      MACRO_CLASS
+        SIMPLE_META
+          KEEP_META
+            PsiJavaToken:@:keep('@:keep')
+      MACRO_CLASS
+        SIMPLE_META
+          FINAL_META
+            PsiJavaToken:@:final('@:final')
+      MACRO_CLASS
+        SIMPLE_META
+          HACK_META
+            PsiJavaToken:@:hack('@:hack')
+      MACRO_CLASS
+        NATIVE_META
+          PsiJavaToken:@:native('@:native')
+          PsiJavaToken:(('(')
+          STRING_LITERAL_EXPRESSION
+            PsiJavaToken:OPEN_QUOTE('"')
+            PsiJavaToken:REGULAR_STRING_PART('my.real.Path')
+            PsiJavaToken:CLOSING_QUOTE('"')
+          PsiJavaToken:)(')')
+      MACRO_CLASS
+        NS_META
+          PsiJavaToken:@:ns('@:ns')
+          PsiJavaToken:(('(')
+          STRING_LITERAL_EXPRESSION
+            PsiJavaToken:OPEN_QUOTE('"')
+            PsiJavaToken:REGULAR_STRING_PART('namespace')
+            PsiJavaToken:CLOSING_QUOTE('"')
+          PsiJavaToken:)(')')
+      MACRO_CLASS
+        META_META
+          PsiJavaToken:@:meta('@:meta')
+          PsiJavaToken:(('(')
+          PsiJavaToken:ID('Event')
+          PsiJavaToken:(('(')
+          META_KEY_VALUE
+            PsiJavaToken:ID('name')
+            PsiJavaToken:=('=')
             STRING_LITERAL_EXPRESSION
-              PsiElement(OPEN_QUOTE)('"')
-              PsiElement(REGULAR_STRING_PART)('user')
-              PsiElement(CLOSING_QUOTE)('"')
-          PsiElement(})('}')
-      PsiElement())(')')
-    PsiElement(class)('class')
+              PsiJavaToken:OPEN_QUOTE('"')
+              PsiJavaToken:REGULAR_STRING_PART('test')
+              PsiJavaToken:CLOSING_QUOTE('"')
+          PsiJavaToken:,(',')
+          META_KEY_VALUE
+            PsiJavaToken:ID('type')
+            PsiJavaToken:=('=')
+            STRING_LITERAL_EXPRESSION
+              PsiJavaToken:OPEN_QUOTE('"')
+              PsiJavaToken:REGULAR_STRING_PART('Foo')
+              PsiJavaToken:CLOSING_QUOTE('"')
+          PsiJavaToken:)(')')
+          PsiJavaToken:)(')')
+      MACRO_CLASS
+        BITMAP_META
+          PsiJavaToken:@:bitmap('@:bitmap')
+          PsiJavaToken:(('(')
+          STRING_LITERAL_EXPRESSION
+            PsiJavaToken:OPEN_QUOTE('"')
+            PsiJavaToken:REGULAR_STRING_PART('myfile.png')
+            PsiJavaToken:CLOSING_QUOTE('"')
+          PsiJavaToken:)(')')
+      MACRO_CLASS
+        BUILD_MACRO
+          PsiJavaToken:@:build('@:build')
+          PsiJavaToken:(('(')
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  PsiJavaToken:ID('MacroGenerator')
+              PsiJavaToken:.('.')
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  PsiJavaToken:ID('build')
+            PsiJavaToken:(('(')
+            PsiJavaToken:)(')')
+          PsiJavaToken:)(')')
+      MACRO_CLASS
+        CUSTOM_META
+          PsiJavaToken:MACRO_ID('@superClass')
+          PsiJavaToken:(('(')
+          EXPRESSION_LIST
+            STRING_LITERAL_EXPRESSION
+              PsiJavaToken:OPEN_QUOTE('"')
+              PsiJavaToken:REGULAR_STRING_PART('user name')
+              PsiJavaToken:CLOSING_QUOTE('"')
+            PsiJavaToken:,(',')
+            OBJECT_LITERAL
+              PsiJavaToken:{('{')
+              OBJECT_LITERAL_ELEMENT
+                IDENTIFIER
+                  PsiJavaToken:ID('name')
+                PsiJavaToken::(':')
+                STRING_LITERAL_EXPRESSION
+                  PsiJavaToken:OPEN_QUOTE('"')
+                  PsiJavaToken:REGULAR_STRING_PART('user')
+                  PsiJavaToken:CLOSING_QUOTE('"')
+              PsiJavaToken:}('}')
+          PsiJavaToken:)(')')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('FullOfMacro')
-    PsiElement({)('{')
+        PsiJavaToken:ID('FullOfMacro')
+    PsiJavaToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
         CUSTOM_META
-          PsiElement(MACRO_ID)('@customUser')
-        PsiElement(var)('var')
+          PsiJavaToken:MACRO_ID('@customUser')
+        PsiJavaToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiElement(ID)('_value')
-        PsiElement(;)(';')
+              PsiJavaToken:ID('_value')
+        PsiJavaToken:;(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         GETTER_META
-          PsiElement(@:getter)('@:getter')
-          PsiElement(()('(')
+          PsiJavaToken:@:getter('@:getter')
+          PsiJavaToken:(('(')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiElement(ID)('_value')
-          PsiElement())(')')
-        PsiElement(function)('function')
+              PsiJavaToken:ID('_value')
+          PsiJavaToken:)(')')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('getValue')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('getValue')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           RETURN_STATEMENT
-            PsiElement(return)('return')
+            PsiJavaToken:return('return')
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('_value')
-            PsiElement(;)(';')
-          PsiElement(})('}')
+                PsiJavaToken:ID('_value')
+            PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         SETTER_META
-          PsiElement(@:setter)('@:setter')
-          PsiElement(()('(')
+          PsiJavaToken:@:setter('@:setter')
+          PsiJavaToken:(('(')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiElement(ID)('_value')
-          PsiElement())(')')
-        PsiElement(function)('function')
+              PsiJavaToken:ID('_value')
+          PsiJavaToken:)(')')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('setValue')
-        PsiElement(()('(')
+            PsiJavaToken:ID('setValue')
+        PsiJavaToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiElement(ID)('value')
-        PsiElement())(')')
+                PsiJavaToken:ID('value')
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('_value')
+                PsiJavaToken:ID('_value')
             ASSIGN_OPERATION
-              PsiElement(=)('=')
+              PsiJavaToken:=('=')
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('value')
-          PsiElement(;)(';')
-          PsiElement(})('}')
+                PsiJavaToken:ID('value')
+          PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         OVERLOAD_META
-          PsiElement(@:overload)('@:overload')
-          PsiElement(()('(')
+          PsiJavaToken:@:overload('@:overload')
+          PsiJavaToken:(('(')
           ANONYMOUS_FUNCTION_DECLARATION
-            PsiElement(function)('function')
-            PsiElement(()('(')
+            PsiJavaToken:function('function')
+            PsiJavaToken:(('(')
             PARAMETER_LIST
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiElement(ID)('name')
+                    PsiJavaToken:ID('name')
                 TYPE_TAG
-                  PsiElement(:)(':')
+                  PsiJavaToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('String')
-              PsiElement(,)(',')
+                          PsiJavaToken:ID('String')
+              PsiJavaToken:,(',')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiElement(ID)('value')
+                    PsiJavaToken:ID('value')
                 TYPE_TAG
-                  PsiElement(:)(':')
+                  PsiJavaToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('String')
-            PsiElement())(')')
+                          PsiJavaToken:ID('String')
+            PsiJavaToken:)(')')
             TYPE_TAG
-              PsiElement(:)(':')
+              PsiJavaToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('js')
-                    PsiElement(.)('.')
+                        PsiJavaToken:ID('js')
+                    PsiJavaToken:.('.')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('JQuery')
-            PsiElement({)('{')
-            PsiElement(})('}')
-          PsiElement())(')')
-        PsiElement(function)('function')
+                        PsiJavaToken:ID('JQuery')
+            PsiJavaToken:{('{')
+            PsiJavaToken:}('}')
+          PsiJavaToken:)(')')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('attr')
-        PsiElement(()('(')
+            PsiJavaToken:ID('attr')
+        PsiJavaToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiElement(ID)('name')
+                PsiJavaToken:ID('name')
             TYPE_TAG
-              PsiElement(:)(':')
+              PsiJavaToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('String')
-        PsiElement())(')')
+                      PsiJavaToken:ID('String')
+        PsiJavaToken:)(')')
         TYPE_TAG
-          PsiElement(:)(':')
+          PsiJavaToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('String')
+                  PsiJavaToken:ID('String')
         BLOCK_STATEMENT
-          PsiElement({)('{')
-          PsiElement(})('}')
-    PsiElement(})('}')
+          PsiJavaToken:{('{')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')
   EXTERN_CLASS_DECLARATION
-    BUILD_MACRO
-      PsiElement(@:build)('@:build')
-      PsiElement(()('(')
-      CALL_EXPRESSION
-        REFERENCE_EXPRESSION
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('MacroGenerator')
-          PsiElement(.)('.')
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              PsiElement(ID)('build')
-        PsiElement(()('(')
-        EXPRESSION_LIST
-          ARRAY_LITERAL
-            PsiElement([)('[')
-            PsiElement(])(']')
-          PsiElement(,)(',')
-          LITERAL_EXPRESSION
-            PsiElement(true)('true')
-        PsiElement())(')')
-      PsiElement())(')')
+    PsiModifierList:@:build(MacroGenerator.build([], true))
+      MACRO_CLASS
+        BUILD_MACRO
+          PsiJavaToken:@:build('@:build')
+          PsiJavaToken:(('(')
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  PsiJavaToken:ID('MacroGenerator')
+              PsiJavaToken:.('.')
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  PsiJavaToken:ID('build')
+            PsiJavaToken:(('(')
+            EXPRESSION_LIST
+              ARRAY_LITERAL
+                PsiJavaToken:[('[')
+                PsiJavaToken:](']')
+              PsiJavaToken:,(',')
+              LITERAL_EXPRESSION
+                PsiJavaToken:true('true')
+            PsiJavaToken:)(')')
+          PsiJavaToken:)(')')
     EXTERN_OR_PRIVATE
-      PsiElement(extern)('extern')
+      PsiJavaToken:extern('extern')
     EXTERN_OR_PRIVATE
-      PsiElement(private)('private')
-    PsiElement(class)('class')
+      PRIVATE_KEY_WORD
+        PsiJavaToken:private('private')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Test')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Test')
+    PsiJavaToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
       <empty list>
-    PsiElement(})('}')
+    PsiJavaToken:}('}')

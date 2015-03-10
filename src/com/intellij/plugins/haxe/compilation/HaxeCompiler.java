@@ -19,11 +19,11 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.ExecutorRegistry;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.openapi.compiler.*;
-import com.intellij.openapi.compiler.Compiler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
@@ -32,17 +32,20 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
-import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
+import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.util.PathUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
@@ -52,6 +55,13 @@ import java.util.List;
 
 public class HaxeCompiler implements SourceProcessingCompiler {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompiler");
+
+  /*
+  // flag to indicate whether a module needs to be built
+  private static HashMap<Module, Boolean> skipBuildMap = new HashMap<Module, Boolean>();
+  // holds the change set for each module to track whether anything changed since last build
+  private static HashMap<Module, Set<String>> changeSetMap = new HashMap<Module, Set<String>>();
+  */
 
   @NotNull
   public String getDescription() {
@@ -67,17 +77,41 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   @Override
   public ProcessingItem[] getProcessingItems(CompileContext context) {
     final List<ProcessingItem> itemList = new ArrayList<ProcessingItem>();
-    for (final Module module : getModulesToCompile(context.getCompileScope())) {
+    for (final Module module : getModulesToCompile(context.getCompileScope() /*, context.getProject() */)) {
       itemList.add(new MyProcessingItem(module));
     }
     return itemList.toArray(new ProcessingItem[itemList.size()]);
   }
 
-  private static List<Module> getModulesToCompile(CompileScope scope) {
+  private static List<Module> getModulesToCompile(final CompileScope scope /*, final Project project */) {
     final List<Module> result = new ArrayList<Module>();
     for (final Module module : scope.getAffectedModules()) {
       if (ModuleType.get(module) != HaxeModuleType.getInstance()) continue;
       result.add(module);
+      /*
+      boolean skipBuilding = false; // default: always build
+      //-- are any changes since last build
+      if (changeSetMap.get(module) != null) { // was built at least once, in past ...
+        final Set<String> latestChangeSet = new HashSet<String>();
+        Collection<VirtualFile> vFileCollection = FileTypeIndex
+          .getFiles(HaxeFileType.HAXE_FILE_TYPE, module.getModuleWithDependenciesScope());
+        final VirtualFile[] virtualFiles = vFileCollection.toArray(new VirtualFile[0]);
+        for (VirtualFile file : virtualFiles) {
+          final FileStatus fileStatus = FileStatusManager.getInstance(project).getStatus(file);
+          if (fileStatus.equals(FileStatus.NOT_CHANGED) || fileStatus.equals(FileStatus.UNKNOWN)) continue;
+          latestChangeSet.add(file.getPath());
+        }
+        skipBuilding = latestChangeSet.equals(changeSetMap.get(module));
+        changeSetMap.put(module, latestChangeSet);
+      }
+      else {
+        changeSetMap.put(module, new HashSet<String>());
+      }
+      skipBuildMap.put(module, new Boolean(skipBuilding));
+      if (! skipBuilding) {
+        result.add(module);
+      }
+      */
     }
     return result;
   }
@@ -85,23 +119,27 @@ public class HaxeCompiler implements SourceProcessingCompiler {
   @Override
   public ProcessingItem[] process(CompileContext context, ProcessingItem[] items) {
     final RunConfiguration runConfiguration = CompileStepBeforeRun.getRunConfiguration(context.getCompileScope());
-    if (runConfiguration instanceof HaxeApplicationConfiguration) {
-      return run(context, items, (HaxeApplicationConfiguration)runConfiguration);
+    if (runConfiguration instanceof ModuleBasedConfiguration) {
+      return run(context, items, (ModuleBasedConfiguration)runConfiguration);
     }
     return make(context, items);
   }
 
   private static ProcessingItem[] run(CompileContext context,
                                       ProcessingItem[] items,
-                                      HaxeApplicationConfiguration haxeApplicationConfiguration) {
-    final Module module = haxeApplicationConfiguration.getConfigurationModule().getModule();
+                                      ModuleBasedConfiguration configuration) {
+    final Module module = configuration.getConfigurationModule().getModule();
     if (module == null) {
       context.addMessage(CompilerMessageCategory.ERROR,
-                         HaxeBundle.message("no.module.for.run.configuration", haxeApplicationConfiguration.getName()), null, -1, -1);
+                         HaxeBundle.message("no.module.for.run.configuration", configuration.getName()), null, -1, -1);
       return ProcessingItem.EMPTY_ARRAY;
     }
-    if (compileModule(context, module)) {
-      final int index = findProcessingItemIndexByModule(items, haxeApplicationConfiguration.getConfigurationModule());
+    HaxeCommonCompilerUtil.CompilationContext compilationContext = createCompilationContext(context, module, configuration);
+
+
+
+    if (compileModule(context, compilationContext)) {
+      final int index = findProcessingItemIndexByModule(items, configuration.getConfigurationModule());
       if (index != -1) {
         return new ProcessingItem[]{items[index]};
       }
@@ -116,15 +154,35 @@ public class HaxeCompiler implements SourceProcessingCompiler {
         continue;
       }
       final MyProcessingItem myProcessingItem = (MyProcessingItem)processingItem;
-
-      if (compileModule(context, myProcessingItem.myModule)) {
+      if (compileModule(context, createCompilationContext(context, myProcessingItem.myModule, null))) {
         result.add(processingItem);
       }
     }
     return result.toArray(new ProcessingItem[result.size()]);
   }
 
-  private static boolean compileModule(final CompileContext context, @NotNull final Module module) {
+  private static boolean compileModule(final CompileContext context, @NotNull final HaxeCommonCompilerUtil.CompilationContext compilationContext) {
+
+    /*
+    if ((skipBuildMap.get(module) != null) && (skipBuildMap.get(module).booleanValue())) {
+      return false;
+    }
+    */
+
+
+    boolean compiled = HaxeCommonCompilerUtil.compile(compilationContext);
+
+    if (!compiled) {
+      context.addMessage(CompilerMessageCategory.ERROR, "Compilation failed", null, 0, 0);
+    }
+
+    return compiled;
+  }
+
+  private static HaxeCommonCompilerUtil.CompilationContext createCompilationContext(final CompileContext context,
+                                                                                    final Module module,
+                                                                                    ModuleBasedConfiguration configuration) {
+
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     final boolean isDebug = ExecutorRegistry.getInstance()
       .isStarting(context.getProject(), DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
@@ -132,9 +190,18 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     final Sdk sdk = moduleRootManager.getSdk();
     if (sdk == null) {
       context.addMessage(CompilerMessageCategory.ERROR, HaxeBundle.message("no.sdk.for.module", module.getName()), null, -1, -1);
-      return false;
+      return null;
     }
-    boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+
+    HaxeTestsConfiguration haxeTestsConfiguration = null;
+
+    if(configuration != null && configuration instanceof HaxeTestsConfiguration) {
+      haxeTestsConfiguration = (HaxeTestsConfiguration)configuration;
+    }
+
+    final HaxeTestsConfiguration finalHaxeTestsConfiguration = haxeTestsConfiguration;
+
+    return new HaxeCommonCompilerUtil.CompilationContext() {
       private String myErrorRoot;
 
       @NotNull
@@ -146,6 +213,21 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       @Override
       public String getModuleName() {
         return module.getName();
+      }
+
+      @Override
+      public String getCompilationClass() {
+        return getIsTestBuild() ? finalHaxeTestsConfiguration.getRunnerClass() : getModuleSettings().getMainClass();
+      }
+
+      @Override
+      public String getOutputFileName() {
+        return getFileNameWithCurrentExtension(getModuleSettings().getOutputFileName());
+      }
+
+      @Override
+      public Boolean getIsTestBuild() {
+        return finalHaxeTestsConfiguration != null;
       }
 
       @Override
@@ -214,16 +296,23 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       }
 
       @Override
+      public HaxeTarget getHaxeTarget() {
+        //actually only neko target is supported for tests
+        return getIsTestBuild() ? HaxeTarget.NEKO : getModuleSettings().getHaxeTarget();
+      }
+
+      private String getFileNameWithCurrentExtension(String fileName) {
+        if (getHaxeTarget() != null) {
+          return getHaxeTarget().getTargetFileNameWithExtension(FileUtil.getNameWithoutExtension(fileName));
+        }
+        return fileName;
+      }
+
+      @Override
       public String getModuleDirPath() {
         return PathUtil.getParentPath(module.getModuleFilePath());
       }
-    });
-
-    if (!compiled) {
-      context.addMessage(CompilerMessageCategory.ERROR, "Compilation failed", null, 0, 0);
-    }
-
-    return compiled;
+    };
   }
 
   private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {

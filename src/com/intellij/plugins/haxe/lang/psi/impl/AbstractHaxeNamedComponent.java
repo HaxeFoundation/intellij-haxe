@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -26,25 +27,33 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.SourceTreeToPsiMap;
+import com.intellij.psi.impl.source.tree.ChildRole;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
  */
-abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl implements HaxeNamedComponent, PsiNamedElement {
+abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
+  implements HaxeNamedComponent, PsiNamedElement {
+
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
+  @Nullable @NonNls
   public String getName() {
     final HaxeComponentName name = getComponentName();
     if (name != null) {
@@ -134,8 +143,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Override
   public HaxeNamedComponent getTypeComponent() {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
-    final HaxeType type = typeTag == null ? null : typeTag.getTypeOrAnonymous().getType();
-    final PsiReference reference = type == null ? null : type.getReference();
+    final HaxeType type = typeTag != null ? typeTag.getTypeOrAnonymous().getType() : null;
+    final PsiReference reference = type != null ? type.getReference() : null;
     if (reference != null) {
       final PsiElement result = reference.resolve();
       if (result instanceof HaxeNamedComponent) {
@@ -161,11 +170,27 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   private static boolean hasPublicAccessor(HaxePsiCompositeElement element) {
-    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
-      return true;
+    // do not change the order of these if-statements
+    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPRIVATE) != null) {
+      return false; // private
     }
+    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
+      return true; // public
+    }
+
     final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KPUBLIC);
+    if (declarationAttributeList != null) {
+      final Set<IElementType> declarationTypes = HaxeResolveUtil.getDeclarationTypes((declarationAttributeList));
+      // do not change the order of these if-statements
+      if (declarationTypes.contains(HaxeTokenTypes.KPRIVATE)) {
+        return false; // private
+      }
+      if (declarationTypes.contains(HaxeTokenTypes.KPUBLIC)) {
+        return true; // public
+      }
+    }
+
+    return true; // <default>: public
   }
 
   @Override
@@ -178,5 +203,39 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   public boolean isOverride() {
     final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
+  }
+
+  @Nullable
+  public final PsiElement findChildByRoleAsPsiElement(int role) {
+    ASTNode element = findChildByRole(role);
+    if (element == null) return null;
+    return SourceTreeToPsiMap.treeElementToPsi(element);
+  }
+
+  @Nullable
+  public ASTNode findChildByRole(int role) {
+    // assert ChildRole.isUnique(role);
+    for (ASTNode child = getFirstChild().getNode(); child != null; child = child.getTreeNext()) {
+      if (getChildRole(child) == role) return child;
+    }
+    return null;
+  }
+
+  public int getChildRole(ASTNode child) {
+    if (child.getElementType() == HaxeTokenTypes.PLCURLY) {
+      return ChildRole.LBRACE;
+    }
+    else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
+      return ChildRole.RBRACE;
+    }
+
+    return 0;
+  }
+
+  protected final int getChildRole(ASTNode child, int roleCandidate) {
+    if (findChildByRole(roleCandidate) == child) {
+      return roleCandidate;
+    }
+    return 0; //ChildRole.NONE;
   }
 }

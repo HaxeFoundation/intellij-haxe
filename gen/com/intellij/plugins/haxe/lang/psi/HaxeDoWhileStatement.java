@@ -23,16 +23,13 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeDoWhileStatement extends HaxePsiCompositeElement {
+public interface HaxeDoWhileStatement extends HaxeStatementPsiMixin {
 
   @Nullable
   HaxeBlockStatement getBlockStatement();
 
   @Nullable
   HaxeBreakStatement getBreakStatement();
-
-  @Nullable
-  HaxeConditional getConditional();
 
   @Nullable
   HaxeContinueStatement getContinueStatement();

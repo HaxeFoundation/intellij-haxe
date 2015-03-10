@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeAnonymousTypeFieldImpl extends AbstractHaxeNamedComponent implements HaxeAnonymousTypeField {
+public class HaxeAnonymousTypeFieldImpl extends HaxePsiFieldImpl implements HaxeAnonymousTypeField {
 
   public HaxeAnonymousTypeFieldImpl(ASTNode node) {
     super(node);

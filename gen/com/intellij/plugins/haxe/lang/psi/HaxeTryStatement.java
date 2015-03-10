@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeTryStatement extends HaxePsiCompositeElement {
+public interface HaxeTryStatement extends HaxeStatementPsiMixin {
 
   @Nullable
   HaxeBlockStatement getBlockStatement();
@@ -33,9 +33,6 @@ public interface HaxeTryStatement extends HaxePsiCompositeElement {
 
   @NotNull
   List<HaxeCatchStatement> getCatchStatementList();
-
-  @Nullable
-  HaxeConditional getConditional();
 
   @Nullable
   HaxeContinueStatement getContinueStatement();

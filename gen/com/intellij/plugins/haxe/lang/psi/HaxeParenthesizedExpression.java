@@ -32,9 +32,6 @@ public interface HaxeParenthesizedExpression extends HaxeExpression {
   HaxeBreakStatement getBreakStatement();
 
   @Nullable
-  HaxeConditional getConditional();
-
-  @Nullable
   HaxeContinueStatement getContinueStatement();
 
   @Nullable
@@ -66,6 +63,9 @@ public interface HaxeParenthesizedExpression extends HaxeExpression {
 
   @Nullable
   HaxeTryStatement getTryStatement();
+
+  @Nullable
+  HaxeTypeTag getTypeTag();
 
   @Nullable
   HaxeWhileStatement getWhileStatement();

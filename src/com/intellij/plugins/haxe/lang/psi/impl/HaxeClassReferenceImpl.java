@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeClassReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
+public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
   public HaxeClassReferenceImpl(ASTNode node) {
     super(node);
   }

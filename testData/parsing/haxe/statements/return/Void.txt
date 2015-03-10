@@ -1,36 +1,38 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Void')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Void')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         TYPE_TAG
-          PsiElement(:)(':')
+          PsiJavaToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('Void')
+                  PsiJavaToken:ID('Void')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           IF_STATEMENT
-            PsiElement(if)('if')
-            PsiElement(()('(')
+            PsiJavaToken:if('if')
+            PsiJavaToken:(('(')
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('abort')
-            PsiElement())(')')
+                PsiJavaToken:ID('abort')
+            PsiJavaToken:)(')')
             RETURN_STATEMENT
-              PsiElement(return)('return')
-              PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+              PsiJavaToken:return('return')
+              PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

@@ -19,7 +19,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.impl.source.tree.java.PsiIdentifierImpl;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,12 +37,12 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
 
   @NotNull
   @Override
-  public List<HaxeType> getExtendsList() {
+  public List<HaxeType> getHaxeExtendsList() {
     final HaxeTypeExtends typeExtends = getAnonymousTypeBody().getTypeExtends();
     if (typeExtends != null) {
       return Arrays.asList(typeExtends.getType());
     }
-    return super.getExtendsList();
+    return super.getHaxeExtendsList();
   }
 
   @Override
@@ -50,5 +53,11 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
   @Override
   public HaxeGenericParam getGenericParam() {
     return null;
+  }
+
+  @Nullable
+  @Override
+  public PsiIdentifier getNameIdentifier() {
+    return new HaxeIdentifierImpl(new HaxeDummyASTNode("AnonymousType"));
   }
 }

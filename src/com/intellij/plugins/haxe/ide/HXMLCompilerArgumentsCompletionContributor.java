@@ -24,8 +24,12 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.util.Key;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.plugins.haxe.haxelib.HaxelibCache;
+import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
+import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
+import com.intellij.plugins.haxe.util.HaxeHelpUtil;
 import com.intellij.util.ProcessingContext;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,53 +46,72 @@ import java.util.regex.Pattern;
  * Created by as3boyan on 10.08.14.
  */
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
-  private static final Set<String> compilerArguments = new THashSet<String>() {
-    {
-      // TODO: get path to Haxe instead of using global alias
 
-      try {
-        ArrayList<String> commandLine = new ArrayList<String>();
-        //final String sdkExePath = HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath());
-        commandLine.add("haxe");
-        commandLine.add("--help");
+  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS = null;
+  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS2 = null;
+  public static final Pattern PATTERN = Pattern.compile("-([a-z-_0-9]+)[\\s](<[^>]+>)?[^:]+:[\\t\\s]+([^\\r\\n]+)");
+  public static final Pattern PATTERN2 = Pattern.compile("--([a-z-_0-9]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
 
-        BaseOSProcessHandler processHandler =
-          new BaseOSProcessHandler(new ProcessBuilder(commandLine).start(), null, Charset.defaultCharset());
+  private void getCompilerArguments() {
+    List<HXMLCompletionItem> compilerArguments = new ArrayList<HXMLCompletionItem>();
+    List<HXMLCompletionItem> compilerArguments2 = new ArrayList<HXMLCompletionItem>();
+    ArrayList<String> commandLine = new ArrayList<String>();
+    List<String> strings = getStrings(commandLine);
 
-        processHandler.addProcessListener(new ProcessAdapter() {
-          @Override
-          public void onTextAvailable(ProcessEvent event, Key outputType) {
-            String text = event.getText();
-            Pattern pattern = Pattern.compile("-([a-z-_0-9]+)");
-            Matcher matcher = pattern.matcher(text);
+    Matcher matcher;
+    for (int i = 0; i < strings.size(); i++) {
+      String text = strings.get(i);
+      matcher = PATTERN2.matcher(text);
 
-            while (matcher.find()) {
-              String group = matcher.group();
+      if (matcher.find()) {
+        String group = matcher.group(1);
 
-              if (!contains(group)) {
-                add(group);
-              }
-            }
-          }
-
-          @Override
-          public void processTerminated(ProcessEvent event) {
-            super.processTerminated(event);
-          }
-        });
-
-        processHandler.startNotify();
-        processHandler.waitFor();
-        processHandler.detachProcess();
-        processHandler.getProcess().destroy();
+        if (!compilerArguments2.contains(group)) {
+          compilerArguments2.add(new HXMLCompletionItem(group, matcher.group(2)));
+        }
       }
-      catch (IOException e) {
-        e.printStackTrace();
+      else
+      {
+        matcher = PATTERN.matcher(text);
+
+        if (matcher.find()) {
+          String group = matcher.group(1);
+
+          if (!compilerArguments.contains(group)) {
+            String description = matcher.group(3);
+            String group2 = matcher.group(2);
+            if (group2 != null) {
+              group2 = group + " " + group2;
+            }
+            compilerArguments.add(new HXMLCompletionItem(group, description, group2));
+          }
+        }
       }
     }
-  };
+
+    if (!compilerArguments.contains("D")) {
+      compilerArguments.add(new HXMLCompletionItem("D"));
+    }
+
+    COMPILER_ARGUMENTS = compilerArguments;
+    COMPILER_ARGUMENTS2 = compilerArguments2;
+  }
+
+  private List<String> getStrings(ArrayList<String> commandLine) {
+    commandLine.add(HaxeHelpUtil.getHaxePath(HaxelibCache.getHaxeModule()));
+    commandLine.add("--help");
+
+    List<String> strings = HaxelibCommandUtils.getProcessStderr(commandLine);
+    if (strings.size() > 0) {
+      strings.remove(0);
+    }
+    return strings;
+  }
 
   public HXMLCompilerArgumentsCompletionContributor() {
+    if (COMPILER_ARGUMENTS == null) {
+      getCompilerArguments();
+    }
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
              @Override
@@ -107,9 +131,20 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                //  "dce
                //};
 
-               if (compilerArguments != null) {
-                 for (String argument : compilerArguments) {
-                   set.addElement(LookupElementBuilder.create(argument));
+               String text = parameters.getPosition().getText();
+
+               if (text.startsWith("--")) {
+                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS2) {
+                   set.addElement(LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true));
+                 }
+               }
+               else {
+                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS) {
+                   LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true);
+                   if (argument.presentableText != null) {
+                     lookupElementBuilder = lookupElementBuilder.withPresentableText(argument.presentableText);
+                   }
+                   set.addElement(lookupElementBuilder);
                  }
                }
              }

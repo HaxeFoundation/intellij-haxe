@@ -41,12 +41,6 @@ public class HaxeInterfaceBodyImpl extends HaxePsiCompositeElementImpl implement
 
   @Override
   @NotNull
-  public List<HaxeConditional> getConditionalList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeConditional.class);
-  }
-
-  @Override
-  @NotNull
   public List<HaxeFunctionPrototypeDeclarationWithAttributes> getFunctionPrototypeDeclarationWithAttributesList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionPrototypeDeclarationWithAttributes.class);
   }

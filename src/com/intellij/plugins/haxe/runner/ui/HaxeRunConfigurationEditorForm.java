@@ -47,9 +47,13 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
   private TextFieldWithBrowseButton myPathToFileTextField;
   private JCheckBox myAlternativeExecutable;
   private TextFieldWithBrowseButton myExecutableField;
+  private JTextField myDebugListenPort;
+  private JCheckBox myRemoteDebuggingCheckBox;
 
   private String customPathToFile = "";
   private String customPathToExecutable = "";
+  private int customDebugListenPort;
+  private boolean customRemoteDebugging;
 
   private final Project project;
 
@@ -123,6 +127,32 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       }
     });
 
+    myDebugListenPort.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+          String portString = myDebugListenPort.getText();
+          if (portString == "") {
+              portString = "6972";
+          }
+          Integer port;
+          try {
+              port = Integer.parseInt(portString);
+          }
+          catch (NumberFormatException ex) {
+              port = 6972;
+          }
+          customDebugListenPort = port;
+          myDebugListenPort.setText("" + port);
+      }
+    });
+
+    myRemoteDebuggingCheckBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+          customRemoteDebugging = myRemoteDebuggingCheckBox.isSelected();
+      }
+    });
+
     myCustomPathCheckBox.setSelected(configuration.isCustomFileToLaunch());
     myAlternativeExecutable.setSelected(configuration.isCustomExecutable());
 
@@ -134,6 +164,11 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     launchPath = !launchPath.contains("://") ? FileUtil.toSystemDependentName(launchPath) : launchPath;
     customPathToExecutable = launchPath;
 
+    customDebugListenPort = configuration.getCustomDebugPort();
+    myDebugListenPort.setText("" + customDebugListenPort);
+
+    customRemoteDebugging = configuration.isCustomRemoteDebugging();
+    myRemoteDebuggingCheckBox.setSelected(customRemoteDebugging);
 
     updateComponents();
   }
@@ -180,6 +215,15 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       fileName = !fileName.contains("://") ? FileUtil.toSystemIndependentName(fileName) : fileName;
       configuration.setCustomExecutablePath(fileName);
     }
+    Integer port;
+    try {
+        port = Integer.parseInt(myDebugListenPort.getText());
+    }
+    catch (NumberFormatException ex) {
+        port = 6972;
+    }
+    configuration.setCustomDebugPort(port);
+    configuration.setCustomRemoteDebugging(customRemoteDebugging);
   }
 
   private Module getSelectedModule() {

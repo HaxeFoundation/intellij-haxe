@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent implements HaxeLocalFunctionDeclaration {
+public class HaxeLocalFunctionDeclarationImpl extends HaxeMethodImpl implements HaxeLocalFunctionDeclaration {
 
   public HaxeLocalFunctionDeclarationImpl(ASTNode node) {
     super(node);
@@ -46,9 +46,15 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeComponentName getComponentName() {
-    return findNotNullChildByClass(HaxeComponentName.class);
+    return findChildByClass(HaxeComponentName.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeDoWhileStatement getDoWhileStatement() {
+    return findChildByClass(HaxeDoWhileStatement.class);
   }
 
   @Override
@@ -59,8 +65,20 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
 
   @Override
   @Nullable
+  public HaxeForStatement getForStatement() {
+    return findChildByClass(HaxeForStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeGenericParam getGenericParam() {
     return findChildByClass(HaxeGenericParam.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeIfStatement getIfStatement() {
+    return findChildByClass(HaxeIfStatement.class);
   }
 
   @Override
@@ -85,6 +103,12 @@ public class HaxeLocalFunctionDeclarationImpl extends AbstractHaxeNamedComponent
   @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeWhileStatement getWhileStatement() {
+    return findChildByClass(HaxeWhileStatement.class);
   }
 
 }

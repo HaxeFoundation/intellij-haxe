@@ -25,4 +25,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeExternOrPrivate extends HaxePsiCompositeElement {
 
+  @Nullable
+  HaxePrivateKeyWord getPrivateKeyWord();
+
 }

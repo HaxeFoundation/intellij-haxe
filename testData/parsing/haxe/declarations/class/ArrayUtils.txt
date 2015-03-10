@@ -1,89 +1,89 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('ArrayUtils')
-    PsiElement({)('{')
+        PsiJavaToken:ID('ArrayUtils')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
+            PsiJavaToken:public('public')
         DECLARATION_ATTRIBUTE
-          PsiElement(static)('static')
-        PsiElement(function)('function')
+          PsiJavaToken:static('static')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('delete_if')
+            PsiJavaToken:ID('delete_if')
         GENERIC_PARAM
-          PsiElement(<)('<')
+          PsiJavaToken:<('<')
           GENERIC_LIST_PART
             COMPONENT_NAME
               IDENTIFIER
-                PsiElement(ID)('T')
-          PsiElement(>)('>')
-        PsiElement(()('(')
+                PsiJavaToken:ID('T')
+          PsiJavaToken:>('>')
+        PsiJavaToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiElement(ID)('array')
+                PsiJavaToken:ID('array')
             TYPE_TAG
-              PsiElement(:)(':')
+              PsiJavaToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiElement(ID)('Array')
+                      PsiJavaToken:ID('Array')
                   TYPE_PARAM
-                    PsiElement(<)('<')
+                    PsiJavaToken:<('<')
                     TYPE_LIST
                       TYPE_LIST_PART
                         TYPE_OR_ANONYMOUS
                           TYPE
                             REFERENCE_EXPRESSION
                               IDENTIFIER
-                                PsiElement(ID)('T')
-                    PsiElement(>)('>')
-          PsiElement(,)(',')
+                                PsiJavaToken:ID('T')
+                    PsiJavaToken:>('>')
+          PsiJavaToken:,(',')
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiElement(ID)('processor')
+                PsiJavaToken:ID('processor')
             TYPE_TAG
-              PsiElement(:)(':')
+              PsiJavaToken::(':')
               FUNCTION_TYPE
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('T')
-                PsiElement(->)('->')
+                        PsiJavaToken:ID('T')
+                PsiJavaToken:->('->')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Bool')
-        PsiElement())(')')
+                        PsiJavaToken:ID('Bool')
+        PsiJavaToken:)(')')
         TYPE_TAG
-          PsiElement(:)(':')
+          PsiJavaToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('Array')
+                  PsiJavaToken:ID('Array')
               TYPE_PARAM
-                PsiElement(<)('<')
+                PsiJavaToken:<('<')
                 TYPE_LIST
                   TYPE_LIST_PART
                     TYPE_OR_ANONYMOUS
                       TYPE
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            PsiElement(ID)('T')
-                PsiElement(>)('>')
+                            PsiJavaToken:ID('T')
+                PsiJavaToken:>('>')
         BLOCK_STATEMENT
-          PsiElement({)('{')
-          PsiElement(})('}')
-    PsiElement(})('}')
+          PsiJavaToken:{('{')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

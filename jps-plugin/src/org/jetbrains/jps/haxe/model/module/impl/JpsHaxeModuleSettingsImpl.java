@@ -89,6 +89,15 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
     mySettingsBase.setOpenFLFlags(flags);
   }
 
+  @Override
+  public String getOpenFLPath() {
+    return mySettingsBase.getOpenFLPath();
+  }
+
+  @Override
+  public void setOpenFLPath(String openFLPath) {
+    mySettingsBase.setOpenFLPath(openFLPath);
+  }
 
   @Override
   public HaxeTarget getHaxeTarget() {
@@ -145,11 +154,6 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   @Override
   public String getNmmlPath() {
     return mySettingsBase.getNmmlPath();
-  }
-
-  @Override
-  public String getOpenFLXmlPath() {
-    return mySettingsBase.getOpenFLXmlPath();
   }
 
   @Override

@@ -26,19 +26,7 @@ import com.intellij.psi.PsiElement;
 public interface HaxeExternClassDeclaration extends HaxeClass {
 
   @NotNull
-  List<HaxeAutoBuildMacro> getAutoBuildMacroList();
-
-  @NotNull
-  List<HaxeBitmapMeta> getBitmapMetaList();
-
-  @NotNull
-  List<HaxeBuildMacro> getBuildMacroList();
-
-  @NotNull
   HaxeComponentName getComponentName();
-
-  @NotNull
-  List<HaxeCustomMeta> getCustomMetaList();
 
   @Nullable
   HaxeExternClassDeclarationBody getExternClassDeclarationBody();
@@ -46,28 +34,13 @@ public interface HaxeExternClassDeclaration extends HaxeClass {
   @NotNull
   List<HaxeExternOrPrivate> getExternOrPrivateList();
 
-  @NotNull
-  List<HaxeFakeEnumMeta> getFakeEnumMetaList();
-
   @Nullable
   HaxeGenericParam getGenericParam();
 
   @Nullable
   HaxeInheritList getInheritList();
 
-  @NotNull
-  List<HaxeJsRequireMeta> getJsRequireMetaList();
-
-  @NotNull
-  List<HaxeMetaMeta> getMetaMetaList();
-
-  @NotNull
-  List<HaxeNativeMeta> getNativeMetaList();
-
-  @NotNull
-  List<HaxeNsMeta> getNsMetaList();
-
-  @NotNull
-  List<HaxeRequireMeta> getRequireMetaList();
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
 }

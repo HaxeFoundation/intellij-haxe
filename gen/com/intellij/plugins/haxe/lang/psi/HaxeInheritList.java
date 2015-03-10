@@ -26,6 +26,9 @@ import com.intellij.psi.PsiElement;
 public interface HaxeInheritList extends HaxePsiCompositeElement {
 
   @NotNull
-  List<HaxeInherit> getInheritList();
+  List<HaxeExtendsDeclaration> getExtendsDeclarationList();
+
+  @NotNull
+  List<HaxeImplementsDeclaration> getImplementsDeclarationList();
 
 }

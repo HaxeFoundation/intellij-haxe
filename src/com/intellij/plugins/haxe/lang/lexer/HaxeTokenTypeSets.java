@@ -57,7 +57,8 @@ public interface HaxeTokenTypeSets {
     PPELSE,
     PPERROR,
     PPBODY,
-    PPEXPRESSION
+    PPEXPRESSION,
+    CONDITIONAL_STATEMENT_ID
   );
 
   TokenSet CONDITIONALLY_NOT_COMPILED = TokenSet.create(
@@ -66,7 +67,8 @@ public interface HaxeTokenTypeSets {
     PPELSE,
     PPERROR,
     PPBODY,
-    PPEXPRESSION
+    PPEXPRESSION,
+    CONDITIONAL_STATEMENT_ID
   );
 
   TokenSet BAD_TOKENS = TokenSet.create(
@@ -125,6 +127,7 @@ public interface HaxeTokenTypeSets {
     KHACK,
     KNATIVE,
     KMACRO,
+    KMACRO2,
     KBUILD,
     KAUTOBUILD,
     KKEEP,
@@ -143,14 +146,15 @@ public interface HaxeTokenTypeSets {
     KUSING,
     KSUPER,
     MACRO_ID,
-    KFROM,
-    KTO,
+    //KFROM,
+    //KTO,
     KNEVER,
     ONEW
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(
     FUNCTION_DECLARATION_WITH_ATTRIBUTES,
+    FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES,
     LOCAL_FUNCTION_DECLARATION,
     FUNCTION_LITERAL
   );
@@ -177,10 +181,11 @@ public interface HaxeTokenTypeSets {
     OASSIGN,
     OPLUS_ASSIGN, OMINUS_ASSIGN, OBIT_OR_ASSIGN, OBIT_XOR_ASSIGN,
     OMUL_ASSIGN, OQUOTIENT_ASSIGN, OREMAINDER_ASSIGN,
-    OSHIFT_LEFT_ASSIGN, OSHIFT_RIGHT_ASSIGN,
+    OSHIFT_LEFT_ASSIGN,
     OBIT_AND_ASSIGN,
     ASSIGN_OPERATION
   );
+  //OSHIFT_RIGHT_ASSIGN
 
   TokenSet LOGIC_OPERATORS = TokenSet.create(
     OCOND_OR, OCOND_AND
@@ -191,8 +196,9 @@ public interface HaxeTokenTypeSets {
   );
 
   TokenSet RELATIONAL_OPERATORS = TokenSet.create(
-    OLESS, OLESS_OR_EQUAL, OGREATER, OGREATER_OR_EQUAL
+    OLESS, OLESS_OR_EQUAL, OGREATER
   );
+  //OGREATER_OR_EQUAL
 
   TokenSet ADDITIVE_OPERATORS = TokenSet.create(
     OPLUS, OMINUS
@@ -248,8 +254,8 @@ public interface HaxeTokenTypeSets {
     OQUOTIENT,
     OREMAINDER_ASSIGN,
     OREMAINDER,
-    OSHIFT_RIGHT_ASSIGN,
-    OGREATER_OR_EQUAL,
+    //OSHIFT_RIGHT_ASSIGN,
+    //OGREATER_OR_EQUAL,
     OGREATER
   );
 }

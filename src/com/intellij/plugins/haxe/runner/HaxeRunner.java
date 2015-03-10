@@ -26,6 +26,7 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
@@ -105,7 +106,7 @@ public class HaxeRunner extends DefaultProgramRunner {
           final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
           setConsoleBuilder(consoleBuilder);
 
-          return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
+          return new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
         }
       }, contentToReuse, env);
     }

@@ -28,7 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeBreakStatementImpl extends HaxePsiCompositeElementImpl implements HaxeBreakStatement {
+public class HaxeBreakStatementImpl extends HaxeStatementPsiMixinImpl implements HaxeBreakStatement {
 
   public HaxeBreakStatementImpl(ASTNode node) {
     super(node);
