@@ -367,27 +367,33 @@ public class HaxeHierarchyUtils {
 
 
 
-  // Lifted from MethodHierarchyUtil, which was inaccessible.
+  // Lifted from MethodHierarchyUtil, which needed the cannotBeOverriding helper
+  // to be overridden.
   /**
-   * Locates a potentially overridden method in a class or one of its base classes.
+   * Locates a potentially overridden method in a sub-class or an
+   * intermediate parent -- up to the class containing the base method.
+   *
+   * Note: This CANNOT be used to find a method in a super-class of
+   * baseMethod's class. Only classes that are sub-classes of baseMethod are
+   * considered.
+   *
    * @param baseMethod The method that may be overridden
-   * @param aClass The class to start inspecting at.
+   * @param aClass The sub-class to start inspecting at.
    * @param checkBases Whether to continue to further base classes.
    * @return The PsiMethod in the given class or the closest superclass.
    */
   public static PsiMethod findBaseMethodInClass(final PsiMethod baseMethod, final PsiClass aClass, final boolean checkBases) {
     if (baseMethod == null) return null; // base method is invalid
-    if (cannotBeOverridding(baseMethod)) return null;
+    if (cannotBeOverriding(baseMethod)) return null;
     return MethodSignatureUtil.findMethodBySuperMethod(aClass, baseMethod, checkBases);
   }
 
-  // Lifted from MethodHierarchyUtil, which was inaccessible.
   /**
    * Figure out if a method can override a lower one.
    * @param method The method to test.
    * @return true if the method can override one in a superclass, false if not.
    */
-  private static boolean cannotBeOverridding(final PsiMethod method) {
+  public static boolean cannotBeOverriding(final PsiMethod method) {
     // Note that in Haxe, a private method can override another private
     // method, and so can a public method (but private can't override public).
     final PsiClass parentClass = method.getContainingClass();

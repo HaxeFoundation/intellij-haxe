@@ -1,120 +1,120 @@
 Haxe File
   ENUM_DECLARATION
-    PsiElement(enum)('enum')
+    PsiJavaToken:enum('enum')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Color3')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Color3')
+    PsiJavaToken:{('{')
     ENUM_BODY
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('red')
-        PsiElement(;)(';')
+            PsiJavaToken:ID('red')
+        PsiJavaToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('green')
-        PsiElement(;)(';')
+            PsiJavaToken:ID('green')
+        PsiJavaToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('blue')
-        PsiElement(;)(';')
+            PsiJavaToken:ID('blue')
+        PsiJavaToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('grey')
+            PsiJavaToken:ID('grey')
         ENUM_CONSTRUCTOR_PARAMETERS
-          PsiElement(()('(')
+          PsiJavaToken:(('(')
           PARAMETER_LIST
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('v')
+                  PsiJavaToken:ID('v')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Int')
-          PsiElement())(')')
-        PsiElement(;)(';')
+                        PsiJavaToken:ID('Int')
+          PsiJavaToken:)(')')
+        PsiJavaToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('rgb')
+            PsiJavaToken:ID('rgb')
         ENUM_CONSTRUCTOR_PARAMETERS
-          PsiElement(()('(')
+          PsiJavaToken:(('(')
           PARAMETER_LIST
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('r')
+                  PsiJavaToken:ID('r')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Int')
-            PsiElement(,)(',')
+                        PsiJavaToken:ID('Int')
+            PsiJavaToken:,(',')
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('g')
+                  PsiJavaToken:ID('g')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Int')
-            PsiElement(,)(',')
+                        PsiJavaToken:ID('Int')
+            PsiJavaToken:,(',')
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('b')
+                  PsiJavaToken:ID('b')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Int')
-          PsiElement())(')')
-        PsiElement(;)(';')
+                        PsiJavaToken:ID('Int')
+          PsiJavaToken:)(')')
+        PsiJavaToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('alpha')
+            PsiJavaToken:ID('alpha')
         ENUM_CONSTRUCTOR_PARAMETERS
-          PsiElement(()('(')
+          PsiJavaToken:(('(')
           PARAMETER_LIST
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('a')
+                  PsiJavaToken:ID('a')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Int')
-            PsiElement(,)(',')
+                        PsiJavaToken:ID('Int')
+            PsiJavaToken:,(',')
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('col')
+                  PsiJavaToken:ID('col')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Color3')
-          PsiElement())(')')
-        PsiElement(;)(';')
-    PsiElement(})('}')
+                        PsiJavaToken:ID('Color3')
+          PsiJavaToken:)(')')
+        PsiJavaToken:;(';')
+    PsiJavaToken:}('}')

@@ -22,6 +22,7 @@ import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -44,16 +45,22 @@ public class OpenFLRunningState extends CommandLineState {
   private final Module module;
   private final boolean myRunInTest;
   private final boolean myDebug;
+  private final int myDebugPort;
 
   public OpenFLRunningState(ExecutionEnvironment env, Module module, boolean runInTest) {
-    this(env, module, runInTest, false);
+    this(env, module, runInTest, false, 0);
   }
 
   public OpenFLRunningState(ExecutionEnvironment env, Module module, boolean runInTest, boolean debug) {
+    this(env, module, runInTest, debug, 6972);
+  }
+
+  public OpenFLRunningState(ExecutionEnvironment env, Module module, boolean runInTest, boolean debug, int debugPort) {
     super(env);
     this.module = module;
     myRunInTest = runInTest;
     myDebug = debug;
+    myDebugPort = debugPort;
   }
 
   @NotNull
@@ -65,7 +72,7 @@ public class OpenFLRunningState extends CommandLineState {
 
     GeneralCommandLine commandLine = getCommandForNeko(sdk, settings);
 
-    return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
+    return new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
   }
 
   private GeneralCommandLine getCommandForNeko(Sdk sdk, HaxeModuleSettings settings) throws ExecutionException {
@@ -80,6 +87,7 @@ public class OpenFLRunningState extends CommandLineState {
     if (haxelibPath == null || haxelibPath.isEmpty()) {
       throw new ExecutionException(HaxeCommonBundle.message("no.haxelib.for.sdk", sdk.getName()));
     }
+
     commandLine.setExePath(haxelibPath);
     commandLine.addParameter("run");
     commandLine.addParameter("lime");
@@ -101,6 +109,11 @@ public class OpenFLRunningState extends CommandLineState {
 
       if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
         commandLine.addParameter("-Dfdb");
+      }
+      else {
+        commandLine.addParameter("-args");
+        commandLine.addParameter("-start_debugger");
+        commandLine.addParameter("-debugger_host=localhost:" + myDebugPort);
       }
     }
 

@@ -40,9 +40,9 @@ public class HaxeNewExpressionImpl extends HaxeReferenceImpl implements HaxeNewE
   }
 
   @Override
-  @Nullable
-  public HaxeExpressionList getExpressionList() {
-    return findChildByClass(HaxeExpressionList.class);
+  @NotNull
+  public List<HaxeExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
   }
 
   @Override

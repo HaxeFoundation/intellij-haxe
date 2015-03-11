@@ -40,6 +40,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
@@ -84,44 +85,6 @@ public class HaxeColorAnnotator implements Annotator {
       if (element.getParent() instanceof HaxeAbstractClassDeclaration) {
         TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
         holder.createInfoAnnotation(node, null).setTextAttributes(attributesKey);
-      }
-    }
-
-    FileASTNode node1 = node.getContainingFile().getNode();
-    LeafElement leaf = TreeUtil.findFirstLeaf(node1);
-
-    int conditionalCount = 0;
-
-    List<ASTNode> nodes = new ArrayList<ASTNode>();
-
-    ASTNode node2 = leaf;
-    do {
-      if (node2.getElementType().equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
-        if (node2.getText().startsWith("#if")) {
-          conditionalCount++;
-        }
-        nodes.add(node2);
-      }
-      else if (node2.getElementType().equals(HaxeTokenTypes.PPEND)) {
-        conditionalCount--;
-        nodes.add(node2);
-      }
-      else if (node2.getElementType().equals(HaxeTokenTypes.PPELSE)) {
-        nodes.add(node2);
-      }
-    }
-    while ((node2 = TreeUtil.nextLeaf(node2)) != null);
-
-    if (conditionalCount != 0) {
-      for (int i = 0, size = nodes.size(); i < size; i++) {
-        ASTNode astNode = nodes.get(i);
-
-        if (astNode.getElementType().equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
-          holder.createInfoAnnotation(astNode, null).setTextAttributes(HaxeSyntaxHighlighterColors.BAD_CHARACTER);
-        }
-        else if (astNode.getElementType().equals(HaxeTokenTypes.PPEND) || node2.getElementType().equals(HaxeTokenTypes.PPELSE)) {
-          holder.createInfoAnnotation(astNode, null).setTextAttributes(HaxeSyntaxHighlighterColors.BAD_CHARACTER);
-        }
       }
     }
 

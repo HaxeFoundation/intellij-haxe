@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
-import com.intellij.ide.hierarchy.type.TypeHierarchyNodeDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -45,6 +44,7 @@ import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -52,30 +52,23 @@ import java.util.List;
  */
 public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
 
-  private final String myCurrentScopeType;
-
-  protected HaxeSubtypesHierarchyTreeStructure(final Project project, final HierarchyNodeDescriptor descriptor, String currentScopeType) {
+  protected HaxeSubtypesHierarchyTreeStructure(final Project project, final HaxeTypeHierarchyNodeDescriptor descriptor) {
     super(project, descriptor);
-    myCurrentScopeType = currentScopeType;
   }
 
-  public HaxeSubtypesHierarchyTreeStructure(Project project, PsiClass psiClass, String currentScopeType) {
-    super(project, new TypeHierarchyNodeDescriptor(project, null, psiClass, true));
-    myCurrentScopeType = currentScopeType;
+  public HaxeSubtypesHierarchyTreeStructure(final Project project, final PsiClass psiClass) {
+    super(project, new HaxeTypeHierarchyNodeDescriptor(project, null, psiClass, true));
   }
 
   @NotNull
   protected final Object[] buildChildren(@NotNull final HierarchyNodeDescriptor descriptor) {
 
-    final Object element = ((TypeHierarchyNodeDescriptor)descriptor).getPsiClass();
-    if (!(element instanceof PsiClass)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-
-    final HaxeClass theHaxeClass = (HaxeClass) element;
+    final HaxeClass theHaxeClass = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
+    if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
     if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
     if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
-    final Project inClassPsiProject = theHaxeClass.getProject();
     final PsiFile inClassPsiFile = theHaxeClass.getContainingFile();
 
     List<PsiClass> subTypeList = new ArrayList<PsiClass>(); // add the sub-types to this list, as they are found
@@ -92,31 +85,30 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
 
     // if private class, scope ends there
     if (theHaxeClass.hasModifierProperty(HaxePsiModifier.PRIVATE)) { // XXX: how about @:allow occurrences?
-      return typeListToObjArray(descriptor, subTypeList);
+      return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
     }
 
     // Get the list of subtypes from the file-based indices.  Stub-based would
     // be faster, but we'll have to re-parent all of the PsiClass sub-classes.
     subTypeList.addAll(getSubTypes(theHaxeClass));
 
-    return typeListToObjArray(descriptor, subTypeList);
+    return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
   }
 
-
   @NotNull
-  protected final Object[] typeListToObjArray(@NotNull final HierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
+  private final Object[] typeListToObjArray(@NotNull final HaxeTypeHierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
     final int size = classes.size();
     if (size > 0) {
-      final List<HierarchyNodeDescriptor> descriptors = new ArrayList<HierarchyNodeDescriptor>(size);
+      final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>(size);
       for (PsiClass aClass : classes) {
-        descriptors.add(new TypeHierarchyNodeDescriptor(myProject, descriptor, aClass, false));
+        descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aClass, false));
       }
-      return descriptors.toArray(new HierarchyNodeDescriptor[descriptors.size()]);
+      return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[descriptors.size()]);
     }
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
 
-  public static boolean isThisTypeASubTypeOfTheSuperType(PsiClass thisType, PsiClass theSuperType) {
+  private static boolean isThisTypeASubTypeOfTheSuperType(PsiClass thisType, PsiClass theSuperType) {
     if (!thisType.isValid()) return false;
     final String tcfqn = thisType.getQualifiedName();
     final String pscfqn = theSuperType.getQualifiedName();
@@ -130,13 +122,13 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return false;
   }
 
-  public static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
+  protected static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
     if (!theClass.isValid()) return PsiClass.EMPTY_ARRAY;
     final ArrayList<PsiClass> allSuperClasses = getSuperTypesAsList(theClass);
     return allSuperClasses.toArray(new PsiClass[allSuperClasses.size()]);
   }
 
-  public static ArrayList<PsiClass> getSuperTypesAsList(PsiClass theClass) {
+  private static ArrayList<PsiClass> getSuperTypesAsList(PsiClass theClass) {
     final ArrayList<PsiClass> allSuperClasses = new ArrayList<PsiClass>();
     while (true) {
       final PsiClass aClass1 = theClass;
@@ -157,7 +149,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return allSuperClasses;
   }
 
-  public static List<HaxeClass> getSubTypes(HaxeClass theClass) {
+  private static List<HaxeClass> getSubTypes(HaxeClass theClass) {
     final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(theClass);
     return subClasses;
   }

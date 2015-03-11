@@ -19,7 +19,10 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -27,4 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public interface HaxeReference extends HaxeExpression, PsiJavaCodeReferenceElement {
   @NotNull
   HaxeClassResolveResult resolveHaxeClass();
+
+  @Nullable
+  PsiType getPsiType();
 }

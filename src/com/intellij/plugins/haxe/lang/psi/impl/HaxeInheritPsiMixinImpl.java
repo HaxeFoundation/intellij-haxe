@@ -42,10 +42,10 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl");
 
-  {
-    // Turn on all local messages.
-    LOG.setLevel(Level.DEBUG);
-  }
+  //static {
+  //  // Turn on all local messages.
+  //  LOG.setLevel(Level.DEBUG);
+  //}
 
   /**
    * The empty array of PSI Java code references which can be reused to avoid unnecessary allocations.

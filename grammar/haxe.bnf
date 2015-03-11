@@ -168,7 +168,10 @@
     ppElseIf="#elseif"
 
     extends(".*(Expression|Literal)")="expression"
-    extends(".*Statement")="statement"
+    /* extends(".*Statement")="statement"
+     */
+    implements(".*Statement")="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"
+    mixin(".*Statement")="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl"
     pin(".*Expression")=1
     pin(".*Statement")=1
     pin(".*Meta")=1
@@ -257,8 +260,8 @@ private topLevelDeclaration ::= classDeclaration
 privateKeyWord ::= 'private'
 externOrPrivate ::= 'extern' | privateKeyWord
 
-typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
+{pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -325,11 +328,11 @@ constructorName ::= 'new'
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
+externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
+functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName genericParam?) '(' parameterList ')' typeTag? 'untyped'? ';'
+functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
@@ -348,13 +351,12 @@ parameterList ::= parameter? (',' parameter)* {recoverWhile="parameterListRecove
 private parameterListRecovery ::= !')' // after parameterList always ')'
 
 functionLiteral ::= 'function' '(' parameterList ')' typeTag? 'untyped'? functionCommonBody {pin=2}
-arrayLiteral ::= '[' expressionList? ']'
+arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionTypeWrapper ::= functionTypeOrWrapper functionType*
 private functionTypeOrWrapper ::= typeOrAnonymous | '(' functionTypeWrapper ')'
 left functionType ::= '->' '?'? typeOrAnonymous
-
 
 /*
  * Haxe and Java have this backward from each other.
@@ -369,6 +371,7 @@ left functionType ::= '->' '?'? typeOrAnonymous
  * There is a PsiTypeElement class that /is/ part of the tree, though it's pretty low-level.
  *
  */
+
 typeTag ::= ':' functionTypeWrapper
 typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
@@ -385,9 +388,8 @@ blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
-statement ::= blockStatement | notBlockStatement
+private statement ::= blockStatement | notBlockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
-
 
 private notBlockStatement ::= ('untyped' statement ';'?)
                             | ('macro' statement ';'?)
@@ -410,8 +412,8 @@ private notBlockStatement ::= ('untyped' statement ';'?)
 ifStatement ::= 'if' '(' expression ')' statement ';'? ('else' statement ';'?)?
 
 forStatement ::= 'for' '(' componentName 'in' iterable')' statement ';'?
-// XXX: Not sure why Fedor declared this: {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-// XXX: We'll use the default "statement" (e.g. HaxeStatement)
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin"}
+// XXX: Somehow or another, forStatement must derive from AbstractHaxeNamedComponent, or variable resolution will break.
 
 iterable ::= expression
 
@@ -506,6 +508,7 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | arrayLiteral
                     | objectLiteral
                     | stringLiteralExpression
+                    //| blockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry | longTemplateEntry)* CLOSING_QUOTE
@@ -513,7 +516,6 @@ stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry
 
 shortTemplateEntry ::= SHORT_TEMPLATE_ENTRY_START (thisExpression | referenceExpression) {pin=1}
 longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1}
-
 
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
@@ -553,8 +555,9 @@ thisExpression ::= 'this'
 superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-newExpression ::= 'new' type '(' expressionList? ')'
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+newExpression ::= 'new' type '(' (expression (',' expression)*)? ')'
+{pin=2 recoverWhile="new_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+private new_recovery ::= !(')' | '}' | ';' | '.')
 
 castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
@@ -589,10 +592,3 @@ private object_literal_list_recover ::= !('}')
 
 objectLiteralElement ::= identifier ':' expression {recoverWhile="object_literal_part_recover"}
 private object_literal_part_recover ::= !(',' | '}')
-
-
-
-
-
-
-

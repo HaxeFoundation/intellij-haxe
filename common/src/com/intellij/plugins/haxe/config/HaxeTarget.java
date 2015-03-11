@@ -86,6 +86,10 @@ public enum HaxeTarget {
     this.description = description;
   }
 
+  public String getFlag() {
+    return flag;
+  }
+
   public String getCompilerFlag() {
     return "-" + flag;
   }

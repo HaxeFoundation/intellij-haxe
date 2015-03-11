@@ -79,7 +79,7 @@ public class HaxeIndentProcessor {
       }
       return Indent.getNormalIndent();
     }
-    if (needIndent(parentType)) {
+    if (needIndent(parentType, elementType)) {
       final PsiElement psi = node.getPsi();
       if (psi.getParent() instanceof PsiFile) {
         return Indent.getNoneIndent();
@@ -114,11 +114,14 @@ public class HaxeIndentProcessor {
     return Indent.getNoneIndent();
   }
 
-  private static boolean needIndent(@Nullable IElementType type) {
+  private static boolean needIndent(@Nullable IElementType type, IElementType elementType) {
     if (type == null) {
       return false;
     }
     boolean result = type == BLOCK_STATEMENT;
+    result = result || type == CLASS_BODY;
+    result = result || (type == ARRAY_LITERAL && elementType != PLBRACK && elementType != PRBRACK);
+    result = result || type == OBJECT_LITERAL;
     result = result || type == CLASS_BODY;
     result = result || type == EXTERN_CLASS_DECLARATION_BODY;
     result = result || type == ENUM_BODY;

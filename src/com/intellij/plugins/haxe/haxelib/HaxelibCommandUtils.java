@@ -143,18 +143,19 @@ public class HaxelibCommandUtils {
 
     try {
       ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
+      builder.redirectErrorStream(true);
       if (dir != null) {
         builder = builder.directory(dir);
       }
       Process process = builder.start();
       InputStreamReader reader = new InputStreamReader(process.getInputStream());
       Scanner scanner = new Scanner(reader);
-      process.waitFor();
 
       while (scanner.hasNextLine()) {
         String nextLine = scanner.nextLine();
         strings.add(nextLine);
       }
+      process.waitFor();
 
       /*
       try {

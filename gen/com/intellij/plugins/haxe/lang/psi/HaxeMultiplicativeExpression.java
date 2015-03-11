@@ -29,6 +29,12 @@ public interface HaxeMultiplicativeExpression extends HaxeExpression {
   List<HaxeExpression> getExpressionList();
 
   @Nullable
-  HaxeStatement getStatement();
+  HaxeIfStatement getIfStatement();
+
+  @Nullable
+  HaxeSwitchStatement getSwitchStatement();
+
+  @Nullable
+  HaxeTryStatement getTryStatement();
 
 }

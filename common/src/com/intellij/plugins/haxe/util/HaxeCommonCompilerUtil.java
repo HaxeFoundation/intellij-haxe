@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.execution.process.BaseOSProcessHandler;
+import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.notification.Notification;
@@ -53,6 +54,10 @@ public class HaxeCommonCompilerUtil {
 
     String getModuleName();
 
+    String getCompilationClass();
+    String getOutputFileName();
+    Boolean getIsTestBuild();
+
     void errorHandler(String message);
 
     void log(String message);
@@ -75,6 +80,8 @@ public class HaxeCommonCompilerUtil {
 
     void handleOutput(String[] lines);
 
+    HaxeTarget getHaxeTarget();
+
     String getModuleDirPath();
   }
 
@@ -84,8 +91,8 @@ public class HaxeCommonCompilerUtil {
       context.log("Module " + context.getModuleName() + " is excluded from compilation.");
       return true;
     }
-    final String mainClass = settings.getMainClass();
-    final String fileName = settings.getOutputFileName();
+    final String mainClass = context.getCompilationClass();
+    final String fileName = context.getOutputFileName();
 
     if (settings.isUseUserPropertiesToBuild()) {
       if (mainClass == null || mainClass.length() == 0) {
@@ -98,7 +105,7 @@ public class HaxeCommonCompilerUtil {
       }
     }
 
-    final HaxeTarget target = settings.getHaxeTarget();
+    final HaxeTarget target = context.getHaxeTarget();
     final NMETarget nmeTarget = settings.getNmeTarget();
     final OpenFLTarget openFLTarget = settings.getOpenFLTarget();
 
@@ -164,7 +171,7 @@ public class HaxeCommonCompilerUtil {
       if (endIndex > 0) {
         workingPath = hxmlPath.substring(0, endIndex);
       }
-      if (context.isDebug() && settings.getHaxeTarget() == HaxeTarget.FLASH) {
+      if (context.isDebug() && context.getHaxeTarget() == HaxeTarget.FLASH) {
         commandLine.add("-D");
         commandLine.add("fdb");
         commandLine.add("-debug");
@@ -181,7 +188,7 @@ public class HaxeCommonCompilerUtil {
       if (!workingDirectory.exists()) {
         if (!workingDirectory.mkdirs()) throw new IOException("Cannot create directory " + workingPath);
       }
-      final BaseOSProcessHandler handler = new BaseOSProcessHandler(
+      final BaseOSProcessHandler handler = new ColoredProcessHandler(
         new ProcessBuilder(commandLine).directory(workingDirectory).start(),
         null,
         Charset.defaultCharset()
@@ -225,7 +232,7 @@ public class HaxeCommonCompilerUtil {
   private static void setupUserProperties(List<String> commandLine, CompilationContext context) {
     final HaxeModuleSettingsBase settings = context.getModuleSettings();
     commandLine.add("-main");
-    commandLine.add(settings.getMainClass());
+    commandLine.add(context.getCompilationClass());
 
     final StringTokenizer argumentsTokenizer = new StringTokenizer(settings.getArguments());
     while (argumentsTokenizer.hasMoreTokens()) {
@@ -235,7 +242,7 @@ public class HaxeCommonCompilerUtil {
     if (context.isDebug()) {
       commandLine.add("-debug");
     }
-    if (settings.getHaxeTarget() == HaxeTarget.FLASH && context.isDebug()) {
+    if (context.getHaxeTarget() == HaxeTarget.FLASH && context.isDebug()) {
       commandLine.add("-D");
       commandLine.add("fdb");
     }
@@ -245,8 +252,8 @@ public class HaxeCommonCompilerUtil {
       commandLine.add(sourceRoot);
     }
 
-    commandLine.add(settings.getHaxeTarget().getCompilerFlag());
-    commandLine.add(settings.getOutputFileName());
+    commandLine.add(context.getHaxeTarget().getCompilerFlag());
+    commandLine.add(context.getOutputFileName());
   }
 
   private static void setupNME(List<String> commandLine, CompilationContext context) {

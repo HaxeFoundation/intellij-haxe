@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
@@ -33,7 +34,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.impl.source.tree.*;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
@@ -47,11 +48,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
+abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
   Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl");
   {
@@ -92,18 +92,19 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
   private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
     List<PsiElement> result = new ArrayList<PsiElement>();
     for (PsiElement element : nameList) {
-      PsiElement parent = element.getParent();
-      if (null != parent && parent.isValid()) {
-
-        if (parent instanceof PsiPackage) {
+      PsiElement elementToAdd = element;
+      if (element instanceof HaxeComponentName) {
+        PsiElement parent = element.getParent();
+        if (null != parent && parent.isValid()) {
           // Don't look for package parents. It turns 'com' into 'com.xx'.
           // XXX: May need to walk the tree until we get to the PACKAGE_STATEMENT
           // element;
-          result.add(element);
-        } else {
-          result.add(parent);
+          if (!(parent instanceof PsiPackage)) {
+            elementToAdd = parent;
+          }
         }
       }
+      result.add(elementToAdd);
     }
     return result;
   }
@@ -124,13 +125,12 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
   }
 
   @NotNull
-  @Override
-  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+  private JavaResolveResult[] multiResolve(boolean incompleteCode, boolean resolveToParents) {
     //
     // Resolving through this.resolve, or through the ResolveCache.resolve,
     // resolves to the *name* of the component.  That's what is cached, that's
-    // what is returned.  For the Java code, the various reference types are
-    // overridden, along with the base reference being aware of the type of the
+    // what is returned.  For the Java processing code, the various reference types
+    // are sub-classed, along with the base reference being aware of the type of the
     // entity.  Still, the base reference (PsiJavaReference) resolves to the
     // COMPONENT_NAME element, NOT the element type.  The various sub-classes
     // of PsiJavaReference (and PsiJavaCodeReferenceElement) return the actual
@@ -140,8 +140,17 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     // For the Haxe code, we don't have a large number of reference sub-classes,
     // so we have to figure out what the expected parent type is and return that.
     // Luckily, most references have a COMPONENT_NAME element located immediately
-    // below the parent in the PSI tree.  Therefore, we're going to return the
-    // parent type.
+    // below the parent in the PSI tree.  Therefore, when requested, we're going
+    // to return the parent type.
+    //
+    // The root of the problem appears to be that the Java language processing
+    // always expected the COMPONENT_NAME field.  However, the Haxe processing
+    // (plugin) code was written to expect the type *containing* the
+    // COMPONENT_NAME element (e.g. the named element not the name of the element).
+    // Therefore, we now have an adapter, and have to tweak some things to make them
+    // compatible.  Perhaps the proper answer is to make all of the plug-in code
+    // expect the COMPONENT_NAME field, to be consistent, and then we won't need
+    // the resolveToParents logic (here, at least).
     //
 
     // For the moment (while debugging the resolver) let's do this without caching.
@@ -150,17 +159,56 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
               = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
                             : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
 
-    List<? extends PsiElement> result = resolveNamesToParents(cachedNames);
 
     // CandidateInfo does some extra resolution work when checking validity, so
     // the results have to be turned into a CandidateInfoArray, and not just passed
     // around as the list that HaxeResolver returns.
-    return toCandidateInfoArray(result);
+    JavaResolveResult [] result = toCandidateInfoArray(resolveToParents ? resolveNamesToParents(cachedNames) : cachedNames);
+    return result;
   }
 
+  /**
+   * Resolve a reference, returning the COMPONENT_NAME field of the found
+   * PsiElement.
+   *
+   * @return the component name of the found element, or null if not (or
+   *         more than one) found.
+   */
+  @Nullable
+  public PsiElement resolveToComponentName() {
+    final ResolveResult[] resolveResults = multiResolve(true, false);
+
+    return resolveResults.length == 0 ||
+           resolveResults.length > 1 ||
+           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
+  }
+
+  /**
+   * Resolve a reference, returning a list of possible candidates.
+   *
+   * @param incompleteCode Whether to treat the code as a fragment or not.
+   *                       Usually, code is considered incomplete.
+   *
+   * @return a (possibly empty) list of candidates that this reference matches.
+   */
+  @NotNull
+  @Override
+  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+    return multiResolve(incompleteCode, true);
+  }
+
+  /**
+   * Resolve this reference to a PsiElement -- *NOT* it's name.
+   *
+   * @param incompleteCode  Whether to treat the code as a fragment or not.
+   *                        Usually, code is considered incomplete.
+   *
+   * @return the element this reference refers to, or null if none (or more
+   *         than one) is found.
+   */
   @Nullable
   public PsiElement resolve(boolean incompleteCode) {
-    final ResolveResult[] resolveResults = multiResolve(true);
+    final ResolveResult[] resolveResults = multiResolve(incompleteCode);
 
     return resolveResults.length == 0 ||
            resolveResults.length > 1 ||
@@ -503,15 +551,19 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
 
   @Override
   public boolean isReferenceTo(PsiElement element) {
-    final PsiElement resolve = resolve();
+    // Resolving is (relatively) expensive, so if we're going to ignore the answer anyway, then don't bother.
+    if (!(element instanceof HaxeFile)) {
+      final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
+      final boolean chain = references != null && references.length == 2;
+      if (chain) return false;
+    }
+    final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
     if (element instanceof HaxeFile &&
         resolve instanceof HaxeComponentName &&
         resolve.getParent() instanceof HaxeClass) {
       return element == resolve.getContainingFile();
     }
-    final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
-    final boolean chain = references != null && references.length == 2;
-    return !chain && resolve == element;
+    return resolve == element;
   }
 
   @NotNull
@@ -519,17 +571,15 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
   public Object[] getVariants() {
     final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
 
-
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
     // TODO: This should use getName() instead of getQualifiedName(), but it isn't implemented properly and getName() NPEs.
     HaxeClassResolveResult result = null;
-    HaxeClass haxeClass;
+    HaxeClass haxeClass = null;
     String qualifiedName = null;
     if (leftReference != null) {
       result = leftReference.resolveHaxeClass();
-
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
@@ -543,11 +593,16 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
       addChildClassVariants(suggestedVariants, result.getHaxeClass());
     }
     else if (leftReference != null && getParent() instanceof HaxeReference && !result.isFunctionType()) {
-      addClassNonStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
-                       !(leftReference instanceof HaxeThisExpression));
-      addUsingVariants(suggestedVariants, result.getHaxeClass(),
-                       HaxeResolveUtil.findUsingClasses(getContainingFile()));
-      addChildClassVariants(suggestedVariants, result.getHaxeClass());
+      if (null == haxeClass) {
+        // TODO: fix haxeClass by type inference. Use compiler code assist?!
+      }
+      if (haxeClass != null) {
+        addClassNonStaticMembersVariants(suggestedVariants, haxeClass,
+                                         !(leftReference instanceof HaxeThisExpression));
+        addUsingVariants(suggestedVariants, haxeClass,
+                         HaxeResolveUtil.findUsingClasses(getContainingFile()));
+        addChildClassVariants(suggestedVariants, haxeClass);
+      }
     }
     else {
       // if chain
@@ -559,21 +614,6 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
         addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
         PsiFile psiFile = this.getContainingFile();
         addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
-
-        /*HaxeFunctionDeclarationWithAttributes[] functionDeclarationWithAttributes = PsiTreeUtil.getChildrenOfType(body, HaxeFunctionDeclarationWithAttributes.class);
-        if (functionDeclarationWithAttributes != null) {
-          for (HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttribute : functionDeclarationWithAttributes) {
-            HaxeLocalFunctionDeclaration[] localFunctionDeclarations =
-              PsiTreeUtil.getChildrenOfType(functionDeclarationWithAttribute, HaxeLocalFunctionDeclaration.class);
-            for (HaxeLocalFunctionDeclaration localFunctionDeclaration : localFunctionDeclarations) {
-              HaxeNamedComponent[] haxeNamedComponents = PsiTreeUtil.getChildrenOfType(localFunctionDeclaration, HaxeNamedComponent.class);
-
-              if (haxeNamedComponents != null) {
-                ContainerUtil.addAll(result, haxeNamedComponents);
-              }
-            }
-          }
-        }*/
       }
     }
 
@@ -708,21 +748,15 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
 
   @Override
   public boolean isQualified() {
-    // TODO:  Unimplemented.
-    LOG.warn("isQualified is unimplemented");
-    return false;
+    return null != getQualifier();
   }
 
   @Override
   public String getQualifiedName() {
-    // TODO:  Unimplemented.
-    LOG.warn("getQualifiedName is unimplemented");
-    return null;
+    return SourceUtil.getReferenceText(this);
   }
 
-
   // PsiJavaReference overrides
-
 
   @Override
   public void processVariants(@NotNull PsiScopeProcessor processor) {
@@ -730,9 +764,7 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     LOG.warn("processVariants is unimplemented");
   }
 
-
   // PsiQualifiedReference overrides
-
 
   @Nullable
   @Override
@@ -740,9 +772,24 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     // Package/class that this type is part of; the part before
     // the last '.'.  However, that may only be partial, so adding
     // package information may also be necessary.
-    // TODO:  Unimplemented.
-    LOG.warn("getQualifier is unimplemented");
-    return null;
+    PsiElement left = UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.REFERENCE_EXPRESSION);
+    boolean hasDot = nextSiblingIsADot(left);
+    return hasDot ? left : null;
+  }
+
+  /* Determine if the element to the right of the given element in the AST
+   * (at the same level) is a dot '.' separator.
+   * Workhorse for getQualifier().
+   * XXX: If we use this more than once, move it to a utility class, such as UsefulPsiTreeUtil.
+   */
+  private static boolean nextSiblingIsADot(PsiElement element) {
+    if (null == element) return false;
+
+    PsiElement   next = element.getNextSibling();
+    ASTNode      node = ((null != next) ? next.getNode() : null);
+    IElementType type = ((null != node) ? node.getElementType() : null);
+    boolean      ret  = (null != type && type.equals(HaxeTokenTypes.ODOT));
+    return ret;
   }
 
   @Nullable
@@ -754,4 +801,33 @@ public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReferen
     return getText();
   }
 
+  // PsiExpression implementations
+
+  @Nullable
+  public PsiType getPsiType() {
+    // XXX: EMB: Not sure about this.  Does a reference really have a sub-node giving the type?
+    HaxeType ht = findChildByClass(HaxeType.class);
+    return ((null == ht) ? null : ht.getPsiType());
+  }
+
+  // PsiExpression implementations
+
+  //@Nullable
+  //public PsiExpression getQualifierExpression() {
+  //  final PsiElement qualifier = getQualifier();
+  //  return qualifier instanceof PsiExpression ? (PsiExpression)qualifier : null;
+  //}
+
+  @Override
+  public String toString() {
+    String ss = super.toString();
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
+      String clazzName = this.getClass().getSimpleName();
+      String text = getCanonicalText();
+      ss += ":" + (null == text ? "<no text>" : text);
+      ss += ":" + (null == clazzName ? "<anonymous>" : clazzName);
+    }
+    return ss;
+  }
 }

@@ -89,6 +89,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
 
   @Override
   @Nullable
+  public HaxeDoWhileStatement getDoWhileStatement() {
+    return findChildByClass(HaxeDoWhileStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeExpression getExpression() {
     return findChildByClass(HaxeExpression.class);
   }
@@ -101,6 +107,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
 
   @Override
   @Nullable
+  public HaxeForStatement getForStatement() {
+    return findChildByClass(HaxeForStatement.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeGenericParam getGenericParam() {
     return findChildByClass(HaxeGenericParam.class);
   }
@@ -109,6 +121,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   @NotNull
   public List<HaxeGetterMeta> getGetterMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeGetterMeta.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeIfStatement getIfStatement() {
+    return findChildByClass(HaxeIfStatement.class);
   }
 
   @Override
@@ -166,6 +184,12 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   }
 
   @Override
+  @Nullable
+  public HaxeReturnStatement getReturnStatement() {
+    return findChildByClass(HaxeReturnStatement.class);
+  }
+
+  @Override
   @NotNull
   public List<HaxeSetterMeta> getSetterMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSetterMeta.class);
@@ -173,14 +197,20 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
 
   @Override
   @Nullable
-  public HaxeStatement getStatement() {
-    return findChildByClass(HaxeStatement.class);
+  public HaxeThrowStatement getThrowStatement() {
+    return findChildByClass(HaxeThrowStatement.class);
   }
 
   @Override
   @Nullable
   public HaxeTypeTag getTypeTag() {
     return findChildByClass(HaxeTypeTag.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeWhileStatement getWhileStatement() {
+    return findChildByClass(HaxeWhileStatement.class);
   }
 
 }

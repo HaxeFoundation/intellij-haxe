@@ -139,7 +139,6 @@ public interface HaxeTokenTypes {
   IElementType SHIFT_RIGHT_OPERATOR = new HaxeElementType("SHIFT_RIGHT_OPERATOR");
   IElementType SHORT_TEMPLATE_ENTRY = new HaxeElementType("SHORT_TEMPLATE_ENTRY");
   IElementType SIMPLE_META = new HaxeElementType("SIMPLE_META");
-  IElementType STATEMENT = new HaxeElementType("STATEMENT");
   IElementType STRING_LITERAL_EXPRESSION = new HaxeElementType("STRING_LITERAL_EXPRESSION");
   IElementType SUFFIX_EXPRESSION = new HaxeElementType("SUFFIX_EXPRESSION");
   IElementType SUPER_EXPRESSION = new HaxeElementType("SUPER_EXPRESSION");
@@ -639,9 +638,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == SIMPLE_META) {
         return new HaxeSimpleMetaImpl(node);
-      }
-      else if (type == STATEMENT) {
-        return new HaxeStatementImpl(node);
       }
       else if (type == STRING_LITERAL_EXPRESSION) {
         return new HaxeStringLiteralExpressionImpl(node);

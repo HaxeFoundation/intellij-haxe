@@ -576,11 +576,11 @@ public class HaxelibProjectUpdater  {
     HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("syncProjectClasspath");
     timeLog.stamp("Start synchronizing project " + tracker.getProject().getName());
 
+    Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
+    HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
     HaxeClasspath currentProjectClasspath = HaxelibClasspathUtils.getProjectLibraryClasspath(
       tracker.getProject());
     List<String> currentLibraryNames = HaxelibClasspathUtils.getProjectLibraryNames(tracker.getProject(), true);
-    Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
-    HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
     HaxeClasspath haxelibClasspaths = libCache.getClasspathForHaxelibs(currentLibraryNames);
 
     // Libraries that we want to remove are those specified as 'haxelib' entries and are
@@ -1190,7 +1190,6 @@ public class HaxelibProjectUpdater  {
         updatingProject.setUpdating(true);
       }
 
-      // TODO: Put project classpath updating on a worker thread (including progress indicators)...
       // Waiting for runWhenProjectIsInitialized() ensures that the project is
       // fully loaded and accessible.  Otherwise, we crash. ;)
       StartupManager.getInstance(updatingProject.getProject()).runWhenProjectIsInitialized(new Runnable() {

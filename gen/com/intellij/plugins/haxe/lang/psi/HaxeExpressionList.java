@@ -29,6 +29,9 @@ public interface HaxeExpressionList extends HaxePsiCompositeElement {
   List<HaxeExpression> getExpressionList();
 
   @Nullable
-  HaxeStatement getStatement();
+  HaxeForStatement getForStatement();
+
+  @Nullable
+  HaxeWhileStatement getWhileStatement();
 
 }

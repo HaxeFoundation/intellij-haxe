@@ -29,6 +29,12 @@ public interface HaxePrefixExpression extends HaxeExpression {
   HaxeExpression getExpression();
 
   @Nullable
-  HaxeStatement getStatement();
+  HaxeIfStatement getIfStatement();
+
+  @Nullable
+  HaxeSwitchStatement getSwitchStatement();
+
+  @Nullable
+  HaxeTryStatement getTryStatement();
 
 }

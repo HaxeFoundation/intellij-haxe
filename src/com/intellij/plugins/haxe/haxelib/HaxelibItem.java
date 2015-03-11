@@ -28,7 +28,8 @@ import java.util.List;
  * A single item in a class path, originating from an invocation of the
  * 'haxelib' command.
  *
- * TODO: Be able to create an item from a name, especially a managed library.
+ * Possible extended functionality: Be able to create an item from a name,
+ *      especially a managed library.
  */
 public class HaxelibItem extends HaxeClasspathEntry {
 

@@ -29,15 +29,30 @@ public interface HaxeFunctionLiteral extends HaxeExpression {
   HaxeBlockStatement getBlockStatement();
 
   @Nullable
+  HaxeDoWhileStatement getDoWhileStatement();
+
+  @Nullable
   HaxeExpression getExpression();
+
+  @Nullable
+  HaxeForStatement getForStatement();
+
+  @Nullable
+  HaxeIfStatement getIfStatement();
 
   @Nullable
   HaxeParameterList getParameterList();
 
   @Nullable
-  HaxeStatement getStatement();
+  HaxeReturnStatement getReturnStatement();
+
+  @Nullable
+  HaxeThrowStatement getThrowStatement();
 
   @Nullable
   HaxeTypeTag getTypeTag();
+
+  @Nullable
+  HaxeWhileStatement getWhileStatement();
 
 }

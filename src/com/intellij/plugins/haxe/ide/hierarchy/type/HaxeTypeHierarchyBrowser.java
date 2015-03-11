@@ -17,8 +17,8 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.type;
 
+import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
-import com.intellij.ide.hierarchy.type.SupertypesHierarchyTreeStructure;
 import com.intellij.ide.hierarchy.type.TypeHierarchyBrowser;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -37,19 +37,27 @@ public class HaxeTypeHierarchyBrowser extends TypeHierarchyBrowser {
   }
 
   protected HierarchyTreeStructure createHierarchyTreeStructure(@NotNull final String typeName, @NotNull final PsiElement psiElement) {
+    HierarchyTreeStructure currentActiveTree = null;
     if (SUPERTYPES_HIERARCHY_TYPE.equals(typeName)) {
-      return new SupertypesHierarchyTreeStructure(myProject, (PsiClass)psiElement);
+      currentActiveTree = new HaxeSupertypesHierarchyTreeStructure(myProject, (PsiClass) psiElement);
     }
     else if (SUBTYPES_HIERARCHY_TYPE.equals(typeName)) {
-      return new HaxeSubtypesHierarchyTreeStructure(myProject, (PsiClass)psiElement, getCurrentScopeType());
+      currentActiveTree = new HaxeSubtypesHierarchyTreeStructure(myProject, (PsiClass) psiElement);
     }
     else if (TYPE_HIERARCHY_TYPE.equals(typeName)) {
-      return new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass)psiElement, getCurrentScopeType());
+      currentActiveTree = new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass) psiElement);
     }
     else {
       LOG.error("unexpected type: " + typeName);
-      return null;
     }
+    return currentActiveTree;
   }
 
+  // --------
+  // this is essential for auto-scrolling to source
+  //
+  protected PsiElement getElementFromDescriptor(@NotNull HierarchyNodeDescriptor descriptor) {
+    if (!(descriptor instanceof HaxeTypeHierarchyNodeDescriptor)) return null;
+    return ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
+  }
 }

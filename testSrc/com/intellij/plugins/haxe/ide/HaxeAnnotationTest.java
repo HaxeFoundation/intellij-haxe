@@ -22,6 +22,8 @@ import com.intellij.lang.LanguageAnnotators;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
+import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
+import com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection;
 import com.intellij.util.ArrayUtil;
 
 /**
@@ -62,4 +64,20 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   public void testIDEA_106515_2() throws Throwable {
     doTest("test/TArray.hx");
   }
+
+  /* Test that an import file containing no classes of the same name is resolved.
+   * The standard haxe library file haxe/macro/Tools.hx was the definitive error
+   * case.
+   *
+   * @throws Throwable
+   */
+  public void testIDEA_ResolveImportWithoutType() throws Throwable {
+    final String[] paths = {"test/stdTools.hx", getTestName(false) + ".hx"};
+    myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
+    final String haxe_macro_Tools_contents = "package haxe.macro;\ntypedef TExprTools = ExprTools;\n";
+    myFixture.addFileToProject("haxe/macro/Tools.hx", haxe_macro_Tools_contents);
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
+  }
+
 }

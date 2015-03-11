@@ -123,7 +123,9 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     if (result == null && !SystemInfo.isWindows) {
       final VirtualFile candidate = VirtualFileManager.getInstance().findFileByUrl("/usr/bin/neko");
       if (candidate != null && candidate.exists()) {
-        return FileUtil.toSystemIndependentName(candidate.getPath());
+        String s = FileUtil.toSystemIndependentName(candidate.getPath());
+        LOG.debug("returning neko path: " + s);
+        return s;
       }
     }
     if (result == null) {
@@ -134,8 +136,12 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       result = new File(result, getExecutableName("neko")).getAbsolutePath();
     }
     if (result != null && new File(result).exists()) {
-      return FileUtil.toSystemIndependentName(result);
+      String s = FileUtil.toSystemIndependentName(result);
+      LOG.debug("returning neko path: " + s);
+      return s;
     }
+
+    LOG.debug("returning neko path: null");
     return null;
   }
 

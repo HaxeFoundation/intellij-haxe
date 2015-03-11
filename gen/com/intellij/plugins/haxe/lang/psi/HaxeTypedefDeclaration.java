@@ -25,7 +25,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeTypedefDeclaration extends HaxeClass {
 
-  @Nullable
+  @NotNull
   HaxeComponentName getComponentName();
 
   @Nullable
@@ -36,6 +36,9 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
 
   @Nullable
   HaxeGenericParam getGenericParam();
+
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
   @Nullable
   HaxeTypeOrAnonymous getTypeOrAnonymous();

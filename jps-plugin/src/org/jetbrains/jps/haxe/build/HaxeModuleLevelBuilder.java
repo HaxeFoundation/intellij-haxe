@@ -21,10 +21,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
+import org.apache.velocity.texen.util.FileUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -134,6 +136,21 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       }
 
       @Override
+      public String getCompilationClass() {
+        return getModuleSettings().getMainClass();
+      }
+
+      @Override
+      public String getOutputFileName() {
+        return getModuleSettings().getOutputFileName();
+      }
+
+      @Override
+      public Boolean getIsTestBuild() {
+        return false;
+      }
+
+      @Override
       public void errorHandler(String message) {
         context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, message));
       }
@@ -203,6 +220,11 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
             compilerError != null ? (long)compilerError.getColumn() : -1L
           ));
         }*/
+      }
+
+      @Override
+      public HaxeTarget getHaxeTarget() {
+        return getModuleSettings().getHaxeTarget();
       }
 
       @Override

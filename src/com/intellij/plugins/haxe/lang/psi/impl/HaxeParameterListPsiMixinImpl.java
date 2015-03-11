@@ -35,6 +35,8 @@ import java.util.List;
  */
 public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeParameterListPsiMixin {
 
+  private static HaxeParameter[] EMPTY_ARRAY = new HaxeParameter[0];
+
   public HaxeParameterListPsiMixinImpl(ASTNode node) {
     super(node);
   }
@@ -52,7 +54,7 @@ public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl i
   public List<HaxeParameter> getParametersAsList() {
     HaxeParameter[] parameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameter.class, null);
     if (parameters == null) {
-      parameters = new HaxeParameter[0];   // TODO: return an EMPTY.
+      parameters = HaxeParameterListPsiMixinImpl.EMPTY_ARRAY;
     }
     return Arrays.asList(parameters);
   }

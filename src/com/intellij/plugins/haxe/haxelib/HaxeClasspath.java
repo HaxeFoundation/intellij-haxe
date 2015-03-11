@@ -105,7 +105,6 @@ public class HaxeClasspath {
   public void addAll(HaxeClasspath classpath) {
     synchronized(this) {
       synchronized(classpath) {
-        // TODO: Don't like the double sync at all.  Is there a better way?
         myOrderedEntries.addAll(classpath.myOrderedEntries);
       }
     }
@@ -226,7 +225,6 @@ public class HaxeClasspath {
   public void removeAll(@NotNull HaxeClasspath otherPath) {
     synchronized(this) {
       synchronized (otherPath) {
-        // TODO: Don't like the double sync at all.  Is there a better way?
         myOrderedEntries.removeAll(otherPath.myOrderedEntries);
       }
     }

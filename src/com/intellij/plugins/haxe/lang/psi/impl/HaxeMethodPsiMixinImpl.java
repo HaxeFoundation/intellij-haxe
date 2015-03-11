@@ -131,8 +131,9 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Override
   public PsiReferenceList getThrowsList() {
     HaxeThrowStatement ts = getThrowStatement();
-    return new HaxePsiReferenceList(ts == null ? new HaxeDummyASTNode("ThrowsList")
-                                                : ts.getNode());
+    return new HaxePsiReferenceList(this.getContainingClass(),
+                                    (ts == null ? new HaxeDummyASTNode("ThrowsList") : ts.getNode()),
+                                    null);
   }
 
   @Nullable
@@ -238,49 +239,51 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods() {
-    return PsiSuperMethodImplUtil.findSuperMethods(this);
+    return HaxeMethodUtils.findSuperMethods(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods(boolean checkAccess) {
-    return PsiSuperMethodImplUtil.findSuperMethods(this, checkAccess);
+    return HaxeMethodUtils.findSuperMethods(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findSuperMethods(PsiClass parentClass) {
-    return PsiSuperMethodImplUtil.findSuperMethods(this, parentClass);
+    return HaxeMethodUtils.findSuperMethods(this, parentClass);
   }
 
   @NotNull
   @Override
   public List<MethodSignatureBackedByPsiMethod> findSuperMethodSignaturesIncludingStatic(boolean checkAccess) {
-    return PsiSuperMethodImplUtil.findSuperMethodSignaturesIncludingStatic(this, checkAccess);
+    return HaxeMethodUtils.findSuperMethodSignaturesIncludingStatic(this);
   }
 
   @Deprecated
   @Nullable
   @Override
   public PsiMethod findDeepestSuperMethod() {
-    return PsiSuperMethodImplUtil.findDeepestSuperMethod(this);
+    return HaxeMethodUtils.findDeepestSuperMethod(this);
   }
 
   @NotNull
   @Override
   public PsiMethod[] findDeepestSuperMethods() {
-    return PsiSuperMethodImplUtil.findDeepestSuperMethods(this);
+    return HaxeMethodUtils.findDeepestSuperMethods(this);
   }
 
   @Nullable
   @Override
   public PsiTypeParameterList getTypeParameterList() {
-    // Type parameters are those inside of the type designation (e.g.
-    // inside the '<' and '>').
-    HaxeTypeTag         tag =   (HaxeTypeTag) findChildByType(HaxeTokenTypes.TYPE_TAG);
-    HaxeTypeOrAnonymous toa =   null == tag ? null : tag.getTypeOrAnonymous();
-    HaxeType            type =  null == toa ? null : toa.getType();
-    HaxeTypeParam       param = null == type ? null : type.getTypeParam();// XXX: Java<->Haxe list & type inversion -- See BNF.
+    // Type parameters are those inside of the type designation (e.g. inside the '<' and '>').
+    HaxeTypeParam               param   = null;
+    final HaxeTypeTag           tag     = (HaxeTypeTag) findChildByType(HaxeTokenTypes.TYPE_TAG);
+    if (tag != null) {
+      final HaxeTypeOrAnonymous toa     = tag.getTypeOrAnonymous();
+      final HaxeType            type    = (toa != null) ? toa.getType() : null;
+      param                             = (type != null) ? type.getTypeParam() : null;// XXX: Java<->Haxe list & type inversion -- See BNF.
+    }
     return param;
   }
 

@@ -22,6 +22,7 @@ import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -59,7 +60,7 @@ public class NekoRunningState extends CommandLineState {
 
     GeneralCommandLine commandLine = getCommandForNeko(sdkData, settings);
 
-    return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
+    return new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
   }
 
   private GeneralCommandLine getCommandForNeko(@Nullable HaxeSdkData sdkData, HaxeModuleSettings settings) throws ExecutionException {

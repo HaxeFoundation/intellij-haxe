@@ -127,4 +127,11 @@ public class HaxeElementGenerator {
     codeFragment.setContext(context);
     return codeFragment;
   }
+
+  public static HaxeFunctionPrototypeDeclarationWithAttributes creatPrototypeDeclarationWithAttributes(Project myProject, String text) {
+    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapInterfaceFunction(text).getFirst());
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
+    assert haxeClass != null;
+    return (HaxeFunctionPrototypeDeclarationWithAttributes)haxeClass.getHaxeMethods().iterator().next();
+  }
 }

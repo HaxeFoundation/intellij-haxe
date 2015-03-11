@@ -1,63 +1,65 @@
 Haxe File
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('IfElse')
-    PsiElement({)('{')
+        PsiJavaToken:ID('IfElse')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         TYPE_TAG
-          PsiElement(:)(':')
+          PsiJavaToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiElement(ID)('void')
+                  PsiJavaToken:ID('void')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           IF_STATEMENT
-            PsiElement(if)('if')
-            PsiElement(()('(')
+            PsiJavaToken:if('if')
+            PsiJavaToken:(('(')
             LITERAL_EXPRESSION
-              PsiElement(true)('true')
-            PsiElement())(')')
+              PsiJavaToken:true('true')
+            PsiJavaToken:)(')')
             BLOCK_STATEMENT
-              PsiElement({)('{')
+              PsiJavaToken:{('{')
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('trace')
-                PsiElement(()('(')
+                    PsiJavaToken:ID('trace')
+                PsiJavaToken:(('(')
                 EXPRESSION_LIST
                   STRING_LITERAL_EXPRESSION
-                    PsiElement(OPEN_QUOTE)('"')
-                    PsiElement(REGULAR_STRING_PART)(':)')
-                    PsiElement(CLOSING_QUOTE)('"')
-                PsiElement())(')')
-              PsiElement(;)(';')
-              PsiElement(})('}')
-            PsiElement(else)('else')
+                    PsiJavaToken:OPEN_QUOTE('"')
+                    PsiJavaToken:REGULAR_STRING_PART(':)')
+                    PsiJavaToken:CLOSING_QUOTE('"')
+                PsiJavaToken:)(')')
+              PsiJavaToken:;(';')
+              PsiJavaToken:}('}')
+            PsiJavaToken:else('else')
             BLOCK_STATEMENT
-              PsiElement({)('{')
+              PsiJavaToken:{('{')
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiElement(ID)('trace')
-                PsiElement(()('(')
+                    PsiJavaToken:ID('trace')
+                PsiJavaToken:(('(')
                 EXPRESSION_LIST
                   STRING_LITERAL_EXPRESSION
-                    PsiElement(OPEN_QUOTE)('"')
-                    PsiElement(REGULAR_STRING_PART)('wtf')
-                    PsiElement(CLOSING_QUOTE)('"')
-                PsiElement())(')')
-              PsiElement(;)(';')
-              PsiElement(})('}')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                    PsiJavaToken:OPEN_QUOTE('"')
+                    PsiJavaToken:REGULAR_STRING_PART('wtf')
+                    PsiJavaToken:CLOSING_QUOTE('"')
+                PsiJavaToken:)(')')
+              PsiJavaToken:;(';')
+              PsiJavaToken:}('}')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

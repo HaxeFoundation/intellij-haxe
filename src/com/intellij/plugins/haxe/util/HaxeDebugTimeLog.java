@@ -196,13 +196,23 @@ public final class HaxeDebugTimeLog {
   }
 
   /**
+   * Create a time stamp, add it to this Log, and echo it to the configured Logger
+   * immediately.  The stamp will be repeated in the <code>print</code> output.
+   *
+   * @param message text to identify the message.
+   */
+  public void stampAndEcho(@Nullable String message) {
+    stampAndEcho(message, mySince);
+  }
+
+  /**
    * Create a time stamp, add it to this Log, and echo it to the Logger
-   * immediately.
+   * immediately.  The stamp will be repeated in the <code>print</code> output.
    *
    * @param message text to identify the message.
    * @param since output control of elapsed time (See HaxeDebugTimeLog.Since.)
    */
-  public synchronized void stamp(@Nullable String message, Since since) {
+  public synchronized void stampAndEcho(@Nullable String message, Since since) {
     TimeStamp ts = new TimeStamp(message);
     TimeStamp previous = myTimeStamps.isEmpty() ? null : myTimeStamps.getLast();
     myTimeStamps.add(ts);

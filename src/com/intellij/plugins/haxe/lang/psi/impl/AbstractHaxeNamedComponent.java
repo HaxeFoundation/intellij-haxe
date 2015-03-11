@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
+import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -141,8 +143,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Override
   public HaxeNamedComponent getTypeComponent() {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
-    final HaxeType type = typeTag == null ? null : typeTag.getTypeOrAnonymous().getType();
-    final PsiReference reference = type == null ? null : type.getReference();
+    final HaxeType type = typeTag != null ? typeTag.getTypeOrAnonymous().getType() : null;
+    final PsiReference reference = type != null ? type.getReference() : null;
     if (reference != null) {
       final PsiElement result = reference.resolve();
       if (result instanceof HaxeNamedComponent) {
@@ -220,7 +222,14 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   public int getChildRole(ASTNode child) {
-    return 0; //ChildRole.NONE;
+    if (child.getElementType() == HaxeTokenTypes.PLCURLY) {
+      return ChildRole.LBRACE;
+    }
+    else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
+      return ChildRole.RBRACE;
+    }
+
+    return 0;
   }
 
   protected final int getChildRole(ASTNode child, int roleCandidate) {

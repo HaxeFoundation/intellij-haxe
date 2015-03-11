@@ -1,121 +1,123 @@
 Haxe File
   TYPEDEF_DECLARATION
-    PsiElement(typedef)('typedef')
+    PsiJavaToken:typedef('typedef')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Point')
-    PsiElement(=)('=')
+        PsiJavaToken:ID('Point')
+    PsiJavaToken:=('=')
     TYPE_OR_ANONYMOUS
       ANONYMOUS_TYPE
-        PsiElement({)('{')
+        PsiJavaToken:{('{')
         ANONYMOUS_TYPE_BODY
           INTERFACE_BODY
             VAR_DECLARATION
-              PsiElement(var)('var')
+              PsiJavaToken:var('var')
               VAR_DECLARATION_PART
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiElement(ID)('x')
+                    PsiJavaToken:ID('x')
                 TYPE_TAG
-                  PsiElement(:)(':')
+                  PsiJavaToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('Int')
-              PsiElement(;)(';')
+                          PsiJavaToken:ID('Int')
+              PsiJavaToken:;(';')
             VAR_DECLARATION
-              PsiElement(var)('var')
+              PsiJavaToken:var('var')
               VAR_DECLARATION_PART
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiElement(ID)('y')
+                    PsiJavaToken:ID('y')
                 TYPE_TAG
-                  PsiElement(:)(':')
+                  PsiJavaToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiElement(ID)('Int')
-              PsiElement(;)(';')
-        PsiElement(})('}')
+                          PsiJavaToken:ID('Int')
+              PsiJavaToken:;(';')
+        PsiJavaToken:}('}')
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Points')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Points')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiElement(var)('var')
+            PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('p')
+                  PsiJavaToken:ID('p')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   ANONYMOUS_TYPE
-                    PsiElement({)('{')
+                    PsiJavaToken:{('{')
                     ANONYMOUS_TYPE_BODY
                       TYPE_EXTENDS
-                        PsiElement(>)('>')
+                        PsiJavaToken:>('>')
                         TYPE
                           REFERENCE_EXPRESSION
                             IDENTIFIER
-                              PsiElement(ID)('Point')
-                      PsiElement(,)(',')
+                              PsiJavaToken:ID('Point')
+                      PsiJavaToken:,(',')
                       ANONYMOUS_TYPE_FIELD_LIST
                         ANONYMOUS_TYPE_FIELD
                           COMPONENT_NAME
                             IDENTIFIER
-                              PsiElement(ID)('z')
+                              PsiJavaToken:ID('z')
                           TYPE_TAG
-                            PsiElement(:)(':')
+                            PsiJavaToken::(':')
                             TYPE_OR_ANONYMOUS
                               TYPE
                                 REFERENCE_EXPRESSION
                                   IDENTIFIER
-                                    PsiElement(ID)('Int')
-                    PsiElement(})('}')
+                                    PsiJavaToken:ID('Int')
+                    PsiJavaToken:}('}')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('p')
+                PsiJavaToken:ID('p')
             ASSIGN_OPERATION
-              PsiElement(=)('=')
+              PsiJavaToken:=('=')
             OBJECT_LITERAL
-              PsiElement({)('{')
+              PsiJavaToken:{('{')
               OBJECT_LITERAL_ELEMENT
                 IDENTIFIER
-                  PsiElement(ID)('x')
-                PsiElement(:)(':')
+                  PsiJavaToken:ID('x')
+                PsiJavaToken::(':')
                 LITERAL_EXPRESSION
-                  PsiElement(LITINT)('0')
-              PsiElement(,)(',')
+                  PsiJavaToken:LITINT('0')
+              PsiJavaToken:,(',')
               OBJECT_LITERAL_ELEMENT
                 IDENTIFIER
-                  PsiElement(ID)('y')
-                PsiElement(:)(':')
+                  PsiJavaToken:ID('y')
+                PsiJavaToken::(':')
                 LITERAL_EXPRESSION
-                  PsiElement(LITINT)('0')
-              PsiElement(,)(',')
+                  PsiJavaToken:LITINT('0')
+              PsiJavaToken:,(',')
               OBJECT_LITERAL_ELEMENT
                 IDENTIFIER
-                  PsiElement(ID)('z')
-                PsiElement(:)(':')
+                  PsiJavaToken:ID('z')
+                PsiJavaToken::(':')
                 LITERAL_EXPRESSION
-                  PsiElement(LITINT)('0')
-              PsiElement(})('}')
-          PsiElement(;)(';')
-          PsiElement(})('}')
-    PsiElement(})('}')
+                  PsiJavaToken:LITINT('0')
+              PsiJavaToken:}('}')
+          PsiJavaToken:;(';')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')

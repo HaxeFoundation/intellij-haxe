@@ -34,6 +34,7 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
@@ -72,18 +73,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     if (getParent() == null) {
       return name == null ? "" : name;
     }
-    final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
-    String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
-    if (isAncillaryClass(name, fileName)) {
-      packageName = HaxeResolveUtil.joinQName(packageName, fileName);
-    }
-    return HaxeResolveUtil.joinQName(packageName, name);
-  }
-
-  private boolean isAncillaryClass(String name, String fileName) {
-    return (!(this instanceof  HaxeExternClassDeclaration)) &&
-           (!fileName.equals(name)) &&
-           (HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null);
+    return HaxeResolveUtil.joinQName(HaxeResolveUtil.getPackageName(getContainingFile()), name);
   }
 
   @Override
@@ -101,6 +91,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public List<HaxeType> getHaxeImplementsList() {
     return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
+  }
+
+  @Override
+   public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {
+    if (getRBrace() != null) {
+      return addBefore(element, getRBrace());
+    }
+    else {
+      return super.add(element);
+    }
   }
 
   @NotNull
@@ -198,10 +198,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       // anonymous class inherits containing class' search scope
       return this.getContainingClass();
     }
-    //if (this.isPrivate()) {
-    //  // private class' scope is limited to within that file
-    //  return this.getContainingFile();
-    //}
     return this.getContainingFile();
   }
 
@@ -364,7 +360,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public PsiElement getRBrace() {
+   public PsiElement getRBrace() {
     return findChildByRoleAsPsiElement(ChildRole.RBRACE);
   }
 
@@ -431,7 +427,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       list.setModifierProperty(HaxePsiModifier.ABSTRACT, true);
     }
 
-    list.setModifierProperty(HaxePsiModifier.STATIC, false); // Haxe does not have static classes, yet!
+    // XXX: Users of HaxeModifierList generally check for the existence of the property, not it's value.
+    //      So, don't set it.
+    //list.setModifierProperty(HaxePsiModifier.STATIC, false); // Haxe does not have static classes, yet!
+    LOG.assertTrue(!list.hasModifierProperty(HaxePsiModifier.STATIC), "Haxe classes cannot be static.");
 
     return list;
   }
@@ -459,7 +458,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiIdentifier getNameIdentifier() {
-    return ((PsiIdentifier) findChildByRoleAsPsiElement(ChildRole.NAME));
+    // For a HaxeClass, the identifier is three children below.  The first is
+    // the component name, then a reference, and finally the identifier.
+    HaxeComponentName name = PsiTreeUtil.getChildOfType(this, HaxeComponentName.class);
+    return null == name ? null : name.getIdentifier();
   }
 
   @Override

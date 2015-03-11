@@ -86,7 +86,8 @@ public class HaxePresentableUtil {
   public static String buildTypeText(HaxeNamedComponent element,
                                      @Nullable HaxeTypeListPart typeTag,
                                      HaxeGenericSpecialization specializations) {
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    final List<HaxeTypeOrAnonymous> haxeTypeOrAnonymousList = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = haxeTypeOrAnonymousList.get(0);
     if (typeOrAnonymous == null) {
       return "";
     }
@@ -104,23 +105,25 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
-    if (typeTag == null) {
-      return "";
-    }
+    if (typeTag != null)
+    {
+      final HaxeFunctionType haxeFunctionType = (typeTag.getFunctionType() == null) ? null :
+                                                typeTag.getFunctionType().getFunctionType();
+      if (haxeFunctionType != null) {
+        return buildTypeText(element, haxeFunctionType, specialization);
+      }
 
-    final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
-    if (haxeFunctionType != null) {
-      return buildTypeText(element, haxeFunctionType, specialization);
-    }
-
-    final HaxeAnonymousType anonymousType = typeTag.getTypeOrAnonymous().getAnonymousType();
-    if (anonymousType != null) {
-      return anonymousType.getText();
-    }
-
-    final HaxeType haxeType = typeTag.getTypeOrAnonymous().getType();
-    if (haxeType != null) {
-      return buildTypeText(element, haxeType, specialization);
+      final HaxeTypeOrAnonymous haxeTypeOrAnonymous = typeTag.getTypeOrAnonymous();
+      if (haxeTypeOrAnonymous != null) {
+        final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous.getAnonymousType();
+        if (anonymousType != null) {
+          return anonymousType.getText();
+        }
+        final HaxeType haxeType = haxeTypeOrAnonymous.getType();
+        if (haxeType != null) {
+          return buildTypeText(element, haxeType, specialization);
+        }
+      }
     }
     return "";
   }

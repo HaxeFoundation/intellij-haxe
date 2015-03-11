@@ -1,63 +1,63 @@
 Haxe File
   ENUM_DECLARATION
-    PsiElement(enum)('enum')
+    PsiJavaToken:enum('enum')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Cell')
+        PsiJavaToken:ID('Cell')
     GENERIC_PARAM
-      PsiElement(<)('<')
+      PsiJavaToken:<('<')
       GENERIC_LIST_PART
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('T')
-      PsiElement(>)('>')
-    PsiElement({)('{')
+            PsiJavaToken:ID('T')
+      PsiJavaToken:>('>')
+    PsiJavaToken:{('{')
     ENUM_BODY
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('empty')
-        PsiElement(;)(';')
+            PsiJavaToken:ID('empty')
+        PsiJavaToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('cons')
+            PsiJavaToken:ID('cons')
         ENUM_CONSTRUCTOR_PARAMETERS
-          PsiElement(()('(')
+          PsiJavaToken:(('(')
           PARAMETER_LIST
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('item')
+                  PsiJavaToken:ID('item')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('T')
-            PsiElement(,)(',')
+                        PsiJavaToken:ID('T')
+            PsiJavaToken:,(',')
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiElement(ID)('next')
+                  PsiJavaToken:ID('next')
               TYPE_TAG
-                PsiElement(:)(':')
+                PsiJavaToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiElement(ID)('Cell')
+                        PsiJavaToken:ID('Cell')
                     TYPE_PARAM
-                      PsiElement(<)('<')
+                      PsiJavaToken:<('<')
                       TYPE_LIST
                         TYPE_LIST_PART
                           TYPE_OR_ANONYMOUS
                             TYPE
                               REFERENCE_EXPRESSION
                                 IDENTIFIER
-                                  PsiElement(ID)('T')
-                      PsiElement(>)('>')
-          PsiElement())(')')
-        PsiElement(;)(';')
-    PsiElement(})('}')
+                                  PsiJavaToken:ID('T')
+                      PsiJavaToken:>('>')
+          PsiJavaToken:)(')')
+        PsiJavaToken:;(';')
+    PsiJavaToken:}('}')

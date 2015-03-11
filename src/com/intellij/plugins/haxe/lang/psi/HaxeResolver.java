@@ -19,6 +19,8 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -41,6 +43,7 @@ import java.util.List;
  */
 public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
   public static final HaxeResolver INSTANCE = new HaxeResolver();
+  public static final String IMPORT_EXTENSION = ".hx";
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
@@ -56,31 +59,31 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return toCandidateInfoArray(resultClass.getComponentName());
     }
 
+    // Maybe a package name
     final PsiPackage psiPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(reference.getText());
     if (psiPackage != null) {
       return toCandidateInfoArray(psiPackage);
     }
+    // See if it's a source file we're importing... (most likely a convenience library, such as haxe.macro.Tools)
+    final PsiFile importFile = resolveImportFile(reference);
+    if (null != importFile) {
+      return toCandidateInfoArray(importFile);
+    }
 
     // if not first in chain
     // foo.bar.baz
-    final HaxeReference referenceExpression = HaxeResolveUtil.getLeftReference(reference);
-    if (referenceExpression != null && reference.getParent() instanceof HaxeReference) {
-      final HaxeComponentName componentName = tryResolveHelperClass(referenceExpression, reference.getText());
-      return componentName != null
-             ? Arrays.asList(componentName)
-             : resolveByClassAndSymbol(referenceExpression.resolveHaxeClass(), reference);
+    final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
+    if (leftReference != null && reference.getParent() instanceof HaxeReference) {
+      return resolveChain(leftReference, reference);
     }
 
     // then maybe chain
     // node(foo.node(bar)).node(baz)
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
-      final HaxeComponentName componentName = tryResolveHelperClass(childReferences[0], childReferences[1].getText());
-      // try member
-      return componentName != null
-             ? Arrays.asList(componentName)
-             : resolveByClassAndSymbol(childReferences[0].resolveHaxeClass(), childReferences[1]);
+      return resolveChain(childReferences[0], childReferences[1]);
     }
+
     if (reference instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
       assert haxeClass != null;
@@ -163,7 +166,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return superElements;
     }
 
-    if (JavaPsiFacade.getInstance(reference.getProject()).getNameHelper().isQualifiedName(reference.getText())) {
+    if (PsiNameHelper.getInstance(reference.getProject()).isQualifiedName(reference.getText())) {
       PsiPackageReference packageReference = new PackageReferenceSet(reference.getText(), reference, 0).getLastReference();
       PsiElement packageTarget = packageReference != null ? packageReference.resolve() : null;
       if (packageTarget != null) {
@@ -174,6 +177,65 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return ContainerUtil.emptyList();
   }
 
+  /**
+   * Resolve a chain reference, given two references: the qualifier, and the name.
+   *
+   * @param lefthandExpression - qualifying expression (e.g. "((ref = reference).getProject())")
+   * @param reference - field/method name to resolve.
+   * @return the resolved element, if found; null, otherwise.
+   */
+  @Nullable
+  private List<? extends PsiElement> resolveChain(HaxeReference lefthandExpression, HaxeReference reference) {
+    final HaxeComponentName componentName = tryResolveHelperClass(lefthandExpression, reference.getText());
+    if (componentName != null) {
+      return Arrays.asList(componentName);
+    }
+    // Try resolving keywords (super, new), arrays, literals, etc.
+    List<? extends PsiElement> resolvedList = resolveByClassAndSymbol(lefthandExpression.resolveHaxeClass(), reference);
+    return resolvedList;
+  }
+
+  /**
+   * Resolve a reference into a specific source file.  (.hx extension is added to the reference text.)
+   *
+   * @param reference to resolve.
+   * @return a PsiFile if the file was found and is part of the project; null, otherwise.
+   */
+  @Nullable
+  private PsiFile resolveImportFile(HaxeReference reference) {
+    if (null == reference) return null;
+
+    final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
+    final String leftName = leftReference == null ? "" : leftReference.getQualifiedName();
+
+    final String ctext = reference.getQualifiedName();
+    final String packageName = leftName + StringUtil.getPackageName(ctext);
+    final String fileName = StringUtil.getShortName(ctext) + IMPORT_EXTENSION;
+
+    PsiFile importPsiFile = null;
+    final PsiPackage importPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(packageName);
+    if (null != importPackage) {
+      for (PsiDirectory dir : importPackage.getDirectories()) {
+        VirtualFile importDir = dir == null ? null : dir.getVirtualFile();
+        VirtualFile importVFile = importDir == null ? null : importDir.findChild(fileName);
+        importPsiFile = importVFile == null ? null : PsiManager.getInstance(reference.getProject()).findFile(importVFile);
+        if (importPsiFile != null) {
+          break;
+        }
+      }
+    }
+
+    return importPsiFile;
+  }
+
+  /**
+   * Test if the leftReference is a class name (either locally or in a super-class),
+   * and if so, find the named field/method declared inside of it.
+   *
+   * @param leftReference - a potential class name.
+   * @param helperName - the field/method to find.
+   * @return the name of the found field/method.  null if not found.
+   */
   @Nullable
   private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
     HaxeComponentName componentName = null;

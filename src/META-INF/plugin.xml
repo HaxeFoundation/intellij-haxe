@@ -19,10 +19,94 @@
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Support</name>
   <description>Support for Haxe programming language</description>
+  <vendor>JetBrains, Haxe community</vendor>
+  <idea-version since-build="132.400"/>
+  <depends>com.intellij.modules.lang</depends>
+  <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
+  <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
+
+  <version>0.8.1.1.TiVo.ClassHierarchy.16: (community version, TiVo RC5)</version>
   <change-notes>
     <![CDATA[
+      <p>0.8.1.1.TiVo.ClassHierarchy.16: (community version, TiVo RC5)</p>
+       <ul>
+        <li>Refactoring: Pull up members from class to super-class</li>
+        <li>Refactoring: Pull up members from class to interface</li>
+        <li>Launch Haxe/Neko tests (Patch #131)</li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.15: (community version, TiVo RC4)</p>
+       <ul>
+        <li>Fixed issue 37 (Parser doesn't recover after new A)</li>
+        <li>Fixed issue 95 (Local and class variable names resolving to similar package names)</li>
+        <li>Fixed issue 132 (incorrect processing of duplicate imports)</li>
+        <li>Fixed issue 134 (incorrect reformat of object and array children)</li>
+        <li>Fixed reference resolution for expressions in parenthesis - otherwise, code assist does not work for those.</li>
+        <li>Fixed: launching test with neko, overriding haxe build parameters for test run configuration, filtering test result output, compilation path of non test build, line number for ErrorFilter; and removed hard-coded path for ErrorFilter</li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.14: (community version, TiVo RC3)</p>
+       <ul>
+        <li>Fixed NPE causing the structure view to not populate, resulting from an errant merge.</li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.13: (community version, TiVo RC2)</p>
+       <ul>
+        <li>Resolve 'convenience' imports that do not export a class named similarly to the file. (TiVo Issue #55)</li>
+        <li>Update unbalanced preprocessor token highlighting and detection.</li>
+        <li>Improve indentation of comments and preprocessor macros.</li>
+        <li>Update for Grammar-Kit 1.2.0.1 </li>
+        <li>Fixed syntax rules (BNF) for constructors and external functions.</li>
+        <li>Fixed syntax rules (BNF) for code blocks; removed them from being valid syntax everywhere an expression can appear.</li>
+        <li>Fixed syntax rules (BNF) to allow meta tags on typedefs.</li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.12: (community version, TiVo RC1+Fixes)</p>
+       <ul>
+        <li>Auto-indent when adding curly brackets now works correctly. Fixes github tivo/intellij-haxe Issue #119. (Thanks, Jérémy!)</li>
+        <li>Fix IDE hang on completion for Haxe compiler completions.</li>
+        <li>Fix auto-adding new import statements above package declaration and/or comments.</li>
+        <li>Fix NPE when manually adding new import statements.</li>
+        <li>Put debugging dialogs on the UI thread.</li>
+        <li>Fix ArrayOutOfBounds exception when initializing haxelib cache.</li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.11: (community version, TiVo RC1)</p>
+       <ul>
+        <li>Fix NPE when colorizing.</li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.10: (community version, TiVo WIP)</p>
+       <ul>
+        <li> Added timeout to long-running call hierarchy searches. </li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.9: (community version, TiVo WIP)</p>
+       <ul>
+        <li> Fixed Haxe command-line debugger integration for OpenFL projects that
+             are targetting C++ native runtime environments.
+        </li>
+        <li> Fixed method hierarchy runtime exceptions, and auto-scrolling to source. </li>
+        <li> Fixed type hierarchy auto-scrolling to source. </li>
+        <li> Enhanced run & debug output to be color-coded for improved readability. </li>
+        <li> Fixed find-usages regression. </li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.8: (community version, TiVo WIP)</p>
+       <ul>
+        <li> More load-time optimizations using new 'haxelib list-path' command. </li>
+        <li> Add package and file names to Type hierarchy window.  (File names only
+             display if the file name differs from the type name.)
+        </li>
+        <li> Fixed supertypes list in the combo view of the Type hierarchy window. </li>
+        <li> Allow block statements everywhere. </li>
+        <li> Allow array literals to have additional comma [1,] </li>
+        <li> Moving a file from one package to another no longer displays "Unimplemented"
+             and now moves the file, however references are not yet updated.
+             Issue #88 -- still unresolved.
+        </li>
+        <li> Updated unit tests. Issues: #71, #68.</li>
+        <li> Fix formatting for ">=", which is used be to reformatted to "> =". Issue </li>
+        <li> Fix logic for HaxeIfSurrounder.java /testIf test case/ </li>
+       </ul>
+      <p>0.8.1.1.TiVo.ClassHierarchy.7: (community version, TiVo WIP)</p>
+       <ul>
+        <li>Repaired resolving references to classes and variables.</li>
+       </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.6: (community version, TiVo WIP)</p>
-      <ul>
+       <ul>
         <li>Further optimized load time for large projects.</li>
         <li>Run haxelib->Project/SDK/Module library dependency synchronization 
             in the background.
@@ -46,9 +130,9 @@
             HXMLCompilerArgumentsCompletionContributor.java
         </li>
         <li>Preliminary Haxe compiler completion support (OpenFL only)</li>
-      </ul>
+       </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.5: (community version, TiVo WIP)</p>
-      <ul>
+       <ul>
         <li>Decreased time to load large projects considerably.
             Note that project loading is still on the UI thread, so
             it may appear to lock up for a short period of time.
@@ -60,10 +144,10 @@
         <li>HaxeMetaTagsCompletionContributor provides completion for meta tags</li>
         <li>Project Xml(NME, OpenFL project project) completion: show available and installed haxelibs</li>
         <li>SplitIntoDeclarationAndAssignment intention action</li>
-      </ul>
+       </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.4: (community version, TiVo WIP)</p>
-      <ul>
-        <li>Merged with version 0.8.1.1.TiVo.2 from the TiVo/master branch.
+       <ul>
+           <li>Merged with version 0.8.1.1.TiVo.2 from the TiVo/master branch.</li>
         <li>Class Hierarchy partial implementation.</li>
         <li>SuperTypes work.  Sub-types work within the same module.</li>
         <li>All recent changes from github.com/Jetbrains/intellij-haxe/master</li>
@@ -81,171 +165,172 @@
         <li>Support "inline" declaration attribute on local functions</li>
         <li>Suggest to import class on code paste</li>
         <li>Support macro expressions(including ECheckType)</li>
-        <li>Lots more... TODO: Get a complete list of updates.
+        <li>Lots more... TODO: Get a complete list of updates.</li>
+       </ul>
       <p>0.8.1.1.TiVo.2: (TiVo version)</p>
-      <ul>
+       <ul>
         <li>openFL path can now be retrieved from an .iml file</li>
-      </ul>
+       </ul>
       <p>0.8.1.1: (community version)</p>
-      <ul>
+       <ul>
         <li>"Find usages in project" fixed.</li>
         <li>Allowed @:final on methods and fields.</li>
         <li>Re-implemented hxcpp debugger support to work with Haxe v3 built-in debugger</li>
-      </ul>
+       </ul>
       <p>0.8.1: (community version)</p>
-      <ul>
+       <ul>
         <li>Remove com.intellij.modules.java from dependencies list to make plugin work in PHPStorm(and other IntelliJ IDEA platform-based IDEs)</li>
-      </ul>
+       </ul>
       <p>0.8: (community version)</p>
-      <ul>
+       <ul>
         <li>Migration to new IntelliJ IDEA 13.1 API</li>
         <li>HXML syntax highlighting</li>
         <li>HXML completion</li>
         <li>Parser support for different types of imports</li>
         <li>Parser support for @:jsRequire and more parser fixes</li>
-      </ul>
+       </ul>
       <p>0.7.2: (community version)</p>
-      <ul>
+       <ul>
         <li>New version number</li>
         <li>basic hxml support</li>
         <li>@:jsRequire meta support</li>
         <li>Haxe grammar: @:jsRequire and macro support</li>
         <li>templates naming fix ("create new class/enum/interface" issue)</li>
         <li>new/get/set/never keywords, get/set identifiers are valid, jar build</li>
-      </ul>
+       </ul>
       <p>0.7.1:</p>
-      <ul>
+       <ul>
         <li>Bug fixes for  13.1.1</li>
-      </ul>
+       </ul>
       <p>0.7:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.6.9:</p>
-      <ul>
+       <ul>
         <li>Neko target for OpenFL</li>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.6.5:</p>
-      <ul>
+       <ul>
         <li>OpenFL support</li>
-      </ul>
+       </ul>
       <p>0.6.4:</p>
-      <ul>
+       <ul>
         <li>Optimize imports</li>
-      </ul>
+       </ul>
       <p>0.6.3:</p>
-      <ul>
+       <ul>
         <li>Parser improvements</li>
-      </ul>
+       </ul>
       <p>0.6.2:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.6.1:</p>
-      <ul>
+       <ul>
         <li>Haxe 3 support</li>
-      </ul>
+       </ul>
       <p>0.6:</p>
-      <ul>
+       <ul>
         <li>Folding</li>
-      </ul>
+       </ul>
       <p>0.5.8:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.5.6:</p>
-      <ul>
+       <ul>
         <li>NME support improvements</li>
         <li>HXCPP debugger improvements</li>
-      </ul>
+       </ul>
       <p>0.5.5:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.5.4:</p>
-      <ul>
+       <ul>
         <li>New Compiler Mode</li>
-      </ul>
+       </ul>
       <p>0.5.2:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.5.1:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.5:</p>
-      <ul>
+       <ul>
         <li>HXCPP Debugging</li>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.4.7:</p>
-      <ul>
+       <ul>
         <li>Introduce Variable Refactoring</li>
         <li>Using Completion</li>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.4.6:</p>
-      <ul>
+       <ul>
         <li>Conditional Compilation Support</li>
         <li>Bug fixes</li>
-      </ul>
+       </ul>
       <p>0.4.5:</p>
-      <ul>
+       <ul>
         <li>Live Templates</li>
         <li>Surround With Action</li>
         <li>Smart completion</li>
         <li>Goto Test Action</li>
-      </ul>
+       </ul>
       <p>0.4.4:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
         <li>EReg support</li>
-      </ul>
+       </ul>
       <p>0.4.3:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
         <li>Structure view</li>
-      </ul>
+       </ul>
       <p>0.4.1:</p>
-      <ul>
+       <ul>
         <li>Bug fixes</li>
         <li>Unresolved type inspection</li>
-      </ul>
+       </ul>
       <p>0.4:</p>
-      <ul>
+       <ul>
         <li>NME Support</li>
         <li>Override/Implement method action</li>
         <li>Generate getter/setter action</li>
         <li>Parameter info action</li>
-      </ul>
+       </ul>
       <p>0.3:</p>
-      <ul>
+       <ul>
         <li>Type resolving improvements</li>
         <li>Goto Implementation(s) action</li>
         <li>Goto Super Method action</li>
         <li>Move refactoring</li>
-      </ul>
+       </ul>
       <p>0.2.3:</p>
-      <ul>
+       <ul>
         <li>Completion fixes</li>
-      </ul>
+       </ul>
       <p>0.2.2:</p>
-      <ul>
+       <ul>
         <li>Type resolving improvements</li>
         <li>Rename refactoring</li>
         <li>NMML scheme</li>
         <li>HXML support</li>
-      </ul>
+       </ul>
       <p>0.2.1:</p>
-      <ul>
+       <ul>
         <li>Type resolving improvements</li>
         <li>Documentation support</li>
         <li>New color settings</li>
-      </ul>
+       </ul>
       <p>0.2:</p>
-      <ul>
+       <ul>
         <li>Jump to declaration of local, std symbol or class</li>
         <li>Reference completion</li>
         <li>Class completion</li>
@@ -256,28 +341,23 @@
         <li>Search for usages</li>
         <li>Highlight symbol occurencies</li>
         <li>Debugger for Flash target ("Flash/Flex Support" plugin required)</li>
-      </ul>
+       </ul>
       <p>0.1:</p>
-      <ul>
+       <ul>
         <li>Haxe module and SDK</li>
         <li>Parsing Haxe files</li>
         <li>Keyword completion</li>
         <li>Compile Haxe files and run in Neko VM</li>
-      </ul>
+       </ul>
       ]]>
   </change-notes>
-  <version>0.8.1.1.TiVo.ClassHierarchy.6: (community version, TiVo WIP)</version>
-  <vendor>JetBrains, Haxe community</vendor>
-  <idea-version since-build="132.400"/>
-  <depends>com.intellij.modules.lang</depends>
-  <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
-  <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
   <application-components>
     <!-- Add your application components here -->
   </application-components>
   <extensionPoints>
     <extensionPoint name="module.config" interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
+    <extensionPoint name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <compileServer.plugin classpath="haxe-jps-plugin.jar;haxe-common.jar"/>
@@ -421,9 +501,17 @@
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspection.preprocessor.symbol.name"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxePreprocessorInspection"/>
+
     <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
     <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
     <methodHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyProvider"/>
+    <hierarchy.referenceProcessor implementation="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor"/>
+
+    <plugins.haxe.haxeMethodsSearch implementation="com.intellij.psi.impl.search.JavaOverridingMethodsSearcher"/>
 
     <intentionAction>
       <className>com.intellij.plugins.haxe.ide.intention.ReplaceImportStatementWithWildcardWithSingleClassImports</className>
