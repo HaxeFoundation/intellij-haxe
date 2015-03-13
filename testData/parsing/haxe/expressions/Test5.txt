@@ -64,9 +64,8 @@ Haxe File
                       IDENTIFIER
                         PsiJavaToken:ID('Timer')
                   PsiJavaToken:(('(')
-                  EXPRESSION_LIST
-                    LITERAL_EXPRESSION
-                      PsiJavaToken:LITINT('100')
+                  LITERAL_EXPRESSION
+                    PsiJavaToken:LITINT('100')
                   PsiJavaToken:)(')')
                 PsiJavaToken:)(')')
               PsiJavaToken:.('.')
@@ -85,9 +84,8 @@ Haxe File
                     IDENTIFIER
                       PsiJavaToken:ID('Timer')
                 PsiJavaToken:(('(')
-                EXPRESSION_LIST
-                  LITERAL_EXPRESSION
-                    PsiJavaToken:LITINT('100')
+                LITERAL_EXPRESSION
+                  PsiJavaToken:LITINT('100')
                 PsiJavaToken:)(')')
               PsiJavaToken:.('.')
               REFERENCE_EXPRESSION

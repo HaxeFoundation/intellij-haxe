@@ -71,12 +71,6 @@ public class HaxeSimpleMetaImpl extends HaxePsiCompositeElementImpl implements H
 
   @Override
   @Nullable
-  public HaxeMacroMeta getMacroMeta() {
-    return findChildByClass(HaxeMacroMeta.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeUnreflectiveMeta getUnreflectiveMeta() {
     return findChildByClass(HaxeUnreflectiveMeta.class);
   }

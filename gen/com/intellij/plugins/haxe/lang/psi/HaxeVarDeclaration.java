@@ -47,9 +47,6 @@ public interface HaxeVarDeclaration extends HaxePsiField {
   List<HaxeKeepMeta> getKeepMetaList();
 
   @NotNull
-  List<HaxeMacroMeta> getMacroMetaList();
-
-  @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull

@@ -188,7 +188,7 @@ finalMeta ::= '@:final'
 keepMeta ::= '@:keep'
 coreApiMeta ::= '@:coreApi'
 bindMeta ::= '@:bind'
-macroMeta ::= '@:macro'
+private macroMeta ::= '@:macro'
 hackMeta ::= '@:hack'
 protectedMeta ::= '@:protected'
 debugMeta ::= '@:debug'
@@ -324,7 +324,7 @@ propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | 
 
 private functionCommonBody ::= blockStatement | returnStatement | (expression ';'?) | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
 
-constructorName ::= 'new'
+private constructorName ::= 'new'
 
 private localFunctionDeclarationAttribute ::= 'inline';
 

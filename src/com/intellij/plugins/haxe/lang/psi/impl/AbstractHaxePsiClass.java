@@ -24,6 +24,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
@@ -303,7 +304,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public PsiMethod[] getConstructors() {
-    return PsiClassImplUtil.findMethodsByName(this, "new", false);
+    return PsiClassImplUtil.findMethodsByName(this, HaxeTokenTypes.ONEW.toString(), false);
   }
 
   @Override

@@ -7,8 +7,7 @@ Haxe File
     PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        MACRO_META
-          PsiJavaToken:@:macro('@:macro')
+        PsiJavaToken:@:macro('@:macro')
         KEEP_META
           PsiJavaToken:@:keep('@:keep')
         DECLARATION_ATTRIBUTE
