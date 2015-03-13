@@ -140,10 +140,6 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitNamedElement(o);
   }
 
-  public void visitConditional(@NotNull HaxeConditional o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitConstructorName(@NotNull HaxeConstructorName o) {
     visitPsiCompositeElement(o);
   }

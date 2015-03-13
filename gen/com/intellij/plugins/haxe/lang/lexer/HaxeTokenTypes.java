@@ -54,7 +54,6 @@ public interface HaxeTokenTypes {
   IElementType COMPARE_EXPRESSION = new HaxeElementType("COMPARE_EXPRESSION");
   IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
   IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
-  IElementType CONDITIONAL = new HaxeElementType("CONDITIONAL");
   IElementType CONSTRUCTOR_NAME = new HaxeElementType("CONSTRUCTOR_NAME");
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
   IElementType CORE_API_META = new HaxeElementType("CORE_API_META");
@@ -290,6 +289,7 @@ public interface HaxeTokenTypes {
   IElementType PPEND = new HaxeElementType("#end");
   IElementType PPERROR = new HaxeElementType("#error");
   IElementType PPIF = new HaxeElementType("#if");
+  IElementType PPTOKEN = new HaxeElementType("pptoken");
   IElementType PRBRACK = new HaxeElementType("]");
   IElementType PRCURLY = new HaxeElementType("}");
   IElementType PRPAREN = new HaxeElementType(")");
@@ -383,9 +383,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == COMPONENT_NAME) {
         return new HaxeComponentNameImpl(node);
-      }
-      else if (type == CONDITIONAL) {
-        return new HaxeConditionalImpl(node);
       }
       else if (type == CONSTRUCTOR_NAME) {
         return new HaxeConstructorNameImpl(node);
