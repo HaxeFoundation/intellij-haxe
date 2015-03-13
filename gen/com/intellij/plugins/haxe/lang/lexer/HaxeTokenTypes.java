@@ -54,7 +54,6 @@ public interface HaxeTokenTypes {
   IElementType COMPARE_EXPRESSION = new HaxeElementType("COMPARE_EXPRESSION");
   IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
   IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
-  IElementType CONSTRUCTOR_NAME = new HaxeElementType("CONSTRUCTOR_NAME");
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
   IElementType CORE_API_META = new HaxeElementType("CORE_API_META");
   IElementType CUSTOM_META = new HaxeElementType("CUSTOM_META");
@@ -107,7 +106,6 @@ public interface HaxeTokenTypes {
   IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
   IElementType MACRO_CLASS = new HaxeElementType("MACRO_CLASS");
   IElementType MACRO_CLASS_LIST = new HaxeElementType("MACRO_CLASS_LIST");
-  IElementType MACRO_META = new HaxeElementType("MACRO_META");
   IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
   IElementType META_META = new HaxeElementType("META_META");
   IElementType MULTIPLICATIVE_EXPRESSION = new HaxeElementType("MULTIPLICATIVE_EXPRESSION");
@@ -384,9 +382,6 @@ public interface HaxeTokenTypes {
       else if (type == COMPONENT_NAME) {
         return new HaxeComponentNameImpl(node);
       }
-      else if (type == CONSTRUCTOR_NAME) {
-        return new HaxeConstructorNameImpl(node);
-      }
       else if (type == CONTINUE_STATEMENT) {
         return new HaxeContinueStatementImpl(node);
       }
@@ -542,9 +537,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == MACRO_CLASS_LIST) {
         return new HaxeMacroClassListImpl(node);
-      }
-      else if (type == MACRO_META) {
-        return new HaxeMacroMetaImpl(node);
       }
       else if (type == META_KEY_VALUE) {
         return new HaxeMetaKeyValueImpl(node);

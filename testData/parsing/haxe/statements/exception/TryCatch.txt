@@ -30,11 +30,10 @@ Haxe File
                       IDENTIFIER
                         PsiJavaToken:ID('Error')
                   PsiJavaToken:(('(')
-                  EXPRESSION_LIST
-                    STRING_LITERAL_EXPRESSION
-                      PsiJavaToken:OPEN_QUOTE('"')
-                      PsiJavaToken:REGULAR_STRING_PART('invalid foo')
-                      PsiJavaToken:CLOSING_QUOTE('"')
+                  STRING_LITERAL_EXPRESSION
+                    PsiJavaToken:OPEN_QUOTE('"')
+                    PsiJavaToken:REGULAR_STRING_PART('invalid foo')
+                    PsiJavaToken:CLOSING_QUOTE('"')
                   PsiJavaToken:)(')')
                 PsiJavaToken:;(';')
               PsiJavaToken:}('}')

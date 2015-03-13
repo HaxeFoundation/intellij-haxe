@@ -64,12 +64,6 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   }
 
   @Override
-  @Nullable
-  public HaxeConstructorName getConstructorName() {
-    return findChildByClass(HaxeConstructorName.class);
-  }
-
-  @Override
   @NotNull
   public List<HaxeCustomMeta> getCustomMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeCustomMeta.class);
@@ -133,12 +127,6 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   @NotNull
   public List<HaxeKeepMeta> getKeepMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeKeepMeta.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeMacroMeta> getMacroMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroMeta.class);
   }
 
   @Override

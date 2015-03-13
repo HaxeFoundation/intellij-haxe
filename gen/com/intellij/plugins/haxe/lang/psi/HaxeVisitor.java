@@ -140,10 +140,6 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitNamedElement(o);
   }
 
-  public void visitConstructorName(@NotNull HaxeConstructorName o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitContinueStatement(@NotNull HaxeContinueStatement o) {
     visitStatementPsiMixin(o);
   }
@@ -351,10 +347,6 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitMacroClassList(@NotNull HaxeMacroClassList o) {
     visitModifierList(o);
-  }
-
-  public void visitMacroMeta(@NotNull HaxeMacroMeta o) {
-    visitPsiCompositeElement(o);
   }
 
   public void visitMetaKeyValue(@NotNull HaxeMetaKeyValue o) {

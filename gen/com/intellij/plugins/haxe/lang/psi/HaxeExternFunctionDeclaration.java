@@ -71,9 +71,6 @@ public interface HaxeExternFunctionDeclaration extends HaxeMethod {
   List<HaxeKeepMeta> getKeepMetaList();
 
   @NotNull
-  List<HaxeMacroMeta> getMacroMetaList();
-
-  @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull

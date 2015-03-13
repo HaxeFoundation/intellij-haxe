@@ -11,8 +11,7 @@ Haxe File
           ACCESS
             PsiJavaToken:public('public')
         PsiJavaToken:function('function')
-        CONSTRUCTOR_NAME
-          PsiJavaToken:new('new')
+        PsiJavaToken:new('new')
         PsiJavaToken:(('(')
         PARAMETER_LIST
           <empty list>

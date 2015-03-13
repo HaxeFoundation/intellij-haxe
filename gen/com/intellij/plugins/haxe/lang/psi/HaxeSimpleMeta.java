@@ -41,9 +41,6 @@ public interface HaxeSimpleMeta extends HaxePsiCompositeElement {
   HaxeKeepMeta getKeepMeta();
 
   @Nullable
-  HaxeMacroMeta getMacroMeta();
-
-  @Nullable
   HaxeUnreflectiveMeta getUnreflectiveMeta();
 
 }

@@ -36,8 +36,7 @@ Haxe File
                   PsiJavaToken:ID('Int')
         PsiJavaToken:;(';')
       EXTERN_FUNCTION_DECLARATION
-        MACRO_META
-          PsiJavaToken:@:macro('@:macro')
+        PsiJavaToken:@:macro('@:macro')
         REQUIRE_META
           PsiJavaToken:@:require('@:require')
           PsiJavaToken:(('(')

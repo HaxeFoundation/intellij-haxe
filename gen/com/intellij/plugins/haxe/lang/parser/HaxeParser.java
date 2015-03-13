@@ -124,9 +124,6 @@ public class HaxeParser implements PsiParser {
     else if (t == COMPONENT_NAME) {
       r = componentName(b, 0);
     }
-    else if (t == CONSTRUCTOR_NAME) {
-      r = constructorName(b, 0);
-    }
     else if (t == CONTINUE_STATEMENT) {
       r = continueStatement(b, 0);
     }
@@ -282,9 +279,6 @@ public class HaxeParser implements PsiParser {
     }
     else if (t == MACRO_CLASS_LIST) {
       r = macroClassList(b, 0);
-    }
-    else if (t == MACRO_META) {
-      r = macroMeta(b, 0);
     }
     else if (t == META_KEY_VALUE) {
       r = metaKeyValue(b, 0);
@@ -1449,14 +1443,8 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // 'new'
-  public static boolean constructorName(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "constructorName")) return false;
-    if (!nextTokenIs(b, ONEW)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, ONEW);
-    exit_section_(b, m, CONSTRUCTOR_NAME, r);
-    return r;
+  static boolean constructorName(PsiBuilder b, int l) {
+    return consumeToken(b, ONEW);
   }
 
   /* ********************************************************** */
@@ -3572,14 +3560,8 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // '@:macro'
-  public static boolean macroMeta(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "macroMeta")) return false;
-    if (!nextTokenIs(b, KMACRO)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, KMACRO);
-    exit_section_(b, m, MACRO_META, r);
-    return r;
+  static boolean macroMeta(PsiBuilder b, int l) {
+    return consumeToken(b, KMACRO);
   }
 
   /* ********************************************************** */

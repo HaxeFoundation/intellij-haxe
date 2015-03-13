@@ -101,12 +101,6 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends HaxeMeth
 
   @Override
   @NotNull
-  public List<HaxeMacroMeta> getMacroMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroMeta.class);
-  }
-
-  @Override
-  @NotNull
   public List<HaxeMetaMeta> getMetaMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMetaMeta.class);
   }

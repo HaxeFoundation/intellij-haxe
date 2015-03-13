@@ -56,9 +56,6 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeMeth
   List<HaxeKeepMeta> getKeepMetaList();
 
   @NotNull
-  List<HaxeMacroMeta> getMacroMetaList();
-
-  @NotNull
   List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull
