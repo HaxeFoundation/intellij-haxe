@@ -25,9 +25,13 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.1</version>
+  <version>0.9.2</version>
   <change-notes>
     <![CDATA[
+      <p>0.9.2</p>
+       <ul>
+        <li>Fixed: HaxeReferenceCopyPasteProcessor issue preventing from using copy paste clipboard functionality</li>
+       </ul>
       <p>0.8.1.1.TiVo.ClassHierarchy.16: (community version, TiVo RC5)</p>
        <ul>
         <li>Refactoring: Pull up members from class to super-class</li>

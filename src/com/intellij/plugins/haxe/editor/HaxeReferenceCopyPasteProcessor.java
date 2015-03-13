@@ -55,7 +55,7 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor  {
   @NotNull
   @Override
   public List collectTransferableData(PsiFile file, Editor editor, int[] startOffsets, int[] endOffsets) {
-    return null;
+    return Collections.singletonList(new HaxeTextBlockTransferableData());
   }
 
   @Nullable
