@@ -2,4 +2,14 @@ language: java
 jdk:
 - openjdk7
 - oraclejdk7
+before_script:
+  - sudo add-apt-repository ppa:eyecreate/haxe -y
+  - sudo apt-get update
+  - sudo apt-get install haxe -y
+  - mkdir ~/haxelib
+  - haxelib setup ~/haxelib
+  - haxelib install hxjava
+  - haxelib git debugger https://github.com/TiVo/debugger.git
+  - mkdir build
+  - mkdir report
 script: ./travis.sh
