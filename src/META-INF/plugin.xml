@@ -18,14 +18,14 @@
 <idea-plugin version="2">
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Support</name>
-  <description>Support for Haxe programming language</description>
+  <description>Support for the Haxe programming language.  Supports IDEA versions 13.1.5 and 13.1.6. Does NOT work with IDEA 14.</description>
   <vendor>JetBrains, Haxe community</vendor>
-  <idea-version since-build="132.400"/>
+  <idea-version since-build="132.400" until-build="135.1306"/>
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.8.1.1.TiVo.4: (community version, TiVo Release 4)</version>
+  <version>0.9</version>
   <change-notes>
     <![CDATA[
       <p>0.8.1.1.TiVo.4: (community version, TiVo Release 4)</p>
@@ -464,7 +464,7 @@
     <lang.smartEnterProcessor language="Haxe" implementationClass="com.intellij.plugins.haxe.editor.smartEnter.HaxeSmartEnterProcessor"/>
 
     <copyPastePostProcessor implementation="com.intellij.plugins.haxe.editor.HaxeReferenceCopyPasteProcessor"/>
-    
+
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
 
     <codeInsight.lineMarkerProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLineMarkerProvider"/>
