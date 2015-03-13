@@ -12,53 +12,53 @@ Haxe File
   PsiJavaToken:#end('#end')
   PsiJavaToken:CONDITIONAL_STATEMENT_ID('#if mydebug')
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Crazy')
-    PsiElement({)('{')
+        PsiJavaToken:ID('Crazy')
+    PsiJavaToken:{('{')
     PsiComment(#else)('#else\n  interface Crazy {\n  #end')
     PsiComment(MSL_COMMENT)('// yep')
     CLASS_BODY
       <empty list>
-    PsiElement(})('}')
+    PsiJavaToken:}('}')
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('ConditionalCompilation')
-    PsiElement({)('{')
+        PsiJavaToken:ID('ConditionalCompilation')
+    PsiJavaToken:{('{')
     PsiComment(#if)('#if')
     PsiComment(PPEXPRESSION)(' !debug ')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
-          PsiElement(inline)('inline')
+          PsiJavaToken:inline('inline')
         PsiComment(#end)('#end')
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiElement(public)('public')
-        PsiElement(function)('function')
+            PsiJavaToken:public('public')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('abc')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('abc')
+        PsiJavaToken:(('(')
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
-          PsiElement(})('}')
-    PsiElement(})('}')
+          PsiJavaToken:{('{')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' (neko && mydebug)\n')
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('FooNeko')
-    PsiElement({)('{')
+        PsiJavaToken:ID('FooNeko')
+    PsiJavaToken:{('{')
     CLASS_BODY
       <empty list>
-    PsiElement(})('}')
+    PsiJavaToken:}('}')
   PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
   PsiComment(#end)('#end')
   PsiComment(#if)('#if')
@@ -67,59 +67,59 @@ Haxe File
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' (neko && mydebug)\n')
   TYPEDEF_DECLARATION
-    PsiElement(typedef)('typedef')
+    PsiJavaToken:typedef('typedef')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('Vector')
-    PsiElement(=)('=')
+        PsiJavaToken:ID('Vector')
+    PsiJavaToken:=('=')
     TYPE_OR_ANONYMOUS
       TYPE
         REFERENCE_EXPRESSION
           REFERENCE_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('com')
-            PsiElement(.)('.')
+                PsiJavaToken:ID('com')
+            PsiJavaToken:.('.')
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('foo')
-          PsiElement(.)('.')
+                PsiJavaToken:ID('foo')
+          PsiJavaToken:.('.')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiElement(ID)('SuperArray')
-    PsiElement(;)(';')
+              PsiJavaToken:ID('SuperArray')
+    PsiJavaToken:;(';')
   PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
   PsiComment(#end)('#end')
   CLASS_DECLARATION
-    PsiElement(class)('class')
+    PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiElement(ID)('ConditionalCompilation')
-    PsiElement({)('{')
+        PsiJavaToken:ID('ConditionalCompilation')
+    PsiJavaToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiElement(function)('function')
+        PsiJavaToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiElement(ID)('foo')
-        PsiElement(()('(')
-        PsiElement())(')')
+            PsiJavaToken:ID('foo')
+        PsiJavaToken:(('(')
+        PsiJavaToken:)(')')
         BLOCK_STATEMENT
-          PsiElement({)('{')
+          PsiJavaToken:{('{')
           PsiComment(#if)('#if')
           PsiComment(PPEXPRESSION)(' (neko && php) || (neko && mydebug)\n    ')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiElement(ID)('trace')
-            PsiElement(()('(')
+                PsiJavaToken:ID('trace')
+            PsiJavaToken:(('(')
             EXPRESSION_LIST
               STRING_LITERAL_EXPRESSION
-                PsiElement(OPEN_QUOTE)('"')
-                PsiElement(REGULAR_STRING_PART)('Debug infos for all debug compiles')
-                PsiElement(CLOSING_QUOTE)('"')
-            PsiElement())(')')
-          PsiElement(;)(';')
+                PsiJavaToken:OPEN_QUOTE('"')
+                PsiJavaToken:REGULAR_STRING_PART('Debug infos for all debug compiles')
+                PsiJavaToken:CLOSING_QUOTE('"')
+            PsiJavaToken:)(')')
+          PsiJavaToken:;(';')
           PsiComment(#end)('#end')
-          PsiElement(})('}')
-    PsiElement(})('}')
+          PsiJavaToken:}('}')
+    PsiJavaToken:}('}')
