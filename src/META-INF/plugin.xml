@@ -18,17 +18,21 @@
 <idea-plugin version="2">
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Support</name>
-  <description>Support for the Haxe programming language.  Supports IDEA versions 13.1.5 and 13.1.6. Does NOT work with IDEA 14.</description>
+  <description>Support for the Haxe programming language.</description>
   <vendor>JetBrains, Haxe community</vendor>
-  <idea-version since-build="132.400" until-build="135.1306"/>
+  <idea-version since-build="139.1"/>
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9</version>
+  <version>0.9.2 for IDEA 14</version>
   <change-notes>
     <![CDATA[
-      <p>0.8.1.1.TiVo.4: (community version, TiVo Release 4)</p>
+      <p>0.9.2</p>
+       <ul>
+        <li>Fixed: HaxeReferenceCopyPasteProcessor issue preventing from using copy paste clipboard functionality</li>
+       </ul>
+      <p>0.9: (community version)</p>
       <ul>
         <li>Class Hierarchy view panels implemented. (Menu->Navigate->Type Hierarchy, et al)</li>
         <li>Better handling of import files.</li>
