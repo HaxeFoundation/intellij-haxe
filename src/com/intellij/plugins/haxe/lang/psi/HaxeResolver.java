@@ -21,6 +21,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -92,7 +93,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         final HaxeClass superClass = superExpression instanceof HaxeReference
                                      ? ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass()
                                      : null;
-        final HaxeNamedComponent constructor = ((superClass == null) ? null : superClass.findHaxeMethodByName("new"));
+        final HaxeNamedComponent constructor = ((superClass == null) ? null : superClass.findHaxeMethodByName(HaxeTokenTypes.ONEW.toString()));
         return toCandidateInfoArray(((constructor != null) ? constructor : superClass));
       }
     }

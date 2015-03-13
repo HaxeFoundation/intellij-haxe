@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,12 +61,6 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   @Nullable
   public HaxeComponentName getComponentName() {
     return findChildByClass(HaxeComponentName.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeConstructorName getConstructorName() {
-    return findChildByClass(HaxeConstructorName.class);
   }
 
   @Override
@@ -133,12 +127,6 @@ public class HaxeFunctionDeclarationWithAttributesImpl extends HaxeMethodImpl im
   @NotNull
   public List<HaxeKeepMeta> getKeepMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeKeepMeta.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeMacroMeta> getMacroMetaList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroMeta.class);
   }
 
   @Override

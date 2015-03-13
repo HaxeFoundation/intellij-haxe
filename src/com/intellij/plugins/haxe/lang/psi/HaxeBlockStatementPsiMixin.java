@@ -22,6 +22,6 @@ import com.intellij.psi.PsiCodeBlock;
 /**
  * Created by ebishton on 10/16/14.
  */
-public interface HaxeBlockStatementPsiMixin extends HaxeStatement, PsiCodeBlock {
+public interface HaxeBlockStatementPsiMixin extends HaxeStatementPsiMixin, PsiCodeBlock {
 
 }

@@ -94,7 +94,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
         else if (HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this) == HaxeComponentType.METHOD) {
           // constructor
-          result.append("new");
+          result.append(HaxeTokenTypes.ONEW.toString());
         }
         final HaxeComponentType type = HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this);
         if (type == HaxeComponentType.METHOD) {

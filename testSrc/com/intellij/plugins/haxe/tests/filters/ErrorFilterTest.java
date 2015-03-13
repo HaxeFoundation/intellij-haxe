@@ -31,6 +31,9 @@ public class ErrorFilterTest {
 
   @Test
   public void testLink() {
+    // This tests whether hyperlinks (Filter.Result) are created properly,
+    // not whether error parsing or filters work.
+
     String expression = "ERR: CoordinatesDetectionTest.hx:22(by.rovar.iso.model.CoordinatesDetectionTest.test2x2) - expected true but was false";
     ErrorFilter filter = createFilter();
     String fileName = "by/rovar/iso/model/CoordinatesDetectionTest.hx";
@@ -38,10 +41,7 @@ public class ErrorFilterTest {
     assertEquals("ERR: ".length(), result.highlightStartOffset);
     assertEquals("ERR: CoordinatesDetectionTest.hx:22".length(), result.highlightEndOffset);
     HLInfo info = (HLInfo) result.hyperlinkInfo;
-    //idea count lines starting from 0
-    info.checkInfo(fileName, 22 - 1);
-
-
+    info.checkInfo(fileName, 22);
   }
 
   private ErrorFilter createFilter() {

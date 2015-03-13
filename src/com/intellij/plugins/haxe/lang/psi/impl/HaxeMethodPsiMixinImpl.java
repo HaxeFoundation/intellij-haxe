@@ -59,8 +59,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   public String getName() {
     String name = super.getName();
     if (null == name) {
-      if (getText().contains("function new")) {
-        return "new";
+      if (getText().contains(" function new(")) {
+        return HaxeTokenTypes.ONEW.toString();
       }
       else {
         final PsiIdentifier nameIdentifier = getNameIdentifier();

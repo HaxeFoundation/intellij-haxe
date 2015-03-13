@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -123,12 +123,6 @@ public class HaxeParser implements PsiParser {
     }
     else if (t == COMPONENT_NAME) {
       r = componentName(b, 0);
-    }
-    else if (t == CONDITIONAL) {
-      r = conditional(b, 0);
-    }
-    else if (t == CONSTRUCTOR_NAME) {
-      r = constructorName(b, 0);
     }
     else if (t == CONTINUE_STATEMENT) {
       r = continueStatement(b, 0);
@@ -285,9 +279,6 @@ public class HaxeParser implements PsiParser {
     }
     else if (t == MACRO_CLASS_LIST) {
       r = macroClassList(b, 0);
-    }
-    else if (t == MACRO_META) {
-      r = macroMeta(b, 0);
     }
     else if (t == META_KEY_VALUE) {
       r = metaKeyValue(b, 0);
@@ -1334,7 +1325,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
+  // !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
   static boolean class_body_part_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "class_body_part_recover")) return false;
     boolean r;
@@ -1344,16 +1335,12 @@ public class HaxeParser implements PsiParser {
     return r;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro'
+  // ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro'
   private static boolean class_body_part_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "class_body_part_recover_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, PPELSE);
-    if (!r) r = consumeToken(b, PPELSEIF);
-    if (!r) r = consumeToken(b, PPEND);
-    if (!r) r = consumeToken(b, PPERROR);
-    if (!r) r = consumeToken(b, PPIF);
+    r = ppToken(b, l + 1);
     if (!r) r = metaKeyWord(b, l + 1);
     if (!r) r = consumeToken(b, KDYNAMIC);
     if (!r) r = consumeToken(b, KFUNCTION);
@@ -1455,27 +1442,9 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // CONDITIONAL_STATEMENT_ID
-  public static boolean conditional(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "conditional")) return false;
-    if (!nextTokenIs(b, CONDITIONAL_STATEMENT_ID)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, CONDITIONAL_STATEMENT_ID);
-    exit_section_(b, m, CONDITIONAL, r);
-    return r;
-  }
-
-  /* ********************************************************** */
   // 'new'
-  public static boolean constructorName(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "constructorName")) return false;
-    if (!nextTokenIs(b, ONEW)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, ONEW);
-    exit_section_(b, m, CONSTRUCTOR_NAME, r);
-    return r;
+  static boolean constructorName(PsiBuilder b, int l) {
+    return consumeToken(b, ONEW);
   }
 
   /* ********************************************************** */
@@ -2157,7 +2126,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+  // !(pptoken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
   static boolean extern_class_body_part_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "extern_class_body_part_recover")) return false;
     boolean r;
@@ -2167,16 +2136,12 @@ public class HaxeParser implements PsiParser {
     return r;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
+  // pptoken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
   private static boolean extern_class_body_part_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "extern_class_body_part_recover_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, PPELSE);
-    if (!r) r = consumeToken(b, PPELSEIF);
-    if (!r) r = consumeToken(b, PPEND);
-    if (!r) r = consumeToken(b, PPERROR);
-    if (!r) r = consumeToken(b, PPIF);
+    r = consumeToken(b, PPTOKEN);
     if (!r) r = metaKeyWord(b, l + 1);
     if (!r) r = consumeToken(b, KDYNAMIC);
     if (!r) r = consumeToken(b, KFUNCTION);
@@ -3048,7 +3013,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+  // !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
   static boolean interface_body_part_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interface_body_part_recover")) return false;
     boolean r;
@@ -3058,16 +3023,12 @@ public class HaxeParser implements PsiParser {
     return r;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
+  // ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}'
   private static boolean interface_body_part_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interface_body_part_recover_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, PPELSE);
-    if (!r) r = consumeToken(b, PPELSEIF);
-    if (!r) r = consumeToken(b, PPEND);
-    if (!r) r = consumeToken(b, PPERROR);
-    if (!r) r = consumeToken(b, PPIF);
+    r = ppToken(b, l + 1);
     if (!r) r = metaKeyWord(b, l + 1);
     if (!r) r = consumeToken(b, KDYNAMIC);
     if (!r) r = consumeToken(b, KFUNCTION);
@@ -3352,7 +3313,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
+  // !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
   static boolean local_var_declaration_part_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "local_var_declaration_part_recover")) return false;
     boolean r;
@@ -3362,17 +3323,13 @@ public class HaxeParser implements PsiParser {
     return r;
   }
 
-  // '!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP
+  // '!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP
   private static boolean local_var_declaration_part_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "local_var_declaration_part_recover_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, ONOT);
-    if (!r) r = consumeToken(b, PPELSE);
-    if (!r) r = consumeToken(b, PPELSEIF);
-    if (!r) r = consumeToken(b, PPEND);
-    if (!r) r = consumeToken(b, PPERROR);
-    if (!r) r = consumeToken(b, PPIF);
+    if (!r) r = ppToken(b, l + 1);
     if (!r) r = consumeToken(b, PLPAREN);
     if (!r) r = consumeToken(b, PRPAREN);
     if (!r) r = consumeToken(b, OPLUS_PLUS);
@@ -3603,14 +3560,8 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // '@:macro'
-  public static boolean macroMeta(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "macroMeta")) return false;
-    if (!nextTokenIs(b, KMACRO)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, KMACRO);
-    exit_section_(b, m, MACRO_META, r);
-    return r;
+  static boolean macroMeta(PsiBuilder b, int l) {
+    return consumeToken(b, KMACRO);
   }
 
   /* ********************************************************** */
@@ -4315,6 +4266,30 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "parenthesizedExpressionOrCall_1")) return false;
     qualifiedReferenceTail(b, l + 1);
     return true;
+  }
+
+  /* ********************************************************** */
+  // CONDITIONAL_STATEMENT_ID
+  static boolean ppConditionalStatement(PsiBuilder b, int l) {
+    return consumeToken(b, CONDITIONAL_STATEMENT_ID);
+  }
+
+  /* ********************************************************** */
+  // '#if' | "#else" | "#elseif" | "#end" | "#error" | ppConditionalStatement
+  static boolean ppToken(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ppToken")) return false;
+    if (!nextTokenIs(b, "", PPELSE, PPELSEIF,
+      PPEND, PPERROR, PPIF, CONDITIONAL_STATEMENT_ID)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, PPIF);
+    if (!r) r = consumeToken(b, PPELSE);
+    if (!r) r = consumeToken(b, PPELSEIF);
+    if (!r) r = consumeToken(b, PPEND);
+    if (!r) r = consumeToken(b, PPERROR);
+    if (!r) r = ppConditionalStatement(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -5308,7 +5283,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
+  // !(ppToken | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
   static boolean top_level_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "top_level_recover")) return false;
     boolean r;
@@ -5318,16 +5293,12 @@ public class HaxeParser implements PsiParser {
     return r;
   }
 
-  // '#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef'
+  // ppToken | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef'
   private static boolean top_level_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "top_level_recover_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, PPELSE);
-    if (!r) r = consumeToken(b, PPELSEIF);
-    if (!r) r = consumeToken(b, PPEND);
-    if (!r) r = consumeToken(b, PPERROR);
-    if (!r) r = consumeToken(b, PPIF);
+    r = ppToken(b, l + 1);
     if (!r) r = metaKeyWord(b, l + 1);
     if (!r) r = consumeToken(b, KABSTRACT);
     if (!r) r = consumeToken(b, KCLASS);
