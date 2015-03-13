@@ -1,0 +1,136 @@
+<project name="Idea Haxe language scripted test file" default="test" basedir=".">
+
+    <!-- set global properties for this build -->
+    <property name="build.compiler" value="modern"/>
+    <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
+
+    <path id="idea.classpath">
+        <fileset dir="${idea.ultimate.build}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <!-- import all the plugins jars, for example this is were
+             Flash and Flex plugins are located -->
+        <fileset dir="${idea.ultimate.build}/plugins">
+            <include name="**/**.jar"/>
+        </fileset>
+    </path>
+
+    <path id="classpath">
+        <path refid="idea.classpath"/>
+    </path>
+
+    <path id="classpath.test">
+        <pathelement location="build_test"/>
+        <fileset dir="${idea.ultimate.build}/lib">
+            <include name="**/*.jar" />
+            <exclude name="ant/lib/**/*.jar" />
+        </fileset>
+        <fileset dir="${java.home}/../lib">
+            <include name="**/*.jar" />
+        </fileset>
+        <fileset dir="${idea.ultimate.build}/plugins">
+            <include name="**/**.jar" />
+        </fileset>
+    </path>
+
+    <target name="clean" description="clean up">
+        <delete dir="build_test" />
+    </target>
+
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="build_test"/>
+        <echo message="Using IDEA build from: ${idea.ultimate.build}" />
+        <echo message="Using JAVA_HOME: ${java.home}" />
+    </target>
+
+    <target name="compile_test" depends="clean,init" description="Compile tests">
+
+        <!-- javac2 is an intellij ant task to wrap the java compiler and add
+             support to .form files and @NotNull annotations, among others -->
+        <taskdef name="javac2" classname="com.intellij.ant.Javac2">
+            <classpath>
+                <pathelement location="${idea.ultimate.build}/lib/javac2.jar"/>
+                <pathelement location="${idea.ultimate.build}/lib/forms_rt.jar"/>
+                <path refid="idea.classpath"/>
+            </classpath>
+        </taskdef>
+
+        <javac2
+            destdir="build_test"
+            classpathref="classpath"
+            verbose="false"
+            debug="true"
+            source="1.6"
+            target="1.6"
+            includeantruntime="false" >
+
+            <src path="src" />
+            <src path="gen" />
+            <src path="testSrc" />
+            <src path="testData" />
+            <src path="common/src" />
+            <src path="hxcpp-debugger-protocol" />
+        </javac2>
+
+        <copy toDir="build_test">
+            <fileset dir="src">
+                <include name="**/*.properties"/>
+                <include name="**/*.xml"/>
+                <include name="**/*.txt"/>
+                <include name="**/*.java"/>
+            </fileset>
+            <fileset dir="common/src">
+                <include name="**/*.properties"/>
+                <include name="**/*.xml"/>
+                <include name="**/*.txt"/>
+                <include name="**/*.java"/>
+            </fileset>
+            <fileset dir="${basedir}/resources">
+                <include name="*/**"/>
+            </fileset>
+        </copy>
+
+    </target>
+
+    <target name="test" depends="compile_test" description="Run the tests">
+
+        <echo message="Running tests"/>
+
+        <property name="suspend" value="n"/>
+
+        <junit
+            printsummary="yes"
+            haltonfailure="true"
+            showoutput="yes"
+            failureProperty="failure_found"
+            fork="yes"
+            forkmode="once"
+            reloading="no">
+
+            <jvmarg value="-Didea.home.path=${idea.ultimate.build}"/>
+            <jvmarg value="-Xbootclasspath/a:${idea.ultimate.build}/lib/boot.jar"/>
+            <jvmarg value="-Dfile.encoding=UTF-8"/>
+            <jvmarg value="-ea"/>
+            <jvmarg line="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=${suspend},address=43251"/>
+            <jvmarg value="-Didea.launcher.bin.path=${idea.ultimate.build}/bin"/>
+            <classpath refid="classpath.test"/>
+
+            <formatter type="brief" usefile="false"/>
+
+            <batchtest>
+                <fileset dir="testSrc">
+                    <include name="**/*Test.java"/>
+                    <exclude name="**/*TestCase.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <antcall target="check_test"/>
+    </target>
+
+    <target name="check_test" if="failure_found">
+        <fail message="Failures found"/>
+    </target>
+
+</project>
