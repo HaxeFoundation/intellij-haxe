@@ -495,7 +495,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               }
             }
 
-            reformat(newMember, targetClass);
+            //reformat(newMember, targetClass);
           }
           else if (memberInfo.isToAbstract()) {
             newMember = (PsiMethod)targetClass.add(method);
@@ -503,6 +503,19 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               PsiUtil.setModifierProperty(newMember, PsiModifier.PROTECTED, true);
             }
             myJavaDocPolicy.processNewJavaDoc(((PsiMethod)newMember).getDocComment());
+          }
+          else {
+            String text = member.getText();
+
+            if (text.endsWith(";")) {
+              text = text.substring(0, text.length() - 1) + " {}";
+            }
+
+            HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
+              HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
+            newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
+
+            //reformat(newMember, targetClass);
           }
         }
         else { //abstract method: remove @Override
@@ -579,7 +592,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
   }
 
   private boolean leaveOverrideAnnotation(PsiSubstitutor substitutor, PsiMethod method) {
-    final PsiMethod methodBySignature = MethodSignatureUtil.findMethodBySignature(myClass, method.getSignature(substitutor), false);
+    /*final PsiMethod methodBySignature = MethodSignatureUtil.findMethodBySignature(myClass, method.getSignature(substitutor), false);
     if (methodBySignature == null) return false;
     final PsiMethod[] superMethods = methodBySignature.findDeepestSuperMethods();
     if (superMethods.length == 0) return false;
@@ -591,7 +604,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           return false;
         }
       }
-    }
+    }*/
     return true;
   }
 }
