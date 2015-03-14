@@ -16,24 +16,28 @@
 package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
 import com.intellij.codeInsight.generation.OverrideImplementExploreUtil;
+import com.intellij.ide.fileTemplates.FileTemplate;
+import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
+import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.MethodSignature;
-import com.intellij.psi.util.PsiUtil;
-import com.intellij.psi.util.PsiUtilCore;
-import com.intellij.psi.util.TypeConversionUtil;
+import com.intellij.psi.util.*;
 import com.intellij.refactoring.listeners.RefactoringEventData;
 import com.intellij.refactoring.listeners.RefactoringEventListener;
-import com.intellij.refactoring.memberPullUp.PullUpProcessor;
 import com.intellij.refactoring.ui.ConflictsDialog;
 import com.intellij.refactoring.util.DocCommentPolicy;
 import com.intellij.refactoring.util.RefactoringUtil;
@@ -42,6 +46,7 @@ import com.intellij.util.Function;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.MultiMap;
+import com.intellij.webcore.ModuleHelper;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,11 +75,34 @@ public class ExtractSuperClassUtil {
     project.getMessageBus().syncPublisher(RefactoringEventListener.REFACTORING_EVENT_TOPIC)
       .refactoringStarted(REFACTORING_EXTRACT_SUPER_ID, createBeforeData(subclass, selectedMemberInfos));
 
-    final PsiClass superclass = JavaDirectoryService.getInstance().createClass(targetDirectory, superclassName);
+    //final PsiClass superclass = JavaDirectoryService.getInstance().createClass(targetDirectory, superclassName);
+
+    /*for (FileTemplate template : FileTemplateManager.getInstance().getInternalTemplates()) {
+      Logger.getInstance(ExtractSuperClassUtil.class).error(template.getName());
+    }*/
+
+    Module[] modules = ModuleHelper.getModules(project);
+    //PsiClass superclass = CreateClassUtil.createClassFromCustomTemplate(targetDirectory, modules[0], superclassName, "HaxeClass.hx.ft");
+    String packageName = DirectoryIndex.getInstance(targetDirectory.getProject()).getPackageName(targetDirectory.getVirtualFile());
+    PsiClass superclass = null;
+    try {
+      HaxeFile haxeFile = (HaxeFile)HaxeFileTemplateUtil.createClass(superclassName, packageName, targetDirectory, "HaxeClass", null);
+      PsiClass[] classes = haxeFile.getClasses();
+
+      for (PsiClass psiClass : classes) {
+        if (psiClass.getName().equals(superclassName)) {
+          superclass = psiClass;
+        }
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
     try {
       final PsiModifierList superClassModifierList = superclass.getModifierList();
       assert superClassModifierList != null;
-      superClassModifierList.setModifierProperty(PsiModifier.FINAL, false);
+      //superClassModifierList.setModifierProperty(PsiModifier.FINAL, false);
+      //superClassModifierList.setModifierProperty(PsiModifier.PUBLIC, false);
       final PsiReferenceList subClassExtends = subclass.getExtendsList();
       if (subClassExtends != null) {
         copyPsiReferenceList(subClassExtends, superclass.getExtendsList());
@@ -94,6 +122,13 @@ public class ExtractSuperClassUtil {
       }
 
       // make original class extend extracted superclass
+      //PsiReferenceList extendsList = subclass.getExtendsList();
+
+      if (PsiTreeUtil.getChildOfType(subclass, HaxeInheritList.class) == null) {
+        Document document = PsiDocumentManager.getInstance(project).getDocument(subclass.getContainingFile());
+        document.insertString(subclass.getNameIdentifier().getTextRange().getEndOffset(), " extends " + superclassName);
+      }
+
       PsiJavaCodeReferenceElement ref = createExtendingReference(superclass, subclass, selectedMemberInfos);
       if (subClassExtends != null) {
         subclass.getExtendsList().add(ref);
@@ -208,15 +243,15 @@ public class ExtractSuperClassUtil {
     final PsiTypeParameterList typeParameterList = RefactoringUtil.createTypeParameterListWithUsedTypeParameters(null, filter, PsiUtilCore.toPsiElementArray(movedElements));
     final PsiTypeParameterList originalTypeParameterList = superClass.getTypeParameterList();
     assert originalTypeParameterList != null;
-    final PsiTypeParameterList newList = typeParameterList != null ? (PsiTypeParameterList)originalTypeParameterList.replace(typeParameterList) : originalTypeParameterList;
+    //final PsiTypeParameterList newList = typeParameterList != null ? (PsiTypeParameterList)originalTypeParameterList.replace(typeParameterList) : originalTypeParameterList;
     final PsiElementFactory factory = JavaPsiFacade.getInstance(manager.getProject()).getElementFactory();
     Map<PsiTypeParameter, PsiType> substitutionMap = new HashMap<PsiTypeParameter, PsiType>();
-    for (final PsiTypeParameter parameter : newList.getTypeParameters()) {
-      final PsiTypeParameter parameterInDerived = findTypeParameterInDerived(derivedClass, parameter.getName());
-      if (parameterInDerived != null) {
-        substitutionMap.put(parameter, factory.createType(parameterInDerived));
-      }
-    }
+    //for (final PsiTypeParameter parameter : newList.getTypeParameters()) {
+    //  final PsiTypeParameter parameterInDerived = findTypeParameterInDerived(derivedClass, parameter.getName());
+    //  if (parameterInDerived != null) {
+    //    substitutionMap.put(parameter, factory.createType(parameterInDerived));
+    //  }
+    //}
 
     final PsiClassType type = factory.createType(superClass, factory.createSubstitutor(substitutionMap));
     return factory.createReferenceElementByType(type);
