@@ -21,6 +21,7 @@ import com.intellij.lang.refactoring.RefactoringSupportProvider;
 import com.intellij.plugins.haxe.ide.refactoring.introduce.HaxeIntroduceVariableHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduceField.HaxeIntroduceConstantHandler;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpHandler;
+import com.intellij.plugins.haxe.ide.refactoring.memberPushDown.HaxePushDownHandler;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -61,6 +62,6 @@ public class HaxeRefactoringSupportProvider extends RefactoringSupportProvider {
   @Nullable
   @Override
   public RefactoringActionHandler getPushDownHandler() {
-    return super.getPushDownHandler();
+    return new HaxePushDownHandler();
   }
 }
