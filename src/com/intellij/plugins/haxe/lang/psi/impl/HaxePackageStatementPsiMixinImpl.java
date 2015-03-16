@@ -43,7 +43,7 @@ abstract public class HaxePackageStatementPsiMixinImpl extends HaxeStatementPsiM
     if (null!= ref) {
       return ref.getQualifiedName();
     }
-    return null;
+    return "";
   }
 
   @Override

@@ -19,15 +19,20 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
+import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.ide.actions.CreateClassAction;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * @author: Fedor.Korotkov
@@ -80,5 +85,16 @@ public class HaxeFileTemplateUtil {
       return icons.HaxeIcons.E_Haxe;
     }
     return icons.HaxeIcons.Haxe_16;
+  }
+
+  public static PsiElement createClass(String className, String packageName, PsiDirectory directory, String templateName, @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader)
+    throws Exception {
+    final Properties props = new Properties(FileTemplateManager.getInstance().getDefaultProperties(directory.getProject()));
+    props.setProperty(FileTemplate.ATTRIBUTE_NAME, className);
+    props.setProperty(FileTemplate.ATTRIBUTE_PACKAGE_NAME, packageName);
+
+    final FileTemplate template = FileTemplateManager.getInstance().getInternalTemplate(templateName);
+
+    return FileTemplateUtil.createFromTemplate(template, className, props, directory, classLoader);
   }
 }

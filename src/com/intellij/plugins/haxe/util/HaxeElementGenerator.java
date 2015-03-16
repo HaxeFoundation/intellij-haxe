@@ -128,10 +128,18 @@ public class HaxeElementGenerator {
     return codeFragment;
   }
 
-  public static HaxeFunctionPrototypeDeclarationWithAttributes creatPrototypeDeclarationWithAttributes(Project myProject, String text) {
+  public static HaxeFunctionPrototypeDeclarationWithAttributes createFunctionPrototypeDeclarationWithAttributes(Project myProject,
+                                                                                                                String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapInterfaceFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
     return (HaxeFunctionPrototypeDeclarationWithAttributes)haxeClass.getHaxeMethods().iterator().next();
+  }
+
+  public static HaxeFunctionDeclarationWithAttributes createFunctionDeclarationWithAttributes(Project myProject, String text) {
+    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
+    assert haxeClass != null;
+    return (HaxeFunctionDeclarationWithAttributes)haxeClass.getHaxeMethods().iterator().next();
   }
 }
