@@ -69,7 +69,7 @@ public class HaxelibCache {
                     ? libManager.getKnownLibraries()  // Use the cache
                     : HaxelibClasspathUtils.getInstalledLibraries(sdk); // the slow way
 
-      availableHaxelibs = HaxelibClasspathUtils.getAvailableLibrariesMatching(sdk, "");  // Empty string means all of them.
+      availableHaxelibs = HaxelibClasspathUtils.getAvailableLibrariesMatching(sdk, "\"\"");  // Empty string means all of them.
       availableHaxelibs.removeAll(localHaxelibs);
     }
   }

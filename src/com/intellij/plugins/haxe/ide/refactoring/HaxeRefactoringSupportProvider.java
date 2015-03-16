@@ -18,9 +18,12 @@
 package com.intellij.plugins.haxe.ide.refactoring;
 
 import com.intellij.lang.refactoring.RefactoringSupportProvider;
+import com.intellij.plugins.haxe.ide.refactoring.extractInterface.ExtractInterfaceHandler;
+import com.intellij.plugins.haxe.ide.refactoring.extractSuperclass.ExtractSuperclassHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduce.HaxeIntroduceVariableHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduceField.HaxeIntroduceConstantHandler;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpHandler;
+import com.intellij.plugins.haxe.ide.refactoring.memberPushDown.HaxePushDownHandler;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -38,6 +41,24 @@ public class HaxeRefactoringSupportProvider extends RefactoringSupportProvider {
   @Override
   public RefactoringActionHandler getIntroduceVariableHandler() {
     return new HaxeIntroduceVariableHandler();
+  }
+
+  @Nullable
+  @Override
+  public RefactoringActionHandler getExtractInterfaceHandler() {
+    return new ExtractInterfaceHandler();
+  }
+
+  @Nullable
+  @Override
+  public RefactoringActionHandler getExtractSuperClassHandler() {
+    return new ExtractSuperclassHandler();
+  }
+
+  @Nullable
+  @Override
+  public RefactoringActionHandler getExtractClassHandler() {
+    return super.getExtractClassHandler();
   }
 
   @Nullable
@@ -61,6 +82,6 @@ public class HaxeRefactoringSupportProvider extends RefactoringSupportProvider {
   @Nullable
   @Override
   public RefactoringActionHandler getPushDownHandler() {
-    return super.getPushDownHandler();
+    return new HaxePushDownHandler();
   }
 }
