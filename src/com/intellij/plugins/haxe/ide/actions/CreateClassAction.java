@@ -21,8 +21,6 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
 import com.intellij.ide.actions.CreateTemplateInPackageAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
-import com.intellij.ide.fileTemplates.FileTemplateManager;
-import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
@@ -41,7 +39,6 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
 
 import javax.swing.*;
 import java.util.Collections;
-import java.util.Properties;
 
 /**
  * @author: Fedor.Korotkov
@@ -99,12 +96,6 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
 
   private static PsiElement createClass(String className, String packageName, @NotNull PsiDirectory directory, final String templateName)
     throws Exception {
-    final Properties props = new Properties(FileTemplateManager.getInstance().getDefaultProperties(directory.getProject()));
-    props.setProperty(FileTemplate.ATTRIBUTE_NAME, className);
-    props.setProperty(FileTemplate.ATTRIBUTE_PACKAGE_NAME, packageName);
-
-    final FileTemplate template = FileTemplateManager.getInstance().getInternalTemplate(templateName);
-
-    return FileTemplateUtil.createFromTemplate(template, className, props, directory, CreateClassAction.class.getClassLoader());
+    return HaxeFileTemplateUtil.createClass(className, packageName, directory, templateName, CreateClassAction.class.getClassLoader());
   }
 }

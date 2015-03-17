@@ -193,12 +193,13 @@ public class HaxelibCommandUtils {
       Process process = builder.start();
       InputStreamReader reader = new InputStreamReader(process.getErrorStream());
       Scanner scanner = new Scanner(reader);
-      process.waitFor();
 
       while (scanner.hasNextLine()) {
         String nextLine = scanner.nextLine();
         strings.add(nextLine);
       }
+
+      process.waitFor();
       /*
       try {
         Thread.sleep(250);

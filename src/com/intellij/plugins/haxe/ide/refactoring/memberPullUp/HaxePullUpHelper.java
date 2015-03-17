@@ -252,7 +252,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         movedElement = (PsiMember)superClassMethod.replace(convertMethodToLanguage(methodCopy, language));
       }
       else {
-        methodCopy = HaxeElementGenerator.creatPrototypeDeclarationWithAttributes(myProject, methodCopy.getText().trim() + ";");
+        methodCopy = HaxeElementGenerator.createFunctionPrototypeDeclarationWithAttributes(myProject, methodCopy.getText().trim() + ";");
 
         movedElement =
           anchor != null ? (PsiMember)myTargetSuperClass.addBefore(methodCopy, anchor) : (PsiMember)myTargetSuperClass.add(methodCopy);
