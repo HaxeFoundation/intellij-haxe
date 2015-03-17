@@ -2032,7 +2032,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
+  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
   public static boolean externFunctionDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(b, "<extern function declaration>", KAUTOBUILD, KBUILD,
@@ -2044,7 +2044,7 @@ public class HaxeParser implements PsiParser {
     Marker m = enter_section_(b, l, _NONE_, "<extern function declaration>");
     r = externFunctionDeclaration_0(b, l + 1);
     r = r && consumeToken(b, KFUNCTION);
-    r = r && componentName(b, l + 1);
+    r = r && externFunctionDeclaration_2(b, l + 1);
     p = r; // pin = 3
     r = r && report_error_(b, externFunctionDeclaration_3(b, l + 1));
     r = p && report_error_(b, consumeToken(b, PLPAREN)) && r;
@@ -2076,6 +2076,17 @@ public class HaxeParser implements PsiParser {
     Marker m = enter_section_(b);
     r = functionMacroMember(b, l + 1);
     if (!r) r = declarationAttribute(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // constructorName | componentName
+  private static boolean externFunctionDeclaration_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externFunctionDeclaration_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = constructorName(b, l + 1);
+    if (!r) r = componentName(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2427,7 +2438,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? ';'
+  // (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? ';'
   public static boolean functionPrototypeDeclarationWithAttributes(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(b, "<function prototype declaration with attributes>", KAUTOBUILD, KBUILD,
@@ -2439,7 +2450,7 @@ public class HaxeParser implements PsiParser {
     Marker m = enter_section_(b, l, _NONE_, "<function prototype declaration with attributes>");
     r = functionPrototypeDeclarationWithAttributes_0(b, l + 1);
     r = r && consumeToken(b, KFUNCTION);
-    r = r && componentName(b, l + 1);
+    r = r && functionPrototypeDeclarationWithAttributes_2(b, l + 1);
     p = r; // pin = 3
     r = r && report_error_(b, functionPrototypeDeclarationWithAttributes_3(b, l + 1));
     r = p && report_error_(b, consumeToken(b, PLPAREN)) && r;
@@ -2471,6 +2482,17 @@ public class HaxeParser implements PsiParser {
     Marker m = enter_section_(b);
     r = functionMacroMember(b, l + 1);
     if (!r) r = declarationAttribute(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // constructorName | componentName
+  private static boolean functionPrototypeDeclarationWithAttributes_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionPrototypeDeclarationWithAttributes_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = constructorName(b, l + 1);
+    if (!r) r = componentName(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
