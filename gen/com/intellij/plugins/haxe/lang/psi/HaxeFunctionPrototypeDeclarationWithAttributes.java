@@ -31,7 +31,7 @@ public interface HaxeFunctionPrototypeDeclarationWithAttributes extends HaxeMeth
   @NotNull
   List<HaxeBuildMacro> getBuildMacroList();
 
-  @NotNull
+  @Nullable
   HaxeComponentName getComponentName();
 
   @NotNull
