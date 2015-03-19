@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
@@ -27,7 +26,9 @@ import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.LiteralTextEscaper;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import org.intellij.lang.regexp.DefaultRegExpPropertiesProvider;
+import org.intellij.lang.regexp.psi.RegExpChar;
 import org.intellij.lang.regexp.psi.RegExpGroup;
+import org.intellij.lang.regexp.psi.RegExpNamedGroupRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -107,6 +108,16 @@ public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements Haxe
 
   @Override
   public boolean supportsNamedGroupSyntax(RegExpGroup group) {
+    return false;
+  }
+
+  @Override
+  public boolean supportsNamedGroupRefSyntax(RegExpNamedGroupRef ref) {
+    return false;
+  }
+
+  @Override
+  public boolean supportsExtendedHexCharacter(RegExpChar aChar) {
     return false;
   }
 
