@@ -27,7 +27,7 @@
         <echo message="Using JAVA_HOME: ${java.home}" />
     </target>
 
-    <target name="compile_test" depends="clean,init" description="Compile tests">
+    <target name="compile" depends="clean,init" description="Compile tests">
 
         <javac2
             destdir="build"
@@ -49,7 +49,7 @@
 
     </target>
 
-    <target name="package" depends="compile_test" description="generate jar file">
+    <target name="package" depends="compile" description="generate jar file">
         <jar jarfile="intellij-haxe.jar" update="true">
             <fileset dir="build" includes="**/*.*" />
             <fileset dir="src" excludes="**/*.java" />
