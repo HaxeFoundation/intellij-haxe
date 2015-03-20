@@ -4,7 +4,7 @@ IDEA_VERSION?=13.1.6
 
 #build the intellij-haxe.jar file which can be
 #installed in Intellij
-default: parsers protocol
+default: protocol
 	./build.sh $(IDEA_VERSION)
 
 #Build the Haxe and HXML parsers with GrammarKit,
@@ -19,5 +19,5 @@ protocol:
 	./build-haxe-protocol.sh
 
 #Build and run the unit tests
-test: parsers protocol
+test: protocol
 	./travis.sh $(IDEA_VERSION)
