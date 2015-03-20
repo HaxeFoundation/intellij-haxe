@@ -8,4 +8,6 @@ fi
 
 ./fetchIdea.sh "$1"
 
-ant -f build.xml -DIDEA_HOME=./idea-IU
+#call the build script along with the path to a code package
+#specific to the intellij version which we build against
+ant -f build.xml -Dversion.specific.code.location=src/"$1"

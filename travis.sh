@@ -9,11 +9,7 @@ fi
 ./fetchIdea.sh "$1"
 
 # Run the tests
-if [ "$1" = "-d" ]; then
-    ant -d -f build-test.xml -DIDEA_HOME=./idea-IU
-else
-    ant -f build-test.xml -DIDEA_HOME=./idea-IU
-fi
+ant -f build-test.xml -Dversion.specific.code.location=src/"$1"
 
 # Was our build successful?
 stat=$?
