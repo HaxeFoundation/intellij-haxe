@@ -4,6 +4,14 @@
     <property name="build.compiler" value="modern"/>
     <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
 
+    <!-- defines a path for code specific to an intellij version.
+         intellij SDK has non-backward compatible changes which requires
+         some duplicated Java files.
+
+         This property defaults to "src" if missing, this way you can 
+         choose not to include any version specific code -->
+    <property name="version.specific.code.location" location="src" />
+
     <!-- javac2 is an intellij ant task to wrap the java compiler and add
          support to .form files and @NotNull annotations, among others -->
     <taskdef name="javac2" classname="com.intellij.ant.Javac2">
@@ -27,7 +35,7 @@
         <echo message="Using JAVA_HOME: ${java.home}" />
     </target>
 
-    <target name="compile_test" depends="clean,init" description="Compile tests">
+    <target name="compile" depends="clean,init" description="Compile tests">
 
         <javac2
             destdir="build"
@@ -37,6 +45,7 @@
             target="1.6"
             includeantruntime="false" >
 
+            <src path="${version.specific.code.location}" />
             <src path="src" />
             <src path="gen" />
             <src path="common/src" />
@@ -49,7 +58,7 @@
 
     </target>
 
-    <target name="package" depends="compile_test" description="generate jar file">
+    <target name="package" depends="compile" description="generate jar file">
         <jar jarfile="intellij-haxe.jar" update="true">
             <fileset dir="build" includes="**/*.*" />
             <fileset dir="src" excludes="**/*.java" />
