@@ -37,6 +37,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiElement;
@@ -68,7 +69,7 @@ public class HaxeColorAnnotator implements Annotator {
         tryAnnotateQName(node, holder);
         return;
       }
-      element = ((HaxeReference)element).resolve();
+      element = ((HaxeReference)element).resolveToComponentName();
     }
     if (element instanceof HaxeComponentName) {
       final boolean isStatic = checkStatic(element.getParent());
