@@ -3,21 +3,20 @@ jdk:
 - openjdk7
 - oraclejdk7
 before_script:
-  - sudo add-apt-repository ppa:eyecreate/haxe -y
-  - sudo apt-get update
-  - sudo apt-get install haxe -y
-  - mkdir ~/haxelib
-  - haxelib setup ~/haxelib
-  - haxelib install hxjava
-  - haxelib git debugger https://github.com/TiVo/debugger.git
-  - mkdir build
-  - mkdir report
+- sudo add-apt-repository ppa:eyecreate/haxe -y
+- sudo apt-get update
+- sudo apt-get install haxe -y
+- mkdir ~/haxelib
+- haxelib setup ~/haxelib
+- haxelib install hxjava
+- haxelib git debugger https://github.com/TiVo/debugger.git
+- mkdir build
+- mkdir report
 script: make
 deploy:
-    provider: releases
-    api_key:
-        secure: s2iDJVQnDlnLwcrafx4OjzjF/kTj1BZwU3LC/5/V0ByCSfaxxfYVt78TSstSe2zIO9g7st0jA9QfjkPv2K6bux76l1PMFnOfVs7A3PuwIivc1XEVetITtDv+UmwEfDWqRMUKYUOagEEddXNbDc3+QjxyL+sXRoeXD+JvbBabXPY=
-        file: intellij-haxe.jar
-        on:
-            repo: yanhick/intellij-haxe-nightly-builds
-            branch: master
+  provider: releases
+  api_key:
+    secure: CaN/O5FokNwHm0/1zRit0MfwEvUjsHJtklL0++Z7VaVbh/IXXMuKelfUUXV3ELavS4f4+PMgeagz0DhyK4Hwfwigm2aNAkCI11dDKvE4sEHV/YCQ3BXlFKvvWE6B7ZY+e/BOfAojJ3iI/wZhlOH9Qykvmto7+B6swHXs+4lR2aM=
+  file: intellij-haxe.jar
+  on:
+    repo: yanhick/intellij-haxe-nightly-builds
