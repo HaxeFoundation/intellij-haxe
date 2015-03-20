@@ -1,12 +1,59 @@
-Download [intellij-haxe.jar](https://github.com/JetBrains/intellij-haxe/blob/master/intellij-haxe.jar?raw=true) file and install plugin using "Install plugin from disk..." button in Plugin dialog
+Haxe plugin for Intellij IDEA
+======================================
 
-Please report issues at TiVo repository https://github.com/TiVo/intellij-haxe/issues/new
+This plugin allows you to develop [Haxe](http://haxe.org/) programs with Intellij IDEA.
+It requires Intellij IDEA Ultimate 13 or 14.
 
-For those who want to learn and maintain this plugin look at this introductory tutorial:
-http://confluence.jetbrains.com/display/IntelliJIDEA/Custom+Language+Support
+Install
+-------
 
+###Install from Intellij plugin repository
+Use [Intellij plugin install documentation](https://www.jetbrains.com/idea/plugins/) to install the [Haxe plugin](https://plugins.jetbrains.com/plugin/6873?pr=idea).
 
-###Important Note
+###Install the latest or a previous Github release
+
+Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/TiVo/intellij-haxe/releases).
+In Intellij:
+- open the Settings
+- Go to plugin
+- Click “install from disk”
+- Select the “intellij-haxe.jar” file you downloaded
+
+Build
+-----
+
+This describes the command line build. To build from Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
+your development environnement.
+
+###Dependencies
+- Ant
+- Oracle JDK 7 or Open JDK 7
+- Make
+- A bash compatible shell
+
+###Build command
+```
+make
+```
+
+This will generate a `intelllij-haxe.jar` file at the root of the project that you can then install from disk
+(see “Install the latest or a previous Github release).
+
+Test
+----
+
+###Dependencies
+Same as for build.
+
+###Test command
+```
+make test
+```
+
+This will build and run the tests and display the JUnit report.
+
+Use the hxcpp debugger
+----------------------
 
 The hxcpp debugger functionality has been rewritten to conform to the
 Haxe v3.0 debugger.  In order to use this, you must:
@@ -16,85 +63,22 @@ Haxe v3.0 debugger.  In order to use this, you must:
 - Configure your haxe program to start the debugger when the following
   command line option is provided:
 
-  
-    -start_debugger
-
+```
+-start_debugger
+```
   (and if you expect to do remote debugging, you'll also have to support:
 
+```
     -debugger_host=[host]:[port]
+```
 
   Most likely you'll just want to add the following in your main() when
   `-start_debugger` is set:
     
+```
     new debugger.Local(true);
-    
+```
 
-###Required plugins to develop:
-- Plugin DevKit (REQUIRED!)
-- UI Designer (REQUIRED!)
-
-###Optional plugins, install if you want to modify lexer/parser:
-- Grammar-Kit (for bnf compilation) version 1.2.0.1 or later.
-- JFlex (for lexer compilation)
-- JUnit (for unit tests)
-- PsiViewer (for testing grammar)
-
-IntelliJ IDEA uses the Grammar-Kit plugin to generate its lexer and parser.  The grammar file
-for Haxe is [haxe.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/grammar/haxe.bnf)
-
-###Steps to configure a IntelliJ Platform Plugin SDK:
-- Open Module Settings
-- SDKs -> + button -> IntelliJ Platform Plugin SDK -> Choose a folder with IntelliJ Ultimate(!) or *.App on Mac
-- Go to the SDK's settings page -> Classpath tab -> + button(bottom left corner) -> add plugins: flex
-- To add a plugin go to IntelliJ IDEA folder/plugins/<plugin-name>/lib and choose all jars
-- Add all libraries from <your_IDEA_install_directory>/lib directory.
-  (Note: If you get unit test failures from classNotFound errors, 
-         it's probably because the netty-all-x.x.x.x.jar is missing.)
-
-For those of you who prefer video instruction, Boyan O has recorded a YouTube video of how to get started:
-
-- [Setup IntellliJ IDEA for Haxe Plugin development](http://youtu.be/MwrzdBFaZkc)
-
-He has also recorded several other videos on how to work with various portions of the intelllij-haxe
-plugin code:
-
-- [How to develop intention actions.](https://www.youtube.com/watch?v=-mY_DpzVDFs) 
-- [How to extend HXML completion using haxelib.](https://www.youtube.com/watch?v=B8zOSEEK7As)
-- [How to build a completion contributor for HXML.](https://www.youtube.com/watch?v=UBxuj2ToizY)
-
-
-###How to build a plugin zip file
-Update the release notes in src/META-INF/plugin.xml to let us know what you changed.
-From the Build menu:
-
-- Rebuild Project
-- Prepare plugin module 'intellij-haxe' for deployment.
-- The plugin distributable file ('intellij-haxe.jar') will be found in the root of the source tree.
-Alternately:
-- There is a haxe artifact. Check Module Settings -> artifacts. It is build automatically on Make action.
-- To get a zip file just archive $PROJECT_ROOT$/out/artifacts/haxe folder
-
-###Updating grammar files.
-As stated above, the grammar file is located in the source tree at 
-grammar/haxe.bnf.  If you change this file, you must (re)generate 
-the parsing files.
-
-To regenerate, make your local changes and then press Ctrl+G.  You can compile
-and test with them.  Do NOT check those files in until you have updated the 
-comments.  (Otherwise, *every* file will appear updated.)
-
-*(NOTE: To work around a bug in IDEA, it is necessary to change focus to another
-application and then back to IDEA before updating the comments.  Otherwise,
-the process doesn't do anything.)*
-
-To fix the comments,
- 
-- Open the project window within intellij, select and 
-the right-click on the gen/ tree.  
-- Click on the 'Update Copyright' item.  (Should be the third from the bottom.  Sometimes you have to re-open the
-context menu.)  
-- In the 'Update copyright scope' dialog, select the "Directory 'intellij-haxe...'" item and press OK.  
-
-In a moment, all of the copyrights will have been updated.  A code comparison (or 'git status') will
-then show only those files that really changed.
-
+Contribute
+----------
+See the [contributing document](CONTRIBUTING.md).
