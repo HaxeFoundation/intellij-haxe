@@ -172,12 +172,26 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
 
     List<PsiClass> psiClasses = new ArrayList<PsiClass>();
 
+    HaxeClassResolveResult result;
+    HaxeClass haxeClass;
     for (int i = 0; i < extendsList.size(); i++) {
-      psiClasses.add(extendsList.get(i).getReferenceExpression().resolveHaxeClass().getHaxeClass());
+      result = extendsList.get(i).getReferenceExpression().resolveHaxeClass();
+      if (result != null) {
+        haxeClass = result.getHaxeClass();
+        if (haxeClass != null) {
+          psiClasses.add(haxeClass);
+        }
+      }
     }
 
     for (int i = 0; i < implementsList.size(); i++) {
-      psiClasses.add(implementsList.get(i).getReferenceExpression().resolveHaxeClass().getHaxeClass());
+      result = implementsList.get(i).getReferenceExpression().resolveHaxeClass();
+      if (result != null) {
+        haxeClass = result.getHaxeClass();
+        if (haxeClass != null) {
+          psiClasses.add(haxeClass);
+        }
+      }
     }
 
     final HaxePullUpDialog dialog = new HaxePullUpDialog(project, aClass, psiClasses, memberInfoStorage, this);
