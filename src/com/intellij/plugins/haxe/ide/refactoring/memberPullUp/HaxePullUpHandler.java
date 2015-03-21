@@ -92,7 +92,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
         parentElement = PsiTreeUtil.getParentOfType(element, HaxeFunctionDeclarationWithAttributes.class, false);
       }*/
 
-      if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes || element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration || element instanceof PsiField || element instanceof PsiMethod) {
         invoke(project, new PsiElement[]{element}, context);
         return;
       }
@@ -115,16 +115,12 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration) {
       aClass = (AbstractHaxePsiClass)element;
     }
-    else if (element instanceof HaxeFunctionDeclarationWithAttributes) {
-      aClass = ((HaxeFunctionDeclarationWithAttributes)element).getContainingClass();
+    else if (element instanceof PsiMethod) {
+      aClass = ((PsiMethod)element).getContainingClass();
       aMember = element;
     }
-    else if (element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-      aClass = ((HaxeFunctionPrototypeDeclarationWithAttributes)element).getContainingClass();
-      aMember = element;
-    }
-    else if (element instanceof HaxeVarDeclaration) {
-      aClass = ((HaxeVarDeclaration)element).getContainingClass();
+    else if (element instanceof PsiField) {
+      aClass = ((PsiField)element).getContainingClass();
       aMember = element;
     }
     else {
