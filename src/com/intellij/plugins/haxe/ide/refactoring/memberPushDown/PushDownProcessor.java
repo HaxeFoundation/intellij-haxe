@@ -31,6 +31,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
+import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -429,11 +430,12 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       }
       else if (member instanceof PsiClass) {
         if (Boolean.FALSE.equals(memberInfo.getOverrides())) {
-          RefactoringUtil.removeFromReferenceList(myClass.getImplementsList(), (PsiClass)member);
+          //RefactoringUtil.removeFromReferenceList(myClass.getImplementsList(), (PsiClass)member);
         }
         else {
-          member.delete();
         }
+
+        member.delete();
       }
     }
   }
@@ -476,15 +478,21 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         if (methodBySignature == null) {
           newMember = null;
           if (myClass.isInterface()) {
-            String text = member.getText();
+            if (!(targetClass instanceof HaxeInterfaceDeclaration)) {
+              String text = member.getText();
 
-            if (text.endsWith(";")) {
-              text = text.substring(0, text.length() - 1) + " {}";
+              if (text.endsWith(";")) {
+                text = text.substring(0, text.length() - 1) + " {}";
+              }
+
+              HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
+                HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
+              newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
+            }
+            else {
+              newMember = (PsiMethod)targetClass.add(member);
             }
 
-            HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
-              HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
-            newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
             if (!targetClass.isInterface()) {
               PsiUtil.setModifierProperty(newMember, PsiModifier.PUBLIC, true);
               if (newMember.hasModifierProperty(PsiModifier.DEFAULT)) {

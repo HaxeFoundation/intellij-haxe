@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAttributes;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -232,6 +233,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
       deleteOverrideAnnotationIfFound(methodCopy);
     }
     boolean isOriginalMethodAbstract = method.hasModifierProperty(PsiModifier.ABSTRACT) || method.hasModifierProperty(PsiModifier.DEFAULT);
+    boolean isOriginalMethodPrototype = method instanceof HaxeFunctionPrototypeDeclarationWithAttributes;
     if (myIsTargetInterface || info.isToAbstract()) {
       ChangeContextUtil.clearContextInfo(method);
 
@@ -274,7 +276,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         deleteOverrideAnnotationIfFound(method);
       }
       myMembersAfterMove.add(movedElement);
-      if (isOriginalMethodAbstract) {
+      if (isOriginalMethodAbstract || isOriginalMethodPrototype) {
         method.delete();
       }
     }

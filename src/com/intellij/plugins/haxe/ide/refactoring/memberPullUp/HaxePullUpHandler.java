@@ -27,6 +27,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.HelpID;
@@ -91,7 +92,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
         parentElement = PsiTreeUtil.getParentOfType(element, HaxeFunctionDeclarationWithAttributes.class, false);
       }*/
 
-      if (element instanceof HaxeClassDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes || element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes || element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
         invoke(project, new PsiElement[]{element}, context);
         return;
       }
@@ -111,8 +112,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     PsiElement element = elements[0];
     PsiClass aClass;
     PsiElement aMember = null;
-    if (element instanceof HaxeClassDeclaration) {
-      aClass = (HaxeClassDeclaration)element;
+    if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration) {
+      aClass = (AbstractHaxePsiClass)element;
     }
     else if (element instanceof HaxeFunctionDeclarationWithAttributes) {
       aClass = ((HaxeFunctionDeclarationWithAttributes)element).getContainingClass();
@@ -133,7 +134,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
   }
 
   private void invoke(Project project, DataContext dataContext, PsiClass psiClass, PsiElement aMember) {
-    HaxeClassDeclaration aClass = (HaxeClassDeclaration)psiClass;
+    AbstractHaxePsiClass aClass = (AbstractHaxePsiClass)psiClass;
     final Editor editor = dataContext != null ? CommonDataKeys.EDITOR.getData(dataContext) : null;
     if (aClass == null) {
       String message =
@@ -144,7 +145,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     List<HaxeType> extendsList = aClass.getHaxeExtendsList();
     List<HaxeType> implementsList = aClass.getHaxeImplementsList();
     if (extendsList.isEmpty() && implementsList.isEmpty()) {
-      final HaxeClassDeclaration containingClass = aClass;
+      final AbstractHaxePsiClass containingClass = aClass;
       if (containingClass != null) {
         invoke(project, dataContext, containingClass, aClass);
         return;
