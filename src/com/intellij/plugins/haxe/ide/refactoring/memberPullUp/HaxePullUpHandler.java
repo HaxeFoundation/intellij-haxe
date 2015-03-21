@@ -26,10 +26,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.HelpID;
@@ -94,7 +91,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
         parentElement = PsiTreeUtil.getParentOfType(element, HaxeFunctionDeclarationWithAttributes.class, false);
       }*/
 
-      if (element instanceof HaxeClassDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes) {
+      if (element instanceof HaxeClassDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes || element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
         invoke(project, new PsiElement[]{element}, context);
         return;
       }
@@ -119,6 +116,10 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     }
     else if (element instanceof HaxeFunctionDeclarationWithAttributes) {
       aClass = ((HaxeFunctionDeclarationWithAttributes)element).getContainingClass();
+      aMember = element;
+    }
+    else if (element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      aClass = ((HaxeFunctionPrototypeDeclarationWithAttributes)element).getContainingClass();
       aMember = element;
     }
     else if (element instanceof HaxeVarDeclaration) {
