@@ -12,11 +12,4 @@ before_script:
 - haxelib git debugger https://github.com/TiVo/debugger.git
 - mkdir build
 - mkdir report
-script: make
-deploy:
-  provider: releases
-  api_key:
-    secure: CaN/O5FokNwHm0/1zRit0MfwEvUjsHJtklL0++Z7VaVbh/IXXMuKelfUUXV3ELavS4f4+PMgeagz0DhyK4Hwfwigm2aNAkCI11dDKvE4sEHV/YCQ3BXlFKvvWE6B7ZY+e/BOfAojJ3iI/wZhlOH9Qykvmto7+B6swHXs+4lR2aM=
-  file: intellij-haxe.jar
-  on:
-    repo: yanhick/intellij-haxe-nightly-builds
+script: ./travis.sh
