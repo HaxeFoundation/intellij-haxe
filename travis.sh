@@ -9,7 +9,11 @@ fi
 ./fetchIdea.sh "$1"
 
 # Run the tests
-ant -f build-test.xml -Dversion.specific.code.location=src/"$1"
+if [ -d src/"$1" ]; then
+    ant -f build.xml -Dversion.specific.code.location=src/"$1"
+else
+    ant -f build.xml
+fi
 
 # Was our build successful?
 stat=$?
