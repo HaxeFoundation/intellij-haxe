@@ -530,7 +530,7 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    String name = getQName(type, false);
+    String name = getQName(type, true);
     HaxeClass result = findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
