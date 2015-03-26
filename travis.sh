@@ -10,9 +10,9 @@ fi
 
 # Run the tests
 if [ -d src/"$1" ]; then
-    ant -f build.xml -Dversion.specific.code.location=src/"$1"
+    ant -f build-test.xml -Dversion.specific.code.location=src/"$1"
 else
-    ant -f build.xml
+    ant -f build-test.xml
 fi
 
 # Was our build successful?

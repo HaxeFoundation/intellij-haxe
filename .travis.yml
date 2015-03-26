@@ -11,4 +11,4 @@ before_script:
 - haxelib git debugger https://github.com/TiVo/debugger.git
 - mkdir build
 - mkdir report
-script: "make test"
+script: make test
