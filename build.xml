@@ -12,6 +12,9 @@
          choose not to include any version specific code -->
     <property name="version.specific.code.location" location="src" />
 
+    <!-- the version of intellij we are building against -->
+    <property name="version" value="13.1.6" />
+
     <!-- javac2 is an intellij ant task to wrap the java compiler and add
          support to .form files and @NotNull annotations, among others -->
     <taskdef name="javac2" classname="com.intellij.ant.Javac2">
@@ -59,7 +62,7 @@
     </target>
 
     <target name="package" depends="compile" description="generate jar file">
-        <jar jarfile="intellij-haxe.jar" update="true">
+        <jar jarfile="intellij-haxe-${version}.jar" update="true">
             <fileset dir="build" includes="**/*.*" />
             <fileset dir="src" excludes="**/*.java" />
             <fileset dir="resources" />
