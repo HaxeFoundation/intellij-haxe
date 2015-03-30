@@ -429,11 +429,11 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         }
       }
       else if (member instanceof PsiClass) {
-        if (Boolean.FALSE.equals(memberInfo.getOverrides())) {
+        //if (Boolean.FALSE.equals(memberInfo.getOverrides())) {
           //RefactoringUtil.removeFromReferenceList(myClass.getImplementsList(), (PsiClass)member);
-        }
-        else {
-        }
+        //}
+        //else {
+        //}
 
         member.delete();
       }
@@ -503,7 +503,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               }
             }
 
-            //reformat(newMember, targetClass);
+            reformat(newMember);
           }
           else if (memberInfo.isToAbstract()) {
             newMember = (PsiMethod)targetClass.add(method);
@@ -523,7 +523,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
             newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
 
-            //reformat(newMember, targetClass);
+            reformat(newMember);
           }
         }
         else { //abstract method: remove @Override
@@ -588,15 +588,16 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
     }
   }
 
-  private void reformat(PsiMember movedElement, PsiClass targetClass) {
-    PsiDocumentManager manager = PsiDocumentManager.getInstance(myProject);
-    Document document = manager.getDocument(targetClass.getContainingFile());
-    manager.commitDocument(document);
-
-    final TextRange range = movedElement.getTextRange();
-    final PsiFile file = movedElement.getContainingFile();
-    final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
-    CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+  private void reformat(final PsiMember movedElement) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        final TextRange range = movedElement.getTextRange();
+        final PsiFile file = movedElement.getContainingFile();
+        final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+        CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+      }
+    });
   }
 
   private boolean leaveOverrideAnnotation(PsiSubstitutor substitutor, PsiMethod method) {

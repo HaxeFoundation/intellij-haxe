@@ -20,6 +20,7 @@ import com.intellij.codeInsight.ChangeContextUtil;
 import com.intellij.codeInsight.PsiEquivalenceUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.lang.Language;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -310,15 +311,16 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     }
   }
 
-  private void reformat(PsiMember movedElement) {
-    PsiDocumentManager manager = PsiDocumentManager.getInstance(myProject);
-    Document document = manager.getDocument(myTargetSuperClass.getContainingFile());
-    manager.commitDocument(document);
-
-    final TextRange range = movedElement.getTextRange();
-    final PsiFile file = movedElement.getContainingFile();
-    final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
-    CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+  private void reformat(final PsiMember movedElement) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        final TextRange range = movedElement.getTextRange();
+        final PsiFile file = movedElement.getContainingFile();
+        final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+        CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+      }
+    });
   }
 
   private static PsiMethod convertMethodToLanguage(PsiMethod method, Language language) {
