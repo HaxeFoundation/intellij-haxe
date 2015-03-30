@@ -15,3 +15,5 @@ if [ -d src/"$1" ]; then
 else
     ant -f build.xml -Dversion="$1"
 fi
+
+rm -rf idea-IU
