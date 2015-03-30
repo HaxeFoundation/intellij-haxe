@@ -18,10 +18,8 @@ fi
 # Was our build successful?
 stat=$?
 
-if [ "${TRAVIS}" != true ]; then
-    ant -f build-test.xml -q clean
-    rm -rf idea-IU
-fi
+ant -f build-test.xml -q clean
+rm -rf idea-IU
 
 # Return the build status
 exit ${stat}
