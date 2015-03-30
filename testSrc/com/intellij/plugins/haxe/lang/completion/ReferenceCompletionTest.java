@@ -17,6 +17,11 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.util.LineSeparator;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -83,8 +88,9 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   public void testPackageCompletionInPackageStatement1() {
+    String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
     myFixture.addFileToProject("com/bar/Bar.hx", "");
-    myFixture.configureByText("Baz.hx", "package <caret>");
+    myFixture.configureByText("Baz.hx", "package <caret>").getVirtualFile().setDetectedLineSeparator(lineSeparator);
     myFixture.completeBasic();
     checkCompletion(CheckType.INCLUDES, "com");
   }
