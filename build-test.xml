@@ -74,7 +74,8 @@
             includeantruntime="false" >
 
             <src path="${version.specific.code.location}" />
-            <src path="src" />
+            <src path="src/common" />
+            <src path="src/icons" />
             <src path="gen" />
             <src path="testSrc" />
             <src path="testData" />
