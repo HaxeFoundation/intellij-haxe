@@ -108,14 +108,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
    public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {
-    //Not sure, sometimes PsiTree won't get updated after this change and remains incorrect
-    //if (getRBrace() != null) {
-    //  return addBefore(element, getRBrace());
-    //}
-    //else {
-    //  return super.add(element);
-    //}
-
     return super.add(element);
   }
 
