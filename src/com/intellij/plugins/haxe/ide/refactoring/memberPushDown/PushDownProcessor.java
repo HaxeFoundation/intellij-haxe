@@ -31,6 +31,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
+import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -428,12 +429,13 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         }
       }
       else if (member instanceof PsiClass) {
-        if (Boolean.FALSE.equals(memberInfo.getOverrides())) {
-          RefactoringUtil.removeFromReferenceList(myClass.getImplementsList(), (PsiClass)member);
-        }
-        else {
-          member.delete();
-        }
+        //if (Boolean.FALSE.equals(memberInfo.getOverrides())) {
+          //RefactoringUtil.removeFromReferenceList(myClass.getImplementsList(), (PsiClass)member);
+        //}
+        //else {
+        //}
+
+        member.delete();
       }
     }
   }
@@ -468,7 +470,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           PsiUtil.setModifierProperty(member, PsiModifier.STATIC, true);
           PsiUtil.setModifierProperty(member, PsiModifier.FINAL, true);
         }
-        newMember = (PsiMember)targetClass.add(member);
+        newMember = (PsiMember)targetClass.addBefore(member, targetClass.getRBrace());
       }
       else if (member instanceof PsiMethod) {
         PsiMethod method = (PsiMethod)member;
@@ -476,15 +478,21 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         if (methodBySignature == null) {
           newMember = null;
           if (myClass.isInterface()) {
-            String text = member.getText();
+            if (!(targetClass instanceof HaxeInterfaceDeclaration)) {
+              String text = member.getText();
 
-            if (text.endsWith(";")) {
-              text = text.substring(0, text.length() - 1) + " {}";
+              if (text.endsWith(";")) {
+                text = text.substring(0, text.length() - 1) + " {}";
+              }
+
+              HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
+                HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
+              newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
+            }
+            else {
+              newMember = (PsiMethod)targetClass.addBefore(member, targetClass.getRBrace());
             }
 
-            HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
-              HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
-            newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
             if (!targetClass.isInterface()) {
               PsiUtil.setModifierProperty(newMember, PsiModifier.PUBLIC, true);
               if (newMember.hasModifierProperty(PsiModifier.DEFAULT)) {
@@ -495,10 +503,10 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               }
             }
 
-            //reformat(newMember, targetClass);
+            reformat(newMember);
           }
           else if (memberInfo.isToAbstract()) {
-            newMember = (PsiMethod)targetClass.add(method);
+            newMember = (PsiMethod)targetClass.addBefore(method, targetClass.getRBrace());
             if (newMember.hasModifierProperty(PsiModifier.PRIVATE)) {
               PsiUtil.setModifierProperty(newMember, PsiModifier.PROTECTED, true);
             }
@@ -513,9 +521,9 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
 
             HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
               HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
-            newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
+            newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
 
-            //reformat(newMember, targetClass);
+            reformat(newMember);
           }
         }
         else { //abstract method: remove @Override
@@ -580,15 +588,16 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
     }
   }
 
-  private void reformat(PsiMember movedElement, PsiClass targetClass) {
-    PsiDocumentManager manager = PsiDocumentManager.getInstance(myProject);
-    Document document = manager.getDocument(targetClass.getContainingFile());
-    manager.commitDocument(document);
-
-    final TextRange range = movedElement.getTextRange();
-    final PsiFile file = movedElement.getContainingFile();
-    final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
-    CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+  private void reformat(final PsiMember movedElement) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        final TextRange range = movedElement.getTextRange();
+        final PsiFile file = movedElement.getContainingFile();
+        final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+        CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+      }
+    });
   }
 
   private boolean leaveOverrideAnnotation(PsiSubstitutor substitutor, PsiMethod method) {
