@@ -470,7 +470,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           PsiUtil.setModifierProperty(member, PsiModifier.STATIC, true);
           PsiUtil.setModifierProperty(member, PsiModifier.FINAL, true);
         }
-        newMember = (PsiMember)targetClass.add(member);
+        newMember = (PsiMember)targetClass.addBefore(member, targetClass.getRBrace());
       }
       else if (member instanceof PsiMethod) {
         PsiMethod method = (PsiMethod)member;
@@ -487,10 +487,10 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
 
               HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
                 HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
-              newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
+              newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
             }
             else {
-              newMember = (PsiMethod)targetClass.add(member);
+              newMember = (PsiMethod)targetClass.addBefore(member, targetClass.getRBrace());
             }
 
             if (!targetClass.isInterface()) {
@@ -506,7 +506,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
             reformat(newMember);
           }
           else if (memberInfo.isToAbstract()) {
-            newMember = (PsiMethod)targetClass.add(method);
+            newMember = (PsiMethod)targetClass.addBefore(method, targetClass.getRBrace());
             if (newMember.hasModifierProperty(PsiModifier.PRIVATE)) {
               PsiUtil.setModifierProperty(newMember, PsiModifier.PROTECTED, true);
             }
@@ -521,7 +521,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
 
             HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
               HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
-            newMember = (PsiMethod)targetClass.add(functionDeclarationWithAttributes);
+            newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
 
             reformat(newMember);
           }
