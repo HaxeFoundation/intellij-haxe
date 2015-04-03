@@ -287,23 +287,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return param;
   }
 
-  private boolean isPrivate() {
-    final List<HaxeDeclarationAttribute> declarationAttributeList = getDeclarationAttributeList();
-    if (declarationAttributeList != null) {
-      for (HaxeDeclarationAttribute declarationAttribute : declarationAttributeList) {
-        HaxeAccess access = declarationAttribute.getAccess();
-        if (access!=null && "private".equals(access.getText())) {
-            return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public boolean isPublic() {
-    return (!isPrivate() && super.isPublic()); // do not change the order of- and the- expressions
-  }
 
   @NotNull
   @Override
@@ -337,11 +320,11 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     // -- below modifiers need to be set individually
     //    because, they cannot be enforced through macro-list
 
-    if (isStatic()) {
+    if (super.isStatic()) {
       list.setModifierProperty(HaxePsiModifier.STATIC, true);
     }
 
-    if (isPublic()) {
+    if (super.isPublic()) {
       list.setModifierProperty(HaxePsiModifier.PUBLIC, true);
     }
     else {
