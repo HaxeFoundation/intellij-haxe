@@ -88,6 +88,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
            (HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null);
   }
 
+  @Override
+  public boolean isExtern() {
+    return this instanceof HaxeExternClassDeclaration;
+  }
 
   @Override
   public boolean isInterface() {
