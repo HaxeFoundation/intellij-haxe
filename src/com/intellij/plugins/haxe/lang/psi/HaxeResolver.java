@@ -175,6 +175,31 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
+    List<PsiElement> importStatementWithInSupportList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        if (element instanceof HaxeImportStatementWithInSupport) {
+          PsiElement resolve;
+          HaxeReferenceExpression referenceExpression = ((HaxeImportStatementWithInSupport)element).getReferenceExpression();
+          resolve = referenceExpression.resolve();
+
+          if (resolve != null) {
+            return resolve instanceof PsiMethod;
+          }
+        }
+        return false;
+      }
+    });
+
+    HaxeImportStatementWithInSupport importStatementWithInSupport;
+    for (int i = 0; i < importStatementWithInSupportList.size(); i++) {
+      importStatementWithInSupport = (HaxeImportStatementWithInSupport)importStatementWithInSupportList.get(i);
+      if (reference.getText().equals(importStatementWithInSupport.getIdentifier().getText())) {
+        result.add(importStatementWithInSupport.getReferenceExpression().resolve());
+        return result;
+      }
+    }
+
     return ContainerUtil.emptyList();
   }
 
