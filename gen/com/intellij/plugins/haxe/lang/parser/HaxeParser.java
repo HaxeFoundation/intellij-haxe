@@ -2851,7 +2851,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'import' simpleQualifiedReferenceExpression 'in' identifier';'
+  // 'import' simpleQualifiedReferenceExpression ('in' | 'as') identifier';'
   public static boolean importStatementWithInSupport(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "importStatementWithInSupport")) return false;
     if (!nextTokenIs(b, KIMPORT)) return false;
@@ -2859,10 +2859,21 @@ public class HaxeParser implements PsiParser {
     Marker m = enter_section_(b);
     r = consumeToken(b, KIMPORT);
     r = r && simpleQualifiedReferenceExpression(b, l + 1);
-    r = r && consumeToken(b, OIN);
+    r = r && importStatementWithInSupport_2(b, l + 1);
     r = r && identifier(b, l + 1);
     r = r && consumeToken(b, OSEMI);
     exit_section_(b, m, IMPORT_STATEMENT_WITH_IN_SUPPORT, r);
+    return r;
+  }
+
+  // 'in' | 'as'
+  private static boolean importStatementWithInSupport_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "importStatementWithInSupport_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, OIN);
+    if (!r) r = consumeToken(b, "as");
+    exit_section_(b, m, null, r);
     return r;
   }
 
