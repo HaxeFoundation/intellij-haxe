@@ -1,21 +1,3 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
- * Copyright 2014-2014 Elias Ku
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.parser;
 
@@ -1952,14 +1934,14 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+  // macroClassList? externOrPrivate* ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "externClassDeclaration")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<extern class declaration>");
     r = externClassDeclaration_0(b, l + 1);
     r = r && externClassDeclaration_1(b, l + 1);
-    r = r && consumeToken(b, KCLASS);
+    r = r && externClassDeclaration_2(b, l + 1);
     r = r && componentName(b, l + 1);
     p = r; // pin = 4
     r = r && report_error_(b, externClassDeclaration_4(b, l + 1));
@@ -1988,6 +1970,17 @@ public class HaxeParser implements PsiParser {
       c = current_position_(b);
     }
     return true;
+  }
+
+  // 'class' | 'interface'
+  private static boolean externClassDeclaration_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, KCLASS);
+    if (!r) r = consumeToken(b, KINTERFACE);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   // genericParam?
