@@ -18,9 +18,11 @@
 package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.ASTFactory;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.LazyParseableElement;
 import com.intellij.psi.impl.source.tree.LeafElement;
+import com.intellij.psi.impl.source.tree.PsiCommentImpl;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.ILazyParseableElementType;
@@ -58,6 +60,10 @@ public class HaxeAstFactory extends ASTFactory {
     // We're making our default token type be a PsiJavaToken so that our
     // PSI tree is more compatible with the Java one, thus, we can use
     // more of the Java code without doing so much work.
+
+    if (HaxeTokenTypeSets.COMMENTS.contains(type)) {
+      return new PsiCommentImpl(type, text);
+    }
 
     return new PsiJavaTokenImpl(type, text);
   }
