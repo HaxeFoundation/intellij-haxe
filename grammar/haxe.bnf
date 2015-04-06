@@ -239,7 +239,7 @@ private top_level_recover ::= !(ppToken | metaKeyWord | 'abstract' | 'class'  | 
 
 importStatementRegular ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 importStatementWithWildcard ::= 'import' simpleQualifiedReferenceExpressionWithWildcardSupport ';'
-importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression 'in' identifier';'
+importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression ('in' | 'as') identifier';'
 
 private importStatementAll ::= importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
 
