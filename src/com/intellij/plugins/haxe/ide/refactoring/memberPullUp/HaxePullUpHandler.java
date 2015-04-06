@@ -26,10 +26,8 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.HelpID;
@@ -94,7 +92,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
         parentElement = PsiTreeUtil.getParentOfType(element, HaxeFunctionDeclarationWithAttributes.class, false);
       }*/
 
-      if (element instanceof HaxeClassDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes) {
+      if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration || element instanceof PsiField || element instanceof PsiMethod) {
         invoke(project, new PsiElement[]{element}, context);
         return;
       }
@@ -114,15 +112,15 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     PsiElement element = elements[0];
     PsiClass aClass;
     PsiElement aMember = null;
-    if (element instanceof HaxeClassDeclaration) {
-      aClass = (HaxeClassDeclaration)element;
+    if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration) {
+      aClass = (AbstractHaxePsiClass)element;
     }
-    else if (element instanceof HaxeFunctionDeclarationWithAttributes) {
-      aClass = ((HaxeFunctionDeclarationWithAttributes)element).getContainingClass();
+    else if (element instanceof PsiMethod) {
+      aClass = ((PsiMethod)element).getContainingClass();
       aMember = element;
     }
-    else if (element instanceof HaxeVarDeclaration) {
-      aClass = ((HaxeVarDeclaration)element).getContainingClass();
+    else if (element instanceof PsiField) {
+      aClass = ((PsiField)element).getContainingClass();
       aMember = element;
     }
     else {
@@ -132,7 +130,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
   }
 
   private void invoke(Project project, DataContext dataContext, PsiClass psiClass, PsiElement aMember) {
-    HaxeClassDeclaration aClass = (HaxeClassDeclaration)psiClass;
+    AbstractHaxePsiClass aClass = (AbstractHaxePsiClass)psiClass;
     final Editor editor = dataContext != null ? CommonDataKeys.EDITOR.getData(dataContext) : null;
     if (aClass == null) {
       String message =
@@ -143,7 +141,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     List<HaxeType> extendsList = aClass.getHaxeExtendsList();
     List<HaxeType> implementsList = aClass.getHaxeImplementsList();
     if (extendsList.isEmpty() && implementsList.isEmpty()) {
-      final HaxeClassDeclaration containingClass = aClass;
+      final AbstractHaxePsiClass containingClass = aClass;
       if (containingClass != null) {
         invoke(project, dataContext, containingClass, aClass);
         return;
@@ -171,12 +169,26 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
 
     List<PsiClass> psiClasses = new ArrayList<PsiClass>();
 
+    HaxeClassResolveResult result;
+    HaxeClass haxeClass;
     for (int i = 0; i < extendsList.size(); i++) {
-      psiClasses.add(extendsList.get(i).getReferenceExpression().resolveHaxeClass().getHaxeClass());
+      result = extendsList.get(i).getReferenceExpression().resolveHaxeClass();
+      if (result != null) {
+        haxeClass = result.getHaxeClass();
+        if (haxeClass != null) {
+          psiClasses.add(haxeClass);
+        }
+      }
     }
 
     for (int i = 0; i < implementsList.size(); i++) {
-      psiClasses.add(implementsList.get(i).getReferenceExpression().resolveHaxeClass().getHaxeClass());
+      result = implementsList.get(i).getReferenceExpression().resolveHaxeClass();
+      if (result != null) {
+        haxeClass = result.getHaxeClass();
+        if (haxeClass != null) {
+          psiClasses.add(haxeClass);
+        }
+      }
     }
 
     final HaxePullUpDialog dialog = new HaxePullUpDialog(project, aClass, psiClasses, memberInfoStorage, this);
