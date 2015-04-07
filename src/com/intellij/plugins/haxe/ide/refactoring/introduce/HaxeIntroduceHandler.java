@@ -298,7 +298,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       context = PsiTreeUtil.getParentOfType(context, HaxeComponent.class, true);
       type = HaxeComponentType.typeOf(context);
     }
-    while (type != null && notFunctionMethodClass(type));
+    while (type != null && notFunctionMethodClass(type));  // XXX-EBatTiVo: Probably should not stop if type == null.
     if (context == null) {
       context = expression.getContainingFile();
     }
