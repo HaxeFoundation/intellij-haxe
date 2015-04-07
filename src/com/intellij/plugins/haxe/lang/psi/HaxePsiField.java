@@ -22,5 +22,15 @@ import com.intellij.psi.PsiField;
 /**
  * Created by srikanthg on 10/9/14.
  */
-public interface HaxePsiField extends HaxeNamedComponent, PsiField {
+//
+// NOTE: This class MUST derive from HaxeComponent -- not HaxeNamedComponent for
+// certain refactorings (that use HaxeQualifiedNameProvider) to work correctly.
+// If the derivation changes, an exception is thrown out of than class, and
+// refactorings requiring names silently fail (becase of a cast exception).
+// See testSrc/com/intellij/plugins/haxe/ide/refactoring/introduce/HaxeIntroduceVariableTest#ReplaceAll3()
+//
+//                                    |||||||||||||
+//                                    vvvvvvvvvvvvv
+public interface HaxePsiField extends HaxeComponent, PsiField {
+
 }
