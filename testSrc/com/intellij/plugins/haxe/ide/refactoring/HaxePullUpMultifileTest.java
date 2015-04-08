@@ -93,4 +93,8 @@ public class HaxePullUpMultifileTest extends MultiFileTestCase {
   public void testFromClassToSuperClass() throws Exception {
     doTest();
   }
+
+  public void testFromClassToInterface() throws Exception {
+    doTest();
+  }
 }
