@@ -594,6 +594,10 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       public void run() {
         final TextRange range = movedElement.getTextRange();
         final PsiFile file = movedElement.getContainingFile();
+
+        PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
+        psiDocumentManager.doPostponedOperationsAndUnblockDocument(psiDocumentManager.getDocument(file));
+
         final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
         CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
       }

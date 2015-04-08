@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.refactoring;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpConflictsUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -45,7 +46,7 @@ public class HaxePullUpMultifileTest extends MultiFileTestCase {
   @NotNull
   @Override
   protected String getTestRoot() {
-    return "/refactoring/pullUp";
+    return "/refactoring/pullUp/";
   }
 
   private void doTest(final String... conflicts) throws Exception {
@@ -53,9 +54,9 @@ public class HaxePullUpMultifileTest extends MultiFileTestCase {
     doTest(new PerformAction() {
       @Override
       public void performAction(final VirtualFile rootDir, final VirtualFile rootAfter) throws Exception {
-        final PsiClass srcClass = myJavaFacade.findClass("a.A", GlobalSearchScope.allScope(myProject));
+        final PsiClass srcClass = HaxeResolveUtil.findClassByQName("a.A", getPsiManager(), GlobalSearchScope.allScope(myProject));
         assertTrue("Source class not found", srcClass != null);
-        final PsiClass targetClass = myJavaFacade.findClass("b.B", GlobalSearchScope.allScope(myProject));
+        final PsiClass targetClass = HaxeResolveUtil.findClassByQName("b.B", getPsiManager(), GlobalSearchScope.allScope(myProject));
         assertTrue("Target class not found", targetClass != null);
         final PsiMethod[] methods = srcClass.getMethods();
         assertTrue("No methods found", methods.length > 0);
@@ -89,7 +90,7 @@ public class HaxePullUpMultifileTest extends MultiFileTestCase {
     }
   }
 
-  public void testFromSuperClassToInterface() throws Exception {
+  public void testFromClassToSuperClass() throws Exception {
     doTest();
   }
 }

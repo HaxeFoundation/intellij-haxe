@@ -239,6 +239,11 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
     return getProcessor(info.getMember());
   }
 
+  @Override
+  protected void doRun() {
+    super.doRun();
+  }
+
   private PsiSubstitutor upDownSuperClassSubstitutor() {
     PsiSubstitutor substitutor = PsiSubstitutor.EMPTY;
     for (PsiTypeParameter parameter : PsiUtil.typeParametersIterable(mySourceClass)) {
