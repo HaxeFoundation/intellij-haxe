@@ -246,9 +246,9 @@ private importStatementAll ::= importStatementWithWildcard | importStatementWith
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration
+                              | interfaceDeclaration
                               | externClassDeclaration
                               | abstractClassDeclaration
-                              | interfaceDeclaration
                               | enumDeclaration
                               | typedefDeclaration
 
