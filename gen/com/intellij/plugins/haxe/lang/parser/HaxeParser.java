@@ -1952,18 +1952,20 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClassList? externOrPrivate* ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+  // macroClassList? privateKeyWord? 'extern' privateKeyWord? ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "externClassDeclaration")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<extern class declaration>");
     r = externClassDeclaration_0(b, l + 1);
     r = r && externClassDeclaration_1(b, l + 1);
-    r = r && externClassDeclaration_2(b, l + 1);
-    r = r && componentName(b, l + 1);
+    r = r && consumeToken(b, KEXTERN);
+    r = r && externClassDeclaration_3(b, l + 1);
     p = r; // pin = 4
     r = r && report_error_(b, externClassDeclaration_4(b, l + 1));
-    r = p && report_error_(b, externClassDeclaration_5(b, l + 1)) && r;
+    r = p && report_error_(b, componentName(b, l + 1)) && r;
+    r = p && report_error_(b, externClassDeclaration_6(b, l + 1)) && r;
+    r = p && report_error_(b, externClassDeclaration_7(b, l + 1)) && r;
     r = p && report_error_(b, consumeToken(b, PLCURLY)) && r;
     r = p && report_error_(b, externClassDeclarationBody(b, l + 1)) && r;
     r = p && consumeToken(b, PRCURLY) && r;
@@ -1978,21 +1980,23 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // externOrPrivate*
+  // privateKeyWord?
   private static boolean externClassDeclaration_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "externClassDeclaration_1")) return false;
-    int c = current_position_(b);
-    while (true) {
-      if (!externOrPrivate(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "externClassDeclaration_1", c)) break;
-      c = current_position_(b);
-    }
+    privateKeyWord(b, l + 1);
+    return true;
+  }
+
+  // privateKeyWord?
+  private static boolean externClassDeclaration_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_3")) return false;
+    privateKeyWord(b, l + 1);
     return true;
   }
 
   // 'class' | 'interface'
-  private static boolean externClassDeclaration_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_2")) return false;
+  private static boolean externClassDeclaration_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_4")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, KCLASS);
@@ -2002,15 +2006,15 @@ public class HaxeParser implements PsiParser {
   }
 
   // genericParam?
-  private static boolean externClassDeclaration_4(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_4")) return false;
+  private static boolean externClassDeclaration_6(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_6")) return false;
     genericParam(b, l + 1);
     return true;
   }
 
   // inheritList?
-  private static boolean externClassDeclaration_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_5")) return false;
+  private static boolean externClassDeclaration_7(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_7")) return false;
     inheritList(b, l + 1);
     return true;
   }
@@ -3009,7 +3013,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClassList? externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
+  // macroClassList? privateKeyWord? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
   public static boolean interfaceDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interfaceDeclaration")) return false;
     boolean r, p;
@@ -3035,10 +3039,10 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // externOrPrivate?
+  // privateKeyWord?
   private static boolean interfaceDeclaration_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interfaceDeclaration_1")) return false;
-    externOrPrivate(b, l + 1);
+    privateKeyWord(b, l + 1);
     return true;
   }
 

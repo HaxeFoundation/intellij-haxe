@@ -258,7 +258,7 @@ externOrPrivate ::= 'extern' | privateKeyWord
 typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-externClassDeclaration ::= macroClassList? externOrPrivate* ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+externClassDeclaration ::= macroClassList? privateKeyWord? 'extern' privateKeyWord? ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverWhile="extern_class_body_part_recover"}
@@ -275,7 +275,7 @@ classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
 private class_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
 
-interfaceDeclaration ::= macroClassList? externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
+interfaceDeclaration ::= macroClassList? privateKeyWord? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes {recoverWhile="interface_body_part_recover"}

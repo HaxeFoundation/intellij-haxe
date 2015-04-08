@@ -25,14 +25,11 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeExternClassDeclaration extends HaxeClass {
 
-  @NotNull
+  @Nullable
   HaxeComponentName getComponentName();
 
   @Nullable
   HaxeExternClassDeclarationBody getExternClassDeclarationBody();
-
-  @NotNull
-  List<HaxeExternOrPrivate> getExternOrPrivateList();
 
   @Nullable
   HaxeGenericParam getGenericParam();
@@ -42,5 +39,8 @@ public interface HaxeExternClassDeclaration extends HaxeClass {
 
   @Nullable
   HaxeMacroClassList getMacroClassList();
+
+  @NotNull
+  List<HaxePrivateKeyWord> getPrivateKeyWordList();
 
 }

@@ -40,21 +40,15 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeComponentName getComponentName() {
-    return findNotNullChildByClass(HaxeComponentName.class);
+    return findChildByClass(HaxeComponentName.class);
   }
 
   @Override
   @Nullable
   public HaxeExternClassDeclarationBody getExternClassDeclarationBody() {
     return findChildByClass(HaxeExternClassDeclarationBody.class);
-  }
-
-  @Override
-  @NotNull
-  public List<HaxeExternOrPrivate> getExternOrPrivateList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExternOrPrivate.class);
   }
 
   @Override
@@ -73,6 +67,12 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   @Nullable
   public HaxeMacroClassList getMacroClassList() {
     return findChildByClass(HaxeMacroClassList.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxePrivateKeyWord> getPrivateKeyWordList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePrivateKeyWord.class);
   }
 
 }
