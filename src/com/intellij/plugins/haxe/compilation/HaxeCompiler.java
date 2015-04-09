@@ -27,6 +27,7 @@ import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -136,9 +137,7 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     }
     HaxeCommonCompilerUtil.CompilationContext compilationContext = createCompilationContext(context, module, configuration);
 
-
-
-    if (compileModule(context, compilationContext)) {
+    if (compileModule(context, module, compilationContext)) {
       final int index = findProcessingItemIndexByModule(items, configuration.getConfigurationModule());
       if (index != -1) {
         return new ProcessingItem[]{items[index]};
@@ -154,14 +153,16 @@ public class HaxeCompiler implements SourceProcessingCompiler {
         continue;
       }
       final MyProcessingItem myProcessingItem = (MyProcessingItem)processingItem;
-      if (compileModule(context, createCompilationContext(context, myProcessingItem.myModule, null))) {
+      if (compileModule(context, myProcessingItem.myModule, createCompilationContext(context, myProcessingItem.myModule, null))) {
         result.add(processingItem);
       }
     }
     return result.toArray(new ProcessingItem[result.size()]);
   }
 
-  private static boolean compileModule(final CompileContext context, @NotNull final HaxeCommonCompilerUtil.CompilationContext compilationContext) {
+  private static boolean compileModule(final CompileContext context,
+                                       Module module,
+                                       @NotNull final HaxeCommonCompilerUtil.CompilationContext compilationContext) {
 
     /*
     if ((skipBuildMap.get(module) != null) && (skipBuildMap.get(module).booleanValue())) {
@@ -169,6 +170,9 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     }
     */
 
+    if (!ModuleUtil.getModuleType(module).equals(HaxeModuleType.getInstance())) {
+      return true;
+    }
 
     boolean compiled = HaxeCommonCompilerUtil.compile(compilationContext);
 
