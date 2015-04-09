@@ -40,9 +40,9 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeComponentName getComponentName() {
-    return findChildByClass(HaxeComponentName.class);
+    return findNotNullChildByClass(HaxeComponentName.class);
   }
 
   @Override

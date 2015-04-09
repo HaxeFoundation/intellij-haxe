@@ -1952,20 +1952,46 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClassList? privateKeyWord? 'extern' privateKeyWord? ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+  // privateKeyWord? 'extern' privateKeyWord?
+  static boolean externAndMaybePrivate(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externAndMaybePrivate")) return false;
+    if (!nextTokenIs(b, "", KEXTERN, KPRIVATE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = externAndMaybePrivate_0(b, l + 1);
+    r = r && consumeToken(b, KEXTERN);
+    r = r && externAndMaybePrivate_2(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // privateKeyWord?
+  private static boolean externAndMaybePrivate_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externAndMaybePrivate_0")) return false;
+    privateKeyWord(b, l + 1);
+    return true;
+  }
+
+  // privateKeyWord?
+  private static boolean externAndMaybePrivate_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externAndMaybePrivate_2")) return false;
+    privateKeyWord(b, l + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // macroClassList? externAndMaybePrivate ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "externClassDeclaration")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<extern class declaration>");
     r = externClassDeclaration_0(b, l + 1);
-    r = r && externClassDeclaration_1(b, l + 1);
-    r = r && consumeToken(b, KEXTERN);
-    r = r && externClassDeclaration_3(b, l + 1);
+    r = r && externAndMaybePrivate(b, l + 1);
+    r = r && externClassDeclaration_2(b, l + 1);
+    r = r && componentName(b, l + 1);
     p = r; // pin = 4
     r = r && report_error_(b, externClassDeclaration_4(b, l + 1));
-    r = p && report_error_(b, componentName(b, l + 1)) && r;
-    r = p && report_error_(b, externClassDeclaration_6(b, l + 1)) && r;
-    r = p && report_error_(b, externClassDeclaration_7(b, l + 1)) && r;
+    r = p && report_error_(b, externClassDeclaration_5(b, l + 1)) && r;
     r = p && report_error_(b, consumeToken(b, PLCURLY)) && r;
     r = p && report_error_(b, externClassDeclarationBody(b, l + 1)) && r;
     r = p && consumeToken(b, PRCURLY) && r;
@@ -1980,23 +2006,9 @@ public class HaxeParser implements PsiParser {
     return true;
   }
 
-  // privateKeyWord?
-  private static boolean externClassDeclaration_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_1")) return false;
-    privateKeyWord(b, l + 1);
-    return true;
-  }
-
-  // privateKeyWord?
-  private static boolean externClassDeclaration_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_3")) return false;
-    privateKeyWord(b, l + 1);
-    return true;
-  }
-
   // 'class' | 'interface'
-  private static boolean externClassDeclaration_4(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_4")) return false;
+  private static boolean externClassDeclaration_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_2")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, KCLASS);
@@ -2006,15 +2018,15 @@ public class HaxeParser implements PsiParser {
   }
 
   // genericParam?
-  private static boolean externClassDeclaration_6(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_6")) return false;
+  private static boolean externClassDeclaration_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_4")) return false;
     genericParam(b, l + 1);
     return true;
   }
 
   // inheritList?
-  private static boolean externClassDeclaration_7(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externClassDeclaration_7")) return false;
+  private static boolean externClassDeclaration_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_5")) return false;
     inheritList(b, l + 1);
     return true;
   }

@@ -254,11 +254,12 @@ private topLevelDeclaration ::= classDeclaration
 
 privateKeyWord ::= 'private'
 externOrPrivate ::= 'extern' | privateKeyWord
+private externAndMaybePrivate ::= privateKeyWord? 'extern' privateKeyWord?
 
 typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-externClassDeclaration ::= macroClassList? privateKeyWord? 'extern' privateKeyWord? ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+externClassDeclaration ::= macroClassList? externAndMaybePrivate ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverWhile="extern_class_body_part_recover"}
