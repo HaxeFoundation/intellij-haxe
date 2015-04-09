@@ -5299,9 +5299,9 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // classDeclaration
+  //                               | interfaceDeclaration
   //                               | externClassDeclaration
   //                               | abstractClassDeclaration
-  //                               | interfaceDeclaration
   //                               | enumDeclaration
   //                               | typedefDeclaration
   static boolean topLevelDeclaration(PsiBuilder b, int l) {
@@ -5309,9 +5309,9 @@ public class HaxeParser implements PsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = classDeclaration(b, l + 1);
+    if (!r) r = interfaceDeclaration(b, l + 1);
     if (!r) r = externClassDeclaration(b, l + 1);
     if (!r) r = abstractClassDeclaration(b, l + 1);
-    if (!r) r = interfaceDeclaration(b, l + 1);
     if (!r) r = enumDeclaration(b, l + 1);
     if (!r) r = typedefDeclaration(b, l + 1);
     exit_section_(b, m, null, r);
