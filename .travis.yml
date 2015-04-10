@@ -1,6 +1,5 @@
 language: java
 jdk:
-- openjdk7
 - oraclejdk7
 before_script:
 - sudo add-apt-repository ppa:eyecreate/haxe -y
@@ -12,4 +11,7 @@ before_script:
 - haxelib git debugger https://github.com/TiVo/debugger.git
 - mkdir build
 - mkdir report
-script: ./travis.sh
+script: make test
+env:
+    - IDEA_VERSION=13.1.6
+    - IDEA_VERSION=14.0.1

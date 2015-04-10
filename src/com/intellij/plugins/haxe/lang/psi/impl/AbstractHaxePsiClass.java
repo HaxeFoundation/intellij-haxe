@@ -88,6 +88,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
            (HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null);
   }
 
+  @Override
+  public boolean isExtern() {
+    return this instanceof HaxeExternClassDeclaration;
+  }
 
   @Override
   public boolean isInterface() {
@@ -108,12 +112,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
    public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {
-    if (getRBrace() != null) {
-      return addBefore(element, getRBrace());
-    }
-    else {
-      return super.add(element);
-    }
+    return super.add(element);
   }
 
   @NotNull

@@ -190,7 +190,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
       }
     }
 
-    return true; // <default>: public
+    return false; // <default>: private
   }
 
   @Override

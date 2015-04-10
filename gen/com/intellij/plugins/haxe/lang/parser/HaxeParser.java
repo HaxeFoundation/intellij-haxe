@@ -1952,14 +1952,14 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+  // macroClassList? externOrPrivate* ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
   public static boolean externClassDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "externClassDeclaration")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<extern class declaration>");
     r = externClassDeclaration_0(b, l + 1);
     r = r && externClassDeclaration_1(b, l + 1);
-    r = r && consumeToken(b, KCLASS);
+    r = r && externClassDeclaration_2(b, l + 1);
     r = r && componentName(b, l + 1);
     p = r; // pin = 4
     r = r && report_error_(b, externClassDeclaration_4(b, l + 1));
@@ -1988,6 +1988,17 @@ public class HaxeParser implements PsiParser {
       c = current_position_(b);
     }
     return true;
+  }
+
+  // 'class' | 'interface'
+  private static boolean externClassDeclaration_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externClassDeclaration_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, KCLASS);
+    if (!r) r = consumeToken(b, KINTERFACE);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   // genericParam?
@@ -2851,7 +2862,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'import' simpleQualifiedReferenceExpression 'in' identifier';'
+  // 'import' simpleQualifiedReferenceExpression ('in' | 'as') identifier';'
   public static boolean importStatementWithInSupport(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "importStatementWithInSupport")) return false;
     if (!nextTokenIs(b, KIMPORT)) return false;
@@ -2859,10 +2870,21 @@ public class HaxeParser implements PsiParser {
     Marker m = enter_section_(b);
     r = consumeToken(b, KIMPORT);
     r = r && simpleQualifiedReferenceExpression(b, l + 1);
-    r = r && consumeToken(b, OIN);
+    r = r && importStatementWithInSupport_2(b, l + 1);
     r = r && identifier(b, l + 1);
     r = r && consumeToken(b, OSEMI);
     exit_section_(b, m, IMPORT_STATEMENT_WITH_IN_SUPPORT, r);
+    return r;
+  }
+
+  // 'in' | 'as'
+  private static boolean importStatementWithInSupport_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "importStatementWithInSupport_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, OIN);
+    if (!r) r = consumeToken(b, "as");
+    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -5273,9 +5295,9 @@ public class HaxeParser implements PsiParser {
 
   /* ********************************************************** */
   // classDeclaration
+  //                               | interfaceDeclaration
   //                               | externClassDeclaration
   //                               | abstractClassDeclaration
-  //                               | interfaceDeclaration
   //                               | enumDeclaration
   //                               | typedefDeclaration
   static boolean topLevelDeclaration(PsiBuilder b, int l) {
@@ -5283,9 +5305,9 @@ public class HaxeParser implements PsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = classDeclaration(b, l + 1);
+    if (!r) r = interfaceDeclaration(b, l + 1);
     if (!r) r = externClassDeclaration(b, l + 1);
     if (!r) r = abstractClassDeclaration(b, l + 1);
-    if (!r) r = interfaceDeclaration(b, l + 1);
     if (!r) r = enumDeclaration(b, l + 1);
     if (!r) r = typedefDeclaration(b, l + 1);
     exit_section_(b, m, null, r);

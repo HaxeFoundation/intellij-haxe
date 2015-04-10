@@ -150,12 +150,14 @@ public enum HaxeComponentType {
         element instanceof HaxeFunctionLiteral) {
       return FUNCTION;
     }
-    if (element instanceof HaxeVarDeclarationPart ||
+    if (element instanceof HaxeVarDeclaration ||
+        element instanceof HaxeVarDeclarationPart ||
         element instanceof HaxeEnumValueDeclaration ||
         element instanceof HaxeAnonymousTypeField) {
       return FIELD;
     }
-    if (element instanceof HaxeLocalVarDeclarationPart ||
+    if (element instanceof HaxeLocalVarDeclaration ||
+        element instanceof HaxeLocalVarDeclarationPart ||
         element instanceof HaxeForStatement) {
       return VARIABLE;
     }

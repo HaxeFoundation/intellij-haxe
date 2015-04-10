@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -84,7 +85,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 
   public void testPackageCompletionInPackageStatement1() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
-    myFixture.configureByText("Baz.hx", "package <caret>");
+    configureFileByText("Baz.hx", "package <caret>");
     myFixture.completeBasic();
     checkCompletion(CheckType.INCLUDES, "com");
   }
@@ -92,7 +93,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testPackageCompletionInPackageStatement2() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
-    myFixture.configureByText("Foo.hx", "package com.b<caret>");
+    configureFileByText("Foo.hx", "package com.b<caret>");
     myFixture.completeBasic();
     checkCompletion(CheckType.INCLUDES, "bar", "baz");
   }
@@ -100,7 +101,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testPackageCompletionInImportStatement1() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
-    myFixture.configureByText("Foo.hx", "import <caret>");
+    configureFileByText("Foo.hx", "import <caret>");
     myFixture.completeBasic();
     checkCompletion(CheckType.INCLUDES, "com");
   }
@@ -108,7 +109,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testPackageCompletionInImportStatement2() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     myFixture.addFileToProject("com/baz/Baz.hx", "");
-    myFixture.configureByText("Foo.hx", "import com.b<caret>");
+    configureFileByText("Foo.hx", "import com.b<caret>");
     myFixture.completeBasic();
     checkCompletion(CheckType.INCLUDES, "bar", "baz");
   }
@@ -116,7 +117,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testPackageCompletionInImportStatement3() {
     myFixture.addFileToProject("com/foo/Bar.hx", "package com.foo;\nclass Bar {}");
     myFixture.addFileToProject("com/foo/Baz.hx", "package com.foo;\nclass Baz {}");
-    myFixture.configureByText("Foo.hx", "import com.foo.B<caret>");
+    configureFileByText("Foo.hx", "import com.foo.B<caret>");
     myFixture.completeBasic();
     checkCompletion(CheckType.INCLUDES, "Bar", "Baz");
   }

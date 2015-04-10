@@ -20,12 +20,16 @@ import com.intellij.codeInsight.ChangeContextUtil;
 import com.intellij.codeInsight.PsiEquivalenceUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.lang.Language;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAttributes;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -197,13 +201,18 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
   private void doMoveField(PsiSubstitutor substitutor, MemberInfo info) {
     PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(myProject);
     PsiField field = (PsiField)info.getMember();
+
+    if (field instanceof HaxeVarDeclarationPart) {
+      field = (HaxeVarDeclaration)field.getParent();
+    }
+
     field.normalizeDeclaration();
     RefactoringUtil.replaceMovedMemberTypeParameters(field, PsiUtil.typeParametersIterable(mySourceClass), substitutor, elementFactory);
     fixReferencesToStatic(field);
     if (myIsTargetInterface) {
       PsiUtil.setModifierProperty(field, PsiModifier.PUBLIC, true);
     }
-    final PsiMember movedElement = (PsiMember)myTargetSuperClass.add(convertFieldToLanguage(field, myTargetSuperClass.getLanguage()));
+    final PsiMember movedElement = (PsiMember)myTargetSuperClass.addBefore(convertFieldToLanguage(field, myTargetSuperClass.getLanguage()), myTargetSuperClass.getRBrace());
     myMembersAfterMove.add(movedElement);
     field.delete();
   }
@@ -232,6 +241,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
       deleteOverrideAnnotationIfFound(methodCopy);
     }
     boolean isOriginalMethodAbstract = method.hasModifierProperty(PsiModifier.ABSTRACT) || method.hasModifierProperty(PsiModifier.DEFAULT);
+    boolean isOriginalMethodPrototype = method instanceof HaxeFunctionPrototypeDeclarationWithAttributes;
     if (myIsTargetInterface || info.isToAbstract()) {
       ChangeContextUtil.clearContextInfo(method);
 
@@ -255,7 +265,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         methodCopy = HaxeElementGenerator.createFunctionPrototypeDeclarationWithAttributes(myProject, methodCopy.getText().trim() + ";");
 
         movedElement =
-          anchor != null ? (PsiMember)myTargetSuperClass.addBefore(methodCopy, anchor) : (PsiMember)myTargetSuperClass.add(methodCopy);
+          anchor != null ? (PsiMember)myTargetSuperClass.addBefore(methodCopy, anchor) : (PsiMember)myTargetSuperClass.addBefore(methodCopy, myTargetSuperClass.getRBrace());
 
         reformat(movedElement);
       }
@@ -274,9 +284,9 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         deleteOverrideAnnotationIfFound(method);
       }
       myMembersAfterMove.add(movedElement);
-      if (isOriginalMethodAbstract) {
-        method.delete();
-      }
+      //if (isOriginalMethodAbstract) {
+      method.delete();
+      //}
     }
     else {
       if (isOriginalMethodAbstract) {
@@ -291,9 +301,9 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
       else {
         final PsiMember movedElement =
           anchor != null ? (PsiMember)myTargetSuperClass.addBefore(convertMethodToLanguage(methodCopy,
-                                                                                           language), anchor) : (PsiMember)myTargetSuperClass.add(
+                                                                                           language), anchor) : (PsiMember)myTargetSuperClass.addBefore(
             convertMethodToLanguage(
-              methodCopy, language));
+              methodCopy, language), myTargetSuperClass.getRBrace());
         reformat(movedElement);
         myMembersAfterMove.add(movedElement);
       }
@@ -301,15 +311,16 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     }
   }
 
-  private void reformat(PsiMember movedElement) {
-    PsiDocumentManager manager = PsiDocumentManager.getInstance(myProject);
-    Document document = manager.getDocument(myTargetSuperClass.getContainingFile());
-    manager.commitDocument(document);
-
-    final TextRange range = movedElement.getTextRange();
-    final PsiFile file = movedElement.getContainingFile();
-    final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
-    CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+  private void reformat(final PsiMember movedElement) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        final TextRange range = movedElement.getTextRange();
+        final PsiFile file = movedElement.getContainingFile();
+        final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+        CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+      }
+    });
   }
 
   private static PsiMethod convertMethodToLanguage(PsiMethod method, Language language) {

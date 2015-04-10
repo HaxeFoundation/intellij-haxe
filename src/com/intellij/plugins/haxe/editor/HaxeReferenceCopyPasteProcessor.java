@@ -83,6 +83,8 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor  {
 
     List<String> haxeClassList = new ArrayList<String>();
 
+    String qualifiedName;
+
     for (int j = 0; j < startOffsets.length; j++) {
       final int startOffset = startOffsets[j];
       for (final PsiElement element : CollectHighlightsUtil.getElementsInRange(file, startOffset, endOffsets[j])) {
@@ -94,7 +96,10 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor  {
             final List<HaxeComponent> components =
               HaxeComponentIndex.getItemsByName(referenceExpression.getText(), project, scope);
             if (!components.isEmpty() && components.size() == 1) {
-              haxeClassList.add(((HaxeClass)components.get(0)).getQualifiedName());
+              qualifiedName = ((HaxeClass)components.get(0)).getQualifiedName();
+              if (!haxeClassList.contains(qualifiedName)) {
+                haxeClassList.add(qualifiedName);
+              }
             }
           }
         }

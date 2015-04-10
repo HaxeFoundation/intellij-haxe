@@ -22,7 +22,9 @@ import com.intellij.openapi.util.text.CharFilter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.UsefulTestCase;
+import com.intellij.util.LineSeparator;
 
 import java.util.*;
 
@@ -50,6 +52,13 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
   @Override
   protected String getBasePath() {
     return myPath;
+  }
+
+  protected PsiFile configureFileByText(String fname, String text) {
+    String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
+    PsiFile newFile = myFixture.configureByText(fname, text);
+    newFile.getVirtualFile().setDetectedLineSeparator(lineSeparator);
+    return newFile;
   }
 
   protected void doTest() throws Throwable {

@@ -11,7 +11,9 @@ fi
 #call the build script along with the path to a code package
 #specific to the intellij version which we build against
 if [ -d src/"$1" ]; then
-    ant -f build.xml -Dversion.specific.code.location=src/"$1"
+    ant -f build.xml -Dversion.specific.code.location=src/"$1" -Dversion="$1"
 else
-    ant -f build.xml
+    ant -f build.xml -Dversion="$1"
 fi
+
+rm -rf idea-IU
