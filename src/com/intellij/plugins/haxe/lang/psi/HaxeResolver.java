@@ -106,33 +106,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     PsiFile psiFile = reference.getContainingFile();
 
-    List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
-      @Override
-      public boolean value(PsiElement element) {
-        return element instanceof HaxeImportStatementWithWildcard &&
-               UsefulPsiTreeUtil.isImportStatementWildcardForType(UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(
-                 (HaxeImportStatementWithWildcard)element));
-      }
-    });
-
-    for (PsiElement importStatementWithWildcard : importStatementWithWildcardList) {
-      HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)importStatementWithWildcard;
-      String qNameForImportStatementWithWildcardType =
-        UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard1);
-
-      HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qNameForImportStatementWithWildcardType, importStatementWithWildcard1.getContext());
-
-      if (haxeClass != null) {
-        String referenceText = reference.getText();
-        HaxeNamedComponent namedSubComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, referenceText);
-
-        if (namedSubComponent != null && namedSubComponent.isStatic()) {
-          result.add(namedSubComponent.getComponentName().getIdentifier());
-          return result;
-        }
-      }
-    }
-
     if (reference instanceof HaxeReferenceExpression) {
       String text1 = reference.getText();
       PsiElement element = null;
@@ -172,6 +145,58 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       PsiElement packageTarget = packageReference != null ? packageReference.resolve() : null;
       if (packageTarget != null) {
         return Arrays.asList(packageTarget);
+      }
+    }
+
+    List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeImportStatementWithWildcard &&
+               UsefulPsiTreeUtil.isImportStatementWildcardForType(UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(
+                 (HaxeImportStatementWithWildcard)element));
+      }
+    });
+
+    for (PsiElement importStatementWithWildcard : importStatementWithWildcardList) {
+      HaxeImportStatementWithWildcard importStatementWithWildcard1 = (HaxeImportStatementWithWildcard)importStatementWithWildcard;
+      String qNameForImportStatementWithWildcardType =
+        UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard1);
+
+      HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qNameForImportStatementWithWildcardType, importStatementWithWildcard1.getContext());
+
+      if (haxeClass != null) {
+        String referenceText = reference.getText();
+        HaxeNamedComponent namedSubComponent = HaxeResolveUtil.findNamedSubComponent(haxeClass, referenceText);
+
+        if (namedSubComponent != null && namedSubComponent.isStatic()) {
+          result.add(namedSubComponent.getComponentName().getIdentifier());
+          return result;
+        }
+      }
+    }
+
+    List<PsiElement> importStatementWithInSupportList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        if (element instanceof HaxeImportStatementWithInSupport) {
+          PsiElement resolve;
+          HaxeReferenceExpression referenceExpression = ((HaxeImportStatementWithInSupport)element).getReferenceExpression();
+          resolve = referenceExpression.resolve();
+
+          if (resolve != null) {
+            return resolve instanceof PsiMethod;
+          }
+        }
+        return false;
+      }
+    });
+
+    HaxeImportStatementWithInSupport importStatementWithInSupport;
+    for (int i = 0; i < importStatementWithInSupportList.size(); i++) {
+      importStatementWithInSupport = (HaxeImportStatementWithInSupport)importStatementWithInSupportList.get(i);
+      if (reference.getText().equals(importStatementWithInSupport.getIdentifier().getText())) {
+        result.add(importStatementWithInSupport.getReferenceExpression().resolve());
+        return result;
       }
     }
 

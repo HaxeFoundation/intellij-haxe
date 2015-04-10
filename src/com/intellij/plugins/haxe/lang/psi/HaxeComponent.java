@@ -22,5 +22,5 @@ import com.intellij.psi.PsiNamedElement;
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeComponent extends HaxePsiCompositeElement, PsiNamedElement, HaxeNamedComponent {
+public interface HaxeComponent extends  HaxeNamedComponent, PsiNamedElement {
 }

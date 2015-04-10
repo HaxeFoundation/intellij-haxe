@@ -209,12 +209,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
   }
 
-  @Override
-  public PsiElement getContext() {
-    final PsiClass cc = getContainingClass();
-    return cc != null ? cc : super.getContext();
-  }
-
   @NotNull
   @Override
   public MethodSignature getSignature(@NotNull PsiSubstitutor substitutor) {
