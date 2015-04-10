@@ -18,16 +18,60 @@
 <idea-plugin version="2">
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Support</name>
-  <description>Support for the Haxe programming language.  Supports IDEA versions 13.1.5 and 13.1.6. Does NOT work with IDEA 14.</description>
+  <description>Support for the Haxe programming language.</description>
   <vendor>JetBrains, Haxe community</vendor>
   <idea-version since-build="132.400" until-build="135.1306"/>
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9</version>
+  <version>0.9.3</version>
   <change-notes>
     <![CDATA[
+      <p>0.9.3: (community release)</p>
+      <ul>
+        <li>Fix local variable name suggestions to not clash with existing class fields.</li>
+        <li>Fix Introduce Variable refactoring to find all occurrences of the selected expression.</li>
+        <li>
+          No longer block Java (and other) tests from running when Haxe
+          plugin is installed. (Issue #166)
+        </li>
+        <li>
+          Resolve static function imports for import with in keyword.
+          ("import String.fromCharCode in f;")  (Issue #191)
+        </li>
+        <li>
+          Give extern fields public visibility: 'function a()' will be treated
+          as 'public function a()' and will appear in completions.
+        </li>
+        <li>Fix (un)comment multiple lines of code feature.  (Issue #209)</li>
+        <li>Support 'as' keyword in import statements.</li>
+        <li>Implemented Refactoring: Pull Members Up/Push Members Down</li>
+        <li>Support extern interfaces. (Issue #202)</li>
+        <li>Fix visibility determination for methods. (Better completions)</li>
+        <li>Check for duplicate imports when copy/pasting.</li>
+        <li>
+          Fix resolving classes that appear inside of an import file with a
+          different name than the class itself.  Fixes goto declaration as well.
+        </li>
+        <li>Fix colorizing identifiers (variable names) in code.</li>
+        <li>Fix Issue 162: "call(new x(), new x());" parse failure.</li>
+        <li>(Re)Allow "new" for extern and prototype function declarations.</li>
+        <li>Fixed IDEA freeze when XML is edited</li>
+        <li>Implemented Refactoring: Extract Superclass</li>
+        <li>Implemented Refactoring: Extract Interface</li>
+        <li>Implemented Refactoring: Push Members Down</li>
+        <li>Fixed OutOfBoundsException when resolving names.</li>
+        <li>Fix most unit tests.</li>
+      </ul>
+      <p>0.9.2: (community release, IDEA 14 only)</p>
+      <ul>
+        <li>Fixed: HaxeReferenceCopyPasteProcessor issue preventing from using copy paste clipboard functionality</li>
+      </ul>
+      <p>0.9: (community release)</p>
+      <ul>
+        <li>Release ID change only</li>
+      </ul>
       <p>0.8.1.1.TiVo.4: (community version, TiVo Release 4)</p>
       <ul>
         <li>Class Hierarchy view panels implemented. (Menu->Navigate->Type Hierarchy, et al)</li>
