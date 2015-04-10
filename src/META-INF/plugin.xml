@@ -25,13 +25,13 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.TiVo.5</version>
+  <version>0.9.3 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       This build is compatible with @plugin.compatibility.description@
       It was built using IDEA build @idea.sdk.version@
 
-      <p>0.9.TiVo.5: (community version, TiVo Release 5)</p>
+      <p>0.9.3: (community version)</p>
       <ul>
         <li>Class Hierarchy view panels implemented. (Menu->Navigate->Type Hierarchy, et al)</li>
         <li>Better handling of import files.</li>
