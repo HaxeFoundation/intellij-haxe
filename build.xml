@@ -163,6 +163,7 @@
             <fileset dir="resources" />
             <fileset dir="build" includes="**/*.*" excludes="src/META-INF/*.*"/>
             <fileset dir="build/src" includes="META-INF/*.*"/>
+            <fileset dir="common/src" includes="**/*.*" excludes="**/*.java"/>
             <fileset dir="src" >
               <include name="com/**"/>
               <exclude name="**/*.java"/>
