@@ -4,3 +4,4 @@ out/
 .iml
 build/
 local-build-overrides.xml
+intellij-haxe.jar
