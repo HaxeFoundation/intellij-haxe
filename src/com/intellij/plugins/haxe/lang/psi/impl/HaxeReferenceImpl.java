@@ -493,7 +493,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     else if (element instanceof PsiPackage) {
       bindToPackage((PsiPackage)element);
     }
+    else if (element instanceof PsiClass) {
+      bindToClass((PsiClass)element);
+    }
     return this;
+  }
+
+  private void bindToClass(PsiClass element) {
+    handleElementRename(element.getName());
   }
 
   private void bindToPackage(PsiPackage element) {
