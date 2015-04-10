@@ -270,11 +270,11 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         reformat(movedElement);
       }
       CodeStyleSettings styleSettings = CodeStyleSettingsManager.getSettings(method.getProject());
-      if (styleSettings.INSERT_OVERRIDE_ANNOTATION) {
+      /*if (styleSettings.INSERT_OVERRIDE_ANNOTATION) {
         if (PsiUtil.isLanguageLevel5OrHigher(mySourceClass) && !myIsTargetInterface || PsiUtil.isLanguageLevel6OrHigher(mySourceClass)) {
           new AddAnnotationFix(Override.class.getName(), method).invoke(method.getProject(), null, mySourceClass.getContainingFile());
         }
-      }
+      }*/
       if (!PsiUtil.isLanguageLevel6OrHigher(mySourceClass) && myIsTargetInterface) {
         if (isOriginalMethodAbstract) {
           for (PsiMethod oMethod : OverridingMethodsSearch.search(method)) {
