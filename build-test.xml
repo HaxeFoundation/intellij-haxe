@@ -1,16 +1,7 @@
 <project name="Idea Haxe language scripted test file" default="test" basedir=".">
 
-    <!-- set global properties for this build -->
-    <property name="build.compiler" value="modern"/>
-    <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
-
-    <!-- defines a path for code specific to an intellij version.
-         intellij SDK has non-backward compatible changes which requires
-         some duplicated Java files.
-
-         This property defaults to "src" if missing, this way you can
-         choose not to include any version specific code -->
-    <property name="version.specific.code.location" location="src" />
+    <!-- Get the build configuration. -->
+    <import file="common.xml"/>
 
     <path id="idea.classpath">
         <fileset dir="${idea.ultimate.build}/lib">
@@ -41,7 +32,7 @@
         </fileset>
     </path>
 
-    <target name="clean" description="clean up">
+    <target name="clean" description="Clean Up: Remove test artifacts (build_test directory).">
         <delete dir="build_test" />
     </target>
 
@@ -123,6 +114,7 @@
             <jvmarg value="-ea"/>
             <jvmarg line="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=${suspend},address=43251"/>
             <jvmarg value="-Didea.launcher.bin.path=${idea.ultimate.build}/bin"/>
+            <jvmarg value="-XX:MaxPermSize=128m"/>
             <classpath refid="classpath.test"/>
 
             <formatter type="brief" usefile="false"/>
