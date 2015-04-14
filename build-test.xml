@@ -110,8 +110,8 @@
 
         <junit
             printsummary="yes"
-            haltonfailure="true"
-            showoutput="yes"
+            haltonfailure="false"
+            showoutput="no"
             failureProperty="failure_found"
             fork="yes"
             forkmode="once"
@@ -123,6 +123,8 @@
             <jvmarg value="-ea"/>
             <jvmarg line="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=${suspend},address=43251"/>
             <jvmarg value="-Didea.launcher.bin.path=${idea.ultimate.build}/bin"/>
+            <!-- Tests fail with a default MaxPermSize.  They use up all of the PermGen memory. -->
+            <jvmarg value="-XX:MaxPermSize=256m"/>
             <classpath refid="classpath.test"/>
 
             <formatter type="brief" usefile="false"/>
