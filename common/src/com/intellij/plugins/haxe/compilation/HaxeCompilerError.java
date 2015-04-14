@@ -99,14 +99,14 @@ public class HaxeCompilerError {
             rawPath = m.group(1);
             rawLine = m.group(2);
             rawColumn = m.group(3);
-            text = m.group(4);
+            text = m.group(4).trim();
         }
         // ([^:]+):([\\d]+): lines [\\d]+-[\\d]+ :(.*)
         else if ((m = pLineError.matcher(message)).matches()) {
             rawPath = m.group(1);
             rawLine = m.group(2);
             rawColumn = "-1";
-            text = m.group(3);
+            text = m.group(3).trim();
         }
         // Anything that doesn't match error patterns is purely informational
         else {
@@ -142,10 +142,20 @@ public class HaxeCompilerError {
             column = -1;
         }
 
-        return new HaxeCompilerError((text.indexOf("Warning") == -1) ?
-                                     CompilerMessageCategory.ERROR :
-                                     CompilerMessageCategory.WARNING,
-                                     text.trim(), filePath, line, column);
+        final String warningStr = "Warning";
+        if (0 == text.indexOf(warningStr)) {
+          text = text.substring(warningStr.length()).trim();
+          final String colonChar = ":";
+          if (0 == text.indexOf(colonChar)) {
+            text = text.substring(colonChar.length()).trim();
+          }
+          return new HaxeCompilerError(CompilerMessageCategory.WARNING,
+                                       text, filePath, line, column);
+        }
+        else {
+          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+                                       text, filePath, line, column);
+        }
     }
 
     static Pattern pLibraryNotInstalled = Pattern.compile
