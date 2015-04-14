@@ -86,12 +86,6 @@ public class HaxeCompilerError {
                                          m.group(2).trim(), "", -1, -1);
         }
 
-        // Error:(.*)
-        if ((m = pBareError.matcher(message)).matches()) {
-            return new HaxeCompilerError(CompilerMessageCategory.ERROR,
-                                         m.group(1).trim(), "", -1, -1);
-        }
-
         String rawPath = null, rawLine, rawColumn, text;
 
         // ([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)
@@ -107,6 +101,11 @@ public class HaxeCompilerError {
             rawLine = m.group(2);
             rawColumn = "-1";
             text = m.group(3).trim();
+        }
+        // Error:(.*)
+        else if ((m = pBareError.matcher(message)).matches()) {
+          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+                                       m.group(1).trim(), "", -1, -1);
         }
         // Anything that doesn't match error patterns is purely informational
         else {
