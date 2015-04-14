@@ -93,16 +93,15 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
   }
 
   public void testWarnings() {
-// TODO: Fix failing unit test
-//    final String error = "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!";
-//    final String rootPath = "/trees/test";
-//    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
-//
-//    assertNotNull(compilerError);
-//    assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
-//    assertEquals("/trees/test/hello/HelloWorld.hx", compilerError.getPath());
-//    assertEquals("Danger, Will Robinson!", compilerError.getErrorMessage());
-//    assertEquals(18, compilerError.getLine());
-//    assertEquals(-1, compilerError.getColumn());
+    final String error = "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!";
+    final String rootPath = "/trees/test";
+    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
+
+    assertNotNull(compilerError);
+    assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
+    assertEquals("/trees/test/hello/HelloWorld.hx", compilerError.getPath());
+    assertEquals("Danger, Will Robinson!", compilerError.getErrorMessage());
+    assertEquals(18, compilerError.getLine());
+    assertEquals(-1, compilerError.getColumn());
   }
 }
