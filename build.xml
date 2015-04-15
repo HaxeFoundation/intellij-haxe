@@ -1,5 +1,9 @@
 <project name="Idea Haxe language scripted package plugin" default="package" basedir=".">
 
+    <description>
+      Run "ant -f common.xml -projecthelp" for more complete project help.
+    </description>
+
     <import file="common.xml"/>
 
     <!-- javac2 is an intellij ant task to wrap the java compiler and add

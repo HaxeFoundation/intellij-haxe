@@ -1,5 +1,9 @@
 <project name="Idea Haxe language scripted test file" default="test" basedir=".">
 
+    <description>
+      Run "ant -f common.xml -projecthelp" for more complete project help.
+    </description>
+
     <!-- Get the build configuration. -->
     <import file="common.xml"/>
 

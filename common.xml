@@ -15,24 +15,24 @@
     example file could look like:
 
     &lt;project name="local-overrides"&gt;
-    &lt;echo&gt;
-    Including local overrides...
-    &lt;/echo&gt;
+      &lt;echo&gt;
+        Including local overrides...
+      &lt;/echo&gt;
 
-    &lt;property environment="env"/&gt;
-    &lt;property name="idea.installation.dir" location="$${env.HOME}/intellij_idea" /&gt;
-    &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-135.1286/" &gt;
-    &lt;matches pattern="13." string="$${version}"/&gt;
-    &lt;/condition&gt;
-    &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-139.1117.1/"&gt;
-    &lt;matches pattern="14." string="$${version}"/&gt;
-    &lt;/condition&gt;
+      &lt;property environment="env"/&gt;
+      &lt;property name="idea.installation.dir" location="$${env.HOME}/intellij_idea" /&gt;
+      &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-135.1286/" &gt;
+        &lt;matches pattern="13." string="$${version}"/&gt;
+      &lt;/condition&gt;
+      &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-139.1117.1/"&gt;
+        &lt;matches pattern="14." string="$${version}"/&gt;
+      &lt;/condition&gt;
 
     &lt;/project&gt;
 
     Or, more simply:
     &lt;project name="local-overrides"&gt;
-    &lt;property name="idea.ultimate.build" location="/home/username/intellij_idea/idea-IU-135.1286/" /&gt;
+      &lt;property name="idea.ultimate.build" location="/home/username/intellij_idea/idea-IU-135.1286/" /&gt;
     &lt;/project&gt;
 
   </description>
@@ -77,8 +77,16 @@
 
     Either '${idea.ultimate.build}' does not exist, or it does not appear
     to be a normal IDEA installation.  (It should contain a build.txt file.)
-    See the description section at the top of this file for more
+    See the description section at the top of this file (common.xml) for more
     information.
+
+    You can tell this build where to find to your IDEA Ultimate build directory
+    by adding "-Didea.ultimate.build=path_to_your_IDEA_installation" to the
+    command line, where path_to_your_IDEA_installation is a directory on your
+    local machine.
+
+    Alternately, you can run this build by executing the build.sh file in the
+    project root directory, which will fetch a new installation for you.
   </fail>
 
   <!-- the version of intellij we are using as the SDK. -->
@@ -97,7 +105,7 @@
     Could not detect IDEA version.
     Does the idea.ultimate.build property point to your IDEA installation?
     Perhaps you need to set up a local-build-overrides file?
-    See the description section at the top of this file for more information.
+    See the description section at the top of common.xml for more information.
   </fail>
 
   <!-- The properties are mostly used as filters, but they can be useful for other things. -->
