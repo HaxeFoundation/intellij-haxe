@@ -23,3 +23,7 @@ rm -rf ideaIU-${ideaVersion}.tar.gz
 # Move the versioned IDEA folder to a known location
 ideaPath=$(find . -name 'idea-IU*' | head -n 1)
 mv ${ideaPath} ./idea-IU
+
+# Disable unneeded plugins.  Really, those that cause problems.
+echo "Git4Idea" >> ./idea-IU/config/disabled_plugins.txt
+
