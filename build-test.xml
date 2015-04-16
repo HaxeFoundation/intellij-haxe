@@ -4,13 +4,16 @@
     <property name="build.compiler" value="modern"/>
     <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
 
+    <!-- the version of intellij we are building against. will be override if we run build.sh or travis.sh -->
+    <property name="version" value="13.1.6" />
+
     <!-- defines a path for code specific to an intellij version.
          intellij SDK has non-backward compatible changes which requires
          some duplicated Java files.
 
          This property defaults to "src" if missing, this way you can
          choose not to include any version specific code -->
-    <property name="version.specific.code.location" location="src" />
+    <property name="version.specific.code.location" location="src-version/${version}" />
 
     <path id="idea.classpath">
         <fileset dir="${idea.ultimate.build}/lib">
