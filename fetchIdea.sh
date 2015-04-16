@@ -25,5 +25,10 @@ ideaPath=$(find . -name 'idea-IU*' | head -n 1)
 mv ${ideaPath} ./idea-IU
 
 # Disable unneeded plugins.  Really, those that cause problems.
-echo "Git4Idea" >> ./idea-IU/config/disabled_plugins.txt
+echo Disabling unneeded or problematic plugins...
+echo BTW, \$HOME is ${HOME}
+config_dir=./idea-IU/config
+dp_file=${config_dir}/disabled_plugins.txt
+[[ -d ${config_dir} ]] || mkdir ${config_dir}
+echo "Git4Idea" >> ${dp_file}
 
