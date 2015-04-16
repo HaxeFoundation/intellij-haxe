@@ -28,19 +28,6 @@
     </target>
 
 
-    <target name="metainf" description="Copy and update META-INF files with version-specific information">
-      <!-- Need to overwrite always.  Otherwise, copied files are newer and
-           won't be updated between build types (versions). -->
-      <copy todir="build/src/META-INF" overwrite="true" verbose="true">
-          <fileset dir="src/META-INF"/>
-          <filterset>
-            <filtersfile file="${plugin.properties.file}"/>
-            <!-- An odd construction, but it allows using a property in the filtered file. -->
-            <filter token="idea.sdk.version" value="${idea.sdk.version}"/>
-          </filterset>
-        </copy>
-    </target>
-
 
     <target name="compile" depends="clean,init" description="Compile tests">
         <echo level="warning">
@@ -73,7 +60,7 @@
         <jar jarfile="intellij-haxe-${idea.version}.jar" update="true">
             <fileset dir="resources" />
             <fileset dir="build" includes="**/*.*" excludes="src/META-INF/*.*"/>
-            <fileset dir="build/src" includes="META-INF/*.*"/>
+            <fileset dir="gen" includes="META-INF/*.*"/>
             <fileset dir="common/src" includes="**/*.*" excludes="**/*.java"/>
             <fileset dir="src/common" >
               <include name="com/**"/>

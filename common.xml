@@ -127,4 +127,38 @@
     <echo>Including version specific code from ${version.specific.code.location}</echo>
   </target>
 
+
+  <!-- Copy the plugin.xml and replace elements within it with version appropriate data.-->
+
+  <property name="intellij-haxe.metainf.directory" value="src/META-INF"/>
+  <property name="plugin.autogen.warning">
+
+    ==============================================================
+    W A R N I N G ! !      W A R N I N G ! !     W A R N I N G ! !
+    ==============================================================
+
+    Warning!! This file is auto-generated.  Do NOT edit it directly.
+    The corresponding source file can be found at ${intellij-haxe.metainf.directory}.
+
+    ==============================================================
+    W A R N I N G ! !      W A R N I N G ! !     W A R N I N G ! !
+    ==============================================================
+
+  </property>
+  <target name="metainf" description="Copy and update META-INF files with version-specific information">
+    <!-- Need to overwrite always.  Otherwise, copied files are newer and
+         won't be updated between build types (versions). -->
+    <copy todir="gen/META-INF" overwrite="true" verbose="true">
+      <fileset dir="${intellij-haxe.metainf.directory}"/>
+      <filterset>
+        <filtersfile file="${plugin.properties.file}"/>
+        <!-- An odd construction, but it allows using a property in the filtered file. -->
+        <filter token="idea.sdk.version" value="${idea.sdk.version}"/>
+        <filter token="replace.with.plugin.autogen.warning" value="${plugin.autogen.warning}"/>
+      </filterset>
+    </copy>
+  </target>
+
+
+
 </project>

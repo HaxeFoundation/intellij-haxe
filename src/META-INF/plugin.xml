@@ -15,6 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
+<!-- @replace.with.plugin.autogen.warning@ -->
+
+
 <idea-plugin version="2">
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Support</name>

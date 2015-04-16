@@ -45,7 +45,7 @@
         <mkdir dir="build_test"/>
     </target>
 
-    <target name="compile_test" depends="clean,init" description="Compile tests">
+    <target name="compile_test" depends="clean,init,metainf" description="Compile tests">
 
         <!-- javac2 is an intellij ant task to wrap the java compiler and add
              support to .form files and @NotNull annotations, among others -->
@@ -79,18 +79,19 @@
         <copy toDir="build_test">
             <fileset dir="src/common">
                 <include name="**/*.properties"/>
-                <include name="**/*.xml"/>
                 <include name="**/*.txt"/>
                 <include name="**/*.java"/>
             </fileset>
             <fileset dir="common/src">
                 <include name="**/*.properties"/>
-                <include name="**/*.xml"/>
                 <include name="**/*.txt"/>
                 <include name="**/*.java"/>
             </fileset>
             <fileset dir="${basedir}/resources">
                 <include name="*/**"/>
+            </fileset>
+            <fileset dir="gen">
+              <include name="META-INF/*"/>
             </fileset>
         </copy>
 
