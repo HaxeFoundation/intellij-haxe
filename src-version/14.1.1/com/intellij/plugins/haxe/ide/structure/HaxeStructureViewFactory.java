@@ -21,8 +21,11 @@ import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.TreeBasedStructureViewBuilder;
 import com.intellij.lang.PsiStructureViewFactory;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -30,10 +33,14 @@ import org.jetbrains.annotations.NotNull;
 public class HaxeStructureViewFactory implements PsiStructureViewFactory {
   @Override
   public StructureViewBuilder getStructureViewBuilder(final PsiFile psiFile) {
+    if (!(psiFile instanceof HaxeFile)) {
+      return null;
+    }
     return new TreeBasedStructureViewBuilder() {
       @NotNull
-      public StructureViewModel createStructureViewModel() {
-        return new HaxeStructureViewModel(psiFile);
+      @Override
+      public StructureViewModel createStructureViewModel(@Nullable Editor editor) {
+        return new HaxeStructureViewModel(psiFile, editor);
       }
 
       @Override

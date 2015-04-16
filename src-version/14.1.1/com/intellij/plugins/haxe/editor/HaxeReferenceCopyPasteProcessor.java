@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.editor;
 
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil;
 import com.intellij.codeInsight.editorActions.CopyPastePostProcessor;
-import com.intellij.codeInsight.editorActions.TextBlockTransferableData;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
@@ -37,29 +36,29 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.annotations.Nullable;
-
+import org.jetbrains.annotations.NotNull;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by as3boyan on 08.10.14.
  */
-public class HaxeReferenceCopyPasteProcessor implements CopyPastePostProcessor  {
+public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor<HaxeTextBlockTransferableData>  {
 
-  @Nullable
+  @NotNull
   @Override
-  public TextBlockTransferableData collectTransferableData(PsiFile file, Editor editor, int[] startOffsets, int[] endOffsets) {
-    return null;
+  public List<HaxeTextBlockTransferableData> collectTransferableData(PsiFile file, Editor editor, int[] startOffsets, int[] endOffsets) {
+    return Collections.emptyList(); //TODO impl
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public TextBlockTransferableData extractTransferableData(Transferable content) {
+  public List<HaxeTextBlockTransferableData> extractTransferableData(Transferable content) {
     Object transferData = null;
     try {
       transferData = content.getTransferData(DataFlavor.stringFlavor);
@@ -70,13 +69,16 @@ public class HaxeReferenceCopyPasteProcessor implements CopyPastePostProcessor  
     catch (IOException e) {
       e.printStackTrace();
     }
-    return new HaxeTextBlockTransferableData();
+    return Collections.emptyList(); //TODO impl
   }
 
   @Override
-  public void processTransferableData(Project project, Editor editor, RangeMarker marker, int i, Ref ref, TextBlockTransferableData data) {
+  public void processTransferableData(Project project, Editor editor, RangeMarker marker, int caretOffset, Ref<Boolean> indented, List<HaxeTextBlockTransferableData> values) {
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+    if (file == null) {
+      return;
+    }
     int[] startOffsets = new int[]{marker.getStartOffset()};
     int[] endOffsets = new int[]{marker.getEndOffset()};
 
@@ -116,7 +118,7 @@ public class HaxeReferenceCopyPasteProcessor implements CopyPastePostProcessor  
     for (final String object : selectedObjects) {
       new WriteCommandAction(project, file) {
         @Override
-        protected void run(Result result) throws Throwable {
+        protected void run(@NotNull Result result) throws Throwable {
           HaxeAddImportHelper.addImport(object, file);
         }
       }.execute();

@@ -23,6 +23,7 @@ import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.impl.java.VisibilitySorter;
 import com.intellij.ide.util.treeView.smartTree.*;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
@@ -31,13 +32,14 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeStructureViewModel extends StructureViewModelBase implements StructureViewModel.ElementInfoProvider {
-  public HaxeStructureViewModel(@NotNull PsiFile psiFile) {
-    super(psiFile, new HaxeStructureViewElement(psiFile));
+  public HaxeStructureViewModel(@NotNull PsiFile psiFile, @Nullable Editor editor) {
+    super(psiFile, editor, new HaxeStructureViewElement(psiFile));
     withSorters(Sorter.ALPHA_SORTER, VisibilitySorter.INSTANCE);
     withSuitableClasses(HaxeNamedComponent.class, HaxeClass.class);
   }
