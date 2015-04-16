@@ -10,7 +10,9 @@
       <sourceFolder url="file://$MODULE_DIR$/grammar" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/testData" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
-      <excludeFolder url="file://$MODULE_DIR$/src/com/intellij/plugins/haxe/runner/debugger/JavaProtocol/src" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/build_test" />
+      <excludeFolder url="file://$MODULE_DIR$/src/14.0.1" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
