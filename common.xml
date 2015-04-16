@@ -93,6 +93,10 @@
   <loadfile property="idea.sdk.version" srcFile="${idea.ultimate.build}/build.txt"/>
   <echo level="debug">Using installed IDEA version of ${idea.sdk.version}</echo>
 
+  <!-- Lookup table for properties files.  Add new versions here. -->
+  <condition property="plugin.properties.file" value="idea_v14.1.properties">
+    <matches pattern="-141." string="${idea.sdk.version}"/>
+  </condition>
   <condition property="plugin.properties.file" value="idea_v14.properties">
     <matches pattern="-139." string="${idea.sdk.version}"/>
   </condition>
@@ -102,10 +106,12 @@
   <echo level="debug">Idea property file is ${plugin.properties.file}</echo>
 
   <fail unless="plugin.properties.file">
-    Could not detect IDEA version.
-    Does the idea.ultimate.build property point to your IDEA installation?
-    Perhaps you need to set up a local-build-overrides file?
-    See the description section at the top of common.xml for more information.
+    Unable to load properties.
+
+    Could not locate properties for IDEA SDK version ${idea.sdk.version}.
+
+    If you are compiling a a newly released version of IDEA, perhaps the version
+    number(s) must be added to the lookup table in common.xml.
   </fail>
 
   <!-- The properties are mostly used as filters, but they can be useful for other things. -->
@@ -119,7 +125,9 @@
      choose not to include any version specific code -->
   <property name="version.specific.code.location" location="src/common" />
 
-  <target name="showIdeaBuild" >
+  <!-- Show pertinent build information -->
+
+  <target name="showIdeaBuild" description="Show build information, including SDK and version data.">
     <echo>Requested version is set to "${version}"</echo>
     <echo>Using installed IDEA version of ${idea.sdk.version}</echo>
     <echo>Using IDEA build at "${idea.ultimate.build}</echo>
