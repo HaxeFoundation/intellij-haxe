@@ -22,11 +22,9 @@
         <delete dir="build" />
     </target>
 
-    <target name="init">
+    <target name="init" depends="showIdeaBuild">
         <tstamp/>
         <mkdir dir="build"/>
-        <echo message="Using IDEA build from: ${idea.ultimate.build}" />
-        <echo message="Using JAVA_HOME: ${java.home}" />
     </target>
 
 
@@ -77,7 +75,7 @@
             <fileset dir="build" includes="**/*.*" excludes="src/META-INF/*.*"/>
             <fileset dir="build/src" includes="META-INF/*.*"/>
             <fileset dir="common/src" includes="**/*.*" excludes="**/*.java"/>
-            <fileset dir="src" >
+            <fileset dir="src/common" >
               <include name="com/**"/>
               <exclude name="**/*.java"/>
             </fileset>
