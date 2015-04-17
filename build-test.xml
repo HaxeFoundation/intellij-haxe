@@ -1,16 +1,11 @@
 <project name="Idea Haxe language scripted test file" default="test" basedir=".">
 
-    <!-- set global properties for this build -->
-    <property name="build.compiler" value="modern"/>
-    <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
+    <description>
+      Run "ant -f common.xml -projecthelp" for more complete project help.
+    </description>
 
-    <!-- defines a path for code specific to an intellij version.
-         intellij SDK has non-backward compatible changes which requires
-         some duplicated Java files.
-
-         This property defaults to "src" if missing, this way you can
-         choose not to include any version specific code -->
-    <property name="version.specific.code.location" location="src" />
+    <!-- Get the build configuration. -->
+    <import file="common.xml"/>
 
     <path id="idea.classpath">
         <fileset dir="${idea.ultimate.build}/lib">
@@ -41,18 +36,16 @@
         </fileset>
     </path>
 
-    <target name="clean" description="clean up">
+    <target name="clean" description="Clean Up: Remove test artifacts (build_test directory).">
         <delete dir="build_test" />
     </target>
 
-    <target name="init">
+    <target name="init" depends="showIdeaBuild">
         <tstamp/>
         <mkdir dir="build_test"/>
-        <echo message="Using IDEA build from: ${idea.ultimate.build}" />
-        <echo message="Using JAVA_HOME: ${java.home}" />
     </target>
 
-    <target name="compile_test" depends="clean,init" description="Compile tests">
+    <target name="compile_test" depends="clean,init,metainf" description="Compile tests">
 
         <!-- javac2 is an intellij ant task to wrap the java compiler and add
              support to .form files and @NotNull annotations, among others -->
@@ -74,7 +67,8 @@
             includeantruntime="false" >
 
             <src path="${version.specific.code.location}" />
-            <src path="src" />
+            <src path="src/common" />
+            <src path="src/icons" />
             <src path="gen" />
             <src path="testSrc" />
             <src path="testData" />
@@ -83,20 +77,21 @@
         </javac2>
 
         <copy toDir="build_test">
-            <fileset dir="src">
+            <fileset dir="src/common">
                 <include name="**/*.properties"/>
-                <include name="**/*.xml"/>
                 <include name="**/*.txt"/>
                 <include name="**/*.java"/>
             </fileset>
             <fileset dir="common/src">
                 <include name="**/*.properties"/>
-                <include name="**/*.xml"/>
                 <include name="**/*.txt"/>
                 <include name="**/*.java"/>
             </fileset>
             <fileset dir="${basedir}/resources">
                 <include name="*/**"/>
+            </fileset>
+            <fileset dir="gen">
+              <include name="META-INF/*"/>
             </fileset>
         </copy>
 
@@ -115,7 +110,8 @@
             failureProperty="failure_found"
             fork="yes"
             forkmode="once"
-            reloading="no">
+            reloading="no"
+            enabletestlistenerevents="true">
 
             <jvmarg value="-Didea.home.path=${idea.ultimate.build}"/>
             <jvmarg value="-Xbootclasspath/a:${idea.ultimate.build}/lib/boot.jar"/>
