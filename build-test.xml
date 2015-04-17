@@ -104,7 +104,6 @@
         <property name="suspend" value="n"/>
 
         <junit
-            printsummary="yes"
             haltonfailure="false"
             showoutput="no"
             failureProperty="failure_found"
@@ -133,11 +132,8 @@
             </batchtest>
         </junit>
 
-        <antcall target="check_test"/>
+        <fail if="failure_found" message="Unit test failures detected."/>
     </target>
 
-    <target name="check_test" if="failure_found">
-        <fail message="Failures found"/>
-    </target>
 
 </project>
