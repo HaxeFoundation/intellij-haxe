@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.actions;
 
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
@@ -45,6 +46,7 @@ public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixture
     new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex
       .getItemsByName(type.getReferenceExpression().getText(), type.getProject(), scope))
       .execute();
+    FileDocumentManager.getInstance().saveAllDocuments();
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }
 
