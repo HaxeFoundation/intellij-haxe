@@ -14,6 +14,6 @@ before_script:
 script: make test
 env:
     - IDEA_VERSION=13.1.6
-    - IDEA_VERSION=14.0.1
+    - IDEA_VERSION=14.0.4
 notifications:
   email: false
