@@ -7,7 +7,7 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 ideaVersion=$1
-ideaPrimaryVersionID=${ideaVersion%%\..*}
+ideaPrimaryVersionID=${ideaVersion%%\.*}
 
 # Get our IDEA dependency
 if [ -f ~/Tools/ideaIU-${ideaVersion}.tar.gz ];
