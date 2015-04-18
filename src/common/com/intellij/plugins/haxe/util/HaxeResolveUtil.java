@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -27,7 +26,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
@@ -111,7 +109,7 @@ public class HaxeResolveUtil {
     final String packageName = dotIndex == -1 ? "" : qName.substring(0, dotIndex);
     final String className = dotIndex == -1 ? qName : qName.substring(dotIndex + 1);
 
-    return new Pair<String, String>(packageName, className);
+    return Pair.create(packageName, className);
   }
 
   @NotNull
@@ -222,11 +220,8 @@ public class HaxeResolveUtil {
     }
     final List<HaxeType> result = new ArrayList<HaxeType>();
     for (HaxeInherit inherit : extendsList) {
-      final PsiElement firstChild = inherit.getFirstChild();
       final List<HaxeType> inheritTypes = inherit.getTypeList();
-      if (inheritTypes != null) {
-        result.addAll(inheritTypes);
-      }
+      result.addAll(inheritTypes);
     }
     return result;
   }
@@ -261,7 +256,6 @@ public class HaxeResolveUtil {
     classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
-      String name = haxeClass.getName();
       for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
         if (namedComponent.getName() != null) {
           unfilteredResult.add(namedComponent);
@@ -372,9 +366,7 @@ public class HaxeResolveUtil {
     if (variables == null) {
       return result;
     }
-    for (HaxeVarDeclaration varDeclaration : variables) {
-      result.add(varDeclaration);
-    }
+    Collections.addAll(result, variables);
     return result;
   }
 
@@ -515,7 +507,6 @@ public class HaxeResolveUtil {
   public static List<HaxeClass> tyrResolveClassesByQName(@NotNull List<HaxeType> types) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     for (HaxeType haxeType : types) {
-      String text = haxeType.getText();
       final HaxeClass haxeClass = tryResolveClassByQName(haxeType);
       if (haxeClass != null) {
         result.add(haxeClass);
@@ -530,8 +521,8 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    String name = getQName(type, false);
-    HaxeClass result = findClassByQName(name, type.getContext());
+    String name = getQName(type);
+    HaxeClass result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
@@ -565,7 +556,8 @@ public class HaxeResolveUtil {
     return ownerClass == null ? null : findComponentDeclaration(ownerClass.getContainingFile(), element.getText());
   }
 
-  public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
+  @Nullable
+  private static String getQName(@NotNull PsiElement type) {
     HaxeImportStatementWithInSupport importStatementWithInSupport = PsiTreeUtil.getParentOfType(type,
                                                                                                 HaxeImportStatementWithInSupport.class,
                                                                                                 false);
@@ -575,24 +567,20 @@ public class HaxeResolveUtil {
 
     HaxeUsingStatement usingStatement = PsiTreeUtil.getParentOfType(type, HaxeUsingStatement.class, false);
     if (usingStatement != null) {
-      return usingStatement.getReferenceExpression().getText();
+      HaxeReferenceExpression expression = usingStatement.getReferenceExpression();
+      return expression == null? null : expression.getText();
     }
 
-    String text = type.getText();
     if (type instanceof HaxeReferenceExpression) {
-      String text1 = type.getText();
-      PsiElement element = null;
       if (type.getParent() instanceof HaxeReferenceExpression) {
-        element = type;
+        PsiElement element = type;
         while (element.getParent() instanceof HaxeReferenceExpression) {
           element = element.getParent();
         }
 
-        if (element != null) {
-          HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
-          if (haxeClass != null) {
-            return element.getText();
-          }
+        HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
+        if (haxeClass != null) {
+          return element.getText();
         }
 
         PsiElement parent = type.getParent();
@@ -603,16 +591,32 @@ public class HaxeResolveUtil {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  private static HaxeClass tryResolveClassByQNameWhenGetQNameFail(@NotNull PsiElement type) {
     if (type instanceof HaxeType) {
       type = ((HaxeType)type).getReferenceExpression();
     }
 
-    final String result = type.getText();
-    if (result.indexOf('.') == -1) {
+    final String name = type.getText();
+    HaxeClass result = null;
+
+    //1. try searchInSamePackage, ex if type is Bar, be referenced in foo.Foo then we will find class foo.Bar
+    //note if there are 2 class: Bar & foo.Bar then we need resolve foo.Bar instead of Bar.
+    if (name != null && name.indexOf('.') == -1) {
       final PsiFile psiFile = type.getContainingFile();
       final PsiElement[] fileChildren = psiFile.getChildren();
-      return getQName(fileChildren, result, searchInSamePackage);
+      String nameWithPackage = getQName(fileChildren, name, true);
+      result = findClassByQName(nameWithPackage, type.getContext());
     }
+
+    //2. try without searchInSamePackage,
+    // ex if type is Int, be referenced in foo.Foo then we will find class has qName = Int, not foo.Int
+	// (if foo.Int exist then the prev step have aready resolved & returned it)
+    result = result != null ? result : findClassByQName(name, type.getContext());
+
     return result;
   }
 
@@ -712,8 +716,7 @@ public class HaxeResolveUtil {
       return importStatementExpression.getText();
     }
     else if (importStatementWithInSupport != null && importStatementWithInExpression != null) {
-      String text = importStatementWithInExpression.getText();
-      return text;
+      return importStatementWithInExpression.getText();
     }
     else if (importStatementWithWildcard != null) {
       String text = importStatementWithWildcard.getReferenceExpression().getText();

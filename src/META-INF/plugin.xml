@@ -15,20 +15,27 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
+<!-- @replace.with.plugin.autogen.warning@ -->
+
+
 <idea-plugin version="2">
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Support</name>
   <description>Support for the Haxe programming language.</description>
   <vendor>JetBrains, Haxe community</vendor>
-  <idea-version since-build="139.1"/>
+  <idea-version since-build="@plugin.installable.since@" until-build="@plugin.installable.until@"/>
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.3</version>
+  <version>0.9.3 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
-      <p>0.9.3: (community release)</p>
+      <p>This build is compatible with @plugin.compatibility.description@</p>
+      <p>It was built using IDEA build @idea.sdk.version@</p>
+      <p/>
+      <p>0.9.3: (community version)</p>
       <ul>
         <li>Fix local variable name suggestions to not clash with existing class fields.</li>
         <li>Fix Introduce Variable refactoring to find all occurrences of the selected expression.</li>

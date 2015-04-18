@@ -3,4 +3,7 @@ out/
 .idea/
 .iml
 build/
-intellij-haxe.jar
+build_test/
+local-build-overrides.xml
+intellij-haxe*.jar
+gen/META-INF/

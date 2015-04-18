@@ -30,6 +30,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -67,12 +68,14 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
     return myElement instanceof NavigationItem && ((NavigationItem)myElement).canNavigateToSource();
   }
 
+  //FIXME override @NotNull with a @Nullable!
   @Nullable
   @Override
   public ItemPresentation getPresentation() {
     return myElement instanceof NavigationItem ? ((NavigationItem)myElement).getPresentation() : null;
   }
 
+  @NotNull
   @Override
   public TreeElement[] getChildren() {
     if (!myElement.isValid()) {
@@ -116,6 +119,7 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
     return 0;
   }
 
+  @NotNull
   @Override
   public String getAlphaSortKey() {
     final String result = myElement instanceof NavigationItem ? ((NavigationItem)myElement).getName() : null;
