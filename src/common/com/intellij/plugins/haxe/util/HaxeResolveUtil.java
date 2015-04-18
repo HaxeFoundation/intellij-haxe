@@ -521,8 +521,8 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    String name = getQName(type, false);
-    HaxeClass result = findClassByQName(name, type.getContext());
+    String name = getQName(type);
+    HaxeClass result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
@@ -557,7 +557,7 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static String getQName(@NotNull PsiElement type, boolean searchInSamePackage) {
+  private static String getQName(@NotNull PsiElement type) {
     HaxeImportStatementWithInSupport importStatementWithInSupport = PsiTreeUtil.getParentOfType(type,
                                                                                                 HaxeImportStatementWithInSupport.class,
                                                                                                 false);
@@ -591,16 +591,32 @@ public class HaxeResolveUtil {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  private static HaxeClass tryResolveClassByQNameWhenGetQNameFail(@NotNull PsiElement type) {
     if (type instanceof HaxeType) {
       type = ((HaxeType)type).getReferenceExpression();
     }
 
-    final String result = type.getText();
-    if (result != null && result.indexOf('.') == -1) {
+    final String name = type.getText();
+    HaxeClass result = null;
+
+    //1. try searchInSamePackage, ex if type is Bar, be referenced in foo.Foo then we will find class foo.Bar
+    //note if there are 2 class: Bar & foo.Bar then we need resolve foo.Bar instead of Bar.
+    if (name != null && name.indexOf('.') == -1) {
       final PsiFile psiFile = type.getContainingFile();
       final PsiElement[] fileChildren = psiFile.getChildren();
-      return getQName(fileChildren, result, searchInSamePackage);
+      String nameWithPackage = getQName(fileChildren, name, true);
+      result = findClassByQName(nameWithPackage, type.getContext());
     }
+
+    //2. try without searchInSamePackage,
+    // ex if type is Int, be referenced in foo.Foo then we will find class has qName = Int, not foo.Int
+	// (if foo.Int exist then the prev step have aready resolved & returned it)
+    result = result != null ? result : findClassByQName(name, type.getContext());
+
     return result;
   }
 
