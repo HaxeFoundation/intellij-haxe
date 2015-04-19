@@ -17,15 +17,10 @@
  */
 package com.intellij.plugins.haxe.lang.parser;
 
-import com.intellij.lang.ASTFactory;
-import com.intellij.lang.DefaultASTFactory;
-import com.intellij.lang.DefaultASTFactoryImpl;
 import com.intellij.lang.LanguageASTFactory;
-import com.intellij.lang.java.JavaLanguage;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
-import com.intellij.psi.impl.source.tree.JavaASTFactory;
 import com.intellij.testFramework.ParsingTestCase;
 
 abstract public class HaxeParsingTestBase extends ParsingTestCase {
