@@ -578,31 +578,6 @@ public class HaxeResolveUtil {
       return usingStatement.getReferenceExpression().getText();
     }
 
-    String text = type.getText();
-    if (type instanceof HaxeReferenceExpression) {
-      String text1 = type.getText();
-      PsiElement element = null;
-      if (type.getParent() instanceof HaxeReferenceExpression) {
-        element = type;
-        while (element.getParent() instanceof HaxeReferenceExpression) {
-          element = element.getParent();
-        }
-
-        if (element != null) {
-          HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
-          if (haxeClass != null) {
-            return element.getText();
-          }
-        }
-
-        PsiElement parent = type.getParent();
-        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
-        if (classByQName != null) {
-          return parent.getText();
-        }
-      }
-    }
-
     if (type instanceof HaxeType) {
       type = ((HaxeType)type).getReferenceExpression();
     }
@@ -613,6 +588,26 @@ public class HaxeResolveUtil {
       final PsiElement[] fileChildren = psiFile.getChildren();
       return getQName(fileChildren, result, searchInSamePackage);
     }
+
+    if (type instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression topmostParentOfType = PsiTreeUtil.getTopmostParentOfType(type, HaxeReferenceExpression.class);
+      //String text;
+      if (topmostParentOfType != null) {
+        //text = topmostParentOfType.getText();
+
+        HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
+        if (haxeClass != null) {
+          return topmostParentOfType.getText();
+        }
+
+        PsiElement parent = type.getParent();
+        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
+        if (classByQName != null) {
+          return parent.getText();
+        }
+      }
+    }
+
     return result;
   }
 
