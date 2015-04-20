@@ -125,20 +125,38 @@
      choose not to include any version specific code -->
   <property name="version.specific.code.location" location="src/common" />
 
-  <!-- Show pertinent build information -->
+  <!-- Pull apart the build version into component pieces -->
 
-  <target name="showIdeaBuild" description="Show build information, including SDK and version data.">
-    <echo>Requested version is set to "${version}"</echo>
-    <echo>Using installed IDEA version of ${idea.sdk.version}</echo>
-    <echo>Using IDEA build at "${idea.ultimate.build}</echo>
-    <echo>Idea property file is ${plugin.properties.file}</echo>
-    <echo>Including version specific code from ${version.specific.code.location}</echo>
+  <script language="javascript">
+    <![CDATA[
+      var buildId = project.getProperty("idea.sdk.version");
+      var typeSep = buildId.indexOf("-");
+      var clSep = buildId.indexOf(".", typeSep + 1);
+      var bldSep = buildId.indexOf(".", clSep + 1);
+
+      var buildType   = buildId.slice(0, typeSep);
+      var codeLine    = buildId.slice(typeSep + 1, clSep);
+      var buildNumber = (bldSep >= 0 ? buildId.slice(clSep + 1, bldSep) : buildId.slice(clSep + 1));
+      var iterNumber  = (bldSep >= 0 ? buildId.slice(bldSep + 1) : 0);
+
+      project.setNewProperty("idea.sdk.type", buildType);
+      project.setNewProperty("idea.sdk.codeline", codeLine);
+      project.setNewProperty("idea.sdk.build.number", buildNumber);
+      project.setNewProperty("idea.sdk.iter.number", iterNumber);
+    ]]>
+  </script>
+
+  <target name="showParsedBuildId">
+    <echo>
+      Build ID is "${idea.sdk.version}"
+      Build type is "${idea.sdk.type}"
+      Build code line is "${idea.sdk.codeline}"
+      Build number is "${idea.sdk.build.number}"
+      Build iteration is "${idea.sdk.iter.number}"
+    </echo>
   </target>
 
 
-  <!-- Copy the plugin.xml and replace elements within it with version appropriate data.-->
-
-  <property name="intellij-haxe.metainf.directory" value="src/META-INF"/>
   <property name="plugin.autogen.warning">
 
     ==============================================================
@@ -146,13 +164,37 @@
     ==============================================================
 
     Warning!! This file is auto-generated.  Do NOT edit it directly.
-    The corresponding source file can be found at ${intellij-haxe.metainf.directory}.
+    The corresponding source file can be found in the src/... directory.
 
     ==============================================================
     W A R N I N G ! !      W A R N I N G ! !     W A R N I N G ! !
     ==============================================================
 
   </property>
+
+  <!-- Copy and update the build version data to the Java template -->
+
+  <target name="generateIdeaSdkIdentifer" description="Generate the identifiers for IdeaTarget.java">
+    <!-- Need to overwrite always.  Otherwise, copied files are newer and
+         won't be updated between build types (versions). -->
+    <property name="haxe.build.dir" value="com/intellij/plugins/haxe/build"/>
+    <property name="haxe.idea.sdk.identifier.file" value="IdeaSDKIdentifier.java"/>
+    <copy file="src/common/${haxe.build.dir}/${haxe.idea.sdk.identifier.file}.template"
+          tofile="gen/${haxe.build.dir}/${haxe.idea.sdk.identifier.file}" overwrite="true" verbose="true">
+      <filterset>
+        <filter token="idea.sdk.version" value="${idea.sdk.version}"/>
+        <filter token="idea.sdk.type" value="${idea.sdk.type}"/>
+        <filter token="idea.sdk.codeline" value="${idea.sdk.codeline}"/>
+        <filter token="idea.sdk.build.number" value="${idea.sdk.build.number}"/>
+        <filter token="idea.sdk.iter.number" value="${idea.sdk.iter.number}"/>
+        <filter token="replace.with.plugin.autogen.warning" value="${plugin.autogen.warning}"/>
+      </filterset>
+    </copy>
+  </target>
+
+  <!-- Copy the plugin.xml and replace elements within it with version appropriate data.-->
+
+  <property name="intellij-haxe.metainf.directory" value="src/META-INF"/>
   <target name="metainf" description="Copy and update META-INF files with version-specific information">
     <!-- Need to overwrite always.  Otherwise, copied files are newer and
          won't be updated between build types (versions). -->
@@ -166,6 +208,25 @@
       </filterset>
     </copy>
   </target>
+
+
+  <!-- Build all generated files -->
+
+  <target name="generateTemplatedFiles"
+          depends="metainf, generateIdeaSdkIdentifer"
+          description="Generates files from templates in the source tree."/>
+
+
+  <!-- Show pertinent build information -->
+
+  <target name="showIdeaBuild" description="Show build information, including SDK and version data.">
+    <echo>Requested version is set to "${version}"</echo>
+    <echo>Using installed IDEA version of ${idea.sdk.version}</echo>
+    <echo>Using IDEA build at "${idea.ultimate.build}"</echo>
+    <echo>Idea property file is ${plugin.properties.file}</echo>
+    <echo>Including version specific code from ${version.specific.code.location}</echo>
+  </target>
+
 
 
 

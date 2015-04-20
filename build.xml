@@ -106,8 +106,8 @@
 
     </target>
 
-    <target name="package" depends="compile,metainf" description="Generate JAR file">
-        <jar jarfile="intellij-haxe-${idea.version}.jar" update="false">
+    <target name="package" depends="compile,generateTemplatedFiles" description="Generate JAR file">
+        <jar jarfile="intellij-haxe-${idea.version}.jar" update="true">
             <fileset dir="resources" />
             <fileset dir="gen" includes="META-INF/*.*"/>
             <fileset dir="grammar" includes="haxe.bnf"/>
