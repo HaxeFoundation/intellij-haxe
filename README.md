@@ -13,6 +13,9 @@ Use [Intellij plugin install documentation](https://www.jetbrains.com/idea/plugi
 ###Install the latest or a previous Github release
 
 Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/TiVo/intellij-haxe/releases).
+More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-14.1.1.jar`)
+Make sure that you pick the proper one for your release.  A message should pop up and warn you if a release is incompatible.
+
 In Intellij:
 - open the Settings
 - Go to plugin
@@ -22,8 +25,8 @@ In Intellij:
 Build
 -----
 
-This describes the command line build. To build from Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
-your development environnement.
+This describes the command line build on a Linux platform. To build from Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
+your development environment.  Much more detail is provided there for command line build options as well.
 
 ###Dependencies
 - Ant
@@ -36,8 +39,17 @@ your development environnement.
 make
 ```
 
-This will generate a `intelllij-haxe.jar` file at the root of the project that you can then install from disk
-(see “Install the latest or a previous Github release).
+This will generate a `intelllij-haxe-<release>.jar` file at the root of the project that you can then install from disk
+(see “Install the latest or a previous Github release).  Note that the default make will build the plugin for
+Idea 13.1.6.  To override the default, set the IDEA_VERSION environment variable prior to executing make.
+
+```
+IDEA_VERSION=14.1.1 make
+```
+
+Note that building via make will download the requested version of IntelliJ Ultimate (to a temporary directory)
+every time a build is started.  This can be quite slow at times.  For repeated building and testing, 
+we recommended that you set up your machine as described in the [contributing document](CONTRIBUTING.md). 
 
 Test
 ----
@@ -50,7 +62,13 @@ Same as for build.
 make test
 ```
 
-This will build and run the tests and display the JUnit report.
+This will build and run the tests and display the JUnit report.  Again, you can override the Idea version
+being tested against by overriding IDEA_VERSION.
+
+```
+IDEA_VERSION=14.1.1 make test
+```
+
 
 Use the hxcpp debugger
 ----------------------
