@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.ide.surroundWith;
 
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeDoWhileStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementUtils;
@@ -37,7 +38,8 @@ public class HaxeDoWhileSurrounder extends HaxeManyStatementsSurrounder {
   protected PsiElement doSurroundElements(PsiElement[] elements, PsiElement parent) {
     final HaxeDoWhileStatement whileStatement =
       (HaxeDoWhileStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "do {\n} while(a);");
-    addStatements(whileStatement.getBlockStatement(), elements);
+    List<HaxeBlockStatement> blockStatementList = whileStatement.getBlockStatementList();
+    addStatements(blockStatementList.get(0), elements);
     return whileStatement;
   }
 

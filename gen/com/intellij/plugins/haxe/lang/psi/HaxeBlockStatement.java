@@ -53,6 +53,9 @@ public interface HaxeBlockStatement extends HaxeBlockStatementPsiMixin {
   List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
   @NotNull
+  List<HaxeMacroClassList> getMacroClassListList();
+
+  @NotNull
   List<HaxeReturnStatement> getReturnStatementList();
 
   @NotNull

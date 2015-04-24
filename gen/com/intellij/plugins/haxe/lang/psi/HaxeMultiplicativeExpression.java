@@ -32,6 +32,9 @@ public interface HaxeMultiplicativeExpression extends HaxeExpression {
   HaxeIfStatement getIfStatement();
 
   @Nullable
+  HaxeMacroClassList getMacroClassList();
+
+  @Nullable
   HaxeSwitchStatement getSwitchStatement();
 
   @Nullable

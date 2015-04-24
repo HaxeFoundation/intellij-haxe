@@ -40,15 +40,15 @@ public class HaxeTryStatementImpl extends HaxeStatementPsiMixinImpl implements H
   }
 
   @Override
-  @Nullable
-  public HaxeBlockStatement getBlockStatement() {
-    return findChildByClass(HaxeBlockStatement.class);
+  @NotNull
+  public List<HaxeBlockStatement> getBlockStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBlockStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeBreakStatement getBreakStatement() {
-    return findChildByClass(HaxeBreakStatement.class);
+  @NotNull
+  public List<HaxeBreakStatement> getBreakStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeBreakStatement.class);
   }
 
   @Override
@@ -58,75 +58,81 @@ public class HaxeTryStatementImpl extends HaxeStatementPsiMixinImpl implements H
   }
 
   @Override
-  @Nullable
-  public HaxeContinueStatement getContinueStatement() {
-    return findChildByClass(HaxeContinueStatement.class);
+  @NotNull
+  public List<HaxeContinueStatement> getContinueStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeContinueStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeDoWhileStatement getDoWhileStatement() {
-    return findChildByClass(HaxeDoWhileStatement.class);
+  @NotNull
+  public List<HaxeDoWhileStatement> getDoWhileStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeDoWhileStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
+  @NotNull
+  public List<HaxeExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExpression.class);
   }
 
   @Override
-  @Nullable
-  public HaxeForStatement getForStatement() {
-    return findChildByClass(HaxeForStatement.class);
+  @NotNull
+  public List<HaxeForStatement> getForStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeForStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeIfStatement getIfStatement() {
-    return findChildByClass(HaxeIfStatement.class);
+  @NotNull
+  public List<HaxeIfStatement> getIfStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeIfStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeLocalFunctionDeclaration getLocalFunctionDeclaration() {
-    return findChildByClass(HaxeLocalFunctionDeclaration.class);
+  @NotNull
+  public List<HaxeLocalFunctionDeclaration> getLocalFunctionDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeLocalFunctionDeclaration.class);
   }
 
   @Override
-  @Nullable
-  public HaxeLocalVarDeclaration getLocalVarDeclaration() {
-    return findChildByClass(HaxeLocalVarDeclaration.class);
+  @NotNull
+  public List<HaxeLocalVarDeclaration> getLocalVarDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeLocalVarDeclaration.class);
   }
 
   @Override
-  @Nullable
-  public HaxeReturnStatement getReturnStatement() {
-    return findChildByClass(HaxeReturnStatement.class);
+  @NotNull
+  public List<HaxeMacroClassList> getMacroClassListList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroClassList.class);
   }
 
   @Override
-  @Nullable
-  public HaxeSwitchStatement getSwitchStatement() {
-    return findChildByClass(HaxeSwitchStatement.class);
+  @NotNull
+  public List<HaxeReturnStatement> getReturnStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeReturnStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeThrowStatement getThrowStatement() {
-    return findChildByClass(HaxeThrowStatement.class);
+  @NotNull
+  public List<HaxeSwitchStatement> getSwitchStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeSwitchStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeTryStatement getTryStatement() {
-    return findChildByClass(HaxeTryStatement.class);
+  @NotNull
+  public List<HaxeThrowStatement> getThrowStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeThrowStatement.class);
   }
 
   @Override
-  @Nullable
-  public HaxeWhileStatement getWhileStatement() {
-    return findChildByClass(HaxeWhileStatement.class);
+  @NotNull
+  public List<HaxeTryStatement> getTryStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTryStatement.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeWhileStatement> getWhileStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeWhileStatement.class);
   }
 
 }

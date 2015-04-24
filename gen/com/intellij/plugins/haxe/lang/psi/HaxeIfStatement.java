@@ -53,6 +53,9 @@ public interface HaxeIfStatement extends HaxeStatementPsiMixin {
   List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
   @NotNull
+  List<HaxeMacroClassList> getMacroClassListList();
+
+  @NotNull
   List<HaxeReturnStatement> getReturnStatementList();
 
   @NotNull

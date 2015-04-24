@@ -383,7 +383,7 @@ blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
-private statement ::= blockStatement | notBlockStatement
+private statement ::= macroClassList? (blockStatement | notBlockStatement)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
 
 private notBlockStatement ::= ('untyped' statement ';'?)
@@ -483,16 +483,16 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
-private value ::= 'untyped' expression
-                | 'macro' expression
-                | (literalExpression qualifiedReferenceTail?)
-                | ifStatement
-                | castExpression qualifiedReferenceTail?
-                | newExpressionOrCall
-                | parenthesizedExpressionOrCall
-                | callOrArrayAccess
-                | tryStatement
-                | switchStatement
+private value ::= macroClassList? ('untyped' expression
+                                                   | 'macro' expression
+                                                   | (literalExpression qualifiedReferenceTail?)
+                                                   | ifStatement
+                                                   | castExpression qualifiedReferenceTail?
+                                                   | newExpressionOrCall
+                                                   | parenthesizedExpressionOrCall
+                                                   | callOrArrayAccess
+                                                   | tryStatement
+                                                   | switchStatement)
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral

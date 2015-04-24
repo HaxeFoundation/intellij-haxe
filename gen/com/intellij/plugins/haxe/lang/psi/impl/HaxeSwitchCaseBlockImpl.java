@@ -95,6 +95,12 @@ public class HaxeSwitchCaseBlockImpl extends HaxePsiCompositeElementImpl impleme
 
   @Override
   @NotNull
+  public List<HaxeMacroClassList> getMacroClassListList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroClassList.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeReturnStatement> getReturnStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeReturnStatement.class);
   }

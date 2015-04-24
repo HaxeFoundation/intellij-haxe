@@ -52,6 +52,9 @@ public interface HaxeParenthesizedExpression extends HaxeExpression {
   @Nullable
   HaxeLocalVarDeclaration getLocalVarDeclaration();
 
+  @NotNull
+  List<HaxeMacroClassList> getMacroClassListList();
+
   @Nullable
   HaxeReturnStatement getReturnStatement();
 
