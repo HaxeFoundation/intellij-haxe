@@ -50,7 +50,7 @@ Haxe File
           REFERENCE_EXPRESSION
             IDENTIFIER
               PsiJavaToken:ID('n')
-          PsiErrorElement:'!', '(', '++', '-', '--', ';', ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, inline, macro, new, null, return, super, switch, this, throw, true, try, untyped, var, while, '{' or '~' expected, got '}'
+          PsiErrorElement:';', <local function declaration>, <macro class>, <prefix expression>, break, continue, do, for, if, macro, return, switch, throw, try, untyped, var, while or '{' expected, got '}'
             PsiJavaToken:LONG_TEMPLATE_ENTRY_END('}')
           PsiJavaToken:REGULAR_STRING_PART('\n')
           PsiJavaToken:REGULAR_STRING_PART('}')
