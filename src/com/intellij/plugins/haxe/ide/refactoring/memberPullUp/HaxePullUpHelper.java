@@ -214,6 +214,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     }
     final PsiMember movedElement = (PsiMember)myTargetSuperClass.addBefore(convertFieldToLanguage(field, myTargetSuperClass.getLanguage()), myTargetSuperClass.getRBrace());
     myMembersAfterMove.add(movedElement);
+    reformat(movedElement);
     field.delete();
   }
 

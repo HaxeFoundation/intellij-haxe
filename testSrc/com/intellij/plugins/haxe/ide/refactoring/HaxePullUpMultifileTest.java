@@ -49,7 +49,7 @@ public class HaxePullUpMultifileTest extends MultiFileTestCase {
     return "/refactoring/pullUp/";
   }
 
-  private void doTest(final String... conflicts) throws Exception {
+  private void doTestMethod(final String... conflicts) throws Exception {
     final MultiMap<PsiElement, String> conflictsMap = new MultiMap<PsiElement, String>();
     doTest(new PerformAction() {
       @Override
@@ -90,11 +90,65 @@ public class HaxePullUpMultifileTest extends MultiFileTestCase {
     }
   }
 
+  private void doTestField(final String... conflicts) throws Exception {
+    final MultiMap<PsiElement, String> conflictsMap = new MultiMap<PsiElement, String>();
+    doTest(new PerformAction() {
+      @Override
+      public void performAction(final VirtualFile rootDir, final VirtualFile rootAfter) throws Exception {
+        final PsiClass srcClass = HaxeResolveUtil.findClassByQName("a.A", getPsiManager(), GlobalSearchScope.allScope(myProject));
+        assertTrue("Source class not found", srcClass != null);
+        final PsiClass targetClass = HaxeResolveUtil.findClassByQName("b.B", getPsiManager(), GlobalSearchScope.allScope(myProject));
+        assertTrue("Target class not found", targetClass != null);
+        final PsiField[] fields = srcClass.getFields();
+        assertTrue("No methods found", fields.length > 0);
+        final MemberInfo[] membersToMove = new MemberInfo[1];
+        final MemberInfo memberInfo = new MemberInfo(fields[0]);
+        memberInfo.setChecked(true);
+        membersToMove[0] = memberInfo;
+        final PsiDirectory targetDirectory = targetClass.getContainingFile().getContainingDirectory();
+        final PsiPackage targetPackage = targetDirectory != null ? JavaDirectoryService.getInstance().getPackage(targetDirectory) : null;
+        conflictsMap.putAllValues(
+          PullUpConflictsUtil
+            .checkConflicts(membersToMove, srcClass, targetClass, targetPackage, targetDirectory, new InterfaceContainmentVerifier() {
+              @Override
+              public boolean checkedInterfacesContain(PsiMethod psiMethod) {
+                return PullUpProcessor.checkedInterfacesContain(Arrays.asList(membersToMove), psiMethod);
+              }
+            }));
+        new PullUpProcessor(srcClass, targetClass, membersToMove, new DocCommentPolicy(DocCommentPolicy.ASIS)).run();
+      }
+    });
+    if (conflicts.length != 0 && conflictsMap.isEmpty()) {
+      fail("Conflict was not detected");
+    }
+    final HashSet<String> values = new HashSet<String>(conflictsMap.values());
+    final HashSet<String> expected = new HashSet<String>(Arrays.asList(conflicts));
+    assertEquals(expected.size(), values.size());
+    for (String value : values) {
+      if (!expected.contains(value)) {
+        fail("Conflict: " + value + " is unexpectedly reported");
+      }
+    }
+  }
+
+
   public void testFromClassToSuperClass() throws Exception {
-    doTest();
+    doTestMethod();
+  }
+
+  public void testMoveFieldFromClassToSuperClass() throws Exception {
+    doTestField();
+  }
+
+  public void testMoveFieldWithInitializerFromClassToSuperClass() throws Exception {
+    doTestField();
   }
 
   public void testFromClassToInterface() throws Exception {
-    doTest();
+    doTestMethod();
+  }
+
+  public void testFromInterfaceToInterface() throws Exception {
+    doTestMethod();
   }
 }
