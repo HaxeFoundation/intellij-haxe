@@ -406,9 +406,13 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
 
   private void removeFromTargetClass() throws IncorrectOperationException {
     for (MemberInfo memberInfo : myMemberInfos) {
-      final PsiElement member = memberInfo.getMember();
+      PsiElement member = memberInfo.getMember();
 
       if (member instanceof PsiField) {
+        if (member instanceof HaxeVarDeclarationPart) {
+          member = member.getParent();
+        }
+
         member.delete();
       }
       else if (member instanceof PsiMethod) {
@@ -458,6 +462,10 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         }
       }
 
+      if (member instanceof HaxeVarDeclarationPart) {
+        member = (PsiMember)member.getParent();
+      }
+
       member = (PsiMember)member.copy();
       RefactoringUtil.replaceMovedMemberTypeParameters(member, PsiUtil.typeParametersIterable(myClass), substitutor, factory);
       PsiMember newMember = null;
@@ -468,7 +476,6 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           PsiUtil.setModifierProperty(member, PsiModifier.STATIC, true);
           PsiUtil.setModifierProperty(member, PsiModifier.FINAL, true);
         }
-        String text = member.getText();
         newMember = (PsiMember)targetClass.addBefore(member, targetClass.getRBrace());
       }
       else if (member instanceof PsiMethod) {
