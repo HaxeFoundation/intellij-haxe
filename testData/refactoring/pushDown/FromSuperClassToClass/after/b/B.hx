@@ -18,7 +18,4 @@
 package b;
 import c.C;
 class B extends C {
-    function method2Move():Void {
-        foo();
-    }
 }

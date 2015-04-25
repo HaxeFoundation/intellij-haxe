@@ -18,4 +18,5 @@
 package b;
 import c.C;
 class B extends C {
+    var field2Move:A;
 }

@@ -295,6 +295,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public PsiField findFieldByName(@NonNls String name, boolean checkBases) {
+    //TODO: check if checkBases work, not sure it was able to find field from superclass even when checkBases is false
     return PsiClassImplUtil.findFieldByName(this, name, checkBases);
   }
 

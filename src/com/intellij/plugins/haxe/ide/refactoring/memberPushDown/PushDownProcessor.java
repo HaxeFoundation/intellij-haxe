@@ -21,20 +21,15 @@ import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.codeInsight.intention.impl.CreateSubclassAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
-import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -54,6 +49,7 @@ import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashSet;
@@ -445,6 +441,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
     final PsiSubstitutor substitutor = TypeConversionUtil.getSuperClassSubstitutor(myClass, targetClass, PsiSubstitutor.EMPTY);
     for (MemberInfo memberInfo : myMemberInfos) {
       PsiMember member = memberInfo.getMember();
+
       final List<PsiReference> refsToRebind = new ArrayList<PsiReference>();
       final PsiModifierList list = member.getModifierList();
       LOG.assertTrue(list != null);
@@ -460,6 +457,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           refsToRebind.add(reference);
         }
       }
+
       member = (PsiMember)member.copy();
       RefactoringUtil.replaceMovedMemberTypeParameters(member, PsiUtil.typeParametersIterable(myClass), substitutor, factory);
       PsiMember newMember = null;
@@ -470,6 +468,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           PsiUtil.setModifierProperty(member, PsiModifier.STATIC, true);
           PsiUtil.setModifierProperty(member, PsiModifier.FINAL, true);
         }
+        String text = member.getText();
         newMember = (PsiMember)targetClass.addBefore(member, targetClass.getRBrace());
       }
       else if (member instanceof PsiMethod) {
@@ -503,7 +502,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               }
             }
 
-            //reformat(newMember);
+            reformat(newMember);
           }
           else if (memberInfo.isToAbstract()) {
             newMember = (PsiMethod)targetClass.addBefore(method, targetClass.getRBrace());
@@ -523,7 +522,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
             newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
 
-            //reformat(newMember);
+            reformat(newMember);
           }
         }
         else { //abstract method: remove @Override
@@ -589,6 +588,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
   }
 
   private void reformat(final PsiMember movedElement) {
+    /*
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
@@ -602,6 +602,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         CodeStyleManager.getInstance(myProject).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
       }
     });
+    */
   }
 
   private boolean leaveOverrideAnnotation(PsiSubstitutor substitutor, PsiMethod method) {

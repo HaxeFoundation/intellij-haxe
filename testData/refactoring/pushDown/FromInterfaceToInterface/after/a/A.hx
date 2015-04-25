@@ -18,6 +18,6 @@
 package a;
 import b.B;
 interface A extends B {
-    function method2Move():Void;
     private function foo():Void;
+    function method2Move():Void;
 }

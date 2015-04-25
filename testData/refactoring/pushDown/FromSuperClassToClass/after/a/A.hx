@@ -19,4 +19,7 @@ package a;
 import b.B;
 class A extends B {
     private function foo():Void {}
+    function method2Move():Void {
+        foo();
+    }
 }

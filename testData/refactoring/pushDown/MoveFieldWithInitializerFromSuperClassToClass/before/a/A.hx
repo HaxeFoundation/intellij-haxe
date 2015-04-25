@@ -18,6 +18,5 @@
 package a;
 import b.B;
 class A extends B {
-    var field2Move:A = new A();
     private function foo():Void {}
 }

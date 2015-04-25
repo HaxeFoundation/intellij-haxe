@@ -128,7 +128,7 @@ public class HaxePushDownMultifileTest extends MultiFileTestCase {
             }));
         new PullUpProcessor(srcClass, targetClass, membersToMove, new DocCommentPolicy(DocCommentPolicy.ASIS)).run();*/
 
-        new PushDownProcessor(getProject(), membersToMove, targetClass,
+        new PushDownProcessor(getProject(), membersToMove, srcClass,
                               new DocCommentPolicy(DocCommentPolicy.ASIS)) {
           @Override
           protected boolean showConflicts(MultiMap<PsiElement, String> conflicts, UsageInfo[] usages) {

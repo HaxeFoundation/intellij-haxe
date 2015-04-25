@@ -135,12 +135,14 @@ public class PushDownConflicts {
 
   public void checkMemberPlacementInTargetClassConflict(final PsiClass targetClass, final PsiMember movedMember) {
     if (movedMember instanceof PsiField) {
+      /*
       String name = movedMember.getName();
       final PsiField field = targetClass.findFieldByName(name, false);
       if (field != null) {
         String message = RefactoringBundle.message("0.already.contains.field.1", RefactoringUIUtil.getDescription(targetClass, false), CommonRefactoringUtil.htmlEmphasize(name));
         myConflicts.putValue(field, CommonRefactoringUtil.capitalize(message));
       }
+      */
     }
     else if (movedMember instanceof PsiMethod) {
       /*

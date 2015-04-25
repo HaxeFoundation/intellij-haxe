@@ -18,4 +18,5 @@
 package b;
 import c.C;
 interface B extends C {
+    function method2Move():Void;
 }
