@@ -17,5 +17,5 @@
  */
 package c;
 interface C {
-  protected function foo():Void;
+  private function foo():Void;
 }

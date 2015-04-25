@@ -478,7 +478,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         if (methodBySignature == null) {
           newMember = null;
           if (myClass.isInterface()) {
-            if (!(targetClass instanceof HaxeInterfaceDeclaration)) {
+            if (!(targetClass.isInterface())) {
               String text = member.getText();
 
               if (text.endsWith(";")) {
@@ -503,7 +503,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               }
             }
 
-            reformat(newMember);
+            //reformat(newMember);
           }
           else if (memberInfo.isToAbstract()) {
             newMember = (PsiMethod)targetClass.addBefore(method, targetClass.getRBrace());
@@ -523,7 +523,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
             newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
 
-            reformat(newMember);
+            //reformat(newMember);
           }
         }
         else { //abstract method: remove @Override

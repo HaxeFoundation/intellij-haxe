@@ -17,5 +17,5 @@
  */
 package c;
 class C {
-  protected function foo():Void {}
+  private function foo():Void {}
 }

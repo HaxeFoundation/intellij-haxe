@@ -21,5 +21,5 @@ class A extends B {
     function method2Move():Void {
         foo();
     }
-    protected function foo():Void {}
+    private function foo():Void {}
 }

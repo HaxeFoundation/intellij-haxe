@@ -18,5 +18,5 @@
 package a;
 import b.B;
 class A extends B {
-    protected function foo():Void {}
+    private function foo():Void {}
 }
