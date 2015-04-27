@@ -40,15 +40,15 @@ public class HaxeTypeTagImpl extends HaxePsiCompositeElementImpl implements Haxe
   }
 
   @Override
-  @NotNull
-  public List<HaxeFunctionType> getFunctionTypeList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionType.class);
+  @Nullable
+  public HaxeFunctionType getFunctionType() {
+    return findChildByClass(HaxeFunctionType.class);
   }
 
   @Override
-  @NotNull
-  public List<HaxeTypeOrAnonymous> getTypeOrAnonymousList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeOrAnonymous.class);
+  @Nullable
+  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
+    return findChildByClass(HaxeTypeOrAnonymous.class);
   }
 
 }

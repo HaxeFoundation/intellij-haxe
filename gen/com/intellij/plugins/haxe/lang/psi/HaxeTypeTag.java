@@ -25,10 +25,10 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeTypeTag extends HaxePsiCompositeElement {
 
-  @NotNull
-  List<HaxeFunctionType> getFunctionTypeList();
+  @Nullable
+  HaxeFunctionType getFunctionType();
 
-  @NotNull
-  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
+  @Nullable
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }
