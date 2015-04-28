@@ -51,12 +51,15 @@ import org.jetbrains.io.LocalFileFinder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by as3boyan on 25.11.14.
  */
 public class HaxeCompilerCompletionContributor extends CompletionContributor {
+  static HashMap<String, List<String>> openFLDisplayArguments = new HashMap<String, List<String>>();
+
   public HaxeCompilerCompletionContributor() {
     //Trigger completion only on HaxeReferenceExpressions
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.ID)
@@ -120,16 +123,24 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        //Export/flash/haxe contains build.hxml which gets generated after build
                        break;
                      case HaxeModuleSettingsBaseImpl.USE_OPENFL:
-                       commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(moduleForFile));
-                       commandLineArguments.add("run");
-                       commandLineArguments.add("lime");
-                       commandLineArguments.add("display");
-                       //flash, html5, linux, etc
-                       String targetFlag = moduleSettings.getNmeTarget().getTargetFlag();
-                       commandLineArguments.add(targetFlag);
+                       String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
 
-                       List<String> stdout = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
-                                                                                  BuildProperties.getProjectBaseDir(project));
+                       List<String> stdout = openFLDisplayArguments.get(moduleForFile.getModuleFilePath() + targetFlag);
+                       if (stdout == null) {
+                         commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(moduleForFile));
+                         commandLineArguments.add("run");
+                         commandLineArguments.add("lime");
+                         commandLineArguments.add("display");
+                         //flash, html5, linux, etc
+
+                         commandLineArguments.add(targetFlag);
+
+                         stdout = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
+                                                                       BuildProperties.getProjectBaseDir(project));
+
+                         openFLDisplayArguments.put(moduleForFile.getModuleFilePath() + targetFlag, stdout);
+                       }
+
                        commandLineArguments.clear();
 
                        commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
