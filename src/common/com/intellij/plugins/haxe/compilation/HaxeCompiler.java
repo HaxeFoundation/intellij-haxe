@@ -240,6 +240,20 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       }
 
       @Override
+      public void warningHandler(String message) {
+        context.addMessage(CompilerMessageCategory.WARNING, message, null, -1, -1);
+      }
+
+      @Override
+      public void infoHandler(String message) {
+        context.addMessage(CompilerMessageCategory.INFORMATION, message, null, -1, -1);
+      }
+
+      public void statisticsHandler(String message) {
+        context.addMessage(CompilerMessageCategory.INFORMATION, message, null, -1, -1);
+      }
+
+      @Override
       public void log(String message) {
         LOG.debug(message);
       }

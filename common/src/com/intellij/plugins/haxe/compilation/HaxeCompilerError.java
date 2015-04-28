@@ -102,10 +102,18 @@ public class HaxeCompilerError {
             rawColumn = "-1";
             text = m.group(3).trim();
         }
-        // Error:(.*)
+        // ([^:]*)Error:(.*)
         else if ((m = pBareError.matcher(message)).matches()) {
+          StringBuilder err = new StringBuilder();
+          String errType = m.group(1).trim();
+          if (!errType.isEmpty()) {
+            err.append(" (");
+            err.append(errType);
+            err.append(") ");
+          }
+          err.append(m.group(2).trim());
           return new HaxeCompilerError(CompilerMessageCategory.ERROR,
-                                       m.group(1).trim(), "", -1, -1);
+                                       err.toString(), "", -1, -1);
         }
         // Anything that doesn't match error patterns is purely informational
         else {
@@ -159,7 +167,7 @@ public class HaxeCompilerError {
 
     static Pattern pLibraryNotInstalled = Pattern.compile
         ("Error: Library ([\\S]+) is not installed(.*)");
-    static Pattern pBareError = Pattern.compile("Error:(.*)");
+    static Pattern pBareError = Pattern.compile("([^:]*)Error:(.*)", Pattern.CASE_INSENSITIVE);
     static Pattern pColumnError = 
         Pattern.compile("([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
     static Pattern pLineError =
