@@ -90,7 +90,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean isExtern() {
-    return this instanceof HaxeExternClassDeclaration;
+    return (this instanceof HaxeExternClassDeclaration || this instanceof HaxeExternInterfaceDeclaration);
   }
 
   @Override

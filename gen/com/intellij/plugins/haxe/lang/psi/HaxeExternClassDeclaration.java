@@ -25,7 +25,7 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeExternClassDeclaration extends HaxeClass {
 
-  @NotNull
+  @Nullable
   HaxeComponentName getComponentName();
 
   @Nullable
