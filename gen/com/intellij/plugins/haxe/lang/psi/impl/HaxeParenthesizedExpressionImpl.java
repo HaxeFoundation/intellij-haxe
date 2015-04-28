@@ -94,6 +94,12 @@ public class HaxeParenthesizedExpressionImpl extends HaxeExpressionImpl implemen
   }
 
   @Override
+  @NotNull
+  public List<HaxeMacroClassList> getMacroClassListList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroClassList.class);
+  }
+
+  @Override
   @Nullable
   public HaxeReturnStatement getReturnStatement() {
     return findChildByClass(HaxeReturnStatement.class);

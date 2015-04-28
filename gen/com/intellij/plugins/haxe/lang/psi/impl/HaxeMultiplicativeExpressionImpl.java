@@ -53,6 +53,12 @@ public class HaxeMultiplicativeExpressionImpl extends HaxeExpressionImpl impleme
 
   @Override
   @Nullable
+  public HaxeMacroClassList getMacroClassList() {
+    return findChildByClass(HaxeMacroClassList.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeSwitchStatement getSwitchStatement() {
     return findChildByClass(HaxeSwitchStatement.class);
   }
