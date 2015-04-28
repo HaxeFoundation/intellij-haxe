@@ -154,6 +154,15 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       public void errorHandler(String message) {
         context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, message));
       }
+      @Override
+      public void warningHandler(String message) {
+        context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.WARNING, message));
+      }
+
+      @Override
+      public void infoHandler(String message) {
+        context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.INFO, message));
+      }
 
       @Override
       public void log(String message) {
