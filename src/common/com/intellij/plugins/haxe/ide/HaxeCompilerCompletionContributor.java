@@ -123,7 +123,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        //Export/flash/haxe contains build.hxml which gets generated after build
                        break;
                      case HaxeModuleSettingsBaseImpl.USE_OPENFL:
-                       String targetFlag = moduleSettings.getNmeTarget().getTargetFlag();
+                       String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
 
                        List<String> stdout = openFLDisplayArguments.get(moduleForFile.getModuleFilePath() + targetFlag);
                        if (stdout == null) {
