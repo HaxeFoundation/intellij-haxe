@@ -301,7 +301,7 @@ enumConstructorParameters ::= '(' parameterList ')' {pin=1}
 
 varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
+private varDeclarationPartList ::= varDeclarationPart
 varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private var_declaration_part_recover ::= !(';' | ',')
