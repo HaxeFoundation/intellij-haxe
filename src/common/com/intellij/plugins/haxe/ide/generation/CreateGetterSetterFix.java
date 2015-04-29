@@ -91,7 +91,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
     final HaxeVarDeclaration declaration =
       HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName(), typeText));
-    final HaxePropertyDeclaration propertyDeclaration = declaration.getVarDeclarationPartList().iterator().next().getPropertyDeclaration();
+    final HaxePropertyDeclaration propertyDeclaration = declaration.getVarDeclarationPart().getPropertyDeclaration();
     if (propertyDeclaration != null) {
       HaxeVarDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeVarDeclaration.class, false);
       if (varDeclaration != null) {

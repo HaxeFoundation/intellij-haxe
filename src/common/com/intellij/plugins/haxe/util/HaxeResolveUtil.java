@@ -336,7 +336,7 @@ public class HaxeResolveUtil {
         // that are named (that themselves have COMPONENT_NAME sub-elements).
         if (namedComponent instanceof HaxeVarDeclaration) {
           HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)namedComponent;
-          result.addAll(varDeclaration.getVarDeclarationPartList());
+          result.add(varDeclaration.getVarDeclarationPart());
         }
         else {
           result.add(namedComponent);
