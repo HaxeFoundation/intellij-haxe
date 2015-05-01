@@ -1,7 +1,7 @@
 class Setter2 {
   var foo(never, null):Int;
 
-    private function set_foo(value:Int) {
+    function set_foo(value:Int) {
         return this.foo = value;
     }
 

@@ -3,7 +3,7 @@ class GetterSetter2 {
   var bar:String;
 
   @:getter(foo)
-  private function get_foo():Int {
+  public function get_foo():Int {
     return foo;
   }
   <caret>

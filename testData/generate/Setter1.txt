@@ -1,7 +1,7 @@
 class Setter1 {
   @:isVar public var foo(null, set):Int;
 
-    private function set_foo(value:Int) {
+    function set_foo(value:Int) {
         return this.foo = value;
     }
 

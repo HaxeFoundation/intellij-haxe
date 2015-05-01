@@ -1,7 +1,7 @@
 class Getter2 {
   var foo(never, null):Int;
 
-    private function get_foo():Int {
+    function get_foo():Int {
         return foo;
     }
 
