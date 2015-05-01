@@ -239,16 +239,16 @@ private top_level_recover ::= !(ppToken | metaKeyWord | 'abstract' | 'class'  | 
 
 importStatementRegular ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 importStatementWithWildcard ::= 'import' simpleQualifiedReferenceExpressionWithWildcardSupport ';'
-importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression 'in' identifier';'
+importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression ('in' | 'as') identifier';'
 
 private importStatementAll ::= importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
 
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration
+                              | interfaceDeclaration
                               | externClassDeclaration
                               | abstractClassDeclaration
-                              | interfaceDeclaration
                               | enumDeclaration
                               | typedefDeclaration
 
@@ -258,7 +258,7 @@ externOrPrivate ::= 'extern' | privateKeyWord
 typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-externClassDeclaration ::= macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+externClassDeclaration ::= macroClassList? externOrPrivate* ('class' | 'interface') componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverWhile="extern_class_body_part_recover"}
@@ -301,7 +301,7 @@ enumConstructorParameters ::= '(' parameterList ')' {pin=1}
 
 varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
+private varDeclarationPartList ::= varDeclarationPart
 varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private var_declaration_part_recover ::= !(';' | ',')
@@ -383,8 +383,8 @@ blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
-private statement ::= blockStatement | notBlockStatement
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
+private statement ::= macroClassList? (blockStatement | notBlockStatement)
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
 
 private notBlockStatement ::= ('untyped' statement ';'?)
                             | ('macro' statement ';'?)
@@ -483,16 +483,17 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
-private value ::= 'untyped' expression
-                | 'macro' expression
-                | (literalExpression qualifiedReferenceTail?)
-                | ifStatement
-                | castExpression qualifiedReferenceTail?
-                | newExpressionOrCall
-                | parenthesizedExpressionOrCall
-                | callOrArrayAccess
-                | tryStatement
-                | switchStatement
+private value ::= macroClassList? ('untyped' expression
+                                                   | 'macro' expression
+                                                   | (literalExpression qualifiedReferenceTail?)
+                                                   | ifStatement
+                                                   | castExpression qualifiedReferenceTail?
+                                                   | newExpressionOrCall
+                                                   | parenthesizedExpressionOrCall
+                                                   | callOrArrayAccess
+                                                   | tryStatement
+                                                   | switchStatement)
+{pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral

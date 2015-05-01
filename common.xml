@@ -1,0 +1,172 @@
+<project name="common">
+
+  <!-- This description is displayed when -projecthelp is added to the ant command line. -->
+  <description>
+    This project builds the Haxe plugin and/or tests for IDEA.  The output
+    is a jar file "intellij-haxe-{version}.jar".  To use the jar in IDEA,
+    it must be enabled via the "File->Settings" dialog, "Plugins" tab,
+    "Load File From Disk".
+
+    If build errors occur, it is likely that your system is not set up
+    identically to what these scripts expect.  You may override any
+    setting locally by creating a file in the project root directory
+    called "local-build-overrides.xml".  (Do NOT check it into the
+    repository!  It will break continuous integration builds.)  An
+    example file could look like:
+
+    &lt;project name="local-overrides"&gt;
+      &lt;echo&gt;
+        Including local overrides...
+      &lt;/echo&gt;
+
+      &lt;property environment="env"/&gt;
+      &lt;property name="idea.installation.dir" location="$${env.HOME}/intellij_idea" /&gt;
+      &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-135.1286/" &gt;
+        &lt;matches pattern="13." string="$${version}"/&gt;
+      &lt;/condition&gt;
+      &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-139.1117.1/"&gt;
+        &lt;matches pattern="14." string="$${version}"/&gt;
+      &lt;/condition&gt;
+
+    &lt;/project&gt;
+
+    Or, more simply:
+    &lt;project name="local-overrides"&gt;
+      &lt;property name="idea.ultimate.build" location="/home/username/intellij_idea/idea-IU-135.1286/" /&gt;
+    &lt;/project&gt;
+
+  </description>
+
+  <!-- Import local developer overrides, if they exist. -->
+  <dirname property="project.dir" file="${ant.file}"/>
+  <import file="${project.dir}/local-build-overrides.xml" optional="true"/>
+
+  <!-- set global properties for this build -->
+  <property name="build.compiler" value="modern"/>
+
+  <!-- See if we're being run from within IDEA (or at least an IDEA
+       directory is ANT_HOME). -->
+  <property name="idea.candidate.directory" location="${ant.home}/../.."/>
+  <condition property="idea.ultimate.build" value="${idea.candidate.directory}">
+    <and>
+      <matches pattern=".*/lib/ant" string="${ant.home}"/>
+      <resourceexists>
+        <file file="${idea.candidate.directory}/build.txt"/>
+      </resourceexists>
+    </and>
+  </condition>
+
+  <!-- If nothing else, assume that the IDEA installation is in a subdirectory
+       of the project.  This is the case when building on Travis.ci, for example. -->
+  <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
+
+  <echo level="debug">idea.ultimate.build is set to "${idea.ultimate.build}"</echo>
+  <echo level="debug">version is set to "${version}"</echo>
+
+  <!-- At this point, if we don't have a proper installation of IDEA,
+       then we won't get anywhere.  Put up a sensible error. -->
+  <fail>
+    <condition>
+      <not>
+        <resourceexists>
+          <file file="${idea.ultimate.build}/build.txt"/>
+        </resourceexists>
+      </not>
+    </condition>
+    IDEA installation not found.
+
+    Either '${idea.ultimate.build}' does not exist, or it does not appear
+    to be a normal IDEA installation.  (It should contain a build.txt file.)
+    See the description section at the top of this file (common.xml) for more
+    information.
+
+    You can tell this build where to find to your IDEA Ultimate build directory
+    by adding "-Didea.ultimate.build=path_to_your_IDEA_installation" to the
+    command line, where path_to_your_IDEA_installation is a directory on your
+    local machine.
+
+    Alternately, you can run this build by executing the build.sh file in the
+    project root directory, which will fetch a new installation for you.
+  </fail>
+
+  <!-- the version of intellij we are using as the SDK. -->
+  <loadfile property="idea.sdk.version" srcFile="${idea.ultimate.build}/build.txt"/>
+  <echo level="debug">Using installed IDEA version of ${idea.sdk.version}</echo>
+
+  <!-- Lookup table for properties files.  Add new versions here. -->
+  <condition property="plugin.properties.file" value="idea_v14.1.properties">
+    <matches pattern="-141." string="${idea.sdk.version}"/>
+  </condition>
+  <condition property="plugin.properties.file" value="idea_v14.properties">
+    <matches pattern="-139." string="${idea.sdk.version}"/>
+  </condition>
+  <condition property="plugin.properties.file" value="idea_v13.properties">
+    <matches pattern="-135." string="${idea.sdk.version}"/>
+  </condition>
+  <echo level="debug">Idea property file is ${plugin.properties.file}</echo>
+
+  <fail unless="plugin.properties.file">
+    Unable to load properties.
+
+    Could not locate properties for IDEA SDK version ${idea.sdk.version}.
+
+    If you are compiling a a newly released version of IDEA, perhaps the version
+    number(s) must be added to the lookup table in common.xml.
+  </fail>
+
+  <!-- The properties are mostly used as filters, but they can be useful for other things. -->
+  <property file="${plugin.properties.file}"/>
+
+  <!-- defines a path for code specific to an intellij version.
+     intellij SDK has non-backward compatible changes which requires
+     some duplicated Java files.
+
+     This property defaults to "src/common" if missing, this way you can
+     choose not to include any version specific code -->
+  <property name="version.specific.code.location" location="src/common" />
+
+  <!-- Show pertinent build information -->
+
+  <target name="showIdeaBuild" description="Show build information, including SDK and version data.">
+    <echo>Requested version is set to "${version}"</echo>
+    <echo>Using installed IDEA version of ${idea.sdk.version}</echo>
+    <echo>Using IDEA build at "${idea.ultimate.build}</echo>
+    <echo>Idea property file is ${plugin.properties.file}</echo>
+    <echo>Including version specific code from ${version.specific.code.location}</echo>
+  </target>
+
+
+  <!-- Copy the plugin.xml and replace elements within it with version appropriate data.-->
+
+  <property name="intellij-haxe.metainf.directory" value="src/META-INF"/>
+  <property name="plugin.autogen.warning">
+
+    ==============================================================
+    W A R N I N G ! !      W A R N I N G ! !     W A R N I N G ! !
+    ==============================================================
+
+    Warning!! This file is auto-generated.  Do NOT edit it directly.
+    The corresponding source file can be found at ${intellij-haxe.metainf.directory}.
+
+    ==============================================================
+    W A R N I N G ! !      W A R N I N G ! !     W A R N I N G ! !
+    ==============================================================
+
+  </property>
+  <target name="metainf" description="Copy and update META-INF files with version-specific information">
+    <!-- Need to overwrite always.  Otherwise, copied files are newer and
+         won't be updated between build types (versions). -->
+    <copy todir="gen/META-INF" overwrite="true" verbose="true">
+      <fileset dir="${intellij-haxe.metainf.directory}"/>
+      <filterset>
+        <filtersfile file="${plugin.properties.file}"/>
+        <!-- An odd construction, but it allows using a property in the filtered file. -->
+        <filter token="idea.sdk.version" value="${idea.sdk.version}"/>
+        <filter token="replace.with.plugin.autogen.warning" value="${plugin.autogen.warning}"/>
+      </filterset>
+    </copy>
+  </target>
+
+
+
+</project>

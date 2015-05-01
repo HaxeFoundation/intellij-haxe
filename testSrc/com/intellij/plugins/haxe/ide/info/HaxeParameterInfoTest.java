@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author: Fedor.Korotkov
  */
-abstract public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
+public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   @NotNull
   @Override
   protected String getTestDataPath() {
@@ -37,6 +37,7 @@ abstract public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   }
 
   private void doTest(String infoText, int highlightedParameterIndex) throws Exception {
+// TODO: Fix failing unit test
     /*configureByFile(getTestName(false) + ".hx");
 
     HaxeParameterInfoHandler parameterInfoHandler = new HaxeParameterInfoHandler();

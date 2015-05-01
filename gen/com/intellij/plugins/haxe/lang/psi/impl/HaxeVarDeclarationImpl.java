@@ -119,8 +119,8 @@ public class HaxeVarDeclarationImpl extends HaxePsiFieldImpl implements HaxeVarD
 
   @Override
   @NotNull
-  public List<HaxeVarDeclarationPart> getVarDeclarationPartList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeVarDeclarationPart.class);
+  public HaxeVarDeclarationPart getVarDeclarationPart() {
+    return findNotNullChildByClass(HaxeVarDeclarationPart.class);
   }
 
 }

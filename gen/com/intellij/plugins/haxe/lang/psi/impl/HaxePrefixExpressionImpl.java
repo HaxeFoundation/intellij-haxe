@@ -53,6 +53,12 @@ public class HaxePrefixExpressionImpl extends HaxeExpressionImpl implements Haxe
 
   @Override
   @Nullable
+  public HaxeMacroClassList getMacroClassList() {
+    return findChildByClass(HaxeMacroClassList.class);
+  }
+
+  @Override
+  @Nullable
   public HaxeSwitchStatement getSwitchStatement() {
     return findChildByClass(HaxeSwitchStatement.class);
   }
