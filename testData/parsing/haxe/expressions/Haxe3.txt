@@ -503,7 +503,7 @@ Haxe File
                   PsiJavaToken:ID('name')
             PsiJavaToken:)(')')
           PsiJavaToken:;(';')
-          PsiJavaToken:MSL_COMMENT('// foo')
+          PsiComment(MSL_COMMENT)('// foo')
           LOCAL_VAR_DECLARATION
             PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
@@ -632,7 +632,7 @@ Haxe File
                   PsiJavaToken:ID('value')
             PsiJavaToken:)(')')
           PsiJavaToken:;(';')
-          PsiJavaToken:MSL_COMMENT('// haxe')
+          PsiComment(MSL_COMMENT)('// haxe')
           LOCAL_VAR_DECLARATION
             PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
@@ -768,7 +768,7 @@ Haxe File
                   PsiJavaToken:ID('match')
             PsiJavaToken:)(')')
           PsiJavaToken:;(';')
-          PsiJavaToken:MSL_COMMENT('// 1')
+          PsiComment(MSL_COMMENT)('// 1')
           LOCAL_VAR_DECLARATION
             PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
@@ -843,7 +843,7 @@ Haxe File
                   PsiJavaToken:ID('match')
             PsiJavaToken:)(')')
           PsiJavaToken:;(';')
-          PsiJavaToken:MSL_COMMENT('// 1')
+          PsiComment(MSL_COMMENT)('// 1')
           LOCAL_VAR_DECLARATION
             PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
@@ -978,7 +978,7 @@ Haxe File
                   PsiJavaToken:ID('s')
             PsiJavaToken:)(')')
           PsiJavaToken:;(';')
-          PsiJavaToken:MSL_COMMENT('// 6<=7')
+          PsiComment(MSL_COMMENT)('// 6<=7')
           LOCAL_VAR_DECLARATION
             PsiJavaToken:var('var')
             LOCAL_VAR_DECLARATION_PART
@@ -1087,7 +1087,7 @@ Haxe File
                   PsiJavaToken:ID('s')
             PsiJavaToken:)(')')
           PsiJavaToken:;(';')
-          PsiJavaToken:MSL_COMMENT('// 2')
+          PsiComment(MSL_COMMENT)('// 2')
           PsiJavaToken:}('}')
     PsiJavaToken:}('}')
   ABSTRACT_CLASS_DECLARATION
@@ -1177,7 +1177,7 @@ Haxe File
                   IDENTIFIER
                     PsiJavaToken:ID('km')
             PsiJavaToken:;(';')
-          PsiJavaToken:MSL_COMMENT('// Kilometer should be Int')
+          PsiComment(MSL_COMMENT)('// Kilometer should be Int')
           PsiJavaToken:}('}')
     PsiJavaToken:}('}')
   ABSTRACT_CLASS_DECLARATION
@@ -1189,7 +1189,7 @@ Haxe File
     CLASS_BODY
       <empty list>
     PsiJavaToken:}('}')
-  PsiJavaToken:MSL_COMMENT('// value type with no relations')
+  PsiComment(MSL_COMMENT)('// value type with no relations')
   ABSTRACT_CLASS_DECLARATION
     PsiJavaToken:abstract('abstract')
     COMPONENT_NAME
@@ -1205,7 +1205,7 @@ Haxe File
     CLASS_BODY
       <empty list>
     PsiJavaToken:}('}')
-  PsiJavaToken:MSL_COMMENT('// value type which implicit casts to Float')
+  PsiComment(MSL_COMMENT)('// value type which implicit casts to Float')
   ABSTRACT_CLASS_DECLARATION
     PsiJavaToken:abstract('abstract')
     COMPONENT_NAME
@@ -1227,7 +1227,7 @@ Haxe File
     CLASS_BODY
       <empty list>
     PsiJavaToken:}('}')
-  PsiJavaToken:MSL_COMMENT('// value types which auto-casts to and from Int')
+  PsiComment(MSL_COMMENT)('// value types which auto-casts to and from Int')
   ABSTRACT_CLASS_DECLARATION
     PsiJavaToken:abstract('abstract')
     COMPONENT_NAME
@@ -1258,7 +1258,7 @@ Haxe File
     CLASS_BODY
       <empty list>
     PsiJavaToken:}('}')
-  PsiJavaToken:MSL_COMMENT('// opaque type based on Int')
+  PsiComment(MSL_COMMENT)('// opaque type based on Int')
   ABSTRACT_CLASS_DECLARATION
     PsiJavaToken:abstract('abstract')
     COMPONENT_NAME
@@ -1292,7 +1292,7 @@ Haxe File
     CLASS_BODY
       <empty list>
     PsiJavaToken:}('}')
-  PsiJavaToken:MSL_COMMENT('// opaque type based on VectorData<T>')
+  PsiComment(MSL_COMMENT)('// opaque type based on VectorData<T>')
   ABSTRACT_CLASS_DECLARATION
     PsiJavaToken:abstract('abstract')
     COMPONENT_NAME
@@ -1437,7 +1437,7 @@ Haxe File
         IDENTIFIER
           PsiJavaToken:ID('Int')
     PsiJavaToken:{('{')
-    PsiJavaToken:MSL_COMMENT('// MyInt + MyInt can be used as is, and returns a MyInt')
+    PsiComment(MSL_COMMENT)('// MyInt + MyInt can be used as is, and returns a MyInt')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         CUSTOM_META

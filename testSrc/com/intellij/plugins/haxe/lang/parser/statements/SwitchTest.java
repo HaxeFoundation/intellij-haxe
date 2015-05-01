@@ -26,7 +26,6 @@ public class SwitchTest extends StatementTestBase {
   }
 
   public void testSimple() throws Throwable {
-// TODO: Fix failing unit test
-//    doTest(true);
+    doTest(true);
   }
 }

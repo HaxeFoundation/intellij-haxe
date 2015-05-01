@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 /**
  * @author: Fedor.Korotkov
@@ -59,9 +58,8 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
   }
 
   protected void doTest(BaseHaxeGenerateHandler anAction) {
-// TODO: Fix failing unit test
-//    anAction.invoke(getProject(), getEditor(), getFile());
-//    checkResultByFile(getTestName(false) + ".txt");
+    anAction.invoke(getProject(), getEditor(), getFile());
+    checkResultByFile(getTestName(false) + ".txt");
   }
 
   public void testImplement1() throws Throwable {

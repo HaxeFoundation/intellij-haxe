@@ -1,4 +1,5 @@
 class GetterSetter1 {
-  var foo:Int, bar:String;
+  var foo:Int;
+  var bar:String;
   <caret>
 }

@@ -28,8 +28,7 @@ public class ExpressionTest extends HaxeParsingTestBase {
   }
 
   public void testHaxe3() throws Throwable {
-// TODO: Fix failing unit test
-//    doTest(true);
+    doTest(true);
   }
 
   public void testOffers() throws Throwable {
