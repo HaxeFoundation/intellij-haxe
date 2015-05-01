@@ -7,6 +7,7 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 ideaVersion=$1
+ideaPrimaryVersionID=${ideaVersion%%\..*}
 
 # Get our IDEA dependency
 if [ -f ~/Tools/ideaIU-${ideaVersion}.tar.gz ];
@@ -23,3 +24,5 @@ rm -rf ideaIU-${ideaVersion}.tar.gz
 # Move the versioned IDEA folder to a known location
 ideaPath=$(find . -name 'idea-IU*' | head -n 1)
 mv ${ideaPath} ./idea-IU
+
+

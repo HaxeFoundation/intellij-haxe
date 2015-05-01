@@ -59,6 +59,8 @@ public class HaxeCommonCompilerUtil {
     Boolean getIsTestBuild();
 
     void errorHandler(String message);
+    void warningHandler(String message);
+    void infoHandler(String message);
 
     void log(String message);
 
@@ -179,6 +181,17 @@ public class HaxeCommonCompilerUtil {
     }
     else {
       setupUserProperties(commandLine, context);
+    }
+
+    // Show the command line in the output window.
+    // TODO: Make a checkbox in the SDK configuration window.
+    if (!commandLine.isEmpty()) {
+      StringBuilder cl = new StringBuilder("Executing: ");
+      for (String commandPart : commandLine) {
+        cl.append(commandPart);
+        cl.append(" ");
+      }
+      context.infoHandler(cl.toString());
     }
 
     final BooleanValueHolder hasErrors = new BooleanValueHolder(false);

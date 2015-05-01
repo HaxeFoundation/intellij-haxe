@@ -86,12 +86,6 @@ public class HaxeCompilerError {
                                          m.group(2).trim(), "", -1, -1);
         }
 
-        // Error:(.*)
-        if ((m = pBareError.matcher(message)).matches()) {
-            return new HaxeCompilerError(CompilerMessageCategory.ERROR,
-                                         m.group(1).trim(), "", -1, -1);
-        }
-
         String rawPath = null, rawLine, rawColumn, text;
 
         // ([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)
@@ -99,14 +93,27 @@ public class HaxeCompilerError {
             rawPath = m.group(1);
             rawLine = m.group(2);
             rawColumn = m.group(3);
-            text = m.group(4);
+            text = m.group(4).trim();
         }
         // ([^:]+):([\\d]+): lines [\\d]+-[\\d]+ :(.*)
         else if ((m = pLineError.matcher(message)).matches()) {
             rawPath = m.group(1);
             rawLine = m.group(2);
             rawColumn = "-1";
-            text = m.group(3);
+            text = m.group(3).trim();
+        }
+        // ([^:]*)Error:(.*)
+        else if ((m = pBareError.matcher(message)).matches()) {
+          StringBuilder err = new StringBuilder();
+          String errType = m.group(1).trim();
+          if (!errType.isEmpty()) {
+            err.append(" (");
+            err.append(errType);
+            err.append(") ");
+          }
+          err.append(m.group(2).trim());
+          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+                                       err.toString(), "", -1, -1);
         }
         // Anything that doesn't match error patterns is purely informational
         else {
@@ -142,15 +149,25 @@ public class HaxeCompilerError {
             column = -1;
         }
 
-        return new HaxeCompilerError((text.indexOf("Warning") == -1) ?
-                                     CompilerMessageCategory.ERROR :
-                                     CompilerMessageCategory.WARNING,
-                                     text.trim(), filePath, line, column);
+        final String warningStr = "Warning";
+        if (0 == text.indexOf(warningStr)) {
+          text = text.substring(warningStr.length()).trim();
+          final String colonChar = ":";
+          if (0 == text.indexOf(colonChar)) {
+            text = text.substring(colonChar.length()).trim();
+          }
+          return new HaxeCompilerError(CompilerMessageCategory.WARNING,
+                                       text, filePath, line, column);
+        }
+        else {
+          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+                                       text, filePath, line, column);
+        }
     }
 
     static Pattern pLibraryNotInstalled = Pattern.compile
         ("Error: Library ([\\S]+) is not installed(.*)");
-    static Pattern pBareError = Pattern.compile("Error:(.*)");
+    static Pattern pBareError = Pattern.compile("([^:]*)Error:(.*)", Pattern.CASE_INSENSITIVE);
     static Pattern pColumnError = 
         Pattern.compile("([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
     static Pattern pLineError =

@@ -53,6 +53,9 @@ public interface HaxeSwitchCaseBlock extends HaxePsiCompositeElement {
   List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
   @NotNull
+  List<HaxeMacroClassList> getMacroClassListList();
+
+  @NotNull
   List<HaxeReturnStatement> getReturnStatementList();
 
   @NotNull
