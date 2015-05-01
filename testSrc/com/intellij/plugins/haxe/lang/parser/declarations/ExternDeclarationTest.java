@@ -17,6 +17,11 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+
 public class ExternDeclarationTest extends DeclarationTestBase {
   public ExternDeclarationTest() {
     super("extern");
@@ -24,6 +29,12 @@ public class ExternDeclarationTest extends DeclarationTestBase {
 
   public void testSimple() throws Throwable {
     doTest(true);
+    HaxeFile file = (HaxeFile)myFile;
+    assertNotNull(file);
+    PsiClass[] psiClasses = file.getClasses();
+    assertTrue(psiClasses.length == 1);
+    AbstractHaxePsiClass psiClass = (AbstractHaxePsiClass)psiClasses[0];
+    assertTrue(psiClass.isExtern());
   }
 
   public void testInterface() throws Throwable {
