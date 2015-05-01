@@ -523,9 +523,39 @@ public class HaxeResolveUtil {
 
     String name = getQName(type);
     HaxeClass result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
+
+    if (result == null) {
+      name = tryResolveFullyQualifiedHaxeReferenceExpression(type);
+      result = findClassByQName(name, type.getContext());
+    }
+
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
+  }
+
+  private static String tryResolveFullyQualifiedHaxeReferenceExpression(PsiElement type) {
+    if (type instanceof HaxeReferenceExpression) {
+      if (type.getParent() instanceof HaxeReferenceExpression) {
+        PsiElement element = type;
+        while (element.getParent() instanceof HaxeReferenceExpression) {
+          element = element.getParent();
+        }
+
+        HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
+        if (haxeClass != null) {
+          return element.getText();
+        }
+
+        PsiElement parent = type.getParent();
+        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
+        if (classByQName != null) {
+          return parent.getText();
+        }
+      }
+    }
+
+    return null;
   }
 
   @Nullable
@@ -569,26 +599,6 @@ public class HaxeResolveUtil {
     if (usingStatement != null) {
       HaxeReferenceExpression expression = usingStatement.getReferenceExpression();
       return expression == null? null : expression.getText();
-    }
-
-    if (type instanceof HaxeReferenceExpression) {
-      if (type.getParent() instanceof HaxeReferenceExpression) {
-        PsiElement element = type;
-        while (element.getParent() instanceof HaxeReferenceExpression) {
-          element = element.getParent();
-        }
-
-        HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
-        if (haxeClass != null) {
-          return element.getText();
-        }
-
-        PsiElement parent = type.getParent();
-        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
-        if (classByQName != null) {
-          return parent.getText();
-        }
-      }
     }
 
     return null;
