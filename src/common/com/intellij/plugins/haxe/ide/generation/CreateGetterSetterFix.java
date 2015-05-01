@@ -17,13 +17,9 @@
  */
 package com.intellij.plugins.haxe.ide.generation;
 
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.source.tree.PsiWhiteSpaceImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 
 import java.util.Set;
@@ -46,7 +42,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     }, GETTERSETTER {
       @Override
       boolean accept(String name, Set<String> names) {
-        return !names.contains(HaxePresentableUtil.getterName(name)) &&
+        return !names.contains(HaxePresentableUtil.getterName(name)) ||
                !names.contains(HaxePresentableUtil.setterName(name));
       }
     };
@@ -69,10 +65,14 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclarationPart)namedComponent).getTypeTag());
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
-      buildGetter(result, namedComponent.getName(), typeText);
+      if (null == myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(namedComponent.getName()))) {
+        buildGetter(result, namedComponent.getName(), typeText);
+      }
     }
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
-      buildSetter(result, namedComponent.getName(), typeText);
+      if (null == myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(namedComponent.getName()))) {
+        buildSetter(result, namedComponent.getName(), typeText);
+      }
     }
     return result.toString();
   }
@@ -137,7 +137,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
   }
 
   private static void build(StringBuilder result, String name, String typeText, boolean isGetter) {
-    result.append("public function ");
+    result.append("private function ");
     result.append(isGetter ? HaxePresentableUtil.getterName(name) : HaxePresentableUtil.setterName(name));
     result.append("(");
     if (!isGetter) {

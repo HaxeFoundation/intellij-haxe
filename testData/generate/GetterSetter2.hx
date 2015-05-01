@@ -1,8 +1,9 @@
 class GetterSetter2 {
-  var foo:Int, bar:String;
+  var foo:Int;
+  var bar:String;
 
   @:getter(foo)
-  public function getFoo():Int {
+  private function get_foo():Int {
     return foo;
   }
   <caret>

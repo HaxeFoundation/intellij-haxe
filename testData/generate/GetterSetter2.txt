@@ -1,17 +1,22 @@
 class GetterSetter2 {
-  var foo:Int, bar(getBar, setBar):String;
+  @:isVar public var foo(get, set):Int;
+    @:isVar public var bar(get, set):String;
 
   @:getter(foo)
-  public function getFoo():Int {
+  private function get_foo():Int {
     return foo;
   }
 
-    public function setBar(value:String) {
-        this.bar = value;
+    private function set_foo(value:Int) {
+        return this.foo = value;
     }
 
-    public function getBar():String {
+    private function get_bar():String {
         return bar;
+    }
+
+    private function set_bar(value:String) {
+        return this.bar = value;
     }
 
 }
