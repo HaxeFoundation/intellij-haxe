@@ -90,7 +90,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean isExtern() {
-    return this instanceof HaxeExternClassDeclaration;
+    return (this instanceof HaxeExternClassDeclaration || this instanceof HaxeExternInterfaceDeclaration);
   }
 
   @Override
@@ -385,10 +385,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       privateKeyWord = ((HaxeAbstractClassDeclaration) this).getPrivateKeyWord();
     }
     else if (this instanceof HaxeExternClassDeclaration) { // extern class
-      List<HaxeExternOrPrivate> externOrPrivateList = ((HaxeExternClassDeclaration) this).getExternOrPrivateList();
-      for (HaxeExternOrPrivate externOrPrivate : externOrPrivateList) {
-        if (externOrPrivate.getPrivateKeyWord() != null) {
-          privateKeyWord = externOrPrivate.getPrivateKeyWord();
+      List<HaxePrivateKeyWord> privateList = ((HaxeExternClassDeclaration) this).getPrivateKeyWordList();
+      for (HaxePrivateKeyWord privateModifier : privateList) {
+        if (privateModifier != null) {
+          privateKeyWord = privateModifier;
           break; // XXX: does this need further searching / refining?
         }
       }
@@ -400,7 +400,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
         externOrPrivate = ((HaxeTypedefDeclaration) this).getExternOrPrivate();
       }
       else if (this instanceof HaxeInterfaceDeclaration) { // interface
-        externOrPrivate = ((HaxeInterfaceDeclaration) this).getExternOrPrivate();
+        privateKeyWord = ((HaxeInterfaceDeclaration) this).getPrivateKeyWord();
       }
       else if (this instanceof HaxeEnumDeclaration) { // enum
         externOrPrivate = ((HaxeEnumDeclaration) this).getExternOrPrivate();

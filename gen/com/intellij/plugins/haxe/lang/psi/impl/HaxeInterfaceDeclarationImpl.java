@@ -47,12 +47,6 @@ public class HaxeInterfaceDeclarationImpl extends AbstractHaxePsiClass implement
 
   @Override
   @Nullable
-  public HaxeExternOrPrivate getExternOrPrivate() {
-    return findChildByClass(HaxeExternOrPrivate.class);
-  }
-
-  @Override
-  @Nullable
   public HaxeGenericParam getGenericParam() {
     return findChildByClass(HaxeGenericParam.class);
   }
@@ -73,6 +67,12 @@ public class HaxeInterfaceDeclarationImpl extends AbstractHaxePsiClass implement
   @Nullable
   public HaxeMacroClassList getMacroClassList() {
     return findChildByClass(HaxeMacroClassList.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxePrivateKeyWord getPrivateKeyWord() {
+    return findChildByClass(HaxePrivateKeyWord.class);
   }
 
 }

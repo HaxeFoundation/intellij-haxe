@@ -208,6 +208,10 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitMethod(o);
   }
 
+  public void visitExternInterfaceDeclaration(@NotNull HaxeExternInterfaceDeclaration o) {
+    visitClass(o);
+  }
+
   public void visitExternOrPrivate(@NotNull HaxeExternOrPrivate o) {
     visitPsiCompositeElement(o);
   }

@@ -29,9 +29,6 @@ public interface HaxeInterfaceDeclaration extends HaxeClass {
   HaxeComponentName getComponentName();
 
   @Nullable
-  HaxeExternOrPrivate getExternOrPrivate();
-
-  @Nullable
   HaxeGenericParam getGenericParam();
 
   @Nullable
@@ -42,5 +39,8 @@ public interface HaxeInterfaceDeclaration extends HaxeClass {
 
   @Nullable
   HaxeMacroClassList getMacroClassList();
+
+  @Nullable
+  HaxePrivateKeyWord getPrivateKeyWord();
 
 }
