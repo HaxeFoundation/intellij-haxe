@@ -523,12 +523,6 @@ public class HaxeResolveUtil {
 
     String name = getQName(type);
     HaxeClass result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
-
-    if (result == null) {
-      name = tryResolveFullyQualifiedHaxeReferenceExpression(type);
-      result = findClassByQName(name, type.getContext());
-    }
-
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
@@ -536,15 +530,11 @@ public class HaxeResolveUtil {
 
   private static String tryResolveFullyQualifiedHaxeReferenceExpression(PsiElement type) {
     if (type instanceof HaxeReferenceExpression) {
-      if (type.getParent() instanceof HaxeReferenceExpression) {
-        PsiElement element = type;
-        while (element.getParent() instanceof HaxeReferenceExpression) {
-          element = element.getParent();
-        }
-
-        HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
+      HaxeReferenceExpression topmostParentOfType = PsiTreeUtil.getTopmostParentOfType(type, HaxeReferenceExpression.class);
+      if (topmostParentOfType != null) {
+        HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
         if (haxeClass != null) {
-          return element.getText();
+          return topmostParentOfType.getText();
         }
 
         PsiElement parent = type.getParent();
@@ -610,7 +600,7 @@ public class HaxeResolveUtil {
       type = ((HaxeType)type).getReferenceExpression();
     }
 
-    final String name = type.getText();
+    String name = type.getText();
     HaxeClass result = null;
 
     //1. try searchInSamePackage, ex if type is Bar, be referenced in foo.Foo then we will find class foo.Bar
@@ -620,6 +610,10 @@ public class HaxeResolveUtil {
       final PsiElement[] fileChildren = psiFile.getChildren();
       String nameWithPackage = getQName(fileChildren, name, true);
       result = findClassByQName(nameWithPackage, type.getContext());
+    }
+    else {
+      name = tryResolveFullyQualifiedHaxeReferenceExpression(type);
+      result = findClassByQName(name, type.getContext());
     }
 
     //2. try without searchInSamePackage,
