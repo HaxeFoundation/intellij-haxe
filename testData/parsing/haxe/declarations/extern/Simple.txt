@@ -1,0 +1,11 @@
+Haxe File
+  EXTERN_CLASS_DECLARATION
+    PsiJavaToken:extern('extern ')
+    PsiJavaToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        PsiJavaToken:ID('Simple')
+    PsiJavaToken:{('{')
+    EXTERN_CLASS_DECLARATION_BODY
+      <empty list>
+    PsiJavaToken:}('}')

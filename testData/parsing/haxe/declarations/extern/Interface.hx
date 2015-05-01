@@ -1,0 +1,1 @@
+extern interface Simple{}

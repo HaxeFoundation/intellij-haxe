@@ -1,0 +1,11 @@
+Haxe File
+  EXTERN_INTERFACE_DECLARATION
+    PsiJavaToken:extern('extern ')
+    PsiJavaToken:interface('interface')
+    COMPONENT_NAME
+      IDENTIFIER
+        PsiJavaToken:ID('Simple')
+    PsiJavaToken:{('{')
+    INTERFACE_BODY
+      <empty list>
+    PsiJavaToken:}('}')
