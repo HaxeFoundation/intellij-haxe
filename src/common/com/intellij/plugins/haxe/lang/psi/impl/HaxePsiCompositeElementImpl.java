@@ -132,7 +132,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       return;
     }
     for (HaxeVarDeclaration varDeclaration : items) {
-      result.addAll(varDeclaration.getVarDeclarationPartList());
+      result.add(varDeclaration.getVarDeclarationPart());
     }
   }
 

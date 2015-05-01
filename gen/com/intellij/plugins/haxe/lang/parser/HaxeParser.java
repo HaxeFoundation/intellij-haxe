@@ -5722,39 +5722,9 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // varDeclarationPart (',' varDeclarationPart)*
+  // varDeclarationPart
   static boolean varDeclarationPartList(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "varDeclarationPartList")) return false;
-    if (!nextTokenIs(b, ID)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = varDeclarationPart(b, l + 1);
-    r = r && varDeclarationPartList_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // (',' varDeclarationPart)*
-  private static boolean varDeclarationPartList_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "varDeclarationPartList_1")) return false;
-    int c = current_position_(b);
-    while (true) {
-      if (!varDeclarationPartList_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "varDeclarationPartList_1", c)) break;
-      c = current_position_(b);
-    }
-    return true;
-  }
-
-  // ',' varDeclarationPart
-  private static boolean varDeclarationPartList_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "varDeclarationPartList_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, OCOMMA);
-    r = r && varDeclarationPart(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+    return varDeclarationPart(b, l + 1);
   }
 
   /* ********************************************************** */

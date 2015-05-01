@@ -40,8 +40,7 @@ public class HaxeElementGenerator {
   public static PsiElement createExpressionFromText(Project myProject, String text) {
     PsiElement fromText = createStatementFromText(myProject, "var test = " + text + ";");
     if (fromText instanceof HaxeVarDeclaration) {
-      List<HaxeVarDeclarationPart> partList = ((HaxeVarDeclaration)fromText).getVarDeclarationPartList();
-      HaxeVarDeclarationPart declarationPart = partList.isEmpty() ? null : partList.iterator().next();
+      HaxeVarDeclarationPart declarationPart = ((HaxeVarDeclaration)fromText).getVarDeclarationPart();
       HaxeVarInit varInit = declarationPart != null ? declarationPart.getVarInit() : null;
       return varInit != null ? varInit.getExpression() : null;
     }

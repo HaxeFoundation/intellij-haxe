@@ -65,6 +65,6 @@ public interface HaxeVarDeclaration extends HaxePsiField {
   List<HaxeSetterMeta> getSetterMetaList();
 
   @NotNull
-  List<HaxeVarDeclarationPart> getVarDeclarationPartList();
+  HaxeVarDeclarationPart getVarDeclarationPart();
 
 }
