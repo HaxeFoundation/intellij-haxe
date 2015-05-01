@@ -211,7 +211,7 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 "untyped"                                 {  return KUNTYPED;  }
 "typedef"                                 {  return KTYPEDEF;  }
 
-"extern"                                  {  return KEXTERN;  }
+"extern" [\ ]+                                  {  return KEXTERN;  }
 
 "@:final"                                 {  return KFINAL;  }
 "@:hack"                                  {  return KHACK;  }
