@@ -108,6 +108,6 @@ public class HaxeMoveTest extends MultiFileTestCase {
 
   public void testMovePackage() throws Exception {
 // TODO: Fix failing unit test
-//    doTest("util", "foo");
+    doTest("util", "foo");
   }
 }

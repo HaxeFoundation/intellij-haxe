@@ -528,6 +528,26 @@ public class HaxeResolveUtil {
     return result;
   }
 
+  private static String tryResolveFullyQualifiedHaxeReferenceExpression(PsiElement type) {
+    if (type instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression topmostParentOfType = PsiTreeUtil.getTopmostParentOfType(type, HaxeReferenceExpression.class);
+      if (topmostParentOfType != null) {
+        HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
+        if (haxeClass != null) {
+          return topmostParentOfType.getText();
+        }
+
+        PsiElement parent = type.getParent();
+        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
+        if (classByQName != null) {
+          return parent.getText();
+        }
+      }
+    }
+
+    return null;
+  }
+
   @Nullable
   private static HaxeClass findClassByQNameInSuperPackages(PsiElement type) {
     HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(type.getContainingFile(), HaxePackageStatement.class);
@@ -571,26 +591,6 @@ public class HaxeResolveUtil {
       return expression == null? null : expression.getText();
     }
 
-    if (type instanceof HaxeReferenceExpression) {
-      if (type.getParent() instanceof HaxeReferenceExpression) {
-        PsiElement element = type;
-        while (element.getParent() instanceof HaxeReferenceExpression) {
-          element = element.getParent();
-        }
-
-        HaxeClass haxeClass = findClassByQName(element.getText(), element.getContext());
-        if (haxeClass != null) {
-          return element.getText();
-        }
-
-        PsiElement parent = type.getParent();
-        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
-        if (classByQName != null) {
-          return parent.getText();
-        }
-      }
-    }
-
     return null;
   }
 
@@ -600,7 +600,7 @@ public class HaxeResolveUtil {
       type = ((HaxeType)type).getReferenceExpression();
     }
 
-    final String name = type.getText();
+    String name = type.getText();
     HaxeClass result = null;
 
     //1. try searchInSamePackage, ex if type is Bar, be referenced in foo.Foo then we will find class foo.Bar
@@ -610,6 +610,10 @@ public class HaxeResolveUtil {
       final PsiElement[] fileChildren = psiFile.getChildren();
       String nameWithPackage = getQName(fileChildren, name, true);
       result = findClassByQName(nameWithPackage, type.getContext());
+    }
+    else {
+      name = tryResolveFullyQualifiedHaxeReferenceExpression(type);
+      result = findClassByQName(name, type.getContext());
     }
 
     //2. try without searchInSamePackage,

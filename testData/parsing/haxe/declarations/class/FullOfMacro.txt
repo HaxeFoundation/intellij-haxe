@@ -281,9 +281,11 @@ Haxe File
                 PsiJavaToken:true('true')
             PsiJavaToken:)(')')
           PsiJavaToken:)(')')
-    PsiJavaToken:extern('extern ')
-    PRIVATE_KEY_WORD
-      PsiJavaToken:private('private')
+    EXTERN_OR_PRIVATE
+      PsiJavaToken:extern('extern ')
+    EXTERN_OR_PRIVATE
+      PRIVATE_KEY_WORD
+        PsiJavaToken:private('private')
     PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER

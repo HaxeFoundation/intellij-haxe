@@ -27,8 +27,7 @@ public class ClassDeclarationTest extends DeclarationTestBase {
   }
 
   public void testExtendsImplements() throws Throwable {
-// TODO: Fix failing unit test
-//    doTest(true);
+    doTest(true);
   }
 
   public void testImplements() throws Throwable {

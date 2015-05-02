@@ -5,7 +5,8 @@ Haxe File
         SIMPLE_META
           FINAL_META
             PsiJavaToken:@:final('@:final')
-    PsiJavaToken:extern('extern ')
+    EXTERN_OR_PRIVATE
+      PsiJavaToken:extern('extern ')
     PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
@@ -91,9 +92,11 @@ Haxe File
           PsiJavaToken:}('}')
     PsiJavaToken:}('}')
   EXTERN_CLASS_DECLARATION
-    PRIVATE_KEY_WORD
-      PsiJavaToken:private('private')
-    PsiJavaToken:extern('extern ')
+    EXTERN_OR_PRIVATE
+      PRIVATE_KEY_WORD
+        PsiJavaToken:private('private')
+    EXTERN_OR_PRIVATE
+      PsiJavaToken:extern('extern ')
     PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
