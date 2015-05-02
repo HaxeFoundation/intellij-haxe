@@ -1,6 +1,7 @@
 Haxe File
   EXTERN_CLASS_DECLARATION
-    PsiJavaToken:extern('extern ')
+    EXTERN_KEY_WORD
+      PsiJavaToken:extern('extern ')
     PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER

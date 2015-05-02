@@ -212,7 +212,7 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitClass(o);
   }
 
-  public void visitExternOrPrivate(@NotNull HaxeExternOrPrivate o) {
+  public void visitExternKeyWord(@NotNull HaxeExternKeyWord o) {
     visitPsiCompositeElement(o);
   }
 

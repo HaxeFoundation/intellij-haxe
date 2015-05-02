@@ -385,30 +385,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       privateKeyWord = ((HaxeAbstractClassDeclaration) this).getPrivateKeyWord();
     }
     else if (this instanceof HaxeExternClassDeclaration) { // extern class
-      List<HaxePrivateKeyWord> privateList = ((HaxeExternClassDeclaration) this).getPrivateKeyWordList();
-      for (HaxePrivateKeyWord privateModifier : privateList) {
-        if (privateModifier != null) {
-          privateKeyWord = privateModifier;
-          break; // XXX: does this need further searching / refining?
-        }
-      }
+      privateKeyWord = ((HaxeExternClassDeclaration)this).getPrivateKeyWord();
     }
-    else {
-      HaxeExternOrPrivate externOrPrivate = null;
-
-      if (this instanceof HaxeTypedefDeclaration) { // typedef
-        externOrPrivate = ((HaxeTypedefDeclaration) this).getExternOrPrivate();
-      }
-      else if (this instanceof HaxeInterfaceDeclaration) { // interface
-        privateKeyWord = ((HaxeInterfaceDeclaration) this).getPrivateKeyWord();
-      }
-      else if (this instanceof HaxeEnumDeclaration) { // enum
-        externOrPrivate = ((HaxeEnumDeclaration) this).getExternOrPrivate();
-      }
-
-      if (externOrPrivate != null) {
-        privateKeyWord = externOrPrivate.getPrivateKeyWord();
-      }
+    else if (this instanceof HaxeTypedefDeclaration) { // typedef
+      privateKeyWord = ((HaxeTypedefDeclaration) this).getPrivateKeyWord();
+    }
+    else if (this instanceof HaxeInterfaceDeclaration) { // interface
+      privateKeyWord = ((HaxeInterfaceDeclaration) this).getPrivateKeyWord();
+    }
+    else if (this instanceof HaxeEnumDeclaration) { // enum
+      privateKeyWord = ((HaxeEnumDeclaration) this).getPrivateKeyWord();
     }
     return (privateKeyWord != null);
   }

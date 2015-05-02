@@ -178,8 +178,8 @@ public class HaxeParser implements PsiParser {
     else if (t == EXTERN_INTERFACE_DECLARATION) {
       r = externInterfaceDeclaration(b, 0);
     }
-    else if (t == EXTERN_OR_PRIVATE) {
-      r = externOrPrivate(b, 0);
+    else if (t == EXTERN_KEY_WORD) {
+      r = externKeyWord(b, 0);
     }
     else if (t == FAKE_ENUM_META) {
       r = fakeEnumMeta(b, 0);
@@ -1935,29 +1935,54 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // privateKeyWord? 'extern' privateKeyWord?
+  // externAndMaybePrivate2 | externAndMaybePrivate1
   static boolean externAndMaybePrivate(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "externAndMaybePrivate")) return false;
     if (!nextTokenIs(b, "", KEXTERN, KPRIVATE)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = externAndMaybePrivate_0(b, l + 1);
-    r = r && consumeToken(b, KEXTERN);
-    r = r && externAndMaybePrivate_2(b, l + 1);
+    r = externAndMaybePrivate2(b, l + 1);
+    if (!r) r = externAndMaybePrivate1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // privateKeyWord? externKeyWord
+  static boolean externAndMaybePrivate1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externAndMaybePrivate1")) return false;
+    if (!nextTokenIs(b, "", KEXTERN, KPRIVATE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = externAndMaybePrivate1_0(b, l + 1);
+    r = r && externKeyWord(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // privateKeyWord?
-  private static boolean externAndMaybePrivate_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externAndMaybePrivate_0")) return false;
+  private static boolean externAndMaybePrivate1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externAndMaybePrivate1_0")) return false;
     privateKeyWord(b, l + 1);
     return true;
   }
 
+  /* ********************************************************** */
+  // externKeyWord privateKeyWord?
+  static boolean externAndMaybePrivate2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externAndMaybePrivate2")) return false;
+    if (!nextTokenIs(b, KEXTERN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = externKeyWord(b, l + 1);
+    r = r && externAndMaybePrivate2_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
   // privateKeyWord?
-  private static boolean externAndMaybePrivate_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externAndMaybePrivate_2")) return false;
+  private static boolean externAndMaybePrivate2_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externAndMaybePrivate2_1")) return false;
     privateKeyWord(b, l + 1);
     return true;
   }
@@ -2171,15 +2196,42 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'extern' | privateKeyWord
-  public static boolean externOrPrivate(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "externOrPrivate")) return false;
-    if (!nextTokenIs(b, "<extern or private>", KEXTERN, KPRIVATE)) return false;
+  // 'extern'
+  public static boolean externKeyWord(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externKeyWord")) return false;
+    if (!nextTokenIs(b, KEXTERN)) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, "<extern or private>");
+    Marker m = enter_section_(b);
     r = consumeToken(b, KEXTERN);
+    exit_section_(b, m, EXTERN_KEY_WORD, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // externPrivate | privateExtern | privateKeyWord | externKeyWord
+  static boolean externOrPrivate(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externOrPrivate")) return false;
+    if (!nextTokenIs(b, "", KEXTERN, KPRIVATE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = externPrivate(b, l + 1);
+    if (!r) r = privateExtern(b, l + 1);
     if (!r) r = privateKeyWord(b, l + 1);
-    exit_section_(b, l, m, EXTERN_OR_PRIVATE, r, false, null);
+    if (!r) r = externKeyWord(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // externKeyWord privateKeyWord
+  static boolean externPrivate(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "externPrivate")) return false;
+    if (!nextTokenIs(b, KEXTERN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = externKeyWord(b, l + 1);
+    r = r && privateKeyWord(b, l + 1);
+    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -4363,6 +4415,19 @@ public class HaxeParser implements PsiParser {
     if (!r) r = consumeToken(b, OPLUS_PLUS);
     if (!r) r = consumeToken(b, ONOT);
     if (!r) r = consumeToken(b, OCOMPLEMENT);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // privateKeyWord externKeyWord
+  static boolean privateExtern(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "privateExtern")) return false;
+    if (!nextTokenIs(b, KPRIVATE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = privateKeyWord(b, l + 1);
+    r = r && externKeyWord(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }

@@ -29,7 +29,7 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
   HaxeComponentName getComponentName();
 
   @Nullable
-  HaxeExternOrPrivate getExternOrPrivate();
+  HaxeExternKeyWord getExternKeyWord();
 
   @Nullable
   HaxeFunctionType getFunctionType();
@@ -39,6 +39,9 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
 
   @Nullable
   HaxeMacroClassList getMacroClassList();
+
+  @Nullable
+  HaxePrivateKeyWord getPrivateKeyWord();
 
   @Nullable
   HaxeTypeOrAnonymous getTypeOrAnonymous();
