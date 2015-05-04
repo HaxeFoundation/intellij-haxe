@@ -254,8 +254,15 @@ private topLevelDeclaration ::= classDeclaration
                               | typedefDeclaration
 
 privateKeyWord ::= 'private'
-externOrPrivate ::= 'extern' | privateKeyWord
-private externAndMaybePrivate ::= privateKeyWord? 'extern' privateKeyWord?
+externKeyWord ::= 'extern'
+
+private externPrivate ::= externKeyWord privateKeyWord
+private privateExtern ::= privateKeyWord externKeyWord
+private externOrPrivate ::= externPrivate | privateExtern | privateKeyWord | externKeyWord
+
+private externAndMaybePrivate1 ::= privateKeyWord? externKeyWord
+private externAndMaybePrivate2 ::= externKeyWord privateKeyWord?
+private externAndMaybePrivate ::= externAndMaybePrivate2 | externAndMaybePrivate1
 
 typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}

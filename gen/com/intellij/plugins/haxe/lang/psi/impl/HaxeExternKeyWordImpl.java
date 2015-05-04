@@ -28,21 +28,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeExternOrPrivateImpl extends HaxePsiCompositeElementImpl implements HaxeExternOrPrivate {
+public class HaxeExternKeyWordImpl extends HaxePsiCompositeElementImpl implements HaxeExternKeyWord {
 
-  public HaxeExternOrPrivateImpl(ASTNode node) {
+  public HaxeExternKeyWordImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitExternOrPrivate(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitExternKeyWord(this);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public HaxePrivateKeyWord getPrivateKeyWord() {
-    return findChildByClass(HaxePrivateKeyWord.class);
   }
 
 }

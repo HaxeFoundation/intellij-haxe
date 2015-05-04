@@ -72,7 +72,7 @@ public interface HaxeTokenTypes {
   IElementType EXTERN_CLASS_DECLARATION_BODY = new HaxeElementType("EXTERN_CLASS_DECLARATION_BODY");
   IElementType EXTERN_FUNCTION_DECLARATION = new HaxeElementType("EXTERN_FUNCTION_DECLARATION");
   IElementType EXTERN_INTERFACE_DECLARATION = new HaxeElementType("EXTERN_INTERFACE_DECLARATION");
-  IElementType EXTERN_OR_PRIVATE = new HaxeElementType("EXTERN_OR_PRIVATE");
+  IElementType EXTERN_KEY_WORD = new HaxeElementType("EXTERN_KEY_WORD");
   IElementType FAKE_ENUM_META = new HaxeElementType("FAKE_ENUM_META");
   IElementType FAT_ARROW_EXPRESSION = new HaxeElementType("FAT_ARROW_EXPRESSION");
   IElementType FINAL_META = new HaxeElementType("FINAL_META");
@@ -437,8 +437,8 @@ public interface HaxeTokenTypes {
       else if (type == EXTERN_INTERFACE_DECLARATION) {
         return new HaxeExternInterfaceDeclarationImpl(node);
       }
-      else if (type == EXTERN_OR_PRIVATE) {
-        return new HaxeExternOrPrivateImpl(node);
+      else if (type == EXTERN_KEY_WORD) {
+        return new HaxeExternKeyWordImpl(node);
       }
       else if (type == FAKE_ENUM_META) {
         return new HaxeFakeEnumMetaImpl(node);

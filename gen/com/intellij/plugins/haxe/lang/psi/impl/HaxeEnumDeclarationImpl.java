@@ -53,8 +53,8 @@ public class HaxeEnumDeclarationImpl extends AbstractHaxePsiClass implements Hax
 
   @Override
   @Nullable
-  public HaxeExternOrPrivate getExternOrPrivate() {
-    return findChildByClass(HaxeExternOrPrivate.class);
+  public HaxeExternKeyWord getExternKeyWord() {
+    return findChildByClass(HaxeExternKeyWord.class);
   }
 
   @Override
@@ -67,6 +67,12 @@ public class HaxeEnumDeclarationImpl extends AbstractHaxePsiClass implements Hax
   @Nullable
   public HaxeMacroClassList getMacroClassList() {
     return findChildByClass(HaxeMacroClassList.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxePrivateKeyWord getPrivateKeyWord() {
+    return findChildByClass(HaxePrivateKeyWord.class);
   }
 
 }

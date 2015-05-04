@@ -52,6 +52,12 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   }
 
   @Override
+  @NotNull
+  public HaxeExternKeyWord getExternKeyWord() {
+    return findNotNullChildByClass(HaxeExternKeyWord.class);
+  }
+
+  @Override
   @Nullable
   public HaxeGenericParam getGenericParam() {
     return findChildByClass(HaxeGenericParam.class);
@@ -70,9 +76,9 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   }
 
   @Override
-  @NotNull
-  public List<HaxePrivateKeyWord> getPrivateKeyWordList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxePrivateKeyWord.class);
+  @Nullable
+  public HaxePrivateKeyWord getPrivateKeyWord() {
+    return findChildByClass(HaxePrivateKeyWord.class);
   }
 
 }
