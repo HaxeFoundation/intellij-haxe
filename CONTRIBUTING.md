@@ -39,6 +39,23 @@ IntelliJ IDEA uses the Grammar-Kit plugin to generate its lexer and parser for H
 The grammar file for Haxe is [haxe.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/grammar/haxe.bnf).
 The grammar file for HXML is [hxml.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/src/com/intellij/plugins/haxe/hxml/hxml.bnf).
 
+#### Enable the PSI Viewer
+In versions 13 and later, the PsiViewer is pre-installed, and it is not 
+displayed in the plugins list.  Two menu items under the Tools menu 
+(View PSI; View PSI of Current File) will appear if the current project 
+uses a plugin SDK.  However, that is not useful when you're ''testing'' 
+a plugin using another project.  To always have the menu items available, 
+add the following lines to the end of the 
+`${IDEA_INSTALLATION_DIRECTORY}/bin/idea.properties` file 
+(as directed here: [http://www.jetbrains.com/idea/webhelp/viewing-psi-structure.html](http://www.jetbrains.com/idea/webhelp/viewing-psi-structure.html)).
+
+
+    #-----------------------------------------------------------------------
+    # Allow the PSI viewer to be available to all projects.
+    #-----------------------------------------------------------------------
+    idea.is.internal=true
+
+
 ####Incompatibilities
 Do NOT install the haxe support plugin if you want to hack on it.  The installed plugin will be loaded and
 override your newly built one.  Running the "Haxe" plugin can only use the version you've built if there
@@ -295,7 +312,6 @@ allows debugging, and allows discrete tests to be run.  Ant will still be
 called to generate needed files prior to compiling the tests, so ant needs 
 to be set up correctly.  You will have a much nicer and more productive testing 
 and debugging sessions running tests with the native support.
-
 
 ##Updating Grammar Files
 ______________________
