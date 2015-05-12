@@ -585,16 +585,22 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeClassResolveResult result = null;
     HaxeClass haxeClass = null;
     String qualifiedName = null;
+    String name = null;
     if (leftReference != null) {
       result = leftReference.resolveHaxeClass();
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
           qualifiedName = haxeClass.getQualifiedName();
+          final String[] split = qualifiedName.split("\\.");
+          if (split.length > 0) {
+            name = split[split.length - 1];
+          }
         }
       }
     }
-    if (leftReference != null && getParent() instanceof HaxeReference && qualifiedName != null && leftReference.getText().equals(qualifiedName)) {
+    if (leftReference != null && getParent() instanceof HaxeReference && qualifiedName != null && name != null && leftReference.getText().equals(
+      name)) {
       addClassStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
                                     !(leftReference instanceof HaxeThisExpression));
       addChildClassVariants(suggestedVariants, result.getHaxeClass());
