@@ -19,8 +19,8 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,7 +34,8 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.intellij.psi.impl.source.tree.*;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.impl.source.tree.SourceUtil;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
@@ -709,7 +710,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     boolean extern = haxeClass.isExtern();
 
-    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(true, true, haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       if ((extern || !needFilter) && namedComponent.isStatic() && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
