@@ -584,22 +584,17 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // TODO: This should use getName() instead of getQualifiedName(), but it isn't implemented properly and getName() NPEs.
     HaxeClassResolveResult result = null;
     HaxeClass haxeClass = null;
-    String qualifiedName = null;
     String name = null;
     if (leftReference != null) {
       result = leftReference.resolveHaxeClass();
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
-          qualifiedName = haxeClass.getQualifiedName();
-          final String[] split = qualifiedName.split("\\.");
-          if (split.length > 0) {
-            name = split[split.length - 1];
-          }
+          name = haxeClass.getName();
         }
       }
     }
-    if (leftReference != null && getParent() instanceof HaxeReference && qualifiedName != null && name != null && leftReference.getText().equals(
+    if (leftReference != null && getParent() instanceof HaxeReference && name != null && leftReference.getText().equals(
       name)) {
       addClassStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
                                     !(leftReference instanceof HaxeThisExpression));
@@ -714,10 +709,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     boolean extern = haxeClass.isExtern();
+    boolean isEnum = haxeClass instanceof HaxeEnumDeclaration;
 
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
-      if ((extern || !needFilter) && namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+      if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum) && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
       }
     }
