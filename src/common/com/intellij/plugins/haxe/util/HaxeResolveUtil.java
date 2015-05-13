@@ -251,12 +251,17 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @NotNull HaxeClass... rootHaxeClasses) {
+    return findNamedSubComponents(unique, true, rootHaxeClasses);
+  }
+
+  @NotNull
+  public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, boolean extractVarDeclarationsPart, @NotNull HaxeClass... rootHaxeClasses) {
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<HaxeNamedComponent>();
     final LinkedList<HaxeClass> classes = new LinkedList<HaxeClass>();
     classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
-      for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
+      for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass, extractVarDeclarationsPart)) {
         if (namedComponent.getName() != null) {
           unfilteredResult.add(namedComponent);
         }
@@ -294,6 +299,10 @@ public class HaxeResolveUtil {
   }
 
   public static List<HaxeNamedComponent> getNamedSubComponents(HaxeClass haxeClass) {
+    return getNamedSubComponents(haxeClass, true);
+  }
+
+  public static List<HaxeNamedComponent> getNamedSubComponents(HaxeClass haxeClass, boolean extractVarDeclarationsPart) {
     PsiElement body = null;
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
     if (type == HaxeComponentType.CLASS) {
@@ -334,7 +343,7 @@ public class HaxeResolveUtil {
         // Variable declarations are named components, but don't have the
         // same Psi structure as most. So, go find the actual sub-element(s)
         // that are named (that themselves have COMPONENT_NAME sub-elements).
-        if (namedComponent instanceof HaxeVarDeclaration) {
+        if (extractVarDeclarationsPart && namedComponent instanceof HaxeVarDeclaration) {
           HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)namedComponent;
           result.add(varDeclaration.getVarDeclarationPart());
         }
