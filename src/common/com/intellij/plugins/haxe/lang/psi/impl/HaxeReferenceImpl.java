@@ -710,9 +710,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     boolean extern = haxeClass.isExtern();
 
-    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(true, true, haxeClass)) {
+    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(true, false, haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       if ((extern || !needFilter) && namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+        if (namedComponent instanceof HaxeVarDeclaration) {
+          namedComponent = ((HaxeVarDeclaration)namedComponent).getVarDeclarationPart();
+        }
         suggestedVariants.add(namedComponent.getComponentName());
       }
     }
