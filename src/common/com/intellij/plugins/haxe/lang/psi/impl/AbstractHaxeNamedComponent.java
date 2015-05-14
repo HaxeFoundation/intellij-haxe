@@ -195,7 +195,13 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public boolean isStatic() {
-    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
+    AbstractHaxeNamedComponent element = this;
+
+    if (this instanceof HaxeVarDeclarationPart) {
+      element = (AbstractHaxeNamedComponent)element.getParent();
+    }
+
+    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KSTATIC);
   }
 
