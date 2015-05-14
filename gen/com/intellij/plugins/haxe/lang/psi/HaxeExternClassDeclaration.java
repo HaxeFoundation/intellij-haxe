@@ -31,6 +31,9 @@ public interface HaxeExternClassDeclaration extends HaxeClass {
   @Nullable
   HaxeExternClassDeclarationBody getExternClassDeclarationBody();
 
+  @NotNull
+  HaxeExternKeyWord getExternKeyWord();
+
   @Nullable
   HaxeGenericParam getGenericParam();
 
@@ -40,7 +43,7 @@ public interface HaxeExternClassDeclaration extends HaxeClass {
   @Nullable
   HaxeMacroClassList getMacroClassList();
 
-  @NotNull
-  List<HaxePrivateKeyWord> getPrivateKeyWordList();
+  @Nullable
+  HaxePrivateKeyWord getPrivateKeyWord();
 
 }

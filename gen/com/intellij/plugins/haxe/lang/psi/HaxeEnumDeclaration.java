@@ -32,12 +32,15 @@ public interface HaxeEnumDeclaration extends HaxeClass {
   HaxeEnumBody getEnumBody();
 
   @Nullable
-  HaxeExternOrPrivate getExternOrPrivate();
+  HaxeExternKeyWord getExternKeyWord();
 
   @Nullable
   HaxeGenericParam getGenericParam();
 
   @Nullable
   HaxeMacroClassList getMacroClassList();
+
+  @Nullable
+  HaxePrivateKeyWord getPrivateKeyWord();
 
 }

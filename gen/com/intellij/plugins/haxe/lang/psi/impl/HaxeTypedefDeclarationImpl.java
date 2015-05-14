@@ -47,8 +47,8 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
 
   @Override
   @Nullable
-  public HaxeExternOrPrivate getExternOrPrivate() {
-    return findChildByClass(HaxeExternOrPrivate.class);
+  public HaxeExternKeyWord getExternKeyWord() {
+    return findChildByClass(HaxeExternKeyWord.class);
   }
 
   @Override
@@ -67,6 +67,12 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
   @Nullable
   public HaxeMacroClassList getMacroClassList() {
     return findChildByClass(HaxeMacroClassList.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxePrivateKeyWord getPrivateKeyWord() {
+    return findChildByClass(HaxePrivateKeyWord.class);
   }
 
   @Override

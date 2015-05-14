@@ -94,12 +94,6 @@ public class UsefulPsiTreeUtil {
   }
 
   public static boolean isWhitespaceOrComment(PsiElement element) {
-    if (element instanceof PsiJavaToken) {
-      PsiJavaToken psiJavaToken = (PsiJavaToken)element;
-      IElementType tokenType = psiJavaToken.getTokenType();
-      return tokenType.equals(HaxeTokenTypeSets.DOC_COMMENT) || tokenType.equals(HaxeTokenTypeSets.MML_COMMENT) || tokenType.equals(HaxeTokenTypeSets.MSL_COMMENT);
-    }
-
     return element instanceof PsiWhiteSpace || element instanceof PsiComment;
   }
 
