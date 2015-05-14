@@ -1,2 +1,4 @@
-BASIC 1 INCLUDES
+BASIC 3 INCLUDES
+FooEnum
 foo
+bar
