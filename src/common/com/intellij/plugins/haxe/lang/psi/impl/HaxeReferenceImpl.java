@@ -154,7 +154,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     //
 
     // For the moment (while debugging the resolver) let's do this without caching.
-    boolean skipCaching = false;
+    boolean skipCaching = true;
     List<? extends PsiElement> cachedNames
               = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
                             : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
@@ -565,9 +565,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (chain) return false;
     }
     final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
+    boolean b = resolve instanceof HaxeNamedComponent;
+    boolean b1 = (resolve instanceof HaxeComponentName || b) &&
+                 resolve.getParent() instanceof HaxeClass;
     if (element instanceof HaxeFile &&
-        resolve instanceof HaxeComponentName &&
-        resolve.getParent() instanceof HaxeClass) {
+        (b1 || resolve instanceof AbstractHaxePsiClass) ) {
       return element == resolve.getContainingFile();
     }
     return resolve == element;
