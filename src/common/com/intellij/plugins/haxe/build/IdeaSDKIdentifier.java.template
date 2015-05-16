@@ -26,6 +26,6 @@ public class IdeaSDKIdentifier {
   public static final String BUILD_TYPE = "@idea.sdk.type@";
   public static final int BUILD_CODELINE = @idea.sdk.codeline@;
   public static final int BUILD_NUMBER = @idea.sdk.build.number@;
-  public static final int BUILD_ITERATION = @idea.sdk.iter.number@;
+  public static final int BUILD_PATCH = @idea.sdk.patch.number@;
 
 }

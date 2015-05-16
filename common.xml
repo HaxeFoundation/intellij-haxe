@@ -137,12 +137,12 @@
       var buildType   = buildId.slice(0, typeSep);
       var codeLine    = buildId.slice(typeSep + 1, clSep);
       var buildNumber = (bldSep >= 0 ? buildId.slice(clSep + 1, bldSep) : buildId.slice(clSep + 1));
-      var iterNumber  = (bldSep >= 0 ? buildId.slice(bldSep + 1) : 0);
+      var patchNumber  = (bldSep >= 0 ? buildId.slice(bldSep + 1) : 0);
 
       project.setNewProperty("idea.sdk.type", buildType);
       project.setNewProperty("idea.sdk.codeline", codeLine);
       project.setNewProperty("idea.sdk.build.number", buildNumber);
-      project.setNewProperty("idea.sdk.iter.number", iterNumber);
+      project.setNewProperty("idea.sdk.patch.number", patchNumber);
     ]]>
   </script>
 
@@ -152,7 +152,7 @@
       Build type is "${idea.sdk.type}"
       Build code line is "${idea.sdk.codeline}"
       Build number is "${idea.sdk.build.number}"
-      Build iteration is "${idea.sdk.iter.number}"
+      Build patch is "${idea.sdk.patch.number}"
     </echo>
   </target>
 
@@ -186,7 +186,7 @@
         <filter token="idea.sdk.type" value="${idea.sdk.type}"/>
         <filter token="idea.sdk.codeline" value="${idea.sdk.codeline}"/>
         <filter token="idea.sdk.build.number" value="${idea.sdk.build.number}"/>
-        <filter token="idea.sdk.iter.number" value="${idea.sdk.iter.number}"/>
+        <filter token="idea.sdk.patch.number" value="${idea.sdk.patch.number}"/>
         <filter token="replace.with.plugin.autogen.warning" value="${plugin.autogen.warning}"/>
       </filterset>
     </copy>

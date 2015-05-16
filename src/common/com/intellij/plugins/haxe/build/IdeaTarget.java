@@ -23,7 +23,7 @@ public class IdeaTarget {
   public static final String SDK_TYPE = IdeaSDKIdentifier.BUILD_TYPE;
   public static final int SDK_CODELINE = IdeaSDKIdentifier.BUILD_CODELINE;
   public static final int SDK_BUILD_NUMBER = IdeaSDKIdentifier.BUILD_NUMBER;
-  public static final int SDK_BUILD_ITERATION = IdeaSDKIdentifier.BUILD_ITERATION;
+  public static final int SDK_BUILD_PATCH = IdeaSDKIdentifier.BUILD_PATCH;
 
   // Add new constants for specific requirements here.
   // All of these should be boolean constants.  They will
