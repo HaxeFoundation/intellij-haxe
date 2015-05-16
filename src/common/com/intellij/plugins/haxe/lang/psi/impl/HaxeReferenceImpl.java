@@ -197,22 +197,22 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     return multiResolve(incompleteCode, true);
   }
 
-  /**
-   * Resolve this reference to a PsiElement -- *NOT* it's name.
-   *
-   * @param incompleteCode  Whether to treat the code as a fragment or not.
-   *                        Usually, code is considered incomplete.
-   *
-   * @return the element this reference refers to, or null if none (or more
-   *         than one) is found.
-   */
   @Nullable
   public PsiElement resolve(boolean incompleteCode) {
-    final ResolveResult[] resolveResults = multiResolve(incompleteCode);
+    final List<? extends PsiElement> resolvedList = multiResolveToList(incompleteCode);
+    if (null == resolvedList || resolvedList.size() != 1) {
+      return null;
+    }
+    final PsiElement resolved = resolvedList.get(0);
+    return resolved.isValid() ? resolved : null;
+  }
 
-    return resolveResults.length == 0 ||
-           resolveResults.length > 1 ||
-           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
+  @Nullable
+  private List<? extends PsiElement> multiResolveToList(boolean incompleteCode) {
+    // For the moment (while debugging the resolver) let's do this without caching.
+    boolean skipCaching = true;
+    return skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
+                       : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
   }
 
   @NotNull
