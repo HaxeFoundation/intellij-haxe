@@ -11,26 +11,28 @@ class B extends A {
 }
 
 class C extends B {
-    public function new( a:A ) { }
+    public function new( a:A ) { super(); }
 }
 
-class test {
-    public function getA(want_a:Boolean):A {
+class Test {
+    public function new() {}
+    
+    public function getA(want_a:Bool):A {
         var qqq = (want_a == true) ? new A() : new B();
         return qqq;
     }
 
-    public function getB(want_a:Boolean):A {
+    public function getB(want_a:Bool):A {
         var qqq = null != new B() ? new A() : new B();
         return qqq;
     }
 
-    public function getC(want_a:Boolean):A {
+    public function getC(want_a:Bool):A {
         var qqq = null != new B() ? want_a == true ? new A() : new B() : want_a == false ? new A() : new B();
         return qqq;
     }
 
-    public function compareNew() : Boolean {
+    public function compareNew() : Bool {
         return new A() == new B();
     }
 
@@ -39,4 +41,3 @@ class test {
     }
 
 }
-
