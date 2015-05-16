@@ -3866,7 +3866,7 @@ public class HaxeParser implements PsiParser {
     r = r && report_error_(b, consumeToken(b, PLPAREN));
     r = p && report_error_(b, newExpression_3(b, l + 1)) && r;
     r = p && consumeToken(b, PRPAREN) && r;
-    exit_section_(b, l, m, NEW_EXPRESSION, r, p, new_recovery_parser_);
+    exit_section_(b, l, m, NEW_EXPRESSION, r, p, expression_recover_parser_);
     return r || p;
   }
 
@@ -3929,31 +3929,6 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "newExpressionOrCall_1")) return false;
     qualifiedReferenceTail(b, l + 1);
     return true;
-  }
-
-  /* ********************************************************** */
-  // !(')' | '}' | ';' | '.' | ',')
-  static boolean new_recovery(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "new_recovery")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_, null);
-    r = !new_recovery_0(b, l + 1);
-    exit_section_(b, l, m, null, r, false, null);
-    return r;
-  }
-
-  // ')' | '}' | ';' | '.' | ','
-  private static boolean new_recovery_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "new_recovery_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, PRPAREN);
-    if (!r) r = consumeToken(b, PRCURLY);
-    if (!r) r = consumeToken(b, OSEMI);
-    if (!r) r = consumeToken(b, ODOT);
-    if (!r) r = consumeToken(b, OCOMMA);
-    exit_section_(b, m, null, r);
-    return r;
   }
 
   /* ********************************************************** */
@@ -5962,11 +5937,6 @@ public class HaxeParser implements PsiParser {
   final static Parser local_var_declaration_part_recover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return local_var_declaration_part_recover(b, l + 1);
-    }
-  };
-  final static Parser new_recovery_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return new_recovery(b, l + 1);
     }
   };
   final static Parser object_literal_list_recover_parser_ = new Parser() {
