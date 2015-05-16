@@ -39,6 +39,7 @@
       <ul>
         <li>Hopefully fix compiler based auto-complete performance problems #230</li>
         <li>Fix move package</li>
+        <li>Fix Plugin wrongly accepting comma separated fields that the compiler wont. #83</li>
       </ul>
       <p>0.9.3: (community version)</p>
       <ul>
