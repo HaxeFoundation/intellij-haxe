@@ -35,7 +35,7 @@
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
-      <p>0.9.4a: (community version)</p>
+      <p>0.9.4: (community version)</p>
       <ul>
         <li>Hopefully fix compiler based auto-complete performance problems #230</li>
         <li>Fix move package</li>
