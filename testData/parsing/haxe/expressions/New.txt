@@ -97,15 +97,34 @@ Haxe File
         PsiJavaToken:)(')')
         BLOCK_STATEMENT
           PsiJavaToken:{('{')
+          CALL_EXPRESSION
+            SUPER_EXPRESSION
+              PsiJavaToken:super('super')
+            PsiJavaToken:(('(')
+            PsiJavaToken:)(')')
+          PsiJavaToken:;(';')
           PsiJavaToken:}('}')
     PsiJavaToken:}('}')
   CLASS_DECLARATION
     PsiJavaToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('test')
+        PsiJavaToken:ID('Test')
     PsiJavaToken:{('{')
     CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        DECLARATION_ATTRIBUTE
+          ACCESS
+            PsiJavaToken:public('public')
+        PsiJavaToken:function('function')
+        PsiJavaToken:new('new')
+        PsiJavaToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        PsiJavaToken:)(')')
+        BLOCK_STATEMENT
+          PsiJavaToken:{('{')
+          PsiJavaToken:}('}')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
@@ -126,7 +145,7 @@ Haxe File
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('Boolean')
+                      PsiJavaToken:ID('Bool')
         PsiJavaToken:)(')')
         TYPE_TAG
           PsiJavaToken::(':')
@@ -203,7 +222,7 @@ Haxe File
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('Boolean')
+                      PsiJavaToken:ID('Bool')
         PsiJavaToken:)(')')
         TYPE_TAG
           PsiJavaToken::(':')
@@ -282,7 +301,7 @@ Haxe File
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('Boolean')
+                      PsiJavaToken:ID('Bool')
         PsiJavaToken:)(')')
         TYPE_TAG
           PsiJavaToken::(':')
@@ -397,7 +416,7 @@ Haxe File
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('Boolean')
+                  PsiJavaToken:ID('Bool')
         BLOCK_STATEMENT
           PsiJavaToken:{('{')
           RETURN_STATEMENT
