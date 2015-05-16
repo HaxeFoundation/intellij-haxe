@@ -162,4 +162,14 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("TypedefOptionalField.txt");
   }
 
+  //https://github.com/TiVo/intellij-haxe/issues/262
+  public void testStaticMember() throws Throwable {
+    doTest();
+  }
+
+  //https://github.com/TiVo/intellij-haxe/issues/262
+  public void testStaticField() throws Throwable {
+    doTest();
+  }
+
 }
