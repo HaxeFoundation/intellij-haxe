@@ -12,7 +12,7 @@
         <element id="archive" name="haxe.jar">
           <element id="module-output" name="intellij-haxe" />
         </element>
-        <element id="file-copy" path="$PROJECT_DIR$/src/com/intellij/plugins/haxe/runner/debugger/JavaProtocol.jar" />
+        <element id="module-output" name="hxcpp-debugger-protocol" />
       </element>
     </root>
   </artifact>
