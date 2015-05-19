@@ -17,19 +17,11 @@
  */
 package com.intellij.plugins.haxe.ide.inspections;
 
-import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
-import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder;
 import com.intellij.codeInspection.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.FileASTNode;
-import com.intellij.lang.annotation.Annotation;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
-import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
@@ -82,7 +74,7 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
     List<ASTNode> nodes = new ArrayList<ASTNode>();
 
     ASTNode leaf = firstLeaf;
-    do {
+    while (leaf != null) {
       IElementType leafElementType = leaf.getElementType();
 
       if (leafElementType.equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
@@ -98,8 +90,8 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
       else if (leafElementType.equals(HaxeTokenTypes.PPELSE) || leafElementType.equals(HaxeTokenTypes.PPELSEIF)) {
         nodes.add(leaf);
       }
+      leaf = TreeUtil.nextLeaf(leaf);
     }
-    while ((leaf = TreeUtil.nextLeaf(leaf)) != null);
 
     if (conditionalCount != 0) {
       int currentLevel = 0;
