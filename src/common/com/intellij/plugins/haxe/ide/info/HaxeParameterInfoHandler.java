@@ -81,14 +81,10 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   @Nullable
   private static HaxeFunctionDescription tryGetDescription(HaxeCallExpression callExpression) {
     final PsiElement target = ((HaxeReference)callExpression.getExpression()).resolve();
-    final PsiElement targetParent = target == null ? null : target.getParent();
-    if (target instanceof HaxeComponentName && targetParent instanceof HaxeNamedComponent) {
-      final HaxeReference[] references = PsiTreeUtil.getChildrenOfType(callExpression.getExpression(), HaxeReference.class);
-      final HaxeClassResolveResult resolveResult = (references != null && references.length == 2)
-                                                   ? references[0].resolveHaxeClass()
-                                                   : HaxeClassResolveResult
-                                                     .create(PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class));
-      return HaxeFunctionDescription.createDescription((HaxeNamedComponent)targetParent, resolveResult);
+    if (target instanceof HaxeMethod) {
+      final HaxeClass targetParent = (HaxeClass) ((HaxeMethod) target).getContainingClass();
+      final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(targetParent);
+      return HaxeFunctionDescription.createDescription((HaxeNamedComponent) target, resolveResult);
     }
     return null;
   }
