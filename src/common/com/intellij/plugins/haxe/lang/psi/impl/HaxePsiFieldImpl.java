@@ -138,7 +138,7 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
       final HaxeType            type      = (toa != null) ? toa.getType() : null;
       psiType                             = (type != null) ? type.getPsiType() : null;
     }
-    return psiType;
+    return psiType != null ? psiType : HaxePsiTypeAdapter.DYNAMIC;
   }
 
   @Nullable
