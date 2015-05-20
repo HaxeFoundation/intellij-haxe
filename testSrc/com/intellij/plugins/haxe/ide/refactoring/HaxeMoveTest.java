@@ -97,17 +97,14 @@ public class HaxeMoveTest extends MultiFileTestCase {
   }
 
   public void testMoveFile1() throws Exception {
-// TODO: Fix failing unit test
-//    doTest("util/ArrayUtils.hx", "bar");
+    doTest("util/ArrayUtils.hx", "bar");
   }
 
   public void testMoveFile2() throws Exception {
-// TODO: Fix failing unit test
-//    doTest("util/ArrayUtils.hx", "");
+    doTest("util/ArrayUtils.hx", "");
   }
 
   public void testMovePackage() throws Exception {
-// TODO: Fix failing unit test
     doTest("util", "foo");
   }
 }

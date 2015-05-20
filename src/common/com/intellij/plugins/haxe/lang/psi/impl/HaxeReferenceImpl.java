@@ -565,9 +565,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (chain) return false;
     }
     final PsiElement resolve = element instanceof HaxeComponentName ? resolveToComponentName() : resolve();
-    if (element instanceof HaxeFile &&
-        resolve instanceof HaxeComponentName &&
-        resolve.getParent() instanceof HaxeClass) {
+    if (element instanceof HaxeFile && resolve instanceof HaxeClass) {
       return element == resolve.getContainingFile();
     }
     return resolve == element;
