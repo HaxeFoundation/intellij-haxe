@@ -45,7 +45,7 @@
         <mkdir dir="build_test"/>
     </target>
 
-    <target name="compile_test" depends="clean,init,metainf" description="Compile tests">
+    <target name="compile_test" depends="clean,init,generateTemplatedFiles" description="Compile tests">
 
         <!-- javac2 is an intellij ant task to wrap the java compiler and add
              support to .form files and @NotNull annotations, among others -->
