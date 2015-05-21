@@ -54,10 +54,12 @@ import javax.swing.*;
  */
 public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
-  Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxePsiTypeAdapter");
-  {
+  static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxePsiTypeAdapter");
+  static {
     LOG.setLevel(Level.DEBUG);
   }
+
+  public static final PsiPrimitiveType DYNAMIC = new PsiPrimitiveType("Dynamic", PsiAnnotation.EMPTY_ARRAY);
 
   HaxeType myType = null;
 
