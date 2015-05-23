@@ -57,9 +57,12 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
       getNode().replaceChild(identifier.getNode(), identifierNew.getNode());
     }
 
-    if (getParent() instanceof HaxeClass) {
+    if (oldName != null &&
+        getParent() instanceof HaxeClass &&
+        getParent().getParent() instanceof HaxeFile)
+    {
       final HaxeFile haxeFile = (HaxeFile)getParent().getParent();
-      if (oldName != null && oldName.equals(FileUtil.getNameWithoutExtension(haxeFile.getName()))) {
+      if (oldName.equals(FileUtil.getNameWithoutExtension(haxeFile.getName()))) {
         haxeFile.setName(newElementName + "." + FileUtilRt.getExtension(haxeFile.getName()));
       }
     }
