@@ -447,7 +447,8 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
 
     @Nullable
     protected HaxeClass getResolvedDelegate() {
-      return (HaxeClass) getDelegate().resolve();
+      PsiElement elem = getDelegate().resolve();
+      return elem instanceof HaxeClass? (HaxeClass) elem : null;
     }
 
     //
