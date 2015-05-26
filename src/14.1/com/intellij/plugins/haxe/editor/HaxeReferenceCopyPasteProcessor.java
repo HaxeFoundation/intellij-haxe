@@ -37,6 +37,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
+
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -85,7 +86,6 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor<Haxe
     List<String> haxeClassList = new ArrayList<String>();
 
     String qualifiedName;
-
     for (int j = 0; j < startOffsets.length; j++) {
       final int startOffset = startOffsets[j];
       for (final PsiElement element : CollectHighlightsUtil.getElementsInRange(file, startOffset, endOffsets[j])) {

@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.runner;
 
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfile;
@@ -26,7 +25,7 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
-import com.intellij.execution.process.OSProcessHandler;
+import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -34,7 +33,6 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -42,7 +40,6 @@ import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -91,14 +88,14 @@ public class HaxeRunner extends DefaultProgramRunner {
         @Override
         protected ProcessHandler startProcess() throws ExecutionException {
           final GeneralCommandLine commandLine = new GeneralCommandLine();
-          commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
+          commandLine.withWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
           commandLine.setExePath(configuration.getCustomExecutablePath());
           commandLine.addParameter(filePath);
 
           final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
           setConsoleBuilder(consoleBuilder);
 
-          return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
+          return new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
         }
       }, env);
     }

@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.editor;
 
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil;
 import com.intellij.codeInsight.editorActions.CopyPastePostProcessor;
-import com.intellij.codeInsight.editorActions.TextBlockTransferableData;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
@@ -78,11 +77,15 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor  {
   public void processTransferableData(Project project, Editor editor, RangeMarker marker, int i, Ref ref, List values) {
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+    if (file == null) {
+      return;
+    }
     int[] startOffsets = new int[]{marker.getStartOffset()};
     int[] endOffsets = new int[]{marker.getEndOffset()};
 
     List<String> haxeClassList = new ArrayList<String>();
 
+    String qualifiedName;
     for (int j = 0; j < startOffsets.length; j++) {
       final int startOffset = startOffsets[j];
       for (final PsiElement element : CollectHighlightsUtil.getElementsInRange(file, startOffset, endOffsets[j])) {
@@ -94,7 +97,10 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor  {
             final List<HaxeComponent> components =
               HaxeComponentIndex.getItemsByName(referenceExpression.getText(), project, scope);
             if (!components.isEmpty() && components.size() == 1) {
-              haxeClassList.add(((HaxeClass)components.get(0)).getQualifiedName());
+              qualifiedName = ((HaxeClass)components.get(0)).getQualifiedName();
+              if (!haxeClassList.contains(qualifiedName)) {
+                haxeClassList.add(qualifiedName);
+              }
             }
           }
         }

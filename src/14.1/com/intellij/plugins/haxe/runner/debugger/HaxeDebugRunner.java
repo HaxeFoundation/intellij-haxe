@@ -47,6 +47,7 @@ import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.NMERunningState;
+import com.intellij.plugins.haxe.runner.OpenFLRunningState;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -54,34 +55,22 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.xdebugger.XDebugProcess;
-import com.intellij.xdebugger.XDebugProcessStarter;
-import com.intellij.xdebugger.XDebugSession;
-import com.intellij.xdebugger.XDebuggerManager;
-import com.intellij.xdebugger.XSourcePosition;
+import com.intellij.xdebugger.*;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator;
-import com.intellij.xdebugger.frame.XCompositeNode;
-import com.intellij.xdebugger.frame.XExecutionStack;
-import com.intellij.xdebugger.frame.XStackFrame;
-import com.intellij.xdebugger.frame.XSuspendContext;
-import com.intellij.xdebugger.frame.XValue;
-import com.intellij.xdebugger.frame.XValueChildrenList;
-import com.intellij.xdebugger.frame.XValueNode;
-import com.intellij.xdebugger.frame.XValuePlace;
+import com.intellij.xdebugger.frame.*;
 import com.intellij.xdebugger.impl.XSourcePositionImpl;
+import haxe.root.JavaProtocol;
 import org.jetbrains.annotations.NotNull;
 
-import haxe.root.JavaProtocol;
-
+import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
-import javax.swing.SwingUtilities;
 
 /**
  * @author: Fedor.Korotkov
@@ -170,7 +159,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                       configuration.getCustomFileToLaunchPath());
     }
     else if (hxcppDebug) {
-      Project project = env.getProject();
+      final Project project = env.getProject();
       return runHxcpp(project, module, settings, env, executor,
                       configuration.getCustomDebugPort(),
                       configuration.isCustomRemoteDebugging());
@@ -229,7 +218,6 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     final XDebugSession debugSession =
       XDebuggerManager.getInstance(project).startSession
         (env,
-
          new XDebugProcessStarter() {
            @NotNull
            public XDebugProcess start(@NotNull final XDebugSession session)
@@ -245,7 +233,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                // indicating that the debugger is waiting for the remote
                // process to start.
                if (remoteDebugging) {
-                 Messages.showInfoMessage
+                 showInfoMessage
                    (project, "Listening for debugged process " +
                              "on port " + port + " ... Press OK after " +
                              "remote debugged process has started.",
@@ -254,14 +242,26 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                // Else, start the being-debugged process and make the
                // local debug process instance aware of it.
                else {
-                 debugProcess.setExecutionResult
-                   (new NMERunningState
-                      (env, module,
-                       // runInTest if android or ios
-                       ((settings.getNmeTarget() == NMETarget.ANDROID) ||
-                        (settings.getNmeTarget() == NMETarget.IOS)),
-                       true, port).
-                     execute(executor, HaxeDebugRunner.this));
+                 if (settings.isUseOpenFLToBuild()) {
+                   debugProcess.setExecutionResult
+                     (new OpenFLRunningState
+                        (env, module,
+                         // runInTest if android or ios
+                         ((settings.getOpenFLTarget() == OpenFLTarget.ANDROID) ||
+                          (settings.getOpenFLTarget() == OpenFLTarget.IOS)),
+                         true, port).
+                       execute(executor, HaxeDebugRunner.this));
+                 }
+                 else {
+                   debugProcess.setExecutionResult
+                     (new NMERunningState
+                        (env, module,
+                         // runInTest if android or ios
+                         ((settings.getNmeTarget() == NMETarget.ANDROID) ||
+                          (settings.getNmeTarget() == NMETarget.IOS)),
+                         true, port).
+                       execute(executor, HaxeDebugRunner.this));
+                 }
                }
 
                // Now accept the connection from the being-debugged
@@ -402,15 +402,15 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     private void info(String message) {
-      Messages.showInfoMessage(mProject, message, "Haxe Debugger");
+      showInfoMessage(mProject, message, "Haxe Debugger");
     }
 
     private void warn(String message) {
-      Messages.showInfoMessage(mProject, message, "Haxe Debugger Warning");
+      showInfoMessage(mProject, message, "Haxe Debugger Warning");
     }
 
     private void error(String message) {
-      Messages.showInfoMessage(mProject, message, "Haxe Debugger Error");
+      showInfoMessage(mProject, message, "Haxe Debugger Error");
       this.stop();
     }
 
@@ -1166,5 +1166,14 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     return packageName.replaceAll("\\.", "/") + "/" + fileName;
+  }
+
+  private static void showInfoMessage(final Project project, final String message, final String title) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+              Messages.showInfoMessage(project, message, title);
+          }
+      });
   }
 }
