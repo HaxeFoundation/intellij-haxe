@@ -1560,6 +1560,19 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // '{' '}'
+  static boolean emptyObjectLiteral(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "emptyObjectLiteral")) return false;
+    if (!nextTokenIs(b, PLCURLY)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, PLCURLY);
+    r = r && consumeToken(b, PRCURLY);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // enumValueDeclaration*
   public static boolean enumBody(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "enumBody")) return false;
@@ -4037,24 +4050,44 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '{' objectLiteralElementList? '}'
+  // ('{' objectLiteralElementList+ '}') | emptyObjectLiteral
   public static boolean objectLiteral(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "objectLiteral")) return false;
     if (!nextTokenIs(b, PLCURLY)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, PLCURLY);
-    r = r && objectLiteral_1(b, l + 1);
-    r = r && consumeToken(b, PRCURLY);
+    r = objectLiteral_0(b, l + 1);
+    if (!r) r = emptyObjectLiteral(b, l + 1);
     exit_section_(b, m, OBJECT_LITERAL, r);
     return r;
   }
 
-  // objectLiteralElementList?
-  private static boolean objectLiteral_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "objectLiteral_1")) return false;
-    objectLiteralElementList(b, l + 1);
-    return true;
+  // '{' objectLiteralElementList+ '}'
+  private static boolean objectLiteral_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "objectLiteral_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, PLCURLY);
+    r = r && objectLiteral_0_1(b, l + 1);
+    r = r && consumeToken(b, PRCURLY);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // objectLiteralElementList+
+  private static boolean objectLiteral_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "objectLiteral_0_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = objectLiteralElementList(b, l + 1);
+    int c = current_position_(b);
+    while (r) {
+      if (!objectLiteralElementList(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "objectLiteral_0_1", c)) break;
+      c = current_position_(b);
+    }
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -4569,7 +4602,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // 'return' (("macro"? blockStatement) | expression)? ';'?
+  // 'return' (objectLiteral | ("macro"? blockStatement) | expression )? ';'?
   public static boolean returnStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "returnStatement")) return false;
     if (!nextTokenIs(b, KRETURN)) return false;
@@ -4583,38 +4616,39 @@ public class HaxeParser implements PsiParser {
     return r || p;
   }
 
-  // (("macro"? blockStatement) | expression)?
+  // (objectLiteral | ("macro"? blockStatement) | expression )?
   private static boolean returnStatement_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "returnStatement_1")) return false;
     returnStatement_1_0(b, l + 1);
     return true;
   }
 
-  // ("macro"? blockStatement) | expression
+  // objectLiteral | ("macro"? blockStatement) | expression
   private static boolean returnStatement_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "returnStatement_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = returnStatement_1_0_0(b, l + 1);
+    r = objectLiteral(b, l + 1);
+    if (!r) r = returnStatement_1_0_1(b, l + 1);
     if (!r) r = expression(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // "macro"? blockStatement
-  private static boolean returnStatement_1_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "returnStatement_1_0_0")) return false;
+  private static boolean returnStatement_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "returnStatement_1_0_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = returnStatement_1_0_0_0(b, l + 1);
+    r = returnStatement_1_0_1_0(b, l + 1);
     r = r && blockStatement(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // "macro"?
-  private static boolean returnStatement_1_0_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "returnStatement_1_0_0_0")) return false;
+  private static boolean returnStatement_1_0_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "returnStatement_1_0_1_0")) return false;
     consumeToken(b, KMACRO2);
     return true;
   }
