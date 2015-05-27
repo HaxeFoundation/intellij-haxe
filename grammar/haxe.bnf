@@ -425,7 +425,7 @@ iterable ::= expression
 whileStatement ::= 'while' '(' expression ')' statement ';'?
 doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
 
-returnStatement ::= 'return' (("macro"? blockStatement) | expression)? ';'?
+returnStatement ::= 'return' (objectLiteral | ("macro"? blockStatement) | expression )? ';'?
 returnStatementWithoutSemicolon ::= 'return' expression
 
 breakStatement ::= 'break' ';'
@@ -590,7 +590,10 @@ anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 anonymousTypeField ::= "?"? componentName typeTag
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
-objectLiteral ::= '{' objectLiteralElementList? '}'
+// Do NOT genericize objectLiteral by making objectLiteralElementList optional.  Doing so
+// makes blockStatement be overridden by objectLiteral in return statements.
+private emptyObjectLiteral ::= '{' '}'
+objectLiteral ::= ('{' objectLiteralElementList+ '}') | emptyObjectLiteral
 
 private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* {recoverWhile="object_literal_list_recover"}
 private object_literal_list_recover ::= !('}')
