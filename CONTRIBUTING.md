@@ -1,23 +1,31 @@
 Contributing
 ============
 
+*NOTE: TiVo and the Haxe Foundation are moving our development focus to IDEA version 14 and later.
+Support for version 13.1 is not being removed, but will no longer be tested or regarded as
+development progresses.*
+
 ##Reporting errors  
 ------------------
 
 Things that will help us fix your bug:
+
 - A minimal code example. For example if you have some completion issue, you can add the simplest Haxe that
 can reproduce the issue.
+
 - We’d like to know your:
+    - Plugin version (very important!)
     - IDEA version
     - OS and OS version
     - JDK version
+
 - Check if the bug already exists at the [TiVo repository](https://github.com/tivo/intellij-haxe/issues).
  If it does, add your example to the discussion.
 
 ##Development Environment
 -------------------------
 
-You will need the release version of Intellij IDEA Ultimate 13, 14, or later to develop the plugin.
+You will need the release version of Intellij IDEA Ultimate 13.1, 14.0, or later to develop the plugin.
 
 ###Plugins
 Install the following plugins [from Intellij IDEA plugin manager](https://www.jetbrains.com/idea/plugins/).
@@ -85,8 +93,8 @@ particularly if you see ClassNotFound exceptions when attempting to run the plug
 
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
-by the plugin team.  At the time of this writing, that would be 13.1.6, 
-14.0.4, and 14.1.2.  As new versions are released this will continue to be 
+by the plugin team.  At the time of this writing, that would be 14.0.4, 
+and 14.1.1.  As new versions are released this will continue to be 
 a moving target, as we attempt to keep up with the development community.
 
 We do NOT expect contributors to keep up to date with EAP releases, nor does 
@@ -167,8 +175,8 @@ you can create one. It is a single line file with the following format:
 * code line ID (e.g. 135 for IDEA 13.1, 139 for IDEA 14, 141 for IDEA 14.1)  
 * a dot (".")  
 * build number (e.g. 1286)    
-* a dot -- optional, but mandatory if an iteration number is supplied  
-* iteration number -- optional 
+* a dot -- optional, but mandatory if a patch number is supplied  
+* patch number -- optional 
 
 Example:  
 ```
@@ -385,12 +393,12 @@ repository.
 - TiVo releases will be built and tested for the following environments:  
    OS: Linux(Ubuntu14.04 and Centos6.5), OSX  
    JVM: Sun Java 1.6  
-   IDEA versions: 13.1.6, 14 (release versions  EAP will not be tracked).  
+   IDEA versions: 14, 14.1 (release versions  EAP will not be tracked).  
 - JetBrains releases will be built and smoke tested for the following environments:  
    OS: Linux(Ubuntu14.04), OSX, Windows  
    JVM: Sun Java 1.6 target, using Sun Java 1.8 compilers (because the Java 1.6 and 1.7 
    maintenance windows have closed)  
-   IDEA versions: 13.1.6, 14 (release versions)  
+   IDEA versions: 14, 14.1 (release versions)  
 
 ####Who will test:
 

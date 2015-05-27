@@ -4,21 +4,19 @@ Recent contributors
  - AS3Boyan <denis.flash.as3@gmail.com>
  - bjitivo <bji@tivo.com>
  - Bryan Ischo <bryan@ischo.com>
- - Chris Decoster <impaler777@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
  - eliasku <deadbabe@gmail.com>
  - Elias Ku <deadbabe@gmail.com>
  - Eric B <ebishton@tivo.com>
- - Fedor Korotkov <fedor.korotkov@gmail.com>
- - fkorotkov <fkorotkov@twitter.com>
+ - giabao <giabao@sandinh.net>
  - Hays Clark <hays@infinitedescent.com>
  - Jérémy Faivre <jeremy.faivre@gmail.com>
  - jeremyfa <jeremy.faivre@gmail.com>
  - sganapavarapu1 <ganapavarapu@tivo.com>
  - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
- - Tim Hepner <tim@hepners.net>
  - vaukalak <lahmataja.pa4vara@gmia>
  - Yannick Dominguez <yannick.dominguez@gmail.com>
+ - yannick <yannnick.dominguez@gmail.com>
 
 All contributors
 -----------------------------------
@@ -47,6 +45,7 @@ All contributors
 - Fedor Korotkov <fedor.korotkov@jetbrains.com>
 - Fedor Korotkov <fedor.korotkov@odnoklassniki.ru>
 - fkorotkov <fkorotkov@twitter.com>
+- giabao <giabao@sandinh.net>
 - Gregory.Shrago <gregory.shrago@jetbrains.com>
 - Hays Clark <hays@infinitedescent.com>
 - impaler <user123@server.fake>
@@ -71,3 +70,4 @@ All contributors
 - vladimir.krivosheev <vladimir.krivosheev@jetbrains.com>
 - Vladimir Krivosheev <vladimir.krivosheev@jetbrains.com>
 - Yannick Dominguez <yannick.dominguez@gmail.com>
+- yannick <yannnick.dominguez@gmail.com>

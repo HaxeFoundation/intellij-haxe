@@ -1,5 +1,34 @@
 #Changelog
-
+  <p>0.9.4: (community release)</p>
+  <ul>
+    <li>Fix compile error highlighting in the output pane and jumping to source location when an error is clicked upon (Issues #129, #160, #180).</li>
+    <li>Fix debugger execution under IDEA 14 and 14.1.</li>
+    <li>Fix move package</li>
+    <li>Fix MoveFile showing "unimplemented" message. (Issues #222, #88)</li>
+    <li>Fix copy/paste clipboard functionality.</li>
+    <li>Show completion for all static members (Issue #262).</li>
+    <li>All unit tests enabled and passing for IDEA versions 13.1, 14.0, and 14.1.1.</li>
+    <li>Fix rename not updating all usages (Issue #222)</li>
+    <li>Fix parameter info tool tips and code tips.</li>
+    <li>Command line ant builds (of the plugin) for automated testing.</li>
+    <li>Fix parsing 'new' in ternary expressions (Issue #229).</li>
+    <li>Better handling of comments.</li>
+    <li>Fix member visibility scoping issues with extern and private keywords.</li>
+    <li>Stop generating 'public' and 'private' modifiers when generating getter/setters.</li>
+    <li>Stop treating interfaces and extern class declarations identically.</li>
+    <li>Disallow multiple variables being declared in one statement for class fields.</li>
+    <li>Print compiler commands to the message pane along with command output.</li>
+    <li>Fix hang when using the OpenFL compiler for variable and method completion.</li>
+    <li>Use correct completion contributor for OpenFL project configurations.</li>
+    <li>Fix parsing failures for certain cases of "@meta" and "@:pos" (Issue #81).</li>
+    <li>Fix unresolved type error if using full class path without importing the class (Issue #39).</li>
+    <li>Resolve extern enum values via qualified name.</li>
+    <li>Resolve classes within the same package but defined in a different module (Issue #168).</li>
+    <li>Hopefully fix compiler based auto-complete performance problems (Issue #230).</li>
+    <li>Fix Plugin wrongly accepting comma separated fields that the compiler wont (Issue #83).</li>
+    <li>Fix rare ClassCastException when re-opening projects.</li>
+    <li>Fix NotNullExceptions when getting field types for dynamic fields.</li>
+  </ul>
   <p>0.9.3: (community release)</p>
   <ul>
     <li>Fix local variable name suggestions to not clash with existing class fields.</li>
