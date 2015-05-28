@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
   HaxeComponentName getComponentName();
 
   @Nullable
-  HaxeExternOrPrivate getExternOrPrivate();
+  HaxeExternKeyWord getExternKeyWord();
 
   @Nullable
   HaxeFunctionType getFunctionType();
@@ -39,6 +39,9 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
 
   @Nullable
   HaxeMacroClassList getMacroClassList();
+
+  @Nullable
+  HaxePrivateKeyWord getPrivateKeyWord();
 
   @Nullable
   HaxeTypeOrAnonymous getTypeOrAnonymous();

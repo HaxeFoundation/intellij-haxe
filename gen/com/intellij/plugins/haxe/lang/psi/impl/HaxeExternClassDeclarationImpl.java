@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,9 +40,9 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeComponentName getComponentName() {
-    return findNotNullChildByClass(HaxeComponentName.class);
+    return findChildByClass(HaxeComponentName.class);
   }
 
   @Override
@@ -53,8 +53,8 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
 
   @Override
   @NotNull
-  public List<HaxeExternOrPrivate> getExternOrPrivateList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExternOrPrivate.class);
+  public HaxeExternKeyWord getExternKeyWord() {
+    return findNotNullChildByClass(HaxeExternKeyWord.class);
   }
 
   @Override
@@ -73,6 +73,12 @@ public class HaxeExternClassDeclarationImpl extends AbstractHaxePsiClass impleme
   @Nullable
   public HaxeMacroClassList getMacroClassList() {
     return findChildByClass(HaxeMacroClassList.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxePrivateKeyWord getPrivateKeyWord() {
+    return findChildByClass(HaxePrivateKeyWord.class);
   }
 
 }

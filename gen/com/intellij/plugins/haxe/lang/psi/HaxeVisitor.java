@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,14 +140,6 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitNamedElement(o);
   }
 
-  public void visitConditional(@NotNull HaxeConditional o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitConstructorName(@NotNull HaxeConstructorName o) {
-    visitPsiCompositeElement(o);
-  }
-
   public void visitContinueStatement(@NotNull HaxeContinueStatement o) {
     visitStatementPsiMixin(o);
   }
@@ -216,7 +208,11 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitMethod(o);
   }
 
-  public void visitExternOrPrivate(@NotNull HaxeExternOrPrivate o) {
+  public void visitExternInterfaceDeclaration(@NotNull HaxeExternInterfaceDeclaration o) {
+    visitClass(o);
+  }
+
+  public void visitExternKeyWord(@NotNull HaxeExternKeyWord o) {
     visitPsiCompositeElement(o);
   }
 
@@ -355,10 +351,6 @@ public class HaxeVisitor extends PsiElementVisitor {
 
   public void visitMacroClassList(@NotNull HaxeMacroClassList o) {
     visitModifierList(o);
-  }
-
-  public void visitMacroMeta(@NotNull HaxeMacroMeta o) {
-    visitPsiCompositeElement(o);
   }
 
   public void visitMetaKeyValue(@NotNull HaxeMetaKeyValue o) {

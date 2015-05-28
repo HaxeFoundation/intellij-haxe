@@ -32,4 +32,17 @@ public class ReturnTest extends StatementTestBase {
   public void testVoid() throws Throwable {
     doTest(true);
   }
+
+  public void testObjectLiteral() throws Throwable {
+    // github.com/tivo/intellij-haxe/issues/278
+    doTest(true);
+  }
+
+  public void testTernaryExpression() throws Throwable {
+    doTest(true);
+  }
+
+  public void testBlockStatement() throws Throwable {
+    doTest(true);
+  }
 }

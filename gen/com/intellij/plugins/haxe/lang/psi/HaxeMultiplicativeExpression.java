@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,9 @@ public interface HaxeMultiplicativeExpression extends HaxeExpression {
 
   @Nullable
   HaxeIfStatement getIfStatement();
+
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
   @Nullable
   HaxeSwitchStatement getSwitchStatement();

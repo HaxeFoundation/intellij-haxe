@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +37,6 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeMethod {
   @Nullable
   HaxeComponentName getComponentName();
 
-  @Nullable
-  HaxeConstructorName getConstructorName();
-
   @NotNull
   List<HaxeCustomMeta> getCustomMetaList();
 
@@ -72,9 +69,6 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeMethod {
 
   @NotNull
   List<HaxeKeepMeta> getKeepMetaList();
-
-  @NotNull
-  List<HaxeMacroMeta> getMacroMetaList();
 
   @NotNull
   List<HaxeMetaMeta> getMetaMetaList();

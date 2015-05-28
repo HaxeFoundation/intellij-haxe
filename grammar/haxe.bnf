@@ -162,11 +162,6 @@
     kTRY="try"
     kCATCH="catch"
 
-    ppIf="#if"
-    ppElse="#else"
-    ppError="#error"
-    ppElseIf="#elseif"
-
     extends(".*(Expression|Literal)")="expression"
     /* extends(".*Statement")="statement"
      */
@@ -188,7 +183,7 @@ finalMeta ::= '@:final'
 keepMeta ::= '@:keep'
 coreApiMeta ::= '@:coreApi'
 bindMeta ::= '@:bind'
-macroMeta ::= '@:macro'
+private macroMeta ::= '@:macro'
 hackMeta ::= '@:hack'
 protectedMeta ::= '@:protected'
 debugMeta ::= '@:debug'
@@ -224,8 +219,8 @@ jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression ')'
 
 private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire'
 
-conditional ::= CONDITIONAL_STATEMENT_ID
- //{recoverWhile="conditional_recover"}
+private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
+private ppToken ::= '#if' | "#else" | "#elseif" | "#end" | "#error" | ppConditionalStatement
 
 assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | ('>' '>' '=') | ('>' '>' '>' '=')
 compareOperation ::= '==' | '!=' | '<=' | '<' | ('>' '=') | '>'
@@ -240,34 +235,46 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 
 private topLevelList ::= topLevel*
 private topLevel ::= importStatementAll | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
-private top_level_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
+private top_level_recover ::= !(ppToken | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
 
 importStatementRegular ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
 importStatementWithWildcard ::= 'import' simpleQualifiedReferenceExpressionWithWildcardSupport ';'
-importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression 'in' identifier';'
+importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression ('in' | 'as') identifier';'
 
 private importStatementAll ::= importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
 
 usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
 
 private topLevelDeclaration ::= classDeclaration
-                              | externClassDeclaration
-                              | abstractClassDeclaration
                               | interfaceDeclaration
+                              | externClassDeclaration
+                              | externInterfaceDeclaration
+                              | abstractClassDeclaration
                               | enumDeclaration
                               | typedefDeclaration
 
 privateKeyWord ::= 'private'
-externOrPrivate ::= 'extern' | privateKeyWord
+externKeyWord ::= 'extern'
+
+private externPrivate ::= externKeyWord privateKeyWord
+private privateExtern ::= privateKeyWord externKeyWord
+private externOrPrivate ::= externPrivate | privateExtern | privateKeyWord | externKeyWord
+
+private externAndMaybePrivate1 ::= privateKeyWord? externKeyWord
+private externAndMaybePrivate2 ::= externKeyWord privateKeyWord?
+private externAndMaybePrivate ::= externAndMaybePrivate2 | externAndMaybePrivate1
 
 typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-externClassDeclaration ::= macroClassList? externOrPrivate* 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
-{pin=4 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+externClassDeclaration ::= macroClassList? externAndMaybePrivate 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
 private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverWhile="extern_class_body_part_recover"}
-private extern_class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+private extern_class_body_part_recover ::= !(pptoken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+
+externInterfaceDeclaration ::= macroClassList? externAndMaybePrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 classDeclaration ::= macroClassList? privateKeyWord? 'class' componentName genericParam? inheritList? '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -278,13 +285,13 @@ abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componen
 
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
-private class_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
+private class_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
 
-interfaceDeclaration ::= macroClassList? externOrPrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
+interfaceDeclaration ::= macroClassList? privateKeyWord? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= interfaceBodyPart*
 private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes {recoverWhile="interface_body_part_recover"}
-private interface_body_part_recover ::= !('#else' | '#elseif' | '#end' | '#error' | '#if' | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+private interface_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
 enumDeclaration ::= macroClassList? externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -306,7 +313,7 @@ enumConstructorParameters ::= '(' parameterList ')' {pin=1}
 
 varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private varDeclarationPartList ::= varDeclarationPart (',' varDeclarationPart)*
+private varDeclarationPartList ::= varDeclarationPart
 varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private var_declaration_part_recover ::= !(';' | ',')
@@ -316,7 +323,7 @@ localVarDeclaration ::= 'var' localVarDeclarationPartList ';'?
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
 localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private local_var_declaration_part_recover ::= !('!' | '#else' | '#elseif' | '#end' | '#error' | '#if' | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
+private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
@@ -324,15 +331,15 @@ propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | 
 
 private functionCommonBody ::= blockStatement | returnStatement | (expression ';'?) | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
 
-constructorName ::= 'new'
+private constructorName ::= 'new'
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
+externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' componentName genericParam? '(' parameterList ')' typeTag? 'untyped'? ';'
+functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
@@ -388,8 +395,8 @@ blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
-private statement ::= blockStatement | notBlockStatement
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
+private statement ::= macroClassList? (blockStatement | notBlockStatement)
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
 
 private notBlockStatement ::= ('untyped' statement ';'?)
                             | ('macro' statement ';'?)
@@ -407,8 +414,6 @@ private notBlockStatement ::= ('untyped' statement ';'?)
                             | tryStatement
                             | expression
 
-//private conditional_recover ::= conditional
-
 ifStatement ::= 'if' '(' expression ')' statement ';'? ('else' statement ';'?)?
 
 forStatement ::= 'for' '(' componentName 'in' iterable')' statement ';'?
@@ -420,7 +425,7 @@ iterable ::= expression
 whileStatement ::= 'while' '(' expression ')' statement ';'?
 doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
 
-returnStatement ::= 'return' (("macro"? blockStatement) | expression)? ';'?
+returnStatement ::= 'return' (objectLiteral | ("macro"? blockStatement) | expression )? ';'?
 returnStatementWithoutSemicolon ::= 'return' expression
 
 breakStatement ::= 'break' ';'
@@ -490,16 +495,17 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
-private value ::= 'untyped' expression
-                | 'macro' expression
-                | (literalExpression qualifiedReferenceTail?)
-                | ifStatement
-                | castExpression qualifiedReferenceTail?
-                | newExpressionOrCall
-                | parenthesizedExpressionOrCall
-                | callOrArrayAccess
-                | tryStatement
-                | switchStatement
+private value ::= macroClassList? ('untyped' expression
+                                                   | 'macro' expression
+                                                   | (literalExpression qualifiedReferenceTail?)
+                                                   | ifStatement
+                                                   | castExpression qualifiedReferenceTail?
+                                                   | newExpressionOrCall
+                                                   | parenthesizedExpressionOrCall
+                                                   | callOrArrayAccess
+                                                   | tryStatement
+                                                   | switchStatement)
+{pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral
@@ -556,8 +562,7 @@ superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 newExpression ::= 'new' type '(' (expression (',' expression)*)? ')'
-{pin=2 recoverWhile="new_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
-private new_recovery ::= !(')' | '}' | ';' | '.')
+{pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
@@ -585,7 +590,10 @@ anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 anonymousTypeField ::= "?"? componentName typeTag
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
-objectLiteral ::= '{' objectLiteralElementList? '}'
+// Do NOT genericize objectLiteral by making objectLiteralElementList optional.  Doing so
+// makes blockStatement be overridden by objectLiteral in return statements.
+private emptyObjectLiteral ::= '{' '}'
+objectLiteral ::= ('{' objectLiteralElementList+ '}') | emptyObjectLiteral
 
 private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* {recoverWhile="object_literal_list_recover"}
 private object_literal_list_recover ::= !('}')

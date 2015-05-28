@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,8 +54,6 @@ public interface HaxeTokenTypes {
   IElementType COMPARE_EXPRESSION = new HaxeElementType("COMPARE_EXPRESSION");
   IElementType COMPARE_OPERATION = new HaxeElementType("COMPARE_OPERATION");
   IElementType COMPONENT_NAME = new HaxeElementType("COMPONENT_NAME");
-  IElementType CONDITIONAL = new HaxeElementType("CONDITIONAL");
-  IElementType CONSTRUCTOR_NAME = new HaxeElementType("CONSTRUCTOR_NAME");
   IElementType CONTINUE_STATEMENT = new HaxeElementType("CONTINUE_STATEMENT");
   IElementType CORE_API_META = new HaxeElementType("CORE_API_META");
   IElementType CUSTOM_META = new HaxeElementType("CUSTOM_META");
@@ -73,7 +71,8 @@ public interface HaxeTokenTypes {
   IElementType EXTERN_CLASS_DECLARATION = new HaxeElementType("EXTERN_CLASS_DECLARATION");
   IElementType EXTERN_CLASS_DECLARATION_BODY = new HaxeElementType("EXTERN_CLASS_DECLARATION_BODY");
   IElementType EXTERN_FUNCTION_DECLARATION = new HaxeElementType("EXTERN_FUNCTION_DECLARATION");
-  IElementType EXTERN_OR_PRIVATE = new HaxeElementType("EXTERN_OR_PRIVATE");
+  IElementType EXTERN_INTERFACE_DECLARATION = new HaxeElementType("EXTERN_INTERFACE_DECLARATION");
+  IElementType EXTERN_KEY_WORD = new HaxeElementType("EXTERN_KEY_WORD");
   IElementType FAKE_ENUM_META = new HaxeElementType("FAKE_ENUM_META");
   IElementType FAT_ARROW_EXPRESSION = new HaxeElementType("FAT_ARROW_EXPRESSION");
   IElementType FINAL_META = new HaxeElementType("FINAL_META");
@@ -108,7 +107,6 @@ public interface HaxeTokenTypes {
   IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
   IElementType MACRO_CLASS = new HaxeElementType("MACRO_CLASS");
   IElementType MACRO_CLASS_LIST = new HaxeElementType("MACRO_CLASS_LIST");
-  IElementType MACRO_META = new HaxeElementType("MACRO_META");
   IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
   IElementType META_META = new HaxeElementType("META_META");
   IElementType MULTIPLICATIVE_EXPRESSION = new HaxeElementType("MULTIPLICATIVE_EXPRESSION");
@@ -290,6 +288,7 @@ public interface HaxeTokenTypes {
   IElementType PPEND = new HaxeElementType("#end");
   IElementType PPERROR = new HaxeElementType("#error");
   IElementType PPIF = new HaxeElementType("#if");
+  IElementType PPTOKEN = new HaxeElementType("pptoken");
   IElementType PRBRACK = new HaxeElementType("]");
   IElementType PRCURLY = new HaxeElementType("}");
   IElementType PRPAREN = new HaxeElementType(")");
@@ -384,12 +383,6 @@ public interface HaxeTokenTypes {
       else if (type == COMPONENT_NAME) {
         return new HaxeComponentNameImpl(node);
       }
-      else if (type == CONDITIONAL) {
-        return new HaxeConditionalImpl(node);
-      }
-      else if (type == CONSTRUCTOR_NAME) {
-        return new HaxeConstructorNameImpl(node);
-      }
       else if (type == CONTINUE_STATEMENT) {
         return new HaxeContinueStatementImpl(node);
       }
@@ -441,8 +434,11 @@ public interface HaxeTokenTypes {
       else if (type == EXTERN_FUNCTION_DECLARATION) {
         return new HaxeExternFunctionDeclarationImpl(node);
       }
-      else if (type == EXTERN_OR_PRIVATE) {
-        return new HaxeExternOrPrivateImpl(node);
+      else if (type == EXTERN_INTERFACE_DECLARATION) {
+        return new HaxeExternInterfaceDeclarationImpl(node);
+      }
+      else if (type == EXTERN_KEY_WORD) {
+        return new HaxeExternKeyWordImpl(node);
       }
       else if (type == FAKE_ENUM_META) {
         return new HaxeFakeEnumMetaImpl(node);
@@ -545,9 +541,6 @@ public interface HaxeTokenTypes {
       }
       else if (type == MACRO_CLASS_LIST) {
         return new HaxeMacroClassListImpl(node);
-      }
-      else if (type == MACRO_META) {
-        return new HaxeMacroMetaImpl(node);
       }
       else if (type == META_KEY_VALUE) {
         return new HaxeMetaKeyValueImpl(node);

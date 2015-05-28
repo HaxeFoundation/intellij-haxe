@@ -78,7 +78,7 @@ Haxe File
                   IDENTIFIER
                     PsiJavaToken:ID('bar')
                 PsiJavaToken::(':')
-              PsiJavaToken:MSL_COMMENT('//<– haxe plugin says 'or case expected, got default'')
+              PsiComment(MSL_COMMENT)('//<– haxe plugin says 'or case expected, got default'')
               DEFAULT_CASE
                 PsiJavaToken:default('default')
                 PsiJavaToken::(':')

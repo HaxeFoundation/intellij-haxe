@@ -27,9 +27,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author: Fedor.Korotkov
  */
-abstract public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
+public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
-  protected HaxeGenerateActionTest() {
+  public HaxeGenerateActionTest() {
     PlatformTestCase.initPlatformLangPrefix();
   }
 
