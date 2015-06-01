@@ -48,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -90,6 +91,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
+    if (nameList == null) {
+      return Collections.emptyList();
+    }
+
     List<PsiElement> result = new ArrayList<PsiElement>();
     for (PsiElement element : nameList) {
       PsiElement elementToAdd = element;
