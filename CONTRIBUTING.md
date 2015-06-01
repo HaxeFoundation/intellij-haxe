@@ -416,8 +416,66 @@ repository.
 ####Release Timing
 
 As far as updates the IDEA repository go, the team will agree on releases as necessary and as critical
-errors are fixed.  Optimally, we should create a release about every month to six weeks.  
+errors are fixed.  Optimally, we should create a release about every month to six weeks.
+  
+####Release Process
 
+Once we have a stable code base and would like to create a release, you should get consensus from
+the current primary developers.  Once you have agreement on the release number, this is the process:
+
+1. Make sure that all relevant outstanding pull requests have been merged into the master branch.
+
+2. Review the git change log and make sure that all relevant updates are reflected in the plugin's 
+change log.  The change log appears in two places: src/META-INF/plugin.xml and CHANGELOG.md.  The 
+former is what the IDEA user will see in the plugin description page and in the IDEA plugin 
+repository.  The latter is what github users will see.  You will also need the change log 
+for the releases page later on.   To keep things in sync, it is easiest to edit the plugin.xml, 
+then copy the relevant section to CHANGELOG.md.
+
+3. Update the CONTRIBUTORS.md file: `./update_contributors.sh` in the project root.
+
+3. Commit the change logs, merge them into master, and then pull the master branch locally so that you
+can test and tag it.
+
+4. Build *each* of the releases: For each release, run make (or your local equivalent) 
+    - `IDEA_VERSION=13.1.6 make`, or `ant -Didea.ultimate.build=<path_to_intellij_13.1.6>` 
+    - `IDEA_VERSION=14.0.4 make`
+    - `IDEA_VERSION=14.1.1 make`
+
+5. Smoke test *each* of the releases.  A smoke test includes loading the releases in a primary instance of IDEA and verifying 
+basic functionality:  
+    - Reload a project
+    - Compile a project
+    - Show class hierarchy
+    - Copy/Paste a block
+    - Invoke completion
+    - Visually verify coloring
+    - Goto definition
+    - Find occurrences
+    - Start the debugger
+    - Run the project
+
+5. Run the unit tests on all versions:
+    - `IDEA_VERSION=13.1.6 make test`, etc.
+    - or `ant -Dintellij.ultimate.build=<path_to_intellij_13.1.6> -f build-test.xml`, etc.
+    
+4. Tag the commit using the agreed upon release number: `git tag -a 0.9.5 -m "Release 0.9.5"`
+
+5. Push the release back up to master: `git push origin master; git push --tags origin master`
+
+6. Create a release on github, using the tag you just created:
+    - [https://github.com/tivo/intellij-haxe/releases](https://github.com/tivo/intellij-haxe/releases)
+    - Sign in and draft a new release, using the tag you just added. 
+    - Upload all of the release jars to the release.
+    - Add the change notes for the most recent changes (between this release and the last).
+    - Mark it as pre-release if appropriate.
+    - Submit
+
+7. Create a Pull Request to pull all of the current changes up to the JetBrains/intellij-haxe/master
+repository.  Add a shoutouts to @as3Boyan and @EBatTiVo to the pull request.
+
+8. Upload the jars to the IDEA plugin repository 
+[https://plugins.jetbrains.com/plugin/6873?pr=idea](https://plugins.jetbrains.com/plugin/6873?pr=idea)
 
 ###Code Review and Commit Process
 
