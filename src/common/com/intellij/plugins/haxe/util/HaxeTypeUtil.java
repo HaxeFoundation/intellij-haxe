@@ -19,14 +19,16 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeImpl;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HaxeTypeUtil {
   // @TODO: Check if cache works
-  static public HaxeClass getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
+  static public SpecificHaxeClassReference getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
     // @TODO: cache should check if any related type has changed, which return depends
     long stamp = comp.getContainingFile().getModificationStamp();
     if (comp._cachedType == null || comp._cachedTypeStamp != stamp) {
@@ -37,20 +39,20 @@ public class HaxeTypeUtil {
     return comp._cachedType;
   }
 
-  static private HaxeClass _getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
+  static private SpecificHaxeClassReference _getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
     if (comp instanceof PsiMethod) {
-      return getFunctionReturnType(comp);
+      return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp));
     } else {
-      return getFieldType(comp);
+      return SpecificHaxeClassReference.ensure(getFieldType(comp));
     }
   }
 
-  static private HaxeClass getFieldType(AbstractHaxeNamedComponent comp) {
+  static private SpecificHaxeClassReference getFieldType(AbstractHaxeNamedComponent comp) {
     return getTypeFromTypeTag(comp);
   }
 
-  static private HaxeClass getFunctionReturnType(AbstractHaxeNamedComponent comp) {
-    HaxeClass type = getTypeFromTypeTag(comp);
+  static private SpecificHaxeClassReference getFunctionReturnType(AbstractHaxeNamedComponent comp) {
+    SpecificHaxeClassReference type = getTypeFromTypeTag(comp);
     if (type != null) return type;
 
     if (comp instanceof PsiMethod) {
@@ -60,28 +62,47 @@ public class HaxeTypeUtil {
     }
   }
 
-  static private HaxeClass getTypeFromTypeTag(AbstractHaxeNamedComponent comp) {
+  static private SpecificHaxeClassReference getTypeFromTypeTag(AbstractHaxeNamedComponent comp) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class);
     final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
 
     if (typeOrAnonymous != null) {
-      // @TODO: Do a proper type resolving
-      HaxeType type = typeOrAnonymous.getType();
-      if (type != null) {
-        return HaxeResolveUtil.findClassByQName(type.getText(), type);
-      }
+      return getTypeFromTypeOrAnonymous(typeOrAnonymous);
     }
     return null;
   }
 
-  static private HaxeClass getReturnTypeFromBody(PsiCodeBlock body) {
+  static private SpecificHaxeClassReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
+    // @TODO: Do a proper type resolving
+    HaxeType type = typeOrAnonymous.getType();
+    if (type != null) {
+      //System.out.println("Type:" + type);
+      //System.out.println("Type:" + type.getText());
+      HaxeReferenceExpression expression = type.getReferenceExpression();
+      HaxeClassReference reference = new HaxeClassReference(expression.getText(), expression);
+      HaxeTypeParam param = type.getTypeParam();
+      ArrayList<SpecificHaxeClassReference> references = new ArrayList<SpecificHaxeClassReference>();
+      if (param != null) {
+        for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
+          for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
+            references.add(getTypeFromTypeOrAnonymous(anonymous));
+          }
+        }
+      }
+      //type.getTypeParam();
+      return SpecificHaxeClassReference.withGenerics(reference, references.toArray(SpecificHaxeClassReference.EMPTY));
+    }
+    return null;
+  }
+
+  static private SpecificHaxeClassReference getReturnTypeFromBody(PsiCodeBlock body) {
     return getPsiElementType(body);
   }
 
-  static public HaxeClass getPsiElementType(PsiElement element) {
+  static public SpecificHaxeClassReference getPsiElementType(PsiElement element) {
     //System.out.println("Handling element: " + element.getClass());
     if (element instanceof PsiCodeBlock) {
-      HaxeClass type = null;
+      SpecificHaxeClassReference type = null;
       for (PsiElement childElement : element.getChildren()) {
         type = getPsiElementType(childElement);
         if (childElement instanceof HaxeReturnStatement) {
@@ -95,21 +116,21 @@ public class HaxeTypeUtil {
     } else if (element instanceof HaxeLiteralExpression) {
       return getPsiElementType(element.getFirstChild());
     } else if (element instanceof HaxeStringLiteralExpression) {
-      return HaxeResolveUtil.findClassByQName("String", element);
+      return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("String", element));
     } else if (element instanceof PsiJavaToken) {
       String tokenType = ((PsiJavaToken)element).getTokenType().toString();
       if (tokenType.equals("LITINT") || tokenType.equals("LITHEX") || tokenType.equals("LITOCT")) {
-        return HaxeResolveUtil.findClassByQName("Int", element);
+        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Int", element));
       } else if (tokenType.equals("false") || tokenType.equals("true")) {
-        return HaxeResolveUtil.findClassByQName("Bool", element);
+        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Bool", element));
       } else if (tokenType.equals("LITFLOAT")) {
-        return HaxeResolveUtil.findClassByQName("Float", element);
+        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Float", element));
       } else {
         //System.out.println("Unhandled token type: " + tokenType);
       }
     } else {
       //System.out.println("Unhandled " + element.getClass());
     }
-    return HaxeResolveUtil.findClassByQName("Dynamic", element);
+    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Dynamic", element));
   }
 }

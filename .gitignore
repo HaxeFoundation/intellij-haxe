@@ -3,6 +3,8 @@ out/
 .idea/
 .iml
 .project
+idea-IU
+/idea-IU*
 /build/
 /build_test/
 local-build-overrides.xml

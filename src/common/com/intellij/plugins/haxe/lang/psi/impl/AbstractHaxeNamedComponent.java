@@ -19,28 +19,22 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxePresentableUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.HaxeTypeUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -49,7 +43,7 @@ import java.util.Set;
 abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
-  public HaxeClass _cachedType;
+  public SpecificHaxeClassReference _cachedType;
   public long _cachedTypeStamp;
 
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
@@ -107,10 +101,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
 
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-          HaxeClass returnType = HaxeTypeUtil.getFieldOrMethodType(AbstractHaxeNamedComponent.this);
+          SpecificHaxeClassReference returnType = HaxeTypeUtil.getFieldOrMethodType(AbstractHaxeNamedComponent.this);
           if (returnType != null) {
             result.append(":");
-            result.append(returnType.getQualifiedName());
+            result.append(returnType.toString());
           }
         }
         return result.toString();
