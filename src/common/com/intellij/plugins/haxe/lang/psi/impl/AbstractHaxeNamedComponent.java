@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeTypeUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
@@ -47,6 +48,9 @@ import java.util.Set;
  */
 abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
+
+  public HaxeClass _cachedType;
+  public long _cachedTypeStamp;
 
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
     super(node);
@@ -101,12 +105,12 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
           final String parameterList = HaxePresentableUtil.getPresentableParameterList(AbstractHaxeNamedComponent.this);
           result.append("(").append(parameterList).append(")");
         }
+
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-          final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
-          final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
-          if (typeOrAnonymous != null) {
+          HaxeClass returnType = HaxeTypeUtil.getFieldOrMethodType(AbstractHaxeNamedComponent.this);
+          if (returnType != null) {
             result.append(":");
-            result.append(HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeOrAnonymous.getType()));
+            result.append(returnType.getQualifiedName());
           }
         }
         return result.toString();
