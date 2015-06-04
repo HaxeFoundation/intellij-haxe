@@ -43,7 +43,7 @@ import java.util.Set;
 abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
-  public SpecificHaxeClassReference _cachedType;
+  public SpecificTypeReference _cachedType;
   public long _cachedTypeStamp;
 
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
@@ -101,7 +101,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
 
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-          SpecificHaxeClassReference returnType = HaxeTypeUtil.getFieldOrMethodType(AbstractHaxeNamedComponent.this);
+          SpecificTypeReference returnType = HaxeTypeUtil.getFieldOrMethodType(AbstractHaxeNamedComponent.this);
           if (returnType != null) {
             result.append(":");
             result.append(returnType.toString());

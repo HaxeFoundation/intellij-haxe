@@ -17,19 +17,11 @@
  */
 package com.intellij.plugins.haxe.util;
 
-public class HaxeTypeUnifier {
-  static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
-    // @TODO: Do a proper unification
-    return a.withConstantValue(null);
-    //return a;
-  }
+import com.intellij.psi.PsiElement;
 
-  static public SpecificTypeReference unify(SpecificTypeReference[] types) {
-    if (types.length == 0) return null;
-    SpecificTypeReference type = types[0];
-    for (int n = 1; n < types.length; n++) {
-      type = unify(type, types[n]);
-    }
-    return type;
-  }
+public interface SpecificTypeReference {
+  public SpecificTypeReference withConstantValue(Object constantValue);
+  public Object getConstant();
+  public PsiElement getElementContext();
+  public String toString();
 }

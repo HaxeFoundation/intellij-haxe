@@ -33,7 +33,7 @@ import java.util.List;
 
 public class HaxeTypeUtil {
   // @TODO: Check if cache works
-  static public SpecificHaxeClassReference getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
+  static public SpecificTypeReference getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
     // @TODO: cache should check if any related type has changed, which return depends
     long stamp = comp.getContainingFile().getModificationStamp();
     if (comp._cachedType == null || comp._cachedTypeStamp != stamp) {
@@ -44,7 +44,7 @@ public class HaxeTypeUtil {
     return comp._cachedType;
   }
 
-  static private SpecificHaxeClassReference _getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
+  static private SpecificTypeReference _getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
     try {
       if (comp instanceof PsiMethod) {
         return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp));
@@ -57,15 +57,15 @@ public class HaxeTypeUtil {
     }
   }
 
-  static private SpecificHaxeClassReference getFieldType(AbstractHaxeNamedComponent comp) {
-    SpecificHaxeClassReference type = getTypeFromTypeTag(comp);
+  static private SpecificTypeReference getFieldType(AbstractHaxeNamedComponent comp) {
+    SpecificTypeReference type = getTypeFromTypeTag(comp);
     if (type != null) return type;
     // Here detect assignment
     if (comp instanceof HaxeVarDeclarationPart) {
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression().getFirstChild();
-        SpecificHaxeClassReference type1 = HaxeTypeUtil.getPsiElementType(child);
+        SpecificTypeReference type1 = HaxeTypeUtil.getPsiElementType(child);
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
         if (decl != null) {
@@ -73,15 +73,15 @@ public class HaxeTypeUtil {
           PsiModifierList modifierList = decl.getModifierList();
           //System.out.println(decl.getText());
         }
-        return isConstant ? type1 : type1.withoutConstantValue();
+        return isConstant ? type1 : type1.withConstantValue(null);
       }
     }
 
     return null;
   }
 
-  static private SpecificHaxeClassReference getFunctionReturnType(AbstractHaxeNamedComponent comp) {
-    SpecificHaxeClassReference type = getTypeFromTypeTag(comp);
+  static private SpecificTypeReference getFunctionReturnType(AbstractHaxeNamedComponent comp) {
+    SpecificTypeReference type = getTypeFromTypeTag(comp);
     if (type != null) return type;
 
     if (comp instanceof PsiMethod) {
@@ -91,23 +91,38 @@ public class HaxeTypeUtil {
     }
   }
 
-  static private SpecificHaxeClassReference getTypeFromTypeTag(AbstractHaxeNamedComponent comp) {
+  static private SpecificTypeReference getTypeFromTypeTag(AbstractHaxeNamedComponent comp) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    if (typeTag == null) return null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+    final HaxeFunctionType functionType = typeTag.getFunctionType();
 
     if (typeOrAnonymous != null) {
       return getTypeFromTypeOrAnonymous(typeOrAnonymous);
     }
+
+    if (functionType != null) {
+      return getTypeFromFunctionType(functionType);
+    }
+
     return null;
   }
 
-  static private SpecificHaxeClassReference getTypeFromType(@NotNull HaxeType type) {
+  private static SpecificTypeReference getTypeFromFunctionType(HaxeFunctionType type) {
+    ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
+    for (HaxeTypeOrAnonymous anonymous : type.getTypeOrAnonymousList()) {
+      references.add(getTypeFromTypeOrAnonymous(anonymous));
+    }
+    return new SpecificFunctionReference(references.toArray(new SpecificTypeReference[0]));
+  }
+
+  static private SpecificTypeReference getTypeFromType(@NotNull HaxeType type) {
     //System.out.println("Type:" + type);
     //System.out.println("Type:" + type.getText());
     HaxeReferenceExpression expression = type.getReferenceExpression();
     HaxeClassReference reference = new HaxeClassReference(expression.getText(), expression);
     HaxeTypeParam param = type.getTypeParam();
-    ArrayList<SpecificHaxeClassReference> references = new ArrayList<SpecificHaxeClassReference>();
+    ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
         for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
@@ -119,7 +134,7 @@ public class HaxeTypeUtil {
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(SpecificHaxeClassReference.EMPTY));
   }
 
-  static private SpecificHaxeClassReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
+  static private SpecificTypeReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
     // @TODO: Do a proper type resolving
     HaxeType type = typeOrAnonymous.getType();
     if (type != null) {
@@ -128,14 +143,14 @@ public class HaxeTypeUtil {
     return null;
   }
 
-  static private SpecificHaxeClassReference getReturnTypeFromBody(PsiCodeBlock body) {
+  static private SpecificTypeReference getReturnTypeFromBody(PsiCodeBlock body) {
     return getPsiElementType(body);
   }
 
-  static public SpecificHaxeClassReference getPsiElementType(PsiElement element) {
+  static public SpecificTypeReference getPsiElementType(PsiElement element) {
     //System.out.println("Handling element: " + element.getClass());
     if (element instanceof PsiCodeBlock) {
-      SpecificHaxeClassReference type = null;
+      SpecificTypeReference type = null;
       for (PsiElement childElement : element.getChildren()) {
         type = getPsiElementType(childElement);
         if (childElement instanceof HaxeReturnStatement) {
@@ -155,7 +170,7 @@ public class HaxeTypeUtil {
     }
 
     if (element instanceof HaxeCallExpression) {
-      SpecificHaxeClassReference functionType = getPsiElementType(((HaxeCallExpression)element).getExpression());
+      SpecificTypeReference functionType = getPsiElementType(((HaxeCallExpression)element).getExpression());
       // @TODO: resolve the function type return type
       return functionType;
     }
@@ -221,13 +236,13 @@ public class HaxeTypeUtil {
     return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(type, element), constant);
   }
 
-  static private SpecificHaxeClassReference getBinaryOperatorResult(SpecificHaxeClassReference left, SpecificHaxeClassReference right, String operator) {
-    PsiElement elementContext = left.clazz.elementContext;
-    SpecificHaxeClassReference result = HaxeTypeUnifier.unify(left, right);
+  static private SpecificTypeReference getBinaryOperatorResult(SpecificTypeReference left, SpecificTypeReference right, String operator) {
+    PsiElement elementContext = left.getElementContext();
+    SpecificTypeReference result = HaxeTypeUnifier.unify(left, right);
     if (operator.equals("/")) result = createPrimitiveType("Float", elementContext, null);
     // @TODO: Check operator overloading
-    if (left.constantValue != null && right.constantValue != null) {
-      result = result.withConstantValue(applyOperator(left.constantValue, right.constantValue, operator));
+    if (left.getConstant() != null && right.getConstant() != null) {
+      result = result.withConstantValue(applyOperator(left.getConstant(), right.getConstant(), operator));
     }
     return result;
   }

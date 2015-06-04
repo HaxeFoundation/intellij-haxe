@@ -18,8 +18,9 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.psi.PsiElement;
 
-public class SpecificHaxeClassReference {
+public class SpecificHaxeClassReference implements SpecificTypeReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
   public HaxeClassReference clazz;
   public SpecificHaxeClassReference[] specifics;
@@ -35,11 +36,21 @@ public class SpecificHaxeClassReference {
     return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue);
   }
 
+  @Override
+  public Object getConstant() {
+    return this.constantValue;
+  }
+
+  @Override
+  public PsiElement getElementContext() {
+    return this.clazz.elementContext;
+  }
+
   public SpecificHaxeClassReference withoutConstantValue() {
     return withConstantValue(null);
   }
 
-  static public SpecificHaxeClassReference ensure(SpecificHaxeClassReference clazz) {
+  static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
     return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, EMPTY, null);
   }
 
