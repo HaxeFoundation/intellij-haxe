@@ -17,63 +17,61 @@
  */
 package com.intellij.plugins.haxe.ide.annotator;
 
-import com.google.common.base.Strings;
+import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Key;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaToken;
-import com.intellij.psi.util.PsiUtil;
-import org.apache.commons.lang.ArrayUtils;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.psi.*;
+import com.intellij.util.IncorrectOperationException;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.rpc.CommandProcessor;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
-  static private Key<List<String>> KEY_HAXE_ERROR = new Key<List<String>>("KEY_HAXE_ERROR");
-  static private Key<Long> KEY_ANALYZED_METHOD_TIME = new Key<Long>("HAXE_ANALYZED_METHOD");
+
 
   @Override
   public void annotate(PsiElement element, AnnotationHolder holder) {
     PsiFile file = element.getContainingFile();
     // Analyze upon file changes
-    Long analyzedFileTime = file.getUserData(KEY_ANALYZED_METHOD_TIME);
+    Long analyzedFileTime = file.getUserData(HaxeSemanticError.KEY_ANALYZED_METHOD_TIME);
     if (analyzedFileTime == null || analyzedFileTime != file.getModificationStamp()) {
       analyze(file);
-      file.putUserData(KEY_ANALYZED_METHOD_TIME, file.getModificationStamp());
+      file.putUserData(HaxeSemanticError.KEY_ANALYZED_METHOD_TIME, file.getModificationStamp());
     }
 
-    List<String> errorMessages = element.getUserData(KEY_HAXE_ERROR);
-    if (errorMessages != null) {
-      for (String message : errorMessages) {
-        holder.createErrorAnnotation(element, message);
+    List<HaxeSemanticError> errors = element.getUserData(HaxeSemanticError.KEY_HAXE_ERROR);
+    if (errors != null) {
+      for (HaxeSemanticError error : errors) {
+        Annotation annotation = holder.createErrorAnnotation(element, error.message);
+        if (error.quickfix != null) annotation.registerFix(error.quickfix);
       }
     }
   }
 
-  private static void clearErrors(PsiElement element) {
-    element.putUserData(KEY_HAXE_ERROR, null);
-  }
 
-  private static void addError(PsiElement element, String message) {
-    List<String> data = element.getUserData(KEY_HAXE_ERROR);
-    if (data == null) {
-      element.putUserData(KEY_HAXE_ERROR, new LinkedList<String>());
-    }
-    element.getUserData(KEY_HAXE_ERROR).add(message);
-  }
 
-  static void analyze(PsiElement element) {
-    clearErrors(element);
+  static void analyze(final PsiElement element) {
+    HaxeSemanticError.clearErrors(element);
 
     if (element instanceof PsiJavaToken) {
       if (((PsiJavaToken)element).getTokenType() == HaxeTokenTypes.LITINT) {
@@ -81,29 +79,91 @@ public class HaxeSemanticAnnotator implements Annotator {
       }
     }
     else if (element instanceof HaxePackageStatement) {
-      HaxeReferenceExpression expression = ((HaxePackageStatement)element).getReferenceExpression();
-      String packageName = expression.getText();
-      PsiFile file = element.getContainingFile();
-      String expectedPath = packageName.replace('.', '/');
-      String actualPath = getDirectoryPath(file.getParent());
-
-      for (String s : packageName.split("\\.")) {
-        if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {
-          addError(element, "Package name '" + s + "' must start with a lower case character");
-        }
-      }
-
-      if (!actualPath.endsWith(expectedPath)) {
-        addError(element, "Invalid package name! '" + expectedPath + "' not contained in '" + actualPath + "'");
-      }
+      PackageChecker.check((HaxePackageStatement)element);
     }
 
     for (ASTNode node : element.getNode().getChildren(null)) {
       analyze(node.getPsi());
     }
   }
+}
 
-  static private String getDirectoryPath(PsiDirectory dir) {
+class PackageChecker {
+  static public void check(final HaxePackageStatement element) {
+    final HaxeReferenceExpression expression = ((HaxePackageStatement)element).getReferenceExpression();
+    String packageName = (expression != null) ? expression.getText() : "";
+    PsiDirectory fileDirectory = element.getContainingFile().getParent();
+    List<PsiFileSystemItem> fileRange = PsiFileUtils.getRange(PsiFileUtils.findRoot(fileDirectory), fileDirectory);
+    fileRange.remove(0);
+    String actualPath = PsiFileUtils.getListPath(fileRange);
+    final String actualPackage = actualPath.replace('/', '.');
+
+    for (String s : StringUtils.split(packageName, '.')) {
+      if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {
+        HaxeSemanticError.addError(element, new HaxeSemanticError("Package name '" + s + "' must start with a lower case character"));
+      }
+    }
+
+    if (!packageName.equals(actualPackage)) {
+      HaxeSemanticError.addError(element, new HaxeSemanticError(
+                 "Invalid package name! '" + packageName + "' should be '" + actualPackage + "'",
+                 new HaxeSemanticIntentionAction("Fix package") {
+                   @Override
+                   public void run() {
+                     Document document = PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
+
+                     if (expression != null) {
+                       TextRange range = expression.getTextRange();
+                       document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
+                     } else {
+                       int offset = element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
+                       document.replaceString(offset, offset, actualPackage);
+                     }
+                   }
+                 }
+               )
+      );
+    }
+  }
+}
+
+class PsiFileUtils {
+
+  static public String getListPath(List<PsiFileSystemItem> range) {
+    String out = "";
+    for (PsiFileSystemItem item : range) {
+      if (out.length() != 0) out += "/";
+      out += item.getName();
+    }
+    return out;
+  }
+
+  static public List<PsiFileSystemItem> getRange(PsiFileSystemItem from, PsiFileSystemItem to) {
+    LinkedList<PsiFileSystemItem> items = new LinkedList<PsiFileSystemItem>();
+    PsiFileSystemItem current = to;
+    while (current != null) {
+      items.addFirst(current);
+      if (current == from) break;
+      current = current.getParent();
+    }
+    return items;
+  }
+
+  static public PsiFileSystemItem findRoot(PsiFileSystemItem file) {
+    VirtualFile[] roots = ProjectRootManager.getInstance(file.getProject()).getContentSourceRoots();
+    PsiFileSystemItem current = file;
+    while (current != null) {
+      for (VirtualFile root : roots) {
+        //System.out.println(root.getCanonicalPath());
+        //System.out.println(current.getVirtualFile().getCanonicalPath());
+        if (root.getCanonicalPath().equals(current.getVirtualFile().getCanonicalPath())) return current;
+      }
+      current = current.getParent();
+    }
+    return null;
+  }
+
+  static public String getDirectoryPath(PsiDirectory dir) {
     String out = "";
     while (dir != null) {
       if (out.length() != 0) out = "/" + out;
@@ -111,5 +171,73 @@ public class HaxeSemanticAnnotator implements Annotator {
       dir = dir.getParent();
     }
     return out;
+  }
+}
+
+abstract class HaxeSemanticIntentionAction implements IntentionAction {
+  private String text;
+
+  public HaxeSemanticIntentionAction(String text) {
+    this.text = text;
+  }
+
+  @Nls
+  @NotNull
+  @Override
+  public String getText() {
+    return this.text;
+  }
+
+  @Nls
+  @NotNull
+  @Override
+  public String getFamilyName() {
+    return "semantic";
+  }
+
+  @Override
+  public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
+    return true;
+  }
+
+  @Override
+  public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+    run();
+  }
+
+  @Override
+  public boolean startInWriteAction() {
+    return false;
+  }
+
+  abstract public void run();
+}
+
+class HaxeSemanticError {
+  public String message;
+  public IntentionAction quickfix;
+
+  public HaxeSemanticError(String message, IntentionAction quickfix) {
+    this.message = message;
+    this.quickfix = quickfix;
+  }
+
+  public HaxeSemanticError(String message) {
+    this(message, null);
+  }
+
+  static public Key<List<HaxeSemanticError>> KEY_HAXE_ERROR = new Key<List<HaxeSemanticError>>("KEY_HAXE_ERROR");
+  static public Key<Long> KEY_ANALYZED_METHOD_TIME = new Key<Long>("HAXE_ANALYZED_METHOD");
+
+  public static void clearErrors(PsiElement element) {
+    element.putUserData(KEY_HAXE_ERROR, null);
+  }
+
+  public static void addError(PsiElement element, HaxeSemanticError error) {
+    List<HaxeSemanticError> data = element.getUserData(KEY_HAXE_ERROR);
+    if (data == null) {
+      element.putUserData(KEY_HAXE_ERROR, new LinkedList<HaxeSemanticError>());
+    }
+    element.getUserData(KEY_HAXE_ERROR).add(error);
   }
 }
