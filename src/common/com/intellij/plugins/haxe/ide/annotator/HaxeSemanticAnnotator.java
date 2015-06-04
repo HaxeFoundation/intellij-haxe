@@ -24,25 +24,27 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.rpc.CommandProcessor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -67,7 +69,6 @@ public class HaxeSemanticAnnotator implements Annotator {
       }
     }
   }
-
 
 
   static void analyze(final PsiElement element) {
@@ -105,23 +106,28 @@ class PackageChecker {
     }
 
     if (!packageName.equals(actualPackage)) {
-      HaxeSemanticError.addError(element, new HaxeSemanticError(
-                 "Invalid package name! '" + packageName + "' should be '" + actualPackage + "'",
-                 new HaxeSemanticIntentionAction("Fix package") {
-                   @Override
-                   public void run() {
-                     Document document = PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
+      HaxeSemanticError.addError(
+        element,
+        new HaxeSemanticError(
+          "Invalid package name! '" + packageName + "' should be '" + actualPackage + "'",
+          new HaxeSemanticIntentionAction("Fix package") {
+            @Override
+            public void run() {
+              Document document =
+                PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
 
-                     if (expression != null) {
-                       TextRange range = expression.getTextRange();
-                       document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
-                     } else {
-                       int offset = element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
-                       document.replaceString(offset, offset, actualPackage);
-                     }
-                   }
-                 }
-               )
+              if (expression != null) {
+                TextRange range = expression.getTextRange();
+                document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
+              }
+              else {
+                int offset =
+                  element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
+                document.replaceString(offset, offset, actualPackage);
+              }
+            }
+          }
+        )
       );
     }
   }
@@ -150,7 +156,16 @@ class PsiFileUtils {
   }
 
   static public PsiFileSystemItem findRoot(PsiFileSystemItem file) {
-    VirtualFile[] roots = ProjectRootManager.getInstance(file.getProject()).getContentSourceRoots();
+    //HaxelibModuleManager
+    Project project = file.getProject();
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    List<VirtualFile> roots = new ArrayList<VirtualFile>();
+    for (Module module : modules) {
+      Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+      roots.addAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
+    }
+    roots.addAll(Arrays.asList(ProjectRootManager.getInstance(project).getContentSourceRoots()));
+
     PsiFileSystemItem current = file;
     while (current != null) {
       for (VirtualFile root : roots) {
