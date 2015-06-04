@@ -35,9 +35,11 @@ import com.intellij.psi.util.PsiUtil;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
-  static private Key<String> KEY_HAXE_ERROR = new Key<String>("KEY_HAXE_ERROR");
+  static private Key<List<String>> KEY_HAXE_ERROR = new Key<List<String>>("KEY_HAXE_ERROR");
   static private Key<Long> KEY_ANALYZED_METHOD_TIME = new Key<Long>("HAXE_ANALYZED_METHOD");
 
   @Override
@@ -50,14 +52,28 @@ public class HaxeSemanticAnnotator implements Annotator {
       file.putUserData(KEY_ANALYZED_METHOD_TIME, file.getModificationStamp());
     }
 
-    String errorMessage = element.getUserData(KEY_HAXE_ERROR);
-    if (errorMessage != null) {
-      holder.createErrorAnnotation(element, errorMessage);
+    List<String> errorMessages = element.getUserData(KEY_HAXE_ERROR);
+    if (errorMessages != null) {
+      for (String message : errorMessages) {
+        holder.createErrorAnnotation(element, message);
+      }
     }
   }
 
-  static void analyze(PsiElement element) {
+  private static void clearErrors(PsiElement element) {
     element.putUserData(KEY_HAXE_ERROR, null);
+  }
+
+  private static void addError(PsiElement element, String message) {
+    List<String> data = element.getUserData(KEY_HAXE_ERROR);
+    if (data == null) {
+      element.putUserData(KEY_HAXE_ERROR, new LinkedList<String>());
+    }
+    element.getUserData(KEY_HAXE_ERROR).add(message);
+  }
+
+  static void analyze(PsiElement element) {
+    clearErrors(element);
 
     if (element instanceof PsiJavaToken) {
       if (((PsiJavaToken)element).getTokenType() == HaxeTokenTypes.LITINT) {
@@ -71,8 +87,14 @@ public class HaxeSemanticAnnotator implements Annotator {
       String expectedPath = packageName.replace('.', '/');
       String actualPath = getDirectoryPath(file.getParent());
 
+      for (String s : packageName.split("\\.")) {
+        if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {
+          addError(element, "Package name '" + s + "' must start with a lower case character");
+        }
+      }
+
       if (!actualPath.endsWith(expectedPath)) {
-        element.putUserData(KEY_HAXE_ERROR, "Invalid package name! " + expectedPath + " not contained in " + actualPath + "");
+        addError(element, "Invalid package name! '" + expectedPath + "' not contained in '" + actualPath + "'");
       }
     }
 
