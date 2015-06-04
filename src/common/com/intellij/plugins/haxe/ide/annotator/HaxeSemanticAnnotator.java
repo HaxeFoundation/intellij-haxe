@@ -37,6 +37,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.commons.lang.StringUtils;
@@ -98,6 +99,8 @@ class PackageChecker {
     fileRange.remove(0);
     String actualPath = PsiFileUtils.getListPath(fileRange);
     final String actualPackage = actualPath.replace('/', '.');
+    final String actualPackage2 = HaxeResolveUtil.getPackageName(element.getContainingFile());
+    // @TODO: Should use HaxeResolveUtil
 
     for (String s : StringUtils.split(packageName, '.')) {
       if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {

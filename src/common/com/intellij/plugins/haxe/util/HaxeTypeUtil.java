@@ -32,18 +32,36 @@ import java.util.ArrayList;
 
 public class HaxeTypeUtil {
   // @TODO: Check if cache works
-  static public SpecificTypeReference getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
+  static public SpecificTypeReference getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
     // @TODO: cache should check if any related type has changed, which return depends
     long stamp = comp.getContainingFile().getModificationStamp();
     if (comp._cachedType == null || comp._cachedTypeStamp != stamp) {
-      comp._cachedType = _getFieldOrMethodType(comp);
+      comp._cachedType = _getFieldOrMethodReturnType(comp);
       comp._cachedTypeStamp = stamp;
     }
 
     return comp._cachedType;
   }
 
-  static private SpecificTypeReference _getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
+  static public SpecificFunctionReference getMethodFunctionType(PsiElement comp) {
+    if (comp instanceof HaxeMethod) {
+      HaxeParameterList parameterList = HaxePsiUtils.getChild(comp, HaxeParameterList.class);
+      ArrayList<SpecificTypeReference> arguments = new ArrayList<SpecificTypeReference>();
+      if (parameterList.getParameterList().size() == 0) {
+        arguments.add(createPrimitiveType("Void", comp, null));
+      } else {
+        for (HaxeParameter parameter : parameterList.getParameterList()) {
+          arguments.add(SpecificHaxeClassReference.ensure(getTypeFromTypeTag((AbstractHaxeNamedComponent)parameter)));
+        }
+      }
+      arguments.add(getFieldOrMethodReturnType((AbstractHaxeNamedComponent)comp));
+
+      return new SpecificFunctionReference(arguments.toArray(new SpecificTypeReference[0]));
+    }
+    return null;
+  }
+
+  static private SpecificTypeReference _getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
     try {
       if (comp instanceof PsiMethod) {
         return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp));
@@ -83,8 +101,8 @@ public class HaxeTypeUtil {
     SpecificTypeReference type = getTypeFromTypeTag(comp);
     if (type != null) return type;
 
-    if (comp instanceof PsiMethod) {
-      return getReturnTypeFromBody(((PsiMethod)comp).getBody());
+    if (comp instanceof HaxeMethod) {
+      return getPsiElementType(comp.getLastChild());
     } else {
       throw new RuntimeException("Can't get the body of a no PsiMethod");
     }
@@ -144,10 +162,6 @@ public class HaxeTypeUtil {
     return null;
   }
 
-  static private SpecificTypeReference getReturnTypeFromBody(PsiCodeBlock body) {
-    return getPsiElementType(body);
-  }
-
   static public SpecificTypeReference getPsiElementType(PsiElement element) {
     //System.out.println("Handling element: " + element.getClass());
     if (element instanceof PsiCodeBlock) {
@@ -170,10 +184,34 @@ public class HaxeTypeUtil {
       return getTypeFromType(((HaxeNewExpression)element).getType());
     }
 
+    if (element instanceof HaxeThisExpression) {
+      PsiReference reference = element.getReference();
+      HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(element);
+      HaxeClass ancestor = HaxePsiUtils.getAncestor(element, HaxeClass.class);
+      return createPrimitiveType(ancestor.getQualifiedName(), element, null);
+    }
+
+    if (element instanceof HaxeIdentifier) {
+      PsiReference reference = element.getReference();
+      System.out.println(reference);
+    }
+
+    if (element instanceof HaxeReferenceExpression) {
+      PsiElement[] children = element.getChildren();
+      SpecificTypeReference type = getPsiElementType(children[0]);
+      for (int n = 1; n < children.length; n++) {
+        type = type.access(children[n].getText());
+      }
+      return type;
+    }
+
     if (element instanceof HaxeCallExpression) {
       SpecificTypeReference functionType = getPsiElementType(((HaxeCallExpression)element).getExpression());
+      if (functionType instanceof SpecificFunctionReference) {
+        return ((SpecificFunctionReference)functionType).getReturnType();
+      }
       // @TODO: resolve the function type return type
-      return functionType;
+      return null;
     }
 
     if (element instanceof HaxeLiteralExpression) {

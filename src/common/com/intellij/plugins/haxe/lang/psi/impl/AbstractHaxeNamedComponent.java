@@ -101,7 +101,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
 
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-          SpecificTypeReference returnType = HaxeTypeUtil.getFieldOrMethodType(AbstractHaxeNamedComponent.this);
+          SpecificTypeReference returnType = HaxeTypeUtil.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
           if (returnType != null) {
             result.append(":");
             result.append(returnType.toString());

@@ -19,10 +19,18 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.psi.PsiElement;
 
-public interface SpecificTypeReference {
-  SpecificTypeReference withConstantValue(Object constantValue);
-  Object getConstant();
-  PsiElement getElementContext();
-  String toString();
-  SpecificTypeReference access(String name);
+public class HaxePsiUtils {
+  static public <T extends PsiElement> T getAncestor(PsiElement element, Class<T> clazz) {
+    if (element == null) return null;
+    if (clazz.isAssignableFrom(element.getClass())) return (T)element;
+    return getAncestor(element.getParent(), clazz);
+  }
+
+  static public <T extends PsiElement> T getChild(PsiElement element, Class<T> clazz) {
+    if (element == null) return null;
+    for (PsiElement psiElement : element.getChildren()) {
+      if (clazz.isAssignableFrom(psiElement.getClass())) return (T)psiElement;
+    }
+    return null;
+  }
 }

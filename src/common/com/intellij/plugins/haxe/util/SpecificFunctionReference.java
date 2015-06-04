@@ -44,6 +44,11 @@ public class SpecificFunctionReference implements SpecificTypeReference {
     return items[0].getElementContext();
   }
 
+  public SpecificTypeReference getReturnType() {
+    if (items.length == 0) return null;
+    return items[items.length - 1];
+  }
+
   @Override
   public String toString() {
     String out = "";
@@ -53,5 +58,10 @@ public class SpecificFunctionReference implements SpecificTypeReference {
     }
     //return toStringWithoutConstant();
     return out;
+  }
+
+  @Override
+  public SpecificTypeReference access(String name) {
+    return null;
   }
 }
