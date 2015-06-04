@@ -27,10 +27,8 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.mozilla.javascript.ast.VariableDeclaration;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class HaxeTypeUtil {
   // @TODO: Check if cache works
@@ -65,7 +63,7 @@ public class HaxeTypeUtil {
     if (comp instanceof HaxeVarDeclarationPart) {
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
-        PsiElement child = init.getExpression().getFirstChild();
+        PsiElement child = init.getExpression();
         SpecificTypeReference type1 = HaxeTypeUtil.getPsiElementType(child);
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
@@ -212,18 +210,43 @@ public class HaxeTypeUtil {
       }
     }
 
+    if (element instanceof HaxeParenthesizedExpression) {
+      return getPsiElementType(element.getChildren()[0]);
+    }
+
     if (element instanceof HaxeTernaryExpression) {
       HaxeExpression[] list = ((HaxeTernaryExpression)element).getExpressionList().toArray(new HaxeExpression[0]);
       return HaxeTypeUnifier.unify(getPsiElementType(list[1]), getPsiElementType(list[2]));
     }
 
+    if (element instanceof HaxePrefixExpression) {
+      HaxeExpression expression = ((HaxePrefixExpression)element).getExpression();
+      SpecificTypeReference type = getPsiElementType(expression);
+      if (type.getConstant() != null) {
+        String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
+        return type.withConstantValue(applyUnaryOperator(type.getConstant(), operatorText));
+      }
+      return type;
+    }
+
     if (
       (element instanceof HaxeAdditiveExpression) ||
+      (element instanceof HaxeBitwiseExpression) ||
+      (element instanceof HaxeShiftExpression) ||
+      (element instanceof HaxeLogicAndExpression) ||
+      (element instanceof HaxeLogicOrExpression) ||
+      (element instanceof HaxeCompareExpression) ||
       (element instanceof HaxeMultiplicativeExpression)
     ) {
-      String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
       PsiElement[] children = element.getChildren();
-      return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
+      String operatorText;
+      if (children.length == 3) {
+        operatorText = children[1].getText();
+        return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[2]), operatorText);
+      } else {
+        operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
+        return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
+      }
     }
 
     //System.out.println("Unhandled " + element.getClass());
@@ -238,9 +261,16 @@ public class HaxeTypeUtil {
     PsiElement elementContext = left.getElementContext();
     SpecificTypeReference result = HaxeTypeUnifier.unify(left, right);
     if (operator.equals("/")) result = createPrimitiveType("Float", elementContext, null);
+    if (
+      operator.equals("==") || operator.equals("!=") ||
+      operator.equals("<") || operator.equals("<=") ||
+      operator.equals(">") || operator.equals(">=")
+    ) {
+      result = createPrimitiveType("Bool", elementContext, null);
+    }
     // @TODO: Check operator overloading
     if (left.getConstant() != null && right.getConstant() != null) {
-      result = result.withConstantValue(applyOperator(left.getConstant(), right.getConstant(), operator));
+      result = result.withConstantValue(applyBinOperator(left.getConstant(), right.getConstant(), operator));
     }
     return result;
   }
@@ -253,7 +283,14 @@ public class HaxeTypeUtil {
     return Double.NaN;
   }
 
-  static public Object applyOperator(Object left, Object right, String operator) {
+  private static Object applyUnaryOperator(Object right, String operator) {
+    double rightv = getDoubleValue(right);
+    if (operator.equals("-")) return -rightv;
+    if (operator.equals("~")) return ~(int)rightv;
+    throw new RuntimeException("Unsupporteed operator '" + operator + "'");
+  }
+
+  static public Object applyBinOperator(Object left, Object right, String operator) {
     double leftv = getDoubleValue(left);
     double rightv = getDoubleValue(right);
     if (operator.equals("+")) return leftv + rightv;
@@ -261,7 +298,17 @@ public class HaxeTypeUtil {
     if (operator.equals("*")) return leftv * rightv;
     if (operator.equals("/")) return leftv / rightv;
     if (operator.equals("%")) return leftv % rightv;
-    throw new RuntimeException("Unsupporteed operator");
+    if (operator.equals("==")) return leftv == rightv;
+    if (operator.equals("!=")) return leftv != rightv;
+    if (operator.equals("<")) return leftv < rightv;
+    if (operator.equals("<=")) return leftv <= rightv;
+    if (operator.equals(">")) return leftv > rightv;
+    if (operator.equals(">=")) return leftv >= rightv;
+    if (operator.equals("<<")) return (int)leftv << (int)rightv;
+    if (operator.equals(">>")) return (int)leftv >> (int)rightv;
+    if (operator.equals("&")) return (int)leftv & (int)rightv;
+    if (operator.equals("|")) return (int)leftv | (int)rightv;
+    throw new RuntimeException("Unsupporteed operator '" + operator + "'");
   }
 
   static private String getOperator(PsiElement element, TokenSet set) {
