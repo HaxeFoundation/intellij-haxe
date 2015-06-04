@@ -760,8 +760,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         mFileName = (String)frameList.params.__a[4];
         mLineNumber = (((Integer)frameList.params.__a[5]).intValue());
         mClassAndFunctionName =
-          ((String)frameList.params.__a[2] + "." +
-           (String)frameList.params.__a[3]);
+          (frameList.params.__a[2] + "." +
+           frameList.params.__a[3]);
         String fileName = VfsUtil.extractFileName(mFileName);
         if (fileName == null) {
           fileName = mFileName;

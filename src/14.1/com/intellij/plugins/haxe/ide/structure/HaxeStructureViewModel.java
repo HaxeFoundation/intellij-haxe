@@ -74,11 +74,7 @@ public class HaxeStructureViewModel extends StructureViewModelBase implements St
       if (!(treeNode instanceof HaxeStructureViewElement)) return true;
       final PsiElement element = ((HaxeStructureViewElement)treeNode).getRealElement();
 
-      if (HaxeComponentType.typeOf(element) == HaxeComponentType.FIELD) {
-        return false;
-      }
-
-      return true;
+      return HaxeComponentType.typeOf(element) != HaxeComponentType.FIELD;
     }
 
     public boolean isReverted() {

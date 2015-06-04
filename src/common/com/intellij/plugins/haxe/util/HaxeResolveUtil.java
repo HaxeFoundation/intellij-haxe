@@ -489,7 +489,8 @@ public class HaxeResolveUtil {
     final HaxeTypeOrAnonymous returnTypeOrAnonymous =
       functionType.getTypeOrAnonymousList().get(functionType.getTypeOrAnonymousList().size() - 1);
     final HaxeClassResolveResult result = tryResolveClassByTypeTag(returnTypeOrAnonymous.getType(), specialization);
-    functionType = functionType.getFunctionType();
+    List<HaxeFunctionType> list = functionType.getFunctionTypeList();
+    functionType = list.size() > 0 ? list.get(0) : null;
     while (functionType != null) {
       // todo: anonymous types :(
       final List<HaxeTypeOrAnonymous> typeList = functionType.getTypeOrAnonymousList();
@@ -497,7 +498,8 @@ public class HaxeResolveUtil {
       for (HaxeTypeOrAnonymous typeOrAnonymous : typeList) {
         result.getFunctionTypes().add(tryResolveClassByTypeTag(typeOrAnonymous.getType(), specialization));
       }
-      functionType = functionType.getFunctionType();
+      List<HaxeFunctionType> list2 = functionType.getFunctionTypeList();
+      functionType = list2.size() > 0 ? list2.get(0) : null;
     }
     Collections.reverse(result.getFunctionTypes());
     return result;
