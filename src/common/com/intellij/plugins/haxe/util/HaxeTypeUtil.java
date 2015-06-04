@@ -17,11 +17,16 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.psi.*;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.mozilla.javascript.ast.VariableDeclaration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +53,26 @@ public class HaxeTypeUtil {
   }
 
   static private SpecificHaxeClassReference getFieldType(AbstractHaxeNamedComponent comp) {
-    return getTypeFromTypeTag(comp);
+    SpecificHaxeClassReference type = getTypeFromTypeTag(comp);
+    if (type != null) return type;
+    // Here detect assignment
+    if (comp instanceof HaxeVarDeclarationPart) {
+      HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
+      if (init != null) {
+        PsiElement child = init.getExpression().getFirstChild();
+        SpecificHaxeClassReference type1 = HaxeTypeUtil.getPsiElementType(child);
+        HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
+        boolean isConstant = false;
+        if (decl != null) {
+          isConstant = decl.hasModifierProperty(HaxePsiModifier.INLINE);
+          PsiModifierList modifierList = decl.getModifierList();
+          //System.out.println(decl.getText());
+        }
+        return isConstant ? type1 : type1.withoutConstantValue();
+      }
+    }
+
+    return null;
   }
 
   static private SpecificHaxeClassReference getFunctionReturnType(AbstractHaxeNamedComponent comp) {
@@ -116,21 +140,71 @@ public class HaxeTypeUtil {
     } else if (element instanceof HaxeLiteralExpression) {
       return getPsiElementType(element.getFirstChild());
     } else if (element instanceof HaxeStringLiteralExpression) {
-      return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("String", element));
+      // @TODO: check if it has string interpolation inside, in that case text is not constant
+      return createPrimitiveType("String", element, ((HaxeStringLiteralExpression)element).getCanonicalText());
     } else if (element instanceof PsiJavaToken) {
-      String tokenType = ((PsiJavaToken)element).getTokenType().toString();
-      if (tokenType.equals("LITINT") || tokenType.equals("LITHEX") || tokenType.equals("LITOCT")) {
-        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Int", element));
-      } else if (tokenType.equals("false") || tokenType.equals("true")) {
-        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Bool", element));
-      } else if (tokenType.equals("LITFLOAT")) {
-        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Float", element));
+      IElementType type = ((PsiJavaToken)element).getTokenType();
+
+      if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
+        return createPrimitiveType("Int", element, Integer.decode(element.getText()));
+      } else if (type == HaxeTokenTypes.LITFLOAT) {
+        return createPrimitiveType("Float", element, Float.parseFloat(element.getText()));
+      } else if (type == HaxeTokenTypes.KFALSE || type == HaxeTokenTypes.KTRUE) {
+        return createPrimitiveType("Bool", element, type == HaxeTokenTypes.KTRUE);
       } else {
         //System.out.println("Unhandled token type: " + tokenType);
       }
+    } else if (element instanceof HaxeAdditiveExpression) {
+      String operatorText = getOperator(element, HaxeTokenTypes.OPLUS, HaxeTokenTypes.OMINUS);
+      PsiElement[] children = element.getChildren();
+      return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
+    } else if (element instanceof HaxeMultiplicativeExpression) {
+      String operatorText = getOperator(element, HaxeTokenTypes.OMUL, HaxeTokenTypes.OQUOTIENT, HaxeTokenTypes.OREMAINDER);
+      PsiElement[] children = element.getChildren();
+      return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
     } else {
       //System.out.println("Unhandled " + element.getClass());
     }
     return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Dynamic", element));
+  }
+
+  static private SpecificHaxeClassReference createPrimitiveType(String type, PsiElement element, Object constant) {
+    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(type, element), constant);
+  }
+
+  static private SpecificHaxeClassReference getBinaryOperatorResult(SpecificHaxeClassReference left, SpecificHaxeClassReference right, String operator) {
+    PsiElement elementContext = left.clazz.elementContext;
+    SpecificHaxeClassReference result = HaxeTypeUnifier.unify(left, right);
+    if (operator.equals("/")) result = createPrimitiveType("Float", elementContext, null);
+    // @TODO: Check operator overloading
+    if (left.constantValue != null && right.constantValue != null) {
+      result = result.withConstantValue(applyOperator(left.constantValue, right.constantValue, operator));
+    }
+    return result;
+  }
+
+  static public double getDoubleValue(Object value) {
+    if (value instanceof Long) return (Long)value;
+    if (value instanceof Integer) return (Integer)value;
+    if (value instanceof Double) return (Double)value;
+    if (value instanceof Float) return (Float)value;
+    return Double.NaN;
+  }
+
+  static public Object applyOperator(Object left, Object right, String operator) {
+    double leftv = getDoubleValue(left);
+    double rightv = getDoubleValue(right);
+    if (operator.equals("+")) return leftv + rightv;
+    if (operator.equals("-")) return leftv - rightv;
+    if (operator.equals("*")) return leftv * rightv;
+    if (operator.equals("/")) return leftv / rightv;
+    if (operator.equals("%")) return leftv % rightv;
+    throw new RuntimeException("Unsupporteed operator");
+  }
+
+  static private String getOperator(PsiElement element, IElementType... operators) {
+    ASTNode operatorNode = element.getNode().findChildByType(TokenSet.create(operators));
+    if (operatorNode == null) return "";
+    return operatorNode.getText();
   }
 }

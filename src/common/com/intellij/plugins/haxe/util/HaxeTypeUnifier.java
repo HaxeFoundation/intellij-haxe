@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,25 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.psi;
+package com.intellij.plugins.haxe.util;
 
-import org.jetbrains.annotations.Nullable;
+public class HaxeTypeUnifier {
+  static public SpecificHaxeClassReference unify(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
+    // @TODO: Do a proper unification
+    return a.withConstantValue(null);
+  }
 
-/**
- * @author: Fedor.Korotkov
- */
-public interface HaxeNamedComponent extends HaxePsiCompositeElement {
-  @Nullable
-  HaxeComponentName getComponentName();
-
-  @Nullable
-  HaxeNamedComponent getTypeComponent();
-
-  boolean isPublic();
-
-  boolean isStatic();
-
-  boolean isOverride();
-
-  boolean isInline();
+  static public SpecificHaxeClassReference unify(SpecificHaxeClassReference[] types) {
+    if (types.length == 0) return null;
+    SpecificHaxeClassReference type = types[0];
+    for (int n = 1; n < types.length; n++) {
+      type = unify(type, types[n]);
+    }
+    return type;
+  }
 }

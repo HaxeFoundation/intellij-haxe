@@ -209,6 +209,12 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
   }
 
+  @Override
+  public boolean isInline() {
+    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
+    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
+  }
+
   @Nullable
   public final PsiElement findChildByRoleAsPsiElement(int role) {
     ASTNode element = findChildByRole(role);

@@ -30,6 +30,8 @@ public interface HaxePsiModifier extends PsiModifier {
   @NonNls String PRIVATE = "private";
   @NonNls String ABSTRACT = "abstract";
 
+  @NonNls String INLINE = "inline";
+
   @NonNls String FINAL = "@:final";
   @NonNls String KEEP = "@:keep";
   @NonNls String COREAPI = "@:coreApi";

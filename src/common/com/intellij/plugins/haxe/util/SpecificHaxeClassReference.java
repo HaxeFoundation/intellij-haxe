@@ -23,26 +23,43 @@ public class SpecificHaxeClassReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
   public HaxeClassReference clazz;
   public SpecificHaxeClassReference[] specifics;
+  public Object constantValue = null;
 
-  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificHaxeClassReference[] specifics) {
+  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificHaxeClassReference[] specifics, Object constantValue) {
     this.clazz = clazz;
     this.specifics = specifics;
+    this.constantValue = constantValue;
+  }
+
+  public SpecificHaxeClassReference withConstantValue(Object constantValue) {
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue);
+  }
+
+  public SpecificHaxeClassReference withoutConstantValue() {
+    return withConstantValue(null);
   }
 
   static public SpecificHaxeClassReference ensure(SpecificHaxeClassReference clazz) {
-    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, EMPTY);
+    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, EMPTY, null);
   }
 
   static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz) {
-    return new SpecificHaxeClassReference(clazz, EMPTY);
+    return new SpecificHaxeClassReference(clazz, EMPTY, null);
+  }
+
+  static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz, Object constantValue) {
+    return new SpecificHaxeClassReference(clazz, EMPTY, constantValue);
   }
 
   static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificHaxeClassReference[] specifics) {
-    return new SpecificHaxeClassReference(clazz, specifics);
+    return new SpecificHaxeClassReference(clazz, specifics, null);
   }
 
-  @Override
-  public String toString() {
+  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificHaxeClassReference[] specifics, Object constantValue) {
+    return new SpecificHaxeClassReference(clazz, specifics, constantValue);
+  }
+
+  public String toStringWithoutConstant() {
     if (this.clazz == null) return "Unknown";
     String out = this.clazz.getName();
     if (specifics.length > 0) {
@@ -54,5 +71,25 @@ public class SpecificHaxeClassReference {
       out += ">";
     }
     return out;
+  }
+
+  public String toStringWithConstant() {
+    String out = toStringWithoutConstant();
+    if (constantValue != null) {
+      if (out.equals("Int")) {
+        out += " = " + (int)HaxeTypeUtil.getDoubleValue(constantValue);
+      } else if (out.equals("String")) {
+        out += " = " + constantValue + "";
+      } else {
+        out += " = " + constantValue;
+      }
+    }
+    return out;
+  }
+
+  @Override
+  public String toString() {
+    //return toStringWithoutConstant();
+    return toStringWithConstant();
   }
 }

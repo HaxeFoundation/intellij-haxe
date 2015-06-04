@@ -198,10 +198,13 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
       list.setModifierProperty(HaxePsiModifier.STATIC, true);
     }
 
+    if (isInline()) {
+      list.setModifierProperty(HaxePsiModifier.INLINE, true);
+    }
+
     if (isPublic()) {
       list.setModifierProperty(HaxePsiModifier.PUBLIC, true);
-    }
-    else {
+    } else {
       list.setModifierProperty(HaxePsiModifier.PRIVATE, true);
     }
 
