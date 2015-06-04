@@ -19,8 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This is effectively an alias for the mixin class, except with a more

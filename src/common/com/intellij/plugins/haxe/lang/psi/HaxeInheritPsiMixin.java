@@ -17,9 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiReferenceList;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

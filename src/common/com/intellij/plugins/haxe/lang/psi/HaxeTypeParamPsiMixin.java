@@ -17,9 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.PsiTypeParameterList;
-import com.intellij.psi.PsiTypeParameterListOwner;
 
 /**
  * Created by ebishton on 10/18/14.

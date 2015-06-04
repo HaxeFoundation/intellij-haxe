@@ -19,32 +19,18 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor;
-import com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**

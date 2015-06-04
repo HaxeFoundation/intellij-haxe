@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.impl.source.PsiExtensibleClass;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

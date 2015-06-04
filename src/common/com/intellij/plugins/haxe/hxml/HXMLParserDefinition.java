@@ -24,8 +24,6 @@ import com.intellij.lang.PsiParser;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.hxml.HXMLLanguage;
-import com.intellij.plugins.haxe.hxml.HXMLParser;
 import com.intellij.plugins.haxe.hxml.lexer.HXMLLexer;
 import com.intellij.plugins.haxe.hxml.psi.HXMLFile;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;

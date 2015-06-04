@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.psi.PsiPackageStatement;
 
 /**

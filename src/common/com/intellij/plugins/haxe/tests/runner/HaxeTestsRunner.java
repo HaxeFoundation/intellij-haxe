@@ -23,7 +23,8 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.filters.*;
+import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
@@ -38,7 +39,9 @@ import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.tests.runner.filters.ErrorFilter;
 import com.intellij.util.PathUtil;
-import org.jetbrains.annotations.NotNull;;
+import org.jetbrains.annotations.NotNull;
+
+;
 
 public class HaxeTestsRunner extends DefaultProgramRunner {
 

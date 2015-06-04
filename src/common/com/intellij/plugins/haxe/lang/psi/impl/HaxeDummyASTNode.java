@@ -17,12 +17,10 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.lang.ASTFactory;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.impl.source.tree.LazyParseableElement;
 import com.intellij.psi.impl.source.tree.TreeElement;
-import com.intellij.psi.tree.ILazyParseableElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

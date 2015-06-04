@@ -20,11 +20,11 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.plugins.haxe.lang.psi.HaxeModifierList;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

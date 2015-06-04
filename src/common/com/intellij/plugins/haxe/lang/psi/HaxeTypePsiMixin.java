@@ -17,11 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiTypeAdapter;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeParameterListOwner;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**

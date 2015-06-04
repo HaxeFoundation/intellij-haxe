@@ -46,7 +46,6 @@ import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.util.PathUtil;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;

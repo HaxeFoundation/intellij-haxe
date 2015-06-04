@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

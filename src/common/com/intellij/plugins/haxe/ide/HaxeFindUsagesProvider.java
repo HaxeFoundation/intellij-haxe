@@ -22,7 +22,6 @@ import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;

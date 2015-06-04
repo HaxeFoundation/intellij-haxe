@@ -20,10 +20,10 @@
 
 package com.intellij.plugins.haxe.hxml.lexer;
 
-import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.lexer.FlexLexer;
-import com.intellij.psi.tree.IElementType;
+import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.psi.TokenType;
+import com.intellij.psi.tree.IElementType;
 
 
 /**

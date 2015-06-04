@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.impl.PsiImplUtil;
 import org.jetbrains.annotations.NotNull;
 

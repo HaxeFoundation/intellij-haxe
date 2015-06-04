@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.util.HaxeHelpCache;
 import com.intellij.util.ProcessingContext;

@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
-import com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection;
 import com.intellij.util.ArrayUtil;
 
 /**

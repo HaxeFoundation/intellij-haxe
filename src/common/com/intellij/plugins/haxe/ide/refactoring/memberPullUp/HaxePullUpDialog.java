@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.ide.refactoring.memberPullUp;
 import com.intellij.openapi.help.HelpManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.psi.*;
 import com.intellij.psi.statistics.StatisticsInfo;
 import com.intellij.psi.statistics.StatisticsManager;
