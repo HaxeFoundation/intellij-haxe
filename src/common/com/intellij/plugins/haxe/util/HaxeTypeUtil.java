@@ -45,10 +45,15 @@ public class HaxeTypeUtil {
   }
 
   static private SpecificHaxeClassReference _getFieldOrMethodType(AbstractHaxeNamedComponent comp) {
-    if (comp instanceof PsiMethod) {
-      return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp));
-    } else {
-      return SpecificHaxeClassReference.ensure(getFieldType(comp));
+    try {
+      if (comp instanceof PsiMethod) {
+        return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp));
+      } else {
+        return SpecificHaxeClassReference.ensure(getFieldType(comp));
+      }
+    } catch (Throwable e) {
+      e.printStackTrace();
+      return createPrimitiveType("Unknown", comp, null);
     }
   }
 
@@ -96,25 +101,29 @@ public class HaxeTypeUtil {
     return null;
   }
 
+  static private SpecificHaxeClassReference getTypeFromType(@NotNull HaxeType type) {
+    //System.out.println("Type:" + type);
+    //System.out.println("Type:" + type.getText());
+    HaxeReferenceExpression expression = type.getReferenceExpression();
+    HaxeClassReference reference = new HaxeClassReference(expression.getText(), expression);
+    HaxeTypeParam param = type.getTypeParam();
+    ArrayList<SpecificHaxeClassReference> references = new ArrayList<SpecificHaxeClassReference>();
+    if (param != null) {
+      for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
+        for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
+          references.add(getTypeFromTypeOrAnonymous(anonymous));
+        }
+      }
+    }
+    //type.getTypeParam();
+    return SpecificHaxeClassReference.withGenerics(reference, references.toArray(SpecificHaxeClassReference.EMPTY));
+  }
+
   static private SpecificHaxeClassReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
     // @TODO: Do a proper type resolving
     HaxeType type = typeOrAnonymous.getType();
     if (type != null) {
-      //System.out.println("Type:" + type);
-      //System.out.println("Type:" + type.getText());
-      HaxeReferenceExpression expression = type.getReferenceExpression();
-      HaxeClassReference reference = new HaxeClassReference(expression.getText(), expression);
-      HaxeTypeParam param = type.getTypeParam();
-      ArrayList<SpecificHaxeClassReference> references = new ArrayList<SpecificHaxeClassReference>();
-      if (param != null) {
-        for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
-          for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
-            references.add(getTypeFromTypeOrAnonymous(anonymous));
-          }
-        }
-      }
-      //type.getTypeParam();
-      return SpecificHaxeClassReference.withGenerics(reference, references.toArray(SpecificHaxeClassReference.EMPTY));
+      return getTypeFromType(type);
     }
     return null;
   }
@@ -135,14 +144,32 @@ public class HaxeTypeUtil {
         }
       }
       return type;
-    } else if (element instanceof HaxeReturnStatement) {
+    }
+
+    if (element instanceof HaxeReturnStatement) {
       return getPsiElementType(element.getChildren()[0]);
-    } else if (element instanceof HaxeLiteralExpression) {
+    }
+
+    if (element instanceof HaxeNewExpression) {
+      return getTypeFromType(((HaxeNewExpression)element).getType());
+    }
+
+    if (element instanceof HaxeCallExpression) {
+      SpecificHaxeClassReference functionType = getPsiElementType(((HaxeCallExpression)element).getExpression());
+      // @TODO: resolve the function type return type
+      return functionType;
+    }
+
+    if (element instanceof HaxeLiteralExpression) {
       return getPsiElementType(element.getFirstChild());
-    } else if (element instanceof HaxeStringLiteralExpression) {
+    }
+
+    if (element instanceof HaxeStringLiteralExpression) {
       // @TODO: check if it has string interpolation inside, in that case text is not constant
       return createPrimitiveType("String", element, ((HaxeStringLiteralExpression)element).getCanonicalText());
-    } else if (element instanceof PsiJavaToken) {
+    }
+
+    if (element instanceof PsiJavaToken) {
       IElementType type = ((PsiJavaToken)element).getTokenType();
 
       if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
@@ -153,19 +180,41 @@ public class HaxeTypeUtil {
         return createPrimitiveType("Bool", element, type == HaxeTokenTypes.KTRUE);
       } else {
         //System.out.println("Unhandled token type: " + tokenType);
+        return createPrimitiveType("Dynamic", element, null);
       }
-    } else if (element instanceof HaxeAdditiveExpression) {
+    }
+
+    if (element instanceof PsiIfStatement) {
+      PsiStatement thenBranch = ((PsiIfStatement)element).getThenBranch();
+      PsiStatement elseBranch = ((PsiIfStatement)element).getElseBranch();
+      if (elseBranch != null) {
+        return HaxeTypeUnifier.unify(getPsiElementType(thenBranch), getPsiElementType(elseBranch));
+      } else {
+        return getPsiElementType(thenBranch);
+      }
+    }
+
+    if (element instanceof HaxeTernaryExpression) {
+      String operatorText = getOperator(element, HaxeTokenTypes.OPLUS, HaxeTokenTypes.OMINUS);
+      PsiElement[] children = element.getChildren();
+      HaxeExpression[] list = ((HaxeTernaryExpression)element).getExpressionList().toArray(new HaxeExpression[0]);
+      return HaxeTypeUnifier.unify(getPsiElementType(list[1]), getPsiElementType(list[2]));
+    }
+
+    if (element instanceof HaxeAdditiveExpression) {
       String operatorText = getOperator(element, HaxeTokenTypes.OPLUS, HaxeTokenTypes.OMINUS);
       PsiElement[] children = element.getChildren();
       return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
-    } else if (element instanceof HaxeMultiplicativeExpression) {
+    }
+
+    if (element instanceof HaxeMultiplicativeExpression) {
       String operatorText = getOperator(element, HaxeTokenTypes.OMUL, HaxeTokenTypes.OQUOTIENT, HaxeTokenTypes.OREMAINDER);
       PsiElement[] children = element.getChildren();
       return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
-    } else {
-      //System.out.println("Unhandled " + element.getClass());
     }
-    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference("Dynamic", element));
+
+    //System.out.println("Unhandled " + element.getClass());
+    return createPrimitiveType("Dynamic", element, null);
   }
 
   static private SpecificHaxeClassReference createPrimitiveType(String type, PsiElement element, Object constant) {
