@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.psi;
+package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.util.HaxeMethodModel;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiElement;
 
-/**
- * Created by ebishton on 9/28/14.
- */
-public interface HaxeMethodPsiMixin extends HaxeComponentWithDeclarationList, PsiMethod {
-  HaxeMethodModel getModel();
+public interface SpecificTypeReference {
+  SpecificTypeReference withConstantValue(Object constantValue);
+  Object getConstant();
+  PsiElement getElementContext();
+  String toString();
+  SpecificTypeReference access(String name);
 }
