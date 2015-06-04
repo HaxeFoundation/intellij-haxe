@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
@@ -100,6 +101,8 @@ public class HaxeTypeUtil {
     if (typeOrAnonymous != null) {
       return getTypeFromTypeOrAnonymous(typeOrAnonymous);
     }
+
+    //comp.getContainingFile().getNode().putUserData();
 
     if (functionType != null) {
       return getTypeFromFunctionType(functionType);
@@ -210,20 +213,15 @@ public class HaxeTypeUtil {
     }
 
     if (element instanceof HaxeTernaryExpression) {
-      String operatorText = getOperator(element, HaxeTokenTypes.OPLUS, HaxeTokenTypes.OMINUS);
-      PsiElement[] children = element.getChildren();
       HaxeExpression[] list = ((HaxeTernaryExpression)element).getExpressionList().toArray(new HaxeExpression[0]);
       return HaxeTypeUnifier.unify(getPsiElementType(list[1]), getPsiElementType(list[2]));
     }
 
-    if (element instanceof HaxeAdditiveExpression) {
-      String operatorText = getOperator(element, HaxeTokenTypes.OPLUS, HaxeTokenTypes.OMINUS);
-      PsiElement[] children = element.getChildren();
-      return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
-    }
-
-    if (element instanceof HaxeMultiplicativeExpression) {
-      String operatorText = getOperator(element, HaxeTokenTypes.OMUL, HaxeTokenTypes.OQUOTIENT, HaxeTokenTypes.OREMAINDER);
+    if (
+      (element instanceof HaxeAdditiveExpression) ||
+      (element instanceof HaxeMultiplicativeExpression)
+    ) {
+      String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
       PsiElement[] children = element.getChildren();
       return getBinaryOperatorResult(getPsiElementType(children[0]), getPsiElementType(children[1]), operatorText);
     }
@@ -266,9 +264,13 @@ public class HaxeTypeUtil {
     throw new RuntimeException("Unsupporteed operator");
   }
 
-  static private String getOperator(PsiElement element, IElementType... operators) {
-    ASTNode operatorNode = element.getNode().findChildByType(TokenSet.create(operators));
+  static private String getOperator(PsiElement element, TokenSet set) {
+    ASTNode operatorNode = element.getNode().findChildByType(set);
     if (operatorNode == null) return "";
     return operatorNode.getText();
+  }
+
+  static private String getOperator(PsiElement element, IElementType... operators) {
+    return getOperator(element, TokenSet.create(operators));
   }
 }
