@@ -35,10 +35,14 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeClassModel;
+import com.intellij.plugins.haxe.util.HaxeMethodModel;
+import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
@@ -82,6 +86,43 @@ public class HaxeSemanticAnnotator implements Annotator {
     }
     else if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element);
+    }
+    else if (element instanceof HaxeMethod) {
+      HaxeClass clazz = HaxePsiUtils.getAncestor(element, HaxeClass.class);
+      final HaxeDeclarationAttribute overrideAttribute = HaxePsiUtils.getChild(element, HaxeDeclarationAttribute.class, "override");
+      HaxeClassModel parentClass = clazz.getModel().getExtendingClass();
+      boolean requiredOverride = false;
+
+      if (parentClass != null) {
+        HaxeMethodModel method = parentClass.getMethod(((HaxeMethod)element).getModel().getName());
+        if (method != null) {
+          requiredOverride = true;
+        }
+      }
+
+      //System.out.println(aClass);
+      if (overrideAttribute != null && !requiredOverride) {
+        HaxeSemanticError.addError(
+          element,
+          new HaxeSemanticError(
+            "Overriding nothing",
+            new HaxeSemanticIntentionAction("Fix override") {
+              @Override
+              public void run() {
+                HaxePsiUtils.replaceElementWithText(overrideAttribute, "");
+              }
+            }
+          )
+        );
+      } else if (overrideAttribute == null && requiredOverride) {
+        HaxeSemanticError.addError(
+          element,
+          new HaxeSemanticError(
+            "Must override"
+          )
+        );
+      }
+      //PackageChecker.check((HaxePackageStatement)element);
     }
 
     for (ASTNode node : element.getNode().getChildren(null)) {

@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.util.HaxeClassModel;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.impl.source.PsiExtensibleClass;
 import org.jetbrains.annotations.NonNls;
@@ -34,6 +35,8 @@ public interface HaxeClass extends HaxeComponent, PsiClass {
   @NotNull
   @NonNls
   String getQualifiedName();
+
+  HaxeClassModel getModel();
 
   @NotNull
   List<HaxeType> getHaxeExtendsList();

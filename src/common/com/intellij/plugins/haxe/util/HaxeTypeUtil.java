@@ -163,6 +163,10 @@ public class HaxeTypeUtil {
   }
 
   static public SpecificTypeReference getPsiElementType(PsiElement element) {
+    if (element == null) {
+      System.out.println("getPsiElementType: " + element);
+      return null;
+    }
     //System.out.println("Handling element: " + element.getClass());
     if (element instanceof PsiCodeBlock) {
       SpecificTypeReference type = null;
@@ -238,13 +242,12 @@ public class HaxeTypeUtil {
       }
     }
 
-    if (element instanceof PsiIfStatement) {
-      PsiStatement thenBranch = ((PsiIfStatement)element).getThenBranch();
-      PsiStatement elseBranch = ((PsiIfStatement)element).getElseBranch();
-      if (elseBranch != null) {
-        return HaxeTypeUnifier.unify(getPsiElementType(thenBranch), getPsiElementType(elseBranch));
+    if (element instanceof HaxeIfStatement) {
+      PsiElement[] children = element.getChildren();
+      if (children.length >= 3) {
+        return HaxeTypeUnifier.unify(getPsiElementType(children[1]), getPsiElementType(children[2]));
       } else {
-        return getPsiElementType(thenBranch);
+        return getPsiElementType(children[1]);
       }
     }
 
@@ -259,12 +262,16 @@ public class HaxeTypeUtil {
 
     if (element instanceof HaxePrefixExpression) {
       HaxeExpression expression = ((HaxePrefixExpression)element).getExpression();
-      SpecificTypeReference type = getPsiElementType(expression);
-      if (type.getConstant() != null) {
-        String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
-        return type.withConstantValue(applyUnaryOperator(type.getConstant(), operatorText));
+      if (expression == null) {
+        return getPsiElementType(element.getFirstChild());
+      } else {
+        SpecificTypeReference type = getPsiElementType(expression);
+        if (type.getConstant() != null) {
+          String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
+          return type.withConstantValue(applyUnaryOperator(type.getConstant(), operatorText));
+        }
+        return type;
       }
-      return type;
     }
 
     if (
@@ -287,7 +294,7 @@ public class HaxeTypeUtil {
       }
     }
 
-    //System.out.println("Unhandled " + element.getClass());
+    System.out.println("Unhandled " + element.getClass());
     return createPrimitiveType("Dynamic", element, null);
   }
 
@@ -325,6 +332,7 @@ public class HaxeTypeUtil {
     double rightv = getDoubleValue(right);
     if (operator.equals("-")) return -rightv;
     if (operator.equals("~")) return ~(int)rightv;
+    if (operator.equals("")) return rightv;
     throw new RuntimeException("Unsupporteed operator '" + operator + "'");
   }
 

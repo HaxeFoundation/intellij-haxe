@@ -17,7 +17,13 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HaxePsiUtils {
   static public <T extends PsiElement> T getAncestor(PsiElement element, Class<T> clazz) {
@@ -32,5 +38,28 @@ public class HaxePsiUtils {
       if (clazz.isAssignableFrom(psiElement.getClass())) return (T)psiElement;
     }
     return null;
+  }
+
+  static public <T extends PsiElement> T getChild(PsiElement element, Class<T> clazz, String text) {
+    if (element == null) return null;
+    for (PsiElement psiElement : element.getChildren()) {
+      if (clazz.isAssignableFrom(psiElement.getClass()) && psiElement.getText().equals(text)) return (T)psiElement;
+    }
+    return null;
+  }
+
+  static public <T extends PsiElement> List<T> getChilds(PsiElement element, Class<T> clazz) {
+    if (element == null) return null;
+    ArrayList<T> ts = new ArrayList<T>();
+    for (PsiElement psiElement : element.getChildren()) {
+      if (clazz.isAssignableFrom(psiElement.getClass())) ts.add((T)psiElement);
+    }
+    return ts;
+  }
+
+  static public void replaceElementWithText(PsiElement element, String text) {
+    Document document = PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
+    TextRange range = element.getTextRange();
+    document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
   }
 }
