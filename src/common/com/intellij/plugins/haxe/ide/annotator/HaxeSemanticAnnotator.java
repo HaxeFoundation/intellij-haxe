@@ -76,19 +76,40 @@ class MethodChecker {
     if (method.isConstructor()) {
       requiredOverride = false;
       if (method.getStatic() != null) {
-        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Constructor can't be static");
+        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Constructor can't be static").registerFix(
+          new HaxeSemanticIntentionAction("Add static") {
+            @Override
+            public void run() {
+              method.removeModifier("static");
+            }
+          }
+        );
       }
     } else if (method.isStaticInit()) {
       requiredOverride = false;
       if (method.getStatic() == null) {
-        holder.createErrorAnnotation(method.getNameOrBasePsi(), "__init__ must be static");
+        holder.createErrorAnnotation(method.getNameOrBasePsi(), "__init__ must be static").registerFix(
+          new HaxeSemanticIntentionAction("Add static") {
+            @Override
+            public void run() {
+              method.addModifier("static");
+            }
+          }
+        );
       }
     }
     else if (parentMethod != null) {
       requiredOverride = true;
 
       if (parentMethod.getInline() != null || parentMethod.getStatic() != null) {
-        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Can't override static or inline methods");
+        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Can't override static or inline methods").registerFix(
+          new HaxeSemanticIntentionAction("Remove override") {
+            @Override
+            public void run() {
+              method.removeModifier("override");
+            }
+          }
+        );
       }
 
       if (method.getVisibility() != parentMethod.getVisibility()) {
@@ -97,10 +118,7 @@ class MethodChecker {
           new HaxeSemanticIntentionAction("Change current method visibility") {
             @Override
             public void run() {
-              PsiElement currentVisibility = method.getVisibilityPsi();
-              if (currentVisibility != null) {
-                HaxePsiUtils.replaceElementWithText(currentVisibility, parentMethod.getVisibility().toString());
-              }
+              method.replaceVisibility(parentMethod.getVisibility().toString());
             }
           }
         );
@@ -108,10 +126,7 @@ class MethodChecker {
           new HaxeSemanticIntentionAction("Change parent method visibility") {
             @Override
             public void run() {
-              PsiElement parentVisibility = parentMethod.getVisibilityPsi();
-              if (parentVisibility != null) {
-                HaxePsiUtils.replaceElementWithText(parentVisibility, method.getVisibility().toString());
-              }
+              parentMethod.replaceVisibility(method.getVisibility().toString());
             }
           }
         );
@@ -124,12 +139,19 @@ class MethodChecker {
         new HaxeSemanticIntentionAction("Fix override") {
           @Override
           public void run() {
-            HaxePsiUtils.replaceElementWithText(overrideAttribute, "");
+            method.removeModifier("override");
           }
         }
       );
     } else if (overrideAttribute == null && requiredOverride) {
-      holder.createErrorAnnotation(method.getNameOrBasePsi(), "Must override");
+      holder.createErrorAnnotation(method.getNameOrBasePsi(), "Must override").registerFix(
+        new HaxeSemanticIntentionAction("Fix override") {
+          @Override
+          public void run() {
+            method.addModifier("override");
+          }
+        }
+      );
     }
   }
 }
@@ -179,61 +201,6 @@ class PackageChecker {
   }
 }
 
-class PsiFileUtils {
-
-  static public String getListPath(List<PsiFileSystemItem> range) {
-    String out = "";
-    for (PsiFileSystemItem item : range) {
-      if (out.length() != 0) out += "/";
-      out += item.getName();
-    }
-    return out;
-  }
-
-  static public List<PsiFileSystemItem> getRange(PsiFileSystemItem from, PsiFileSystemItem to) {
-    LinkedList<PsiFileSystemItem> items = new LinkedList<PsiFileSystemItem>();
-    PsiFileSystemItem current = to;
-    while (current != null) {
-      items.addFirst(current);
-      if (current == from) break;
-      current = current.getParent();
-    }
-    return items;
-  }
-
-  static public PsiFileSystemItem findRoot(PsiFileSystemItem file) {
-    //HaxelibModuleManager
-    Project project = file.getProject();
-    Module[] modules = ModuleManager.getInstance(project).getModules();
-    List<VirtualFile> roots = new ArrayList<VirtualFile>();
-    for (Module module : modules) {
-      Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-      roots.addAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
-    }
-    roots.addAll(Arrays.asList(ProjectRootManager.getInstance(project).getContentSourceRoots()));
-
-    PsiFileSystemItem current = file;
-    while (current != null) {
-      for (VirtualFile root : roots) {
-        //System.out.println(root.getCanonicalPath());
-        //System.out.println(current.getVirtualFile().getCanonicalPath());
-        if (root.getCanonicalPath().equals(current.getVirtualFile().getCanonicalPath())) return current;
-      }
-      current = current.getParent();
-    }
-    return null;
-  }
-
-  static public String getDirectoryPath(PsiDirectory dir) {
-    String out = "";
-    while (dir != null) {
-      if (out.length() != 0) out = "/" + out;
-      out = dir.getName() + out;
-      dir = dir.getParent();
-    }
-    return out;
-  }
-}
 
 abstract class HaxeSemanticIntentionAction implements IntentionAction {
   private String text;

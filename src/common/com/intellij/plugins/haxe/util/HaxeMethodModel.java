@@ -17,7 +17,10 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,23 +62,60 @@ public class HaxeMethodModel {
   }
 
   public @Nullable PsiElement getOverride() {
-    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "override");
+    return getModifier("override");
   }
 
   public @Nullable PsiElement getStatic() {
-    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "static");
+    return getModifier("static");
   }
 
   public @Nullable PsiElement getInline() {
-    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "inline");
+    return getModifier("inline");
   }
 
   public @Nullable PsiElement getPublic() {
-    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "public");
+    return getModifier("public");
   }
 
   public @Nullable PsiElement getPrivate() {
-    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "private");
+    return getModifier("private");
+  }
+
+  public @Nullable PsiElement getFinal() {
+    return getModifier("@:final");
+  }
+
+  public PsiElement getModifier(String text) {
+    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, text);
+  }
+
+  public void replaceVisibility(String text) {
+    PsiElement psi = getVisibilityPsi();
+    if (psi != null) {
+      TextRange range = psi.getTextRange();
+      getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), text);
+    } else {
+      addModifier(text);
+    }
+  }
+
+  public void removeModifier(String text) {
+    PsiElement modifier = getModifier(text);
+    if (modifier != null) {
+      Document document = getDocument();
+      TextRange range = getPsi().getTextRange();
+      document.replaceString(range.getStartOffset(), range.getEndOffset(), "");
+    }
+  }
+
+  public Document getDocument() {
+    PsiElement element = getPsi();
+    return PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
+  }
+
+  public void addModifier(String text) {
+    TextRange range = getPsi().getTextRange();
+    getDocument().replaceString(range.getStartOffset(), range.getStartOffset(), text + " ");
   }
 
   public PsiElement getVisibilityPsi() {
