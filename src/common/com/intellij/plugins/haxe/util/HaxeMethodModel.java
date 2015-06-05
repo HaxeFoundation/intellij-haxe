@@ -22,6 +22,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaToken;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,8 +40,9 @@ public class HaxeMethodModel {
   }
 
   public PsiElement getNamePsi() {
-    return HaxePsiUtils.getChild(HaxePsiUtils.getChild(haxeMethod, HaxeComponentName.class), HaxeIdentifier.class);
-    //return haxeMethod.getNameIdentifier();
+    PsiElement child = HaxePsiUtils.getChild(HaxePsiUtils.getChild(haxeMethod, HaxeComponentName.class), HaxeIdentifier.class);
+    if (child == null) child = HaxePsiUtils.getChild(haxeMethod, PsiJavaToken.class, "new");
+    return child;
   }
 
   @NotNull

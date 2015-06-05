@@ -21,6 +21,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import org.apache.commons.lang.CharUtils;
 
 public class HaxeDocument {
   private Document document;
@@ -37,6 +38,19 @@ public class HaxeDocument {
     if (element != null) {
       TextRange range = element.getTextRange();
       document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
+    }
+  }
+
+  public void replaceElementPlusSpacesText(PsiElement element, String text) {
+    if (element != null) {
+      TextRange range = element.getTextRange();
+      int start = range.getStartOffset();
+      int end = range.getEndOffset();
+      String documentText = document.getText();
+      while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
+        end++;
+      }
+      document.replaceString(start, end, text);
     }
   }
 

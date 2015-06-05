@@ -18,22 +18,13 @@
 package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.*;
@@ -43,9 +34,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
@@ -66,33 +54,36 @@ public class HaxeSemanticAnnotator implements Annotator {
 
 class MethodChecker {
   static public void check(final HaxeMethod methodPsi, final AnnotationHolder holder) {
-    final HaxeMethodModel method = methodPsi.getModel();
-    final HaxeClassModel clazz = method.getDeclaringClass();
-    final PsiElement overrideAttribute = method.getModifiers().getOverride();
-    final HaxeClassModel parentClass = clazz.getExtendingClass();
-    final HaxeMethodModel parentMethod = (parentClass != null) ? parentClass.getMethod(method.getName()) : null;
+    final HaxeMethodModel currentMethod = methodPsi.getModel();
+    final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
+    final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
+
+    final HaxeClassModel parentClass = currentClass.getExtendingClass();
+    final HaxeMethodModel parentMethod = (parentClass != null) ? parentClass.getMethod(currentMethod.getName()) : null;
+    final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
+
     boolean requiredOverride = false;
 
-    if (method.isConstructor()) {
+    if (currentMethod.isConstructor()) {
       requiredOverride = false;
-      if (method.getModifiers().getStatic() != null) {
-        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Constructor can't be static").registerFix(
-          new HaxeSemanticIntentionAction("Add static") {
+      if (currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+        holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Constructor can't be static").registerFix(
+          new HaxeSemanticIntentionAction("Remove static") {
             @Override
             public void run() {
-              method.getModifiers().removeModifier("static");
+              currentModifiers.removeModifier(HaxeModifierType.STATIC);
             }
           }
         );
       }
-    } else if (method.isStaticInit()) {
+    } else if (currentMethod.isStaticInit()) {
       requiredOverride = false;
-      if (method.getModifiers().getStatic() == null) {
-        holder.createErrorAnnotation(method.getNameOrBasePsi(), "__init__ must be static").registerFix(
+      if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+        holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
           new HaxeSemanticIntentionAction("Add static") {
             @Override
             public void run() {
-              method.getModifiers().addModifier("static");
+              currentModifiers.addModifier(HaxeModifierType.STATIC);
             }
           }
         );
@@ -101,24 +92,22 @@ class MethodChecker {
     else if (parentMethod != null) {
       requiredOverride = true;
 
-      if (parentMethod.getModifiers().getInline() != null || parentMethod.getModifiers().getStatic() != null) {
-        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Can't override static or inline methods").registerFix(
-          new HaxeSemanticIntentionAction("Remove override") {
-            @Override
-            public void run() {
-              method.getModifiers().removeModifier("override");
-            }
+      if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
+        Annotation annotation = holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
+        for (HaxeModifierType mod : new HaxeModifierType[] { HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC }) {
+          if (parentModifiers.hasModifier(mod)) {
+            annotation.registerFix(new RemoveModifierIntent("Remove parent " + mod.s, parentModifiers, mod));
           }
-        );
+        }
       }
 
-      if (method.getModifiers().getVisibility() != parentMethod.getModifiers().getVisibility()) {
-        Annotation annotation = holder.createErrorAnnotation(method.getNameOrBasePsi(), "Method doesn't match parent's visibility");
+      if (currentModifiers.getVisibility() != parentModifiers.getVisibility()) {
+        Annotation annotation = holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Method doesn't match parent's visibility");
         annotation.registerFix(
           new HaxeSemanticIntentionAction("Change current method visibility") {
             @Override
             public void run() {
-              method.getModifiers().replaceVisibility(parentMethod.getModifiers().getVisibility().toString());
+              currentModifiers.replaceVisibility(parentModifiers.getVisibility());
             }
           }
         );
@@ -126,7 +115,7 @@ class MethodChecker {
           new HaxeSemanticIntentionAction("Change parent method visibility") {
             @Override
             public void run() {
-              parentMethod.getModifiers().replaceVisibility(method.getModifiers().getVisibility().toString());
+              parentModifiers.replaceVisibility(currentModifiers.getVisibility());
             }
           }
         );
@@ -134,21 +123,16 @@ class MethodChecker {
     }
 
     //System.out.println(aClass);
-    if (overrideAttribute != null && !requiredOverride) {
-      holder.createErrorAnnotation(overrideAttribute, "Overriding nothing").registerFix(
-        new HaxeSemanticIntentionAction("Fix override") {
-          @Override
-          public void run() {
-            method.getModifiers().removeModifier("override");
-          }
-        }
+    if (currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && !requiredOverride) {
+      holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
+        new RemoveModifierIntent("Remove override", currentModifiers, HaxeModifierType.OVERRIDE)
       );
-    } else if (overrideAttribute == null && requiredOverride) {
-      holder.createErrorAnnotation(method.getNameOrBasePsi(), "Must override").registerFix(
-        new HaxeSemanticIntentionAction("Fix override") {
+    } else if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && requiredOverride) {
+      holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
+        new HaxeSemanticIntentionAction("Add override") {
           @Override
           public void run() {
-            method.getModifiers().addModifier("override");
+            currentModifiers.addModifier(HaxeModifierType.OVERRIDE);
           }
         }
       );
@@ -201,6 +185,21 @@ class PackageChecker {
   }
 }
 
+class RemoveModifierIntent extends HaxeSemanticIntentionAction {
+  private HaxeModifiersModel modifiers;
+  private HaxeModifierType modifierToRemove;
+
+  public RemoveModifierIntent(String text, HaxeModifiersModel modifiers, HaxeModifierType modifierToRemove) {
+    super(text);
+    this.modifiers = modifiers;
+    this.modifierToRemove = modifierToRemove;
+  }
+
+  @Override
+  public void run() {
+    modifiers.removeModifier(modifierToRemove);
+  }
+}
 
 abstract class HaxeSemanticIntentionAction implements IntentionAction {
   private String text;

@@ -17,13 +17,10 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttribute;
-import com.intellij.psi.PsiDocumentManager;
+import com.intellij.plugins.haxe.lang.psi.HaxeFinalMeta;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class HaxeModifiersModel {
   private PsiElement baseElement;
@@ -32,50 +29,50 @@ public class HaxeModifiersModel {
     this.baseElement = baseElement;
   }
 
-
-  public @Nullable
-  PsiElement getOverride() {
-    return getModifier("override");
+  public boolean hasModifier(HaxeModifierType modifier) {
+    return getModifierPsi(modifier) != null;
   }
 
-  public @Nullable PsiElement getStatic() {
-    return getModifier("static");
+  public boolean hasAnyModifier(HaxeModifierType... modifiers) {
+    for (HaxeModifierType modifier : modifiers) if (hasModifier(modifier)) return true;
+    return false;
   }
 
-  public @Nullable PsiElement getInline() {
-    return getModifier("inline");
+  public boolean hasAllModifiers(HaxeModifierType... modifiers) {
+    for (HaxeModifierType modifier : modifiers) if (!hasModifier(modifier)) return false;
+    return true;
   }
 
-  public @Nullable PsiElement getPublic() {
-    return getModifier("public");
+  public PsiElement getModifierPsi(HaxeModifierType modifier) {
+    PsiElement result = HaxePsiUtils.getChild(baseElement, HaxeDeclarationAttribute.class, modifier.s);
+    if (result == null) result = HaxePsiUtils.getChild(baseElement, HaxeFinalMeta.class, modifier.s);
+    return result;
   }
 
-  public @Nullable PsiElement getPrivate() {
-    return getModifier("private");
+  public PsiElement getModifierPsiOrBase(HaxeModifierType modifier) {
+    PsiElement psi = getModifierPsi(modifier);
+    if (psi == null) psi = this.baseElement;
+    return psi;
   }
 
-  public @Nullable PsiElement getFinal() {
-    return getModifier("@:final");
-  }
-
-  public PsiElement getModifier(String text) {
-    return HaxePsiUtils.getChild(baseElement, HaxeDeclarationAttribute.class, text);
-  }
-
-  public void replaceVisibility(String text) {
-    PsiElement modifier = getVisibilityPsi();
-    if (modifier != null) {
-      getDocument().replaceElementText(modifier, text);
+  public void replaceVisibility(HaxeModifierType modifier) {
+    PsiElement psi = getVisibilityPsi();
+    if (psi != null) {
+      getDocument().replaceElementPlusSpacesText(psi, modifier.getStringWithSpace());
     } else {
-      addModifier(text);
+      addModifier(modifier);
     }
   }
 
-  public void removeModifier(String text) {
-    PsiElement modifier = getModifier(text);
-    if (modifier != null) {
-      getDocument().replaceElementText(modifier, "");
+  public void removeModifier(HaxeModifierType modifier) {
+    PsiElement psi = getModifierPsi(modifier);
+    if (psi != null) {
+      getDocument().replaceElementPlusSpacesText(psi, "");
     }
+  }
+
+  public void sortModifiers() {
+    // @TODO implement this!
   }
 
   private HaxeDocument _document = null;
@@ -85,20 +82,19 @@ public class HaxeModifiersModel {
     return _document;
   }
 
-  public void addModifier(String text) {
-    getDocument().addTextBeforeElement(baseElement, text + " ");
+  public void addModifier(HaxeModifierType modifier) {
+    getDocument().addTextBeforeElement(baseElement, modifier.getStringWithSpace());
   }
 
   public PsiElement getVisibilityPsi() {
-    PsiElement element = null;
-    element = getPublic(); if (element != null) return element;
-    element = getPrivate(); if (element != null) return element;
+    PsiElement element = getModifierPsi(HaxeModifierType.PUBLIC);
+    if (element == null) element = getModifierPsi(HaxeModifierType.PRIVATE);
     return null;
   }
 
-  public HaxeVisibilityType getVisibility() {
-    if (getPublic() != null) return HaxeVisibilityType.PUBLIC;
-    if (getPrivate() != null) return HaxeVisibilityType.PRIVATE;
-    return HaxeVisibilityType.NONE;
+  public HaxeModifierType getVisibility() {
+    if (getModifierPsi(HaxeModifierType.PUBLIC) != null) return HaxeModifierType.PUBLIC;
+    if (getModifierPsi(HaxeModifierType.PRIVATE) != null) return HaxeModifierType.PRIVATE;
+    return HaxeModifierType.EMPTY;
   }
 }
