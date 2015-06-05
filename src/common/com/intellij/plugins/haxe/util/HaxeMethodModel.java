@@ -17,27 +17,75 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethodPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeMethodModel {
-  public HaxeMethodPsiMixin haxeMethod;
+  private HaxeMethodPsiMixin haxeMethod;
+  private String name;
 
   public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
     this.haxeMethod = haxeMethod;
+    this.name = haxeMethod.getName();
   }
 
-  public HaxeMethodPsiMixin getHaxeMethod() {
+  public HaxeMethodPsiMixin getPsi() {
     return haxeMethod;
   }
 
+  public PsiElement getNamePsi() {
+    return HaxePsiUtils.getChild(HaxePsiUtils.getChild(haxeMethod, HaxeComponentName.class), HaxeIdentifier.class);
+    //return haxeMethod.getNameIdentifier();
+  }
+
+  public PsiElement getNameOrBasePsi() {
+    PsiElement element = getNamePsi();
+    if (element == null) element = getPsi();
+    return element;
+  }
+
+  private HaxeClassModel _declaringClass = null;
   public HaxeClassModel getDeclaringClass() {
-    HaxeClass aClass = (HaxeClass)this.haxeMethod.getContainingClass();
-    return (aClass != null) ? aClass.getModel() : null;
+    if (_declaringClass == null) {
+      HaxeClass aClass = (HaxeClass)this.haxeMethod.getContainingClass();
+      _declaringClass = (aClass != null) ? aClass.getModel() : null;
+    }
+    return _declaringClass;
   }
 
   public String getName() {
-    return this.haxeMethod.getName();
+    return name;
+  }
+
+  public @Nullable PsiElement getOverride() {
+    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "override");
+  }
+
+  public @Nullable PsiElement getStatic() {
+    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "static");
+  }
+
+  public @Nullable PsiElement getInline() {
+    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "inline");
+  }
+
+  public @Nullable PsiElement getPublic() {
+    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "public");
+  }
+
+  public @Nullable PsiElement getPrivate() {
+    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "private");
+  }
+
+  public HaxeVisibilityType getVisibility() {
+    if (getPublic() != null) return HaxeVisibilityType.PUBLIC;
+    if (getPrivate() != null) return HaxeVisibilityType.PRIVATE;
+    return HaxeVisibilityType.NONE;
+  }
+
+  public boolean isConstructor() {
+    return this.getName().equals("new");
   }
 }
+

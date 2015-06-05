@@ -41,8 +41,6 @@ import com.intellij.plugins.haxe.util.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
@@ -60,13 +58,12 @@ public class HaxeSemanticAnnotator implements Annotator {
   public void annotate(PsiElement element, AnnotationHolder holder) {
     PsiFile file = element.getContainingFile();
     // Analyze upon file changes
-    Long analyzedFileTime = file.getUserData(HaxeSemanticError.KEY_ANALYZED_METHOD_TIME);
-    if (analyzedFileTime == null || analyzedFileTime != file.getModificationStamp()) {
+    if (HaxeSemanticAttachedData.requireUpdate(file)) {
+      HaxeSemanticAttachedData.updated(file);
       analyze(file);
-      file.putUserData(HaxeSemanticError.KEY_ANALYZED_METHOD_TIME, file.getModificationStamp());
     }
 
-    List<HaxeSemanticError> errors = element.getUserData(HaxeSemanticError.KEY_HAXE_ERROR);
+    List<HaxeSemanticError> errors = HaxeSemanticError.getErrors(element);
     if (errors != null) {
       for (HaxeSemanticError error : errors) {
         Annotation annotation = holder.createErrorAnnotation(element, error.message);
@@ -79,55 +76,81 @@ public class HaxeSemanticAnnotator implements Annotator {
   static void analyze(final PsiElement element) {
     HaxeSemanticError.clearErrors(element);
 
-    if (element instanceof PsiJavaToken) {
-      if (((PsiJavaToken)element).getTokenType() == HaxeTokenTypes.LITINT) {
-        //element.putUserData(KEY_HAXE_ERROR, "litint!");
-      }
-    }
-    else if (element instanceof HaxePackageStatement) {
+    if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element);
     }
     else if (element instanceof HaxeMethod) {
-      HaxeClass clazz = HaxePsiUtils.getAncestor(element, HaxeClass.class);
-      final HaxeDeclarationAttribute overrideAttribute = HaxePsiUtils.getChild(element, HaxeDeclarationAttribute.class, "override");
-      HaxeClassModel parentClass = clazz.getModel().getExtendingClass();
-      boolean requiredOverride = false;
-
-      if (parentClass != null) {
-        HaxeMethodModel method = parentClass.getMethod(((HaxeMethod)element).getModel().getName());
-        if (method != null) {
-          requiredOverride = true;
-        }
-      }
-
-      //System.out.println(aClass);
-      if (overrideAttribute != null && !requiredOverride) {
-        HaxeSemanticError.addError(
-          element,
-          new HaxeSemanticError(
-            "Overriding nothing",
-            new HaxeSemanticIntentionAction("Fix override") {
-              @Override
-              public void run() {
-                HaxePsiUtils.replaceElementWithText(overrideAttribute, "");
-              }
-            }
-          )
-        );
-      } else if (overrideAttribute == null && requiredOverride) {
-        HaxeSemanticError.addError(
-          element,
-          new HaxeSemanticError(
-            "Must override"
-          )
-        );
-      }
-      //PackageChecker.check((HaxePackageStatement)element);
+      MethodChecker.check((HaxeMethod)element);
     }
 
     for (ASTNode node : element.getNode().getChildren(null)) {
       analyze(node.getPsi());
     }
+  }
+}
+
+class HaxeSemanticAttachedData {
+  static private Key<Long> KEY_ANALYZED_FILE_TIME = new Key<Long>("KEY_ANALYZED_FILE_TIME");
+
+  static public boolean requireUpdate(PsiFile file) {
+    Long analyzedFileTime = file.getUserData(KEY_ANALYZED_FILE_TIME);
+    return (analyzedFileTime == null) || (analyzedFileTime != file.getModificationStamp());
+  }
+
+  static public void updated(PsiFile file) {
+    file.putUserData(KEY_ANALYZED_FILE_TIME, file.getModificationStamp());
+  }
+}
+
+class MethodChecker {
+  static public void check(final HaxeMethod methodPsi) {
+    HaxeMethodModel method = methodPsi.getModel();
+    HaxeClassModel clazz = method.getDeclaringClass();
+    final PsiElement overrideAttribute = method.getOverride();
+    HaxeClassModel parentClass = clazz.getExtendingClass();
+    boolean requiredOverride = false;
+
+    HaxeMethodModel inheritedMethod = null;
+    if (parentClass != null) inheritedMethod = parentClass.getMethod(method.getName());
+
+    // Constructors should not have the override modifier keyword
+    if (method.isConstructor()) {
+      requiredOverride = false;
+    } else if (inheritedMethod != null) {
+      requiredOverride = true;
+
+      if (inheritedMethod.getInline() != null || inheritedMethod.getStatic() != null) {
+        HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Can't override static or inline methods"));
+      }
+
+      if (method.getVisibility() != inheritedMethod.getVisibility()) {
+        HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Method doesn't match parent's visibility"));
+      }
+    }
+
+    //System.out.println(aClass);
+    if (overrideAttribute != null && !requiredOverride) {
+      HaxeSemanticError.addError(
+        method.getPsi(),
+        new HaxeSemanticError(
+          "Overriding nothing",
+          new HaxeSemanticIntentionAction("Fix override") {
+            @Override
+            public void run() {
+              HaxePsiUtils.replaceElementWithText(overrideAttribute, "");
+            }
+          }
+        )
+      );
+    } else if (overrideAttribute == null && requiredOverride) {
+      HaxeSemanticError.addError(
+        method.getPsi(),
+        new HaxeSemanticError(
+          "Must override"
+        )
+      );
+    }
+    //PackageChecker.check((HaxePackageStatement)element);
   }
 }
 
@@ -285,8 +308,7 @@ class HaxeSemanticError {
     this(message, null);
   }
 
-  static public Key<List<HaxeSemanticError>> KEY_HAXE_ERROR = new Key<List<HaxeSemanticError>>("KEY_HAXE_ERROR");
-  static public Key<Long> KEY_ANALYZED_METHOD_TIME = new Key<Long>("HAXE_ANALYZED_METHOD");
+  static private Key<List<HaxeSemanticError>> KEY_HAXE_ERROR = new Key<List<HaxeSemanticError>>("KEY_HAXE_ERROR");
 
   public static void clearErrors(PsiElement element) {
     element.putUserData(KEY_HAXE_ERROR, null);
@@ -298,5 +320,9 @@ class HaxeSemanticError {
       element.putUserData(KEY_HAXE_ERROR, new LinkedList<HaxeSemanticError>());
     }
     element.getUserData(KEY_HAXE_ERROR).add(error);
+  }
+
+  public static List<HaxeSemanticError> getErrors(PsiElement element) {
+    return element.getUserData(HaxeSemanticError.KEY_HAXE_ERROR);
   }
 }
