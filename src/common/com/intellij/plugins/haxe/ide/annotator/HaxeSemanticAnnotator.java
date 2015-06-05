@@ -56,6 +56,7 @@ public class HaxeSemanticAnnotator implements Annotator {
 
   @Override
   public void annotate(PsiElement element, AnnotationHolder holder) {
+    /*
     PsiFile file = element.getContainingFile();
     // Analyze upon file changes
     if (HaxeSemanticAttachedData.requireUpdate(file)) {
@@ -70,25 +71,34 @@ public class HaxeSemanticAnnotator implements Annotator {
         if (error.quickfix != null) annotation.registerFix(error.quickfix);
       }
     }
+    */
+    analyzeSingle(element, holder);
   }
 
+  static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
 
+    if (element instanceof HaxePackageStatement) {
+      PackageChecker.check((HaxePackageStatement)element, holder);
+    }
+    else if (element instanceof HaxeMethod) {
+      MethodChecker.check((HaxeMethod)element, holder);
+    }
+  }
+
+  /*
   static void analyze(final PsiElement element) {
     HaxeSemanticError.clearErrors(element);
 
-    if (element instanceof HaxePackageStatement) {
-      PackageChecker.check((HaxePackageStatement)element);
-    }
-    else if (element instanceof HaxeMethod) {
-      MethodChecker.check((HaxeMethod)element);
-    }
+    analyzeSingle();
 
     for (ASTNode node : element.getNode().getChildren(null)) {
       analyze(node.getPsi());
     }
   }
+  */
 }
 
+/*
 class HaxeSemanticAttachedData {
   static private Key<Long> KEY_ANALYZED_FILE_TIME = new Key<Long>("KEY_ANALYZED_FILE_TIME");
 
@@ -101,9 +111,10 @@ class HaxeSemanticAttachedData {
     file.putUserData(KEY_ANALYZED_FILE_TIME, file.getModificationStamp());
   }
 }
+*/
 
 class MethodChecker {
-  static public void check(final HaxeMethod methodPsi) {
+  static public void check(final HaxeMethod methodPsi, final AnnotationHolder holder) {
     HaxeMethodModel method = methodPsi.getModel();
     HaxeClassModel clazz = method.getDeclaringClass();
     final PsiElement overrideAttribute = method.getOverride();
@@ -120,16 +131,27 @@ class MethodChecker {
       requiredOverride = true;
 
       if (inheritedMethod.getInline() != null || inheritedMethod.getStatic() != null) {
-        HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Can't override static or inline methods"));
+        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Can't override static or inline methods");
+        //HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Can't override static or inline methods"));
       }
 
       if (method.getVisibility() != inheritedMethod.getVisibility()) {
-        HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Method doesn't match parent's visibility"));
+        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Method doesn't match parent's visibility");
+        //HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Method doesn't match parent's visibility"));
       }
     }
 
     //System.out.println(aClass);
     if (overrideAttribute != null && !requiredOverride) {
+      holder.createErrorAnnotation(method.getNameOrBasePsi(), "Overriding nothing").registerFix(
+        new HaxeSemanticIntentionAction("Fix override") {
+          @Override
+          public void run() {
+            HaxePsiUtils.replaceElementWithText(overrideAttribute, "");
+          }
+        }
+      );
+      /*
       HaxeSemanticError.addError(
         method.getPsi(),
         new HaxeSemanticError(
@@ -142,20 +164,24 @@ class MethodChecker {
           }
         )
       );
+      */
     } else if (overrideAttribute == null && requiredOverride) {
+      holder.createErrorAnnotation(method.getNameOrBasePsi(), "Must override");
+      /*
       HaxeSemanticError.addError(
         method.getPsi(),
         new HaxeSemanticError(
           "Must override"
         )
       );
+      */
     }
     //PackageChecker.check((HaxePackageStatement)element);
   }
 }
 
 class PackageChecker {
-  static public void check(final HaxePackageStatement element) {
+  static public void check(final HaxePackageStatement element, final AnnotationHolder holder) {
     final HaxeReferenceExpression expression = ((HaxePackageStatement)element).getReferenceExpression();
     String packageName = (expression != null) ? expression.getText() : "";
     PsiDirectory fileDirectory = element.getContainingFile().getParent();
@@ -168,11 +194,34 @@ class PackageChecker {
 
     for (String s : StringUtils.split(packageName, '.')) {
       if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {
-        HaxeSemanticError.addError(element, new HaxeSemanticError("Package name '" + s + "' must start with a lower case character"));
+        //HaxeSemanticError.addError(element, new HaxeSemanticError("Package name '" + s + "' must start with a lower case character"));
+        holder.createErrorAnnotation(element, "Package name '" + s + "' must start with a lower case character");
       }
     }
 
     if (!packageName.equals(actualPackage)) {
+      holder.createErrorAnnotation(
+        element,
+        "Invalid package name! '" + packageName + "' should be '" + actualPackage + "'").registerFix(
+        new HaxeSemanticIntentionAction("Fix package") {
+          @Override
+          public void run() {
+            Document document =
+              PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
+
+            if (expression != null) {
+              TextRange range = expression.getTextRange();
+              document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
+            }
+            else {
+              int offset =
+                element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
+              document.replaceString(offset, offset, actualPackage);
+            }
+          }
+        }
+      );
+      /*
       HaxeSemanticError.addError(
         element,
         new HaxeSemanticError(
@@ -196,6 +245,7 @@ class PackageChecker {
           }
         )
       );
+      */
     }
   }
 }
@@ -295,6 +345,7 @@ abstract class HaxeSemanticIntentionAction implements IntentionAction {
   abstract public void run();
 }
 
+/*
 class HaxeSemanticError {
   public String message;
   public IntentionAction quickfix;
@@ -326,3 +377,4 @@ class HaxeSemanticError {
     return element.getUserData(HaxeSemanticError.KEY_HAXE_ERROR);
   }
 }
+*/
