@@ -54,4 +54,8 @@ public class HaxeClassModel {
     if (_document == null) _document = new HaxeDocument(haxeClass);
     return _document;
   }
+
+  public String getName() {
+    return haxeClass.getName();
+  }
 }

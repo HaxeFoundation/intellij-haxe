@@ -89,7 +89,7 @@ public class HaxeModifiersModel {
   public PsiElement getVisibilityPsi() {
     PsiElement element = getModifierPsi(HaxeModifierType.PUBLIC);
     if (element == null) element = getModifierPsi(HaxeModifierType.PRIVATE);
-    return null;
+    return element;
   }
 
   public HaxeModifierType getVisibility() {

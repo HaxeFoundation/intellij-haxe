@@ -65,6 +65,10 @@ public class HaxeMethodModel {
     return name;
   }
 
+  public String getFullName() {
+    return this.getDeclaringClass().getName() + "." + this.getName();
+  }
+
   private HaxeModifiersModel _modifiers;
   @NotNull
   public HaxeModifiersModel getModifiers() {

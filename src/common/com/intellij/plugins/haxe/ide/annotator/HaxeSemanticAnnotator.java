@@ -96,7 +96,7 @@ class MethodChecker {
         Annotation annotation = holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
         for (HaxeModifierType mod : new HaxeModifierType[] { HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC }) {
           if (parentModifiers.hasModifier(mod)) {
-            annotation.registerFix(new RemoveModifierIntent("Remove parent " + mod.s, parentModifiers, mod));
+            annotation.registerFix(new RemoveModifierIntent("Remove " + mod.s + " from " + parentMethod.getFullName(), parentModifiers, mod));
           }
         }
       }
