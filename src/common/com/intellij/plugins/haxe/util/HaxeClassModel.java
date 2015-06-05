@@ -21,6 +21,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodPsiMixin;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -45,5 +46,12 @@ public class HaxeClassModel {
 
   public HaxeClass getHaxeClass() {
     return haxeClass;
+  }
+
+  private HaxeDocument _document = null;
+  @NotNull
+  public HaxeDocument getDocument() {
+    if (_document == null) _document = new HaxeDocument(haxeClass);
+    return _document;
   }
 }

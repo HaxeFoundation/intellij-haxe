@@ -22,6 +22,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeMethodModel {
@@ -42,6 +43,7 @@ public class HaxeMethodModel {
     //return haxeMethod.getNameIdentifier();
   }
 
+  @NotNull
   public PsiElement getNameOrBasePsi() {
     PsiElement element = getNamePsi();
     if (element == null) element = getPsi();
@@ -61,74 +63,18 @@ public class HaxeMethodModel {
     return name;
   }
 
-  public @Nullable PsiElement getOverride() {
-    return getModifier("override");
+  private HaxeModifiersModel _modifiers;
+  @NotNull
+  public HaxeModifiersModel getModifiers() {
+    if (_modifiers == null) _modifiers = new HaxeModifiersModel(this.haxeMethod);
+    return _modifiers;
   }
 
-  public @Nullable PsiElement getStatic() {
-    return getModifier("static");
-  }
-
-  public @Nullable PsiElement getInline() {
-    return getModifier("inline");
-  }
-
-  public @Nullable PsiElement getPublic() {
-    return getModifier("public");
-  }
-
-  public @Nullable PsiElement getPrivate() {
-    return getModifier("private");
-  }
-
-  public @Nullable PsiElement getFinal() {
-    return getModifier("@:final");
-  }
-
-  public PsiElement getModifier(String text) {
-    return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, text);
-  }
-
-  public void replaceVisibility(String text) {
-    PsiElement psi = getVisibilityPsi();
-    if (psi != null) {
-      TextRange range = psi.getTextRange();
-      getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), text);
-    } else {
-      addModifier(text);
-    }
-  }
-
-  public void removeModifier(String text) {
-    PsiElement modifier = getModifier(text);
-    if (modifier != null) {
-      Document document = getDocument();
-      TextRange range = getPsi().getTextRange();
-      document.replaceString(range.getStartOffset(), range.getEndOffset(), "");
-    }
-  }
-
-  public Document getDocument() {
-    PsiElement element = getPsi();
-    return PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
-  }
-
-  public void addModifier(String text) {
-    TextRange range = getPsi().getTextRange();
-    getDocument().replaceString(range.getStartOffset(), range.getStartOffset(), text + " ");
-  }
-
-  public PsiElement getVisibilityPsi() {
-    PsiElement element = null;
-    element = getPublic(); if (element != null) return element;
-    element = getPrivate(); if (element != null) return element;
-    return null;
-  }
-
-  public HaxeVisibilityType getVisibility() {
-    if (getPublic() != null) return HaxeVisibilityType.PUBLIC;
-    if (getPrivate() != null) return HaxeVisibilityType.PRIVATE;
-    return HaxeVisibilityType.NONE;
+  private HaxeDocument _document = null;
+  @NotNull
+  public HaxeDocument getDocument() {
+    if (_document == null) _document = new HaxeDocument(haxeMethod);
+    return _document;
   }
 
   public boolean isConstructor() {
