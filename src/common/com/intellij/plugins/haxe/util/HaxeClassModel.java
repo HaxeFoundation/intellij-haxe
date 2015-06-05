@@ -17,12 +17,12 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethodPsiMixin;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HaxeClassModel {
@@ -32,11 +32,62 @@ public class HaxeClassModel {
     this.haxeClass = haxeClass;
   }
 
-  public HaxeClassModel getExtendingClass() {
+  public HaxeClassReferenceModel getExtendingClass() {
     List<HaxeType> list = haxeClass.getHaxeExtendsList();
     if (list.size() == 0) return null;
-    HaxeClass aClass = HaxeResolveUtil.getHaxeClassResolveResult(list.get(0)).getHaxeClass();
-    return aClass != null ? aClass.getModel() : null;
+    return new HaxeClassReferenceModel(list.get(0));
+  }
+
+  public List<HaxeClassReferenceModel> getInterfaceExtendingInterfaces() {
+    List<HaxeType> list = haxeClass.getHaxeExtendsList();
+    List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();
+    for (HaxeType type : list) {
+      out.add(new HaxeClassReferenceModel(type));
+    }
+    return out;
+  }
+
+  public List<HaxeClassReferenceModel> getImplementingInterfaces() {
+    List<HaxeType> list = haxeClass.getHaxeImplementsList();
+    List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();
+    for (HaxeType type : list) {
+      out.add(new HaxeClassReferenceModel(type));
+    }
+    return out;
+  }
+
+  public boolean isExtern() {
+    return haxeClass.isExtern();
+  }
+
+  public boolean isClass() {
+    return !this.isAbstract() && (HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.CLASS);
+  }
+
+  public boolean isInterface() {
+    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.INTERFACE;
+  }
+
+  public boolean isEnum() {
+    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.ENUM;
+  }
+
+  public boolean isTypedef() {
+    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.TYPEDEF;
+  }
+
+  public boolean isAbstract() {
+    return haxeClass instanceof HaxeAbstractClassDeclaration;
+  }
+
+  public boolean hasMethod(String name) {
+    return getMethod(name) != null;
+  }
+
+  public boolean hasMethodSelf(String name) {
+    HaxeMethodModel method = getMethod(name);
+    if (method == null) return false;
+    return (method.getDeclaringClass() == this);
   }
 
   public HaxeMethodModel getMethod(String name) {
@@ -44,8 +95,20 @@ public class HaxeClassModel {
     return name1 != null ? name1.getModel() : null;
   }
 
-  public HaxeClass getHaxeClass() {
+  public List<HaxeMethodModel> getMethods() {
+    List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
+    for (HaxeMethod method : haxeClass.getHaxeMethods()) {
+      models.add(method.getModel());
+    }
+    return models;
+  }
+
+  public HaxeClass getPsi() {
     return haxeClass;
+  }
+
+  public PsiElement getNamePsi() {
+    return haxeClass.getNameIdentifier();
   }
 
   private HaxeDocument _document = null;

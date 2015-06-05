@@ -30,10 +30,12 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
@@ -49,6 +51,54 @@ public class HaxeSemanticAnnotator implements Annotator {
     else if (element instanceof HaxeMethod) {
       MethodChecker.check((HaxeMethod)element, holder);
     }
+    else if (element instanceof HaxeClass) {
+      ClassChecker.check((HaxeClass)element, holder);
+    }
+  }
+}
+
+class ClassChecker {
+  static public void check(final HaxeClass clazzPsi, final AnnotationHolder holder) {
+    HaxeClassModel clazz = clazzPsi.getModel();
+    checkInterfaces(clazz, holder);
+    checkExtends(clazz, holder);
+    checkInterfaceMethods(clazz, holder);
+  }
+
+  static public void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
+    HaxeClassReferenceModel reference = clazz.getExtendingClass();
+    if (reference != null) {
+      HaxeClassModel aClass1 = reference.getHaxeClass();
+      if (aClass1 != null && !aClass1.isClass()) {
+        holder.createErrorAnnotation(reference.getPsi(), "Not a class");
+      }
+    }
+  }
+
+  static public void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {
+    for (HaxeClassReferenceModel interfaze : clazz.getImplementingInterfaces()) {
+      if (interfaze.getHaxeClass() == null || !interfaze.getHaxeClass().isInterface()) {
+        holder.createErrorAnnotation(interfaze.getPsi(), "Not an interface");
+      }
+    }
+  }
+
+  static public void checkInterfaceMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
+    for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
+      List<String> missingMethods = new ArrayList<String>();
+
+      if (reference.getHaxeClass() != null) {
+        for (HaxeMethodModel method : reference.getHaxeClass().getMethods()) {
+          if (!clazz.hasMethodSelf(method.getName())) {
+            missingMethods.add(method.getName());
+          }
+        }
+      }
+
+      if (missingMethods.size() > 0) {
+        holder.createErrorAnnotation(reference.getPsi(), "Not implemented methods: " + StringUtils.join(missingMethods, ", "));
+      }
+    }
   }
 }
 
@@ -58,8 +108,8 @@ class MethodChecker {
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
-    final HaxeClassModel parentClass = currentClass.getExtendingClass();
-    final HaxeMethodModel parentMethod = (parentClass != null) ? parentClass.getMethod(currentMethod.getName()) : null;
+    final HaxeClassReferenceModel parentClass = currentClass.getExtendingClass();
+    final HaxeMethodModel parentMethod = (parentClass != null) ? parentClass.getHaxeClass().getMethod(currentMethod.getName()) : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 
     boolean requiredOverride = false;
