@@ -41,7 +41,7 @@ public class HaxeMethodModel {
 
   public PsiElement getNamePsi() {
     PsiElement child = HaxePsiUtils.getChild(HaxePsiUtils.getChild(haxeMethod, HaxeComponentName.class), HaxeIdentifier.class);
-    if (child == null) child = HaxePsiUtils.getChild(haxeMethod, PsiJavaToken.class, "new");
+    if (child == null) child = HaxePsiUtils.getToken(haxeMethod, "new");
     return child;
   }
 

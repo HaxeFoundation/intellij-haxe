@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
@@ -36,6 +37,13 @@ public class HaxePsiUtils {
     if (element == null) return null;
     for (PsiElement psiElement : element.getChildren()) {
       if (clazz.isAssignableFrom(psiElement.getClass())) return (T)psiElement;
+    }
+    return null;
+  }
+
+  static public PsiElement getToken(PsiElement element, String token) {
+    for (ASTNode node : element.getNode().getChildren(null)) {
+      if (node.getText().equals(token))  return node.getPsi();
     }
     return null;
   }
