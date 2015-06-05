@@ -18,7 +18,14 @@
 package com.intellij.plugins.haxe.util;
 
 public enum HaxeVisibilityType {
-  PRIVATE,
-  PUBLIC,
-  NONE,
+  PRIVATE, PUBLIC, NONE;
+
+  public String toString() {
+    switch (this) {
+      case NONE: return "";
+      case PRIVATE: return "private";
+      case PUBLIC: return "public";
+    }
+    return "";
+  }
 }

@@ -78,6 +78,13 @@ public class HaxeMethodModel {
     return HaxePsiUtils.getChild(haxeMethod, HaxeDeclarationAttribute.class, "private");
   }
 
+  public PsiElement getVisibilityPsi() {
+    PsiElement element = null;
+    element = getPublic(); if (element != null) return element;
+    element = getPrivate(); if (element != null) return element;
+    return null;
+  }
+
   public HaxeVisibilityType getVisibility() {
     if (getPublic() != null) return HaxeVisibilityType.PUBLIC;
     if (getPrivate() != null) return HaxeVisibilityType.PRIVATE;
@@ -86,6 +93,10 @@ public class HaxeMethodModel {
 
   public boolean isConstructor() {
     return this.getName().equals("new");
+  }
+
+  public boolean isStaticInit() {
+    return this.getName().equals("__init__");
   }
 }
 

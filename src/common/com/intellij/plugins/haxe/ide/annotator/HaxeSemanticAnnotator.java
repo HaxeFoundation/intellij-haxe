@@ -36,10 +36,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeClassModel;
-import com.intellij.plugins.haxe.util.HaxeMethodModel;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.commons.lang.StringUtils;
@@ -52,31 +49,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
-
-
   @Override
   public void annotate(PsiElement element, AnnotationHolder holder) {
-    /*
-    PsiFile file = element.getContainingFile();
-    // Analyze upon file changes
-    if (HaxeSemanticAttachedData.requireUpdate(file)) {
-      HaxeSemanticAttachedData.updated(file);
-      analyze(file);
-    }
-
-    List<HaxeSemanticError> errors = HaxeSemanticError.getErrors(element);
-    if (errors != null) {
-      for (HaxeSemanticError error : errors) {
-        Annotation annotation = holder.createErrorAnnotation(element, error.message);
-        if (error.quickfix != null) annotation.registerFix(error.quickfix);
-      }
-    }
-    */
     analyzeSingle(element, holder);
   }
 
   static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
-
     if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element, holder);
     }
@@ -84,60 +62,59 @@ public class HaxeSemanticAnnotator implements Annotator {
       MethodChecker.check((HaxeMethod)element, holder);
     }
   }
-
-  /*
-  static void analyze(final PsiElement element) {
-    HaxeSemanticError.clearErrors(element);
-
-    analyzeSingle();
-
-    for (ASTNode node : element.getNode().getChildren(null)) {
-      analyze(node.getPsi());
-    }
-  }
-  */
 }
-
-/*
-class HaxeSemanticAttachedData {
-  static private Key<Long> KEY_ANALYZED_FILE_TIME = new Key<Long>("KEY_ANALYZED_FILE_TIME");
-
-  static public boolean requireUpdate(PsiFile file) {
-    Long analyzedFileTime = file.getUserData(KEY_ANALYZED_FILE_TIME);
-    return (analyzedFileTime == null) || (analyzedFileTime != file.getModificationStamp());
-  }
-
-  static public void updated(PsiFile file) {
-    file.putUserData(KEY_ANALYZED_FILE_TIME, file.getModificationStamp());
-  }
-}
-*/
 
 class MethodChecker {
   static public void check(final HaxeMethod methodPsi, final AnnotationHolder holder) {
-    HaxeMethodModel method = methodPsi.getModel();
-    HaxeClassModel clazz = method.getDeclaringClass();
+    final HaxeMethodModel method = methodPsi.getModel();
+    final HaxeClassModel clazz = method.getDeclaringClass();
     final PsiElement overrideAttribute = method.getOverride();
-    HaxeClassModel parentClass = clazz.getExtendingClass();
+    final HaxeClassModel parentClass = clazz.getExtendingClass();
+    final HaxeMethodModel parentMethod = (parentClass != null) ? parentClass.getMethod(method.getName()) : null;
     boolean requiredOverride = false;
 
-    HaxeMethodModel inheritedMethod = null;
-    if (parentClass != null) inheritedMethod = parentClass.getMethod(method.getName());
-
-    // Constructors should not have the override modifier keyword
     if (method.isConstructor()) {
       requiredOverride = false;
-    } else if (inheritedMethod != null) {
+      if (method.getStatic() != null) {
+        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Constructor can't be static");
+      }
+    } else if (method.isStaticInit()) {
+      requiredOverride = false;
+      if (method.getStatic() == null) {
+        holder.createErrorAnnotation(method.getNameOrBasePsi(), "__init__ must be static");
+      }
+    }
+    else if (parentMethod != null) {
       requiredOverride = true;
 
-      if (inheritedMethod.getInline() != null || inheritedMethod.getStatic() != null) {
+      if (parentMethod.getInline() != null || parentMethod.getStatic() != null) {
         holder.createErrorAnnotation(method.getNameOrBasePsi(), "Can't override static or inline methods");
-        //HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Can't override static or inline methods"));
       }
 
-      if (method.getVisibility() != inheritedMethod.getVisibility()) {
-        holder.createErrorAnnotation(method.getNameOrBasePsi(), "Method doesn't match parent's visibility");
-        //HaxeSemanticError.addError(method.getPsi(), new HaxeSemanticError("Method doesn't match parent's visibility"));
+      if (method.getVisibility() != parentMethod.getVisibility()) {
+        Annotation annotation = holder.createErrorAnnotation(method.getNameOrBasePsi(), "Method doesn't match parent's visibility");
+        annotation.registerFix(
+          new HaxeSemanticIntentionAction("Change current method visibility") {
+            @Override
+            public void run() {
+              PsiElement currentVisibility = method.getVisibilityPsi();
+              if (currentVisibility != null) {
+                HaxePsiUtils.replaceElementWithText(currentVisibility, parentMethod.getVisibility().toString());
+              }
+            }
+          }
+        );
+        annotation.registerFix(
+          new HaxeSemanticIntentionAction("Change parent method visibility") {
+            @Override
+            public void run() {
+              PsiElement parentVisibility = parentMethod.getVisibilityPsi();
+              if (parentVisibility != null) {
+                HaxePsiUtils.replaceElementWithText(parentVisibility, method.getVisibility().toString());
+              }
+            }
+          }
+        );
       }
     }
 
@@ -151,32 +128,9 @@ class MethodChecker {
           }
         }
       );
-      /*
-      HaxeSemanticError.addError(
-        method.getPsi(),
-        new HaxeSemanticError(
-          "Overriding nothing",
-          new HaxeSemanticIntentionAction("Fix override") {
-            @Override
-            public void run() {
-              HaxePsiUtils.replaceElementWithText(overrideAttribute, "");
-            }
-          }
-        )
-      );
-      */
     } else if (overrideAttribute == null && requiredOverride) {
       holder.createErrorAnnotation(method.getNameOrBasePsi(), "Must override");
-      /*
-      HaxeSemanticError.addError(
-        method.getPsi(),
-        new HaxeSemanticError(
-          "Must override"
-        )
-      );
-      */
     }
-    //PackageChecker.check((HaxePackageStatement)element);
   }
 }
 
@@ -221,31 +175,6 @@ class PackageChecker {
           }
         }
       );
-      /*
-      HaxeSemanticError.addError(
-        element,
-        new HaxeSemanticError(
-          "Invalid package name! '" + packageName + "' should be '" + actualPackage + "'",
-          new HaxeSemanticIntentionAction("Fix package") {
-            @Override
-            public void run() {
-              Document document =
-                PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
-
-              if (expression != null) {
-                TextRange range = expression.getTextRange();
-                document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
-              }
-              else {
-                int offset =
-                  element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
-                document.replaceString(offset, offset, actualPackage);
-              }
-            }
-          }
-        )
-      );
-      */
     }
   }
 }
@@ -344,37 +273,3 @@ abstract class HaxeSemanticIntentionAction implements IntentionAction {
 
   abstract public void run();
 }
-
-/*
-class HaxeSemanticError {
-  public String message;
-  public IntentionAction quickfix;
-
-  public HaxeSemanticError(String message, IntentionAction quickfix) {
-    this.message = message;
-    this.quickfix = quickfix;
-  }
-
-  public HaxeSemanticError(String message) {
-    this(message, null);
-  }
-
-  static private Key<List<HaxeSemanticError>> KEY_HAXE_ERROR = new Key<List<HaxeSemanticError>>("KEY_HAXE_ERROR");
-
-  public static void clearErrors(PsiElement element) {
-    element.putUserData(KEY_HAXE_ERROR, null);
-  }
-
-  public static void addError(PsiElement element, HaxeSemanticError error) {
-    List<HaxeSemanticError> data = element.getUserData(KEY_HAXE_ERROR);
-    if (data == null) {
-      element.putUserData(KEY_HAXE_ERROR, new LinkedList<HaxeSemanticError>());
-    }
-    element.getUserData(KEY_HAXE_ERROR).add(error);
-  }
-
-  public static List<HaxeSemanticError> getErrors(PsiElement element) {
-    return element.getUserData(HaxeSemanticError.KEY_HAXE_ERROR);
-  }
-}
-*/
