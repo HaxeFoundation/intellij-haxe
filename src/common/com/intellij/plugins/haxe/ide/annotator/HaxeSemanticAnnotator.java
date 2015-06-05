@@ -62,7 +62,7 @@ class ClassChecker {
     HaxeClassModel clazz = clazzPsi.getModel();
     checkInterfaces(clazz, holder);
     checkExtends(clazz, holder);
-    checkInterfaceMethods(clazz, holder);
+    checkInterfacesMethods(clazz, holder);
   }
 
   static public void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
@@ -83,21 +83,35 @@ class ClassChecker {
     }
   }
 
-  static public void checkInterfaceMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  static public void checkInterfacesMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
     for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
-      List<String> missingMethods = new ArrayList<String>();
+      checkInterfaceMethods(clazz, reference, holder);
+    }
+  }
 
-      if (reference.getHaxeClass() != null) {
-        for (HaxeMethodModel method : reference.getHaxeClass().getMethods()) {
+  static public void checkInterfaceMethods(final HaxeClassModel clazz, final HaxeClassReferenceModel intReference, final AnnotationHolder holder) {
+    final List<HaxeMethodModel> missingMethods = new ArrayList<HaxeMethodModel>();
+    final List<String> missingMethodsNames = new ArrayList<String>();
+
+    if (intReference.getHaxeClass() != null) {
+      for (HaxeMethodModel method : intReference.getHaxeClass().getMethods()) {
+        if (!method.isStatic()) {
           if (!clazz.hasMethodSelf(method.getName())) {
-            missingMethods.add(method.getName());
+            missingMethods.add(method);
+            missingMethodsNames.add(method.getName());
           }
         }
       }
+    }
 
-      if (missingMethods.size() > 0) {
-        holder.createErrorAnnotation(reference.getPsi(), "Not implemented methods: " + StringUtils.join(missingMethods, ", "));
-      }
+    if (missingMethods.size() > 0) {
+      Annotation annotation = holder.createErrorAnnotation(intReference.getPsi(), "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "));
+      annotation.registerFix(new HaxeSemanticIntentionAction("Implement methods") {
+        @Override
+        public void run() {
+          clazz.addMethodsFromPrototype(missingMethods);
+        }
+      });
     }
   }
 }
@@ -108,7 +122,7 @@ class MethodChecker {
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
-    final HaxeClassReferenceModel parentClass = currentClass.getExtendingClass();
+    final HaxeClassReferenceModel parentClass = (currentClass != null) ? currentClass.getExtendingClass() : null;
     final HaxeMethodModel parentMethod = (parentClass != null) ? parentClass.getHaxeClass().getMethod(currentMethod.getName()) : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 

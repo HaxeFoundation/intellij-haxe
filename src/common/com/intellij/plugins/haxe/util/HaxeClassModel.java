@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
+import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -90,6 +91,12 @@ public class HaxeClassModel {
     return (method.getDeclaringClass() == this);
   }
 
+  public HaxeMethodModel getMethodSelf(String name) {
+    HaxeMethodModel method = getMethod(name);
+    if (method == null) return null;
+    return (method.getDeclaringClass() == this) ? method : null;
+  }
+
   public HaxeMethodModel getMethod(String name) {
     HaxeMethodPsiMixin name1 = (HaxeMethodPsiMixin)haxeClass.findHaxeMethodByName(name);
     return name1 != null ? name1.getModel() : null;
@@ -120,5 +127,9 @@ public class HaxeClassModel {
 
   public String getName() {
     return haxeClass.getName();
+  }
+
+  public void addMethodsFromPrototype(List<HaxeMethodModel> methods) {
+    throw new NotImplementedException("Not implemented HaxeClassMethod.addMethodsFromPrototype() : check HaxeImplementMethodHandler");
   }
 }

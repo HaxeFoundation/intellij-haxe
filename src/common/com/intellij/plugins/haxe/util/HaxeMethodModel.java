@@ -45,6 +45,10 @@ public class HaxeMethodModel {
     return child;
   }
 
+  public boolean isStatic() {
+    return getModifiers().hasModifier(HaxeModifierType.STATIC);
+  }
+
   @NotNull
   public PsiElement getNameOrBasePsi() {
     PsiElement element = getNamePsi();
