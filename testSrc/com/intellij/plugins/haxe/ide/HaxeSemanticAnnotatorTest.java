@@ -35,6 +35,9 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ActionRunner;
 import com.intellij.util.ArrayUtil;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Arrays;
 
 public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
@@ -42,23 +45,33 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     return "/annotation.semantic/";
   }
 
-  private void doTest(String... additionalPaths) throws Exception {
-    final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
-    myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
+  private void doTest(String... filters) throws Exception {
+    myFixture.configureByFiles(getTestName(false) + ".hx");
+    final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
+    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
-    myFixture.testHighlighting(true, true, true);
+    myFixture.testHighlighting(false, false, false);
     for (final IntentionAction action : myFixture.getAvailableIntentions()) {
-      myFixture.launchAction(action);
+      if (Arrays.asList(filters).contains(action.getText())) {
+        System.out.println("Applying intent " + action.getText());
+        myFixture.launchAction(action);
+      } else {
+        System.out.println("Ignoring intent " + action.getText() + ", not matching " + StringUtils.join(filters, ","));
+      }
     }
     FileDocumentManager.getInstance().saveAllDocuments();
     myFixture.checkResultByFile(getTestName(true) + "_expected.hx");
   }
 
   public void testFixPackage() throws Exception {
-    doTest();
+    doTest("Fix package");
   }
 
   public void testRemoveOverride() throws Exception {
-    doTest();
+    doTest("Remove override");
+  }
+
+  public void testRemoveFinal() throws Exception {
+    doTest("Remove @:final from Base.test");
   }
 }
