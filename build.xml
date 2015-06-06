@@ -38,7 +38,7 @@
         <mkdir dir="${build.output.directory}"/>
     </target>
 
-    <target name="compile" depends="clean,init,compile.common,compile.jps,compile.plugin" description="Compile Haxe Plugin Cleanly">
+    <target name="compile" depends="clean,init,generateTemplatedFiles,compile.common,compile.jps,compile.plugin" description="Compile Haxe Plugin Cleanly">
     </target>
 
     <target name="compile.jps" depends="compile.common" description="Compile JPS Runtime Support Incrementally">
