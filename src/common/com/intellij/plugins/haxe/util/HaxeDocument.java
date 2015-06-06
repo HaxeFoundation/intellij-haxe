@@ -34,14 +34,14 @@ public class HaxeDocument {
     this(PsiDocumentManager.getInstance(aElementInDocument.getProject()).getDocument(aElementInDocument.getContainingFile()));
   }
 
-  public void replaceElementText(PsiElement element, String text) {
+  public void replaceElementText(final PsiElement element, final String text) {
     if (element != null) {
       TextRange range = element.getTextRange();
       document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
     }
   }
 
-  public void replaceElementPlusSpacesText(PsiElement element, String text) {
+  public void replaceElementPlusSpacesText(final PsiElement element, final String text) {
     if (element != null) {
       TextRange range = element.getTextRange();
       int start = range.getStartOffset();
@@ -54,7 +54,7 @@ public class HaxeDocument {
     }
   }
 
-  public void addTextBeforeElement(PsiElement element, String text) {
+  public void addTextBeforeElement(final PsiElement element, final String text) {
     if (element != null) {
       TextRange range = element.getTextRange();
       document.replaceString(range.getStartOffset(), range.getStartOffset(), text);

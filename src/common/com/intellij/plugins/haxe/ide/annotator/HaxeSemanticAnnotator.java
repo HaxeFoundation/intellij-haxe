@@ -298,7 +298,7 @@ abstract class HaxeSemanticIntentionAction implements IntentionAction {
 
   @Override
   public boolean startInWriteAction() {
-    return false;
+    return true;
   }
 
   abstract public void run();
