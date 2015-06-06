@@ -172,4 +172,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  public void testAutodetectMethod() throws Throwable {
+    doTestInclude();
+  }
 }

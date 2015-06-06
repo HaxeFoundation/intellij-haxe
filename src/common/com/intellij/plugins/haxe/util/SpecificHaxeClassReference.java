@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.psi.PsiElement;
@@ -107,8 +108,12 @@ public class SpecificHaxeClassReference implements SpecificTypeReference {
 
   @Override
   public SpecificTypeReference access(String name) {
-    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)this.clazz.getHaxeClass().findHaxeFieldByName(name);
-    AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)this.clazz.getHaxeClass().findHaxeMethodByName(name);
+    HaxeClass aClass = this.clazz.getHaxeClass();
+    if (aClass ==  null) {
+      return null;
+    }
+    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
+    AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name);
     if (method != null) return HaxeTypeUtil.getMethodFunctionType(method);
     if (field != null) return HaxeTypeUtil.getFieldOrMethodReturnType(field);
     return null;
