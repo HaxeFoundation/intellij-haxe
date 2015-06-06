@@ -18,13 +18,17 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.CodeInsightUtilBase;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
@@ -41,43 +45,20 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   private void doTest(String... additionalPaths) throws Exception {
     final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
-    final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
-    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
-    try {
-      myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
+    myFixture.testHighlighting(true, true, true);
+    for (final IntentionAction action : myFixture.getAvailableIntentions()) {
+      myFixture.launchAction(action);
     }
-    finally {
-      LanguageAnnotators.INSTANCE.removeExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-    }
+    FileDocumentManager.getInstance().saveAllDocuments();
+    myFixture.checkResultByFile(getTestName(true) + "_expected.hx");
   }
 
   public void testFixPackage() throws Exception {
-    doTest2();
-  }
-
-  private void doTest2() throws Exception {
     doTest();
-    for (final IntentionAction action : myFixture.getAvailableIntentions()) {
-      WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-        @Override
-        public void run() {
-          //System.out.println(action);
-          //if (CodeInsightUtilBase.prepareEditorForWrite(myFixture.getEditor())) {
-          action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
-          //}
-        }
-      });
-    }
-    FileDocumentManager.getInstance().saveAllDocuments();
-    myFixture.checkResultByFile(getTestName(true) + "_expected.hx");
-    //myFixture.getEditor().getDocument().insertString();
   }
 
-  /*
-    myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(true) + ".hx"}, additionalFiles));
-    OptimizeImportsAction.actionPerformedImpl(DataManager.getInstance().getDataContext(myFixture.getEditor().getContentComponent()));
-    FileDocumentManager.getInstance().saveAllDocuments();
-    myFixture.checkResultByFile(getTestName(true) + "_expected.hx");
-   */
+  public void testRemoveOverride() throws Exception {
+    doTest();
+  }
 }
