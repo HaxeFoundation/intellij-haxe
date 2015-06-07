@@ -118,4 +118,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testInitMagicMethodShouldBeStatic() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testRepeatedArgumentName() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
