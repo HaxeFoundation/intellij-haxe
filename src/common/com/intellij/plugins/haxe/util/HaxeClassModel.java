@@ -97,6 +97,10 @@ public class HaxeClassModel {
     return (method.getDeclaringClass() == this) ? method : null;
   }
 
+  public HaxeMethodModel getConstructorSelf() {
+    return getMethodSelf("new");
+  }
+
   public HaxeMethodModel getMethod(String name) {
     HaxeMethodPsiMixin name1 = (HaxeMethodPsiMixin)haxeClass.findHaxeMethodByName(name);
     return name1 != null ? name1.getModel() : null;

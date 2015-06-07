@@ -45,12 +45,24 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     return "/annotation.semantic/";
   }
 
-  private void doTest(String... filters) throws Exception {
+  private void doTestNoFix(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings) throws Exception {
     myFixture.configureByFiles(getTestName(false) + ".hx");
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
-    myFixture.testHighlighting(false, false, false);
+    myFixture.testHighlighting(true, false, false);
+  }
+
+  private void doTestNoFixWithWarnings() throws Exception {
+    doTestNoFix(true, false, false);
+  }
+
+  private void doTestNoFixWithoutWarnings() throws Exception {
+    doTestNoFix(false, false, false);
+  }
+
+  private void doTest(String... filters) throws Exception {
+    doTestNoFixWithoutWarnings();
     for (final IntentionAction action : myFixture.getAvailableIntentions()) {
       if (Arrays.asList(filters).contains(action.getText())) {
         System.out.println("Applying intent " + action.getText());
@@ -73,5 +85,37 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   public void testRemoveFinal() throws Exception {
     doTest("Remove @:final from Base.test");
+  }
+
+  public void testChangeArgumentType() throws Exception {
+    doTest("Change type");
+  }
+
+  public void testRemoveArgumentInit() throws Exception {
+    doTest("Remove init");
+  }
+
+  public void testInterfaceMethodsShouldHaveTypeTags() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testOptionalWithInitWarning() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNonOptionalArgumentsAfterOptionalOnes() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNonConstantArgument() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testConstructorMustNotBeStatic() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testInitMagicMethodShouldBeStatic() throws Exception {
+    doTestNoFixWithWarnings();
   }
 }

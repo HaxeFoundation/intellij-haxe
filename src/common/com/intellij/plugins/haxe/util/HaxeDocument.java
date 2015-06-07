@@ -41,7 +41,7 @@ public class HaxeDocument {
     }
   }
 
-  public void replaceElementPlusSpacesText(final PsiElement element, final String text) {
+  public void replaceElementPlusAfterSpacesText(final PsiElement element, final String text) {
     if (element != null) {
       TextRange range = element.getTextRange();
       int start = range.getStartOffset();
@@ -49,6 +49,19 @@ public class HaxeDocument {
       String documentText = document.getText();
       while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
         end++;
+      }
+      document.replaceString(start, end, text);
+    }
+  }
+
+  public void replaceElementPlusBeforeSpacesText(final PsiElement element, final String text) {
+    if (element != null) {
+      TextRange range = element.getTextRange();
+      int start = range.getStartOffset();
+      int end = range.getEndOffset();
+      String documentText = document.getText();
+      while (start > 0 && HaxeCharUtils.isSpace(documentText.charAt(start - 1))) {
+        start--;
       }
       document.replaceString(start, end, text);
     }

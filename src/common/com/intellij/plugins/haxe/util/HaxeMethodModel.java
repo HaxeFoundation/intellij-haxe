@@ -17,14 +17,14 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaToken;
+import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HaxeMethodModel {
   private HaxeMethodPsiMixin haxeMethod;
@@ -43,6 +43,25 @@ public class HaxeMethodModel {
     PsiElement child = HaxePsiUtils.getChild(HaxePsiUtils.getChild(haxeMethod, HaxeComponentName.class), HaxeIdentifier.class);
     if (child == null) child = HaxePsiUtils.getToken(haxeMethod, "new");
     return child;
+  }
+
+  //private List<HaxeParameterModel> _parameters;
+  public List<HaxeParameterModel> getParameters() {
+    List<HaxeParameterModel> _parameters = null;
+//    if (_parameters == null) {
+      HaxeParameterList parameterList = HaxePsiUtils.getChild(this.haxeMethod, HaxeParameterList.class);
+      _parameters = new ArrayList<HaxeParameterModel>();
+      if (parameterList != null) {
+        for (HaxeParameter parameter : parameterList.getParameterList()) {
+          _parameters.add(new HaxeParameterModel(parameter, this));
+        }
+      }
+  //  }
+    return _parameters;
+  }
+
+  @Nullable public HaxeTypeTag getReturnTypeTagPsi() {
+    return HaxePsiUtils.getChild(this.haxeMethod, HaxeTypeTag.class);
   }
 
   public boolean isStatic() {

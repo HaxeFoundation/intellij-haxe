@@ -30,12 +30,12 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
@@ -117,7 +117,75 @@ class ClassChecker {
 }
 
 class MethodChecker {
+  static final String TYPE_REQUIRED_ERROR = "Type required for extern classes and interfaces";
+
   static public void check(final HaxeMethod methodPsi, final AnnotationHolder holder) {
+    final HaxeMethodModel currentMethod = methodPsi.getModel();
+    checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
+    checkMethodArguments(currentMethod, holder);
+    checkOverride(methodPsi, holder);
+  }
+
+  static public void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
+    HaxeClassModel currentClass = currentMethod.getDeclaringClass();
+    if (currentClass.isExtern() || currentClass.isInterface()) {
+      if (currentMethod.getReturnTypeTagPsi() == null) {
+        holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), TYPE_REQUIRED_ERROR);
+      }
+      for (final HaxeParameterModel param : currentMethod.getParameters()) {
+        if (param.getTypeTagPsi() == null) {
+          holder.createErrorAnnotation(param.getNameOrBasePsi(), TYPE_REQUIRED_ERROR);
+        }
+      }
+    }
+  }
+
+  static public void checkMethodArguments(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
+    boolean hasOptional = false;
+    HashMap<String, PsiElement> argumentNames = new HashMap<String, PsiElement>();
+    for (final HaxeParameterModel param : currentMethod.getParameters()) {
+      String paramName = param.getName();
+
+      if (param.isOptional() && param.getVarInitPsi() != null) {
+        holder.createWarningAnnotation(param.getOptionalPsi(), "Optional not needed when specified an init value");
+      }
+      if (param.getVarInitPsi() != null && param.getTypeTagPsi() != null) {
+        final SpecificTypeReference type1 = HaxeTypeUtil.getTypeFromTypeTag(param.getTypeTagPsi());
+        final SpecificTypeReference type2 = HaxeTypeUtil.getPsiElementType(param.getVarInitPsi().getExpression());
+        if (!type1.isAssignableFrom(type2)) {
+          Annotation annotation = holder.createErrorAnnotation(param.getPsi(), "Incompatible type " + type1 + " can't be assigned from " + type2);
+          annotation.registerFix(new HaxeSemanticIntentionAction("Change type") {
+            @Override
+            public void run() {
+              currentMethod.getDocument().replaceElementText(param.getTypeTagPsi(), ":" + type2.toStringWithoutConstant());
+            }
+          });
+          annotation.registerFix(new HaxeSemanticIntentionAction("Remove init") {
+            @Override
+            public void run() {
+              currentMethod.getDocument().replaceElementPlusBeforeSpacesText(param.getVarInitPsi(), "");
+            }
+          });
+        } else if (type2.getConstant() == null) {
+          holder.createErrorAnnotation(param.getPsi(), "Parameter default type should be constant but was " + type2);
+        }
+      }
+      if (param.isOptionalOrHasInit()) {
+        hasOptional = true;
+      } else if (hasOptional) {
+        holder.createWarningAnnotation(param.getPsi(), "Non-optional argument after optional argument");
+      }
+
+      if (argumentNames.containsKey(paramName)) {
+        holder.createWarningAnnotation(param.getNameOrBasePsi(), "Repeated argument name '" + paramName + "'");
+        holder.createWarningAnnotation(argumentNames.get(paramName), "Repeated argument name '" + paramName + "'");
+      } else {
+        argumentNames.put(paramName, param.getNameOrBasePsi());
+      }
+    }
+  }
+
+  static public void checkOverride(final HaxeMethod methodPsi, final AnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();

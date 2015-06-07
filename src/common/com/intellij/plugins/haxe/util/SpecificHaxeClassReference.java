@@ -118,4 +118,18 @@ public class SpecificHaxeClassReference implements SpecificTypeReference {
     if (field != null) return HaxeTypeUtil.getFieldOrMethodReturnType(field);
     return null;
   }
+
+  @Override
+  public boolean isAssignableFrom(SpecificTypeReference type2) {
+    if (!(type2 instanceof SpecificHaxeClassReference)) return false;
+    SpecificHaxeClassReference that = (SpecificHaxeClassReference)type2;
+    if (this.toStringWithoutConstant().equals("Dynamic") || that.toStringWithoutConstant().equals("Dynamic")) {
+      return true;
+    }
+    // @TODO: This should be done automatically if we have the haxe sdk!
+    if (this.toStringWithoutConstant().equals("Float") && that.toStringWithoutConstant().equals("Int")) {
+      return true;
+    }
+    return this.toStringWithoutConstant().equals(that.toStringWithoutConstant());
+  }
 }

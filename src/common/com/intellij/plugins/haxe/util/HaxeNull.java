@@ -17,14 +17,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.psi.PsiElement;
-
-public interface SpecificTypeReference {
-  SpecificTypeReference withConstantValue(Object constantValue);
-  Object getConstant();
-  PsiElement getElementContext();
-  String toString();
-  String toStringWithoutConstant();
-  SpecificTypeReference access(String name);
-  boolean isAssignableFrom(SpecificTypeReference type2);
+public class HaxeNull {
+  static public final HaxeNull instance = new HaxeNull();
+  private HaxeNull() { }
 }

@@ -61,7 +61,23 @@ public class SpecificFunctionReference implements SpecificTypeReference {
   }
 
   @Override
+  public String toStringWithoutConstant() {
+    return toString();
+  }
+
+  @Override
   public SpecificTypeReference access(String name) {
     return null;
+  }
+
+  @Override
+  public boolean isAssignableFrom(SpecificTypeReference type2) {
+    if (!(type2 instanceof SpecificFunctionReference)) return false;
+    SpecificFunctionReference ftype2 = (SpecificFunctionReference)type2;
+    if (this.items.length != ftype2.items.length) return false;
+    for (int n = 0; n < this.items.length; n++) {
+      if (!this.items[n].isAssignableFrom(ftype2.items[n])) return false;
+    }
+    return true;
   }
 }

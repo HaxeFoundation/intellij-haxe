@@ -34,6 +34,7 @@ public class HaxeTypeUtil {
   // @TODO: Check if cache works
   static public SpecificTypeReference getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
     // @TODO: cache should check if any related type has changed, which return depends
+    if (comp == null) return createPrimitiveType("Unknown", comp, null);
     long stamp = comp.getContainingFile().getModificationStamp();
     if (comp._cachedType == null || comp._cachedTypeStamp != stamp) {
       comp._cachedType = _getFieldOrMethodReturnType(comp);
@@ -108,8 +109,7 @@ public class HaxeTypeUtil {
     }
   }
 
-  static private SpecificTypeReference getTypeFromTypeTag(AbstractHaxeNamedComponent comp) {
-    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class);
+  static public SpecificTypeReference getTypeFromTypeTag(final HaxeTypeTag typeTag) {
     if (typeTag == null) return null;
     final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
     final HaxeFunctionType functionType = typeTag.getFunctionType();
@@ -125,6 +125,11 @@ public class HaxeTypeUtil {
     }
 
     return null;
+
+  }
+
+  static public SpecificTypeReference getTypeFromTypeTag(AbstractHaxeNamedComponent comp) {
+    return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class));
   }
 
   private static SpecificTypeReference getTypeFromFunctionType(HaxeFunctionType type) {
@@ -162,10 +167,11 @@ public class HaxeTypeUtil {
     return null;
   }
 
+  @NotNull
   static public SpecificTypeReference getPsiElementType(PsiElement element) {
     if (element == null) {
       System.out.println("getPsiElementType: " + element);
-      return null;
+      return createPrimitiveType("Unknown", element, null);
     }
     //System.out.println("Handling element: " + element.getClass());
     if (element instanceof PsiCodeBlock) {
@@ -215,7 +221,7 @@ public class HaxeTypeUtil {
         return ((SpecificFunctionReference)functionType).getReturnType();
       }
       // @TODO: resolve the function type return type
-      return null;
+      return createPrimitiveType("Unknown", element, null);
     }
 
     if (element instanceof HaxeLiteralExpression) {
@@ -236,6 +242,8 @@ public class HaxeTypeUtil {
         return createPrimitiveType("Float", element, Float.parseFloat(element.getText()));
       } else if (type == HaxeTokenTypes.KFALSE || type == HaxeTokenTypes.KTRUE) {
         return createPrimitiveType("Bool", element, type == HaxeTokenTypes.KTRUE);
+      } else if (type == HaxeTokenTypes.KNULL) {
+        return createPrimitiveType("Dynamic", element, HaxeNull.instance);
       } else {
         //System.out.println("Unhandled token type: " + tokenType);
         return createPrimitiveType("Dynamic", element, null);
