@@ -47,6 +47,12 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
     doTest(new HaxeImplementMethodHandler());
   }
 
+  protected void doConstructorTest() {
+    doTest(new HaxeConstructorHandler() {
+
+    });
+  }
+
   protected void doGetterSetterTest(CreateGetterSetterFix.Strategy strategy) {
     configureByFile(getTestName(false) + ".hx");
     doTest(new HaxeGenerateAccessorHandler(strategy) {
@@ -100,4 +106,10 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
   public void testGetterSetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTERSETTER);
   }
+
+  /*
+  public void testConstructor() throws Throwable {
+    doConstructorTest();
+  }
+  */
 }

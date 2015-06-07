@@ -24,6 +24,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeClassModel {
@@ -135,5 +136,16 @@ public class HaxeClassModel {
 
   public void addMethodsFromPrototype(List<HaxeMethodModel> methods) {
     throw new NotImplementedException("Not implemented HaxeClassMethod.addMethodsFromPrototype() : check HaxeImplementMethodHandler");
+  }
+
+  public List<HaxeFieldModel> getFields() {
+    HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
+    LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
+    if (body != null) {
+      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChilds(body, HaxeVarDeclaration.class)) {
+        out.add(new HaxeFieldModel(declaration));
+      }
+    }
+    return out;
   }
 }

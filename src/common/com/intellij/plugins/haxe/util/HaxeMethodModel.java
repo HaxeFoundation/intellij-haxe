@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HaxeMethodModel {
+public class HaxeMethodModel extends HaxeMemberModel {
   private HaxeMethodPsiMixin haxeMethod;
   private String name;
 
