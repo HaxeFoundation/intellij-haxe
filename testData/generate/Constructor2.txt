@@ -1,0 +1,18 @@
+class Constructor2 extends Constructor3 {
+    public var test1:String;
+    public var test2:Int;
+    private var demo:Bool;
+
+    public function new(a:String, b:Int, test1:String, test2:Int, demo:Bool) {
+        super(a, b);
+        this.test1 = test1;
+        this.test2 = test2;
+        this.demo = demo;
+    }
+}
+
+class Constructor3 {
+    public function new(a:String, b:Int) {
+
+    }
+}

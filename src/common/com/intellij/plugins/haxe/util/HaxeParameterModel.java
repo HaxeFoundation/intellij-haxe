@@ -84,6 +84,10 @@ public class HaxeParameterModel {
     return parameter.getTypeTag();
   }
 
+  public SpecificTypeReference getType() {
+    return HaxeTypeUtil.getTypeFromTypeTag(getTypeTagPsi());
+  }
+
   public PsiParameter getParameter() {
     return parameter;
   }

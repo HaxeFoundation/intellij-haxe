@@ -34,7 +34,7 @@ public class HaxeClassModel {
     this.haxeClass = haxeClass;
   }
 
-  public HaxeClassReferenceModel getExtendingClass() {
+  public HaxeClassReferenceModel getParentClass() {
     List<HaxeType> list = haxeClass.getHaxeExtendsList();
     if (list.size() == 0) return null;
     return new HaxeClassReferenceModel(list.get(0));
@@ -100,6 +100,16 @@ public class HaxeClassModel {
 
   public HaxeMethodModel getConstructorSelf() {
     return getMethodSelf("new");
+  }
+
+  public HaxeMethodModel getConstructor() {
+    return getMethod("new");
+  }
+
+  public HaxeMethodModel getParentConstructor() {
+    HaxeClassReferenceModel parentClass = getParentClass();
+    if (parentClass == null) return null;
+    return parentClass.getHaxeClass().getMethod("new");
   }
 
   public HaxeMethodModel getMethod(String name) {
