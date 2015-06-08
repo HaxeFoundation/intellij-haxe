@@ -69,13 +69,7 @@ public class HaxeLookupElement extends LookupElement {
     }
 
     // Check for members: methods and fields
-    HaxeMemberModel member = null;
-    if (myComponentName.getParent() instanceof HaxeMethod) {
-      member = ((HaxeMethod)myComponentName.getParent()).getModel();
-    }
-    if (myComponentName.getParent() instanceof HaxeVarDeclarationPart) {
-      member = ((HaxeVarDeclaration)myComponentName.getParent().getParent()).getModel();
-    }
+    HaxeMemberModel member = HaxeMemberModel.fromPsi(myComponentName);
 
     if (member != null) {
       // Check deprecated modifiers

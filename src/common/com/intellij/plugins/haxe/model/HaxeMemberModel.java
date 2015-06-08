@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeMethodPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,5 +37,14 @@ abstract public class HaxeMemberModel {
   public HaxeModifiersModel getModifiers() {
     if (_modifiers == null) _modifiers = new HaxeModifiersModel(basePsi);
     return _modifiers;
+  }
+
+  public static HaxeMemberModel fromPsi(PsiElement element) {
+    if (element instanceof HaxeIdentifier) return fromPsi(element.getParent());
+    if (element instanceof HaxeComponentName) return fromPsi(element.getParent());
+    if (element instanceof HaxeVarDeclarationPart) return fromPsi(element.getParent());
+    if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
+    if (element instanceof HaxeVarDeclaration) return ((HaxeVarDeclaration)element).getModel();
+    return null;
   }
 }
