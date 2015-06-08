@@ -53,8 +53,14 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
     HaxeClassModel clazz = haxeClass.getModel();
 
     for (HaxeMethodModel method : clazz.getAncestorMethods()) {
-      // Add just methods without @:final or static
-      if (!method.getModifiers().hasAnyModifier(HaxeModifierType.FINAL, HaxeModifierType.STATIC)) {
+      // Only add methods that doesn't have @:final or static modifiers and also that are not constructors
+      if (
+        !method.getModifiers().hasAnyModifier(
+          HaxeModifierType.FINAL,
+          HaxeModifierType.STATIC
+        ) &&
+        !method.isConstructor()
+      ) {
         candidates.add(method.getMethodPsi());
       }
     }

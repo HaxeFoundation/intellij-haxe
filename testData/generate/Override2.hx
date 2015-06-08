@@ -11,6 +11,8 @@ class B extends C {
 }
 
 class C {
+    public function new() { }
+
     public function a():Void {
 
     }
