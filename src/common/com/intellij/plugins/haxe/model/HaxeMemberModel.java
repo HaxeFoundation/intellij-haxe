@@ -17,5 +17,25 @@
  */
 package com.intellij.plugins.haxe.model;
 
-public class HaxeMemberModel {
+import com.intellij.plugins.haxe.lang.psi.HaxeMethodPsiMixin;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+
+abstract public class HaxeMemberModel {
+  private PsiElement basePsi;
+
+  public HaxeMemberModel(PsiElement basePsi) {
+    this.basePsi = basePsi;
+  }
+
+  public PsiElement getPsi() { return basePsi; }
+
+  abstract public HaxeClassModel getDeclaringClass();
+
+  private HaxeModifiersModel _modifiers;
+  @NotNull
+  public HaxeModifiersModel getModifiers() {
+    if (_modifiers == null) _modifiers = new HaxeModifiersModel(basePsi);
+    return _modifiers;
+  }
 }

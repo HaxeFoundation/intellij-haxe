@@ -28,7 +28,7 @@ public enum HaxeModifierType {
   EMPTY(""),
   INLINE("inline"),
   FINAL("@:final"),
-  ;
+  DEPRECATED("@:deprecated");
 
   public String s;
 

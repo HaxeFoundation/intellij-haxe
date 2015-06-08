@@ -31,11 +31,17 @@ public class HaxeMethodModel extends HaxeMemberModel {
   private String name;
 
   public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
+    super(haxeMethod);
     this.haxeMethod = haxeMethod;
     this.name = haxeMethod.getName();
   }
 
-  public HaxeMethodPsiMixin getPsi() {
+  @Override
+  public PsiElement getPsi() {
+    return haxeMethod;
+  }
+
+  public HaxeMethodPsiMixin getMethodPsi() {
     return haxeMethod;
   }
 
@@ -90,13 +96,6 @@ public class HaxeMethodModel extends HaxeMemberModel {
 
   public String getFullName() {
     return this.getDeclaringClass().getName() + "." + this.getName();
-  }
-
-  private HaxeModifiersModel _modifiers;
-  @NotNull
-  public HaxeModifiersModel getModifiers() {
-    if (_modifiers == null) _modifiers = new HaxeModifiersModel(this.haxeMethod);
-    return _modifiers;
   }
 
   private HaxeDocumentModel _document = null;

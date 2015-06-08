@@ -21,7 +21,9 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeModifierType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -33,16 +35,18 @@ import java.util.List;
  */
 public class HaxeLookupElement extends LookupElement {
   private final HaxeComponentName myComponentName;
+  private final HaxeClassResolveResult leftReference;
 
-  public static Collection<HaxeLookupElement> convert(@NotNull Collection<HaxeComponentName> componentNames) {
+  public static Collection<HaxeLookupElement> convert(HaxeClassResolveResult leftReference, @NotNull Collection<HaxeComponentName> componentNames) {
     final List<HaxeLookupElement> result = new ArrayList<HaxeLookupElement>(componentNames.size());
     for (HaxeComponentName componentName : componentNames) {
-      result.add(new HaxeLookupElement(componentName));
+      result.add(new HaxeLookupElement(leftReference, componentName));
     }
     return result;
   }
 
-  public HaxeLookupElement(HaxeComponentName name) {
+  public HaxeLookupElement(HaxeClassResolveResult leftReference, HaxeComponentName name) {
+    this.leftReference = leftReference;
     myComponentName = name;
   }
 
@@ -63,6 +67,31 @@ public class HaxeLookupElement extends LookupElement {
       presentation.setItemText(getLookupString());
       return;
     }
+
+    // Check for members: methods and fields
+    HaxeMemberModel member = null;
+    if (myComponentName.getParent() instanceof HaxeMethod) {
+      member = ((HaxeMethod)myComponentName.getParent()).getModel();
+    }
+    if (myComponentName.getParent() instanceof HaxeVarDeclarationPart) {
+      member = ((HaxeVarDeclaration)myComponentName.getParent().getParent()).getModel();
+    }
+
+    if (member != null) {
+      // Check deprecated modifiers
+      if (member.getModifiers().hasModifier(HaxeModifierType.DEPRECATED)) {
+        presentation.setStrikeout(true);
+      }
+
+      // Check for non-inherited members to highlight them as intellij-java does
+      // @TODO: Self members should be displayed first!
+      if (leftReference != null) {
+        if (member.getDeclaringClass().getPsi() == leftReference.getHaxeClass()) {
+          presentation.setItemTextBold(true);
+        }
+      }
+    }
+
     presentation.setItemText(myComponentNamePresentation.getPresentableText());
     presentation.setIcon(myComponentNamePresentation.getIcon(true));
     final String pkg = myComponentNamePresentation.getLocationString();

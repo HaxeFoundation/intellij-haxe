@@ -17,18 +17,35 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.psi.PsiElement;
 
 public class HaxeFieldModel extends HaxeMemberModel {
   private HaxeVarDeclaration element;
 
   public HaxeFieldModel(HaxeVarDeclaration element) {
+    super(element);
     this.element = element;
   }
 
-  public HaxeVarDeclaration getPsi() {
+  @Override
+  public PsiElement getPsi() {
     return element;
+  }
+
+  public HaxeVarDeclaration getFieldPsi() {
+    return element;
+  }
+
+  private HaxeClassModel _declaringClass = null;
+  public HaxeClassModel getDeclaringClass() {
+    if (_declaringClass == null) {
+      HaxeClass aClass = (HaxeClass)this.element.getContainingClass();
+      _declaringClass = (aClass != null) ? aClass.getModel() : null;
+    }
+    return _declaringClass;
   }
 
   public String getName() {

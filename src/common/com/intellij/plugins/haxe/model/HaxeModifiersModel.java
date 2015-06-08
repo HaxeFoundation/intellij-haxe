@@ -17,8 +17,10 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeCustomMeta;
 import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttribute;
 import com.intellij.plugins.haxe.lang.psi.HaxeFinalMeta;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeCustomMetaImpl;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +49,7 @@ public class HaxeModifiersModel {
   public PsiElement getModifierPsi(HaxeModifierType modifier) {
     PsiElement result = HaxePsiUtils.getChild(baseElement, HaxeDeclarationAttribute.class, modifier.s);
     if (result == null) result = HaxePsiUtils.getChild(baseElement, HaxeFinalMeta.class, modifier.s);
+    if (result == null) result = HaxePsiUtils.getChild(baseElement, HaxeCustomMeta.class, modifier.s);
     return result;
   }
 

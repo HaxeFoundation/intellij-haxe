@@ -628,7 +628,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
 
-    Object[] variants = HaxeLookupElement.convert(suggestedVariants).toArray();
+    Object[] variants = HaxeLookupElement.convert(result, suggestedVariants).toArray();
     PsiElement leftTarget = leftReference != null ? leftReference.resolve() : null;
 
     if (leftTarget instanceof PsiPackage) {
