@@ -21,13 +21,13 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.psi.PsiElement;
 
-public class SpecificHaxeClassReference implements SpecificTypeReference {
+public class SpecificHaxeClassReference extends SpecificTypeReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
   public HaxeClassReference clazz;
-  public SpecificHaxeClassReference[] specifics;
+  public SpecificTypeReference[] specifics;
   public Object constantValue = null;
 
-  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificHaxeClassReference[] specifics, Object constantValue) {
+  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue) {
     this.clazz = clazz;
     this.specifics = specifics;
     this.constantValue = constantValue;
@@ -51,6 +51,10 @@ public class SpecificHaxeClassReference implements SpecificTypeReference {
     return withConstantValue(null);
   }
 
+  static public SpecificTypeReference createArray(SpecificTypeReference elementType) {
+    return withGenerics(new HaxeClassReference("Array", null), new SpecificTypeReference[] { elementType },  null);
+  }
+
   static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
     return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, EMPTY, null);
   }
@@ -63,11 +67,11 @@ public class SpecificHaxeClassReference implements SpecificTypeReference {
     return new SpecificHaxeClassReference(clazz, EMPTY, constantValue);
   }
 
-  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificHaxeClassReference[] specifics) {
+  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics) {
     return new SpecificHaxeClassReference(clazz, specifics, null);
   }
 
-  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificHaxeClassReference[] specifics, Object constantValue) {
+  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue) {
     return new SpecificHaxeClassReference(clazz, specifics, constantValue);
   }
 

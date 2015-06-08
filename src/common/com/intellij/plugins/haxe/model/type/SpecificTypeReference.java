@@ -19,12 +19,18 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.psi.PsiElement;
 
-public interface SpecificTypeReference {
-  SpecificTypeReference withConstantValue(Object constantValue);
-  Object getConstant();
-  PsiElement getElementContext();
-  String toString();
-  String toStringWithoutConstant();
-  SpecificTypeReference access(String name);
-  boolean isAssignableFrom(SpecificTypeReference type2);
+public abstract class SpecificTypeReference {
+  abstract public SpecificTypeReference withConstantValue(Object constantValue);
+  public SpecificTypeReference withoutConstantValue() {
+    return withConstantValue(null);
+  }
+  public boolean hasConstant() {
+    return this.getConstant() != null;
+  }
+  abstract public Object getConstant();
+  abstract public PsiElement getElementContext();
+  abstract public String toString();
+  abstract public String toStringWithoutConstant();
+  abstract public SpecificTypeReference access(String name);
+  abstract public boolean isAssignableFrom(SpecificTypeReference type2);
 }

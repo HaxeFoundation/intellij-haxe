@@ -177,7 +177,7 @@ public class HaxeTypeResolver {
     }
     //System.out.println("Handling element: " + element.getClass());
     if (element instanceof PsiCodeBlock) {
-      SpecificTypeReference type = null;
+      SpecificTypeReference type = createPrimitiveType("Unknown", element, null);
       for (PsiElement childElement : element.getChildren()) {
         type = getPsiElementType(childElement);
         if (childElement instanceof HaxeReturnStatement) {
@@ -233,6 +233,35 @@ public class HaxeTypeResolver {
     if (element instanceof HaxeStringLiteralExpression) {
       // @TODO: check if it has string interpolation inside, in that case text is not constant
       return createPrimitiveType("String", element, ((HaxeStringLiteralExpression)element).getCanonicalText());
+    }
+
+    if (element instanceof HaxeExpressionList) {
+      ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
+      for (HaxeExpression expression : ((HaxeExpressionList)element).getExpressionList()) {
+        references.add(getPsiElementType(expression));
+      }
+      return HaxeTypeUnifier.unify(references);
+    }
+
+    if (element instanceof HaxeArrayLiteral) {
+      HaxeExpressionList list = ((HaxeArrayLiteral)element).getExpressionList();
+      ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
+      ArrayList<Object> constants = new ArrayList<Object>();
+      boolean allConstants = true;
+      if (list != null) {
+        for (HaxeExpression expression : list.getExpressionList()) {
+          SpecificTypeReference type = getPsiElementType(expression);
+          if (!type.hasConstant()) {
+            allConstants = false;
+          } else {
+            constants.add(type.getConstant());
+          }
+          references.add(type);
+        }
+      }
+      SpecificTypeReference result = SpecificHaxeClassReference.createArray(HaxeTypeUnifier.unify(references).withoutConstantValue());
+      if (allConstants) result = result.withConstantValue(constants);
+      return result;
     }
 
     if (element instanceof PsiJavaToken) {

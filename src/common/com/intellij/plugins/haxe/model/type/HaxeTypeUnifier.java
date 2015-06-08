@@ -19,6 +19,9 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class HaxeTypeUnifier {
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
     // @TODO: Do a proper unification
@@ -27,10 +30,18 @@ public class HaxeTypeUnifier {
   }
 
   static public SpecificTypeReference unify(SpecificTypeReference[] types) {
-    if (types.length == 0) return null;
-    SpecificTypeReference type = types[0];
-    for (int n = 1; n < types.length; n++) {
-      type = unify(type, types[n]);
+    return unify(Arrays.asList(types));
+  }
+
+  static public SpecificTypeReference unify(List<SpecificTypeReference> types) {
+    if (types.size() == 0) {
+      return SpecificHaxeClassReference.withoutGenerics(
+        new HaxeClassReference("Dynamic", null)
+      );
+    }
+    SpecificTypeReference type = types.get(0);
+    for (int n = 1; n < types.size(); n++) {
+      type = unify(type, types.get(n));
     }
     return type;
   }

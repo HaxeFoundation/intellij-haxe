@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.psi.PsiElement;
 
-public class SpecificFunctionReference implements SpecificTypeReference {
+public class SpecificFunctionReference extends SpecificTypeReference {
   SpecificTypeReference[] items;
 
   public SpecificFunctionReference(SpecificTypeReference[] items) {
