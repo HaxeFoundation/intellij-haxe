@@ -111,6 +111,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Override
   public SpecificTypeReference access(String name) {
+    if (this.clazz == null || name == null) {
+      return null;
+    }
     HaxeClass aClass = this.clazz.getHaxeClass();
     if (aClass ==  null) {
       return null;

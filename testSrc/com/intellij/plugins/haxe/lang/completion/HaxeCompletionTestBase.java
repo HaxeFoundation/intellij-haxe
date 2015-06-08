@@ -76,13 +76,16 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }
 
-  protected void doTestInclude() throws Throwable {
-    myFixture.configureByFile(getTestName(false) + ".hx");
+  protected void doTestInclude(String... extraFiles) throws Throwable {
+    final List<String> files = new ArrayList<String>();
+    files.add(getTestName(false) + ".hx");
+    Collections.addAll(files, extraFiles);
+    myFixture.configureByFiles(files.toArray(new String[0]));
     final VirtualFile virtualFile = myFixture.copyFileToProject(getTestName(false) + ".txt");
     String text = new String(virtualFile.contentsToByteArray());
     List<String> lines = new ArrayList<String>();
     for (String line : text.split("\n")) {
-      lines.add(line);
+      lines.add(line.trim());
       //System.out.println(line);
     }
     //System.out.println(text);
@@ -126,7 +129,7 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
         }
       }
     } catch (Throwable t) {
-
+      t.printStackTrace();
     }
 
     /*

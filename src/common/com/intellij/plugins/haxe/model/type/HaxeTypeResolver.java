@@ -205,16 +205,16 @@ public class HaxeTypeResolver {
 
     if (element instanceof HaxeIdentifier) {
       PsiReference reference = element.getReference();
-      System.out.println(reference);
+      System.out.println("HaxeIdentifier:" + reference);
     }
 
     if (element instanceof HaxeReferenceExpression) {
       PsiElement[] children = element.getChildren();
       SpecificTypeReference type = getPsiElementType(children[0]);
       for (int n = 1; n < children.length; n++) {
-        type = type.access(children[n].getText());
+        if (type != null) type = type.access(children[n].getText());
       }
-      return type;
+      return SpecificHaxeClassReference.ensure(type);
     }
 
     if (element instanceof HaxeCallExpression) {

@@ -92,17 +92,21 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         final StringBuilder result = new StringBuilder();
         HaxeMemberModel member = HaxeMemberModel.fromPsi(AbstractHaxeNamedComponent.this);
 
-        result.append(member.getName());
+        if (member == null) {
+          result.append(AbstractHaxeNamedComponent.this.getText());
+        } else {
+          result.append(member.getName());
 
-        if (member instanceof HaxeMethodModel) {
-          final String parameterList = HaxePresentableUtil.getPresentableParameterList(member.getNamedComponentPsi());
-          result.append("(").append(parameterList).append(")");
-        }
+          if (member instanceof HaxeMethodModel) {
+            final String parameterList = HaxePresentableUtil.getPresentableParameterList(member.getNamedComponentPsi());
+            result.append("(").append(parameterList).append(")");
+          }
 
-        SpecificTypeReference returnType = HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
-        if (returnType != null) {
-          result.append(":");
-          result.append(returnType.toString());
+          SpecificTypeReference returnType = HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
+          if (returnType != null) {
+            result.append(":");
+            result.append(returnType.toString());
+          }
         }
 
         return result.toString();
