@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -118,6 +119,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public PsiElement resolve() {
     return resolve(true);
+  }
+
+  public boolean resolveIsExtension() {
+    // @TODO: DIRTY HACK! to avoid rewriting all the code!
+    HaxeResolver.INSTANCE.resolve(this, true);
+    return HaxeResolver.isExtension;
   }
 
   @NotNull
