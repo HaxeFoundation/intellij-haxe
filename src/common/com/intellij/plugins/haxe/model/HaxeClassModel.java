@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
@@ -133,10 +134,10 @@ public class HaxeClassModel {
     return haxeClass.getNameIdentifier();
   }
 
-  private HaxeDocument _document = null;
+  private HaxeDocumentModel _document = null;
   @NotNull
-  public HaxeDocument getDocument() {
-    if (_document == null) _document = new HaxeDocument(haxeClass);
+  public HaxeDocumentModel getDocument() {
+    if (_document == null) _document = new HaxeDocumentModel(haxeClass);
     return _document;
   }
 

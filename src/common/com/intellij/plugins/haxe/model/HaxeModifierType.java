@@ -15,23 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
-public class HaxeFieldModel extends HaxeMemberModel {
-  private HaxeVarDeclaration element;
+public enum HaxeModifierType {
+  OVERRIDE("override"),
+  STATIC("static"),
+  PUBLIC("public"),
+  PRIVATE("private"),
+  EMPTY(""),
+  INLINE("inline"),
+  FINAL("@:final"),
+  ;
 
-  public HaxeFieldModel(HaxeVarDeclaration element) {
-    this.element = element;
+  public String s;
+
+  HaxeModifierType(String s) {
+    this.s = s;
   }
 
-  public HaxeVarDeclaration getPsi() {
-    return element;
-  }
-
-  public String getName() {
-    return this.element.getName();
+  public String getStringWithSpace() {
+    return (this.s.length() == 0) ? "" : (this.s + " ");
   }
 }
+
+/*
+enum HaxeModifierTypeKind {
+  OTHER, VISIBILITY;
+}
+*/

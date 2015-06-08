@@ -15,9 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model;
 
-public class HaxeNull {
-  static public final HaxeNull instance = new HaxeNull();
-  private HaxeNull() { }
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+
+public class HaxeFieldModel extends HaxeMemberModel {
+  private HaxeVarDeclaration element;
+
+  public HaxeFieldModel(HaxeVarDeclaration element) {
+    this.element = element;
+  }
+
+  public HaxeVarDeclaration getPsi() {
+    return element;
+  }
+
+  public String getName() {
+    return this.element.getName();
+  }
 }

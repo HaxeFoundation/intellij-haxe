@@ -15,11 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.psi.PsiElement;
-
-import java.util.List;
 
 public class SpecificFunctionReference implements SpecificTypeReference {
   SpecificTypeReference[] items;

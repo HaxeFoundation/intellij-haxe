@@ -15,10 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.psi.PsiElement;
 
@@ -90,7 +89,7 @@ public class SpecificHaxeClassReference implements SpecificTypeReference {
     String out = toStringWithoutConstant();
     if (constantValue != null) {
       if (out.equals("Int")) {
-        out += " = " + (int)HaxeTypeUtil.getDoubleValue(constantValue);
+        out += " = " + (int)HaxeTypeResolver.getDoubleValue(constantValue);
       } else if (out.equals("String")) {
         out += " = " + constantValue + "";
       } else {
@@ -114,8 +113,8 @@ public class SpecificHaxeClassReference implements SpecificTypeReference {
     }
     AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
     AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name);
-    if (method != null) return HaxeTypeUtil.getMethodFunctionType(method);
-    if (field != null) return HaxeTypeUtil.getFieldOrMethodReturnType(field);
+    if (method != null) return HaxeTypeResolver.getMethodFunctionType(method);
+    if (field != null) return HaxeTypeResolver.getFieldOrMethodReturnType(field);
     return null;
   }
 

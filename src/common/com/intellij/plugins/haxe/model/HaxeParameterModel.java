@@ -15,16 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.plugins.haxe.util.HaxePsiUtils;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiParameter;
-import org.intellij.lang.annotations.Identifier;
 
 public class HaxeParameterModel {
   private HaxeParameter parameter;
@@ -85,7 +86,7 @@ public class HaxeParameterModel {
   }
 
   public SpecificTypeReference getType() {
-    return HaxeTypeUtil.getTypeFromTypeTag(getTypeTagPsi());
+    return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi());
   }
 
   public PsiParameter getParameter() {

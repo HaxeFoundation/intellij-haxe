@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.util.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiMethod;
 
 /**

@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,10 +99,10 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return _modifiers;
   }
 
-  private HaxeDocument _document = null;
+  private HaxeDocumentModel _document = null;
   @NotNull
-  public HaxeDocument getDocument() {
-    if (_document == null) _document = new HaxeDocument(haxeMethod);
+  public HaxeDocumentModel getDocument() {
+    if (_document == null) _document = new HaxeDocumentModel(haxeMethod);
     return _document;
   }
 

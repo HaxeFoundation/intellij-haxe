@@ -15,16 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 
-public interface SpecificTypeReference {
-  SpecificTypeReference withConstantValue(Object constantValue);
-  Object getConstant();
-  PsiElement getElementContext();
-  String toString();
-  String toStringWithoutConstant();
-  SpecificTypeReference access(String name);
-  boolean isAssignableFrom(SpecificTypeReference type2);
+public class HaxeTypeUnifier {
+  static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
+    // @TODO: Do a proper unification
+    return a.withConstantValue(null);
+    //return a;
+  }
+
+  static public SpecificTypeReference unify(SpecificTypeReference[] types) {
+    if (types.length == 0) return null;
+    SpecificTypeReference type = types[0];
+    for (int n = 1; n < types.length; n++) {
+      type = unify(type, types[n]);
+    }
+    return type;
+  }
 }

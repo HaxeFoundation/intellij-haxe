@@ -23,6 +23,8 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
@@ -101,7 +103,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
 
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-          SpecificTypeReference returnType = HaxeTypeUtil.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
+          SpecificTypeReference returnType = HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
           if (returnType != null) {
             result.append(":");
             result.append(returnType.toString());

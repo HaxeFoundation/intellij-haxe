@@ -15,25 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.PsiElement;
 
-public class HaxeClassReference {
-  public String name;
-  public PsiElement elementContext;
-
-  public HaxeClassReference(String name, PsiElement elementContext) {
-    this.name = name;
-    this.elementContext = elementContext;
-  }
-
-  public HaxeClass getHaxeClass() {
-    return HaxeResolveUtil.findClassByQName(name, elementContext);
-  }
-
-  public String getName() {
-    return this.name;
-  }
+public interface SpecificTypeReference {
+  SpecificTypeReference withConstantValue(Object constantValue);
+  Object getConstant();
+  PsiElement getElementContext();
+  String toString();
+  String toStringWithoutConstant();
+  SpecificTypeReference access(String name);
+  boolean isAssignableFrom(SpecificTypeReference type2);
 }

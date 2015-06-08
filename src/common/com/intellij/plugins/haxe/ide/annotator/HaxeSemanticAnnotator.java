@@ -27,6 +27,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
@@ -150,8 +153,8 @@ class MethodChecker {
         holder.createWarningAnnotation(param.getOptionalPsi(), "Optional not needed when specified an init value");
       }
       if (param.getVarInitPsi() != null && param.getTypeTagPsi() != null) {
-        final SpecificTypeReference type1 = HaxeTypeUtil.getTypeFromTypeTag(param.getTypeTagPsi());
-        final SpecificTypeReference type2 = HaxeTypeUtil.getPsiElementType(param.getVarInitPsi().getExpression());
+        final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi());
+        final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(param.getVarInitPsi().getExpression());
         if (!type1.isAssignableFrom(type2)) {
           Annotation annotation = holder.createErrorAnnotation(param.getPsi(), "Incompatible type " + type1 + " can't be assigned from " + type2);
           annotation.registerFix(new HaxeSemanticIntentionAction("Change type") {

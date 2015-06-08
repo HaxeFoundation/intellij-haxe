@@ -15,22 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.util.HaxeCharUtils;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import org.apache.commons.lang.CharUtils;
 
-public class HaxeDocument {
+public class HaxeDocumentModel {
   private Document document;
 
-  public HaxeDocument(Document document) {
+  public HaxeDocumentModel(Document document) {
     this.document = document;
   }
 
-  public HaxeDocument(PsiElement aElementInDocument) {
+  public HaxeDocumentModel(PsiElement aElementInDocument) {
     this(PsiDocumentManager.getInstance(aElementInDocument.getProject()).getDocument(aElementInDocument.getContainingFile()));
   }
 

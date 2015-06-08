@@ -15,34 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.Nullable;
+public class HaxeNull {
+  static public final HaxeNull instance = new HaxeNull();
+  private HaxeNull() { }
 
-public enum HaxeModifierType {
-  OVERRIDE("override"),
-  STATIC("static"),
-  PUBLIC("public"),
-  PRIVATE("private"),
-  EMPTY(""),
-  INLINE("inline"),
-  FINAL("@:final"),
-  ;
-
-  public String s;
-
-  HaxeModifierType(String s) {
-    this.s = s;
-  }
-
-  public String getStringWithSpace() {
-    return (this.s.length() == 0) ? "" : (this.s + " ");
+  @Override
+  public String toString() {
+    return "null";
   }
 }
-
-/*
-enum HaxeModifierTypeKind {
-  OTHER, VISIBILITY;
-}
-*/

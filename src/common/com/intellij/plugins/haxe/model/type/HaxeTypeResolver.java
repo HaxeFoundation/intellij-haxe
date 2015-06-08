@@ -15,13 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.util.HaxePsiUtils;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
@@ -30,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-public class HaxeTypeUtil {
+public class HaxeTypeResolver {
   // @TODO: Check if cache works
   static public SpecificTypeReference getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
     // @TODO: cache should check if any related type has changed, which return depends
@@ -83,7 +85,7 @@ public class HaxeTypeUtil {
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
-        SpecificTypeReference type1 = HaxeTypeUtil.getPsiElementType(child);
+        SpecificTypeReference type1 = HaxeTypeResolver.getPsiElementType(child);
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
         if (decl != null) {

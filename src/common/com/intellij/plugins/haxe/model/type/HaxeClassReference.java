@@ -15,21 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.util;
+package com.intellij.plugins.haxe.model.type;
 
-public class HaxeTypeUnifier {
-  static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
-    // @TODO: Do a proper unification
-    return a.withConstantValue(null);
-    //return a;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiElement;
+
+public class HaxeClassReference {
+  public String name;
+  public PsiElement elementContext;
+
+  public HaxeClassReference(String name, PsiElement elementContext) {
+    this.name = name;
+    this.elementContext = elementContext;
   }
 
-  static public SpecificTypeReference unify(SpecificTypeReference[] types) {
-    if (types.length == 0) return null;
-    SpecificTypeReference type = types[0];
-    for (int n = 1; n < types.length; n++) {
-      type = unify(type, types[n]);
-    }
-    return type;
+  public HaxeClass getHaxeClass() {
+    return HaxeResolveUtil.findClassByQName(name, elementContext);
+  }
+
+  public String getName() {
+    return this.name;
   }
 }
