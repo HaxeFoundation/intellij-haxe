@@ -25,6 +25,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
@@ -73,6 +74,7 @@ class ClassChecker {
     if (reference != null) {
       HaxeClassModel aClass1 = reference.getHaxeClass();
       if (aClass1 != null && !aClass1.isClass()) {
+        // @TODO: Move to bundle
         holder.createErrorAnnotation(reference.getPsi(), "Not a class");
       }
     }
@@ -81,6 +83,7 @@ class ClassChecker {
   static public void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {
     for (HaxeClassReferenceModel interfaze : clazz.getImplementingInterfaces()) {
       if (interfaze.getHaxeClass() == null || !interfaze.getHaxeClass().isInterface()) {
+        // @TODO: Move to bundle
         holder.createErrorAnnotation(interfaze.getPsi(), "Not an interface");
       }
     }
@@ -108,6 +111,7 @@ class ClassChecker {
     }
 
     if (missingMethods.size() > 0) {
+      // @TODO: Move to bundle
       Annotation annotation = holder.createErrorAnnotation(intReference.getPsi(), "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "));
       annotation.registerFix(new HaxeSemanticIntentionAction("Implement methods") {
         @Override
@@ -120,8 +124,6 @@ class ClassChecker {
 }
 
 class MethodChecker {
-  static final String TYPE_REQUIRED_ERROR = "Type required for extern classes and interfaces";
-
   static public void check(final HaxeMethod methodPsi, final AnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
@@ -133,11 +135,11 @@ class MethodChecker {
     HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     if (currentClass.isExtern() || currentClass.isInterface()) {
       if (currentMethod.getReturnTypeTagPsi() == null) {
-        holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), TYPE_REQUIRED_ERROR);
+        holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
       }
       for (final HaxeParameterModel param : currentMethod.getParameters()) {
         if (param.getTypeTagPsi() == null) {
-          holder.createErrorAnnotation(param.getNameOrBasePsi(), TYPE_REQUIRED_ERROR);
+          holder.createErrorAnnotation(param.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
         }
       }
     }
@@ -150,12 +152,14 @@ class MethodChecker {
       String paramName = param.getName();
 
       if (param.isOptional() && param.getVarInitPsi() != null) {
+        // @TODO: Move to bundle
         holder.createWarningAnnotation(param.getOptionalPsi(), "Optional not needed when specified an init value");
       }
       if (param.getVarInitPsi() != null && param.getTypeTagPsi() != null) {
         final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi());
         final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(param.getVarInitPsi().getExpression());
         if (!type1.isAssignableFrom(type2)) {
+          // @TODO: Move to bundle
           Annotation annotation = holder.createErrorAnnotation(param.getPsi(), "Incompatible type " + type1 + " can't be assigned from " + type2);
           annotation.registerFix(new HaxeSemanticIntentionAction("Change type") {
             @Override
@@ -170,16 +174,19 @@ class MethodChecker {
             }
           });
         } else if (type2.getConstant() == null) {
+          // @TODO: Move to bundle
           holder.createErrorAnnotation(param.getPsi(), "Parameter default type should be constant but was " + type2);
         }
       }
       if (param.isOptionalOrHasInit()) {
         hasOptional = true;
       } else if (hasOptional) {
+        // @TODO: Move to bundle
         holder.createWarningAnnotation(param.getPsi(), "Non-optional argument after optional argument");
       }
 
       if (argumentNames.containsKey(paramName)) {
+        // @TODO: Move to bundle
         holder.createWarningAnnotation(param.getNameOrBasePsi(), "Repeated argument name '" + paramName + "'");
         holder.createWarningAnnotation(argumentNames.get(paramName), "Repeated argument name '" + paramName + "'");
       } else {
@@ -202,6 +209,7 @@ class MethodChecker {
     if (currentMethod.isConstructor()) {
       requiredOverride = false;
       if (currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+        // @TODO: Move to bundle
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Constructor can't be static").registerFix(
           new HaxeSemanticIntentionAction("Remove static") {
             @Override
@@ -290,6 +298,7 @@ class PackageChecker {
     for (String s : StringUtils.split(packageName, '.')) {
       if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {
         //HaxeSemanticError.addError(element, new HaxeSemanticError("Package name '" + s + "' must start with a lower case character"));
+        // @TODO: Move to bundle
         holder.createErrorAnnotation(element, "Package name '" + s + "' must start with a lower case character");
       }
     }
