@@ -15,27 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.model;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+public class HaxeMethodContext {
+  static public final HaxeMethodContext WITH_EXTENSION_METHOD = new HaxeMethodContext(true);
+  static public final HaxeMethodContext WITHOUT_EXTENSION_METHOD = new HaxeMethodContext(false);
 
-import java.util.List;
+  private boolean _isExtensionMethod;
 
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
+  public HaxeMethodContext(boolean isExtensionMethod) {
+    this._isExtensionMethod = isExtensionMethod;
+  }
 
-public interface HaxeVarDeclarationPart extends HaxePsiField {
-  @NotNull
-  HaxeComponentName getComponentName();
-
-  @Nullable
-  HaxePropertyDeclaration getPropertyDeclaration();
-
-  @Nullable
-  HaxeTypeTag getTypeTag();
-
-  @Nullable
-  HaxeVarInit getVarInit();
-
+  public boolean isExtensionMethod() {
+    return _isExtensionMethod;
+  }
 }

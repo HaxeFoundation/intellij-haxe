@@ -96,4 +96,12 @@ public class HaxeParameterModel {
   public HaxeMethodModel getMethod() {
     return method;
   }
+
+  public String getPresentableText() {
+    String out = "";
+    out += getName();
+    out += ":";
+    out += getType().toStringWithoutConstant();
+    return out;
+  }
 }

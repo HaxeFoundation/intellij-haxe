@@ -23,6 +23,7 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMethodContext;
 import com.intellij.plugins.haxe.model.HaxeModifierType;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,18 +37,26 @@ import java.util.List;
 public class HaxeLookupElement extends LookupElement {
   private final HaxeComponentName myComponentName;
   private final HaxeClassResolveResult leftReference;
+  private final HaxeMethodContext context;
 
-  public static Collection<HaxeLookupElement> convert(HaxeClassResolveResult leftReference, @NotNull Collection<HaxeComponentName> componentNames) {
+  public static Collection<HaxeLookupElement> convert(HaxeClassResolveResult leftReference, @NotNull Collection<HaxeComponentName> componentNames, @NotNull Collection<HaxeComponentName> componentNamesExtension) {
     final List<HaxeLookupElement> result = new ArrayList<HaxeLookupElement>(componentNames.size());
     for (HaxeComponentName componentName : componentNames) {
-      result.add(new HaxeLookupElement(leftReference, componentName));
+      HaxeMethodContext context = null;
+      if (componentNamesExtension.contains(componentName)) {
+        context = HaxeMethodContext.WITH_EXTENSION_METHOD;
+      } else {
+        context = HaxeMethodContext.WITHOUT_EXTENSION_METHOD;
+      }
+      result.add(new HaxeLookupElement(leftReference, componentName, context));
     }
     return result;
   }
 
-  public HaxeLookupElement(HaxeClassResolveResult leftReference, HaxeComponentName name) {
+  public HaxeLookupElement(HaxeClassResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context) {
     this.leftReference = leftReference;
-    myComponentName = name;
+    this.myComponentName = name;
+    this.context = context;
   }
 
   @NotNull
@@ -68,10 +77,14 @@ public class HaxeLookupElement extends LookupElement {
       return;
     }
 
+    String presentableText = myComponentNamePresentation.getPresentableText();
+
     // Check for members: methods and fields
     HaxeMemberModel member = HaxeMemberModel.fromPsi(myComponentName);
 
     if (member != null) {
+      presentableText = member.getPresentableText(context);
+
       // Check deprecated modifiers
       if (member.getModifiers().hasModifier(HaxeModifierType.DEPRECATED)) {
         presentation.setStrikeout(true);
@@ -86,7 +99,7 @@ public class HaxeLookupElement extends LookupElement {
       }
     }
 
-    presentation.setItemText(myComponentNamePresentation.getPresentableText());
+    presentation.setItemText(presentableText);
     presentation.setIcon(myComponentNamePresentation.getIcon(true));
     final String pkg = myComponentNamePresentation.getLocationString();
     if (StringUtil.isNotEmpty(pkg)) {

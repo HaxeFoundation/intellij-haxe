@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.navigation.ItemPresentation;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
@@ -28,12 +29,10 @@ import java.util.List;
 
 public class HaxeMethodModel extends HaxeMemberModel {
   private HaxeMethodPsiMixin haxeMethod;
-  private String name;
 
   public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
-    super(haxeMethod);
+    super(haxeMethod, haxeMethod, haxeMethod);
     this.haxeMethod = haxeMethod;
-    this.name = haxeMethod.getName();
   }
 
   @Override
@@ -45,11 +44,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return haxeMethod;
   }
 
-  public PsiElement getNamePsi() {
-    PsiElement child = HaxePsiUtils.getChild(HaxePsiUtils.getChild(haxeMethod, HaxeComponentName.class), HaxeIdentifier.class);
-    if (child == null) child = HaxePsiUtils.getToken(haxeMethod, "new");
-    return child;
-  }
+
 
   //private List<HaxeParameterModel> _parameters;
   public List<HaxeParameterModel> getParameters() {
@@ -66,19 +61,21 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return _parameters;
   }
 
+  public List<HaxeParameterModel> getParametersWithContext(HaxeMethodContext context) {
+    List<HaxeParameterModel> params = getParameters();
+    if (context.isExtensionMethod()) {
+      params = new ArrayList<HaxeParameterModel>(params);
+      params.remove(0);
+    }
+    return params;
+  }
+
   @Nullable public HaxeTypeTag getReturnTypeTagPsi() {
     return HaxePsiUtils.getChild(this.haxeMethod, HaxeTypeTag.class);
   }
 
   public boolean isStatic() {
     return getModifiers().hasModifier(HaxeModifierType.STATIC);
-  }
-
-  @NotNull
-  public PsiElement getNameOrBasePsi() {
-    PsiElement element = getNamePsi();
-    if (element == null) element = getPsi();
-    return element;
   }
 
   private HaxeClassModel _declaringClass = null;
@@ -88,10 +85,6 @@ public class HaxeMethodModel extends HaxeMemberModel {
       _declaringClass = (aClass != null) ? aClass.getModel() : null;
     }
     return _declaringClass;
-  }
-
-  public String getName() {
-    return name;
   }
 
   public String getFullName() {
@@ -112,5 +105,22 @@ public class HaxeMethodModel extends HaxeMemberModel {
   public boolean isStaticInit() {
     return this.getName().equals("__init__");
   }
+
+  @Override
+  public String getPresentableText(HaxeMethodContext context) {
+    String out = "";
+    out += this.getName();
+    out += "(";
+    int index = 0;
+    for (HaxeParameterModel param : this.getParametersWithContext(context)) {
+      if (index > 0) out += ", ";
+      out += param.getPresentableText();
+      index++;
+    }
+    out += ")";
+    out += ":" + getResultType();
+    return out;
+  }
+
 }
 

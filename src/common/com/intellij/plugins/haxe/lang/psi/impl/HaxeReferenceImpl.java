@@ -580,6 +580,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public Object[] getVariants() {
     final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
+    final Set<HaxeComponentName> suggestedVariantsExtensions = new THashSet<HaxeComponentName>();
 
     // if not first in chain
     // foo.bar.baz
@@ -610,7 +611,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (haxeClass != null) {
         addClassNonStaticMembersVariants(suggestedVariants, haxeClass,
                                          !(leftReference instanceof HaxeThisExpression));
-        addUsingVariants(suggestedVariants, haxeClass,
+        addUsingVariants(suggestedVariants, suggestedVariantsExtensions, haxeClass,
                          HaxeResolveUtil.findUsingClasses(getContainingFile()));
         addChildClassVariants(suggestedVariants, haxeClass);
       }
@@ -628,7 +629,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
 
-    Object[] variants = HaxeLookupElement.convert(result, suggestedVariants).toArray();
+    Object[] variants = HaxeLookupElement.convert(result, suggestedVariants, suggestedVariantsExtensions).toArray();
     PsiElement leftTarget = leftReference != null ? leftReference.resolve() : null;
 
     if (leftTarget instanceof PsiPackage) {
@@ -680,7 +681,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
   }
 
-  private static void addUsingVariants(Set<HaxeComponentName> variants, @Nullable HaxeClass ourClass, List<HaxeClass> classes) {
+  private static void addUsingVariants(Set<HaxeComponentName> variants, Set<HaxeComponentName> variantsWithExtension, @Nullable HaxeClass ourClass, List<HaxeClass> classes) {
     for (HaxeClass haxeClass : classes) {
       for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
         if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName() != null) {
@@ -688,6 +689,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == ourClass;
           if (needToAdd) {
             variants.add(haxeNamedComponent.getComponentName());
+            variantsWithExtension.add(haxeNamedComponent.getComponentName());
           }
         }
       }

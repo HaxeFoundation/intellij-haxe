@@ -19,14 +19,16 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
 
 public class HaxeFieldModel extends HaxeMemberModel {
   private HaxeVarDeclaration element;
 
   public HaxeFieldModel(HaxeVarDeclaration element) {
-    super(element);
+    super(element, element, HaxePsiUtils.getChild(element, HaxeVarDeclarationPart.class));
     this.element = element;
   }
 
@@ -48,7 +50,4 @@ public class HaxeFieldModel extends HaxeMemberModel {
     return _declaringClass;
   }
 
-  public String getName() {
-    return this.element.getName();
-  }
 }

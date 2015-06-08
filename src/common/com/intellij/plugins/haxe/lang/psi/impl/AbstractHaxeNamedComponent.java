@@ -23,6 +23,8 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
@@ -88,27 +90,21 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
       @Override
       public String getPresentableText() {
         final StringBuilder result = new StringBuilder();
-        final HaxeComponentName componentName = getComponentName();
-        if (componentName != null) {
-          result.append(componentName.getText());
-        }
-        else if (HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this) == HaxeComponentType.METHOD) {
-          // constructor
-          result.append(HaxeTokenTypes.ONEW.toString());
-        }
-        final HaxeComponentType type = HaxeComponentType.typeOf(AbstractHaxeNamedComponent.this);
-        if (type == HaxeComponentType.METHOD) {
-          final String parameterList = HaxePresentableUtil.getPresentableParameterList(AbstractHaxeNamedComponent.this);
+        HaxeMemberModel member = HaxeMemberModel.fromPsi(AbstractHaxeNamedComponent.this);
+
+        result.append(member.getName());
+
+        if (member instanceof HaxeMethodModel) {
+          final String parameterList = HaxePresentableUtil.getPresentableParameterList(member.getNamedComponentPsi());
           result.append("(").append(parameterList).append(")");
         }
 
-        if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-          SpecificTypeReference returnType = HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
-          if (returnType != null) {
-            result.append(":");
-            result.append(returnType.toString());
-          }
+        SpecificTypeReference returnType = HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
+        if (returnType != null) {
+          result.append(":");
+          result.append(returnType.toString());
         }
+
         return result.toString();
       }
 
