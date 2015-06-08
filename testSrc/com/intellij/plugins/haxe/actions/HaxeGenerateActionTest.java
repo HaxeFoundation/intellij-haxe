@@ -82,6 +82,11 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
     doOverrideTest();
   }
 
+  public void testOverride2() throws Throwable {
+    configureByFile("Override2.hx");
+    doOverrideTest();
+  }
+
   public void testGetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTER);
   }

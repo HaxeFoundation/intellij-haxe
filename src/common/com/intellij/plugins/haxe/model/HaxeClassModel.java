@@ -126,6 +126,22 @@ public class HaxeClassModel {
     return models;
   }
 
+  public List<HaxeMethodModel> getMethodsSelf() {
+    List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
+    for (HaxeMethod method : haxeClass.getHaxeMethods()) {
+      if (method.getContainingClass() == this.haxeClass) models.add(method.getModel());
+    }
+    return models;
+  }
+
+  public List<HaxeMethodModel> getAncestorMethods() {
+    List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
+    for (HaxeMethod method : haxeClass.getHaxeMethods()) {
+      if (method.getContainingClass() != this.haxeClass) models.add(method.getModel());
+    }
+    return models;
+  }
+
   public HaxeClass getPsi() {
     return haxeClass;
   }
