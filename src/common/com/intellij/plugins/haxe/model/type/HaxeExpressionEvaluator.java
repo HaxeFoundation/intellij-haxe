@@ -32,6 +32,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class HaxeExpressionEvaluator {
@@ -194,29 +195,32 @@ public class HaxeExpressionEvaluator {
       if (functionType instanceof SpecificFunctionReference) {
         SpecificFunctionReference ftype = (SpecificFunctionReference)functionType;
         List<SpecificTypeReference> parameterTypes = ftype.getParameters();
+        List<HaxeExpression> parameterExpressions = null;
         if (callelement.getExpressionList() != null) {
-          List<HaxeExpression> parameterExpressions = callelement.getExpressionList().getExpressionList();
+          parameterExpressions = callelement.getExpressionList().getExpressionList();
+        } else {
+          parameterExpressions = Collections.emptyList();
+        }
 
-          System.out.println(ftype.getDebugString());
-          // More parameters than expected
-          if (parameterExpressions.size() > parameterTypes.size()) {
-            for (int n = parameterTypes.size(); n < parameterExpressions.size(); n++) {
-              context.addError(parameterExpressions.get(n), "Unexpected argument");
-            }
+        //System.out.println(ftype.getDebugString());
+        // More parameters than expected
+        if (parameterExpressions.size() > parameterTypes.size()) {
+          for (int n = parameterTypes.size(); n < parameterExpressions.size(); n++) {
+            context.addError(parameterExpressions.get(n), "Unexpected argument");
           }
-          // Less parameters than expected
-          else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
-            context.addError(callelement, "Less arguments than expected");
-          }
-          // Same arity
-          else {
-            for (int n = 0; n < parameterTypes.size(); n++) {
-              SpecificTypeReference type = parameterTypes.get(n);
-              HaxeExpression expression = parameterExpressions.get(n);
-              SpecificTypeReference value = handle(expression, context);
-              if (!type.canAssign(value)) {
-                context.addError(expression, "Can't assign " + value + " to " + type);
-              }
+        }
+        // Less parameters than expected
+        else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
+          context.addError(callelement, "Less arguments than expected");
+        }
+        // Same arity
+        else {
+          for (int n = 0; n < parameterTypes.size(); n++) {
+            SpecificTypeReference type = parameterTypes.get(n);
+            HaxeExpression expression = parameterExpressions.get(n);
+            SpecificTypeReference value = handle(expression, context);
+            if (!type.canAssign(value)) {
+              context.addError(expression, "Can't assign " + value + " to " + type);
             }
           }
         }
