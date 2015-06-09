@@ -38,7 +38,9 @@ public class HaxeTypeResolver {
   // @TODO: Check if cache works
   static public SpecificTypeReference getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
     // @TODO: cache should check if any related type has changed, which return depends
-    if (comp == null) return createPrimitiveType("Unknown", comp, null);
+    if (comp == null || comp.getContainingFile() == null) {
+      return SpecificHaxeClassReference.getUnknown(comp);
+    }
     long stamp = comp.getContainingFile().getModificationStamp();
     if (comp._cachedType == null || comp._cachedTypeStamp != stamp) {
       comp._cachedType = _getFieldOrMethodReturnType(comp);

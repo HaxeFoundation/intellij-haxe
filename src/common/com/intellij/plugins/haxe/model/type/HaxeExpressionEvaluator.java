@@ -23,7 +23,11 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.HaxeClassReferenceModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiCodeBlock;
@@ -44,6 +48,16 @@ public class HaxeExpressionEvaluator {
   }
 
   static private SpecificTypeReference handle(final PsiElement element, final HaxeExpressionEvaluatorContext context) {
+    try {
+      return _handle(element, context);
+    }
+    catch (Throwable t) {
+      t.printStackTrace();
+      return SpecificHaxeClassReference.getUnknown(element);
+    }
+  }
+
+  static private SpecificTypeReference _handle(final PsiElement element, final HaxeExpressionEvaluatorContext context) {
     if (element == null) {
       System.out.println("getPsiElementType: " + element);
       return SpecificHaxeClassReference.getUnknown(element);
@@ -216,30 +230,32 @@ public class HaxeExpressionEvaluator {
       }
       if (type == null) {
         Annotation annotation = context.addError(element, "Can't resolve '" + element.getText() + "'");
-        if (children.length == 1) {
-          annotation.registerFix(new HaxeFixer("Create local variable") {
-            @Override
-            public void run() {
-
-            }
-          });
-        } else {
-          if (element.getParent() instanceof HaxeCallExpression) {
-            annotation.registerFix(new HaxeFixer("Create method") {
+        if (annotation != null) {
+          if (children.length == 1) {
+            annotation.registerFix(new HaxeFixer("Create local variable") {
               @Override
               public void run() {
 
               }
             });
           }
-          annotation.registerFix(new HaxeFixer("Create field") {
-            @Override
-            public void run() {
+          else {
+            if (element.getParent() instanceof HaxeCallExpression) {
+              annotation.registerFix(new HaxeFixer("Create method") {
+                @Override
+                public void run() {
 
+                }
+              });
             }
-          });
-        }
+            annotation.registerFix(new HaxeFixer("Create field") {
+              @Override
+              public void run() {
 
+              }
+            });
+          }
+        }
       }
       return SpecificHaxeClassReference.ensure(type);
     }
@@ -267,7 +283,6 @@ public class HaxeExpressionEvaluator {
 
       if (functionType instanceof SpecificFunctionReference) {
         SpecificFunctionReference ftype = (SpecificFunctionReference)functionType;
-        List<SpecificTypeReference> parameterTypes = ftype.getParameters();
         List<HaxeExpression> parameterExpressions = null;
         if (callelement.getExpressionList() != null) {
           parameterExpressions = callelement.getExpressionList().getExpressionList();
@@ -276,27 +291,7 @@ public class HaxeExpressionEvaluator {
           parameterExpressions = Collections.emptyList();
         }
 
-        int len = Math.min(parameterTypes.size(), parameterExpressions.size());
-        for (int n = 0; n < len; n++) {
-          SpecificTypeReference type = parameterTypes.get(n);
-          HaxeExpression expression = parameterExpressions.get(n);
-          SpecificTypeReference value = handle(expression, context);
-          if (!type.canAssign(value)) {
-            context.addError(expression, "Can't assign " + value + " to " + type);
-          }
-        }
-
-        //System.out.println(ftype.getDebugString());
-        // More parameters than expected
-        if (parameterExpressions.size() > parameterTypes.size()) {
-          for (int n = parameterTypes.size(); n < parameterExpressions.size(); n++) {
-            context.addError(parameterExpressions.get(n), "Unexpected argument");
-          }
-        }
-        // Less parameters than expected
-        else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
-          context.addError(callelement, "Less arguments than expected");
-        }
+        HaxeExpressionEvaluator.checkParameters(callelement, ftype, parameterExpressions, context);
 
         return ftype.getReturnType();
       }
@@ -365,6 +360,41 @@ public class HaxeExpressionEvaluator {
       }
     }
 
+    if (element instanceof HaxeSuperExpression) {
+      /*
+      System.out.println("-------------------------");
+      final HaxeExpressionList list = HaxePsiUtils.getChild(element, HaxeExpressionList.class);
+      System.out.println(element);
+      System.out.println(list);
+      final List<HaxeExpression> parameters = (list != null) ? list.getExpressionList() : Collections.<HaxeExpression>emptyList();
+      final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeMethodModel.fromPsi(element), HaxeMethodModel.class);
+      if (method == null) {
+        context.addError(element, "Not in a method");
+      }
+      if (method != null) {
+        final HaxeMethodModel parentMethod = method.getParentMethod();
+        if (parentMethod == null) {
+          context.addError(element, "Calling super without parent constructor");
+        } else {
+          System.out.println(element);
+          System.out.println(parentMethod.getFunctionType());
+          System.out.println(parameters);
+          checkParameters(element, parentMethod.getFunctionType(), parameters, context);
+          //System.out.println(method);
+          //System.out.println(parentMethod);
+        }
+      }
+      return SpecificHaxeClassReference.getVoid(element);
+      */
+      final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeMethodModel.fromPsi(element), HaxeMethodModel.class);
+      final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod() : null;
+      if (parentMethod != null) {
+        return parentMethod.getFunctionType();
+      }
+      context.addError(element, "Calling super without parent constructor");
+      return SpecificHaxeClassReference.getUnknown(element);
+    }
+
     if (element instanceof HaxeIfStatement) {
       PsiElement[] children = element.getChildren();
       if (children.length >= 1) {
@@ -381,7 +411,8 @@ public class HaxeExpressionEvaluator {
         }
         else if (children.length >= 2) {
           return handle(children[1], context);
-        } else {
+        }
+        else {
           return SpecificHaxeClassReference.getUnknown(element);
         }
       }
@@ -440,6 +471,31 @@ public class HaxeExpressionEvaluator {
 
     System.out.println("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getDynamic(element);
+  }
+
+  static private void checkParameters(PsiElement callelement, SpecificFunctionReference ftype, List<HaxeExpression> parameterExpressions, HaxeExpressionEvaluatorContext context) {
+    List<SpecificTypeReference> parameterTypes = ftype.getParameters();
+    int len = Math.min(parameterTypes.size(), parameterExpressions.size());
+    for (int n = 0; n < len; n++) {
+      SpecificTypeReference type = parameterTypes.get(n);
+      HaxeExpression expression = parameterExpressions.get(n);
+      SpecificTypeReference value = handle(expression, context);
+      if (!type.canAssign(value)) {
+        context.addError(expression, "Can't assign " + value + " to " + type);
+      }
+    }
+
+    //System.out.println(ftype.getDebugString());
+    // More parameters than expected
+    if (parameterExpressions.size() > parameterTypes.size()) {
+      for (int n = parameterTypes.size(); n < parameterExpressions.size(); n++) {
+        context.addError(parameterExpressions.get(n), "Unexpected argument");
+      }
+    }
+    // Less parameters than expected
+    else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
+      context.addError(callelement, "Less arguments than expected");
+    }
   }
 
   static private String getOperator(PsiElement element, TokenSet set) {

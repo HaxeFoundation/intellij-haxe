@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 public class HaxeTypeUtils {
   static public double getDoubleValue(Object value) {
+    if (value instanceof Boolean) return ((Boolean)value) ? 1 : 0;
     if (value instanceof Long) return (Long)value;
     if (value instanceof Integer) return (Integer)value;
     if (value instanceof Double) return (Double)value;
@@ -26,10 +27,15 @@ public class HaxeTypeUtils {
     return Double.NaN;
   }
 
+  static public boolean getBoolValue(Object value) {
+    return getDoubleValue(value) != 0;
+  }
+
   static public Object applyUnaryOperator(Object right, String operator) {
     double rightv = getDoubleValue(right);
     if (operator.equals("-")) return -rightv;
     if (operator.equals("~")) return ~(int)rightv;
+    if (operator.equals("!")) return !getBoolValue(right);
     if (operator.equals("")) return rightv;
     throw new RuntimeException("Unsupporteed operator '" + operator + "'");
   }

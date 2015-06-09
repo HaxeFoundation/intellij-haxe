@@ -65,7 +65,7 @@ class ClassChecker {
   }
 
   static public void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
-    HaxeClassReferenceModel reference = clazz.getParentClass();
+    HaxeClassReferenceModel reference = clazz.getParentClassReference();
     if (reference != null) {
       HaxeClassModel aClass1 = reference.getHaxeClass();
       if (aClass1 != null && !aClass1.isClass()) {
@@ -197,7 +197,7 @@ class MethodChecker {
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
-    final HaxeClassReferenceModel parentClass = (currentClass != null) ? currentClass.getParentClass() : null;
+    final HaxeClassReferenceModel parentClass = (currentClass != null) ? currentClass.getParentClassReference() : null;
     final HaxeMethodModel parentMethod = ((parentClass != null) && parentClass.getHaxeClass() != null) ? parentClass.getHaxeClass().getMethod(currentMethod.getName()) : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 

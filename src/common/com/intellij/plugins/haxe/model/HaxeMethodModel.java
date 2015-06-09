@@ -140,6 +140,11 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return new SpecificFunctionReference(args, HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi()), this);
   }
 
+  public HaxeMethodModel getParentMethod() {
+    final HaxeClassModel aClass = getDeclaringClass().getParentClass();
+    return (aClass != null) ? aClass.getMethod(this.getName()) : null;
+  }
+
   @Override
   public String toString() {
     return "HaxeMethodModel(" + this.getName() + ", " + this.getParameters() + ")";

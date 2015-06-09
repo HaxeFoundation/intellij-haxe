@@ -19,10 +19,8 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeClassReference;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,10 +36,15 @@ public class HaxeClassModel {
     this.haxeClass = haxeClass;
   }
 
-  public HaxeClassReferenceModel getParentClass() {
+  public HaxeClassReferenceModel getParentClassReference() {
     List<HaxeType> list = haxeClass.getHaxeExtendsList();
     if (list.size() == 0) return null;
     return new HaxeClassReferenceModel(list.get(0));
+  }
+
+  public HaxeClassModel getParentClass() {
+    final HaxeClassReferenceModel reference = this.getParentClassReference();
+    return (reference != null) ? reference.getHaxeClass() : null;
   }
 
   public List<HaxeClassReferenceModel> getInterfaceExtendingInterfaces() {
@@ -156,9 +159,20 @@ public class HaxeClassModel {
   }
 
   public HaxeMethodModel getParentConstructor() {
-    HaxeClassReferenceModel parentClass = getParentClass();
+    HaxeClassReferenceModel parentClass = getParentClassReference();
     if (parentClass == null) return null;
     return parentClass.getHaxeClass().getMethod("new");
+  }
+
+  public HaxeMemberModel getMember(String name) {
+    final HaxeMethodModel method = getMethod(name);
+    final HaxeFieldModel field = getField(name);
+    return (method != null) ? method : field;
+  }
+
+  public HaxeFieldModel getField(String name) {
+    HaxeVarDeclaration name1 = (HaxeVarDeclaration)haxeClass.findHaxeFieldByName(name);
+    return name1 != null ? name1.getModel() : null;
   }
 
   public HaxeMethodModel getMethod(String name) {

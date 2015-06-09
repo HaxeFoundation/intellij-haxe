@@ -56,7 +56,7 @@ public class HaxeTypeCompatible {
     }
 
     // Check from abstracts
-    HaxeClass thisClassPsi = a.clazz.getHaxeClass();
+    HaxeClass thisClassPsi = (a != null && a.clazz != null) ? a.clazz.getHaxeClass() : null;
     if (thisClassPsi != null) {
       HaxeClassModel thisClass = thisClassPsi.getModel();
       for (HaxeType type : thisClass.getAbstractFromList()) {

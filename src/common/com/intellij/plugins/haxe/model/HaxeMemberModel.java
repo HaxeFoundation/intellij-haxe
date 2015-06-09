@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 abstract public class HaxeMemberModel {
@@ -78,12 +77,10 @@ abstract public class HaxeMemberModel {
   }
 
   public static HaxeMemberModel fromPsi(PsiElement element) {
-    if (element instanceof HaxeIdentifier) return fromPsi(element.getParent());
-    if (element instanceof HaxeComponentName) return fromPsi(element.getParent());
-    if (element instanceof HaxeVarDeclarationPart) return fromPsi(element.getParent());
     if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
     if (element instanceof HaxeVarDeclaration) return ((HaxeVarDeclaration)element).getModel();
-    return null;
+    final PsiElement parent = element.getParent();
+    return (parent != null) ? fromPsi(parent) : null;
   }
 
   public SpecificTypeReference getResultType() {
@@ -92,5 +89,10 @@ abstract public class HaxeMemberModel {
 
   public String getPresentableText(HaxeMethodContext context) {
     return this.getName() + ":" + getResultType();
+  }
+
+  public HaxeMemberModel getParentMember() {
+    final HaxeClassModel aClass = getDeclaringClass().getParentClass();
+    return (aClass != null) ? aClass.getMember(this.getName()) : null;
   }
 }
