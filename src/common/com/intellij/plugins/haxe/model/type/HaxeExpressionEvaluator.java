@@ -395,6 +395,28 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element);
     }
 
+    if (element instanceof HaxeArrayAccessExpression) {
+      final List<HaxeExpression> list = ((HaxeArrayAccessExpression)element).getExpressionList();
+      if (list.size() >= 2) {
+        final SpecificTypeReference left = handle(list.get(0), context);
+        final SpecificTypeReference right = handle(list.get(1), context);
+        if (left.isArray()) {
+          Object constant = null;
+          if (left.hasConstant() && right.hasConstant()) {
+            List array = (List)left.getConstant();
+            final int index = HaxeTypeUtils.getIntValue(right.getConstant());
+            if (index >= 0 && index < array.size()) {
+              constant = array.get(index);
+            } else {
+              context.addWarning(element, "Out of bounds");
+            }
+          }
+          return left.getArrayElementType().withConstantValue(constant);
+        }
+      }
+      return SpecificHaxeClassReference.getUnknown(element);
+    }
+
     if (element instanceof HaxeIfStatement) {
       PsiElement[] children = element.getChildren();
       if (children.length >= 1) {

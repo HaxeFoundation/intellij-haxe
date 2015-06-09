@@ -54,10 +54,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return withConstantValue(null);
   }
 
-  static public SpecificTypeReference createArray(SpecificTypeReference elementType) {
-    return withGenerics(new HaxeClassReference("Array", null), new SpecificTypeReference[] { elementType },  null);
-  }
-
   static public SpecificHaxeClassReference getVoid(PsiElement context) {
     return primitive("Void", context);
   }

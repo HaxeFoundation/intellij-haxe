@@ -18,6 +18,9 @@
 package com.intellij.plugins.haxe.model.type;
 
 public class HaxeTypeUtils {
+  static public int getIntValue(Object value) {
+    return (int)getDoubleValue(value);
+  }
   static public double getDoubleValue(Object value) {
     if (value instanceof Boolean) return ((Boolean)value) ? 1 : 0;
     if (value instanceof Long) return (Long)value;

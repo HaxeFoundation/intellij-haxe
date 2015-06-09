@@ -70,4 +70,15 @@ public class HaxeExpressionEvaluatorContext {
     }
     return null;
   }
+
+  public Annotation addWarning(PsiElement element, String error, HaxeFixer... fixers) {
+    if (holder != null) {
+      Annotation annotation = holder.createWarningAnnotation(element, error);
+      for (HaxeFixer fixer : fixers) {
+        annotation.registerFix(fixer);
+      }
+      return annotation;
+    }
+    return null;
+  }
 }

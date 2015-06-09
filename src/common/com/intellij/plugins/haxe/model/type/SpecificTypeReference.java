@@ -24,6 +24,10 @@ public abstract class SpecificTypeReference {
     return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, SpecificHaxeClassReference.EMPTY, null);
   }
 
+  static public SpecificTypeReference createArray(SpecificTypeReference elementType) {
+    return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Array", null), new SpecificTypeReference[]{elementType}, null);
+  }
+
   final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
   final public boolean isVoid() { return this.toStringWithoutConstant().equals("Void"); }
   final public boolean isInt() { return this.toStringWithoutConstant().equals("Int"); }
@@ -31,6 +35,20 @@ public abstract class SpecificTypeReference {
   final public boolean isBool() { return this.toStringWithoutConstant().equals("Bool"); }
   final public boolean isFloat() { return this.toStringWithoutConstant().equals("Float"); }
   final public boolean isString() { return this.toStringWithoutConstant().equals("String"); }
+  final public boolean isArray() {
+    if (this instanceof SpecificHaxeClassReference) {
+      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
+      return reference.clazz.getName().equals("Array");
+    }
+    return false;
+  }
+  final public SpecificTypeReference getArrayElementType() {
+    if (isArray()) {
+      final SpecificTypeReference[] specifics = ((SpecificHaxeClassReference)this).specifics;
+      if (specifics.length >= 1) return specifics[0];
+    }
+    return null;
+  }
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
   public SpecificTypeReference withoutConstantValue() {
