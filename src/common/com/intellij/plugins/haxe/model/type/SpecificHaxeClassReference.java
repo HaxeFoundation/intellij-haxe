@@ -136,6 +136,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Override
   public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
+    if (this.isDynamic()) return this.withoutConstantValue();
+
     if (this.clazz == null || name == null) {
       return null;
     }

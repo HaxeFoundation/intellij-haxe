@@ -249,7 +249,9 @@ public class HaxeExpressionEvaluator {
       PsiElement[] children = element.getChildren();
       SpecificTypeReference type = handle(children[0], context);
       for (int n = 1; n < children.length; n++) {
-        if (type != null) type = type.access(children[n].getText(), context);
+        if (type != null) {
+          type = type.access(children[n].getText(), context);
+        }
       }
       // @TODO: this should be innecessary when code is working right!
       if (type == null) {
@@ -310,23 +312,32 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
+
       if (functionType.isUnknown()) {
         //System.out.println("Couldn't resolve " + callLeft.getText());
       }
 
+      List<HaxeExpression> parameterExpressions = null;
+      if (callelement.getExpressionList() != null) {
+        parameterExpressions = callelement.getExpressionList().getExpressionList();
+      }
+      else {
+        parameterExpressions = Collections.emptyList();
+      }
+
       if (functionType instanceof SpecificFunctionReference) {
         SpecificFunctionReference ftype = (SpecificFunctionReference)functionType;
-        List<HaxeExpression> parameterExpressions = null;
-        if (callelement.getExpressionList() != null) {
-          parameterExpressions = callelement.getExpressionList().getExpressionList();
-        }
-        else {
-          parameterExpressions = Collections.emptyList();
-        }
-
         HaxeExpressionEvaluator.checkParameters(callelement, ftype, parameterExpressions, context);
 
         return ftype.getReturnType();
+      }
+
+      if (functionType.isDynamic()) {
+        for (HaxeExpression expression : parameterExpressions) {
+          handle(expression, context);
+        }
+
+        return functionType.withoutConstantValue();
       }
 
       // @TODO: resolve the function type return type
@@ -488,7 +499,7 @@ public class HaxeExpressionEvaluator {
       PsiElement[] children = element.getChildren();
       if (children.length >= 1) {
         SpecificTypeReference expr = handle(children[0], context);
-        if (!expr.isBool()) {
+        if (!SpecificTypeReference.getBool(element).canAssign(expr)) {
           context.addError(
             children[0],
             "If expr " + expr + " should be bool",
