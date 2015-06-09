@@ -18,10 +18,10 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class SpecificFunctionReference extends SpecificTypeReference {
@@ -55,6 +55,17 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   }
 
   public int getNonOptionalArgumentsCount() {
+    if (method != null) {
+      int count = 0;
+      for (HaxeParameterModel param : method.getParameters()) {
+        if (!param.isOptional()) {
+          count++;
+        } else {
+          break;
+        }
+      }
+      return count;
+    }
     return params.size();
   }
 

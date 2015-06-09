@@ -65,12 +65,12 @@ public class HaxeParameterModel {
     return HaxePsiUtils.getToken(parameter, "?");
   }
 
-  public boolean isOptional() {
+  public boolean hasOptionalPsi() {
     return this.optional;
   }
 
-  public boolean isOptionalOrHasInit() {
-    return this.isOptional() || this.hasInit();
+  public boolean isOptional() {
+    return this.hasOptionalPsi() || this.hasInit();
   }
 
   public boolean hasInit() {

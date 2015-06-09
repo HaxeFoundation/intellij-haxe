@@ -148,7 +148,7 @@ class MethodChecker {
     for (final HaxeParameterModel param : currentMethod.getParameters()) {
       String paramName = param.getName();
 
-      if (param.isOptional() && param.getVarInitPsi() != null) {
+      if (param.hasOptionalPsi() && param.getVarInitPsi() != null) {
         // @TODO: Move to bundle
         holder.createWarningAnnotation(param.getOptionalPsi(), "Optional not needed when specified an init value");
       }
@@ -175,7 +175,7 @@ class MethodChecker {
           holder.createErrorAnnotation(param.getPsi(), "Parameter default type should be constant but was " + type2);
         }
       }
-      if (param.isOptionalOrHasInit()) {
+      if (param.isOptional()) {
         hasOptional = true;
       } else if (hasOptional) {
         // @TODO: Move to bundle
