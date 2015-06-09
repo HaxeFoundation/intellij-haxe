@@ -17,11 +17,17 @@
  */
 package com.intellij.plugins.haxe.model;
 
-public enum HaxeMethodContext {
-  EXTENSION,
-  NO_EXTENSION;
+public enum StripSpaces {
+  NONE(false, false),
+  BEFORE(true, false),
+  AFTER(false, true),
+  BOTH(true, true);
 
-  public boolean isExtensionMethod() {
-    return this == EXTENSION;
+  final public boolean before;
+  final public boolean after;
+
+  StripSpaces(boolean before, boolean after) {
+    this.before = before;
+    this.after = after;
   }
 }

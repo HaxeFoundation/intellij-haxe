@@ -121,7 +121,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   @Override
-  public SpecificTypeReference access(String name) {
+  public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
     if (this.clazz == null || name == null) {
       return null;
     }
@@ -131,8 +131,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
     AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
     AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name);
-    if (method != null) return HaxeTypeResolver.getMethodFunctionType(method);
-    if (field != null) return HaxeTypeResolver.getFieldOrMethodReturnType(field);
+    if (method != null) {
+      if (context.root == method) return null;
+      return HaxeTypeResolver.getMethodFunctionType(method);
+    }
+    if (field != null) {
+      if (context.root == field) return null;
+      return HaxeTypeResolver.getFieldOrMethodReturnType(field);
+    }
     return null;
   }
 }

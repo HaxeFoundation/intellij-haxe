@@ -17,18 +17,29 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class SpecificFunctionReference extends SpecificTypeReference {
-  SpecificTypeReference[] items;
+  final public List<SpecificTypeReference> params;
+  final public SpecificTypeReference retval;
 
-  public SpecificFunctionReference(SpecificTypeReference[] items) {
-    this.items = items;
+  @Nullable
+  final public HaxeMethodModel method;
+
+  public SpecificFunctionReference(List<SpecificTypeReference> params, SpecificTypeReference retval, @Nullable HaxeMethodModel method) {
+    this.params = params;
+    this.retval = retval;
+    this.method = method;
   }
 
   @Override
   public SpecificTypeReference withConstantValue(Object constantValue) {
-    return new SpecificFunctionReference(items);
+    return new SpecificFunctionReference(params, retval, method);
   }
 
   @Override
@@ -38,33 +49,50 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
   @Override
   public PsiElement getElementContext() {
-    if (items.length == 0) return null;
-    return items[0].getElementContext();
+    if (retval != null) return retval.getElementContext();
+    if (params.size() > 0) return params.get(0).getElementContext();
+    return null;
+  }
+
+  public int getNonOptionalArgumentsCount() {
+    return params.size();
+  }
+
+  public List<SpecificTypeReference> getParameters() {
+    return params;
   }
 
   public SpecificTypeReference getReturnType() {
-    if (items.length == 0) return null;
-    return items[items.length - 1];
+    return retval;
   }
 
   @Override
   public String toString() {
     String out = "";
-    for (int n = 0; n < items.length; n++) {
-      if (n > 0) out += " -> ";
-      out += items[n];
+    if (params.size() == 0) {
+      out += "Void";
+    } else {
+      for (int n = 0; n < params.size(); n++) {
+        if (n > 0) out += " -> ";
+        out += params.get(n);
+      }
     }
+    out += " -> ";
+    out += retval;
     //return toStringWithoutConstant();
     return out;
+  }
+
+  public String getDebugString() {
+    if (this.method != null) {
+      return this.method.toString() + " : " + this.toString();
+    } else {
+      return this.toString();
+    }
   }
 
   @Override
   public String toStringWithoutConstant() {
     return toString();
-  }
-
-  @Override
-  public SpecificTypeReference access(String name) {
-    return null;
   }
 }

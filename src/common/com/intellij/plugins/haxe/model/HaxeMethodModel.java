@@ -19,12 +19,18 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeMethodModel extends HaxeMemberModel {
@@ -126,5 +132,12 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return out;
   }
 
+  public SpecificFunctionReference getFunctionType() {
+    LinkedList<SpecificTypeReference> args = new LinkedList<SpecificTypeReference>();
+    for (HaxeParameterModel param : this.getParameters()) {
+      args.add(SpecificHaxeClassReference.ensure(HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi())));
+    }
+    return new SpecificFunctionReference(args, HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi()), this);
+  }
 }
 

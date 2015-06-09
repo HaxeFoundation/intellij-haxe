@@ -34,36 +34,43 @@ public class HaxeDocumentModel {
     this(PsiDocumentManager.getInstance(aElementInDocument.getProject()).getDocument(aElementInDocument.getContainingFile()));
   }
 
+  static public HaxeDocumentModel fromElement(PsiElement aElementInDocument) {
+    return new HaxeDocumentModel(aElementInDocument);
+  }
+
   public void replaceElementText(final PsiElement element, final String text) {
-    if (element != null) {
-      TextRange range = element.getTextRange();
-      document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
-    }
+    replaceElementText(element, text, StripSpaces.NONE);
   }
 
-  public void replaceElementPlusAfterSpacesText(final PsiElement element, final String text) {
+  public void replaceElementText(final PsiElement element, final String text, final StripSpaces strips) {
     if (element != null) {
       TextRange range = element.getTextRange();
       int start = range.getStartOffset();
       int end = range.getEndOffset();
       String documentText = document.getText();
-      while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
-        end++;
+
+      if (strips.after) {
+        while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
+          end++;
+        }
+      }
+      if (strips.before) {
+        while (start > 0 && HaxeCharUtils.isSpace(documentText.charAt(start - 1))) {
+          start--;
+        }
       }
       document.replaceString(start, end, text);
     }
   }
 
-  public void replaceElementPlusBeforeSpacesText(final PsiElement element, final String text) {
+  public void wrapElement(final PsiElement element, final String before, final String after) {
+    wrapElement(element, before, after, StripSpaces.NONE);
+  }
+
+  public void wrapElement(final PsiElement element, final String before, final String after, StripSpaces strip) {
     if (element != null) {
       TextRange range = element.getTextRange();
-      int start = range.getStartOffset();
-      int end = range.getEndOffset();
-      String documentText = document.getText();
-      while (start > 0 && HaxeCharUtils.isSpace(documentText.charAt(start - 1))) {
-        start--;
-      }
-      document.replaceString(start, end, text);
+      this.replaceElementText(element, before + element.getText() + after, strip);
     }
   }
 

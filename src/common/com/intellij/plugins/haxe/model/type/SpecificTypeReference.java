@@ -20,6 +20,12 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.psi.PsiElement;
 
 public abstract class SpecificTypeReference {
+  final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
+  final public boolean isVoid() { return this.toStringWithoutConstant().equals("Void"); }
+  final public boolean isInt() { return this.toStringWithoutConstant().equals("Int"); }
+  final public boolean isFloat() { return this.toStringWithoutConstant().equals("Float"); }
+  final public boolean isString() { return this.toStringWithoutConstant().equals("String"); }
+
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
   public SpecificTypeReference withoutConstantValue() {
     return withConstantValue(null);
@@ -31,8 +37,10 @@ public abstract class SpecificTypeReference {
   abstract public PsiElement getElementContext();
   abstract public String toString();
   abstract public String toStringWithoutConstant();
-  abstract public SpecificTypeReference access(String name);
-  final public boolean isAssignableFrom(SpecificTypeReference type2) {
+  public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
+    return null;
+  }
+  final public boolean canAssign(SpecificTypeReference type2) {
     return HaxeTypeCompatible.isAssignable(this, type2);
   }
 }

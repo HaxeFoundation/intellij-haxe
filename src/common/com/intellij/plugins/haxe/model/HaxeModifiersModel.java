@@ -62,7 +62,7 @@ public class HaxeModifiersModel {
   public void replaceVisibility(HaxeModifierType modifier) {
     PsiElement psi = getVisibilityPsi();
     if (psi != null) {
-      getDocument().replaceElementPlusAfterSpacesText(psi, modifier.getStringWithSpace());
+      getDocument().replaceElementText(psi, modifier.getStringWithSpace(), StripSpaces.AFTER);
     } else {
       addModifier(modifier);
     }
@@ -71,7 +71,7 @@ public class HaxeModifiersModel {
   public void removeModifier(HaxeModifierType modifier) {
     PsiElement psi = getModifierPsi(modifier);
     if (psi != null) {
-      getDocument().replaceElementPlusAfterSpacesText(psi, "");
+      getDocument().replaceElementText(psi, "", StripSpaces.AFTER);
     }
   }
 

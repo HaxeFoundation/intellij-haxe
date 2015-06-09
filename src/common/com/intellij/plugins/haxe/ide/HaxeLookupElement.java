@@ -44,9 +44,9 @@ public class HaxeLookupElement extends LookupElement {
     for (HaxeComponentName componentName : componentNames) {
       HaxeMethodContext context = null;
       if (componentNamesExtension.contains(componentName)) {
-        context = HaxeMethodContext.WITH_EXTENSION_METHOD;
+        context = HaxeMethodContext.EXTENSION;
       } else {
-        context = HaxeMethodContext.WITHOUT_EXTENSION_METHOD;
+        context = HaxeMethodContext.NO_EXTENSION;
       }
       result.add(new HaxeLookupElement(leftReference, componentName, context));
     }

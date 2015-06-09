@@ -17,26 +17,21 @@
  */
 package com.intellij.plugins.haxe.ide.annotator;
 
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
-import com.intellij.util.IncorrectOperationException;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,7 +108,7 @@ class ClassChecker {
     if (missingMethods.size() > 0) {
       // @TODO: Move to bundle
       Annotation annotation = holder.createErrorAnnotation(intReference.getPsi(), "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "));
-      annotation.registerFix(new HaxeSemanticIntentionAction("Implement methods") {
+      annotation.registerFix(new HaxeFixer("Implement methods") {
         @Override
         public void run() {
           clazz.addMethodsFromPrototype(missingMethods);
@@ -160,19 +155,19 @@ class MethodChecker {
       if (param.getVarInitPsi() != null && param.getTypeTagPsi() != null) {
         final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi());
         final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(param.getVarInitPsi().getExpression());
-        if (!type1.isAssignableFrom(type2)) {
+        if (!type1.canAssign(type2)) {
           // @TODO: Move to bundle
           Annotation annotation = holder.createErrorAnnotation(param.getPsi(), "Incompatible type " + type1 + " can't be assigned from " + type2);
-          annotation.registerFix(new HaxeSemanticIntentionAction("Change type") {
+          annotation.registerFix(new HaxeFixer("Change type") {
             @Override
             public void run() {
               currentMethod.getDocument().replaceElementText(param.getTypeTagPsi(), ":" + type2.toStringWithoutConstant());
             }
           });
-          annotation.registerFix(new HaxeSemanticIntentionAction("Remove init") {
+          annotation.registerFix(new HaxeFixer("Remove init") {
             @Override
             public void run() {
-              currentMethod.getDocument().replaceElementPlusBeforeSpacesText(param.getVarInitPsi(), "");
+              currentMethod.getDocument().replaceElementText(param.getVarInitPsi(), "", StripSpaces.BEFORE);
             }
           });
         } else if (type2.getConstant() == null) {
@@ -213,7 +208,7 @@ class MethodChecker {
       if (currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
         // @TODO: Move to bundle
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Constructor can't be static").registerFix(
-          new HaxeSemanticIntentionAction("Remove static") {
+          new HaxeFixer("Remove static") {
             @Override
             public void run() {
               currentModifiers.removeModifier(HaxeModifierType.STATIC);
@@ -225,7 +220,7 @@ class MethodChecker {
       requiredOverride = false;
       if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
-          new HaxeSemanticIntentionAction("Add static") {
+          new HaxeFixer("Add static") {
             @Override
             public void run() {
               currentModifiers.addModifier(HaxeModifierType.STATIC);
@@ -249,7 +244,7 @@ class MethodChecker {
       if (currentModifiers.getVisibility() != parentModifiers.getVisibility()) {
         Annotation annotation = holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Method doesn't match parent's visibility");
         annotation.registerFix(
-          new HaxeSemanticIntentionAction("Change current method visibility") {
+          new HaxeFixer("Change current method visibility") {
             @Override
             public void run() {
               currentModifiers.replaceVisibility(parentModifiers.getVisibility());
@@ -257,7 +252,7 @@ class MethodChecker {
           }
         );
         annotation.registerFix(
-          new HaxeSemanticIntentionAction("Change parent method visibility") {
+          new HaxeFixer("Change parent method visibility") {
             @Override
             public void run() {
               parentModifiers.replaceVisibility(currentModifiers.getVisibility());
@@ -274,7 +269,7 @@ class MethodChecker {
       );
     } else if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && requiredOverride) {
       holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
-        new HaxeSemanticIntentionAction("Add override") {
+        new HaxeFixer("Add override") {
           @Override
           public void run() {
             currentModifiers.addModifier(HaxeModifierType.OVERRIDE);
@@ -309,7 +304,7 @@ class PackageChecker {
       holder.createErrorAnnotation(
         element,
         "Invalid package name! '" + packageName + "' should be '" + actualPackage + "'").registerFix(
-        new HaxeSemanticIntentionAction("Fix package") {
+        new HaxeFixer("Fix package") {
           @Override
           public void run() {
             Document document =
@@ -331,7 +326,7 @@ class PackageChecker {
   }
 }
 
-class RemoveModifierIntent extends HaxeSemanticIntentionAction {
+class RemoveModifierIntent extends HaxeFixer {
   private HaxeModifiersModel modifiers;
   private HaxeModifierType modifierToRemove;
 
@@ -345,45 +340,6 @@ class RemoveModifierIntent extends HaxeSemanticIntentionAction {
   public void run() {
     modifiers.removeModifier(modifierToRemove);
   }
-}
-
-abstract class HaxeSemanticIntentionAction implements IntentionAction {
-  private String text;
-
-  public HaxeSemanticIntentionAction(String text) {
-    this.text = text;
-  }
-
-  @Nls
-  @NotNull
-  @Override
-  public String getText() {
-    return this.text;
-  }
-
-  @Nls
-  @NotNull
-  @Override
-  public String getFamilyName() {
-    return "semantic";
-  }
-
-  @Override
-  public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    return true;
-  }
-
-  @Override
-  public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    run();
-  }
-
-  @Override
-  public boolean startInWriteAction() {
-    return true;
-  }
-
-  abstract public void run();
 }
 
 class MethodBodyChecker {

@@ -32,7 +32,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class HaxeTypeResolver {
   // @TODO: Check if cache works
@@ -50,18 +50,7 @@ public class HaxeTypeResolver {
 
   static public SpecificFunctionReference getMethodFunctionType(PsiElement comp) {
     if (comp instanceof HaxeMethod) {
-      HaxeParameterList parameterList = HaxePsiUtils.getChild(comp, HaxeParameterList.class);
-      ArrayList<SpecificTypeReference> arguments = new ArrayList<SpecificTypeReference>();
-      if (parameterList.getParameterList().size() == 0) {
-        arguments.add(createPrimitiveType("Void", comp, null));
-      } else {
-        for (HaxeParameter parameter : parameterList.getParameterList()) {
-          arguments.add(SpecificHaxeClassReference.ensure(getTypeFromTypeTag((AbstractHaxeNamedComponent)parameter)));
-        }
-      }
-      arguments.add(getFieldOrMethodReturnType((AbstractHaxeNamedComponent)comp));
-
-      return new SpecificFunctionReference(arguments.toArray(new SpecificTypeReference[0]));
+      return ((HaxeMethod)comp).getModel().getFunctionType();
     }
     return null;
   }
@@ -137,11 +126,13 @@ public class HaxeTypeResolver {
   }
 
   private static SpecificTypeReference getTypeFromFunctionType(HaxeFunctionType type) {
-    ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
+    ArrayList<SpecificTypeReference> args = new ArrayList<SpecificTypeReference>();
     for (HaxeTypeOrAnonymous anonymous : type.getTypeOrAnonymousList()) {
-      references.add(getTypeFromTypeOrAnonymous(anonymous));
+      args.add(getTypeFromTypeOrAnonymous(anonymous));
     }
-    return new SpecificFunctionReference(references.toArray(new SpecificTypeReference[0]));
+    SpecificTypeReference retval = args.get(args.size() - 1);
+    args.remove(args.size() - 1);
+    return new SpecificFunctionReference(args, retval, null);
   }
 
   static public SpecificTypeReference getTypeFromType(@NotNull HaxeType type) {
@@ -184,11 +175,24 @@ public class HaxeTypeResolver {
     return createPrimitiveType("Void", element, null);
   }
 
+  // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
+  static private Set<PsiElement> processedElements = new HashSet<PsiElement>();
+
   @NotNull
   static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder) {
     HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext();
-    context.holder = holder;
-    return HaxeExpressionEvaluator.evaluate(element, context);
+    if (processedElements.contains(element)) {
+      context.result = SpecificHaxeClassReference.primitive("Dynamic", element);
+      return context;
+    }
+    processedElements.add(element);
+    try {
+      context.root = element;
+      context.holder = holder;
+      return HaxeExpressionEvaluator.evaluate(element, context);
+    } finally {
+      processedElements.remove(element);
+    }
   }
 
   static private SpecificHaxeClassReference createPrimitiveType(String type, PsiElement element, Object constant) {

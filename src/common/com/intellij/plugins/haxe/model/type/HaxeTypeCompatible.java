@@ -40,11 +40,11 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isAssignableFunction(SpecificFunctionReference a, SpecificFunctionReference b) {
-    if (a.items.length != b.items.length) return false;
-    for (int n = 0; n < a.items.length; n++) {
-      if (!a.items[n].isAssignableFrom(b.items[n])) return false;
+    if (a.params.size() != b.params.size()) return false;
+    for (int n = 0; n < a.params.size(); n++) {
+      if (!a.params.get(n).canAssign(b.params.get(n))) return false;
     }
-    return true;
+    return a.retval.canAssign(b.retval);
   }
 
   static private boolean isAssignableType(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
@@ -83,7 +83,7 @@ public class HaxeTypeCompatible {
         }
 
         for (HaxeType type : thatClass.getAbstractToList()) {
-          if (a.isAssignableFrom(HaxeTypeResolver.getTypeFromType(type))) {
+          if (a.canAssign(HaxeTypeResolver.getTypeFromType(type))) {
             return true;
           }
         }

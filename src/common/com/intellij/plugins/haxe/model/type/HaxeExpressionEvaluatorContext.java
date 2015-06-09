@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.psi.PsiElement;
 
@@ -27,10 +28,41 @@ public class HaxeExpressionEvaluatorContext {
   public SpecificTypeReference result;
   public List<SpecificTypeReference> returns = new ArrayList<SpecificTypeReference>();
   public AnnotationHolder holder;
+  private HaxeScope<SpecificTypeReference> scope = new HaxeScope<SpecificTypeReference>();
+  public PsiElement root;
 
-  public void addError(PsiElement element, String error) {
+  public void beginScope() {
+    scope = new HaxeScope<SpecificTypeReference>(scope);
+  }
+
+  public void endScope() {
+    scope = scope.parent;
+  }
+
+  public void setLocal(String key, SpecificTypeReference value) {
+    this.scope.set(key, value);
+  }
+
+  public void setLocalWhereDefined(String key, SpecificTypeReference value) {
+    this.scope.setWhereDefined(key, value);
+  }
+
+  public boolean has(String key) {
+    return this.scope.has(key);
+  }
+
+  public SpecificTypeReference get(String key) {
+    return this.scope.get(key);
+  }
+
+  public Annotation addError(PsiElement element, String error, HaxeFixer... fixers) {
     if (holder != null) {
-      holder.createErrorAnnotation(element, error);
+      Annotation annotation = holder.createErrorAnnotation(element, error);
+      for (HaxeFixer fixer : fixers) {
+        annotation.registerFix(fixer);
+      }
+      return annotation;
     }
+    return null;
   }
 }
