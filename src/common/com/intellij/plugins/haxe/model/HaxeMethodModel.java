@@ -44,7 +44,11 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return haxeMethod;
   }
 
-
+  public PsiElement getBodyPsi() {
+    PsiElement[] children = haxeMethod.getChildren();
+    if (children.length == 0) return null;
+    return children[children.length - 1];
+  }
 
   //private List<HaxeParameterModel> _parameters;
   public List<HaxeParameterModel> getParameters() {

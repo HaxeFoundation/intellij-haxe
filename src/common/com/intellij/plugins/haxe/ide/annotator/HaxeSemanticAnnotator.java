@@ -129,6 +129,8 @@ class MethodChecker {
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
     checkOverride(methodPsi, holder);
+    MethodBodyChecker.check(methodPsi, holder);
+    //currentMethod.getBodyPsi()
   }
 
   static public void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
@@ -201,7 +203,7 @@ class MethodChecker {
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
     final HaxeClassReferenceModel parentClass = (currentClass != null) ? currentClass.getParentClass() : null;
-    final HaxeMethodModel parentMethod = (parentClass != null) ? parentClass.getHaxeClass().getMethod(currentMethod.getName()) : null;
+    final HaxeMethodModel parentMethod = ((parentClass != null) && parentClass.getHaxeClass() != null) ? parentClass.getHaxeClass().getMethod(currentMethod.getName()) : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 
     boolean requiredOverride = false;
@@ -382,4 +384,11 @@ abstract class HaxeSemanticIntentionAction implements IntentionAction {
   }
 
   abstract public void run();
+}
+
+class MethodBodyChecker {
+  public static void check(HaxeMethod psi, AnnotationHolder holder) {
+    final HaxeMethodModel method = psi.getModel();
+    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder);
+  }
 }

@@ -25,7 +25,7 @@ import java.util.List;
 public class HaxeTypeUnifier {
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
     // @TODO: Do a proper unification
-    return a.withConstantValue(null);
+    return a.withoutConstantValue();
     //return a;
   }
 

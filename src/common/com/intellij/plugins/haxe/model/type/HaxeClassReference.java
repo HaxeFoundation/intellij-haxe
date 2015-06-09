@@ -22,8 +22,8 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 
 public class HaxeClassReference {
-  public String name;
-  public PsiElement elementContext;
+  final public String name;
+  final public PsiElement elementContext;
 
   public HaxeClassReference(String name, PsiElement elementContext) {
     this.name = name;
@@ -31,7 +31,14 @@ public class HaxeClassReference {
   }
 
   public HaxeClass getHaxeClass() {
-    return HaxeResolveUtil.findClassByQName(name, elementContext);
+    HaxeClass clazz = HaxeResolveUtil.findClassByQName(name, elementContext);
+    if (clazz == null) {
+      clazz = HaxeResolveUtil.tryResolveClassByQName(elementContext);
+      if (clazz == null) {
+        System.out.println("Not found '" + name + "' : " + elementContext + " : " + elementContext.getText());
+      }
+    }
+    return clazz;
   }
 
   public String getName() {

@@ -87,7 +87,7 @@ abstract public class HaxeMemberModel {
   }
 
   public SpecificTypeReference getResultType() {
-    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
+    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.baseNamePsi);
   }
 
   public String getPresentableText(HaxeMethodContext context) {

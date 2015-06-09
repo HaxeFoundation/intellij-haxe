@@ -120,16 +120,12 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
   protected void checkCompletion(CheckType checkType, List<String> variants) {
     List<String> stringList = myFixture.getLookupElementStrings();
 
-    try {
-      for (LookupElement element : myFixture.getLookupElements()) {
-        PsiElement element1 = element.getPsiElement();
-        if (element1 instanceof NavigationItem) {
-          //System.out.println(((NavigationItem)element1).getPresentation().getPresentableText());
-          stringList.add(((NavigationItem)element1).getPresentation().getPresentableText());
-        }
+    for (LookupElement element : myFixture.getLookupElements()) {
+      PsiElement element1 = element.getPsiElement();
+      if (element1 instanceof NavigationItem) {
+        //System.out.println(((NavigationItem)element1).getPresentation().getPresentableText());
+        stringList.add(((NavigationItem)element1).getPresentation().getPresentableText());
       }
-    } catch (Throwable t) {
-      t.printStackTrace();
     }
 
     /*

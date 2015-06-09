@@ -17,22 +17,20 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.psi.PsiElement;
 
-public abstract class SpecificTypeReference {
-  abstract public SpecificTypeReference withConstantValue(Object constantValue);
-  public SpecificTypeReference withoutConstantValue() {
-    return withConstantValue(null);
-  }
-  public boolean hasConstant() {
-    return this.getConstant() != null;
-  }
-  abstract public Object getConstant();
-  abstract public PsiElement getElementContext();
-  abstract public String toString();
-  abstract public String toStringWithoutConstant();
-  abstract public SpecificTypeReference access(String name);
-  final public boolean isAssignableFrom(SpecificTypeReference type2) {
-    return HaxeTypeCompatible.isAssignable(this, type2);
+import java.util.ArrayList;
+import java.util.List;
+
+public class HaxeExpressionEvaluatorContext {
+  public SpecificTypeReference result;
+  public List<SpecificTypeReference> returns = new ArrayList<SpecificTypeReference>();
+  public AnnotationHolder holder;
+
+  public void addError(PsiElement element, String error) {
+    if (holder != null) {
+      holder.createErrorAnnotation(element, error);
+    }
   }
 }

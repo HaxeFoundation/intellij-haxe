@@ -122,4 +122,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testRepeatedArgumentName() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testAbstractFromTo() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

@@ -20,8 +20,10 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiWhiteSpace;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,5 +71,14 @@ public class HaxePsiUtils {
     Document document = PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
     TextRange range = element.getTextRange();
     document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
+  }
+
+  public static PsiElement getNextSiblingNoSpaces(PsiElement element) {
+    if (element == null) return null;
+    PsiElement sibling = element.getNextSibling();
+    while (sibling != null && sibling instanceof PsiWhiteSpace) {
+      sibling = sibling.getNextSibling();
+    }
+    return sibling;
   }
 }

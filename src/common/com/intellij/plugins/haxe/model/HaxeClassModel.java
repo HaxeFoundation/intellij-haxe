@@ -19,12 +19,15 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeClassReference;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -81,6 +84,51 @@ public class HaxeClassModel {
 
   public boolean isAbstract() {
     return haxeClass instanceof HaxeAbstractClassDeclaration;
+  }
+
+  // @TODO: Create AbstractHaxeClassModel extending this class for these methods?
+  // @TODO: this should be properly parsed in haxe.bnf so searching for the underlying type is not required
+  public HaxeType getAbstractUnderlyingType() {
+    if (!isAbstract()) return null;
+    PsiElement[] children = getPsi().getChildren();
+    if (children.length >= 4) {
+      if (children[2].getText().equals("(")) {
+        if (children[3] instanceof HaxeType) {
+          return (HaxeType)children[3];
+        }
+      }
+    }
+    return null;
+  }
+
+  // @TODO: this should be properly parsed in haxe.bnf so searching for to is not required
+  public List<HaxeType> getAbstractToList() {
+    if (!isAbstract()) return Collections.emptyList();
+    List<HaxeType> types = new LinkedList<HaxeType>();
+    for (HaxeIdentifier id : HaxePsiUtils.getChilds(haxeClass, HaxeIdentifier.class)) {
+      if (id.getText().equals("to")) {
+        PsiElement sibling = HaxePsiUtils.getNextSiblingNoSpaces(id);
+        if (sibling instanceof HaxeType) {
+          types.add((HaxeType)sibling);
+        }
+      }
+    }
+    return types;
+  }
+
+  // @TODO: this should be properly parsed in haxe.bnf so searching for from is not required
+  public List<HaxeType> getAbstractFromList() {
+    if (!isAbstract()) return Collections.emptyList();
+    List<HaxeType> types = new LinkedList<HaxeType>();
+    for (HaxeIdentifier id : HaxePsiUtils.getChilds(haxeClass, HaxeIdentifier.class)) {
+      if (id.getText().equals("from")) {
+        PsiElement sibling = HaxePsiUtils.getNextSiblingNoSpaces(id);
+        if (sibling instanceof HaxeType) {
+          types.add((HaxeType)sibling);
+        }
+      }
+    }
+    return types;
   }
 
   public boolean hasMethod(String name) {

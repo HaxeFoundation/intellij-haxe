@@ -18,14 +18,17 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.psi.PsiElement;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
-  public HaxeClassReference clazz;
-  public SpecificTypeReference[] specifics;
-  public Object constantValue = null;
+  final public HaxeClassReference clazz;
+  final public SpecificTypeReference[] specifics;
+  final public Object constantValue;
 
   public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue) {
     this.clazz = clazz;
@@ -57,6 +60,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
     return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, EMPTY, null);
+  }
+
+  static public SpecificHaxeClassReference primitive(String name, PsiElement context) {
+    return withoutGenerics(new HaxeClassReference(name, context));
+  }
+
+  static public SpecificHaxeClassReference primitive(String name, PsiElement context, Object constant) {
+    return withoutGenerics(new HaxeClassReference(name, context), constant);
   }
 
   static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz) {
@@ -93,7 +104,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     String out = toStringWithoutConstant();
     if (constantValue != null) {
       if (out.equals("Int")) {
-        out += " = " + (int)HaxeTypeResolver.getDoubleValue(constantValue);
+        out += " = " + (int)HaxeTypeUtils.getDoubleValue(constantValue);
       } else if (out.equals("String")) {
         out += " = " + constantValue + "";
       } else {
@@ -123,19 +134,5 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (method != null) return HaxeTypeResolver.getMethodFunctionType(method);
     if (field != null) return HaxeTypeResolver.getFieldOrMethodReturnType(field);
     return null;
-  }
-
-  @Override
-  public boolean isAssignableFrom(SpecificTypeReference type2) {
-    if (!(type2 instanceof SpecificHaxeClassReference)) return false;
-    SpecificHaxeClassReference that = (SpecificHaxeClassReference)type2;
-    if (this.toStringWithoutConstant().equals("Dynamic") || that.toStringWithoutConstant().equals("Dynamic")) {
-      return true;
-    }
-    // @TODO: This should be done automatically if we have the haxe sdk!
-    if (this.toStringWithoutConstant().equals("Float") && that.toStringWithoutConstant().equals("Int")) {
-      return true;
-    }
-    return this.toStringWithoutConstant().equals(that.toStringWithoutConstant());
   }
 }
