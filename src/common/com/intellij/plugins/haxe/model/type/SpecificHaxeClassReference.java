@@ -37,6 +37,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
+    if (this.constantValue == constantValue) return this;
     return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue);
   }
 
@@ -61,6 +62,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   static public SpecificHaxeClassReference getBool(PsiElement context) {
     return primitive("Bool", context);
   }
+  static public SpecificHaxeClassReference getInt(PsiElement context) {
+    return primitive("Int", context);
+  }
 
   static public SpecificHaxeClassReference getDynamic(PsiElement context) {
     return primitive("Dynamic", context);
@@ -68,6 +72,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   static public SpecificHaxeClassReference getUnknown(PsiElement context) {
     return primitive("Unknown", context);
+  }
+
+  static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
+    return withGenerics(new HaxeClassReference("Iterator", type.getElementContext()), new SpecificTypeReference[] {type});
   }
 
   static public SpecificHaxeClassReference primitive(String name, PsiElement context) {

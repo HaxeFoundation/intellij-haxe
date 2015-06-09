@@ -54,7 +54,7 @@ public abstract class SpecificTypeReference {
   public SpecificTypeReference withoutConstantValue() {
     return withConstantValue(null);
   }
-  public boolean hasConstant() {
+  public boolean isConstant() {
     return this.getConstant() != null;
   }
   abstract public Object getConstant();

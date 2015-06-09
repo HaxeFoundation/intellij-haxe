@@ -128,7 +128,9 @@ public class HaxeMethodModel extends HaxeMemberModel {
       index++;
     }
     out += ")";
-    out += ":" + getResultType();
+    if (!isConstructor()) {
+      out += ":" + getResultType();
+    }
     return out;
   }
 

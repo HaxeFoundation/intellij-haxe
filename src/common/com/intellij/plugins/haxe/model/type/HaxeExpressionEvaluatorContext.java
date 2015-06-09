@@ -27,10 +27,19 @@ import java.util.List;
 
 public class HaxeExpressionEvaluatorContext {
   public SpecificTypeReference result;
-  public List<SpecificTypeReference> returns = new ArrayList<SpecificTypeReference>();
+  private List<SpecificTypeReference> returns = new ArrayList<SpecificTypeReference>();
   public AnnotationHolder holder;
   private HaxeScope<SpecificTypeReference> scope = new HaxeScope<SpecificTypeReference>();
   public PsiElement root;
+
+  public void addReturnType(SpecificTypeReference type) {
+    this.returns.add(type);
+  }
+
+  public SpecificTypeReference getReturnType() {
+    if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root);
+    return HaxeTypeUnifier.unify(returns);
+  }
 
   public HaxeDocumentModel getDocument() {
     return HaxeDocumentModel.fromElement(root);

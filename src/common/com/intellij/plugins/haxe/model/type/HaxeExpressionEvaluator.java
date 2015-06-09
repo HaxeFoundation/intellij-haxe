@@ -23,9 +23,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.model.HaxeClassReferenceModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
@@ -75,11 +73,11 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeReturnStatement) {
       PsiElement[] children = element.getChildren();
-      if (children.length == 0) {
-        return SpecificHaxeClassReference.getVoid(element);
+      SpecificTypeReference result = SpecificHaxeClassReference.getVoid(element);
+      if (children.length >= 1) {
+        result = handle(children[0], context);
       }
-      SpecificTypeReference result = handle(children[0], context);
-      context.returns.add(result);
+      context.addReturnType(result);
       return result;
     }
 
@@ -325,7 +323,7 @@ public class HaxeExpressionEvaluator {
       if (list != null) {
         for (HaxeExpression expression : list.getExpressionList()) {
           SpecificTypeReference type = handle(expression, context);
-          if (!type.hasConstant()) {
+          if (!type.isConstant()) {
             allConstants = false;
           }
           else {
@@ -395,6 +393,23 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element);
     }
 
+    if (element instanceof HaxeIteratorExpression) {
+      final List<HaxeExpression> list = ((HaxeIteratorExpression)element).getExpressionList();
+      if (list.size() >= 2) {
+        final SpecificTypeReference left = handle(list.get(0), context);
+        final SpecificTypeReference right = handle(list.get(1), context);
+        Object constant = null;
+        if (left.isConstant() && right.isConstant()) {
+          constant = new HaxeRange(
+            HaxeTypeUtils.getIntValue(left.getConstant()),
+            HaxeTypeUtils.getIntValue(right.getConstant())
+          );
+        }
+        return SpecificHaxeClassReference.getIterator(SpecificHaxeClassReference.getInt(element)).withConstantValue(constant);
+      }
+      return SpecificHaxeClassReference.getUnknown(element);
+    }
+
     if (element instanceof HaxeArrayAccessExpression) {
       final List<HaxeExpression> list = ((HaxeArrayAccessExpression)element).getExpressionList();
       if (list.size() >= 2) {
@@ -402,7 +417,7 @@ public class HaxeExpressionEvaluator {
         final SpecificTypeReference right = handle(list.get(1), context);
         if (left.isArray()) {
           Object constant = null;
-          if (left.hasConstant() && right.hasConstant()) {
+          if (left.isConstant() && right.isConstant()) {
             List array = (List)left.getConstant();
             final int index = HaxeTypeUtils.getIntValue(right.getConstant());
             if (index >= 0 && index < array.size()) {
