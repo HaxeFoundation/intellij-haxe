@@ -164,7 +164,8 @@ public class HaxeExpressionEvaluator {
           context.addError(
             element,
             "Can't assign " + result + " to " + tag,
-            new HaxeFixer("Change Type") {
+            new HaxeCastFixer(initExpr, result, tag),
+            new HaxeFixer("Change TypeTag") {
               @Override
               public void run() {
                 HaxeDocumentModel.fromElement(element).replaceElementText(
@@ -173,7 +174,15 @@ public class HaxeExpressionEvaluator {
                 );
               }
             },
-            new HaxeCastFixer(initExpr, result, tag)
+            new HaxeFixer("Remove TypeTag") {
+              @Override
+              public void run() {
+                HaxeDocumentModel.fromElement(element).replaceElementText(
+                  typeTag,
+                  ""
+                );
+              }
+            }
           );
         }
       }
@@ -203,6 +212,9 @@ public class HaxeExpressionEvaluator {
             type = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement);
           }
         }
+      }
+      if (type == null) {
+        context.addError(element, "Can't resolve '" + element.getText() + "'");
       }
       return SpecificHaxeClassReference.ensure(type);
     }
@@ -238,6 +250,16 @@ public class HaxeExpressionEvaluator {
           parameterExpressions = Collections.emptyList();
         }
 
+        int len = Math.min(parameterTypes.size(), parameterExpressions.size());
+        for (int n = 0; n < len; n++) {
+          SpecificTypeReference type = parameterTypes.get(n);
+          HaxeExpression expression = parameterExpressions.get(n);
+          SpecificTypeReference value = handle(expression, context);
+          if (!type.canAssign(value)) {
+            context.addError(expression, "Can't assign " + value + " to " + type);
+          }
+        }
+
         //System.out.println(ftype.getDebugString());
         // More parameters than expected
         if (parameterExpressions.size() > parameterTypes.size()) {
@@ -248,18 +270,6 @@ public class HaxeExpressionEvaluator {
         // Less parameters than expected
         else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
           context.addError(callelement, "Less arguments than expected");
-        }
-        // Same arity
-        else {
-          int len = Math.min(parameterTypes.size(), parameterExpressions.size());
-          for (int n = 0; n < len; n++) {
-            SpecificTypeReference type = parameterTypes.get(n);
-            HaxeExpression expression = parameterExpressions.get(n);
-            SpecificTypeReference value = handle(expression, context);
-            if (!type.canAssign(value)) {
-              context.addError(expression, "Can't assign " + value + " to " + type);
-            }
-          }
         }
 
         return ftype.getReturnType();
