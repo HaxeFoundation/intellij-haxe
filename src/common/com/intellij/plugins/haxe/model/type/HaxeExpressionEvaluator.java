@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.annotation.Annotation;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -214,7 +215,31 @@ public class HaxeExpressionEvaluator {
         }
       }
       if (type == null) {
-        context.addError(element, "Can't resolve '" + element.getText() + "'");
+        Annotation annotation = context.addError(element, "Can't resolve '" + element.getText() + "'");
+        if (children.length == 1) {
+          annotation.registerFix(new HaxeFixer("Create local variable") {
+            @Override
+            public void run() {
+
+            }
+          });
+        } else {
+          if (element.getParent() instanceof HaxeCallExpression) {
+            annotation.registerFix(new HaxeFixer("Create method") {
+              @Override
+              public void run() {
+
+              }
+            });
+          }
+          annotation.registerFix(new HaxeFixer("Create field") {
+            @Override
+            public void run() {
+
+            }
+          });
+        }
+
       }
       return SpecificHaxeClassReference.ensure(type);
     }
@@ -237,8 +262,9 @@ public class HaxeExpressionEvaluator {
         }
       }
       if (functionType.isUnknown()) {
-        System.out.println("Couldn't resolve " + callLeft.getText());
+        //System.out.println("Couldn't resolve " + callLeft.getText());
       }
+
       if (functionType instanceof SpecificFunctionReference) {
         SpecificFunctionReference ftype = (SpecificFunctionReference)functionType;
         List<SpecificTypeReference> parameterTypes = ftype.getParameters();
