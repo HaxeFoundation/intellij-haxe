@@ -251,7 +251,8 @@ public class HaxeExpressionEvaluator {
         }
         // Same arity
         else {
-          for (int n = 0; n < parameterTypes.size(); n++) {
+          int len = Math.min(parameterTypes.size(), parameterExpressions.size());
+          for (int n = 0; n < len; n++) {
             SpecificTypeReference type = parameterTypes.get(n);
             HaxeExpression expression = parameterExpressions.get(n);
             SpecificTypeReference value = handle(expression, context);
