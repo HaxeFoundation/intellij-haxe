@@ -71,7 +71,9 @@ public class HaxeExpressionEvaluator {
       if (children.length == 0) {
         return getVoid(element);
       }
-      return handle(children[0], context);
+      SpecificTypeReference result = handle(children[0], context);
+      context.returns.add(result);
+      return result;
     }
 
     if (element instanceof HaxeNewExpression) {
@@ -98,7 +100,15 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeLocalVarDeclarationPart) {
-      return handle(((HaxeLocalVarDeclarationPart)element).getVarInit(), context);
+      SpecificTypeReference result = handle(((HaxeLocalVarDeclarationPart)element).getVarInit(), context);
+      HaxeTypeTag typeTag = ((HaxeLocalVarDeclarationPart)element).getTypeTag();
+      if (typeTag != null) {
+        SpecificTypeReference tag = HaxeTypeResolver.getTypeFromTypeTag(typeTag);
+        if (!tag.isAssignableFrom(result)) {
+          context.addError(element, "Can't assign " + result + " to " + tag);
+        }
+      }
+      return result;
     }
 
     if (element instanceof HaxeVarInit) {
@@ -243,6 +253,13 @@ public class HaxeExpressionEvaluator {
     PsiElement elementContext = left.getElementContext();
     SpecificTypeReference result = HaxeTypeUnifier.unify(left, right);
     if (operator.equals("/")) result = SpecificHaxeClassReference.primitive("Float", elementContext, null);
+
+    if (operator.equals("+")) {
+      if (left.toStringWithoutConstant().equals("String") || right.toStringWithoutConstant().equals("String")) {
+        return SpecificHaxeClassReference.primitive("String", element);
+      }
+    }
+
     if (
       operator.equals("==") || operator.equals("!=") ||
       operator.equals("<") || operator.equals("<=") ||

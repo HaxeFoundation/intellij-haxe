@@ -107,7 +107,7 @@ public class HaxeTypeResolver {
     if (type != null) return type;
 
     if (comp instanceof HaxeMethod) {
-      return getPsiElementType(comp.getLastChild());
+      return HaxeTypeUnifier.unify(getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), null).returns);
     } else {
       throw new RuntimeException("Can't get the body of a no PsiMethod");
     }
