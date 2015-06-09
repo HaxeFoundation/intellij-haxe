@@ -30,6 +30,8 @@ import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
+import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -138,13 +140,13 @@ public class HaxeExpressionEvaluator {
       }
       final HaxeExpression initExpr = init.getExpression();
       final SpecificTypeReference result = handle(init, context);
-      if (name != null) {
-        context.setLocal(name.getText(), result);
-      }
+      SpecificTypeReference finalResult = result;
       final HaxeTypeTag typeTag = ((HaxeLocalVarDeclarationPart)element).getTypeTag();
       if (typeTag != null) {
         final SpecificTypeReference tag = HaxeTypeResolver.getTypeFromTypeTag(typeTag);
         if (!tag.canAssign(result)) {
+          finalResult = tag;
+
           context.addError(
             element,
             "Can't assign " + result + " to " + tag,
@@ -169,7 +171,11 @@ public class HaxeExpressionEvaluator {
           );
         }
       }
-      return result;
+      if (name != null) {
+        context.setLocal(name.getText(), finalResult);
+      }
+
+      return finalResult;
     }
 
     if (element instanceof HaxeVarInit) {
@@ -189,8 +195,21 @@ public class HaxeExpressionEvaluator {
       HaxeCallExpression callelement = (HaxeCallExpression)element;
       HaxeExpression callLeft = ((HaxeCallExpression)element).getExpression();
       SpecificTypeReference functionType = handle(callLeft, context);
+
+      // @TODO: this should be innecessary when code is working right!
       if (functionType.isUnknown()) {
-        System.out.println("Couldn't resolve " + element.getText());
+        if (callLeft instanceof HaxeReference) {
+          PsiReference reference = ((HaxeReference)callLeft).getReference();
+          if (reference != null) {
+            PsiElement subelement = reference.resolve();
+            if (subelement instanceof HaxeMethod) {
+              functionType = ((HaxeMethod)subelement).getModel().getFunctionType();
+            }
+          }
+        }
+      }
+      if (functionType.isUnknown()) {
+        System.out.println("Couldn't resolve " + callLeft.getText());
       }
       if (functionType instanceof SpecificFunctionReference) {
         SpecificFunctionReference ftype = (SpecificFunctionReference)functionType;
