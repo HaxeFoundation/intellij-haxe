@@ -21,11 +21,44 @@ import com.intellij.psi.PsiElement;
 
 public abstract class SpecificTypeReference {
   static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
-    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, SpecificHaxeClassReference.EMPTY, null);
+    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, SpecificHaxeClassReference.EMPTY, null, null);
   }
 
   static public SpecificTypeReference createArray(SpecificTypeReference elementType) {
     return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Array", null), new SpecificTypeReference[]{elementType}, null);
+  }
+
+  public SpecificTypeReference withRangeConstraint(HaxeRange range) {
+    return this;
+  }
+
+  static public SpecificHaxeClassReference getVoid(PsiElement context) {
+    return primitive("Void", context);
+  }
+
+  static public SpecificHaxeClassReference getBool(PsiElement context) {
+    return primitive("Bool", context);
+  }
+  static public SpecificHaxeClassReference getInt(PsiElement context) {
+    return primitive("Int", context);
+  }
+
+  static public SpecificHaxeClassReference getDynamic(PsiElement context) {
+    return primitive("Dynamic", context);
+  }
+
+  static public SpecificHaxeClassReference getUnknown(PsiElement context) {
+    return primitive("Unknown", context);
+  }
+  static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
+    return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Iterator", type.getElementContext()),
+                                                   new SpecificTypeReference[]{type});
+  }
+  static public SpecificHaxeClassReference primitive(String name, PsiElement context) {
+    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context));
+  }
+  static public SpecificHaxeClassReference primitive(String name, PsiElement context, Object constant) {
+    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context), constant);
   }
 
   final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
@@ -50,12 +83,19 @@ public abstract class SpecificTypeReference {
     return null;
   }
 
+  final public SpecificTypeReference getIterableElementType(SpecificTypeReference iterable) {
+    return getInt(iterable.getElementContext());
+  }
+
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
   public SpecificTypeReference withoutConstantValue() {
     return withConstantValue(null);
   }
   public boolean isConstant() {
     return this.getConstant() != null;
+  }
+  public HaxeRange getRangeConstraint() {
+    return null;
   }
   abstract public Object getConstant();
   abstract public PsiElement getElementContext();

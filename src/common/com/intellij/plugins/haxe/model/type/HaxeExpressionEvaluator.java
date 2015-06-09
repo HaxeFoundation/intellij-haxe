@@ -81,6 +81,33 @@ public class HaxeExpressionEvaluator {
       return result;
     }
 
+    if (element instanceof HaxeIterable) {
+      return handle(((HaxeIterable)element).getExpression(), context);
+    }
+
+    if (element instanceof HaxeForStatement) {
+      final HaxeComponentName name = ((HaxeForStatement)element).getComponentName();
+      final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
+      final PsiElement body = element.getLastChild();
+      context.beginScope();
+      try {
+        final SpecificTypeReference iterableValue = handle(iterable, context);
+        SpecificTypeReference type = iterableValue.getIterableElementType(iterableValue);
+        if (iterableValue.isConstant()) {
+          final Object constant = iterableValue.getConstant();
+          if (constant instanceof HaxeRange) {
+            type = type.withRangeConstraint((HaxeRange)constant);
+          }
+        }
+        context.setLocal(name.getText(), type);
+        return handle(body, context);
+        //System.out.println(name);
+        //System.out.println(iterable);
+      } finally {
+        context.endScope();
+      }
+    }
+
     if (element instanceof HaxeNewExpression) {
       return HaxeTypeResolver.getTypeFromType(((HaxeNewExpression)element).getType());
     }
@@ -417,13 +444,21 @@ public class HaxeExpressionEvaluator {
         final SpecificTypeReference right = handle(list.get(1), context);
         if (left.isArray()) {
           Object constant = null;
-          if (left.isConstant() && right.isConstant()) {
+          if (left.isConstant()) {
             List array = (List)left.getConstant();
-            final int index = HaxeTypeUtils.getIntValue(right.getConstant());
-            if (index >= 0 && index < array.size()) {
-              constant = array.get(index);
-            } else {
-              context.addWarning(element, "Out of bounds");
+            final HaxeRange constraint = right.getRangeConstraint();
+            HaxeRange arrayBounds = new HaxeRange(0, array.size());
+            if (right.isConstant()) {
+              final int index = HaxeTypeUtils.getIntValue(right.getConstant());
+              if (arrayBounds.contains(index)) {
+                constant = array.get(index);
+              } else {
+                context.addWarning(element, "Out of bounds " + index + " not inside " + arrayBounds);
+              }
+            } else if (constraint != null) {
+              if (!arrayBounds.contains(constraint)) {
+                context.addWarning(element, "Out of bounds " + constraint + " not inside " + arrayBounds);
+              }
             }
           }
           return left.getArrayElementType().withConstantValue(constant);

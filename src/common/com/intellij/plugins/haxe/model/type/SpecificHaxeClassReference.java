@@ -29,16 +29,29 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   final public HaxeClassReference clazz;
   final public SpecificTypeReference[] specifics;
   final public Object constantValue;
+  final public HaxeRange rangeConstraint;
 
-  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue) {
+  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue, HaxeRange rangeConstraint) {
     this.clazz = clazz;
     this.specifics = specifics;
     this.constantValue = constantValue;
+    this.rangeConstraint = rangeConstraint;
   }
 
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
     if (this.constantValue == constantValue) return this;
-    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue);
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, rangeConstraint);
+  }
+
+  @Override
+  public SpecificTypeReference withRangeConstraint(HaxeRange range) {
+    if (this.rangeConstraint == range) return this;
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, range);
+  }
+
+  @Override
+  public HaxeRange getRangeConstraint() {
+    return this.rangeConstraint;
   }
 
   @Override
@@ -55,51 +68,20 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return withConstantValue(null);
   }
 
-  static public SpecificHaxeClassReference getVoid(PsiElement context) {
-    return primitive("Void", context);
-  }
-
-  static public SpecificHaxeClassReference getBool(PsiElement context) {
-    return primitive("Bool", context);
-  }
-  static public SpecificHaxeClassReference getInt(PsiElement context) {
-    return primitive("Int", context);
-  }
-
-  static public SpecificHaxeClassReference getDynamic(PsiElement context) {
-    return primitive("Dynamic", context);
-  }
-
-  static public SpecificHaxeClassReference getUnknown(PsiElement context) {
-    return primitive("Unknown", context);
-  }
-
-  static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
-    return withGenerics(new HaxeClassReference("Iterator", type.getElementContext()), new SpecificTypeReference[] {type});
-  }
-
-  static public SpecificHaxeClassReference primitive(String name, PsiElement context) {
-    return withoutGenerics(new HaxeClassReference(name, context));
-  }
-
-  static public SpecificHaxeClassReference primitive(String name, PsiElement context, Object constant) {
-    return withoutGenerics(new HaxeClassReference(name, context), constant);
-  }
-
   static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz) {
-    return new SpecificHaxeClassReference(clazz, EMPTY, null);
+    return new SpecificHaxeClassReference(clazz, EMPTY, null, null);
   }
 
   static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz, Object constantValue) {
-    return new SpecificHaxeClassReference(clazz, EMPTY, constantValue);
+    return new SpecificHaxeClassReference(clazz, EMPTY, constantValue, null);
   }
 
   static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics) {
-    return new SpecificHaxeClassReference(clazz, specifics, null);
+    return new SpecificHaxeClassReference(clazz, specifics, null, null);
   }
 
   static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue) {
-    return new SpecificHaxeClassReference(clazz, specifics, constantValue);
+    return new SpecificHaxeClassReference(clazz, specifics, constantValue, null);
   }
 
   public String toStringWithoutConstant() {
@@ -126,6 +108,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       } else {
         out += " = " + constantValue;
       }
+    }
+    if (rangeConstraint != null) {
+      out += " [" + rangeConstraint + "]";
     }
     return out;
   }

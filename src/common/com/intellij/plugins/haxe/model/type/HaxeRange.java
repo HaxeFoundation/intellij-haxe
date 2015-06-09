@@ -30,4 +30,12 @@ public class HaxeRange {
   public String toString() {
     return low + " ... " + high;
   }
+
+  public boolean contains(int index) {
+    return index >= low && index < high;
+  }
+
+  public boolean contains(HaxeRange that) {
+    return that.low >= this.low && that.high < this.high;
+  }
 }
