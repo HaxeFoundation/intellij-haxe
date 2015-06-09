@@ -97,7 +97,9 @@ public abstract class SpecificTypeReference {
   public HaxeRange getRangeConstraint() {
     return null;
   }
-  abstract public Object getConstant();
+  public Object getConstant() {
+    return null;
+  }
   abstract public PsiElement getElementContext();
   abstract public String toString();
   abstract public String toStringWithoutConstant();

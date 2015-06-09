@@ -34,6 +34,7 @@ import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.codehaus.groovy.ast.stmt.WhileStatement;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -344,6 +345,15 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeArrayLiteral) {
       HaxeExpressionList list = ((HaxeArrayLiteral)element).getExpressionList();
+      if (list != null) {
+        final List<HaxeExpression> list1 = list.getExpressionList();
+        if ((list1 != null) && list1.isEmpty()) {
+          final PsiElement child = list.getFirstChild();
+          if ((child instanceof HaxeForStatement) || (child instanceof HaxeWhileStatement)) {
+            return SpecificTypeReference.createArray(handle(child, context));
+          }
+        }
+      }
       ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
       ArrayList<Object> constants = new ArrayList<Object>();
       boolean allConstants = true;

@@ -39,8 +39,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
-    if (this.constantValue == constantValue) return this;
-    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, rangeConstraint);
+    //if (this.constantValue == constantValue) return this;
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null);
   }
 
   @Override
