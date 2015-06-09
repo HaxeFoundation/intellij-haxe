@@ -65,6 +65,7 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
+  final public boolean isDynamic() { return this.toStringWithoutConstant().equals("Dynamic"); }
   final public boolean isInvalid() { return this.toStringWithoutConstant().equals("@@Invalid"); }
   final public boolean isVoid() { return this.toStringWithoutConstant().equals("Void"); }
   final public boolean isInt() { return this.toStringWithoutConstant().equals("Int"); }

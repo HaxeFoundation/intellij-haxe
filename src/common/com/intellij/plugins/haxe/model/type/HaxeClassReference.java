@@ -18,19 +18,29 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 
 public class HaxeClassReference {
   final public String name;
   final public PsiElement elementContext;
+  final public HaxeClassModel clazz;
 
   public HaxeClassReference(String name, PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
+    this.clazz = null;
+  }
+
+  public HaxeClassReference(HaxeClassModel clazz) {
+    this.name = clazz.getName();
+    this.elementContext = null;
+    this.clazz = null;
   }
 
   public HaxeClass getHaxeClass() {
+    if (this.clazz != null) return this.clazz.getPsi();
     HaxeClass clazz = HaxeResolveUtil.findClassByQName(name, elementContext);
     if (clazz == null) {
       clazz = HaxeResolveUtil.tryResolveClassByQName(elementContext);

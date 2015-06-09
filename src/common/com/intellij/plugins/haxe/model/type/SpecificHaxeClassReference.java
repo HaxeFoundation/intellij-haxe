@@ -46,6 +46,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return (this.clazz != null) ? this.clazz.getHaxeClass() : null;
   }
 
+  public HaxeClassModel getHaxeClassModel() {
+    final HaxeClass aClass = getHaxeClass();;
+    return (aClass != null) ? aClass.getModel() : null;
+  }
+
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
     //if (this.constantValue == constantValue) return this;
     return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null);

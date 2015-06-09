@@ -182,16 +182,26 @@ public class HaxeTypeResolver {
   static private Set<PsiElement> processedElements = new HashSet<PsiElement>();
 
   static private void checkMethod(PsiElement element, HaxeExpressionEvaluatorContext context) {
+    final SpecificTypeReference retval = context.getReturnType();
+
     if (!(element instanceof HaxeMethod)) return;
     final HaxeTypeTag typeTag = HaxePsiUtils.getChild(element, HaxeTypeTag.class);
-    if (typeTag == null) return;
-    final SpecificTypeReference expectedType = getTypeFromTypeTag(typeTag);
+    SpecificTypeReference expectedType = null;
+    if (typeTag == null) {
+      final List<ReturnInfo> infos = context.getReturnInfos();
+      if (!infos.isEmpty()) {
+        expectedType = infos.get(0).type;
+      }
+    } else {
+      expectedType = getTypeFromTypeTag(typeTag);
+    }
+
     if (expectedType == null) return;
     for (ReturnInfo retinfo : context.getReturnInfos()) {
       if (expectedType.canAssign(retinfo.type)) continue;
       context.addError(
         retinfo.element,
-        "Can't return " + retinfo.type + ", expected " + expectedType
+        "Can't return " + retinfo.type + ", expected " + expectedType.toStringWithoutConstant()
       );
     }
   }

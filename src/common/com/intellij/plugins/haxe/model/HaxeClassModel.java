@@ -19,15 +19,15 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class HaxeClassModel {
   public HaxeClass haxeClass;
@@ -236,5 +236,51 @@ public class HaxeClassModel {
       }
     }
     return out;
+  }
+
+  public Set<HaxeClassModel> getCompatibleTypes() {
+    final Set<HaxeClassModel> output = new LinkedHashSet<HaxeClassModel>();
+    writeCompatibleTypes(output);
+    return output;
+  }
+
+  public void writeCompatibleTypes(Set<HaxeClassModel> output) {
+    // Own
+    output.add(this);
+
+    final HaxeClassModel parentClass = this.getParentClass();
+
+    // Parent classes
+    if (parentClass != null) {
+      if (!output.contains(parentClass)) {
+        parentClass.writeCompatibleTypes(output);
+      }
+    }
+
+    // Interfaces
+    for (HaxeClassReferenceModel model : this.getImplementingInterfaces()) {
+      if (model == null) continue;
+      final HaxeClassModel aInterface = model.getHaxeClass();
+      if (aInterface == null) continue;
+      if (!output.contains(aInterface)) {
+        aInterface.writeCompatibleTypes(output);
+      }
+    }
+
+    // @CHECK abstract FROM
+    for (HaxeType type : getAbstractFromList()) {
+      final SpecificTypeReference aTypeRef = HaxeTypeResolver.getTypeFromType(type);
+      if (aTypeRef instanceof SpecificHaxeClassReference) {
+        ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
+      }
+    }
+
+    // @CHECK abstract TO
+    for (HaxeType type : getAbstractToList()) {
+      final SpecificTypeReference aTypeRef = HaxeTypeResolver.getTypeFromType(type);
+      if (aTypeRef instanceof SpecificHaxeClassReference) {
+        ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
+      }
+    }
   }
 }

@@ -17,11 +17,13 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class HaxeTypeUnifier {
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
@@ -62,8 +64,22 @@ public class HaxeTypeUnifier {
   }
 
   static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
+    if (a.isDynamic()) return a.withoutConstantValue();
+    if (b.isDynamic()) return b.withoutConstantValue();
+    final Set<HaxeClassModel> atypes = a.getHaxeClassModel().getCompatibleTypes();
+    final Set<HaxeClassModel> btypes = b.getHaxeClassModel().getCompatibleTypes();
+    // @TODO: this could be really slow, hotspot for optimizing
+    for (HaxeClassModel type : atypes) {
+      if (btypes.contains(type)) {
+        // @TODO: generics
+        return SpecificHaxeClassReference.withoutGenerics(
+          new HaxeClassReference(type)
+        );
+      }
+    }
+
     // @TODO: Do a proper unification
-    return a.withoutConstantValue();
+    return SpecificTypeReference.getDynamic(a.getElementContext());
   }
 
   static public SpecificTypeReference unify(SpecificTypeReference[] types) {
