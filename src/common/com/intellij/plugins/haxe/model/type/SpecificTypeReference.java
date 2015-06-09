@@ -50,6 +50,9 @@ public abstract class SpecificTypeReference {
   static public SpecificHaxeClassReference getUnknown(PsiElement context) {
     return primitive("Unknown", context);
   }
+  static public SpecificHaxeClassReference getInvalid(PsiElement context) {
+    return primitive("@@Invalid", context);
+  }
   static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
     return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Iterator", type.getElementContext()),
                                                    new SpecificTypeReference[]{type});
@@ -62,6 +65,7 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
+  final public boolean isInvalid() { return this.toStringWithoutConstant().equals("@@Invalid"); }
   final public boolean isVoid() { return this.toStringWithoutConstant().equals("Void"); }
   final public boolean isInt() { return this.toStringWithoutConstant().equals("Int"); }
   final public boolean isNumeric() { return isInt() || isFloat(); }

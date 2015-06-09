@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,9 +28,42 @@ public class HaxeTypeUnifier {
     if (a == null && b == null) return SpecificTypeReference.getUnknown(null);
     if (a == null) return b;
     if (b == null) return a;
+
+    // Completely equals!
+    if (a.toStringWithoutConstant().equals(b.toStringWithoutConstant())) {
+      return a.withoutConstantValue();
+    }
+
+    if (a instanceof SpecificHaxeClassReference && b instanceof SpecificHaxeClassReference) {
+      return unifyTypes((SpecificHaxeClassReference)a, (SpecificHaxeClassReference)b);
+    }
+    if (a instanceof SpecificFunctionReference && b instanceof SpecificFunctionReference) {
+      return unifyFunctions((SpecificFunctionReference)a, (SpecificFunctionReference)b);
+    }
+
+    return SpecificTypeReference.getUnknown(a.getElementContext());
+  }
+
+  static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b)
+    {
+    final List<SpecificTypeReference> pa = a.getParameters();
+    final List<SpecificTypeReference> pb = b.getParameters();
+    //if (pa.size() != pb.size()) throw new HaxeCannotUnifyException();
+    if (pa.size() != pb.size()) return SpecificTypeReference.getInvalid(a.getElementContext());
+    int size = pa.size();
+    final ArrayList<SpecificTypeReference> params = new ArrayList<SpecificTypeReference>();
+    for (int n = 0; n < size; n++) {
+      final SpecificTypeReference param = unify(pa.get(n), pb.get(n));
+      if (param.isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
+      params.add(param);
+    }
+    final SpecificTypeReference retval = unify(a.getReturnType(), b.getReturnType());
+    return new SpecificFunctionReference(params, retval, null);
+  }
+
+  static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
     // @TODO: Do a proper unification
     return a.withoutConstantValue();
-    //return a;
   }
 
   static public SpecificTypeReference unify(SpecificTypeReference[] types) {

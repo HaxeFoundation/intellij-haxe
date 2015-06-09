@@ -38,8 +38,13 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   }
 
   @Override
-  public SpecificTypeReference withConstantValue(Object constantValue) {
+  public SpecificFunctionReference withConstantValue(Object constantValue) {
     return new SpecificFunctionReference(params, retval, method);
+  }
+
+  @Override
+  public SpecificFunctionReference withoutConstantValue() {
+    return withConstantValue(null);
   }
 
   @Override

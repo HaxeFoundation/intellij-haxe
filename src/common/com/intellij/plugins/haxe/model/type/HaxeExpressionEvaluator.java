@@ -85,7 +85,7 @@ public class HaxeExpressionEvaluator {
       if (children.length >= 1) {
         result = handle(children[0], context);
       }
-      context.addReturnType(result);
+      context.addReturnType(result, element);
       return result;
     }
 
@@ -494,6 +494,10 @@ public class HaxeExpressionEvaluator {
             "If expr " + expr + " should be bool",
             new HaxeCastFixer(children[0], expr, SpecificHaxeClassReference.getBool(element))
           );
+        }
+
+        if (expr.isConstant()) {
+          context.addWarning(children[0], "If expression constant");
         }
 
         if (children.length < 2) return SpecificHaxeClassReference.getUnknown(element);

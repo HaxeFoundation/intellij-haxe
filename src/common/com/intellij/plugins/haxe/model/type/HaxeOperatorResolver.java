@@ -37,7 +37,7 @@ public class HaxeOperatorResolver {
       );
     }
 
-    SpecificTypeReference result = HaxeTypeUnifier.unify(left, right);
+    SpecificTypeReference result = result = HaxeTypeUnifier.unify(left, right);
     if (operator.equals("/")) result = SpecificHaxeClassReference.primitive("Float", elementContext, null);
 
     if (operator.equals("+")) {

@@ -38,6 +38,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     this.rangeConstraint = rangeConstraint;
   }
 
+  public HaxeClassReference getHaxeClassRef() {
+    return this.clazz;
+  }
+
+  public HaxeClass getHaxeClass() {
+    return (this.clazz != null) ? this.clazz.getHaxeClass() : null;
+  }
+
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
     //if (this.constantValue == constantValue) return this;
     return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null);

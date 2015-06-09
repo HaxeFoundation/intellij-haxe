@@ -98,7 +98,8 @@ public class HaxeTypeResolver {
     if (type != null) return type;
 
     if (comp instanceof HaxeMethod) {
-      return getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), null).getReturnType();
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), null);
+      return context.getReturnType();
     } else {
       throw new RuntimeException("Can't get the body of a no PsiMethod");
     }
@@ -180,6 +181,21 @@ public class HaxeTypeResolver {
   // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
   static private Set<PsiElement> processedElements = new HashSet<PsiElement>();
 
+  static private void checkMethod(PsiElement element, HaxeExpressionEvaluatorContext context) {
+    if (!(element instanceof HaxeMethod)) return;
+    final HaxeTypeTag typeTag = HaxePsiUtils.getChild(element, HaxeTypeTag.class);
+    if (typeTag == null) return;
+    final SpecificTypeReference expectedType = getTypeFromTypeTag(typeTag);
+    if (expectedType == null) return;
+    for (ReturnInfo retinfo : context.getReturnInfos()) {
+      if (expectedType.canAssign(retinfo.type)) continue;
+      context.addError(
+        retinfo.element,
+        "Can't return " + retinfo.type + ", expected " + expectedType
+      );
+    }
+  }
+
   @NotNull
   static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder) {
     HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext();
@@ -187,11 +203,14 @@ public class HaxeTypeResolver {
       context.result = SpecificHaxeClassReference.primitive("Dynamic", element);
       return context;
     }
+
     processedElements.add(element);
     try {
       context.root = element;
       context.holder = holder;
-      return HaxeExpressionEvaluator.evaluate(element, context);
+      HaxeExpressionEvaluator.evaluate(element, context);
+      checkMethod(element.getParent(), context);
+      return context;
     } finally {
       processedElements.remove(element);
     }

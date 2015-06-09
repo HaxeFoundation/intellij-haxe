@@ -29,17 +29,34 @@ import java.util.List;
 public class HaxeExpressionEvaluatorContext {
   public SpecificTypeReference result;
   private List<SpecificTypeReference> returns = new ArrayList<SpecificTypeReference>();
+  private List<PsiElement> returnElements = new ArrayList<PsiElement>();
+  private List<ReturnInfo> returnInfos = new ArrayList<ReturnInfo>();
+
   public AnnotationHolder holder;
   private HaxeScope<SpecificTypeReference> scope = new HaxeScope<SpecificTypeReference>();
   public PsiElement root;
 
-  public void addReturnType(SpecificTypeReference type) {
+  public void addReturnType(SpecificTypeReference type, PsiElement element) {
     this.returns.add(type);
+    this.returnElements.add(element);
+    this.returnInfos.add(new ReturnInfo(element, type));
   }
 
   public SpecificTypeReference getReturnType() {
     if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root);
     return HaxeTypeUnifier.unify(returns);
+  }
+
+  public List<SpecificTypeReference> getReturnValues() {
+    return returns;
+  }
+
+  public List<ReturnInfo> getReturnInfos() {
+    return returnInfos;
+  }
+
+  public List<PsiElement> getReturnElements() {
+    return returnElements;
   }
 
   public HaxeDocumentModel getDocument() {
@@ -90,5 +107,15 @@ public class HaxeExpressionEvaluatorContext {
       return annotation;
     }
     return null;
+  }
+}
+
+class ReturnInfo {
+  final public SpecificTypeReference type;
+  final public PsiElement element;
+
+  public ReturnInfo(PsiElement element, SpecificTypeReference type) {
+    this.element = element;
+    this.type = type;
   }
 }
