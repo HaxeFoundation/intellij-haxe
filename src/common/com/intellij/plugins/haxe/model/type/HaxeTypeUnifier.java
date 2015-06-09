@@ -24,6 +24,9 @@ import java.util.List;
 
 public class HaxeTypeUnifier {
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
+    if (a == null && b == null) return SpecificTypeReference.getUnknown(null);
+    if (a == null) return b;
+    if (b == null) return a;
     // @TODO: Do a proper unification
     return a.withoutConstantValue();
     //return a;
@@ -35,9 +38,7 @@ public class HaxeTypeUnifier {
 
   static public SpecificTypeReference unify(List<SpecificTypeReference> types) {
     if (types.size() == 0) {
-      return SpecificHaxeClassReference.withoutGenerics(
-        new HaxeClassReference("Dynamic", null)
-      );
+      return SpecificTypeReference.getUnknown(null);
     }
     SpecificTypeReference type = types.get(0);
     for (int n = 1; n < types.size(); n++) {

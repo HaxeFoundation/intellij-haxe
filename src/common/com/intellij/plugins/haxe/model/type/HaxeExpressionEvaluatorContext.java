@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.psi.PsiElement;
 

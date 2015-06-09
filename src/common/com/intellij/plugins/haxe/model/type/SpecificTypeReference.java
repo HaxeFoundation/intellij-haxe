@@ -84,6 +84,10 @@ public abstract class SpecificTypeReference {
   }
 
   final public SpecificTypeReference getIterableElementType(SpecificTypeReference iterable) {
+    if (isArray()) {
+      return getArrayElementType();
+    }
+    // @TODO: Must implement it (it is not int always)
     return getInt(iterable.getElementContext());
   }
 
@@ -99,6 +103,15 @@ public abstract class SpecificTypeReference {
   }
   public Object getConstant() {
     return null;
+  }
+  final public boolean getConstantAsBool() {
+    return HaxeTypeUtils.getBoolValue(getConstant());
+  }
+  final public double getConstantAsDouble() {
+    return HaxeTypeUtils.getDoubleValue(getConstant());
+  }
+  final public int getConstantAsInt() {
+    return HaxeTypeUtils.getIntValue(getConstant());
   }
   abstract public PsiElement getElementContext();
   abstract public String toString();

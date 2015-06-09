@@ -65,8 +65,15 @@ public class HaxeExpressionEvaluator {
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
       SpecificTypeReference type = SpecificHaxeClassReference.getUnknown(element);
+      boolean deadCode = false;
       for (PsiElement childElement : element.getChildren()) {
         type = handle(childElement, context);
+        if (deadCode) {
+          context.addWarning(childElement, "Unreachable statement");
+        }
+        if (childElement instanceof HaxeReturnStatement) {
+          deadCode = true;
+        }
       }
       context.endScope();
       return type;
@@ -488,15 +495,30 @@ public class HaxeExpressionEvaluator {
             new HaxeCastFixer(children[0], expr, SpecificHaxeClassReference.getBool(element))
           );
         }
+
+        if (children.length < 2) return SpecificHaxeClassReference.getUnknown(element);
+        PsiElement eTrue = null;
+        PsiElement eFalse = null;
+        eTrue = children[1];
         if (children.length >= 3) {
-          return HaxeTypeUnifier.unify(handle(children[1], context), handle(children[2], context));
+          eFalse = children[2];
         }
-        else if (children.length >= 2) {
-          return handle(children[1], context);
+        SpecificTypeReference tTrue = null;
+        SpecificTypeReference tFalse = null;
+        if (eTrue != null) tTrue = handle(eTrue, context);
+        if (eFalse != null) tFalse = handle(eFalse, context);
+        if (expr.isConstant()) {
+          if (expr.getConstantAsBool()) {
+            if (tFalse != null) {
+              context.addWarning(eFalse, "Unreachable statement");
+            }
+          } else {
+            if (tTrue != null) {
+              context.addWarning(eTrue, "Unreachable statement");
+            }
+          }
         }
-        else {
-          return SpecificHaxeClassReference.getUnknown(element);
-        }
+        return HaxeTypeUnifier.unify(tTrue, tFalse);
       }
     }
 
