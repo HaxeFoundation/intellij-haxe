@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.psi.PsiElement;
 
 import java.util.ArrayList;
@@ -30,6 +31,10 @@ public class HaxeExpressionEvaluatorContext {
   public AnnotationHolder holder;
   private HaxeScope<SpecificTypeReference> scope = new HaxeScope<SpecificTypeReference>();
   public PsiElement root;
+
+  public HaxeDocumentModel getDocument() {
+    return HaxeDocumentModel.fromElement(root);
+  }
 
   public void beginScope() {
     scope = new HaxeScope<SpecificTypeReference>(scope);

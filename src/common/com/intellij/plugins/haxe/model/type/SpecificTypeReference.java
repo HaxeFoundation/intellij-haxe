@@ -20,9 +20,15 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.psi.PsiElement;
 
 public abstract class SpecificTypeReference {
+  static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
+    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, SpecificHaxeClassReference.EMPTY, null);
+  }
+
   final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
   final public boolean isVoid() { return this.toStringWithoutConstant().equals("Void"); }
   final public boolean isInt() { return this.toStringWithoutConstant().equals("Int"); }
+  final public boolean isNumeric() { return isInt() || isFloat(); }
+  final public boolean isBool() { return this.toStringWithoutConstant().equals("Bool"); }
   final public boolean isFloat() { return this.toStringWithoutConstant().equals("Float"); }
   final public boolean isString() { return this.toStringWithoutConstant().equals("String"); }
 

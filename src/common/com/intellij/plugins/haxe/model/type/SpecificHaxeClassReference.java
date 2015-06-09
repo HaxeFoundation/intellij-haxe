@@ -58,8 +58,20 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return withGenerics(new HaxeClassReference("Array", null), new SpecificTypeReference[] { elementType },  null);
   }
 
-  static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
-    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, EMPTY, null);
+  static public SpecificHaxeClassReference getVoid(PsiElement context) {
+    return primitive("Void", context);
+  }
+
+  static public SpecificHaxeClassReference getBool(PsiElement context) {
+    return primitive("Bool", context);
+  }
+
+  static public SpecificHaxeClassReference getDynamic(PsiElement context) {
+    return primitive("Dynamic", context);
+  }
+
+  static public SpecificHaxeClassReference getUnknown(PsiElement context) {
+    return primitive("Unknown", context);
   }
 
   static public SpecificHaxeClassReference primitive(String name, PsiElement context) {

@@ -125,7 +125,7 @@ public class HaxeTypeResolver {
     return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class));
   }
 
-  private static SpecificTypeReference getTypeFromFunctionType(HaxeFunctionType type) {
+  static public SpecificTypeReference getTypeFromFunctionType(HaxeFunctionType type) {
     ArrayList<SpecificTypeReference> args = new ArrayList<SpecificTypeReference>();
     for (HaxeTypeOrAnonymous anonymous : type.getTypeOrAnonymousList()) {
       args.add(getTypeFromTypeOrAnonymous(anonymous));
@@ -153,7 +153,7 @@ public class HaxeTypeResolver {
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(SpecificHaxeClassReference.EMPTY));
   }
 
-  static private SpecificTypeReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
+  static public SpecificTypeReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
     // @TODO: Do a proper type resolving
     HaxeType type = typeOrAnonymous.getType();
     if (type != null) {

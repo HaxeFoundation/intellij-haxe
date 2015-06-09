@@ -49,6 +49,11 @@ public class HaxeCastUtil {
       return "Std.int(" + elementText + ")";
     }
 
+    // (Int|Float) -> Bool
+    if (fromType.isNumeric() && toType.isBool()) {
+      return "((" + elementText + ") != 0)";
+    }
+
     // Generic cast
     return "cast(" + elementText + ", " + toType.toStringWithoutConstant() + ")";
   }
