@@ -120,6 +120,10 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
   protected void checkCompletion(CheckType checkType, List<String> variants) {
     List<String> stringList = myFixture.getLookupElementStrings();
 
+    if (stringList == null) {
+      throw new RuntimeException("Couldn't get lookups");
+    }
+
     for (LookupElement element : myFixture.getLookupElements()) {
       PsiElement element1 = element.getPsiElement();
       if (element1 instanceof NavigationItem) {

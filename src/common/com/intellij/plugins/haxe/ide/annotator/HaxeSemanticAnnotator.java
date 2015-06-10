@@ -38,6 +38,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
+  // @TODO: Add a proper UI configuration checkbox
+  //static public final boolean ENABLE_EXPERIMENTAL_BODY_CHECK = true;
+  static public final boolean ENABLE_EXPERIMENTAL_BODY_CHECK = false;
+
   @Override
   public void annotate(PsiElement element, AnnotationHolder holder) {
     analyzeSingle(element, holder);
@@ -124,7 +128,9 @@ class MethodChecker {
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
     checkOverride(methodPsi, holder);
-    MethodBodyChecker.check(methodPsi, holder);
+    if (HaxeSemanticAnnotator.ENABLE_EXPERIMENTAL_BODY_CHECK) {
+      MethodBodyChecker.check(methodPsi, holder);
+    }
     //currentMethod.getBodyPsi()
   }
 
