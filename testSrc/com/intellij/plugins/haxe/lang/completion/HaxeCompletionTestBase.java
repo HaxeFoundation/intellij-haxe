@@ -119,12 +119,17 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
 
   protected void checkCompletion(CheckType checkType, List<String> variants) {
     List<String> stringList = myFixture.getLookupElementStrings();
+    LookupElement[] elements = myFixture.getLookupElements();
 
     if (stringList == null) {
-      throw new RuntimeException("Couldn't get lookups");
+      stringList = Collections.emptyList();
     }
 
-    for (LookupElement element : myFixture.getLookupElements()) {
+    if (elements == null) {
+      elements = new LookupElement[0];
+    }
+
+    for (LookupElement element : elements) {
       PsiElement element1 = element.getPsiElement();
       if (element1 instanceof NavigationItem) {
         //System.out.println(((NavigationItem)element1).getPresentation().getPresentableText());
@@ -138,10 +143,6 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
     System.out.println(stringList.size());
     System.out.println(stringList);
     */
-
-    if (stringList == null) {
-      stringList = Collections.emptyList();
-    }
 
     if (checkType == CheckType.EQUALS) {
       UsefulTestCase.assertSameElements(stringList, variants);
