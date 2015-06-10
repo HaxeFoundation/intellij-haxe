@@ -19,19 +19,18 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.*;
-import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.plugins.haxe.lang.psi.HaxeExtendsDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeImplementsDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayFactory;
-import com.intellij.util.IncorrectOperationException;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

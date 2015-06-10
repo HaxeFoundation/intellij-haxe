@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeModifierList;
-import com.intellij.plugins.haxe.lang.psi.HaxeModifierListPsiMixin;
 
 /**
  * Created by ebishton on 10/1/14.

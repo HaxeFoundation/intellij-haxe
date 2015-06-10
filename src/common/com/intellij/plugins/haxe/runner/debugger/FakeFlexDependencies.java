@@ -17,7 +17,9 @@
  */
 package com.intellij.plugins.haxe.runner.debugger;
 
-import com.intellij.lang.javascript.flex.projectStructure.model.*;
+import com.intellij.lang.javascript.flex.projectStructure.model.Dependencies;
+import com.intellij.lang.javascript.flex.projectStructure.model.DependencyEntry;
+import com.intellij.lang.javascript.flex.projectStructure.model.SdkEntry;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.lang.parser.declarations;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
 
 public class ExternDeclarationTest extends DeclarationTestBase {
   public ExternDeclarationTest() {

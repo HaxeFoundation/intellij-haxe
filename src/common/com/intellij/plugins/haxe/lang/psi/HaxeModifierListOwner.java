@@ -17,9 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.patterns.PsiModifierListOwnerPattern;
 import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiModifierListOwner;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

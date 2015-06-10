@@ -27,8 +27,12 @@ import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.util.*;
-import com.intellij.psi.*;
+import com.intellij.plugins.haxe.util.HaxePresentableUtil;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.tree.IElementType;
@@ -55,7 +59,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   @Override
-  @Nullable @NonNls
+  @Nullable
+  @NonNls
   public String getName() {
     final HaxeComponentName name = getComponentName();
     if (name != null) {
@@ -94,7 +99,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
         if (member == null) {
           result.append(AbstractHaxeNamedComponent.this.getText());
-        } else {
+        }
+        else {
           result.append(member.getName());
 
           if (member instanceof HaxeMethodModel) {

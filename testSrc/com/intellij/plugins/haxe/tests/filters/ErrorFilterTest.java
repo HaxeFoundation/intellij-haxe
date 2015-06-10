@@ -19,10 +19,8 @@ package com.intellij.plugins.haxe.tests.filters;
 
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
-import com.intellij.execution.filters.RegexpFilter;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.tests.runner.filters.ErrorFilter;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

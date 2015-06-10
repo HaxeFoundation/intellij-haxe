@@ -57,7 +57,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**

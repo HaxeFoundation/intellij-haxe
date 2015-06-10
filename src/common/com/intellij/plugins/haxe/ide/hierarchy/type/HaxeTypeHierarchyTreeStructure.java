@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
 
 /**
  * Created by srikanthg on 10/23/14.

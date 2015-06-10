@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiStatement;

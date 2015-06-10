@@ -17,10 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;

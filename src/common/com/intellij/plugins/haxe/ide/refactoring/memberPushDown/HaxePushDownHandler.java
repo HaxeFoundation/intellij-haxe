@@ -27,11 +27,9 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAt
 import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
-import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.classMembers.MemberInfoBase;
 import com.intellij.refactoring.memberPushDown.JavaPushDownHandler;
-import com.intellij.refactoring.memberPushDown.PushDownDialog;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.refactoring.util.classMembers.MemberInfoStorage;
