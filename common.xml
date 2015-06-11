@@ -47,11 +47,12 @@
   <!-- See if we're being run from within IDEA (or at least an IDEA
        directory is ANT_HOME). -->
   <property name="idea.candidate.directory" location="${ant.home}/../.."/>
+  <property name="idea.build.id.file" value="build.txt"/>
   <condition property="idea.ultimate.build" value="${idea.candidate.directory}">
     <and>
-      <matches pattern=".*/lib/ant" string="${ant.home}"/>
+      <matches pattern=".*[\\/]lib[\\/]ant" string="${ant.home}"/>
       <resourceexists>
-        <file file="${idea.candidate.directory}/build.txt"/>
+        <file file="${idea.candidate.directory}/${idea.build.id.file}"/>
       </resourceexists>
     </and>
   </condition>
@@ -69,7 +70,7 @@
     <condition>
       <not>
         <resourceexists>
-          <file file="${idea.ultimate.build}/build.txt"/>
+          <file file="${idea.ultimate.build}/${idea.build.id.file}"/>
         </resourceexists>
       </not>
     </condition>
