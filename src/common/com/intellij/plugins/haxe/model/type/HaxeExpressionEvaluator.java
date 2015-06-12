@@ -31,12 +31,14 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -284,7 +286,16 @@ public class HaxeExpressionEvaluator {
       SpecificTypeReference type = handle(children[0], context);
       for (int n = 1; n < children.length; n++) {
         if (type != null) {
-          type = type.access(children[n].getText(), context);
+          String accessName = children[n].getText();
+          if (type.isString() && type.isConstant() && accessName.equals("code")) {
+            String str = (String)type.getConstant();
+            type = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1);
+            if (str == null || str.length() != 1) {
+              context.addError(element, "String must be a single UTF8 char");
+            }
+          } else {
+            type = type.access(accessName, context);
+          }
         }
       }
       // @TODO: this should be innecessary when code is working right!
@@ -384,7 +395,11 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeStringLiteralExpression) {
       // @TODO: check if it has string interpolation inside, in that case text is not constant
-      return SpecificHaxeClassReference.primitive("String", element, ((HaxeStringLiteralExpression)element).getCanonicalText());
+      return SpecificHaxeClassReference.primitive(
+        "String",
+        element,
+        HaxeStringUtil.unescapeString(element.getText())
+      );
     }
 
     if (element instanceof HaxeExpressionList) {

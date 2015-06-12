@@ -5,7 +5,7 @@ class Main {
   static public function main2(test:StringFrom = 'test') {
   }
 
-  static public function main3(<error descr="Incompatible type StringTo can't be assigned from String = 'test'">test:StringTo = 'test'</error>) {
+  static public function main3(<error descr="Incompatible type StringTo can't be assigned from String = test">test:StringTo = 'test'</error>) {
   }
 }
 

@@ -42,6 +42,9 @@ public abstract class SpecificTypeReference {
   static public SpecificHaxeClassReference getInt(PsiElement context) {
     return primitive("Int", context);
   }
+  static public SpecificHaxeClassReference getInt(PsiElement context, int value) {
+    return primitive("Int", context, value);
+  }
 
   static public SpecificHaxeClassReference getDynamic(PsiElement context) {
     return primitive("Dynamic", context);
