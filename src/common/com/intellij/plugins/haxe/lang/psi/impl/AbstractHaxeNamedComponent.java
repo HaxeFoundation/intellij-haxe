@@ -98,7 +98,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         HaxeMemberModel member = HaxeMemberModel.fromPsi(AbstractHaxeNamedComponent.this);
 
         if (member == null) {
-          result.append(AbstractHaxeNamedComponent.this.getText());
+          result.append(AbstractHaxeNamedComponent.this.getName());
         }
         else {
           result.append(member.getName());
