@@ -126,4 +126,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testAbstractFromTo() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testNullFunction() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

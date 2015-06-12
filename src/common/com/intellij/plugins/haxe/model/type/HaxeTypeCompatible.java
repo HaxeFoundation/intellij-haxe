@@ -28,6 +28,8 @@ public class HaxeTypeCompatible {
   }
 
   static public boolean isAssignable(SpecificTypeReference a, SpecificTypeReference b) {
+    if (a.isDynamic() || b.isDynamic()) return true;
+
     if (a instanceof SpecificFunctionReference && b instanceof SpecificFunctionReference) {
       return isAssignableFunction((SpecificFunctionReference)a, (SpecificFunctionReference)b);
     }
@@ -48,9 +50,7 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isAssignableType(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
-    if (a.toStringWithoutConstant().equals("Dynamic") || b.toStringWithoutConstant().equals("Dynamic")) {
-      return true;
-    }
+    if (a.isDynamic() || b.isDynamic()) return true;
     if (a.toStringWithoutConstant().equals(b.toStringWithoutConstant())) {
       return true;
     }
