@@ -39,10 +39,17 @@ public enum HaxeModifierType {
   public String getStringWithSpace() {
     return (this.s.length() == 0) ? "" : (this.s + " ");
   }
-}
 
-/*
-enum HaxeModifierTypeKind {
-  OTHER, VISIBILITY;
+  public int getVisibilityValue() {
+    switch (this) {
+      case PUBLIC: return 1;
+      case PRIVATE: return 0;
+      case EMPTY: return 0;
+    }
+    return -1;
+  }
+
+  public boolean hasLowerVisibilityThan(HaxeModifierType that) {
+    return this.getVisibilityValue() < that.getVisibilityValue();
+  }
 }
-*/

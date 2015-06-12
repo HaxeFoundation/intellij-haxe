@@ -130,4 +130,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testNullFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testOverrideVisibility() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

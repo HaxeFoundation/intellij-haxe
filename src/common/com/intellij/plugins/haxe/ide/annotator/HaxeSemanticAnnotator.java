@@ -247,8 +247,8 @@ class MethodChecker {
         }
       }
 
-      if (currentModifiers.getVisibility() != parentModifiers.getVisibility()) {
-        Annotation annotation = holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Method doesn't match parent's visibility");
+      if (currentModifiers.getVisibility().hasLowerVisibilityThan(parentModifiers.getVisibility())) {
+        Annotation annotation = holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Field " + currentMethod.getName() + " has less visibility (public/private) than superclass one");
         annotation.registerFix(
           new HaxeFixer("Change current method visibility") {
             @Override
