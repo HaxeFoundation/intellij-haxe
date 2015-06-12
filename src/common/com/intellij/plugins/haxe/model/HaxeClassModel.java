@@ -238,6 +238,11 @@ public class HaxeClassModel {
   }
 
   @Nullable
+  public HaxeClassBody getBodyPsi() {
+    return (haxeClass instanceof HaxeClassDeclaration) ? ((HaxeClassDeclaration)haxeClass).getClassBody() : null;
+  }
+
+  @Nullable
   public PsiIdentifier getNamePsi() {
     return haxeClass.getNameIdentifier();
   }
@@ -325,5 +330,13 @@ public class HaxeClassModel {
         ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
+  }
+
+  public void addField(String name, SpecificTypeReference type) {
+    this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic var " + name + ":" + type.toStringWithoutConstant() + ";\n");
+  }
+
+  public void addMethod(String name) {
+    this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic function " + name + "() {\n}\n");
   }
 }

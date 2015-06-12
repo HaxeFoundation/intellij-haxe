@@ -17,9 +17,6 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.Nullable;
-
 public enum HaxeModifierType {
   OVERRIDE("override"),
   STATIC("static"),
@@ -28,7 +25,9 @@ public enum HaxeModifierType {
   EMPTY(""),
   INLINE("inline"),
   FINAL("@:final"),
+  IS_VAR("@:isVar"),
   DEPRECATED("@:deprecated");
+
 
   public String s;
 
@@ -42,9 +41,12 @@ public enum HaxeModifierType {
 
   public int getVisibilityValue() {
     switch (this) {
-      case PUBLIC: return 1;
-      case PRIVATE: return 0;
-      case EMPTY: return 0;
+      case PUBLIC:
+        return 1;
+      case PRIVATE:
+        return 0;
+      case EMPTY:
+        return 0;
     }
     return -1;
   }

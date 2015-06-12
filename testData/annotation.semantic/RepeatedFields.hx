@@ -8,10 +8,11 @@ class Test {
   var <error descr="Duplicate class field declaration : c">c</error>:Int;
   var <error descr="Duplicate class field declaration : c">c</error>:String;
 
-  var <error descr="Duplicate class field declaration : d">d</error>(get, never):Int;
-  var <error descr="Duplicate class field declaration : d">d</error>(get, never):Int;
+  var <error descr="Duplicate class field declaration : d">d</error>(null, never):Int;
+  var <error descr="Duplicate class field declaration : d">d</error>(null, never):Int;
 
   var <error descr="Duplicate class field declaration : e">e</error>:Int;
   var <error descr="Duplicate class field declaration : e">e</error>:String;
   var <error descr="Duplicate class field declaration : e">e</error>:Test;
 }
+

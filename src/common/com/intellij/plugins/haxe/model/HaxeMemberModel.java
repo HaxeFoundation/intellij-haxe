@@ -36,6 +36,17 @@ abstract public class HaxeMemberModel {
     this.baseNamePsi = baseNamePsi;
   }
 
+  public boolean isPublic() {
+    return this.getModifiers().hasModifier(HaxeModifierType.PUBLIC);
+  }
+
+  private HaxeDocumentModel _document = null;
+  @NotNull
+  public HaxeDocumentModel getDocument() {
+    if (_document == null) _document = new HaxeDocumentModel(this.getPsi());
+    return _document;
+  }
+
   public PsiElement getPsi() { return basePsi; }
 
   public HaxeNamedComponent getNamedComponentPsi() {

@@ -43,24 +43,23 @@ public class HaxeDocumentModel {
   }
 
   public void replaceElementText(final PsiElement element, final String text, final StripSpaces strips) {
-    if (element != null) {
-      TextRange range = element.getTextRange();
-      int start = range.getStartOffset();
-      int end = range.getEndOffset();
-      String documentText = document.getText();
+    if (element == null) return;
+    TextRange range = element.getTextRange();
+    int start = range.getStartOffset();
+    int end = range.getEndOffset();
+    String documentText = document.getText();
 
-      if (strips.after) {
-        while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
-          end++;
-        }
+    if (strips.after) {
+      while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
+        end++;
       }
-      if (strips.before) {
-        while (start > 0 && HaxeCharUtils.isSpace(documentText.charAt(start - 1))) {
-          start--;
-        }
-      }
-      document.replaceString(start, end, text);
     }
+    if (strips.before) {
+      while (start > 0 && HaxeCharUtils.isSpace(documentText.charAt(start - 1))) {
+        start--;
+      }
+    }
+    document.replaceString(start, end, text);
   }
 
   public void wrapElement(final PsiElement element, final String before, final String after) {
@@ -68,16 +67,20 @@ public class HaxeDocumentModel {
   }
 
   public void wrapElement(final PsiElement element, final String before, final String after, StripSpaces strip) {
-    if (element != null) {
-      TextRange range = element.getTextRange();
-      this.replaceElementText(element, before + element.getText() + after, strip);
-    }
+    if (element == null) return;
+    TextRange range = element.getTextRange();
+    this.replaceElementText(element, before + element.getText() + after, strip);
   }
 
   public void addTextBeforeElement(final PsiElement element, final String text) {
-    if (element != null) {
-      TextRange range = element.getTextRange();
-      document.replaceString(range.getStartOffset(), range.getStartOffset(), text);
-    }
+    if (element == null) return;
+    TextRange range = element.getTextRange();
+    document.replaceString(range.getStartOffset(), range.getStartOffset(), text);
+  }
+
+  public void addTextAfterElement(final PsiElement element, final String text) {
+    if (element == null) return;
+    TextRange range = element.getTextRange();
+    document.replaceString(range.getEndOffset(), range.getEndOffset(), text);
   }
 }

@@ -121,6 +121,9 @@ public abstract class SpecificTypeReference {
   abstract public PsiElement getElementContext();
   abstract public String toString();
   abstract public String toStringWithoutConstant();
+  public String toStringWithConstant() {
+    return toString();
+  }
   public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
     return null;
   }

@@ -101,13 +101,6 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return this.getDeclaringClass().getName() + "." + this.getName();
   }
 
-  private HaxeDocumentModel _document = null;
-  @NotNull
-  public HaxeDocumentModel getDocument() {
-    if (_document == null) _document = new HaxeDocumentModel(haxeMethod);
-    return _document;
-  }
-
   public boolean isConstructor() {
     return this.getName().equals("new");
   }

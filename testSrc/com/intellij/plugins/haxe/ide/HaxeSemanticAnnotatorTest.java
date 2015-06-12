@@ -146,4 +146,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testRepeatedFields() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testPropertiesSimpleCheck() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

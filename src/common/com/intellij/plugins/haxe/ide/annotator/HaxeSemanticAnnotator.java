@@ -50,6 +50,115 @@ public class HaxeSemanticAnnotator implements Annotator {
       ClassChecker.check((HaxeClass)element, holder);
     } if (element instanceof HaxeType) {
       TypeChecker.check((HaxeType)element, holder);
+    } if (element instanceof HaxeVarDeclaration) {
+      FieldChecker.check((HaxeVarDeclaration)element, holder);
+    }
+  }
+}
+
+class TypeTagChecker {
+  public static void check(final PsiElement erroredElement, final HaxeTypeTag tag, final HaxeVarInit initExpression, final AnnotationHolder holder) {
+    final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(tag);
+    final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(initExpression);
+    final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
+    if (!type1.canAssign(type2)) {
+      // @TODO: Move to bundle
+      Annotation annotation = holder.createErrorAnnotation(erroredElement, "Incompatible type " + type1 + " can't be assigned from " + type2);
+      annotation.registerFix(new HaxeFixer("Change type") {
+        @Override
+        public void run() {
+          document.replaceElementText(tag, ":" + type2.toStringWithoutConstant());
+        }
+      });
+      annotation.registerFix(new HaxeFixer("Remove init") {
+        @Override
+        public void run() {
+          document.replaceElementText(initExpression, "", StripSpaces.BEFORE);
+        }
+      });
+    } else if (type2.getConstant() == null) {
+      // @TODO: Move to bundle
+      holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
+    }
+  }
+}
+
+class FieldChecker {
+  public static void check(final HaxeVarDeclaration var, final AnnotationHolder holder) {
+    HaxeFieldModel field = var.getModel();
+    if (field.isProperty()) {
+      checkProperty(field, holder);
+    }
+    if (field.hasInitializer() && field.hasTypeTag()) {
+      TypeTagChecker.check(field.getPsi(), field.getTypeTagPsi(), field.getInitializerPsi(), holder);
+    }
+  }
+
+  public static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
+    final HaxeDocumentModel document = field.getDocument();
+
+    if (field.getGetterPsi() != null && !field.getGetterType().isValidGetter()) {
+      holder.createErrorAnnotation(field.getGetterPsi(), "Invalid getter accessor");
+    }
+
+    if (field.getSetterPsi() != null && !field.getSetterType().isValidSetter()) {
+      holder.createErrorAnnotation(field.getSetterPsi(), "Invalid setter accessor");
+    }
+
+    if (field.getGetterType() == HaxeAccessorType.GET) {
+      final String methodName = "get_" + field.getName();
+      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      if (method == null) {
+        Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
+        annotation.registerFix(new HaxeFixer("Add method") {
+          @Override
+          public void run() {
+            field.getDeclaringClass().addMethod(methodName);
+          }
+        });
+      }
+    }
+
+    if (field.getSetterType() == HaxeAccessorType.SET) {
+      final String methodName = "set_" + field.getName();
+      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      if (method == null) {
+        Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
+        annotation.registerFix(new HaxeFixer("Add method") {
+          @Override
+          public void run() {
+            field.getDeclaringClass().addMethod(methodName);
+          }
+        });
+      }
+    }
+
+    if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
+      final HaxeVarInit psi = field.getInitializerPsi();
+      Annotation annotation = holder.createErrorAnnotation(
+        field.getInitializerPsi(),
+        "This field cannot be initialized because it is not a real variable"
+      );
+      annotation.registerFix(new HaxeFixer("Remove init") {
+        @Override
+        public void run() {
+          document.replaceElementText(psi, "", StripSpaces.BEFORE);
+        }
+      });
+      annotation.registerFix(new HaxeFixer("Add @:isVar") {
+        @Override
+        public void run() {
+          field.getModifiers().addModifier(HaxeModifierType.IS_VAR);
+        }
+      });
+      if (field.getSetterPsi() != null) {
+        annotation.registerFix(new HaxeFixer("Make setter null") {
+          @Override
+          public void run() {
+            document.replaceElementText(field.getSetterPsi(), "null");
+          }
+        });
+      }
     }
   }
 }
@@ -204,27 +313,12 @@ class MethodChecker {
         holder.createWarningAnnotation(param.getOptionalPsi(), "Optional not needed when specified an init value");
       }
       if (param.getVarInitPsi() != null && param.getTypeTagPsi() != null) {
-        final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi());
-        final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(param.getVarInitPsi().getExpression());
-        if (!type1.canAssign(type2)) {
-          // @TODO: Move to bundle
-          Annotation annotation = holder.createErrorAnnotation(param.getPsi(), "Incompatible type " + type1 + " can't be assigned from " + type2);
-          annotation.registerFix(new HaxeFixer("Change type") {
-            @Override
-            public void run() {
-              currentMethod.getDocument().replaceElementText(param.getTypeTagPsi(), ":" + type2.toStringWithoutConstant());
-            }
-          });
-          annotation.registerFix(new HaxeFixer("Remove init") {
-            @Override
-            public void run() {
-              currentMethod.getDocument().replaceElementText(param.getVarInitPsi(), "", StripSpaces.BEFORE);
-            }
-          });
-        } else if (type2.getConstant() == null) {
-          // @TODO: Move to bundle
-          holder.createErrorAnnotation(param.getPsi(), "Parameter default type should be constant but was " + type2);
-        }
+        TypeTagChecker.check(
+          param.getPsi(),
+          param.getTypeTagPsi(),
+          param.getVarInitPsi(),
+          holder
+        );
       }
       if (param.isOptional()) {
         hasOptional = true;
