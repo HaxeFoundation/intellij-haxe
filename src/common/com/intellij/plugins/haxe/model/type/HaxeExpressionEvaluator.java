@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
@@ -121,9 +122,20 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeThisExpression) {
-      PsiReference reference = element.getReference();
-      HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(element);
+      //PsiReference reference = element.getReference();
+      //HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(element);
       HaxeClass ancestor = HaxePsiUtils.getAncestor(element, HaxeClass.class);
+      if (ancestor == null) return SpecificTypeReference.getDynamic(element);
+      HaxeClassModel model = ancestor.getModel();
+      if (model.isAbstract()) {
+        HaxeTypeOrAnonymous type = model.getAbstractUnderlyingType();
+        if (type != null) {
+          HaxeClass aClass = HaxeResolveUtil.tryResolveClassByQName(type);
+          if (aClass != null) {
+            return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(aClass.getModel(), element), element);
+          }
+        }
+      }
       return SpecificHaxeClassReference.primitive(ancestor.getQualifiedName(), element);
     }
 

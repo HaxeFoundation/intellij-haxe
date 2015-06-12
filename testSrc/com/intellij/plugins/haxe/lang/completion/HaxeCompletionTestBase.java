@@ -83,14 +83,30 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
     myFixture.configureByFiles(files.toArray(new String[0]));
     final VirtualFile virtualFile = myFixture.copyFileToProject(getTestName(false) + ".txt");
     String text = new String(virtualFile.contentsToByteArray());
-    List<String> lines = new ArrayList<String>();
+    List<String> includeLines = new ArrayList<String>();
+    List<String> excludeLines = new ArrayList<String>();
+    boolean include = true;
     for (String line : text.split("\n")) {
-      lines.add(line.trim());
+      line = line.trim();
+      if (line.equals(":INCLUDE")) {
+        include = true;
+      } else if (line.equals(":EXCLUDE")) {
+        include = false;
+      } else if (line.length() == 0) {
+
+      } else {
+        if (include) {
+          includeLines.add(line);
+        } else {
+          excludeLines.add(line);
+        }
+      }
       //System.out.println(line);
     }
     //System.out.println(text);
     myFixture.complete(CompletionType.BASIC, 1);
-    checkCompletion(CheckType.INCLUDES, lines);
+    checkCompletion(CheckType.INCLUDES, includeLines);
+    checkCompletion(CheckType.EXCLUDES, excludeLines);
   }
 
   protected void doTestVariantsInner(String fileName) throws Throwable {

@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,9 +76,9 @@ public class HaxeTypeCompatible {
       if (thatClass.isAbstract()) {
 
         // Check if this is required!
-        HaxeType underlyingAbstractType = thatClass.getAbstractUnderlyingType();
+        HaxeTypeOrAnonymous underlyingAbstractType = thatClass.getAbstractUnderlyingType();
         if (underlyingAbstractType != null) {
-          SpecificTypeReference thatUnderlying = HaxeTypeResolver.getTypeFromType(underlyingAbstractType);
+          SpecificTypeReference thatUnderlying = HaxeTypeResolver.getTypeFromTypeOrAnonymous(underlyingAbstractType);
           if (a.toStringWithoutConstant().equals(thatUnderlying.toStringWithoutConstant())) {
             return true;
           }

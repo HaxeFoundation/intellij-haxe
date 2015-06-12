@@ -49,10 +49,7 @@ import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
@@ -232,7 +229,15 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public HaxeClassResolveResult resolveHaxeClass() {
     if (this instanceof HaxeThisExpression) {
-      return HaxeClassResolveResult.create(PsiTreeUtil.getParentOfType(this, HaxeClass.class));
+      HaxeClass clazz = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+      // this has different semantics on abstracts
+      if (clazz != null && clazz.getModel().isAbstract()) {
+        HaxeTypeOrAnonymous type = clazz.getModel().getAbstractUnderlyingType();
+        if (type != null) {
+          return HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
+        }
+      }
+      return HaxeClassResolveResult.create(clazz);
     }
     if (this instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);

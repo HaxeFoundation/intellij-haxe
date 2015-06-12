@@ -97,14 +97,13 @@ public class HaxeClassModel {
 
   // @TODO: Create AbstractHaxeClassModel extending this class for these methods?
   // @TODO: this should be properly parsed in haxe.bnf so searching for the underlying type is not required
-  public HaxeType getAbstractUnderlyingType() {
+  @Nullable
+  public HaxeTypeOrAnonymous getAbstractUnderlyingType() {
     if (!isAbstract()) return null;
     PsiElement[] children = getPsi().getChildren();
-    if (children.length >= 4) {
-      if (children[2].getText().equals("(")) {
-        if (children[3] instanceof HaxeType) {
-          return (HaxeType)children[3];
-        }
+    if (children.length >= 2) {
+      if (children[1] instanceof HaxeTypeOrAnonymous) {
+        return (HaxeTypeOrAnonymous)children[1];
       }
     }
     return null;
