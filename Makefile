@@ -19,5 +19,5 @@ protocol:
 	./build-haxe-protocol.sh
 
 #Build and run the unit tests
-test: protocol
+test:
 	./travis.sh $(IDEA_VERSION)
