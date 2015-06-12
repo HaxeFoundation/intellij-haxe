@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import org.jetbrains.annotations.NotNull;
 
 public class HaxeTypeCompatible {
   static public boolean canApplyBinaryOperator(SpecificTypeReference a, SpecificTypeReference b, String operator) {
@@ -49,14 +50,14 @@ public class HaxeTypeCompatible {
     return a.retval.canAssign(b.retval);
   }
 
-  static private boolean isAssignableType(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
+  static private boolean isAssignableType(@NotNull SpecificHaxeClassReference a, @NotNull SpecificHaxeClassReference b) {
     if (a.isDynamic() || b.isDynamic()) return true;
     if (a.toStringWithoutConstant().equals(b.toStringWithoutConstant())) {
       return true;
     }
 
     // Check from abstracts
-    HaxeClass thisClassPsi = (a != null && a.clazz != null) ? a.clazz.getHaxeClass() : null;
+    HaxeClass thisClassPsi = (a.clazz != null) ? a.clazz.getHaxeClass() : null;
     if (thisClassPsi != null) {
       HaxeClassModel thisClass = thisClassPsi.getModel();
       for (HaxeType type : thisClass.getAbstractFromList()) {

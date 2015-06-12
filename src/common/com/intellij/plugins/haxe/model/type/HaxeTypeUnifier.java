@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,8 +45,7 @@ public class HaxeTypeUnifier {
     return SpecificTypeReference.getUnknown(a.getElementContext());
   }
 
-  static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b)
-    {
+  static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b) {
     final List<SpecificTypeReference> pa = a.getParameters();
     final List<SpecificTypeReference> pb = b.getParameters();
     //if (pa.size() != pb.size()) throw new HaxeCannotUnifyException();
@@ -66,6 +64,8 @@ public class HaxeTypeUnifier {
   static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
     if (a.isDynamic()) return a.withoutConstantValue();
     if (b.isDynamic()) return b.withoutConstantValue();
+    if (a.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(null);
+    if (b.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(null);
     final Set<HaxeClassModel> atypes = a.getHaxeClassModel().getCompatibleTypes();
     final Set<HaxeClassModel> btypes = b.getHaxeClassModel().getCompatibleTypes();
     // @TODO: this could be really slow, hotspot for optimizing

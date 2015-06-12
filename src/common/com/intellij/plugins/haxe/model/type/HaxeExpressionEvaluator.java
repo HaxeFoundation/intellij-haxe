@@ -34,7 +34,6 @@ import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.codehaus.groovy.ast.stmt.WhileStatement;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,7 +68,8 @@ public class HaxeExpressionEvaluator {
       for (PsiElement childElement : element.getChildren()) {
         type = handle(childElement, context);
         if (deadCode) {
-          context.addWarning(childElement, "Unreachable statement");
+          //context.addWarning(childElement, "Unreachable statement");
+          context.addUnreachable(childElement);
         }
         if (childElement instanceof HaxeReturnStatement) {
           deadCode = true;
@@ -525,11 +525,11 @@ public class HaxeExpressionEvaluator {
         if (expr.isConstant()) {
           if (expr.getConstantAsBool()) {
             if (tFalse != null) {
-              context.addWarning(eFalse, "Unreachable statement");
+              context.addUnreachable(eFalse);
             }
           } else {
             if (tTrue != null) {
-              context.addWarning(eTrue, "Unreachable statement");
+              context.addUnreachable(eTrue);
             }
           }
         }
