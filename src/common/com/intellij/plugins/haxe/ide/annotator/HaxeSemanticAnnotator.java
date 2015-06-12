@@ -33,9 +33,7 @@ import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class HaxeSemanticAnnotator implements Annotator {
   @Override
@@ -82,10 +80,33 @@ class TypeChecker {
 class ClassChecker {
   static public void check(final HaxeClass clazzPsi, final AnnotationHolder holder) {
     HaxeClassModel clazz = clazzPsi.getModel();
+    checkDuplicatedFields(clazz, holder);
     checkClassName(clazz, holder);
     checkInterfaces(clazz, holder);
     checkExtends(clazz, holder);
     checkInterfacesMethods(clazz, holder);
+  }
+
+  static private void checkDuplicatedFields(final HaxeClassModel clazz, final AnnotationHolder holder) {
+    Map<String, HaxeMemberModel> map = new HashMap<String, HaxeMemberModel>();
+    Set<HaxeMemberModel> repeatedMembers = new HashSet<HaxeMemberModel>();
+    for (HaxeMemberModel member : clazz.getMembersSelf()) {
+      final String memberName = member.getName();
+      HaxeMemberModel repeatedMember = map.get(memberName);
+      if (repeatedMember != null) {
+        repeatedMembers.add(member);
+        repeatedMembers.add(repeatedMember);
+      } else {
+        map.put(memberName, member);
+      }
+    }
+
+    for (HaxeMemberModel member : repeatedMembers) {
+      holder.createErrorAnnotation(member.getNameOrBasePsi(), "Duplicate class field declaration : " + member.getName());
+    }
+
+
+    //Duplicate class field declaration
   }
 
   static private void checkClassName(final HaxeClassModel clazz, final AnnotationHolder holder) {

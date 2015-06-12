@@ -176,6 +176,30 @@ public class HaxeClassModel {
     return (method != null) ? method : field;
   }
 
+  public List<HaxeMemberModel> getMembers() {
+    LinkedList<HaxeMemberModel> members = new LinkedList<HaxeMemberModel>();
+    for (HaxeMethodModel method : getMethods()) members.add(method);
+    for (HaxeFieldModel field : getFields()) members.add(field);
+    return members;
+  }
+
+  @NotNull
+  public List<HaxeMemberModel> getMembersSelf() {
+    LinkedList<HaxeMemberModel> members = new LinkedList<HaxeMemberModel>();
+    HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
+    if (body != null) {
+      for (PsiElement element : body.getChildren()) {
+        if (element instanceof HaxeMethod || element instanceof HaxeVarDeclaration) {
+          HaxeMemberModel model = HaxeMemberModel.fromPsi(element);
+          if (model != null) {
+            members.add(model);
+          }
+        }
+      }
+    }
+    return members;
+  }
+
   public HaxeFieldModel getField(String name) {
     HaxeVarDeclaration name1 = (HaxeVarDeclaration)haxeClass.findHaxeFieldByName(name);
     return name1 != null ? name1.getModel() : null;
@@ -240,6 +264,19 @@ public class HaxeClassModel {
     if (body != null) {
       for (HaxeVarDeclaration declaration : HaxePsiUtils.getChilds(body, HaxeVarDeclaration.class)) {
         out.add(new HaxeFieldModel(declaration));
+      }
+    }
+    return out;
+  }
+
+  public List<HaxeFieldModel> getFieldsSelf() {
+    HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
+    LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
+    if (body != null) {
+      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChilds(body, HaxeVarDeclaration.class)) {
+        if (declaration.getContainingClass() == this.haxeClass) {
+          out.add(new HaxeFieldModel(declaration));
+        }
       }
     }
     return out;
