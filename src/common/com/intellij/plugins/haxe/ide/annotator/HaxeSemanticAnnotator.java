@@ -38,10 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class HaxeSemanticAnnotator implements Annotator {
-  // @TODO: Add a proper UI configuration checkbox
-  //static public final boolean ENABLE_EXPERIMENTAL_BODY_CHECK = true;
-  static public final boolean ENABLE_EXPERIMENTAL_BODY_CHECK = false;
-
   @Override
   public void annotate(PsiElement element, AnnotationHolder holder) {
     analyzeSingle(element, holder);
@@ -50,11 +46,9 @@ public class HaxeSemanticAnnotator implements Annotator {
   static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
     if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element, holder);
-    }
-    else if (element instanceof HaxeMethod) {
+    } else if (element instanceof HaxeMethod) {
       MethodChecker.check((HaxeMethod)element, holder);
-    }
-    else if (element instanceof HaxeClass) {
+    } else if (element instanceof HaxeClass) {
       ClassChecker.check((HaxeClass)element, holder);
     }
   }
@@ -63,9 +57,26 @@ public class HaxeSemanticAnnotator implements Annotator {
 class ClassChecker {
   static public void check(final HaxeClass clazzPsi, final AnnotationHolder holder) {
     HaxeClassModel clazz = clazzPsi.getModel();
+    checkClassName(clazz, holder);
     checkInterfaces(clazz, holder);
     checkExtends(clazz, holder);
     checkInterfacesMethods(clazz, holder);
+  }
+
+  static private void checkClassName(final HaxeClassModel clazz, final AnnotationHolder holder) {
+    final String name = clazz.getName();
+    if (!HaxeClassModel.isValidClassName(name)) {
+      Annotation annotation = holder.createErrorAnnotation(clazz.getNamePsi(), "Type name must start by upper case");
+      annotation.registerFix(new HaxeFixer("Change name") {
+        @Override
+        public void run() {
+          clazz.getDocument().replaceElementText(
+            clazz.getNamePsi(),
+            name.substring(0, 1).toUpperCase() + name.substring(1)
+          );
+        }
+      });
+    }
   }
 
   static public void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
@@ -128,7 +139,7 @@ class MethodChecker {
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
     checkOverride(methodPsi, holder);
-    if (HaxeSemanticAnnotator.ENABLE_EXPERIMENTAL_BODY_CHECK) {
+    if (HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK) {
       MethodBodyChecker.check(methodPsi, holder);
     }
     //currentMethod.getBodyPsi()

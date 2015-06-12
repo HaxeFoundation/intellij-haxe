@@ -42,6 +42,10 @@ public class HaxeClassModel {
     return new HaxeClassReferenceModel(list.get(0));
   }
 
+  static public boolean isValidClassName(String name) {
+    return name.substring(0, 1).equals(name.substring(0, 1).toUpperCase());
+  }
+
   public HaxeClassModel getParentClass() {
     final HaxeClassReferenceModel reference = this.getParentClassReference();
     return (reference != null) ? reference.getHaxeClass() : null;

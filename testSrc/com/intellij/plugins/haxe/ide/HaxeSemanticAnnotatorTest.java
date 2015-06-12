@@ -134,4 +134,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testOverrideVisibility() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testUcFirstClassName() throws Exception {
+    doTest("Change name");
+  }
 }
