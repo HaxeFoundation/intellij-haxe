@@ -15,9 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.type;
+package com.intellij.plugins.haxe.model.fixer;
 
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+import com.intellij.plugins.haxe.model.type.HaxeCastUtil;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 
 public class HaxeCastFixer extends HaxeFixer {

@@ -163,6 +163,10 @@ public class HaxeClassModel {
     return getMethod("new");
   }
 
+  public boolean hasConstructor() {
+    return getConstructor() != null;
+  }
+
   public HaxeMethodModel getParentConstructor() {
     HaxeClassReferenceModel parentClass = getParentClassReference();
     if (parentClass == null) return null;

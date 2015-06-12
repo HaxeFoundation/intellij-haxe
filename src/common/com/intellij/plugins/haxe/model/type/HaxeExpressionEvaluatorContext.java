@@ -19,10 +19,9 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.Annotator;
-import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.psi.PsiElement;
 
 import java.util.ArrayList;

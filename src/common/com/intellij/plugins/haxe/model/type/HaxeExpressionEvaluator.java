@@ -26,6 +26,8 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.fixer.HaxeCastFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -112,13 +114,33 @@ public class HaxeExpressionEvaluator {
         return handle(body, context);
         //System.out.println(name);
         //System.out.println(iterable);
-      } finally {
+      }
+      finally {
         context.endScope();
       }
     }
 
     if (element instanceof HaxeNewExpression) {
-      return HaxeTypeResolver.getTypeFromType(((HaxeNewExpression)element).getType());
+      SpecificTypeReference type = HaxeTypeResolver.getTypeFromType(((HaxeNewExpression)element).getType());
+      if (type instanceof SpecificHaxeClassReference) {
+        final HaxeClassModel clazz = ((SpecificHaxeClassReference)type).getHaxeClassModel();
+        if (clazz != null) {
+          HaxeMethodModel constructor = clazz.getConstructor();
+          if (constructor == null) {
+            context.addError(element, "Class " + clazz.getName() + " doesn't have a constructor", new HaxeFixer("Create constructor") {
+              @Override
+              public void run() {
+                // @TODO: Check arguments
+                clazz.addMethod("new");
+              }
+            });
+          }
+          else {
+            checkParameters(element, constructor, ((HaxeNewExpression)element).getExpressionList(), context);
+          }
+        }
+      }
+      return type;
     }
 
     if (element instanceof HaxeThisExpression) {
@@ -492,10 +514,12 @@ public class HaxeExpressionEvaluator {
               final int index = HaxeTypeUtils.getIntValue(right.getConstant());
               if (arrayBounds.contains(index)) {
                 constant = array.get(index);
-              } else {
+              }
+              else {
                 context.addWarning(element, "Out of bounds " + index + " not inside " + arrayBounds);
               }
-            } else if (constraint != null) {
+            }
+            else if (constraint != null) {
               if (!arrayBounds.contains(constraint)) {
                 context.addWarning(element, "Out of bounds " + constraint + " not inside " + arrayBounds);
               }
@@ -539,7 +563,8 @@ public class HaxeExpressionEvaluator {
             if (tFalse != null) {
               context.addUnreachable(eFalse);
             }
-          } else {
+          }
+          else {
             if (tTrue != null) {
               context.addUnreachable(eTrue);
             }
@@ -604,7 +629,19 @@ public class HaxeExpressionEvaluator {
     return SpecificHaxeClassReference.getDynamic(element);
   }
 
-  static private void checkParameters(PsiElement callelement, SpecificFunctionReference ftype, List<HaxeExpression> parameterExpressions, HaxeExpressionEvaluatorContext context) {
+  static private void checkParameters(
+    final PsiElement callelement,
+    final HaxeMethodModel method,
+    final List<HaxeExpression> arguments,
+    final HaxeExpressionEvaluatorContext context
+  ) {
+    checkParameters(callelement, method.getFunctionType(), arguments, context);
+  }
+
+  static private void checkParameters(PsiElement callelement,
+                                      SpecificFunctionReference ftype,
+                                      List<HaxeExpression> parameterExpressions,
+                                      HaxeExpressionEvaluatorContext context) {
     List<SpecificTypeReference> parameterTypes = ftype.getParameters();
     int len = Math.min(parameterTypes.size(), parameterExpressions.size());
     for (int n = 0; n < len; n++) {
@@ -612,7 +649,8 @@ public class HaxeExpressionEvaluator {
       HaxeExpression expression = parameterExpressions.get(n);
       SpecificTypeReference value = handle(expression, context);
       if (!type.canAssign(value)) {
-        context.addError(expression, "Can't assign " + value + " to " + type);
+        Annotation annotation = context.addError(expression, "Can't assign " + value + " to " + type);
+        annotation.registerFix(new HaxeCastFixer(expression, value, type));
       }
     }
 
