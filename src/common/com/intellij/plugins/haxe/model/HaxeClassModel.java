@@ -24,8 +24,10 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiIdentifier;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -212,7 +214,8 @@ public class HaxeClassModel {
     return haxeClass;
   }
 
-  public PsiElement getNamePsi() {
+  @Nullable
+  public PsiIdentifier getNamePsi() {
     return haxeClass.getNameIdentifier();
   }
 

@@ -50,6 +50,31 @@ public class HaxeSemanticAnnotator implements Annotator {
       MethodChecker.check((HaxeMethod)element, holder);
     } else if (element instanceof HaxeClass) {
       ClassChecker.check((HaxeClass)element, holder);
+    } if (element instanceof HaxeType) {
+      TypeChecker.check((HaxeType)element, holder);
+    }
+  }
+}
+
+class TypeChecker {
+  static public void check(final HaxeType type, final AnnotationHolder holder) {
+    check(type.getReferenceExpression().getIdentifier(), holder);
+  }
+
+  static public void check(final PsiIdentifier identifier, final AnnotationHolder holder) {
+    if (identifier == null) return;
+    final String typeName = identifier.getText();
+    if (!HaxeClassModel.isValidClassName(typeName)) {
+      Annotation annotation = holder.createErrorAnnotation(identifier, "Type name must start by upper case");
+      annotation.registerFix(new HaxeFixer("Change name") {
+        @Override
+        public void run() {
+          HaxeDocumentModel.fromElement(identifier).replaceElementText(
+            identifier,
+            typeName.substring(0, 1).toUpperCase() + typeName.substring(1)
+          );
+        }
+      });
     }
   }
 }
@@ -64,19 +89,7 @@ class ClassChecker {
   }
 
   static private void checkClassName(final HaxeClassModel clazz, final AnnotationHolder holder) {
-    final String name = clazz.getName();
-    if (!HaxeClassModel.isValidClassName(name)) {
-      Annotation annotation = holder.createErrorAnnotation(clazz.getNamePsi(), "Type name must start by upper case");
-      annotation.registerFix(new HaxeFixer("Change name") {
-        @Override
-        public void run() {
-          clazz.getDocument().replaceElementText(
-            clazz.getNamePsi(),
-            name.substring(0, 1).toUpperCase() + name.substring(1)
-          );
-        }
-      });
-    }
+    TypeChecker.check(clazz.getNamePsi(), holder);
   }
 
   static public void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {

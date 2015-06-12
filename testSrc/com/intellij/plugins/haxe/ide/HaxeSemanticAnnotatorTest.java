@@ -138,4 +138,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testUcFirstClassName() throws Exception {
     doTest("Change name");
   }
+
+  public void testUcFirstClassName2() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
