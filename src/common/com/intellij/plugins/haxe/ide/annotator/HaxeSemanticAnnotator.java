@@ -57,7 +57,7 @@ public class HaxeSemanticAnnotator implements Annotator {
 }
 
 class TypeTagChecker {
-  public static void check(final PsiElement erroredElement, final HaxeTypeTag tag, final HaxeVarInit initExpression, final AnnotationHolder holder) {
+  public static void check(final PsiElement erroredElement, final HaxeTypeTag tag, final HaxeVarInit initExpression, boolean requireConstant, final AnnotationHolder holder) {
     final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(tag);
     final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(initExpression);
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
@@ -76,7 +76,7 @@ class TypeTagChecker {
           document.replaceElementText(initExpression, "", StripSpaces.BEFORE);
         }
       });
-    } else if (type2.getConstant() == null) {
+    } else if (requireConstant && type2.getConstant() == null) {
       // @TODO: Move to bundle
       holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
     }
@@ -90,7 +90,7 @@ class FieldChecker {
       checkProperty(field, holder);
     }
     if (field.hasInitializer() && field.hasTypeTag()) {
-      TypeTagChecker.check(field.getPsi(), field.getTypeTagPsi(), field.getInitializerPsi(), holder);
+      TypeTagChecker.check(field.getPsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
     }
   }
 
@@ -317,6 +317,7 @@ class MethodChecker {
           param.getPsi(),
           param.getTypeTagPsi(),
           param.getVarInitPsi(),
+          true,
           holder
         );
       }

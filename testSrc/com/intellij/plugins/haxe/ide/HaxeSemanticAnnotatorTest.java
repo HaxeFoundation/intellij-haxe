@@ -150,4 +150,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testPropertiesSimpleCheck() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testPropertyAllowNonConstantInitialization() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
