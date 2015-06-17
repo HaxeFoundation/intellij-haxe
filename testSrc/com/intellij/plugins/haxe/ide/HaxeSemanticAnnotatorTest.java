@@ -72,7 +72,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
       }
     }
     FileDocumentManager.getInstance().saveAllDocuments();
-    myFixture.checkResultByFile(getTestName(true) + "_expected.hx");
+    myFixture.checkResultByFile(getTestName(false) + "_expected.hx");
   }
 
   public void testFixPackage() throws Exception {
