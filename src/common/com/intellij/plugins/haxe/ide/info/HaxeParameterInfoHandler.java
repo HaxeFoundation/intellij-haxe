@@ -82,11 +82,11 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   private static HaxeFunctionDescription tryGetDescription(HaxeCallExpression callExpression) {
     final HaxeReference expression = (HaxeReference)callExpression.getExpression();
     final PsiElement target = expression.resolve();
-    final boolean isExtension = expression.resolveIsExtension();
+    final boolean isStaticExtension = expression.resolveIsStaticExtension();
     if (target instanceof HaxeMethod) {
       final HaxeClass targetParent = (HaxeClass) ((HaxeMethod) target).getContainingClass();
       final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(targetParent);
-      return HaxeFunctionDescription.createDescription((HaxeNamedComponent) target, resolveResult, isExtension);
+      return HaxeFunctionDescription.createDescription((HaxeNamedComponent) target, resolveResult, isStaticExtension);
     }
     return null;
   }
