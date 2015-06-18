@@ -465,7 +465,7 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeSuperExpression) {
       /*
       System.out.println("-------------------------");
-      final HaxeExpressionList list = HaxePsiUtils.getChild(element, HaxeExpressionList.class);
+      final HaxeExpressionList list = HaxePsiUtils.getChildWithText(element, HaxeExpressionList.class);
       System.out.println(element);
       System.out.println(list);
       final List<HaxeExpression> parameters = (list != null) ? list.getExpressionList() : Collections.<HaxeExpression>emptyList();

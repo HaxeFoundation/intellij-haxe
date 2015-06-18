@@ -50,7 +50,7 @@ public class HaxePsiUtils {
     return null;
   }
 
-  static public <T extends PsiElement> T getChild(PsiElement element, Class<T> clazz, String text) {
+  static public <T extends PsiElement> T getChildWithText(PsiElement element, Class<T> clazz, String text) {
     if (element == null) return null;
     for (PsiElement psiElement : element.getChildren()) {
       if (clazz.isAssignableFrom(psiElement.getClass()) && psiElement.getText().equals(text)) return (T)psiElement;
