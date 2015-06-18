@@ -122,7 +122,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public boolean resolveIsExtension() {
     // @TODO: DIRTY HACK! to avoid rewriting all the code!
     HaxeResolver.INSTANCE.resolve(this, true);
-    return HaxeResolver.isExtension;
+    return HaxeResolver.isExtension.get();
   }
 
   @NotNull

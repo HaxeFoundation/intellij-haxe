@@ -46,11 +46,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   public static final HaxeResolver INSTANCE = new HaxeResolver();
   public static final String IMPORT_EXTENSION = ".hx";
 
-  public static boolean isExtension = false;
+  public static ThreadLocal<Boolean> isExtension = new ThreadLocal<Boolean>();
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    isExtension = false;
+    isExtension.set(false);
 
     final HaxeType type = PsiTreeUtil.getParentOfType(reference, HaxeType.class);
     final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
@@ -305,7 +305,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
         final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == leftClass;
         if (needToAdd) {
-          isExtension = true;
+          isExtension.set(true);
           return toCandidateInfoArray(haxeNamedComponent.getComponentName());
         }
       }
