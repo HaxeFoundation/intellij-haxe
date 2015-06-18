@@ -58,7 +58,7 @@ public class HaxePsiUtils {
     return null;
   }
 
-  static public <T extends PsiElement> List<T> getChilds(PsiElement element, Class<T> clazz) {
+  static public <T extends PsiElement> List<T> getChildren(PsiElement element, Class<T> clazz) {
     if (element == null) return null;
     ArrayList<T> ts = new ArrayList<T>();
     for (PsiElement psiElement : element.getChildren()) {

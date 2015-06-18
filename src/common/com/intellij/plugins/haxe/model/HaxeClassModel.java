@@ -113,7 +113,7 @@ public class HaxeClassModel {
   public List<HaxeType> getAbstractToList() {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeType> types = new LinkedList<HaxeType>();
-    for (HaxeIdentifier id : HaxePsiUtils.getChilds(haxeClass, HaxeIdentifier.class)) {
+    for (HaxeIdentifier id : HaxePsiUtils.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("to")) {
         PsiElement sibling = HaxePsiUtils.getNextSiblingNoSpaces(id);
         if (sibling instanceof HaxeType) {
@@ -128,7 +128,7 @@ public class HaxeClassModel {
   public List<HaxeType> getAbstractFromList() {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeType> types = new LinkedList<HaxeType>();
-    for (HaxeIdentifier id : HaxePsiUtils.getChilds(haxeClass, HaxeIdentifier.class)) {
+    for (HaxeIdentifier id : HaxePsiUtils.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("from")) {
         PsiElement sibling = HaxePsiUtils.getNextSiblingNoSpaces(id);
         if (sibling instanceof HaxeType) {
@@ -270,7 +270,7 @@ public class HaxeClassModel {
     HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
     LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
     if (body != null) {
-      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChilds(body, HaxeVarDeclaration.class)) {
+      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChildren(body, HaxeVarDeclaration.class)) {
         out.add(new HaxeFieldModel(declaration));
       }
     }
@@ -281,7 +281,7 @@ public class HaxeClassModel {
     HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
     LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
     if (body != null) {
-      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChilds(body, HaxeVarDeclaration.class)) {
+      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChildren(body, HaxeVarDeclaration.class)) {
         if (declaration.getContainingClass() == this.haxeClass) {
           out.add(new HaxeFieldModel(declaration));
         }
