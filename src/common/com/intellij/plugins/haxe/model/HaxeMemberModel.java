@@ -21,7 +21,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +57,7 @@ abstract public class HaxeMemberModel {
     if (element == null) return null;
     if (element instanceof HaxeNamedComponent) return (HaxeNamedComponent)element;
     if (element.getParent() instanceof HaxeNamedComponent) return (HaxeNamedComponent)element.getParent();
-    return getNamedComponentPsi(HaxePsiUtils.getChild(element, HaxeNamedComponent.class));
+    return getNamedComponentPsi(UsefulPsiTreeUtil.getChild(element, HaxeNamedComponent.class));
   }
 
   public String getName() {
@@ -66,8 +66,8 @@ abstract public class HaxeMemberModel {
   }
 
   public PsiElement getNamePsi() {
-    PsiElement child = HaxePsiUtils.getChild(HaxePsiUtils.getChild(baseNamePsi, HaxeComponentName.class), HaxeIdentifier.class);
-    if (child == null) child = HaxePsiUtils.getToken(baseNamePsi, "new");
+    PsiElement child = UsefulPsiTreeUtil.getChild(UsefulPsiTreeUtil.getChild(baseNamePsi, HaxeComponentName.class), HaxeIdentifier.class);
+    if (child == null) child = UsefulPsiTreeUtil.getToken(baseNamePsi, "new");
     return child;
   }
 

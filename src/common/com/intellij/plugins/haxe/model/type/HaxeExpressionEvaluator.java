@@ -28,17 +28,13 @@ import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeCastFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
-import com.intellij.plugins.haxe.util.HaxeJavaUtil;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.HaxeStringUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.apache.commons.lang.StringEscapeUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -148,7 +144,7 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeThisExpression) {
       //PsiReference reference = element.getReference();
       //HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(element);
-      HaxeClass ancestor = HaxePsiUtils.getAncestor(element, HaxeClass.class);
+      HaxeClass ancestor = UsefulPsiTreeUtil.getAncestor(element, HaxeClass.class);
       if (ancestor == null) return SpecificTypeReference.getDynamic(element);
       HaxeClassModel model = ancestor.getModel();
       if (model.isAbstract()) {

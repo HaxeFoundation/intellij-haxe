@@ -22,8 +22,8 @@ import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 
@@ -36,7 +36,7 @@ public class HaxeParameterModel {
   public HaxeParameterModel(HaxeParameter parameter, HaxeMethodModel method) {
     this.parameter = parameter;
     this.method = method;
-    this.optional = HaxePsiUtils.getToken(parameter, "?") != null;
+    this.optional = UsefulPsiTreeUtil.getToken(parameter, "?") != null;
   }
 
   public String getName() {
@@ -52,7 +52,7 @@ public class HaxeParameterModel {
   }
 
   public PsiElement getNamePsi() {
-    return HaxePsiUtils.getChild(parameter, HaxeComponentName.class);
+    return UsefulPsiTreeUtil.getChild(parameter, HaxeComponentName.class);
   }
 
   public PsiElement getNameOrBasePsi() {
@@ -62,7 +62,7 @@ public class HaxeParameterModel {
   }
 
   public PsiElement getOptionalPsi() {
-    return HaxePsiUtils.getToken(parameter, "?");
+    return UsefulPsiTreeUtil.getToken(parameter, "?");
   }
 
   public boolean hasOptionalPsi() {
@@ -78,7 +78,7 @@ public class HaxeParameterModel {
   }
 
   public HaxeVarInit getVarInitPsi() {
-    return HaxePsiUtils.getChild(parameter, HaxeVarInit.class);
+    return UsefulPsiTreeUtil.getChild(parameter, HaxeVarInit.class);
   }
 
   public HaxeTypeTag getTypeTagPsi() {

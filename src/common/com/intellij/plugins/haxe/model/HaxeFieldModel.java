@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
   private HaxeVarDeclaration element;
 
   public HaxeFieldModel(HaxeVarDeclaration element) {
-    super(element, element, HaxePsiUtils.getChild(element, HaxeVarDeclarationPart.class));
+    super(element, element, UsefulPsiTreeUtil.getChild(element, HaxeVarDeclarationPart.class));
     this.element = element;
   }
 

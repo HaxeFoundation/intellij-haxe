@@ -17,16 +17,14 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.navigation.ItemPresentation;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -60,7 +58,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
   public List<HaxeParameterModel> getParameters() {
     List<HaxeParameterModel> _parameters = null;
 //    if (_parameters == null) {
-      HaxeParameterList parameterList = HaxePsiUtils.getChild(this.haxeMethod, HaxeParameterList.class);
+      HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
       _parameters = new ArrayList<HaxeParameterModel>();
       if (parameterList != null) {
         for (HaxeParameter parameter : parameterList.getParameterList()) {
@@ -81,7 +79,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
   }
 
   @Nullable public HaxeTypeTag getReturnTypeTagPsi() {
-    return HaxePsiUtils.getChild(this.haxeMethod, HaxeTypeTag.class);
+    return UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeTypeTag.class);
   }
 
   public boolean isStatic() {

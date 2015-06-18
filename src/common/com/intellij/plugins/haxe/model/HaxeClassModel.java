@@ -22,7 +22,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import org.apache.commons.lang.NotImplementedException;
@@ -113,9 +113,9 @@ public class HaxeClassModel {
   public List<HaxeType> getAbstractToList() {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeType> types = new LinkedList<HaxeType>();
-    for (HaxeIdentifier id : HaxePsiUtils.getChildren(haxeClass, HaxeIdentifier.class)) {
+    for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("to")) {
-        PsiElement sibling = HaxePsiUtils.getNextSiblingNoSpaces(id);
+        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingNoSpaces(id);
         if (sibling instanceof HaxeType) {
           types.add((HaxeType)sibling);
         }
@@ -128,9 +128,9 @@ public class HaxeClassModel {
   public List<HaxeType> getAbstractFromList() {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeType> types = new LinkedList<HaxeType>();
-    for (HaxeIdentifier id : HaxePsiUtils.getChildren(haxeClass, HaxeIdentifier.class)) {
+    for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("from")) {
-        PsiElement sibling = HaxePsiUtils.getNextSiblingNoSpaces(id);
+        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingNoSpaces(id);
         if (sibling instanceof HaxeType) {
           types.add((HaxeType)sibling);
         }
@@ -189,7 +189,7 @@ public class HaxeClassModel {
   @NotNull
   public List<HaxeMemberModel> getMembersSelf() {
     LinkedList<HaxeMemberModel> members = new LinkedList<HaxeMemberModel>();
-    HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
+    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
     if (body != null) {
       for (PsiElement element : body.getChildren()) {
         if (element instanceof HaxeMethod || element instanceof HaxeVarDeclaration) {
@@ -267,10 +267,10 @@ public class HaxeClassModel {
   }
 
   public List<HaxeFieldModel> getFields() {
-    HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
+    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
     LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
     if (body != null) {
-      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChildren(body, HaxeVarDeclaration.class)) {
+      for (HaxeVarDeclaration declaration : UsefulPsiTreeUtil.getChildren(body, HaxeVarDeclaration.class)) {
         out.add(new HaxeFieldModel(declaration));
       }
     }
@@ -278,10 +278,10 @@ public class HaxeClassModel {
   }
 
   public List<HaxeFieldModel> getFieldsSelf() {
-    HaxeClassBody body = HaxePsiUtils.getChild(haxeClass, HaxeClassBody.class);
+    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
     LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
     if (body != null) {
-      for (HaxeVarDeclaration declaration : HaxePsiUtils.getChildren(body, HaxeVarDeclaration.class)) {
+      for (HaxeVarDeclaration declaration : UsefulPsiTreeUtil.getChildren(body, HaxeVarDeclaration.class)) {
         if (declaration.getContainingClass() == this.haxeClass) {
           out.add(new HaxeFieldModel(declaration));
         }

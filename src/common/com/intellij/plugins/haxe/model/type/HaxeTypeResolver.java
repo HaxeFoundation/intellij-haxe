@@ -17,17 +17,11 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.util.HaxePsiUtils;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -185,7 +179,7 @@ public class HaxeTypeResolver {
     final SpecificTypeReference retval = context.getReturnType();
 
     if (!(element instanceof HaxeMethod)) return;
-    final HaxeTypeTag typeTag = HaxePsiUtils.getChild(element, HaxeTypeTag.class);
+    final HaxeTypeTag typeTag = UsefulPsiTreeUtil.getChild(element, HaxeTypeTag.class);
     SpecificTypeReference expectedType = null;
     if (typeTag == null) {
       final List<ReturnInfo> infos = context.getReturnInfos();
