@@ -164,8 +164,13 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   public HaxeModifierList getModifierList() {
     HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
 
+    // Triplicated code! HaxeMethodPsiMixinImpl + HaxeParameterPsiMixinImpl + HaxePsiFieldImpl
     if (isStatic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
+    }
+
+    if (isInline()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.INLINE, true);
     }
 
     if (isPublic()) {

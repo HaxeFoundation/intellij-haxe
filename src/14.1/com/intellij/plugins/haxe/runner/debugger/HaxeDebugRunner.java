@@ -926,9 +926,9 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             (mIcon, mType, mValue, (mChildren != null));
         }
 
-        // getModifier() is temporarily disabled as it does not work
+        // getModifierPsi() is temporarily disabled as it does not work
         // due to PSI errors in the haxe PSI tree.
-//                public XValueModifier getModifier()
+//                public XValueModifier getModifierPsi()
 //                {
 //                    return new XValueModifier()
 //                    {

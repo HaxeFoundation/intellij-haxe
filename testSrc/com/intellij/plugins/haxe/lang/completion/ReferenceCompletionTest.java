@@ -172,4 +172,30 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  public void testAutodetectMethod() throws Throwable {
+    doTestInclude();
+  }
+
+  public void testAutodetectMethod2() throws Throwable {
+    doTestInclude();
+  }
+
+  public void testAutodetectProperties() throws Throwable {
+    doTestInclude();
+  }
+
+  public void testAbstractThisSemantics() throws Throwable {
+    doTestInclude();
+  }
+
+  public void testStringCode() throws Throwable {
+    doTestInclude();
+  }
+
+  // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
+  /*
+  public void testExtensionMethod1() throws Throwable {
+    doTestInclude("ExtensionMethodExt.hx");
+  }
+  */
 }

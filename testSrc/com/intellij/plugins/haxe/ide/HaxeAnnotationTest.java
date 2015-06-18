@@ -38,12 +38,16 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
-    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-    myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
     try {
-      myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
-    }
-    finally {
+      LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
+      myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
+      try {
+        myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
+      }
+      finally {
+        LanguageAnnotators.INSTANCE.removeExplicitExtension(HaxeLanguage.INSTANCE, annotator);
+      }
+    } finally {
       LanguageAnnotators.INSTANCE.removeExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     }
   }

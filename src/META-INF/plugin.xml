@@ -616,6 +616,8 @@
 
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator"/>
+
 
     <localInspection language="XML" shortName="NMEBuildDirectory" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"
@@ -668,9 +670,13 @@
             text="NMML file" description="Create new NMML file">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
     </action>
+    <action id="Generate.Constructor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateConstructorAction"
+            text="Constructor">
+      <add-to-group anchor="first" group-id="GenerateGroup"/>
+    </action>
     <action id="Generate.GetAccessor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateGetterAction"
             text="Getter">
-      <add-to-group anchor="first" group-id="GenerateGroup"/>
+      <add-to-group anchor="after" relative-to-action="Generate.Constructor.Haxe" group-id="GenerateGroup"/>
     </action>
     <action id="Generate.SetAccessor.Haxe" class="com.intellij.plugins.haxe.ide.generation.HaxeGenerateSetterAction"
             text="Setter">

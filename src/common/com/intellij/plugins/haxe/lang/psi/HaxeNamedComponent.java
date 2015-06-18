@@ -34,4 +34,6 @@ public interface HaxeNamedComponent extends HaxePsiCompositeElement {
   boolean isStatic();
 
   boolean isOverride();
+
+  boolean isInline();
 }

@@ -26,6 +26,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.InheritanceImplUtil;
@@ -81,6 +82,12 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       packageName = HaxeResolveUtil.joinQName(packageName, fileName);
     }
     return HaxeResolveUtil.joinQName(packageName, name);
+  }
+
+  private HaxeClassModel _model = null;
+  public HaxeClassModel getModel() {
+    if (_model == null) _model = new HaxeClassModel(this);
+    return _model;
   }
 
   private boolean isAncillaryClass(String name, String fileName) {

@@ -1,0 +1,4 @@
+test1:Int
+test2:String
+test3:Float
+test4:Int

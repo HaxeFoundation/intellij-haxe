@@ -35,4 +35,6 @@ public interface HaxeReference extends HaxeExpression, PsiJavaCodeReferenceEleme
 
   @Nullable
   PsiElement resolveToComponentName();
+
+  boolean resolveIsStaticExtension();
 }

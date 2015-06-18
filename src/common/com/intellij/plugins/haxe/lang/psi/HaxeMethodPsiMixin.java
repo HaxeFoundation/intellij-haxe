@@ -17,11 +17,12 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiMethod;
 
 /**
  * Created by ebishton on 9/28/14.
  */
 public interface HaxeMethodPsiMixin extends HaxeComponentWithDeclarationList, PsiMethod {
-
+  HaxeMethodModel getModel();
 }

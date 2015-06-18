@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.util.Pair;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,5 +52,57 @@ public class HaxeStringUtil {
       }
     }
     return res;
+  }
+
+  static public String unescapeString(String str) {
+    if (str.startsWith("'") || str.startsWith("\"")) {
+      return _unescapeString(str.substring(1, str.length() - 1));
+    } else {
+      return _unescapeString(str);
+    }
+  }
+
+  static private String _unescapeString(String str) {
+    String out = "";
+    try {
+      char[] chars = str.toCharArray();
+      for (int n = 0; n < chars.length;) {
+        char c = chars[n++];
+        switch (c) {
+          case '\\':
+            char c2 = chars[n++];
+            switch (c2) {
+              case '0': out += '\0'; break;
+              case 'n': out += '\n'; break;
+              case 'r': out += '\r'; break;
+              case 't': out += '\t'; break;
+              case 'b': out += '\b'; break;
+              case 'x':
+              {
+                String hex = str.substring(n, n + 2);
+                n += 2;
+                out += (char)Integer.parseInt(hex, 16);
+                break;
+              }
+              case 'u':
+              {
+                String hex = str.substring(n, n + 4);
+                n += 4;
+                out += (char)Integer.parseInt(hex, 16);
+                break;
+              }
+              default:
+                break;
+            }
+            break;
+          default:
+            out += c;
+            break;
+        }
+      }
+    } catch (Throwable t) {
+
+    }
+    return out;
   }
 }

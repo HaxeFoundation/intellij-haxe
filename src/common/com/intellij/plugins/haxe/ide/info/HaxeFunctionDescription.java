@@ -79,14 +79,18 @@ public class HaxeFunctionDescription {
     return new TextRange(0, 0);
   }
 
-  public static HaxeFunctionDescription createDescription(HaxeNamedComponent namedComponent, HaxeClassResolveResult resolveResult) {
+  public static HaxeFunctionDescription createDescription(HaxeNamedComponent namedComponent,
+                                                          HaxeClassResolveResult resolveResult,
+                                                          boolean isExtension) {
     String typeText = "";
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(namedComponent, HaxeTypeTag.class);
     if (typeTag != null) {
       typeText = HaxePresentableUtil.buildTypeText(namedComponent, typeTag, resolveResult.getSpecialization());
     }
-    return new HaxeFunctionDescription(namedComponent.getName(),
-                                       typeText,
-                                       HaxeParameterDescription.getParameters(namedComponent, resolveResult.getSpecialization()));
+    return new HaxeFunctionDescription(
+      namedComponent.getName(),
+      typeText,
+      HaxeParameterDescription.getParameters(namedComponent, resolveResult.getSpecialization(), isExtension)
+    );
   }
 }

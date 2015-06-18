@@ -22,6 +22,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -71,6 +72,11 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return (name != null) ? name : "<unnamed>";
   }
 
+  private HaxeMethodModel _model = null;
+  public HaxeMethodModel getModel() {
+    if (_model == null) _model = new HaxeMethodModel(this);
+    return _model;
+  }
 
   @Nullable
   @Override
