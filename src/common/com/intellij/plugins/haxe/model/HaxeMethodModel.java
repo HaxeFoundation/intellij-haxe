@@ -82,6 +82,11 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeTypeTag.class);
   }
 
+  public PsiElement getReturnTypeTagOrNameOrBasePsi() {
+    HaxeTypeTag psi = getReturnTypeTagPsi();
+    return (psi != null) ? psi : getNameOrBasePsi();
+  }
+
   public boolean isStatic() {
     return getModifiers().hasModifier(HaxeModifierType.STATIC);
   }

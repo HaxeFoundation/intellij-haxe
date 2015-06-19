@@ -162,4 +162,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testOverrideSignature2() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testImplementSignature() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
