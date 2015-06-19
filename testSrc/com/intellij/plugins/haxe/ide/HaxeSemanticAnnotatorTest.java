@@ -154,4 +154,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testPropertyAllowNonConstantInitialization() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testOverrideSignature() throws Exception {
+    doTest("Remove argument");
+  }
+
+  public void testOverrideSignature2() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

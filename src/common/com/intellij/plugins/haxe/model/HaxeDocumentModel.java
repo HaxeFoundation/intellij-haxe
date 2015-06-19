@@ -42,9 +42,17 @@ public class HaxeDocumentModel {
     replaceElementText(element, text, StripSpaces.NONE);
   }
 
+  public void replaceElementText(final TextRange textRange, final String text) {
+    replaceElementText(textRange, text, StripSpaces.NONE);
+  }
+
   public void replaceElementText(final PsiElement element, final String text, final StripSpaces strips) {
     if (element == null) return;
-    TextRange range = element.getTextRange();
+    replaceElementText(element.getTextRange(), text, strips);
+  }
+
+  public void replaceElementText(final TextRange range, final String text, final StripSpaces strips) {
+    if (range == null) return;
     int start = range.getStartOffset();
     int end = range.getEndOffset();
     String documentText = document.getText();

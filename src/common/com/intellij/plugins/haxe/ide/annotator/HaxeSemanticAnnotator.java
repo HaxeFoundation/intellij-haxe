@@ -27,11 +27,13 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -413,15 +415,57 @@ class MethodChecker {
       holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
         new RemoveModifierIntent("Remove override", currentModifiers, HaxeModifierType.OVERRIDE)
       );
-    } else if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && requiredOverride) {
-      holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
-        new HaxeFixer("Add override") {
-          @Override
-          public void run() {
-            currentModifiers.addModifier(HaxeModifierType.OVERRIDE);
+    } else if (requiredOverride) {
+      if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE)) {
+        holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
+          new HaxeFixer("Add override") {
+            @Override
+            public void run() {
+              currentModifiers.addModifier(HaxeModifierType.OVERRIDE);
+            }
           }
-        }
-      );
+        );
+      } else {
+        // It is rightly overriden. Now check the signature.
+        checkCompatibleMethodCompatible(currentMethod, parentMethod, holder);
+      }
+    }
+  }
+
+  static public void checkCompatibleMethodCompatible(@NotNull final HaxeMethodModel currentMethod, @NotNull final HaxeMethodModel parentMethod, final AnnotationHolder holder) {
+    final HaxeDocumentModel document = currentMethod.getDocument();
+
+    List<HaxeParameterModel> currentParameters = currentMethod.getParameters();
+    final List<HaxeParameterModel> parentParameters = parentMethod.getParameters();
+    int minParameters = Math.min(currentParameters.size(), parentParameters.size());
+
+    if (currentParameters.size() > parentParameters.size()) {
+      for (int n = minParameters; n < currentParameters.size(); n++) {
+        final HaxeParameterModel currentParam = currentParameters.get(n);
+        holder.createErrorAnnotation(currentParam.getPsi(), "Unexpected argument").registerFix(
+          new HaxeFixer("Remove argument") {
+            @Override
+            public void run() {
+              currentParam.remove();
+            }
+          });
+      }
+    } else if (currentParameters.size() != parentParameters.size()) {
+      holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Not matching arity expected " + parentParameters.size() + " arguments but found " + currentParameters.size());
+    }
+
+    for (int n = 0; n < minParameters; n++) {
+      final HaxeParameterModel currentParam = currentParameters.get(n);
+      final HaxeParameterModel parentParam = parentParameters.get(n);
+      if (!HaxeTypeCompatible.isAssignable(currentParam.getType(), parentParam.getType())) {
+        holder.createErrorAnnotation(currentParam.getPsi(), "Type " + currentParam.getType() + " is not compatible with " + parentParam.getType()).registerFix(
+          new HaxeFixer("Change type") {
+            @Override
+            public void run() {
+              document.replaceElementText(currentParam.getTypeTagPsi(), parentParam.getTypeTagPsi().getText());
+            }
+          });
+      }
     }
   }
 }

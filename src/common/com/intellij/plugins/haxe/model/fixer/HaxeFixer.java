@@ -25,7 +25,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-abstract public class HaxeFixer implements IntentionAction {
+abstract public class HaxeFixer implements IntentionAction, Runnable {
   private String text;
 
   public HaxeFixer(String text) {
