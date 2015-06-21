@@ -54,21 +54,23 @@ public class HaxeSemanticAnnotator implements Annotator {
     else if (element instanceof HaxeClass) {
       ClassChecker.check((HaxeClass)element, holder);
     }
-    if (element instanceof HaxeType) {
+    else if (element instanceof HaxeType) {
       TypeChecker.check((HaxeType)element, holder);
     }
-    if (element instanceof HaxeVarDeclaration) {
+    else if (element instanceof HaxeVarDeclaration) {
       FieldChecker.check((HaxeVarDeclaration)element, holder);
     }
   }
 }
 
 class TypeTagChecker {
-  public static void check(final PsiElement erroredElement,
-                           final HaxeTypeTag tag,
-                           final HaxeVarInit initExpression,
-                           boolean requireConstant,
-                           final AnnotationHolder holder) {
+  public static void check(
+    final PsiElement erroredElement,
+    final HaxeTypeTag tag,
+    final HaxeVarInit initExpression,
+    boolean requireConstant,
+    final AnnotationHolder holder
+  ) {
     final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(tag);
     final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(initExpression);
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
@@ -262,9 +264,11 @@ class ClassChecker {
     }
   }
 
-  static public void checkInterfaceMethods(final HaxeClassModel clazz,
-                                           final HaxeClassReferenceModel intReference,
-                                           final AnnotationHolder holder) {
+  static public void checkInterfaceMethods(
+    final HaxeClassModel clazz,
+    final HaxeClassReferenceModel intReference,
+    final AnnotationHolder holder
+  ) {
     final List<HaxeMethodModel> missingMethods = new ArrayList<HaxeMethodModel>();
     final List<String> missingMethodsNames = new ArrayList<String>();
 
@@ -285,8 +289,10 @@ class ClassChecker {
 
     if (missingMethods.size() > 0) {
       // @TODO: Move to bundle
-      Annotation annotation =
-        holder.createErrorAnnotation(intReference.getPsi(), "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "));
+      Annotation annotation = holder.createErrorAnnotation(
+        intReference.getPsi(),
+        "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ")
+      );
       annotation.registerFix(new HaxeFixer("Implement methods") {
         @Override
         public void run() {
@@ -415,9 +421,12 @@ class MethodChecker {
       }
 
       if (currentModifiers.getVisibility().hasLowerVisibilityThan(parentModifiers.getVisibility())) {
-        Annotation annotation = holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Field " +
-                                                                                               currentMethod.getName() +
-                                                                                               " has less visibility (public/private) than superclass one");
+        Annotation annotation = holder.createErrorAnnotation(
+          currentMethod.getNameOrBasePsi(),
+          "Field " +
+          currentMethod.getName() +
+          " has less visibility (public/private) than superclass one"
+        );
         annotation.registerFix(
           new HaxeFixer("Change current method visibility") {
             @Override
@@ -524,7 +533,7 @@ class MethodChecker {
 
 class PackageChecker {
   static public void check(final HaxePackageStatement element, final AnnotationHolder holder) {
-    final HaxeReferenceExpression expression = ((HaxePackageStatement)element).getReferenceExpression();
+    final HaxeReferenceExpression expression = element.getReferenceExpression();
     String packageName = (expression != null) ? expression.getText() : "";
     PsiDirectory fileDirectory = element.getContainingFile().getParent();
     List<PsiFileSystemItem> fileRange = PsiFileUtils.getRange(PsiFileUtils.findRoot(fileDirectory), fileDirectory);

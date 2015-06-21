@@ -163,6 +163,14 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testOverrideSignature3() throws Exception {
+    doTest("Remove argument");
+  }
+
+  public void testOverrideSignature4() throws Exception {
+    doTest("Remove argument");
+  }
+
   public void testImplementSignature() throws Exception {
     doTestNoFixWithWarnings();
   }

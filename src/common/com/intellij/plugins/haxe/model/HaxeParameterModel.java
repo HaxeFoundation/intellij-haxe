@@ -116,13 +116,16 @@ public class HaxeParameterModel {
       PsiElement prePsi = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(psi, true);
       PsiElement nextPsi = UsefulPsiTreeUtil.getNextSiblingNoSpaces(psi);
       TextRange range = psi.getTextRange();
+      StripSpaces stripSpaces = StripSpaces.NONE;
 
       if (prePsi != null && prePsi.getText().equals(",")) {
         range = range.union(prePsi.getTextRange());
+        stripSpaces = StripSpaces.BEFORE;
       } else if (nextPsi != null && nextPsi.getText().equals(",")) {
         range = range.union(nextPsi.getTextRange());
+        stripSpaces = StripSpaces.AFTER;
       }
-      getDocument().replaceElementText(range, "");
+      getDocument().replaceElementText(range, "", stripSpaces);
     }
   }
 }
