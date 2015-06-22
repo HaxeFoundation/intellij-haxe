@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
@@ -37,6 +38,10 @@ public class HaxeParameterModel {
     this.parameter = parameter;
     this.method = method;
     this.optional = UsefulPsiTreeUtil.getToken(parameter, "?") != null;
+  }
+
+  private HaxeDocumentModel getDocument() {
+    return method.getDocument();
   }
 
   public String getName() {
@@ -103,5 +108,24 @@ public class HaxeParameterModel {
     out += ":";
     out += getType().toStringWithoutConstant();
     return out;
+  }
+
+  public void remove() {
+    PsiElement psi = getPsi();
+    if (psi != null) {
+      PsiElement prePsi = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(psi, true);
+      PsiElement nextPsi = UsefulPsiTreeUtil.getNextSiblingNoSpaces(psi);
+      TextRange range = psi.getTextRange();
+      StripSpaces stripSpaces = StripSpaces.NONE;
+
+      if (prePsi != null && prePsi.getText().equals(",")) {
+        range = range.union(prePsi.getTextRange());
+        stripSpaces = StripSpaces.BEFORE;
+      } else if (nextPsi != null && nextPsi.getText().equals(",")) {
+        range = range.union(nextPsi.getTextRange());
+        stripSpaces = StripSpaces.AFTER;
+      }
+      getDocument().replaceElementText(range, "", stripSpaces);
+    }
   }
 }

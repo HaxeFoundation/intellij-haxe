@@ -30,6 +30,7 @@ public class HaxeTypeCompatible {
   }
 
   static public boolean isAssignable(SpecificTypeReference a, SpecificTypeReference b) {
+    if (a == null || b == null) return false;
     if (a.isDynamic() || b.isDynamic()) return true;
 
     if (a instanceof SpecificFunctionReference && b instanceof SpecificFunctionReference) {
