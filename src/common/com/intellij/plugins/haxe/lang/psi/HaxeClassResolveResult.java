@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiElement;
@@ -32,6 +33,9 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeClassResolveResult implements Cloneable {
+
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+
   public static final HaxeClassResolveResult EMPTY = new HaxeClassResolveResult(null);
   @Nullable
   private final HaxeClass haxeClass;
@@ -57,11 +61,14 @@ public class HaxeClassResolveResult implements Cloneable {
     return create(aClass, new HaxeGenericSpecialization());
   }
 
+  private static int debugNestCountForCreate = 0;
   @NotNull
   public static HaxeClassResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
     if (aClass == null) {
       return new HaxeClassResolveResult(null);
     }
+    debugNestCountForCreate += 1;
+    LOG.debug(debugNestCountForCreate + "Resolving class " + aClass.getName() + " using specialization " + (specialization == null ? "<none>" : specialization.debugDump("  ")));
     HaxeClassResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
 
     if (resolveResult == null) {
@@ -79,26 +86,33 @@ public class HaxeClassResolveResult implements Cloneable {
         final HaxeTypeOrAnonymous typeOrAnonymous = ((typeOrAnonymousList != null) ? typeOrAnonymousList.get(0) : null);
         final HaxeType specializedType = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
         if (specializedType != null) {
+          HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
+          LOG.debug(debugNestCountForCreate + "  Adding specialization for " + aClass.getName() + "<" + componentName.getName() + "> -> " + specializedTypeResult.debugDump("    "));
           resolveResult.specialization.put(aClass,
                                            componentName.getName(),
-                                           HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization));
+                                           specializedTypeResult);
+        } else {
+          LOG.debug(debugNestCountForCreate + "  Not adding specialization for " + aClass.getName() + "<" + componentName.getName() + ">. No specialized type found.");
         }
       }
 
       for (HaxeType haxeType : aClass.getHaxeExtendsList()) {
         final HaxeClassResolveResult result = create(HaxeResolveUtil.tryResolveClassByQName(haxeType));
         result.specializeByParameters(haxeType.getTypeParam());
+        LOG.debug(debugNestCountForCreate + "  Adding (extends) specialization for " + aClass.getName() + "<" + haxeType.getName() + "> -> " + result.getSpecialization().debugDump("    "));
         resolveResult.merge(result.getSpecialization());
       }
       for (HaxeType haxeType : aClass.getHaxeImplementsList()) {
         final HaxeClassResolveResult result = create(HaxeResolveUtil.tryResolveClassByQName(haxeType));
         result.specializeByParameters(haxeType.getTypeParam());
+        LOG.debug(debugNestCountForCreate + "  Adding (implements) specialization for " + aClass.getName() + "<" + haxeType.getName() + "> -> " + result.getSpecialization().debugDump("    "));
         resolveResult.merge(result.getSpecialization());
       }
     }
 
     final HaxeClassResolveResult clone = resolveResult.clone();
     clone.softMerge(specialization);
+    debugNestCountForCreate -= 1;
     return clone;
   }
 
@@ -153,14 +167,38 @@ public class HaxeClassResolveResult implements Cloneable {
       final HaxeTypeOrAnonymous typeOrAnonymous = (((typeOrAnonymousList != null) && (typeOrAnonymousList.size() > 0)) ? typeOrAnonymousList.get(0) : null);
       final HaxeType specializedType = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
       if (genericListPart.getText() == null || specializedType == null) continue;
-      specialization
-        .put(haxeClass, genericListPart.getText(), HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization));
+      final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
+      specialization.put(haxeClass, genericListPart.getText(), specializedTypeResult);
     }
+    LOG.debug(specialization.debugDump());
   }
 
   public boolean isFunctionType() {
     return !functionTypes.isEmpty();
   }
+
+
+  public String debugDump() {
+    return debugDump(null);
+  }
+
+  public String debugDump( String linePrefix ) {
+    StringBuilder builder = new StringBuilder();
+
+    if (linePrefix == null) {
+      linePrefix="";
+    }
+    builder.append(linePrefix);
+    builder.append(null == haxeClass ? "<null haxeClass>" : haxeClass.getName());
+    builder.append(":\n");
+    String prefix = linePrefix + "  ";
+    builder.append(null == specialization ? "<null specialization>" : specialization.debugDump(prefix));
+    for(HaxeClassResolveResult result : functionTypes) {
+      result.debugDump(prefix + "  ");
+    }
+    return builder.toString();
+  }
+
 
   public JavaResolveResult toJavaResolveResult() {
     return new JavaResult(this);
