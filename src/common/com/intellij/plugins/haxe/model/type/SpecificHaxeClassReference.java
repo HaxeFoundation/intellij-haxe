@@ -58,6 +58,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null);
   }
 
+  //@Override
+  //public void mutateConstantValue(Object constantValue) {
+  //  this.constantValue = constantValue;
+  //}
+
   @Override
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
     if (this.rangeConstraint == range) return this;
@@ -77,10 +82,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   @Override
   public PsiElement getElementContext() {
     return this.clazz.elementContext;
-  }
-
-  public SpecificHaxeClassReference withoutConstantValue() {
-    return withConstantValue(null);
   }
 
   static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz) {

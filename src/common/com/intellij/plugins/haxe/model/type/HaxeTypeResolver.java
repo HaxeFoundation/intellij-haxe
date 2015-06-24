@@ -161,7 +161,7 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public SpecificTypeReference getPsiElementType(PsiElement element) {
-    return getPsiElementType(element, null).result;
+    return getPsiElementType(element, null).result.getType();
   }
 
   static private SpecificTypeReference getUnknown(PsiElement element) {
@@ -184,7 +184,7 @@ public class HaxeTypeResolver {
     if (typeTag == null) {
       final List<ReturnInfo> infos = context.getReturnInfos();
       if (!infos.isEmpty()) {
-        expectedType = infos.get(0).type;
+        expectedType = infos.get(0).type.getType();
       }
     } else {
       expectedType = getTypeFromTypeTag(typeTag);
@@ -204,7 +204,7 @@ public class HaxeTypeResolver {
   static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder) {
     HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext();
     if (processedElements.contains(element)) {
-      context.result = SpecificHaxeClassReference.primitive("Dynamic", element);
+      context.result = SpecificHaxeClassReference.primitive("Dynamic", element).createHolder();
       return context;
     }
 

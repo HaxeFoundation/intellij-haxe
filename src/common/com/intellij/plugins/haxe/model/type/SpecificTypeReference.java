@@ -100,7 +100,10 @@ public abstract class SpecificTypeReference {
   }
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
-  public SpecificTypeReference withoutConstantValue() {
+  //public void mutateConstantValue(Object constantValue) {
+//
+  //}
+  final public SpecificTypeReference withoutConstantValue() {
     return withConstantValue(null);
   }
   public boolean isConstant() {
@@ -132,5 +135,13 @@ public abstract class SpecificTypeReference {
   }
   final public boolean canAssign(SpecificTypeReference type2) {
     return HaxeTypeCompatible.isAssignable(this, type2);
+  }
+
+  final public boolean canAssign(SpecificTypeReferenceHolder type2) {
+    return HaxeTypeCompatible.isAssignable(this, type2);
+  }
+
+  public SpecificTypeReferenceHolder createHolder() {
+    return new SpecificTypeReferenceHolder(this);
   }
 }

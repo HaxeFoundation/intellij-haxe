@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 public class HaxeTypeUnifier {
+  @NotNull
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
     if (a == null && b == null) return SpecificTypeReference.getUnknown(null);
     if (a == null) return b;
@@ -45,6 +47,7 @@ public class HaxeTypeUnifier {
     return SpecificTypeReference.getUnknown(a.getElementContext());
   }
 
+  @NotNull
   static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b) {
     final List<SpecificTypeReference> pa = a.getParameters();
     final List<SpecificTypeReference> pb = b.getParameters();
@@ -61,6 +64,7 @@ public class HaxeTypeUnifier {
     return new SpecificFunctionReference(params, retval, null);
   }
 
+  @NotNull
   static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
     if (a.isDynamic()) return a.withoutConstantValue();
     if (b.isDynamic()) return b.withoutConstantValue();
@@ -82,10 +86,12 @@ public class HaxeTypeUnifier {
     return SpecificTypeReference.getDynamic(a.getElementContext());
   }
 
+  @NotNull
   static public SpecificTypeReference unify(SpecificTypeReference[] types) {
     return unify(Arrays.asList(types));
   }
 
+  @NotNull
   static public SpecificTypeReference unify(List<SpecificTypeReference> types) {
     if (types.size() == 0) {
       return SpecificTypeReference.getUnknown(null);
@@ -95,5 +101,11 @@ public class HaxeTypeUnifier {
       type = unify(type, types.get(n));
     }
     return type;
+  }
+
+  @NotNull
+  static public SpecificTypeReferenceHolder unifyHolders(List<SpecificTypeReferenceHolder> typeHolders) {
+    // @TODO: This should mutate unknown holders?
+    return unify(SpecificTypeReferenceHolder.types(typeHolders)).createHolder();
   }
 }

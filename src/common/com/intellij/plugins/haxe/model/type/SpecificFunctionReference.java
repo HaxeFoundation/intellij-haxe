@@ -43,11 +43,6 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   }
 
   @Override
-  public SpecificFunctionReference withoutConstantValue() {
-    return withConstantValue(null);
-  }
-
-  @Override
   public PsiElement getElementContext() {
     if (retval != null) return retval.getElementContext();
     if (params.size() > 0) return params.get(0).getElementContext();
