@@ -62,4 +62,11 @@ public class HaxeClassReference {
   public String getName() {
     return this.name;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    // @TODO: This should check fqNames
+    if (obj instanceof HaxeClassReference) return getName().equals(((HaxeClassReference)obj).getName());
+    return false;
+  }
 }

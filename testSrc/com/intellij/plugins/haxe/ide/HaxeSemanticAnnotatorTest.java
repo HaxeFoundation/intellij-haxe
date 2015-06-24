@@ -174,4 +174,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testImplementSignature() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testSimpleAssignUnknownGeneric() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

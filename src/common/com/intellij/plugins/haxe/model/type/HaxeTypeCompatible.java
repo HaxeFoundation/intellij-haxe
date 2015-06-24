@@ -53,7 +53,28 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isAssignableType(@NotNull SpecificHaxeClassReference a, @NotNull SpecificHaxeClassReference b) {
-    if (a.isDynamic() || b.isDynamic()) return true;
+    if (a.isDynamic() || b.isDynamic()) {
+      return true;
+    }
+
+    // @TODO: This should mutate somehow that type
+    if (b.isUnknown()) {
+      return true;
+    }
+
+    // @TODO: A first tdd-dummy approach
+    if (a.clazz.equals(b.clazz)) {
+      if (a.specifics.length == b.specifics.length) {
+        int specificsLength = a.specifics.length;
+        for (int n = 0; n < specificsLength; n++) {
+          if (!isAssignable(a.specifics[n], b.specifics[n])) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+
     if (a.toStringWithoutConstant().equals(b.toStringWithoutConstant())) {
       return true;
     }

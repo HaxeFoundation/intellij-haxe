@@ -27,6 +27,8 @@ import com.intellij.psi.PsiElement;
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
   final public HaxeClassReference clazz;
+
+  // @TODO: Change specifics with generics + generic resolver?
   final public SpecificTypeReference[] specifics;
   final public Object constantValue;
   final public HaxeRange rangeConstraint;
