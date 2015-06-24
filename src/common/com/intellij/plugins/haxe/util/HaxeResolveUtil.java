@@ -37,6 +37,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +50,8 @@ import java.util.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeResolveUtil {
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+
   @Nullable
   public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
     if (node == null) return null;

@@ -29,10 +29,7 @@ import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
-import com.intellij.plugins.haxe.util.HaxeElementGenerator;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -53,10 +50,7 @@ import java.util.*;
 
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
-  Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl");
-  {
-    LOG.setLevel(Level.DEBUG);
-  }
+  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
   public HaxeReferenceImpl(ASTNode node) {
     super(node);
@@ -82,6 +76,21 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public String getCanonicalText() {
     return getText();
+  }
+
+  @Nullable
+  public HaxeGenericSpecialization getSpecialization() {
+    // CallExpressions need to resolve their child, rather than themselves.
+    HaxeExpression expression = this;
+    if (this instanceof HaxeCallExpression) {
+      expression = ((HaxeCallExpression)this).getExpression();
+    }
+
+    // The specialization for a reference comes from either the type of the left-hand side of the
+    // expression, or failing that, from the class in which the reference appears, which is
+    // exactly what tryGetLeftResolveResult() gives us.
+    final HaxeClassResolveResult result = tryGetLeftResolveResult(expression);
+    return result != null ? result.getSpecialization() : null;
   }
 
   @Override
