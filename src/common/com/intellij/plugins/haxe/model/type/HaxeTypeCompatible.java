@@ -29,11 +29,11 @@ public class HaxeTypeCompatible {
     return true;
   }
 
-  static public boolean isAssignable(SpecificTypeReference a, SpecificTypeReferenceHolder b) {
+  static public boolean isAssignable(SpecificTypeReference a, ResultHolder b) {
     return isAssignable(a, b.getType());
   }
 
-  static public boolean isAssignable(SpecificTypeReferenceHolder a, SpecificTypeReferenceHolder b) {
+  static public boolean isAssignable(ResultHolder a, ResultHolder b) {
     return isAssignable(a.getType(), b.getType());
   }
 

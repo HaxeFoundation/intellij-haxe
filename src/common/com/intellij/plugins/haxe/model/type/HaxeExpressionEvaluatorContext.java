@@ -28,16 +28,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HaxeExpressionEvaluatorContext {
-  public SpecificTypeReferenceHolder result;
-  private List<SpecificTypeReferenceHolder> returns = new ArrayList<SpecificTypeReferenceHolder>();
+  public ResultHolder result;
+  private List<ResultHolder> returns = new ArrayList<ResultHolder>();
   private List<PsiElement> returnElements = new ArrayList<PsiElement>();
   private List<ReturnInfo> returnInfos = new ArrayList<ReturnInfo>();
 
   public AnnotationHolder holder;
-  private HaxeScope<SpecificTypeReferenceHolder> scope = new HaxeScope<SpecificTypeReferenceHolder>();
+  private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
   public PsiElement root;
 
-  public void addReturnType(SpecificTypeReferenceHolder type, PsiElement element) {
+  public void addReturnType(ResultHolder type, PsiElement element) {
     this.returns.add(type);
     this.returnElements.add(element);
     this.returnInfos.add(new ReturnInfo(element, type));
@@ -45,10 +45,10 @@ public class HaxeExpressionEvaluatorContext {
 
   public SpecificTypeReference getReturnType() {
     if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root);
-    return HaxeTypeUnifier.unify(SpecificTypeReferenceHolder.types(returns));
+    return HaxeTypeUnifier.unify(ResultHolder.types(returns));
   }
 
-  public List<SpecificTypeReferenceHolder> getReturnValues() {
+  public List<ResultHolder> getReturnValues() {
     return returns;
   }
 
@@ -65,18 +65,18 @@ public class HaxeExpressionEvaluatorContext {
   }
 
   public void beginScope() {
-    scope = new HaxeScope<SpecificTypeReferenceHolder>(scope);
+    scope = new HaxeScope<ResultHolder>(scope);
   }
 
   public void endScope() {
     scope = scope.parent;
   }
 
-  public void setLocal(String key, SpecificTypeReferenceHolder value) {
+  public void setLocal(String key, ResultHolder value) {
     this.scope.set(key, value);
   }
 
-  public void setLocalWhereDefined(String key, SpecificTypeReferenceHolder value) {
+  public void setLocalWhereDefined(String key, ResultHolder value) {
     this.scope.setWhereDefined(key, value);
   }
 
@@ -84,7 +84,7 @@ public class HaxeExpressionEvaluatorContext {
     return this.scope.has(key);
   }
 
-  public SpecificTypeReferenceHolder get(String key) {
+  public ResultHolder get(String key) {
     return this.scope.get(key);
   }
 
@@ -115,10 +115,10 @@ public class HaxeExpressionEvaluatorContext {
 }
 
 class ReturnInfo {
-  final public SpecificTypeReferenceHolder type;
+  final public ResultHolder type;
   final public PsiElement element;
 
-  public ReturnInfo(PsiElement element, SpecificTypeReferenceHolder type) {
+  public ReturnInfo(PsiElement element, ResultHolder type) {
     this.element = element;
     this.type = type;
   }

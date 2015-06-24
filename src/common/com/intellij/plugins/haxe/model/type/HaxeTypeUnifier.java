@@ -104,8 +104,8 @@ public class HaxeTypeUnifier {
   }
 
   @NotNull
-  static public SpecificTypeReferenceHolder unifyHolders(List<SpecificTypeReferenceHolder> typeHolders) {
+  static public ResultHolder unifyHolders(List<ResultHolder> typeHolders) {
     // @TODO: This should mutate unknown holders?
-    return unify(SpecificTypeReferenceHolder.types(typeHolders)).createHolder();
+    return unify(ResultHolder.types(typeHolders)).createHolder();
   }
 }

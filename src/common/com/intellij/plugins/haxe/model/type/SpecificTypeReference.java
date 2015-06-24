@@ -137,11 +137,11 @@ public abstract class SpecificTypeReference {
     return HaxeTypeCompatible.isAssignable(this, type2);
   }
 
-  final public boolean canAssign(SpecificTypeReferenceHolder type2) {
+  final public boolean canAssign(ResultHolder type2) {
     return HaxeTypeCompatible.isAssignable(this, type2);
   }
 
-  public SpecificTypeReferenceHolder createHolder() {
-    return new SpecificTypeReferenceHolder(this);
+  public ResultHolder createHolder() {
+    return new ResultHolder(this);
   }
 }

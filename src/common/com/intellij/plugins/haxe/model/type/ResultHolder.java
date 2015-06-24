@@ -22,11 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedList;
 import java.util.List;
 
-public class SpecificTypeReferenceHolder {
+public class ResultHolder {
   @NotNull
   private SpecificTypeReference type;
 
-  public SpecificTypeReferenceHolder(@NotNull SpecificTypeReference type) {
+  private boolean canMutate = true;
+  private int mutationCount = 0;
+
+  public ResultHolder(@NotNull SpecificTypeReference type) {
     this.type = type;
   }
 
@@ -41,17 +44,30 @@ public class SpecificTypeReferenceHolder {
 
   public void setType(@NotNull SpecificTypeReference type) {
     this.type = type;
+    mutationCount++;
   }
 
-  static public List<SpecificTypeReference> types(List<SpecificTypeReferenceHolder> holders) {
+  public void disableMutating() {
+    this.canMutate = false;
+  }
+
+  public boolean canMutate() {
+    return this.canMutate;
+  }
+
+  public boolean isImmutable() {
+    return !this.canMutate;
+  }
+
+  static public List<SpecificTypeReference> types(List<ResultHolder> holders) {
     LinkedList<SpecificTypeReference> out = new LinkedList<SpecificTypeReference>();
-    for (SpecificTypeReferenceHolder holder : holders) {
+    for (ResultHolder holder : holders) {
       out.push(holder.type);
     }
     return out;
   }
 
-  public boolean canAssign(SpecificTypeReferenceHolder that) {
+  public boolean canAssign(ResultHolder that) {
     return HaxeTypeCompatible.isAssignable(this, that);
   }
 
