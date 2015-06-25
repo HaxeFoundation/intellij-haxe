@@ -133,7 +133,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
   public SpecificFunctionReference getFunctionType() {
     LinkedList<SpecificTypeReference> args = new LinkedList<SpecificTypeReference>();
     for (HaxeParameterModel param : this.getParameters()) {
-      args.add(SpecificHaxeClassReference.ensure(HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi())));
+      args.add(SpecificHaxeClassReference.ensure(HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi()), param.getNameOrBasePsi()));
     }
     return new SpecificFunctionReference(args, HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi()), this);
   }

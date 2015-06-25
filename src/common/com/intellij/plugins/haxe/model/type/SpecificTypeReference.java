@@ -20,8 +20,8 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.psi.PsiElement;
 
 public abstract class SpecificTypeReference {
-  static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
-    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, SpecificHaxeClassReference.EMPTY, null, null);
+  static public SpecificTypeReference ensure(SpecificTypeReference clazz, PsiElement context) {
+    return (clazz != null) ? clazz : getDynamic(context);
   }
 
   static public SpecificTypeReference createArray(SpecificTypeReference elementType) {

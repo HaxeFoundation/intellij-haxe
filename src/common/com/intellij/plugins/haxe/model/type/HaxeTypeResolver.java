@@ -54,9 +54,9 @@ public class HaxeTypeResolver {
   static private SpecificTypeReference _getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
     try {
       if (comp instanceof PsiMethod) {
-        return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp));
+        return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp), comp);
       } else {
-        return SpecificHaxeClassReference.ensure(getFieldType(comp));
+        return SpecificHaxeClassReference.ensure(getFieldType(comp), comp);
       }
     } catch (Throwable e) {
       e.printStackTrace();

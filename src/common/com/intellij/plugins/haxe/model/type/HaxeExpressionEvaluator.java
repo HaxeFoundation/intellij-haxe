@@ -199,7 +199,7 @@ public class HaxeExpressionEvaluator {
         type = handle(expression, context).getType();
         lastExpression = expression;
       }
-      type = SpecificTypeReference.ensure(type);
+      type = SpecificTypeReference.ensure(type, element);
       if (!type.isBool() && lastExpression != null) {
         final SpecificTypeReference finalType = type;
         final HaxeExpression finalExpression = lastExpression;
@@ -317,22 +317,24 @@ public class HaxeExpressionEvaluator {
         String accessName = children[n].getText();
         if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
           String str = (String)typeHolder.getType().getConstant();
-          typeHolder.setType(SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1));
+          typeHolder = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
           if (str == null || str.length() != 1) {
             context.addError(element, "String must be a single UTF8 char");
           }
         }
         else {
           SpecificTypeReference access = typeHolder.getType().access(accessName, context);
-          typeHolder.setType(access);
+          typeHolder = SpecificTypeReference.ensure(access, element).createHolder();
           if (access == null) {
             resolved = false;
             Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "'");
-            if (children.length == 1) {
-              annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
-            } else {
-              annotation.registerFix(new HaxeCreateMethodFixer(accessName, element));
-              annotation.registerFix(new HaxeCreateFieldFixer(accessName, element));
+            if (annotation != null) {
+              if (children.length == 1) {
+                annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
+              } else {
+                annotation.registerFix(new HaxeCreateMethodFixer(accessName, element));
+                annotation.registerFix(new HaxeCreateFieldFixer(accessName, element));
+              }
             }
           }
         }
