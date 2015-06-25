@@ -564,8 +564,8 @@ public class HaxeExpressionEvaluator {
           }
           results.add(vartype);
         }
-        HaxeExpressionEvaluatorContext context1 = HaxeTypeResolver.evaluateFunction(context.createChild(element.getLastChild()));
-        returnType = context1.getReturnType();
+        context.addLambda(context.createChild(element.getLastChild()));
+        returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeFunctionLiteral)element).getTypeTag(), element);
       } finally {
         context.endScope();
       }

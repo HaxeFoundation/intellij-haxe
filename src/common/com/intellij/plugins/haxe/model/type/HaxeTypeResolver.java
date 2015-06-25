@@ -114,7 +114,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getTypeFromTypeTag(final HaxeTypeTag typeTag, @NotNull PsiElement context) {
+  static public ResultHolder getTypeFromTypeTag(@Nullable final HaxeTypeTag typeTag, @NotNull PsiElement context) {
     if (typeTag != null) {
       final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
       final HaxeFunctionType functionType = typeTag.getFunctionType();
@@ -228,6 +228,11 @@ public class HaxeTypeResolver {
     try {
       HaxeExpressionEvaluator.evaluate(element, context);
       checkMethod(element.getParent(), context);
+
+      for (HaxeExpressionEvaluatorContext lambda : context.lambdas) {
+        evaluateFunction(lambda);
+      }
+
       return context;
     } finally {
       processedElements.remove(element);

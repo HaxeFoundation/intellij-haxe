@@ -3,12 +3,10 @@ class Test {
   }
 
   public function main() {
-    var out;
+    var out = 10;
 
     this.demo(function(v) {
-      out = v;
+      <error descr="Can't assign String to Int">out = v</error>;
     });
-
-    <error descr="Can't assign Int to String">out = 10</error>;
   }
 }

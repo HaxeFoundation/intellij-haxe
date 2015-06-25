@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeExpressionEvaluatorContext {
@@ -133,6 +134,11 @@ public class HaxeExpressionEvaluatorContext {
     Annotation annotation = holder.createInfoAnnotation(element, null);
     annotation.setTextAttributes(HaxeSyntaxHighlighterColors.LINE_COMMENT);
     return annotation;
+  }
+
+  final public List<HaxeExpressionEvaluatorContext> lambdas = new LinkedList<HaxeExpressionEvaluatorContext>();
+  public void addLambda(HaxeExpressionEvaluatorContext child) {
+    lambdas.add(child);
   }
 }
 

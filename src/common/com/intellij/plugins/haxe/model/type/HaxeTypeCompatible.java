@@ -36,6 +36,8 @@ public class HaxeTypeCompatible {
   static public boolean isAssignable(ResultHolder a, ResultHolder b) {
     if (a.isUnknown()) {
       a.setType(b.getType().withoutConstantValue());
+    } else if (b.isUnknown()) {
+      b.setType(a.getType().withoutConstantValue());
     }
     return isAssignable(a.getType(), b.getType());
   }
