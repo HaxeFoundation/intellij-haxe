@@ -150,10 +150,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeClassModel model = getHaxeClassModel();
     if (model != null) {
       List<HaxeGenericParamModel> params = model.getGenericParams();
-      int paramsLength = Math.min(params.size(), specifics.length);
-      for (int n = 0; n < paramsLength; n++) {
+      for (int n = 0; n < params.size(); n++) {
         HaxeGenericParamModel paramModel = params.get(n);
-        ResultHolder specific = this.specifics[n];
+        ResultHolder specific = (n < specifics.length) ? this.specifics[n] : getUnknown(context).createHolder();
         resolver.resolvers.put(paramModel.getName(), specific);
       }
     }

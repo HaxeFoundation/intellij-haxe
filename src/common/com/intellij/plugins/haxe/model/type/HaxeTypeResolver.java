@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -80,6 +81,7 @@ public class HaxeTypeResolver {
     //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
     if (comp instanceof HaxeVarDeclarationPart) {
+      HaxeTypeTag typeTag = ((HaxeVarDeclarationPart)comp).getTypeTag();
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
@@ -93,15 +95,22 @@ public class HaxeTypeResolver {
         }
         return isConstant ? type1 : type1.withConstantValue(null);
       }
+      if (typeTag != null) {
+        return getTypeFromTypeTag(typeTag, comp);
+      }
     }
 
-    return SpecificTypeReference.getInvalid(comp).createHolder();
+    return SpecificTypeReference.getUnknown(comp).createHolder();
   }
 
   @NotNull
   static private ResultHolder getFunctionReturnType(AbstractHaxeNamedComponent comp) {
-    //ResultHolder type = getTypeFromTypeTag(comp);
-
+    if (comp instanceof HaxeMethodImpl) {
+      HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
+      if (typeTag != null) {
+        return getTypeFromTypeTag(typeTag, comp);
+      }
+    }
     if (comp instanceof HaxeMethod) {
       final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), null);
       return context.getReturnType();
