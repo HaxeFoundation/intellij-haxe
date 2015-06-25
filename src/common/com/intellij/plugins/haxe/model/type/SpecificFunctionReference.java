@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -31,7 +32,8 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   @Nullable
   final public HaxeMethodModel method;
 
-  public SpecificFunctionReference(List<SpecificTypeReference> params, SpecificTypeReference retval, @Nullable HaxeMethodModel method) {
+  public SpecificFunctionReference(List<SpecificTypeReference> params, SpecificTypeReference retval, @Nullable HaxeMethodModel method, @NotNull PsiElement context) {
+    super(context);
     this.params = params;
     this.retval = retval;
     this.method = method;
@@ -39,14 +41,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
   @Override
   public SpecificFunctionReference withConstantValue(Object constantValue) {
-    return new SpecificFunctionReference(params, retval, method);
-  }
-
-  @Override
-  public PsiElement getElementContext() {
-    if (retval != null) return retval.getElementContext();
-    if (params.size() > 0) return params.get(0).getElementContext();
-    return null;
+    return new SpecificFunctionReference(params, retval, method, context);
   }
 
   public int getNonOptionalArgumentsCount() {

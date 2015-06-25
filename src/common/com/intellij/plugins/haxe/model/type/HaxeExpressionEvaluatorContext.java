@@ -45,7 +45,7 @@ public class HaxeExpressionEvaluatorContext {
 
   public SpecificTypeReference getReturnType() {
     if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root);
-    return HaxeTypeUnifier.unify(ResultHolder.types(returns));
+    return HaxeTypeUnifier.unify(ResultHolder.types(returns), root);
   }
 
   public List<ResultHolder> getReturnValues() {

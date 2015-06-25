@@ -18,64 +18,105 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class SpecificTypeReference {
-  static public SpecificTypeReference ensure(SpecificTypeReference clazz, PsiElement context) {
+  final protected PsiElement context;
+
+  public SpecificTypeReference(@NotNull PsiElement context) {
+    this.context = context;
+  }
+
+  static public SpecificTypeReference ensure(SpecificTypeReference clazz, @NotNull PsiElement context) {
     return (clazz != null) ? clazz : getDynamic(context);
   }
 
-  static public SpecificTypeReference createArray(SpecificTypeReference elementType) {
-    return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Array", null), new SpecificTypeReference[]{elementType}, null);
+  static public SpecificTypeReference createArray(@NotNull SpecificTypeReference elementType) {
+    return SpecificHaxeClassReference
+      .withGenerics(new HaxeClassReference("Array", elementType.context), new SpecificTypeReference[]{elementType}, null);
   }
 
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
     return this;
   }
 
-  static public SpecificHaxeClassReference getVoid(PsiElement context) {
+  static public SpecificHaxeClassReference getVoid(@NotNull PsiElement context) {
     return primitive("Void", context);
   }
 
-  static public SpecificHaxeClassReference getBool(PsiElement context) {
+  static public SpecificHaxeClassReference getBool(@NotNull PsiElement context) {
     return primitive("Bool", context);
   }
-  static public SpecificHaxeClassReference getInt(PsiElement context) {
+
+  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context) {
     return primitive("Int", context);
   }
-  static public SpecificHaxeClassReference getInt(PsiElement context, int value) {
+
+  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context, int value) {
     return primitive("Int", context, value);
   }
 
-  static public SpecificHaxeClassReference getDynamic(PsiElement context) {
+  static public SpecificHaxeClassReference getDynamic(@NotNull PsiElement context) {
     return primitive("Dynamic", context);
   }
 
-  static public SpecificHaxeClassReference getUnknown(PsiElement context) {
+  static public SpecificHaxeClassReference getUnknown(@NotNull PsiElement context) {
     return primitive("Unknown", context);
   }
-  static public SpecificHaxeClassReference getInvalid(PsiElement context) {
+
+  static public SpecificHaxeClassReference getInvalid(@NotNull PsiElement context) {
     return primitive("@@Invalid", context);
   }
+
   static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
     return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Iterator", type.getElementContext()),
                                                    new SpecificTypeReference[]{type});
   }
-  static public SpecificHaxeClassReference primitive(String name, PsiElement context) {
+
+  static public SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
     return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context));
   }
-  static public SpecificHaxeClassReference primitive(String name, PsiElement context, Object constant) {
+
+  static public SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context, Object constant) {
     return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context), constant);
   }
 
-  final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
-  final public boolean isDynamic() { return this.toStringWithoutConstant().equals("Dynamic"); }
-  final public boolean isInvalid() { return this.toStringWithoutConstant().equals("@@Invalid"); }
-  final public boolean isVoid() { return this.toStringWithoutConstant().equals("Void"); }
-  final public boolean isInt() { return this.toStringWithoutConstant().equals("Int"); }
-  final public boolean isNumeric() { return isInt() || isFloat(); }
-  final public boolean isBool() { return this.toStringWithoutConstant().equals("Bool"); }
-  final public boolean isFloat() { return this.toStringWithoutConstant().equals("Float"); }
-  final public boolean isString() { return this.toStringWithoutConstant().equals("String"); }
+  final public boolean isUnknown() {
+    return this.toStringWithoutConstant().equals("Unknown");
+  }
+
+  final public boolean isDynamic() {
+    return this.toStringWithoutConstant().equals("Dynamic");
+  }
+
+  final public boolean isInvalid() {
+    return this.toStringWithoutConstant().equals("@@Invalid");
+  }
+
+  final public boolean isVoid() {
+    return this.toStringWithoutConstant().equals("Void");
+  }
+
+  final public boolean isInt() {
+    return this.toStringWithoutConstant().equals("Int");
+  }
+
+  final public boolean isNumeric() {
+    return isInt() || isFloat();
+  }
+
+  final public boolean isBool() {
+    return this.toStringWithoutConstant().equals("Bool");
+  }
+
+  final public boolean isFloat() {
+    return this.toStringWithoutConstant().equals("Float");
+  }
+
+  final public boolean isString() {
+    return this.toStringWithoutConstant().equals("String");
+  }
+
   final public boolean isArray() {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
@@ -83,6 +124,7 @@ public abstract class SpecificTypeReference {
     }
     return false;
   }
+
   final public SpecificTypeReference getArrayElementType() {
     if (isArray()) {
       final SpecificTypeReference[] specifics = ((SpecificHaxeClassReference)this).specifics;
@@ -100,39 +142,55 @@ public abstract class SpecificTypeReference {
   }
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
+
   //public void mutateConstantValue(Object constantValue) {
 //
   //}
   final public SpecificTypeReference withoutConstantValue() {
     return withConstantValue(null);
   }
+
   public boolean isConstant() {
     return this.getConstant() != null;
   }
+
   public HaxeRange getRangeConstraint() {
     return null;
   }
+
   public Object getConstant() {
     return null;
   }
+
   final public boolean getConstantAsBool() {
     return HaxeTypeUtils.getBoolValue(getConstant());
   }
+
   final public double getConstantAsDouble() {
     return HaxeTypeUtils.getDoubleValue(getConstant());
   }
+
   final public int getConstantAsInt() {
     return HaxeTypeUtils.getIntValue(getConstant());
   }
-  abstract public PsiElement getElementContext();
+
+  @NotNull
+  final public PsiElement getElementContext() {
+    return context;
+  }
+
   abstract public String toString();
+
   abstract public String toStringWithoutConstant();
+
   public String toStringWithConstant() {
     return toString();
   }
+
   public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
     return null;
   }
+
   final public boolean canAssign(SpecificTypeReference type2) {
     return HaxeTypeCompatible.isAssignable(this, type2);
   }

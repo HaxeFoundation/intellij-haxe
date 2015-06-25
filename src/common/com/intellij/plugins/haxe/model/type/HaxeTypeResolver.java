@@ -129,7 +129,7 @@ public class HaxeTypeResolver {
     }
     SpecificTypeReference retval = args.get(args.size() - 1);
     args.remove(args.size() - 1);
-    return new SpecificFunctionReference(args, retval, null);
+    return new SpecificFunctionReference(args, retval, null, type);
   }
 
   static public SpecificTypeReference getTypeFromType(@NotNull HaxeType type) {

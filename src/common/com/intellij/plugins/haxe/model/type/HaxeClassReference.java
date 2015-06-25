@@ -21,26 +21,23 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 public class HaxeClassReference {
   final public String name;
-  final public PsiElement elementContext;
+  @NotNull final public PsiElement elementContext;
   final public HaxeClassModel clazz;
 
-  public HaxeClassReference(String name, PsiElement elementContext) {
+  public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
     this.clazz = null;
   }
 
-  public HaxeClassReference(HaxeClassModel clazz, PsiElement elementContext) {
+  public HaxeClassReference(HaxeClassModel clazz, @NotNull PsiElement elementContext) {
     this.name = clazz.getName();
     this.elementContext = elementContext;
     this.clazz = null;
-  }
-
-  public HaxeClassReference(HaxeClassModel clazz) {
-    this(clazz, null);
   }
 
   public HaxeClass getHaxeClass() {
@@ -49,11 +46,7 @@ public class HaxeClassReference {
     if (clazz == null) {
       clazz = HaxeResolveUtil.tryResolveClassByQName(elementContext);
       if (clazz == null) {
-        if (elementContext != null) {
-          System.err.println("Not found '" + name + "' : " + elementContext + " : " + elementContext.getText());
-        } else {
-          System.err.println("Not found '" + name + "'");
-        }
+        System.err.println("Not found '" + name + "' : " + elementContext + " : " + elementContext.getText());
       }
     }
     return clazz;

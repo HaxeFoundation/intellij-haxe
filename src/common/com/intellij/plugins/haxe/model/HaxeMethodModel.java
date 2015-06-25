@@ -135,7 +135,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
     for (HaxeParameterModel param : this.getParameters()) {
       args.add(SpecificHaxeClassReference.ensure(HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi()), param.getNameOrBasePsi()));
     }
-    return new SpecificFunctionReference(args, HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi()), this);
+    return new SpecificFunctionReference(args, HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi()), this, haxeMethod);
   }
 
   public HaxeMethodModel getParentMethod() {

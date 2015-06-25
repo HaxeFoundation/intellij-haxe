@@ -78,4 +78,6 @@ public class ResultHolder {
   public void removeConstant() {
     setType(getType().withoutConstantValue());
   }
+
+  public String toString() { return this.getType().toString(); }
 }

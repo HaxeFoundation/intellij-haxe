@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
@@ -33,7 +34,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   final public Object constantValue;
   final public HaxeRange rangeConstraint;
 
-  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue, HaxeRange rangeConstraint) {
+  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue, HaxeRange rangeConstraint, @NotNull PsiElement context) {
+    super(context);
     this.clazz = clazz;
     this.specifics = specifics;
     this.constantValue = constantValue;
@@ -55,7 +57,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
     //if (this.constantValue == constantValue) return this;
-    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null);
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null, context);
   }
 
   //@Override
@@ -66,7 +68,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   @Override
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
     if (this.rangeConstraint == range) return this;
-    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, range);
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, range, context);
   }
 
   @Override
@@ -79,25 +81,20 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return this.constantValue;
   }
 
-  @Override
-  public PsiElement getElementContext() {
-    return this.clazz.elementContext;
-  }
-
   static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz) {
-    return new SpecificHaxeClassReference(clazz, EMPTY, null, null);
+    return new SpecificHaxeClassReference(clazz, EMPTY, null, null, clazz.elementContext);
   }
 
   static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz, Object constantValue) {
-    return new SpecificHaxeClassReference(clazz, EMPTY, constantValue, null);
+    return new SpecificHaxeClassReference(clazz, EMPTY, constantValue, null, clazz.elementContext);
   }
 
   static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics) {
-    return new SpecificHaxeClassReference(clazz, specifics, null, null);
+    return new SpecificHaxeClassReference(clazz, specifics, null, null, clazz.elementContext);
   }
 
   static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue) {
-    return new SpecificHaxeClassReference(clazz, specifics, constantValue, null);
+    return new SpecificHaxeClassReference(clazz, specifics, constantValue, null, clazz.elementContext);
   }
 
   public String toStringWithoutConstant() {

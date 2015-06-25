@@ -257,52 +257,36 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeLocalVarDeclarationPart) {
-      HaxeComponentName name = ((HaxeLocalVarDeclarationPart)element).getComponentName();
+      final HaxeComponentName name = ((HaxeLocalVarDeclarationPart)element).getComponentName();
       final HaxeVarInit init = ((HaxeLocalVarDeclarationPart)element).getVarInit();
-      if (init == null) {
-        ResultHolder variableHolder = SpecificHaxeClassReference.getUnknown(element).createHolder();
-        context.setLocal(name.getText(), variableHolder);
-        return variableHolder;
-      }
-      final HaxeExpression initExpr = init.getExpression();
-      final ResultHolder finalResult = handle(init, context);
-      final SpecificTypeReference result = finalResult.getType();
       final HaxeTypeTag typeTag = ((HaxeLocalVarDeclarationPart)element).getTypeTag();
+      ResultHolder result = SpecificHaxeClassReference.getUnknown(element).createHolder();
+      if (init != null) {
+        result = handle(init, context);
+      }
+      if (typeTag != null) {
+        result = HaxeTypeResolver.getTypeFromTypeTag(typeTag).createHolder();
+      }
+
       if (typeTag != null) {
         final SpecificTypeReference tag = HaxeTypeResolver.getTypeFromTypeTag(typeTag);
         if (!tag.canAssign(result)) {
-          finalResult.setType(tag);
+          result = tag.createHolder();
 
           context.addError(
             element,
             "Can't assign " + result + " to " + tag,
-            new HaxeCastFixer(initExpr, result, tag),
-            new HaxeFixer("Change TypeTag") {
-              @Override
-              public void run() {
-                HaxeDocumentModel.fromElement(element).replaceElementText(
-                  typeTag,
-                  ":" + result.toStringWithoutConstant()
-                );
-              }
-            },
-            new HaxeFixer("Remove TypeTag") {
-              @Override
-              public void run() {
-                HaxeDocumentModel.fromElement(element).replaceElementText(
-                  typeTag,
-                  ""
-                );
-              }
-            }
+            new HaxeTypeTagChangeFixer(typeTag, result.getType()),
+            new HaxeTypeTagRemoveFixer(typeTag)
           );
         }
       }
+
       if (name != null) {
-        context.setLocal(name.getText(), finalResult);
+        context.setLocal(name.getText(), result);
       }
 
-      return finalResult;
+      return result;
     }
 
     if (element instanceof HaxeVarInit) {
@@ -324,10 +308,9 @@ public class HaxeExpressionEvaluator {
         }
         else {
           SpecificTypeReference access = typeHolder.getType().access(accessName, context);
-          typeHolder = SpecificTypeReference.ensure(access, element).createHolder();
           if (access == null) {
             resolved = false;
-            Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "'");
+            Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType());
             if (annotation != null) {
               if (children.length == 1) {
                 annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
@@ -337,6 +320,7 @@ public class HaxeExpressionEvaluator {
               }
             }
           }
+          typeHolder = SpecificTypeReference.ensure(access, element).createHolder();
         }
       }
 
@@ -420,14 +404,14 @@ public class HaxeExpressionEvaluator {
       for (HaxeExpression expression : ((HaxeExpressionList)element).getExpressionList()) {
         references.add(handle(expression, context));
       }
-      return HaxeTypeUnifier.unifyHolders(references);
+      return HaxeTypeUnifier.unifyHolders(references, element);
     }
 
     if (element instanceof HaxeArrayLiteral) {
       HaxeExpressionList list = ((HaxeArrayLiteral)element).getExpressionList();
       if (list != null) {
         final List<HaxeExpression> list1 = list.getExpressionList();
-        if ((list1 != null) && list1.isEmpty()) {
+        if (list1.isEmpty()) {
           final PsiElement child = list.getFirstChild();
           if ((child instanceof HaxeForStatement) || (child instanceof HaxeWhileStatement)) {
             return SpecificTypeReference.createArray(handle(child, context).getType()).createHolder();
@@ -449,7 +433,7 @@ public class HaxeExpressionEvaluator {
           references.add(type);
         }
       }
-      SpecificTypeReference result = SpecificHaxeClassReference.createArray(HaxeTypeUnifier.unify(references).withoutConstantValue());
+      SpecificTypeReference result = SpecificHaxeClassReference.createArray(HaxeTypeUnifier.unify(references, element).withoutConstantValue());
       if (allConstants) result = result.withConstantValue(constants);
       return result.createHolder();
     }
@@ -599,7 +583,7 @@ public class HaxeExpressionEvaluator {
             }
           }
         }
-        return HaxeTypeUnifier.unify(tTrue, tFalse).createHolder();
+        return HaxeTypeUnifier.unify(tTrue, tFalse, element).createHolder();
       }
     }
 
@@ -609,7 +593,7 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeTernaryExpression) {
       HaxeExpression[] list = ((HaxeTernaryExpression)element).getExpressionList().toArray(new HaxeExpression[0]);
-      return HaxeTypeUnifier.unify(handle(list[1], context).getType(), handle(list[2], context).getType()).createHolder();
+      return HaxeTypeUnifier.unify(handle(list[1], context).getType(), handle(list[2], context).getType(), element).createHolder();
     }
 
     if (element instanceof HaxePrefixExpression) {
@@ -681,8 +665,11 @@ public class HaxeExpressionEvaluator {
       HaxeExpression expression = parameterExpressions.get(n);
       ResultHolder value = handle(expression, context);
       if (!type.canAssign(value)) {
-        Annotation annotation = context.addError(expression, "Can't assign " + value + " to " + type);
-        annotation.registerFix(new HaxeCastFixer(expression, value.getType(), type));
+        context.addError(
+          expression,
+          "Can't assign " + value + " to " + type,
+          new HaxeCastFixer(expression, value.getType(), type)
+        );
       }
     }
 

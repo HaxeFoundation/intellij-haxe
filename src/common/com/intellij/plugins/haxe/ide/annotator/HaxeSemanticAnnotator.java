@@ -27,6 +27,9 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
@@ -384,12 +387,7 @@ class MethodChecker {
       if (currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
         // @TODO: Move to bundle
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Constructor can't be static").registerFix(
-          new HaxeFixer("Remove static") {
-            @Override
-            public void run() {
-              currentModifiers.removeModifier(HaxeModifierType.STATIC);
-            }
-          }
+          new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.STATIC)
         );
       }
     }
@@ -397,12 +395,7 @@ class MethodChecker {
       requiredOverride = false;
       if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
-          new HaxeFixer("Add static") {
-            @Override
-            public void run() {
-              currentModifiers.addModifier(HaxeModifierType.STATIC);
-            }
-          }
+          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.STATIC)
         );
       }
     }
@@ -414,8 +407,9 @@ class MethodChecker {
           holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
         for (HaxeModifierType mod : new HaxeModifierType[]{HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC}) {
           if (parentModifiers.hasModifier(mod)) {
-            annotation
-              .registerFix(new RemoveModifierIntent("Remove " + mod.s + " from " + parentMethod.getFullName(), parentModifiers, mod));
+            annotation.registerFix(
+              new HaxeModifierRemoveFixer(parentModifiers, mod, "Remove " + mod.s + " from " + parentMethod.getFullName())
+            );
           }
         }
       }
@@ -428,39 +422,22 @@ class MethodChecker {
           " has less visibility (public/private) than superclass one"
         );
         annotation.registerFix(
-          new HaxeFixer("Change current method visibility") {
-            @Override
-            public void run() {
-              currentModifiers.replaceVisibility(parentModifiers.getVisibility());
-            }
-          }
-        );
+          new HaxeModifierReplaceVisibilityFixer(currentModifiers, parentModifiers.getVisibility(), "Change current method visibility"));
         annotation.registerFix(
-          new HaxeFixer("Change parent method visibility") {
-            @Override
-            public void run() {
-              parentModifiers.replaceVisibility(currentModifiers.getVisibility());
-            }
-          }
-        );
+          new HaxeModifierReplaceVisibilityFixer(parentModifiers, currentModifiers.getVisibility(), "Change parent method visibility"));
       }
     }
 
     //System.out.println(aClass);
     if (currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && !requiredOverride) {
       holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
-        new RemoveModifierIntent("Remove override", currentModifiers, HaxeModifierType.OVERRIDE)
+        new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.OVERRIDE)
       );
     }
     else if (requiredOverride) {
       if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
-          new HaxeFixer("Add override") {
-            @Override
-            public void run() {
-              currentModifiers.addModifier(HaxeModifierType.OVERRIDE);
-            }
-          }
+          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.OVERRIDE)
         );
       }
       else {
@@ -574,22 +551,6 @@ class PackageChecker {
         }
       );
     }
-  }
-}
-
-class RemoveModifierIntent extends HaxeFixer {
-  private HaxeModifiersModel modifiers;
-  private HaxeModifierType modifierToRemove;
-
-  public RemoveModifierIntent(String text, HaxeModifiersModel modifiers, HaxeModifierType modifierToRemove) {
-    super(text);
-    this.modifiers = modifiers;
-    this.modifierToRemove = modifierToRemove;
-  }
-
-  @Override
-  public void run() {
-    modifiers.removeModifier(modifierToRemove);
   }
 }
 
