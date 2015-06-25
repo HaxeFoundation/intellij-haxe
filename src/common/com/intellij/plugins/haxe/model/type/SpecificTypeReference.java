@@ -33,7 +33,7 @@ public abstract class SpecificTypeReference {
 
   static public SpecificTypeReference createArray(@NotNull SpecificTypeReference elementType) {
     return SpecificHaxeClassReference
-      .withGenerics(new HaxeClassReference("Array", elementType.context), new SpecificTypeReference[]{elementType}, null);
+      .withGenerics(new HaxeClassReference("Array", elementType.context), new ResultHolder[]{elementType.createHolder()}, null);
   }
 
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
@@ -70,7 +70,7 @@ public abstract class SpecificTypeReference {
 
   static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
     return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Iterator", type.getElementContext()),
-                                                   new SpecificTypeReference[]{type});
+                                                   new ResultHolder[]{type.createHolder()});
   }
 
   static public SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
@@ -125,20 +125,20 @@ public abstract class SpecificTypeReference {
     return false;
   }
 
-  final public SpecificTypeReference getArrayElementType() {
+  final public ResultHolder getArrayElementType() {
     if (isArray()) {
-      final SpecificTypeReference[] specifics = ((SpecificHaxeClassReference)this).specifics;
+      final ResultHolder[] specifics = ((SpecificHaxeClassReference)this).specifics;
       if (specifics.length >= 1) return specifics[0];
     }
-    return null;
+    return getUnknown(context).createHolder();
   }
 
-  final public SpecificTypeReference getIterableElementType(SpecificTypeReference iterable) {
+  final public ResultHolder getIterableElementType(SpecificTypeReference iterable) {
     if (isArray()) {
       return getArrayElementType();
     }
     // @TODO: Must implement it (it is not int always)
-    return getInt(iterable.getElementContext());
+    return getInt(iterable.getElementContext()).createHolder();
   }
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);

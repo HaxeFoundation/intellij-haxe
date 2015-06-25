@@ -237,6 +237,7 @@ public class HaxeClassModel {
     return models;
   }
 
+  @NotNull
   public HaxeClass getPsi() {
     return haxeClass;
   }
@@ -334,6 +335,18 @@ public class HaxeClassModel {
         ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
+  }
+
+  public List<HaxeGenericParamModel> getGenericParams() {
+    List<HaxeGenericParamModel> out = new LinkedList<HaxeGenericParamModel>();
+    if (getPsi().getGenericParam() != null) {
+      int index = 0;
+      for (HaxeGenericListPart part : getPsi().getGenericParam().getGenericListPartList()) {
+        out.add(new HaxeGenericParamModel(part, index));
+        index++;
+      }
+    }
+    return out;
   }
 
   public void addField(String name, SpecificTypeReference type) {

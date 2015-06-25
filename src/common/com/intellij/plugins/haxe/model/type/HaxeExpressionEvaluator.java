@@ -107,14 +107,16 @@ public class HaxeExpressionEvaluator {
       context.beginScope();
       try {
         final SpecificTypeReference iterableValue = handle(iterable, context).getType();
-        SpecificTypeReference type = iterableValue.getIterableElementType(iterableValue);
+        SpecificTypeReference type = iterableValue.getIterableElementType(iterableValue).getType();
         if (iterableValue.isConstant()) {
           final Object constant = iterableValue.getConstant();
           if (constant instanceof HaxeRange) {
             type = type.withRangeConstraint((HaxeRange)constant);
           }
         }
-        context.setLocal(name.getText(), new ResultHolder(type));
+        if (name != null) {
+          context.setLocal(name.getText(), new ResultHolder(type));
+        }
         return handle(body, context);
         //System.out.println(name);
         //System.out.println(iterable);
@@ -534,7 +536,7 @@ public class HaxeExpressionEvaluator {
               }
             }
           }
-          return left.getArrayElementType().withConstantValue(constant).createHolder();
+          return left.getArrayElementType().getType().withConstantValue(constant).createHolder();
         }
       }
       return SpecificHaxeClassReference.getUnknown(element).createHolder();

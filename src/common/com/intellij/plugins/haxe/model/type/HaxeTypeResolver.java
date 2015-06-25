@@ -29,10 +29,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class HaxeTypeResolver {
+  static public SpecificTypeReference getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp) {
+    return getFieldOrMethodReturnType(comp, null);
+  }
+
   // @TODO: Check if cache works
-  static public SpecificTypeReference getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
+  static public SpecificTypeReference getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
     // @TODO: cache should check if any related type has changed, which return depends
-    if (comp == null || comp.getContainingFile() == null) {
+    if (comp.getContainingFile() == null) {
       return SpecificHaxeClassReference.getUnknown(comp);
     }
     long stamp = comp.getContainingFile().getModificationStamp();
@@ -44,9 +48,9 @@ public class HaxeTypeResolver {
     return comp._cachedType;
   }
 
-  static public SpecificFunctionReference getMethodFunctionType(PsiElement comp) {
+  static public SpecificFunctionReference getMethodFunctionType(PsiElement comp, HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethod) {
-      return ((HaxeMethod)comp).getModel().getFunctionType();
+      return ((HaxeMethod)comp).getModel().getFunctionType(resolver);
     }
     return null;
   }
@@ -138,16 +142,16 @@ public class HaxeTypeResolver {
     HaxeReferenceExpression expression = type.getReferenceExpression();
     HaxeClassReference reference = new HaxeClassReference(expression.getText(), expression);
     HaxeTypeParam param = type.getTypeParam();
-    ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
+    ArrayList<ResultHolder> references = new ArrayList<ResultHolder>();
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
         for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
-          references.add(getTypeFromTypeOrAnonymous(anonymous));
+          references.add(getTypeFromTypeOrAnonymous(anonymous).createHolder());
         }
       }
     }
     //type.getTypeParam();
-    return SpecificHaxeClassReference.withGenerics(reference, references.toArray(SpecificHaxeClassReference.EMPTY));
+    return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY));
   }
 
   static public SpecificTypeReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {

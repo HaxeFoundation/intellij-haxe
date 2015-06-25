@@ -24,6 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ResultHolder {
+  static public ResultHolder[] EMPTY = new ResultHolder[0];
+
   @NotNull
   private SpecificTypeReference type;
 
