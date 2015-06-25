@@ -26,8 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.fixer.HaxeCastFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
@@ -171,7 +170,9 @@ public class HaxeExpressionEvaluator {
       ResultHolder holder = context.get(element.getText());
 
       if (holder == null) {
-        context.addError(element, "Unknown variable");
+        context.addError(element, "Unknown variable").registerFix(
+          new HaxeCreateLocalVariableFixer(element.getText(), element));
+
         return SpecificTypeReference.getDynamic(element).createHolder();
       }
 
@@ -311,55 +312,39 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeReferenceExpression) {
       PsiElement[] children = element.getChildren();
       ResultHolder typeHolder = handle(children[0], context);
+      boolean resolved = true;
       for (int n = 1; n < children.length; n++) {
         String accessName = children[n].getText();
         if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
           String str = (String)typeHolder.getType().getConstant();
-          typeHolder = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
+          typeHolder.setType(SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1));
           if (str == null || str.length() != 1) {
             context.addError(element, "String must be a single UTF8 char");
           }
         }
         else {
-          typeHolder = typeHolder.getType().access(accessName, context).createHolder();
+          SpecificTypeReference access = typeHolder.getType().access(accessName, context);
+          typeHolder.setType(access);
+          if (access == null) {
+            resolved = false;
+            Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "'");
+            if (children.length == 1) {
+              annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
+            } else {
+              annotation.registerFix(new HaxeCreateMethodFixer(accessName, element));
+              annotation.registerFix(new HaxeCreateFieldFixer(accessName, element));
+            }
+          }
         }
       }
+
       // @TODO: this should be innecessary when code is working right!
-      if (typeHolder == null) {
+      if (!resolved) {
         PsiReference reference = element.getReference();
         if (reference != null) {
           PsiElement subelement = reference.resolve();
           if (subelement instanceof AbstractHaxeNamedComponent) {
-            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement).createHolder();
-          }
-        }
-      }
-      if (typeHolder == null) {
-        Annotation annotation = context.addError(element, "Can't resolve '" + element.getText() + "'");
-        if (annotation != null) {
-          if (children.length == 1) {
-            annotation.registerFix(new HaxeFixer("Create local variable") {
-              @Override
-              public void run() {
-
-              }
-            });
-          }
-          else {
-            if (element.getParent() instanceof HaxeCallExpression) {
-              annotation.registerFix(new HaxeFixer("Create method") {
-                @Override
-                public void run() {
-
-                }
-              });
-            }
-            annotation.registerFix(new HaxeFixer("Create field") {
-              @Override
-              public void run() {
-
-              }
-            });
+            typeHolder.setType(HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement));
           }
         }
       }

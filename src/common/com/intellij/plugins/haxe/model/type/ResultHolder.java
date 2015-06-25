@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -42,7 +43,10 @@ public class ResultHolder {
     return type.isUnknown();
   }
 
-  public void setType(@NotNull SpecificTypeReference type) {
+  public void setType(@Nullable SpecificTypeReference type) {
+    if (type == null) {
+      type = SpecificTypeReference.getDynamic(this.type.getElementContext());
+    }
     this.type = type;
     mutationCount++;
   }
