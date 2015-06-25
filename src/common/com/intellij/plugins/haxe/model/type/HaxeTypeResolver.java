@@ -156,7 +156,7 @@ public class HaxeTypeResolver {
     if (type != null) {
       return getTypeFromType(type);
     }
-    return null;
+    return SpecificTypeReference.getDynamic(typeOrAnonymous);
   }
 
   @NotNull

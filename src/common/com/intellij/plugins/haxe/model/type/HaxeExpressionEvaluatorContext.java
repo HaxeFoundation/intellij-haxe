@@ -19,10 +19,12 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,8 +90,9 @@ public class HaxeExpressionEvaluatorContext {
     return this.scope.get(key);
   }
 
+  @NotNull
   public Annotation addError(PsiElement element, String error, HaxeFixer... fixers) {
-    if (holder == null) return null;
+    if (holder == null) return createDummyAnnotation();
     Annotation annotation = holder.createErrorAnnotation(element, error);
     for (HaxeFixer fixer : fixers) {
       annotation.registerFix(fixer);
@@ -97,8 +100,9 @@ public class HaxeExpressionEvaluatorContext {
     return annotation;
   }
 
+  @NotNull
   public Annotation addWarning(PsiElement element, String error, HaxeFixer... fixers) {
-    if (holder == null) return null;
+    if (holder == null) return createDummyAnnotation();
     Annotation annotation = holder.createWarningAnnotation(element, error);
     for (HaxeFixer fixer : fixers) {
       annotation.registerFix(fixer);
@@ -106,8 +110,13 @@ public class HaxeExpressionEvaluatorContext {
     return annotation;
   }
 
+  private Annotation createDummyAnnotation() {
+    return new Annotation(0, 0, HighlightSeverity.ERROR, "", "");
+  }
+
+  @NotNull
   public Annotation addUnreachable(PsiElement element) {
-    if (holder == null) return null;
+    if (holder == null) return createDummyAnnotation();
     Annotation annotation = holder.createInfoAnnotation(element, null);
     annotation.setTextAttributes(HaxeSyntaxHighlighterColors.LINE_COMMENT);
     return annotation;

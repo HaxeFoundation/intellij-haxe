@@ -170,8 +170,7 @@ public class HaxeExpressionEvaluator {
       ResultHolder holder = context.get(element.getText());
 
       if (holder == null) {
-        context.addError(element, "Unknown variable").registerFix(
-          new HaxeCreateLocalVariableFixer(element.getText(), element));
+        context.addError(element, "Unknown variable", new HaxeCreateLocalVariableFixer(element.getText(), element));
 
         return SpecificTypeReference.getDynamic(element).createHolder();
       }
@@ -201,20 +200,17 @@ public class HaxeExpressionEvaluator {
       }
       type = SpecificTypeReference.ensure(type, element);
       if (!type.isBool() && lastExpression != null) {
-        final SpecificTypeReference finalType = type;
-        final HaxeExpression finalExpression = lastExpression;
         context.addError(
-          finalExpression,
+          lastExpression,
           "While expression must be boolean",
-          new HaxeCastFixer(finalExpression, finalType, SpecificHaxeClassReference.getBool(element))
+          new HaxeCastFixer(lastExpression, type, SpecificHaxeClassReference.getBool(element))
         );
       }
 
       PsiElement body = element.getLastChild();
       if (body != null) {
-        ResultHolder result = handle(body, context);
         //return SpecificHaxeClassReference.createArray(result); // @TODO: Check this
-        return result;
+        return handle(body, context);
       }
 
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
