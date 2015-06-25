@@ -32,9 +32,9 @@ public abstract class SpecificTypeReference {
     return (clazz != null) ? clazz : getDynamic(context);
   }
 
-  static public SpecificTypeReference createArray(@NotNull SpecificTypeReference elementType) {
+  static public SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
     return SpecificHaxeClassReference
-      .withGenerics(new HaxeClassReference("Array", elementType.context), new ResultHolder[]{elementType.createHolder()}, null);
+      .withGenerics(new HaxeClassReference("Array", elementType.getElementContext()), new ResultHolder[]{elementType}, null);
   }
 
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {

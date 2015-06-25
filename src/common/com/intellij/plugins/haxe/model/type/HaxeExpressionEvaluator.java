@@ -412,7 +412,7 @@ public class HaxeExpressionEvaluator {
         if (list1.isEmpty()) {
           final PsiElement child = list.getFirstChild();
           if ((child instanceof HaxeForStatement) || (child instanceof HaxeWhileStatement)) {
-            return SpecificTypeReference.createArray(handle(child, context).getType()).createHolder();
+            return SpecificTypeReference.createArray(handle(child, context)).createHolder();
           }
         }
       }
@@ -431,9 +431,13 @@ public class HaxeExpressionEvaluator {
           references.add(type);
         }
       }
-      SpecificTypeReference result = SpecificHaxeClassReference.createArray(HaxeTypeUnifier.unify(references, element).withoutConstantValue());
+
+      ResultHolder elementTypeHolder = HaxeTypeUnifier.unify(references, element).withoutConstantValue().createHolder();
+
+      SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder);
       if (allConstants) result = result.withConstantValue(constants);
-      return result.createHolder();
+      ResultHolder holder = result.createHolder();
+      return holder;
     }
 
     if (element instanceof PsiJavaToken) {
@@ -664,7 +668,7 @@ public class HaxeExpressionEvaluator {
       ResultHolder value = handle(expression, context);
 
       if (type.isUnknown()) {
-        type.setType(value.getType());
+        type.setType(value.getType().withoutConstantValue());
       }
 
       if (!type.canAssign(value)) {

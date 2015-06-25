@@ -102,7 +102,7 @@ public class HaxeParameterModel {
   public ResultHolder getType(@Nullable HaxeGenericResolver resolver) {
     if (resolver != null) {
       ResultHolder resolved = resolver.resolve(getType(null).getType().toStringWithoutConstant());
-      if (resolved != null) return resolved.getType().createHolder();
+      if (resolved != null) return resolved;
     }
     return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
   }

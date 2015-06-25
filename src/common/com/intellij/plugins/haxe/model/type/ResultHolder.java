@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,5 +114,10 @@ public class ResultHolder {
 
   public ResultHolder withConstantValue(Object constantValue) {
     return duplicate().setType(getType().withConstantValue(constantValue));
+  }
+
+
+  public PsiElement getElementContext() {
+    return type.getElementContext();
   }
 }
