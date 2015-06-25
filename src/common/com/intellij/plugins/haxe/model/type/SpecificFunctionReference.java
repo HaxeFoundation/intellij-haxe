@@ -26,13 +26,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class SpecificFunctionReference extends SpecificTypeReference {
-  final public List<SpecificTypeReference> params;
-  final public SpecificTypeReference retval;
+  final public List<ResultHolder> params;
+  final public ResultHolder retval;
 
   @Nullable
   final public HaxeMethodModel method;
 
-  public SpecificFunctionReference(List<SpecificTypeReference> params, SpecificTypeReference retval, @Nullable HaxeMethodModel method, @NotNull PsiElement context) {
+  public SpecificFunctionReference(List<ResultHolder> params, ResultHolder retval, @Nullable HaxeMethodModel method, @NotNull PsiElement context) {
     super(context);
     this.params = params;
     this.retval = retval;
@@ -59,11 +59,11 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return params.size();
   }
 
-  public List<SpecificTypeReference> getParameters() {
+  public List<ResultHolder> getParameters() {
     return params;
   }
 
-  public SpecificTypeReference getReturnType() {
+  public ResultHolder getReturnType() {
     return retval;
   }
 

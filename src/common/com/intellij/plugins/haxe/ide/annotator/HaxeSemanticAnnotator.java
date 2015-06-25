@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
@@ -74,8 +75,8 @@ class TypeTagChecker {
     boolean requireConstant,
     final AnnotationHolder holder
   ) {
-    final SpecificTypeReference type1 = HaxeTypeResolver.getTypeFromTypeTag(tag);
-    final SpecificTypeReference type2 = HaxeTypeResolver.getPsiElementType(initExpression);
+    final ResultHolder type1 = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
+    final ResultHolder type2 = HaxeTypeResolver.getPsiElementType(initExpression);
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
@@ -94,7 +95,7 @@ class TypeTagChecker {
         }
       });
     }
-    else if (requireConstant && type2.getConstant() == null) {
+    else if (requireConstant && type2.getType().getConstant() == null) {
       // @TODO: Move to bundle
       holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
     }
@@ -499,8 +500,8 @@ class MethodChecker {
       }
     }
 
-    SpecificTypeReference currentResult = currentMethod.getResultType();
-    SpecificTypeReference parentResult = parentMethod.getResultType();
+    ResultHolder currentResult = currentMethod.getResultType();
+    ResultHolder parentResult = parentMethod.getResultType();
     if (!currentResult.canAssign(parentResult)) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       holder.createErrorAnnotation(psi, "Not compatible return type " + currentResult + " != " + parentResult);

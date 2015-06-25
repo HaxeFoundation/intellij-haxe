@@ -41,21 +41,41 @@ public class ResultHolder {
     return type;
   }
 
+  public SpecificFunctionReference getFunctionType() {
+    return (SpecificFunctionReference)type;
+  }
+
+  public SpecificHaxeClassReference getClassType() {
+    return (SpecificHaxeClassReference)type;
+  }
+
   public boolean isUnknown() {
     return type.isUnknown();
   }
 
-  public void setType(@Nullable SpecificTypeReference type) {
+  public ResultHolder setType(@Nullable SpecificTypeReference type) {
     if (type == null) {
       type = SpecificTypeReference.getDynamic(this.type.getElementContext());
     }
     this.type = type;
     mutationCount++;
+    return this;
   }
+
+  public boolean isFunctionType() {
+    return getType() instanceof SpecificFunctionReference;
+  }
+
+  public boolean isClassType() {
+    return getType() instanceof SpecificHaxeClassReference;
+  }
+
 
   public void disableMutating() {
     this.canMutate = false;
   }
+
+  public boolean hasMutated() { return this.mutationCount > 0; }
 
   public boolean canMutate() {
     return this.canMutate;
@@ -82,4 +102,16 @@ public class ResultHolder {
   }
 
   public String toString() { return this.getType().toString(); }
+
+  public String toStringWithoutConstant() {
+    return this.getType().toStringWithoutConstant();
+  }
+
+  public ResultHolder duplicate() {
+    return new ResultHolder(this.getType());
+  }
+
+  public ResultHolder withConstantValue(Object constantValue) {
+    return duplicate().setType(getType().withConstantValue(constantValue));
+  }
 }

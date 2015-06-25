@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -35,11 +36,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   final public Object constantValue;
   final public HaxeRange rangeConstraint;
 
-  public SpecificHaxeClassReference(HaxeClassReference clazz,
-                                    ResultHolder[] specifics,
-                                    Object constantValue,
-                                    HaxeRange rangeConstraint,
-                                    @NotNull PsiElement context) {
+  public SpecificHaxeClassReference(
+    HaxeClassReference clazz,
+    ResultHolder[] specifics,
+    Object constantValue,
+    HaxeRange rangeConstraint,
+    @NotNull PsiElement context
+  ) {
     super(context);
     this.clazz = clazz;
     this.specifics = specifics;
@@ -157,9 +160,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return resolver;
   }
 
+  @Nullable
   @Override
-  public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
-    if (this.isDynamic()) return this.withoutConstantValue();
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+    if (this.isDynamic()) return this.withoutConstantValue().createHolder();
 
     if (this.clazz == null || name == null) {
       return null;

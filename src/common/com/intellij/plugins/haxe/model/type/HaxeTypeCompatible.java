@@ -108,7 +108,7 @@ public class HaxeTypeCompatible {
         // Check if this is required!
         HaxeTypeOrAnonymous underlyingAbstractType = thatClass.getAbstractUnderlyingType();
         if (underlyingAbstractType != null) {
-          SpecificTypeReference thatUnderlying = HaxeTypeResolver.getTypeFromTypeOrAnonymous(underlyingAbstractType);
+          ResultHolder thatUnderlying = HaxeTypeResolver.getTypeFromTypeOrAnonymous(underlyingAbstractType);
           if (a.toStringWithoutConstant().equals(thatUnderlying.toStringWithoutConstant())) {
             return true;
           }

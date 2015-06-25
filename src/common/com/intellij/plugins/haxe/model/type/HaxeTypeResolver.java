@@ -29,15 +29,17 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class HaxeTypeResolver {
-  static public SpecificTypeReference getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp) {
+  @NotNull
+  static public ResultHolder getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp) {
     return getFieldOrMethodReturnType(comp, null);
   }
 
   // @TODO: Check if cache works
-  static public SpecificTypeReference getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
+  @NotNull
+  static public ResultHolder getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
     // @TODO: cache should check if any related type has changed, which return depends
     if (comp.getContainingFile() == null) {
-      return SpecificHaxeClassReference.getUnknown(comp);
+      return SpecificHaxeClassReference.getUnknown(comp).createHolder();
     }
     long stamp = comp.getContainingFile().getModificationStamp();
     if (comp._cachedType == null || comp._cachedTypeStamp != stamp) {
@@ -48,35 +50,38 @@ public class HaxeTypeResolver {
     return comp._cachedType;
   }
 
-  static public SpecificFunctionReference getMethodFunctionType(PsiElement comp, HaxeGenericResolver resolver) {
+  @NotNull
+  static public ResultHolder getMethodFunctionType(PsiElement comp, HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethod) {
-      return ((HaxeMethod)comp).getModel().getFunctionType(resolver);
+      return ((HaxeMethod)comp).getModel().getFunctionType(resolver).createHolder();
     }
-    return null;
+    // @TODO: error
+    return SpecificTypeReference.getInvalid(comp).createHolder();
   }
 
-  static private SpecificTypeReference _getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
+  @NotNull
+  static private ResultHolder _getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
     try {
       if (comp instanceof PsiMethod) {
-        return SpecificHaxeClassReference.ensure(getFunctionReturnType(comp), comp);
+        return getFunctionReturnType(comp);
       } else {
-        return SpecificHaxeClassReference.ensure(getFieldType(comp), comp);
+        return getFieldType(comp);
       }
     } catch (Throwable e) {
       e.printStackTrace();
-      return createPrimitiveType("Unknown", comp, null);
+      return SpecificTypeReference.getUnknown(comp).createHolder();
     }
   }
 
-  static private SpecificTypeReference getFieldType(AbstractHaxeNamedComponent comp) {
-    SpecificTypeReference type = getTypeFromTypeTag(comp);
-    if (type != null) return type;
+  @NotNull
+  static private ResultHolder getFieldType(AbstractHaxeNamedComponent comp) {
+    //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
     if (comp instanceof HaxeVarDeclarationPart) {
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
-        SpecificTypeReference type1 = HaxeTypeResolver.getPsiElementType(child);
+        ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child);
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
         if (decl != null) {
@@ -88,12 +93,12 @@ public class HaxeTypeResolver {
       }
     }
 
-    return null;
+    return SpecificTypeReference.getInvalid(comp).createHolder();
   }
 
-  static private SpecificTypeReference getFunctionReturnType(AbstractHaxeNamedComponent comp) {
-    SpecificTypeReference type = getTypeFromTypeTag(comp);
-    if (type != null) return type;
+  @NotNull
+  static private ResultHolder getFunctionReturnType(AbstractHaxeNamedComponent comp) {
+    //ResultHolder type = getTypeFromTypeTag(comp);
 
     if (comp instanceof HaxeMethod) {
       final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), null);
@@ -103,40 +108,44 @@ public class HaxeTypeResolver {
     }
   }
 
-  static public SpecificTypeReference getTypeFromTypeTag(final HaxeTypeTag typeTag) {
-    if (typeTag == null) return null;
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
-    final HaxeFunctionType functionType = typeTag.getFunctionType();
+  @NotNull
+  static public ResultHolder getTypeFromTypeTag(final HaxeTypeTag typeTag, @NotNull PsiElement context) {
+    if (typeTag != null) {
+      final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+      final HaxeFunctionType functionType = typeTag.getFunctionType();
 
-    if (typeOrAnonymous != null) {
-      return getTypeFromTypeOrAnonymous(typeOrAnonymous);
+      if (typeOrAnonymous != null) {
+        return getTypeFromTypeOrAnonymous(typeOrAnonymous);
+      }
+
+      //comp.getContainingFile().getNode().putUserData();
+
+      if (functionType != null) {
+        return getTypeFromFunctionType(functionType);
+      }
     }
 
-    //comp.getContainingFile().getNode().putUserData();
-
-    if (functionType != null) {
-      return getTypeFromFunctionType(functionType);
-    }
-
-    return null;
-
+    return SpecificTypeReference.getUnknown(context).createHolder();
   }
 
-  static public SpecificTypeReference getTypeFromTypeTag(AbstractHaxeNamedComponent comp) {
-    return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class));
+  @NotNull
+  static public ResultHolder getTypeFromTypeTag(AbstractHaxeNamedComponent comp, @NotNull PsiElement context) {
+    return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class), context);
   }
 
-  static public SpecificTypeReference getTypeFromFunctionType(HaxeFunctionType type) {
-    ArrayList<SpecificTypeReference> args = new ArrayList<SpecificTypeReference>();
+  @NotNull
+  static public ResultHolder getTypeFromFunctionType(HaxeFunctionType type) {
+    ArrayList<ResultHolder> args = new ArrayList<ResultHolder>();
     for (HaxeTypeOrAnonymous anonymous : type.getTypeOrAnonymousList()) {
       args.add(getTypeFromTypeOrAnonymous(anonymous));
     }
-    SpecificTypeReference retval = args.get(args.size() - 1);
+    ResultHolder retval = args.get(args.size() - 1);
     args.remove(args.size() - 1);
-    return new SpecificFunctionReference(args, retval, null, type);
+    return new SpecificFunctionReference(args, retval, null, type).createHolder();
   }
 
-  static public SpecificTypeReference getTypeFromType(@NotNull HaxeType type) {
+  @NotNull
+  static public ResultHolder getTypeFromType(@NotNull HaxeType type) {
     //System.out.println("Type:" + type);
     //System.out.println("Type:" + type.getText());
     HaxeReferenceExpression expression = type.getReferenceExpression();
@@ -146,52 +155,45 @@ public class HaxeTypeResolver {
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
         for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
-          references.add(getTypeFromTypeOrAnonymous(anonymous).createHolder());
+          references.add(getTypeFromTypeOrAnonymous(anonymous));
         }
       }
     }
     //type.getTypeParam();
-    return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY));
+    return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY)).createHolder();
   }
 
-  static public SpecificTypeReference getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
+  @NotNull
+  static public ResultHolder getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
     // @TODO: Do a proper type resolving
     HaxeType type = typeOrAnonymous.getType();
     if (type != null) {
       return getTypeFromType(type);
     }
-    return SpecificTypeReference.getDynamic(typeOrAnonymous);
+    return SpecificTypeReference.getDynamic(typeOrAnonymous).createHolder();
   }
 
   @NotNull
-  static public SpecificTypeReference getPsiElementType(PsiElement element) {
-    return getPsiElementType(element, null).result.getType();
-  }
-
-  static private SpecificTypeReference getUnknown(PsiElement element) {
-    return createPrimitiveType("Unknown", element, null);
-  }
-
-  static private SpecificTypeReference getVoid(PsiElement element) {
-    return createPrimitiveType("Void", element, null);
+  static public ResultHolder getPsiElementType(PsiElement element) {
+    return getPsiElementType(element, null).result;
   }
 
   // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
   static private Set<PsiElement> processedElements = new HashSet<PsiElement>();
 
   static private void checkMethod(PsiElement element, HaxeExpressionEvaluatorContext context) {
-    final SpecificTypeReference retval = context.getReturnType();
+    //final ResultHolder retval = context.getReturnType();
 
     if (!(element instanceof HaxeMethod)) return;
     final HaxeTypeTag typeTag = UsefulPsiTreeUtil.getChild(element, HaxeTypeTag.class);
-    SpecificTypeReference expectedType = null;
+    ResultHolder expectedType = SpecificTypeReference.getDynamic(element).createHolder();
     if (typeTag == null) {
       final List<ReturnInfo> infos = context.getReturnInfos();
       if (!infos.isEmpty()) {
-        expectedType = infos.get(0).type.getType();
+        expectedType = infos.get(0).type;
       }
     } else {
-      expectedType = getTypeFromTypeTag(typeTag);
+      expectedType = getTypeFromTypeTag(typeTag, element);
     }
 
     if (expectedType == null) return;
@@ -227,5 +229,4 @@ public class HaxeTypeResolver {
   static private SpecificHaxeClassReference createPrimitiveType(String type, PsiElement element, Object constant) {
     return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(type, element), constant);
   }
-
 }

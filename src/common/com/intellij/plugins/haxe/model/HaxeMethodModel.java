@@ -131,12 +131,12 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return getFunctionType(null);
   }
 
-  public SpecificTypeReference getReturnType(@Nullable HaxeGenericResolver resolver) {
+  public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi(), resolver);
   }
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
-    LinkedList<SpecificTypeReference> args = new LinkedList<SpecificTypeReference>();
+    LinkedList<ResultHolder> args = new LinkedList<ResultHolder>();
     for (HaxeParameterModel param : this.getParameters()) {
       args.add(param.getType(resolver));
     }

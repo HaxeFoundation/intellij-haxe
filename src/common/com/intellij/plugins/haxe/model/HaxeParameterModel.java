@@ -67,6 +67,10 @@ public class HaxeParameterModel {
     return result;
   }
 
+  public PsiElement getContextElement() {
+    return getNameOrBasePsi();
+  }
+
   public PsiElement getOptionalPsi() {
     return UsefulPsiTreeUtil.getToken(parameter, "?");
   }
@@ -91,16 +95,16 @@ public class HaxeParameterModel {
     return parameter.getTypeTag();
   }
 
-  public SpecificTypeReference getType() {
+  public ResultHolder getType() {
     return getType(null);
   }
 
-  public SpecificTypeReference getType(@Nullable HaxeGenericResolver resolver) {
+  public ResultHolder getType(@Nullable HaxeGenericResolver resolver) {
     if (resolver != null) {
-      ResultHolder resolved = resolver.resolve(getType(null).toStringWithoutConstant());
-      if (resolved != null) return resolved.getType();
+      ResultHolder resolved = resolver.resolve(getType(null).getType().toStringWithoutConstant());
+      if (resolved != null) return resolved.getType().createHolder();
     }
-    return SpecificHaxeClassReference.ensure(HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi()), getNameOrBasePsi());
+    return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
   }
 
   public PsiParameter getParameter() {

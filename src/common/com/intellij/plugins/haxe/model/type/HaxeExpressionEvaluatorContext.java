@@ -45,9 +45,9 @@ public class HaxeExpressionEvaluatorContext {
     this.returnInfos.add(new ReturnInfo(element, type));
   }
 
-  public SpecificTypeReference getReturnType() {
-    if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root);
-    return HaxeTypeUnifier.unify(ResultHolder.types(returns), root);
+  public ResultHolder getReturnType() {
+    if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root).createHolder();
+    return HaxeTypeUnifier.unify(ResultHolder.types(returns), root).createHolder();
   }
 
   public List<ResultHolder> getReturnValues() {

@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -322,17 +323,17 @@ public class HaxeClassModel {
 
     // @CHECK abstract FROM
     for (HaxeType type : getAbstractFromList()) {
-      final SpecificTypeReference aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      if (aTypeRef instanceof SpecificHaxeClassReference) {
-        ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
+      final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
+      if (aTypeRef.isClassType()) {
+        aTypeRef.getClassType().getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
 
     // @CHECK abstract TO
     for (HaxeType type : getAbstractToList()) {
-      final SpecificTypeReference aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      if (aTypeRef instanceof SpecificHaxeClassReference) {
-        ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
+      final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
+      if (aTypeRef.isClassType()) {
+        aTypeRef.getClassType().getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
   }

@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class SpecificTypeReference {
   final protected PsiElement context;
@@ -187,7 +188,8 @@ public abstract class SpecificTypeReference {
     return toString();
   }
 
-  public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
+  @Nullable
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
     return null;
   }
 

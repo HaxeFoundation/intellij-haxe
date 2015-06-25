@@ -28,6 +28,11 @@ import java.util.Set;
 
 public class HaxeTypeUnifier {
   @NotNull
+  static public ResultHolder unify(ResultHolder a, ResultHolder b) {
+    return unify(a.getType(), b.getType(), a.getType().context).createHolder();
+  }
+
+  @NotNull
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b, @NotNull PsiElement context) {
     if (a == null && b == null) return SpecificTypeReference.getUnknown(context);
     if (a == null) return b;
@@ -50,18 +55,18 @@ public class HaxeTypeUnifier {
 
   @NotNull
   static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b, @NotNull PsiElement context) {
-    final List<SpecificTypeReference> pa = a.getParameters();
-    final List<SpecificTypeReference> pb = b.getParameters();
+    final List<ResultHolder> pa = a.getParameters();
+    final List<ResultHolder> pb = b.getParameters();
     //if (pa.size() != pb.size()) throw new HaxeCannotUnifyException();
     if (pa.size() != pb.size()) return SpecificTypeReference.getInvalid(a.getElementContext());
     int size = pa.size();
-    final ArrayList<SpecificTypeReference> params = new ArrayList<SpecificTypeReference>();
+    final ArrayList<ResultHolder> params = new ArrayList<ResultHolder>();
     for (int n = 0; n < size; n++) {
-      final SpecificTypeReference param = unify(pa.get(n), pb.get(n), context);
-      if (param.isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
+      final ResultHolder param = unify(pa.get(n), pb.get(n));
+      if (param.getType().isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
       params.add(param);
     }
-    final SpecificTypeReference retval = unify(a.getReturnType(), b.getReturnType(), context);
+    final ResultHolder retval = unify(a.getReturnType(), b.getReturnType());
     return new SpecificFunctionReference(params, retval, null, context);
   }
 
