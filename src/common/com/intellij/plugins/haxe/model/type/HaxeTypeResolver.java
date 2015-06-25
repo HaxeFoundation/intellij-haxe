@@ -43,7 +43,7 @@ public class HaxeTypeResolver {
     }
     long stamp = comp.getContainingFile().getModificationStamp();
     if (comp._cachedType == null || comp._cachedTypeStamp != stamp) {
-      comp._cachedType = _getFieldOrMethodReturnType(comp);
+      comp._cachedType = _getFieldOrMethodReturnType(comp, resolver);
       comp._cachedTypeStamp = stamp;
     }
 
@@ -51,7 +51,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getMethodFunctionType(PsiElement comp, HaxeGenericResolver resolver) {
+  static public ResultHolder getMethodFunctionType(PsiElement comp, @Nullable HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethod) {
       return ((HaxeMethod)comp).getModel().getFunctionType(resolver).createHolder();
     }
@@ -60,9 +60,11 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static private ResultHolder _getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp) {
+  static private ResultHolder _getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
     try {
       if (comp instanceof PsiMethod) {
+        return getFunctionReturnType(comp);
+      } else if (comp instanceof HaxeFunctionLiteral) {
         return getFunctionReturnType(comp);
       } else {
         return getFieldType(comp);
@@ -102,6 +104,9 @@ public class HaxeTypeResolver {
 
     if (comp instanceof HaxeMethod) {
       final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), null);
+      return context.getReturnType();
+    } else if (comp instanceof HaxeFunctionLiteral) {
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), null);
       return context.getReturnType();
     } else {
       throw new RuntimeException("Can't get the body of a no PsiMethod");
@@ -208,7 +213,12 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder) {
-    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext();
+    return evaluateFunction(new HaxeExpressionEvaluatorContext(element, holder));
+  }
+
+  @NotNull
+  static public HaxeExpressionEvaluatorContext evaluateFunction(@NotNull HaxeExpressionEvaluatorContext context) {
+    PsiElement element = context.root;
     if (processedElements.contains(element)) {
       context.result = SpecificHaxeClassReference.primitive("Dynamic", element).createHolder();
       return context;
@@ -216,8 +226,6 @@ public class HaxeTypeResolver {
 
     processedElements.add(element);
     try {
-      context.root = element;
-      context.holder = holder;
       HaxeExpressionEvaluator.evaluate(element, context);
       checkMethod(element.getParent(), context);
       return context;

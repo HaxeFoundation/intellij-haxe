@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeExpressionEvaluator {
@@ -546,6 +547,32 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
+    if (element instanceof HaxeFunctionLiteral) {
+      HaxeParameterList params = ((HaxeFunctionLiteral)element).getParameterList();
+      if (params == null) {
+        return SpecificHaxeClassReference.getInvalid(element).createHolder();
+      }
+      LinkedList<ResultHolder> results = new LinkedList<ResultHolder>();
+      ResultHolder returnType = null;
+      context.beginScope();
+      try {
+        for (HaxeParameter parameter : params.getParameterList()) {
+          ResultHolder vartype = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), element);
+          String name = parameter.getName();
+          if (name != null) {
+            context.setLocal(name, vartype);
+          }
+          results.add(vartype);
+        }
+        HaxeExpressionEvaluatorContext context1 = HaxeTypeResolver.evaluateFunction(context.createChild(element.getLastChild()));
+        returnType = context1.getReturnType();
+      } finally {
+        context.endScope();
+      }
+
+      return new SpecificFunctionReference(results, returnType, null, element).createHolder();
+    }
+
     if (element instanceof HaxeIfStatement) {
       PsiElement[] children = element.getChildren();
       if (children.length >= 1) {
@@ -666,10 +693,6 @@ public class HaxeExpressionEvaluator {
       ResultHolder type = parameterTypes.get(n);
       HaxeExpression expression = parameterExpressions.get(n);
       ResultHolder value = handle(expression, context);
-
-      if (type.isUnknown()) {
-        type.setType(value.getType().withoutConstantValue());
-      }
 
       if (!type.canAssign(value)) {
         context.addError(

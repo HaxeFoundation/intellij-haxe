@@ -57,4 +57,12 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
   public void testAssignUnknownTwice() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testUpdateUnknownInGenerics() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testUpdateUnknownOnLambdas() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,18 @@ public class HaxeExpressionEvaluatorContext {
   public AnnotationHolder holder;
   private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
   public PsiElement root;
+
+  public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @Nullable AnnotationHolder holder) {
+    this.root = body;
+    this.holder = holder;
+  }
+
+  public HaxeExpressionEvaluatorContext createChild(PsiElement body) {
+    HaxeExpressionEvaluatorContext that = new HaxeExpressionEvaluatorContext(body, this.holder);
+    that.scope = this.scope;
+    that.beginScope();
+    return that;
+  }
 
   public void addReturnType(ResultHolder type, PsiElement element) {
     this.returns.add(type);
