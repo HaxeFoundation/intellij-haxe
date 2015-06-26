@@ -37,17 +37,20 @@ public class HaxeExpressionEvaluatorContext {
   private List<PsiElement> returnElements = new ArrayList<PsiElement>();
   private List<ReturnInfo> returnInfos = new ArrayList<ReturnInfo>();
 
-  public AnnotationHolder holder;
+  @Nullable public final AnnotationHolder holder;
   private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
-  public PsiElement root;
+  @NotNull public final PsiElement root;
+  public final boolean inStaticContext;
+  public ResultHolder functionType;
 
-  public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @Nullable AnnotationHolder holder) {
+  public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @Nullable AnnotationHolder holder, boolean inStaticContext) {
     this.root = body;
     this.holder = holder;
+    this.inStaticContext = inStaticContext;
   }
 
   public HaxeExpressionEvaluatorContext createChild(PsiElement body) {
-    HaxeExpressionEvaluatorContext that = new HaxeExpressionEvaluatorContext(body, this.holder);
+    HaxeExpressionEvaluatorContext that = new HaxeExpressionEvaluatorContext(body, this.holder, this.inStaticContext);
     that.scope = this.scope;
     that.beginScope();
     return that;

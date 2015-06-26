@@ -75,7 +75,7 @@ class TypeTagChecker {
     final AnnotationHolder holder
   ) {
     final ResultHolder type1 = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
-    final ResultHolder type2 = HaxeTypeResolver.getPsiElementType(initExpression);
+    final ResultHolder type2 = HaxeTypeResolver.getPsiElementType(initExpression, false); // @TODO: false should check if is static context
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
@@ -557,6 +557,6 @@ class PackageChecker {
 class MethodBodyChecker {
   public static void check(HaxeMethod psi, AnnotationHolder holder) {
     final HaxeMethodModel method = psi.getModel();
-    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder);
+    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, method.isStatic());
   }
 }

@@ -154,6 +154,9 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeThisExpression) {
       //PsiReference reference = element.getReference();
       //HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(element);
+      if (context.inStaticContext) {
+        context.addError(element, "Using this in a static context");
+      }
       HaxeClass ancestor = UsefulPsiTreeUtil.getAncestor(element, HaxeClass.class);
       if (ancestor == null) return SpecificTypeReference.getDynamic(element).createHolder();
       HaxeClassModel model = ancestor.getModel();
@@ -549,13 +552,15 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
-    if (element instanceof HaxeFunctionLiteral) {
-      HaxeParameterList params = ((HaxeFunctionLiteral)element).getParameterList();
-      if (params == null) {
+    if (element instanceof HaxeLocalFunctionDeclaration) {
+      HaxeParameterList params = ((HaxeLocalFunctionDeclaration)element).getParameterList();
+      HaxeComponentName functionName = ((HaxeLocalFunctionDeclaration)element).getComponentName();
+      if (params == null || functionName == null) {
         return SpecificHaxeClassReference.getInvalid(element).createHolder();
       }
+
+      ResultHolder holder = SpecificTypeReference.getDynamic(element).createHolder();
       LinkedList<ResultHolder> results = new LinkedList<ResultHolder>();
-      ResultHolder returnType = null;
       context.beginScope();
       try {
         for (HaxeParameter parameter : params.getParameterList()) {
@@ -566,13 +571,47 @@ public class HaxeExpressionEvaluator {
           }
           results.add(vartype);
         }
-        context.addLambda(context.createChild(element.getLastChild()));
-        returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeFunctionLiteral)element).getTypeTag(), element);
+        HaxeExpressionEvaluatorContext childContext = context.createChild(element.getLastChild());
+        ResultHolder returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeLocalFunctionDeclaration)element).getTypeTag(), element);
+        holder.setType(new SpecificFunctionReference(results, returnType, null, element));
+        childContext.functionType = holder;
+        context.addLambda(childContext);
       } finally {
         context.endScope();
       }
 
-      return new SpecificFunctionReference(results, returnType, null, element).createHolder();
+      context.setLocal(functionName.getText(), holder);
+
+      return holder;
+    }
+
+    if (element instanceof HaxeFunctionLiteral) {
+      HaxeParameterList params = ((HaxeFunctionLiteral)element).getParameterList();
+      if (params == null) {
+        return SpecificHaxeClassReference.getInvalid(element).createHolder();
+      }
+      ResultHolder holder = SpecificTypeReference.getDynamic(element).createHolder();
+      LinkedList<ResultHolder> results = new LinkedList<ResultHolder>();
+      context.beginScope();
+      try {
+        for (HaxeParameter parameter : params.getParameterList()) {
+          ResultHolder vartype = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), element);
+          String name = parameter.getName();
+          if (name != null) {
+            context.setLocal(name, vartype);
+          }
+          results.add(vartype);
+        }
+        HaxeExpressionEvaluatorContext childContext = context.createChild(element.getLastChild());
+        ResultHolder returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeFunctionLiteral)element).getTypeTag(), element);
+        holder.setType(new SpecificFunctionReference(results, returnType, null, element));
+        childContext.functionType = holder;
+        context.addLambda(childContext);
+      } finally {
+        context.endScope();
+      }
+
+      return holder;
     }
 
     if (element instanceof HaxeIfStatement) {

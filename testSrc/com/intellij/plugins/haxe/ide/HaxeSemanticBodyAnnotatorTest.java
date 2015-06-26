@@ -65,4 +65,12 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
   public void testUpdateUnknownOnLambdas() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testUsingParameters() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testThisInStaticContext() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

@@ -21,6 +21,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -85,7 +86,7 @@ public class HaxeTypeResolver {
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
-        ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child);
+        ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child, false); // @TODO: false should be calculated (if var has static modifier)
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
         if (decl != null) {
@@ -112,10 +113,12 @@ public class HaxeTypeResolver {
       }
     }
     if (comp instanceof HaxeMethod) {
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), null);
+      HaxeMethodModel methodModel = ((HaxeMethod)comp).getModel();
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(methodModel.getBodyPsi(), null, methodModel.isStatic());
       return context.getReturnType();
     } else if (comp instanceof HaxeFunctionLiteral) {
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), null);
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), null, false);
+      // @TODO: false should be calculated (if method containing this lambda has the static modifier)
       return context.getReturnType();
     } else {
       throw new RuntimeException("Can't get the body of a no PsiMethod");
@@ -188,8 +191,8 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getPsiElementType(PsiElement element) {
-    return getPsiElementType(element, null).result;
+  static public ResultHolder getPsiElementType(PsiElement element, boolean inStaticContext) {
+    return getPsiElementType(element, null, inStaticContext).result;
   }
 
   // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
@@ -221,8 +224,8 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder) {
-    return evaluateFunction(new HaxeExpressionEvaluatorContext(element, holder));
+  static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder, boolean inStaticContext) {
+    return evaluateFunction(new HaxeExpressionEvaluatorContext(element, holder, inStaticContext));
   }
 
   @NotNull
@@ -238,8 +241,9 @@ public class HaxeTypeResolver {
       HaxeExpressionEvaluator.evaluate(element, context);
       checkMethod(element.getParent(), context);
 
-      for (HaxeExpressionEvaluatorContext lambda : context.lambdas) {
-        evaluateFunction(lambda);
+      for (HaxeExpressionEvaluatorContext lambdaContext : context.lambdas) {
+        evaluateFunction(lambdaContext);
+        lambdaContext.functionType.canAssign(lambdaContext.getReturnType());
       }
 
       return context;
