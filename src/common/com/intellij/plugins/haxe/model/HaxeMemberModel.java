@@ -37,8 +37,11 @@ abstract public class HaxeMemberModel {
     this.baseNamePsi = baseNamePsi;
   }
 
-  public boolean isPublic() {
+  final public boolean isPublic() {
     return this.getModifiers().hasModifier(HaxeModifierType.PUBLIC);
+  }
+  final public boolean isStatic() {
+    return getModifiers().hasModifier(HaxeModifierType.STATIC);
   }
 
   private HaxeDocumentModel _document = null;

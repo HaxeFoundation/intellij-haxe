@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class HaxeMethodModel extends HaxeMemberModel {
+public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionModel {
   private HaxeMethodPsiMixin haxeMethod;
 
   public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
@@ -45,34 +46,20 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return haxeMethod;
   }
 
+  @Nullable
   public PsiElement getBodyPsi() {
-    PsiElement[] children = haxeMethod.getChildren();
-    if (children.length == 0) return null;
-    return children[children.length - 1];
+    return HaxeFunctionModelUtil.getBodyPsi(haxeMethod);
   }
 
   //private List<HaxeParameterModel> _parameters;
-  public List<HaxeParameterModel> getParameters() {
-    List<HaxeParameterModel> _parameters = null;
-//    if (_parameters == null) {
-      HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
-      _parameters = new ArrayList<HaxeParameterModel>();
-      if (parameterList != null) {
-        for (HaxeParameter parameter : parameterList.getParameterList()) {
-          _parameters.add(new HaxeParameterModel(parameter, this));
-        }
-      }
-  //  }
-    return _parameters;
+  public HaxeParametersModel getParameters() {
+    return getParametersWithContext(null);
   }
 
-  public List<HaxeParameterModel> getParametersWithContext(HaxeMethodContext context) {
-    List<HaxeParameterModel> params = getParameters();
-    if (context.isExtensionMethod()) {
-      params = new ArrayList<HaxeParameterModel>(params);
-      params.remove(0);
-    }
-    return params;
+  public HaxeParametersModel getParametersWithContext(@Nullable HaxeMethodContext context) {
+    boolean isExtensionMethod = context != null && context.isExtensionMethod();
+    HaxeParameterList params = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
+    return HaxeParametersModel.fromHaxeParameterList(this, params, isExtensionMethod);
   }
 
   @Nullable public HaxeTypeTag getReturnTypeTagPsi() {
@@ -82,10 +69,6 @@ public class HaxeMethodModel extends HaxeMemberModel {
   public PsiElement getReturnTypeTagOrNameOrBasePsi() {
     HaxeTypeTag psi = getReturnTypeTagPsi();
     return (psi != null) ? psi : getNameOrBasePsi();
-  }
-
-  public boolean isStatic() {
-    return getModifiers().hasModifier(HaxeModifierType.STATIC);
   }
 
   private HaxeClassModel _declaringClass = null;
@@ -115,7 +98,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
     out += this.getName();
     out += "(";
     int index = 0;
-    for (HaxeParameterModel param : this.getParametersWithContext(context)) {
+    for (HaxeParameterModel param : this.getParametersWithContext(context).parameters) {
       if (index > 0) out += ", ";
       out += param.getPresentableText();
       index++;
@@ -137,7 +120,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
     LinkedList<ResultHolder> args = new LinkedList<ResultHolder>();
-    for (HaxeParameterModel param : this.getParameters()) {
+    for (HaxeParameterModel param : this.getParameters().parameters) {
       args.add(param.getType(resolver));
     }
     return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);
@@ -151,6 +134,12 @@ public class HaxeMethodModel extends HaxeMemberModel {
   @Override
   public String toString() {
     return "HaxeMethodModel(" + this.getName() + ", " + this.getParameters() + ")";
+  }
+
+  public HaxeResolver2 getResolver() {
+    HaxeResolver2Class classResolver = this.getDeclaringClass().getResolver(isStatic());
+    HaxeResolver2Parameters parameterResolvers = getParameters().getResolver();
+    return new HaxeResolver2Locals(new HaxeResolver2Combined(classResolver, parameterResolvers));
   }
 }
 

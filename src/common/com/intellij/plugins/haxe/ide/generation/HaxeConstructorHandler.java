@@ -55,7 +55,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
         ArrayList<ParamElement> paramsSuper = new ArrayList<ParamElement>();
         ArrayList<ParamElement> paramsWrite = new ArrayList<ParamElement>();
         if (parentConstructor != null) {
-          for (HaxeParameterModel param : parentConstructor.getParameters()) {
+          for (HaxeParameterModel param : parentConstructor.getParameters().parameters) {
             ParamElement element = new ParamElement(param.getName(), param.getType().toStringWithoutConstant());
             params.add(element);
             paramsSuper.add(element);

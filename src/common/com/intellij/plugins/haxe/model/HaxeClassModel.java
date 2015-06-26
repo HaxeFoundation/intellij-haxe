@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2Class;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
@@ -39,6 +40,16 @@ public class HaxeClassModel {
     this.haxeClass = haxeClass;
   }
 
+  public HaxeProjectModel getProject() {
+    return HaxeProjectModel.fromElement(haxeClass);
+  }
+
+  public HaxePackageModel getPackage() {
+    String fqName = haxeClass.getQualifiedName();
+    if (fqName == null) return null;
+    return getProject().getPackageFromPath(HaxeProjectModel.extractPackagePathFromClassFqName(fqName));
+  }
+
   public HaxeClassReferenceModel getParentClassReference() {
     List<HaxeType> list = haxeClass.getHaxeExtendsList();
     if (list.size() == 0) return null;
@@ -47,6 +58,10 @@ public class HaxeClassModel {
 
   static public boolean isValidClassName(String name) {
     return name.substring(0, 1).equals(name.substring(0, 1).toUpperCase());
+  }
+
+  public HaxeResolver2Class getResolver(boolean inStaticContext) {
+    return new HaxeResolver2Class(this, inStaticContext);
   }
 
   public HaxeClassModel getParentClass() {

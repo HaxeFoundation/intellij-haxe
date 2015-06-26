@@ -22,6 +22,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2;
+import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2Dummy;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -86,7 +88,8 @@ public class HaxeTypeResolver {
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
-        ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child, false); // @TODO: false should be calculated (if var has static modifier)
+        ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child, new HaxeResolver2Dummy());
+        // @TODO: resolver should be calculated (if var has static modifier)
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
         if (decl != null) {
@@ -114,11 +117,10 @@ public class HaxeTypeResolver {
     }
     if (comp instanceof HaxeMethod) {
       HaxeMethodModel methodModel = ((HaxeMethod)comp).getModel();
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(methodModel.getBodyPsi(), null, methodModel.isStatic());
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(methodModel.getBodyPsi(), null, methodModel.getResolver());
       return context.getReturnType();
     } else if (comp instanceof HaxeFunctionLiteral) {
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), null, false);
-      // @TODO: false should be calculated (if method containing this lambda has the static modifier)
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), null, ((HaxeFunctionLiteral)comp).getModel().getResolver());
       return context.getReturnType();
     } else {
       throw new RuntimeException("Can't get the body of a no PsiMethod");
@@ -191,8 +193,8 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getPsiElementType(PsiElement element, boolean inStaticContext) {
-    return getPsiElementType(element, null, inStaticContext).result;
+  static public ResultHolder getPsiElementType(PsiElement element, HaxeResolver2 resolver) {
+    return getPsiElementType(element, null, resolver).result;
   }
 
   // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
@@ -224,8 +226,8 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder, boolean inStaticContext) {
-    return evaluateFunction(new HaxeExpressionEvaluatorContext(element, holder, inStaticContext));
+  static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder, HaxeResolver2 resolver) {
+    return evaluateFunction(new HaxeExpressionEvaluatorContext(element, resolver, holder));
   }
 
   @NotNull

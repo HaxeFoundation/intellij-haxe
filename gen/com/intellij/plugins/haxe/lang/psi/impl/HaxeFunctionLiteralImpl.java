@@ -20,6 +20,9 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.model.HaxeFunctionLiteralModel;
+import com.intellij.plugins.haxe.model.HaxeFunctionModel;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -37,6 +40,12 @@ public class HaxeFunctionLiteralImpl extends HaxeExpressionImpl implements HaxeF
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitFunctionLiteral(this);
     else super.accept(visitor);
+  }
+
+  @Override
+  @NotNull
+  public HaxeFunctionModel getModel() {
+    return new HaxeFunctionLiteralModel(this);
   }
 
   @Override

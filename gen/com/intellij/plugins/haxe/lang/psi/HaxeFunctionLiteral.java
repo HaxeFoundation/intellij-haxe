@@ -20,10 +20,14 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.model.HaxeFunctionModel;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
 public interface HaxeFunctionLiteral extends HaxeExpression {
+  @NotNull
+  HaxeFunctionModel getModel();
 
   @Nullable
   HaxeBlockStatement getBlockStatement();

@@ -36,6 +36,9 @@ public class ResultHolder {
   @Nullable
   public PsiElement element = null;
 
+  @Nullable
+  public String name;
+
   public ResultHolder(@NotNull SpecificTypeReference type) {
     this.type = type;
   }

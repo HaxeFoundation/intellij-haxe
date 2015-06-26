@@ -47,7 +47,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   public int getNonOptionalArgumentsCount() {
     if (method != null) {
       int count = 0;
-      for (HaxeParameterModel param : method.getParameters()) {
+      for (HaxeParameterModel param : method.getParameters().parameters) {
         if (!param.isOptional()) {
           count++;
         } else {

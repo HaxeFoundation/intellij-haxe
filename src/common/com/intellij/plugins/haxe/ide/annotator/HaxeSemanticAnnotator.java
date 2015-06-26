@@ -33,6 +33,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2Dummy;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
@@ -75,7 +76,8 @@ class TypeTagChecker {
     final AnnotationHolder holder
   ) {
     final ResultHolder type1 = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
-    final ResultHolder type2 = HaxeTypeResolver.getPsiElementType(initExpression, false); // @TODO: false should check if is static context
+    final ResultHolder type2 = HaxeTypeResolver.getPsiElementType(initExpression, new HaxeResolver2Dummy());
+    // @TODO: false should check if is static context
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
@@ -324,7 +326,7 @@ class MethodChecker {
       if (currentMethod.getReturnTypeTagPsi() == null) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
       }
-      for (final HaxeParameterModel param : currentMethod.getParameters()) {
+      for (final HaxeParameterModel param : currentMethod.getParameters().parameters) {
         if (param.getTypeTagPsi() == null) {
           holder.createErrorAnnotation(param.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
         }
@@ -335,7 +337,7 @@ class MethodChecker {
   static public void checkMethodArguments(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     boolean hasOptional = false;
     HashMap<String, PsiElement> argumentNames = new HashMap<String, PsiElement>();
-    for (final HaxeParameterModel param : currentMethod.getParameters()) {
+    for (final HaxeParameterModel param : currentMethod.getParameters().parameters) {
       String paramName = param.getName();
 
       if (param.hasOptionalPsi() && param.getVarInitPsi() != null) {
@@ -454,8 +456,8 @@ class MethodChecker {
   ) {
     final HaxeDocumentModel document = currentMethod.getDocument();
 
-    List<HaxeParameterModel> currentParameters = currentMethod.getParameters();
-    final List<HaxeParameterModel> parentParameters = parentMethod.getParameters();
+    List<HaxeParameterModel> currentParameters = currentMethod.getParameters().parameters;
+    final List<HaxeParameterModel> parentParameters = parentMethod.getParameters().parameters;
     int minParameters = Math.min(currentParameters.size(), parentParameters.size());
 
     if (currentParameters.size() > parentParameters.size()) {
@@ -557,6 +559,6 @@ class PackageChecker {
 class MethodBodyChecker {
   public static void check(HaxeMethod psi, AnnotationHolder holder) {
     final HaxeMethodModel method = psi.getModel();
-    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, method.isStatic());
+    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, method.getResolver());
   }
 }

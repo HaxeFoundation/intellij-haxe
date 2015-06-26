@@ -27,22 +27,24 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 import com.intellij.spring.model.xml.beans.TypeHolder;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeParameterModel {
   private HaxeParameter parameter;
-  private HaxeMethodModel method;
+  private HaxeParametersModel parameters;
+  //private HaxeMethodModel method;
   private boolean optional;
   private String _name = null;
 
-  public HaxeParameterModel(HaxeParameter parameter, HaxeMethodModel method) {
+  public HaxeParameterModel(@NotNull HaxeParameter parameter, HaxeParametersModel parameters) {
     this.parameter = parameter;
-    this.method = method;
+    this.parameters = parameters;
     this.optional = UsefulPsiTreeUtil.getToken(parameter, "?") != null;
   }
 
   private HaxeDocumentModel getDocument() {
-    return method.getDocument();
+    return HaxeDocumentModel.fromElement(parameter);
   }
 
   public String getName() {
@@ -112,8 +114,8 @@ public class HaxeParameterModel {
     return parameter;
   }
 
-  public HaxeMethodModel getMethod() {
-    return method;
+  public HaxeFunctionModel getFunction() {
+    return parameters.function;
   }
 
   public String getPresentableText() {

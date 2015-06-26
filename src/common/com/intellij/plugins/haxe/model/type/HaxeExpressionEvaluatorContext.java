@@ -23,6 +23,8 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2;
+import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2Locals;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,22 +39,24 @@ public class HaxeExpressionEvaluatorContext {
   private List<PsiElement> returnElements = new ArrayList<PsiElement>();
 
   @Nullable public final AnnotationHolder holder;
-  private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
   @NotNull public final PsiElement root;
-  public final boolean inStaticContext;
   public ResultHolder functionType;
+  @NotNull public HaxeResolver2Locals resolver;
 
-  public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @Nullable AnnotationHolder holder, boolean inStaticContext) {
+  public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @NotNull HaxeResolver2 resolver, @Nullable AnnotationHolder holder) {
     this.root = body;
     this.holder = holder;
-    this.inStaticContext = inStaticContext;
+    this.resolver = new HaxeResolver2Locals(resolver);
   }
 
   public HaxeExpressionEvaluatorContext createChild(PsiElement body) {
-    HaxeExpressionEvaluatorContext that = new HaxeExpressionEvaluatorContext(body, this.holder, this.inStaticContext);
-    that.scope = this.scope;
+    HaxeExpressionEvaluatorContext that = new HaxeExpressionEvaluatorContext(body, this.resolver, this.holder);
     that.beginScope();
     return that;
+  }
+
+  public boolean isInStaticContext() {
+    return resolver.isInStaticContext();
   }
 
   public void addReturnType(ResultHolder result, PsiElement element) {
@@ -79,27 +83,23 @@ public class HaxeExpressionEvaluatorContext {
   }
 
   public void beginScope() {
-    scope = new HaxeScope<ResultHolder>(scope);
+    resolver = resolver.createChild();
   }
 
   public void endScope() {
-    scope = scope.parent;
+    resolver = (HaxeResolver2Locals)resolver.parent;
   }
 
   public void setLocal(String key, ResultHolder value) {
-    this.scope.set(key, value);
-  }
-
-  public void setLocalWhereDefined(String key, ResultHolder value) {
-    this.scope.setWhereDefined(key, value);
+    this.resolver.put(key, value);
   }
 
   public boolean has(String key) {
-    return this.scope.has(key);
+    return this.resolver.has(key);
   }
 
   public ResultHolder get(String key) {
-    return this.scope.get(key);
+    return this.resolver.get(key);
   }
 
   @NotNull

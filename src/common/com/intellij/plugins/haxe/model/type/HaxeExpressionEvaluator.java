@@ -154,7 +154,7 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeThisExpression) {
       //PsiReference reference = element.getReference();
       //HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(element);
-      if (context.inStaticContext) {
+      if (context.isInStaticContext()) {
         context.addError(element, "Using this in a static context");
       }
       HaxeClass ancestor = UsefulPsiTreeUtil.getAncestor(element, HaxeClass.class);
@@ -552,6 +552,7 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
+    // This is a method too!
     if (element instanceof HaxeLocalFunctionDeclaration) {
       HaxeParameterList params = ((HaxeLocalFunctionDeclaration)element).getParameterList();
       HaxeComponentName functionName = ((HaxeLocalFunctionDeclaration)element).getComponentName();
