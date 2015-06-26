@@ -28,10 +28,6 @@ public abstract class SpecificTypeReference {
     this.context = context;
   }
 
-  static public SpecificTypeReference ensure(SpecificTypeReference clazz, @NotNull PsiElement context) {
-    return (clazz != null) ? clazz : getDynamic(context);
-  }
-
   static public SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
     return SpecificHaxeClassReference
       .withGenerics(new HaxeClassReference("Array", elementType.getElementContext()), new ResultHolder[]{elementType}, null);
@@ -194,11 +190,11 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean canAssign(SpecificTypeReference type2) {
-    return HaxeTypeCompatible.isAssignable(this, type2);
+    return HaxeTypeCompatible.canAssignToFrom(this, type2);
   }
 
   final public boolean canAssign(ResultHolder type2) {
-    return HaxeTypeCompatible.isAssignable(this, type2);
+    return HaxeTypeCompatible.canAssignToFrom(this, type2);
   }
 
   public ResultHolder createHolder() {

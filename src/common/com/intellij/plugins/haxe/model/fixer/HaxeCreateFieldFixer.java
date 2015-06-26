@@ -27,6 +27,6 @@ public class HaxeCreateFieldFixer extends HaxeFixer {
 
   @Override
   public void run() {
-
+    // @TODO: Stub. Implement.
   }
 }

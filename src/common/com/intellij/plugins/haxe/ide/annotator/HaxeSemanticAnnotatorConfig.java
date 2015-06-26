@@ -20,5 +20,5 @@ package com.intellij.plugins.haxe.ide.annotator;
 public class HaxeSemanticAnnotatorConfig {
   // @TODO: Add a proper UI configuration checkbox
   //static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = true;
-  static public final boolean ENABLE_EXPERIMENTAL_BODY_CHECK = false;
+  static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = false;
 }

@@ -29,7 +29,7 @@ import java.util.List;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
-  final public HaxeClassReference clazz;
+  @NotNull final public HaxeClassReference clazz;
 
   // @TODO: Change specifics with generics + generic resolver?
   final public ResultHolder[] specifics;
@@ -37,7 +37,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   final public HaxeRange rangeConstraint;
 
   public SpecificHaxeClassReference(
-    HaxeClassReference clazz,
+    @NotNull HaxeClassReference clazz,
     ResultHolder[] specifics,
     Object constantValue,
     HaxeRange rangeConstraint,
@@ -55,7 +55,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public HaxeClass getHaxeClass() {
-    return (this.clazz != null) ? this.clazz.getHaxeClass() : null;
+    return this.clazz.getHaxeClass();
   }
 
   public HaxeClassModel getHaxeClassModel() {
@@ -90,24 +90,23 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return this.constantValue;
   }
 
-  static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz) {
+  static public SpecificHaxeClassReference withoutGenerics(@NotNull HaxeClassReference clazz) {
     return new SpecificHaxeClassReference(clazz, ResultHolder.EMPTY, null, null, clazz.elementContext);
   }
 
-  static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz, Object constantValue) {
+  static public SpecificHaxeClassReference withoutGenerics(@NotNull HaxeClassReference clazz, Object constantValue) {
     return new SpecificHaxeClassReference(clazz, ResultHolder.EMPTY, constantValue, null, clazz.elementContext);
   }
 
-  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, ResultHolder[] specifics) {
+  static public SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder[] specifics) {
     return new SpecificHaxeClassReference(clazz, specifics, null, null, clazz.elementContext);
   }
 
-  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, ResultHolder[] specifics, Object constantValue) {
+  static public SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder[] specifics, Object constantValue) {
     return new SpecificHaxeClassReference(clazz, specifics, constantValue, null, clazz.elementContext);
   }
 
   public String toStringWithoutConstant() {
-    if (this.clazz == null) return "Unknown";
     String out = this.clazz.getName();
     if (specifics.length > 0) {
       out += "<";
@@ -164,7 +163,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
     if (this.isDynamic()) return this.withoutConstantValue().createHolder();
 
-    if (this.clazz == null || name == null) {
+    if (name == null) {
       return null;
     }
     HaxeClass aClass = this.clazz.getHaxeClass();

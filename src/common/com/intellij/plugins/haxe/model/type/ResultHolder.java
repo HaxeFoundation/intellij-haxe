@@ -42,12 +42,14 @@ public class ResultHolder {
     return type;
   }
 
+  @Nullable
   public SpecificFunctionReference getFunctionType() {
-    return (SpecificFunctionReference)type;
+    return (type instanceof SpecificFunctionReference) ? (SpecificFunctionReference)type : null;
   }
 
+  @Nullable
   public SpecificHaxeClassReference getClassType() {
-    return (SpecificHaxeClassReference)type;
+    return (type instanceof SpecificHaxeClassReference) ? (SpecificHaxeClassReference)type : null;
   }
 
   public boolean isUnknown() {
@@ -63,20 +65,14 @@ public class ResultHolder {
     return this;
   }
 
-  public boolean isFunctionType() {
-    return getType() instanceof SpecificFunctionReference;
-  }
-
-  public boolean isClassType() {
-    return getType() instanceof SpecificHaxeClassReference;
-  }
-
 
   public void disableMutating() {
     this.canMutate = false;
   }
 
-  public boolean hasMutated() { return this.mutationCount > 0; }
+  public boolean hasMutated() {
+    return this.mutationCount > 0;
+  }
 
   public boolean canMutate() {
     return this.canMutate;
@@ -95,14 +91,16 @@ public class ResultHolder {
   }
 
   public boolean canAssign(ResultHolder that) {
-    return HaxeTypeCompatible.isAssignable(this, that);
+    return HaxeTypeCompatible.canAssignToFrom(this, that);
   }
 
   public void removeConstant() {
     setType(getType().withoutConstantValue());
   }
 
-  public String toString() { return this.getType().toString(); }
+  public String toString() {
+    return this.getType().toString();
+  }
 
   public String toStringWithoutConstant() {
     return this.getType().toStringWithoutConstant();

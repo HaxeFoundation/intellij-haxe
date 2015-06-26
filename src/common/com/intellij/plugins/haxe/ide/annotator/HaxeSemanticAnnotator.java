@@ -33,7 +33,6 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
@@ -484,7 +483,7 @@ class MethodChecker {
     for (int n = 0; n < minParameters; n++) {
       final HaxeParameterModel currentParam = currentParameters.get(n);
       final HaxeParameterModel parentParam = parentParameters.get(n);
-      if (!HaxeTypeCompatible.isAssignable(currentParam.getType(), parentParam.getType())) {
+      if (!HaxeTypeCompatible.canAssignToFrom(currentParam.getType(), parentParam.getType())) {
         holder.createErrorAnnotation(
           currentParam.getPsi(),
           "Type " + currentParam.getType() + " is not compatible with " + parentParam.getType()).registerFix

@@ -202,7 +202,9 @@ public class HaxeExpressionEvaluator {
         type = handle(expression, context).getType();
         lastExpression = expression;
       }
-      type = SpecificTypeReference.ensure(type, element);
+      if (type == null) {
+        type = SpecificTypeReference.getDynamic(element);
+      }
       if (!type.isBool() && lastExpression != null) {
         context.addError(
           lastExpression,

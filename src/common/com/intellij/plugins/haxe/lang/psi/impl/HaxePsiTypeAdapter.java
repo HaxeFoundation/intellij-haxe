@@ -184,7 +184,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
   @Override
   public boolean isAssignableFrom(@NotNull PsiType type) {
-    // Java uses the TypeConversionUtil.isAssignable, which will most likely fail.
+    // Java uses the TypeConversionUtil.canAssignToFrom, which will most likely fail.
     // TODO: Implement HaxePsiAdapter.isAssignableFrom
     LOG.debug("Implement HaxePsiAdapter.isAssignableFrom()");
     return super.isAssignableFrom(type);

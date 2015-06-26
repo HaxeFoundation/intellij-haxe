@@ -324,16 +324,18 @@ public class HaxeClassModel {
     // @CHECK abstract FROM
     for (HaxeType type : getAbstractFromList()) {
       final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      if (aTypeRef.isClassType()) {
-        aTypeRef.getClassType().getHaxeClassModel().writeCompatibleTypes(output);
+      SpecificHaxeClassReference classType = aTypeRef.getClassType();
+      if (classType != null) {
+        classType.getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
 
     // @CHECK abstract TO
     for (HaxeType type : getAbstractToList()) {
       final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      if (aTypeRef.isClassType()) {
-        aTypeRef.getClassType().getHaxeClassModel().writeCompatibleTypes(output);
+      SpecificHaxeClassReference classType = aTypeRef.getClassType();
+      if (classType != null) {
+        classType.getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
   }
