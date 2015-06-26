@@ -35,7 +35,6 @@ public class HaxeExpressionEvaluatorContext {
   public ResultHolder result;
   private List<ResultHolder> returns = new ArrayList<ResultHolder>();
   private List<PsiElement> returnElements = new ArrayList<PsiElement>();
-  private List<ReturnInfo> returnInfos = new ArrayList<ReturnInfo>();
 
   @Nullable public final AnnotationHolder holder;
   private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
@@ -56,10 +55,10 @@ public class HaxeExpressionEvaluatorContext {
     return that;
   }
 
-  public void addReturnType(ResultHolder type, PsiElement element) {
-    this.returns.add(type);
+  public void addReturnType(ResultHolder result, PsiElement element) {
+    result.element = element;
+    this.returns.add(result);
     this.returnElements.add(element);
-    this.returnInfos.add(new ReturnInfo(element, type));
   }
 
   public ResultHolder getReturnType() {
@@ -69,10 +68,6 @@ public class HaxeExpressionEvaluatorContext {
 
   public List<ResultHolder> getReturnValues() {
     return returns;
-  }
-
-  public List<ReturnInfo> getReturnInfos() {
-    return returnInfos;
   }
 
   public List<PsiElement> getReturnElements() {
@@ -142,15 +137,5 @@ public class HaxeExpressionEvaluatorContext {
   final public List<HaxeExpressionEvaluatorContext> lambdas = new LinkedList<HaxeExpressionEvaluatorContext>();
   public void addLambda(HaxeExpressionEvaluatorContext child) {
     lambdas.add(child);
-  }
-}
-
-class ReturnInfo {
-  final public ResultHolder type;
-  final public PsiElement element;
-
-  public ReturnInfo(PsiElement element, ResultHolder type) {
-    this.element = element;
-    this.type = type;
   }
 }

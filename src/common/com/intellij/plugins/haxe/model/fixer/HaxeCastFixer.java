@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.model.fixer;
 
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
-import com.intellij.plugins.haxe.model.type.HaxeCastUtil;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 
@@ -42,7 +41,45 @@ public class HaxeCastFixer extends HaxeFixer {
   public void run() {
     HaxeDocumentModel.fromElement(element).replaceElementText(
       element,
-      HaxeCastUtil.getCastText(element, from, to)
+      getCastText(element, from, to)
     );
+  }
+
+  static public String getCastText(PsiElement elementToCast, SpecificTypeReference fromType, SpecificTypeReference toType) {
+    String elementText = elementToCast.getText();
+    // Same type, no cast
+    if (toType.toStringWithoutConstant().equals(fromType.toStringWithoutConstant())) {
+      return elementText;
+    }
+
+    // XXXX -> String
+    if (toType.isString()) {
+      return "Std.string(" + elementText + ")";
+    }
+
+    // String -> XXXX
+    if (fromType.isString()) {
+      // String -> Int
+      if (toType.isInt()) {
+        return "Std.parseInt(" + elementText + ")";
+      }
+      // String -> Float
+      if (toType.isFloat()) {
+        return "Std.parseFloat(" + elementText + ")";
+      }
+    }
+
+    // Float -> Int
+    if (fromType.isFloat() && toType.isInt()) {
+      return "Std.int(" + elementText + ")";
+    }
+
+    // (Int|Float) -> Bool
+    if (fromType.isNumeric() && toType.isBool()) {
+      return "((" + elementText + ") != 0)";
+    }
+
+    // Generic cast
+    return "cast(" + elementText + ", " + toType.toStringWithoutConstant() + ")";
   }
 }

@@ -205,20 +205,20 @@ public class HaxeTypeResolver {
     final HaxeTypeTag typeTag = UsefulPsiTreeUtil.getChild(element, HaxeTypeTag.class);
     ResultHolder expectedType = SpecificTypeReference.getDynamic(element).createHolder();
     if (typeTag == null) {
-      final List<ReturnInfo> infos = context.getReturnInfos();
+      final List<ResultHolder> infos = context.getReturnValues();
       if (!infos.isEmpty()) {
-        expectedType = infos.get(0).type;
+        expectedType = infos.get(0);
       }
     } else {
       expectedType = getTypeFromTypeTag(typeTag, element);
     }
 
     if (expectedType == null) return;
-    for (ReturnInfo retinfo : context.getReturnInfos()) {
-      if (expectedType.canAssign(retinfo.type)) continue;
+    for (ResultHolder retinfo : context.getReturnValues()) {
+      if (expectedType.canAssign(retinfo)) continue;
       context.addError(
         retinfo.element,
-        "Can't return " + retinfo.type + ", expected " + expectedType.toStringWithoutConstant()
+        "Can't return " + retinfo + ", expected " + expectedType.toStringWithoutConstant()
       );
     }
   }

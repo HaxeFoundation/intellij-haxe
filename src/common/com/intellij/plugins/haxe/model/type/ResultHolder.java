@@ -33,6 +33,9 @@ public class ResultHolder {
   private boolean canMutate = true;
   private int mutationCount = 0;
 
+  @Nullable
+  public PsiElement element = null;
+
   public ResultHolder(@NotNull SpecificTypeReference type) {
     this.type = type;
   }
@@ -57,10 +60,15 @@ public class ResultHolder {
   }
 
   public ResultHolder setType(@Nullable SpecificTypeReference type) {
+    return setType(type, null);
+  }
+
+  public ResultHolder setType(@Nullable SpecificTypeReference type, @Nullable PsiElement element) {
     if (type == null) {
       type = SpecificTypeReference.getDynamic(this.type.getElementContext());
     }
     this.type = type;
+    this.element = element;
     mutationCount++;
     return this;
   }
@@ -95,7 +103,7 @@ public class ResultHolder {
   }
 
   public void removeConstant() {
-    setType(getType().withoutConstantValue());
+    setType(getType().withoutConstantValue(), null);
   }
 
   public String toString() {
@@ -111,9 +119,8 @@ public class ResultHolder {
   }
 
   public ResultHolder withConstantValue(Object constantValue) {
-    return duplicate().setType(getType().withConstantValue(constantValue));
+    return duplicate().setType(getType().withConstantValue(constantValue), null);
   }
-
 
   public PsiElement getElementContext() {
     return type.getElementContext();
