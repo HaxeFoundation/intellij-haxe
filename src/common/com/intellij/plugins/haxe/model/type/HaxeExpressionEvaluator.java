@@ -319,8 +319,12 @@ public class HaxeExpressionEvaluator {
             if (children.length == 1) {
               annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
             } else {
-              annotation.registerFix(new HaxeCreateMethodFixer(accessName, element));
-              annotation.registerFix(new HaxeCreateFieldFixer(accessName, element));
+              SpecificHaxeClassReference classType = typeHolder.getClassType();
+              if (classType != null) {
+                HaxeClassModel classModel = classType.getHaxeClassModel();
+                annotation.registerFix(new HaxeCreateMethodFixer(classModel, accessName));
+                annotation.registerFix(new HaxeCreateFieldFixer(classModel, accessName));
+              }
             }
           }
           typeHolder = access;

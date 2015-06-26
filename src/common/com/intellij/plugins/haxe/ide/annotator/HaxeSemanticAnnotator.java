@@ -136,17 +136,19 @@ class FieldChecker {
       holder.createErrorAnnotation(field.getSetterPsi(), "Invalid setter accessor");
     }
 
+    ResultHolder fieldType = field.getResultType();
+
     if (field.getGetterType() == HaxeAccessorType.GET) {
       final String methodName = "get_" + field.getName();
       HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
       if (method == null) {
         Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(methodName);
-          }
-        });
+        annotation.registerFix(new HaxeCreateMethodFixer(field.getDeclaringClass(), methodName));
+      } else {
+        ResultHolder methodType = method.getResultType();
+        if (!fieldType.canAssign(methodType)) {
+          holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Return type " + methodType + " must match getter type " + fieldType);
+        }
       }
     }
 
@@ -155,12 +157,22 @@ class FieldChecker {
       HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
       if (method == null) {
         Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(methodName);
+        annotation.registerFix(new HaxeCreateMethodFixer(field.getDeclaringClass(), methodName, "value"));
+      } else {
+        HaxeParametersModel parameters = method.getParameters();
+        if (parameters.length() != 1) {
+          holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Setter must receive one parameter");
+        } else {
+          HaxeParameterModel parameter = parameters.parameters.get(0);
+          ResultHolder argType = parameter.getType();
+          ResultHolder methodType = method.getResultType();
+          if (!fieldType.canAssign(argType)) {
+            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "First argument type " + argType + " must match getter type " + fieldType);
           }
-        });
+          if (!fieldType.canAssign(methodType)) {
+            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Return type " + methodType + " must match getter type " + fieldType);
+          }
+        }
       }
     }
 

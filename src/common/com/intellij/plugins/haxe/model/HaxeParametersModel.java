@@ -48,4 +48,6 @@ public class HaxeParametersModel {
   public HaxeResolver2Parameters getResolver() {
     return new HaxeResolver2Parameters(this);
   }
+
+  public int length() { return parameters.size(); }
 }

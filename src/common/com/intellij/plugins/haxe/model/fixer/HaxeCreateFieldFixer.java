@@ -18,10 +18,12 @@
 package com.intellij.plugins.haxe.model.fixer;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 
 public class HaxeCreateFieldFixer extends HaxeFixer {
-  public HaxeCreateFieldFixer(String name, PsiElement context) {
+  public HaxeCreateFieldFixer(HaxeClassModel classModel, String name) {
     super("Create field");
   }
 

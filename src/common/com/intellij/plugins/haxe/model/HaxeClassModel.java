@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -378,8 +379,8 @@ public class HaxeClassModel {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic var " + name + ":" + type.toStringWithoutConstant() + ";\n");
   }
 
-  public void addMethod(String name) {
-    this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic function " + name + "() {\n}\n");
+  public void addMethod(String name, String... args) {
+    this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic function " + name + "(" + StringUtils.join(args, ", ") + ") {\n}\n");
   }
 
   public HaxeClassReference getReference() {

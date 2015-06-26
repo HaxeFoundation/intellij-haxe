@@ -18,15 +18,23 @@
 package com.intellij.plugins.haxe.model.fixer;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.psi.PsiElement;
 
 public class HaxeCreateMethodFixer extends HaxeFixer {
-  public HaxeCreateMethodFixer(String name, PsiElement context) {
+  HaxeClassModel clazz;
+  String name;
+  String[] args;
+
+  public HaxeCreateMethodFixer(HaxeClassModel clazz, String name, String ...args) {
     super("Create method");
+    this.clazz = clazz;
+    this.name = name;
+    this.args = args;
   }
 
   @Override
   public void run() {
-    // @TODO: Stub. Implement.
+    clazz.addMethod(name, args);
   }
 }
