@@ -17,12 +17,18 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Package;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class HaxePackageModel {
   @Nullable final HaxePackageModel parent;
@@ -42,7 +48,24 @@ public class HaxePackageModel {
   }
 
   @Nullable
+  static public HaxePackageModel getPackageFromFile(PsiFile file) {
+    HaxeProjectModel project = HaxeProjectModel.fromElement(file);
+    HaxeSourceRootModel root = project.getRootContaining(file);
+    if (root != null) {
+      String pathToPackage = root.getPathToFile(file.getParent());
+      return project.rootPackage.access(pathToPackage);
+    }
+    return null;
+  }
+
+
+  private HaxePackageModel createChild(String name) {
+    return new HaxePackageModel(project, name, this);
+  }
+
+  @Nullable
   public HaxePackageModel access(String path) {
+    if (path.isEmpty()) return this;
     if (path.contains(".")) {
       int i = path.indexOf('.');
       HaxePackageModel child = getChild(path.substring(0, i));
@@ -62,15 +85,46 @@ public class HaxePackageModel {
     return null;
   }
 
-  public List<HaxePackageModel> getChilds() {
-    throw new NotImplementedException();
+  public Set<HaxePackageModel> getChilds() {
+    Set<HaxePackageModel> childs = new HashSet<HaxePackageModel>();
+    for (PsiDirectory packageDirectory : getPackageDirectories()) {
+      for (PsiDirectory directory : packageDirectory.getSubdirectories()) {
+        childs.add(createChild(directory.getName()));
+      }
+    }
+    return childs;
+  }
+
+  public List<PsiDirectory> getPackageDirectories() {
+    LinkedList<PsiDirectory> out = new LinkedList<PsiDirectory>();
+    String fullPath = fullName.replace('.', '/');
+    for (HaxeSourceRootModel model : project.getRoots()) {
+      PsiDirectory packageDirectory = model.access(fullPath);
+      if (packageDirectory != null) out.push(packageDirectory);
+    }
+    return out;
   }
 
   public HaxeClassModel getHaxeClass(String name) {
+    String hxname = name + ".hx";
+    List<HaxeSourceRootModel> roots = project.getRoots();
+    List<PsiDirectory> directories = getPackageDirectories();
+    for (PsiDirectory directory : directories) {
+      PsiFile file = directory.findFile(hxname);
+      if (file != null) {
+        HaxeFileModel fileModel = HaxeFileModel.fromElement(file);
+        return fileModel.getHaxeClass(name);
+      }
+    }
+
+    return null;
+  }
+
+  public List<HaxeClassModel> getHaxeClasses() {
     throw new NotImplementedException();
   }
 
-  public List<HaxeClassModel> getClasses() {
-    throw new NotImplementedException();
+  public HaxeResolver2Package getResolver() {
+    return new HaxeResolver2Package(this);
   }
 }

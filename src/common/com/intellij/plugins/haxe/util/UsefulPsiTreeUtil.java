@@ -368,7 +368,7 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static HaxePsiCompositeElement getChildOfType(@Nullable HaxePsiCompositeElement element, @Nullable IElementType elementType) {
+  public static HaxePsiCompositeElement getChildOfType(@Nullable PsiElement element, @Nullable IElementType elementType) {
     if (element == null) return null;
     for (HaxePsiCompositeElement child : PsiTreeUtil.getChildrenOfTypeAsList(element, HaxePsiCompositeElement.class)) {
       if (child.getTokenType() == elementType) {

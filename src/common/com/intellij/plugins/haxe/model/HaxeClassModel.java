@@ -19,11 +19,8 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2Class;
+import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Class;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
@@ -43,6 +40,15 @@ public class HaxeClassModel {
   public HaxeProjectModel getProject() {
     return HaxeProjectModel.fromElement(haxeClass);
   }
+
+  public HaxeModuleModel getModule() {
+    return HaxeModuleModel.fromElement(haxeClass);
+  }
+
+  public HaxeFileModel getFile() {
+    return new HaxeFileModel((HaxeFile)haxeClass.getContainingFile());
+  }
+
 
   public HaxePackageModel getPackage() {
     String fqName = haxeClass.getQualifiedName();
@@ -269,6 +275,7 @@ public class HaxeClassModel {
   }
 
   private HaxeDocumentModel _document = null;
+
   @NotNull
   public HaxeDocumentModel getDocument() {
     if (_document == null) _document = new HaxeDocumentModel(haxeClass);
@@ -373,5 +380,9 @@ public class HaxeClassModel {
 
   public void addMethod(String name) {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic function " + name + "() {\n}\n");
+  }
+
+  public HaxeClassReference getReference() {
+    return new HaxeClassReference(this, this.getPsi());
   }
 }

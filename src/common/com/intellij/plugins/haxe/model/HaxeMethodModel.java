@@ -17,17 +17,21 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethodPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.*;
+import com.intellij.plugins.haxe.model.resolver.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionModel {
   private HaxeMethodPsiMixin haxeMethod;
@@ -48,7 +52,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
 
   @Nullable
   public PsiElement getBodyPsi() {
-    return HaxeFunctionModelUtil.getBodyPsi(haxeMethod);
+    return HaxeFunctionModelUtils.getBodyPsi(haxeMethod);
   }
 
   //private List<HaxeParameterModel> _parameters;
@@ -62,7 +66,8 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
     return HaxeParametersModel.fromHaxeParameterList(this, params, isExtensionMethod);
   }
 
-  @Nullable public HaxeTypeTag getReturnTypeTagPsi() {
+  @Nullable
+  public HaxeTypeTag getReturnTypeTagPsi() {
     return UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeTypeTag.class);
   }
 
@@ -72,6 +77,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
   }
 
   private HaxeClassModel _declaringClass = null;
+
   public HaxeClassModel getDeclaringClass() {
     if (_declaringClass == null) {
       HaxeClass aClass = (HaxeClass)this.haxeMethod.getContainingClass();

@@ -15,25 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.type.resolver;
+package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-
-abstract public class HaxeResolver2 {
-  @Nullable
-  abstract public ResultHolder get(String key);
-
-  abstract public void addResults(@NotNull Map<String, ResultHolder> results);
-
-  public boolean has(String key) {
-    return get(key) != null;
-  }
-
-  abstract public boolean isInStaticContext();
+public interface HaxeEntityModel {
 }

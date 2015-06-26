@@ -21,15 +21,22 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeClassReferenceModel {
-  public HaxeType type;
+  public final PsiElement type;
 
-  public HaxeClassReferenceModel(HaxeType type) {
+  public HaxeClassReferenceModel(PsiElement type) {
+    this(type, null);
+  }
+
+  public HaxeClassReferenceModel(PsiElement type, @Nullable HaxeClass _clazz) {
+    this._clazz = _clazz;
     this.type = type;
   }
 
-  public HaxeType getPsi() {
+  public PsiElement getPsi() {
     return type;
   }
 

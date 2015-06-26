@@ -15,27 +15,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.type.resolver;
+package com.intellij.plugins.haxe.model.resolver;
 
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-public class HaxeResolver2Dummy extends HaxeResolver2 {
+public class HaxeResolver2Combined extends HaxeResolver2 {
+  @NotNull
+  public List<HaxeResolver2> resolvers;
+
+  public HaxeResolver2Combined(@NotNull List<HaxeResolver2> resolvers) {
+    this.resolvers = resolvers;
+  }
+  public HaxeResolver2Combined(HaxeResolver2... resolvers) {
+    this.resolvers = new ArrayList<HaxeResolver2>(resolvers.length);
+    for (HaxeResolver2 resolver : resolvers) {
+      this.resolvers.add(resolver);
+    }
+  }
+
   @Nullable
   @Override
   public ResultHolder get(String key) {
+    int size = resolvers.size();
+    for (int n = size - 1; n >= 0; n--) {
+      HaxeResolver2 resolver = resolvers.get(n);
+      ResultHolder result = resolver.get(key);
+      if (result != null) return result;
+    }
     return null;
   }
 
   @Override
   public void addResults(@NotNull Map<String, ResultHolder> results) {
+    for (HaxeResolver2 resolver : resolvers) {
+      resolver.addResults(results);
+    }
   }
 
   @Override
   public boolean isInStaticContext() {
+    for (HaxeResolver2 resolver : resolvers) {
+      if (resolver.isInStaticContext()) {
+        return true;
+      }
+    }
     return false;
   }
 }

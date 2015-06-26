@@ -15,10 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.type;
+package com.intellij.plugins.haxe.model;
 
-public class HaxeCannotUnifyException extends Exception {
-  public HaxeCannotUnifyException() {
-    super("Cannot unify");
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
+
+public class HaxeFunctionModelUtils {
+  @Nullable
+  static public PsiElement getBodyPsi(PsiElement methodElement) {
+    PsiElement[] children = methodElement.getChildren();
+    if (children.length == 0) return null;
+    PsiElement child = children[children.length - 1];
+    if (child instanceof HaxeTypeTag) return null;
+    return child;
   }
 }

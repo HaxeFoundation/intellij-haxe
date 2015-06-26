@@ -15,59 +15,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.type.resolver;
+package com.intellij.plugins.haxe.model.resolver;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-public class HaxeResolver2Combined extends HaxeResolver2 {
-  @NotNull
-  public List<HaxeResolver2> resolvers;
+public class HaxeResolver2Class extends HaxeResolver2 {
+  public HaxeClassModel clazz;
+  public HaxeFileModel file;
+  public HaxeResolver2 fileResolver;
+  public boolean inStaticContext;
 
-  public HaxeResolver2Combined(@NotNull List<HaxeResolver2> resolvers) {
-    this.resolvers = resolvers;
-  }
-  public HaxeResolver2Combined(HaxeResolver2... resolvers) {
-    this.resolvers = new ArrayList<HaxeResolver2>(resolvers.length);
-    for (HaxeResolver2 resolver : resolvers) {
-      this.resolvers.add(resolver);
-    }
+  public HaxeResolver2Class(@NotNull HaxeClassModel clazz, boolean inStaticContext) {
+    this.clazz = clazz;
+    this.file = clazz.getFile();
+    this.fileResolver = this.file.getResolver();
+    this.inStaticContext = inStaticContext;
   }
 
   @Nullable
   @Override
   public ResultHolder get(String key) {
-    int size = resolvers.size();
-    for (int n = size - 1; n >= 0; n--) {
-      HaxeResolver2 resolver = resolvers.get(n);
-      ResultHolder result = resolver.get(key);
-      if (result != null) return result;
+    ResultHolder result = null;
+
+    HaxeMemberModel member = clazz.getMember(key);
+    if (member != null) {
+      result = member.getResultType();
     }
-    return null;
+
+    if (result == null) {
+      result = this.fileResolver.get(key);
+    }
+
+    return result;
   }
 
   @Override
   public void addResults(@NotNull Map<String, ResultHolder> results) {
-    for (HaxeResolver2 resolver : resolvers) {
-      resolver.addResults(results);
+    this.fileResolver.addResults(results);
+
+    for (HaxeMemberModel member : clazz.getMembers()) {
+      if (inStaticContext == member.isStatic()) {
+        results.put(member.getName(), member.getResultType());
+      }
     }
   }
 
   @Override
   public boolean isInStaticContext() {
-    for (HaxeResolver2 resolver : resolvers) {
-      if (resolver.isInStaticContext()) {
-        return true;
-      }
-    }
-    return false;
+    return inStaticContext;
   }
 }

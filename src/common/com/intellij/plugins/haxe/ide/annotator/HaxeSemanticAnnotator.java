@@ -33,7 +33,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2Dummy;
+import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;

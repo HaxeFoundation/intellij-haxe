@@ -17,20 +17,11 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.resolver.HaxeResolver2Parameters;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiParameter;
+import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Parameters;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeParametersModel {

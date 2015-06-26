@@ -18,9 +18,8 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeFunctionLiteralImpl;
-import com.intellij.plugins.haxe.model.type.resolver.*;
+import com.intellij.plugins.haxe.model.resolver.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +33,7 @@ public class HaxeFunctionLiteralModel implements HaxeFunctionModel {
 
   @Nullable
   public PsiElement getBodyPsi() {
-    return HaxeFunctionModelUtil.getBodyPsi(literal);
+    return HaxeFunctionModelUtils.getBodyPsi(literal);
   }
 
   public HaxeMethodModel getDeclaringMethod() {

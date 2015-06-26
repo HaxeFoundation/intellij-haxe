@@ -15,43 +15,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.type.resolver;
+package com.intellij.plugins.haxe.model.resolver;
 
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
-public class HaxeResolver2Class extends HaxeResolver2 {
-  public HaxeClassModel clazz;
-  public boolean inStaticContext;
+public class HaxeResolver2Locals extends HaxeResolver2 {
+  @NotNull public HaxeResolver2 parent;
+  private Map<String, ResultHolder> locals = new HashMap<String, ResultHolder>();
 
-  public HaxeResolver2Class(HaxeClassModel clazz, boolean inStaticContext) {
-    this.clazz = clazz;
-    this.inStaticContext = inStaticContext;
+  public HaxeResolver2Locals(@NotNull HaxeResolver2 parent) {
+    this.parent = parent;
+  }
+
+  public HaxeResolver2Locals put(String key, ResultHolder result) {
+    locals.put(key, result);
+    return this;
   }
 
   @Nullable
   @Override
   public ResultHolder get(String key) {
-    HaxeMemberModel member = clazz.getMember(key);
-    return (member != null) ? member.getResultType() : null;
+    ResultHolder result = locals.get(key);
+    if (result == null) {
+      return parent.get(key);
+    }
+    return result;
   }
 
   @Override
   public void addResults(@NotNull Map<String, ResultHolder> results) {
-    for (HaxeMemberModel member : clazz.getMembers()) {
-      if (inStaticContext == member.isStatic()) {
-        results.put(member.getName(), member.getResultType());
-      }
+    parent.addResults(results);
+    for (String s : locals.keySet()) {
+      results.put(s, locals.get(s));
     }
   }
 
   @Override
   public boolean isInStaticContext() {
-    return inStaticContext;
+    return parent.isInStaticContext();
+  }
+
+  public HaxeResolver2Locals createChild() {
+    return new HaxeResolver2Locals(this);
   }
 }

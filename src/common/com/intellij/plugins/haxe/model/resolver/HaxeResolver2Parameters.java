@@ -15,11 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.type.resolver;
+package com.intellij.plugins.haxe.model.resolver;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.HaxeParametersModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
