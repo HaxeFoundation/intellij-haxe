@@ -37,4 +37,7 @@ public interface HaxeReference extends HaxeExpression, PsiJavaCodeReferenceEleme
   PsiElement resolveToComponentName();
 
   boolean resolveIsStaticExtension();
+
+  @Nullable
+  HaxeGenericSpecialization getSpecialization();
 }
