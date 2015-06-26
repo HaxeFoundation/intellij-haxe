@@ -55,6 +55,9 @@ public class HaxeSemanticAnnotator implements Annotator {
     else if (element instanceof HaxeMethod) {
       MethodChecker.check((HaxeMethod)element, holder);
     }
+    else if (element instanceof HaxeImportStatementRegular) {
+      ImportChecker.check((HaxeImportStatementRegular)element, holder);
+    }
     else if (element instanceof HaxeClass) {
       ClassChecker.check((HaxeClass)element, holder);
     }
@@ -63,6 +66,16 @@ public class HaxeSemanticAnnotator implements Annotator {
     }
     else if (element instanceof HaxeVarDeclaration) {
       FieldChecker.check((HaxeVarDeclaration)element, holder);
+    }
+  }
+}
+
+class ImportChecker {
+  public static void check(HaxeImportStatementRegular element, AnnotationHolder holder) {
+    HaxeImportModel importModel = element.getModel();
+    HaxeClassModel aClass = importModel.getImportedClass();
+    if (aClass == null) {
+      holder.createErrorAnnotation(element, "Can't find class");
     }
   }
 }
@@ -559,6 +572,9 @@ class PackageChecker {
 class MethodBodyChecker {
   public static void check(HaxeMethod psi, AnnotationHolder holder) {
     final HaxeMethodModel method = psi.getModel();
-    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, method.getResolver());
+    PsiElement body = method.getBodyPsi();
+    if (body != null) {
+      HaxeTypeResolver.getPsiElementType(body, holder, method.getResolver());
+    }
   }
 }

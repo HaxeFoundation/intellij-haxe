@@ -25,6 +25,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeFileModel {
@@ -52,11 +53,25 @@ public class HaxeFileModel {
     return getProject().getPackageFromFile(file);
   }
 
+  public List<HaxeClassModel> getImportedClasses() {
+    LinkedList<HaxeClassModel> classes = new LinkedList<HaxeClassModel>();
+
+    classes.add(getProject().getClassFromFqName("Std"));
+
+    for (HaxeImportModel importModel : getImports()) {
+      HaxeClassModel importedClass = importModel.getImportedClass();
+      if (importedClass != null) {
+        classes.add(importedClass);
+      }
+    }
+    return classes;
+  }
+
   public List<HaxeImportModel> getImports() {
     ArrayList<HaxeImportModel> imports = new ArrayList<HaxeImportModel>();
     for (PsiElement element : file.getChildren()) {
       if (element instanceof HaxeImportStatementRegular) {
-        imports.add(new HaxeImportModel(this, (HaxeImportStatementRegular)element));
+        imports.add(new HaxeImportModel((HaxeImportStatementRegular)element));
       }
     }
     return imports;

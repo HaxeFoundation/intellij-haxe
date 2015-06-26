@@ -20,6 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.model.HaxeImportModel;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -32,6 +34,10 @@ public class HaxeImportStatementRegularImpl extends HaxePsiCompositeElementImpl 
 
   public HaxeImportStatementRegularImpl(ASTNode node) {
     super(node);
+  }
+
+  public HaxeImportModel getModel() {
+    return new HaxeImportModel(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

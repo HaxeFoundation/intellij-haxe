@@ -34,17 +34,15 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
   public HaxeFileModel file;
   public Map<String, HaxeClassModel> importedClasses = new HashMap<String, HaxeClassModel>();
 
-  public HaxeResolver2File(HaxeFileModel file) {
+  public HaxeResolver2File(@NotNull HaxeFileModel file) {
     super();
-    resolvers.add(file.getPackage().getResolver());
-    for (HaxeImportModel importz : file.getImports()) {
-      HaxeClassModel clazz = importz.getImportedClass();
-      if (clazz != null) {
-        importedClasses.put(clazz.getName(), clazz);
-      }
+    HaxePackageModel aPackage = file.getPackage();
+    resolvers.add(aPackage.getResolver());
+    for (HaxeClassModel clazz : file.getImportedClasses()) {
+      importedClasses.put(clazz.getName(), clazz);
     }
     this.file = file;
-    this.packag = file.getPackage();
+    this.packag = aPackage;
   }
 
   @Nullable

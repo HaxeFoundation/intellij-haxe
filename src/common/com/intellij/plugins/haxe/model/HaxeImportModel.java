@@ -20,17 +20,23 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import org.apache.commons.lang.NotImplementedException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeImportModel {
-  public final HaxeFileModel file;
-  private final HaxeClassReferenceModel reference;
+  @NotNull
   public final HaxeImportStatementRegular regular;
   public String fqName;
 
-  public HaxeImportModel(HaxeFileModel file, HaxeImportStatementRegular regular) {
-    HaxeClassReferenceModel reference = null;
+  public HaxeImportModel(@NotNull HaxeImportStatementRegular regular) {
     this.regular = regular;
+  }
+
+  @Nullable
+  public HaxeClassReferenceModel getImportedClassReference() {
+    HaxeFileModel file = HaxeFileModel.fromElement(regular);
+
+    HaxeClassReferenceModel reference = null;
     HaxeReferenceExpression expression = regular.getReferenceExpression();
     if (expression != null) {
       fqName = expression.getText();
@@ -39,12 +45,6 @@ public class HaxeImportModel {
         reference = new HaxeClassReferenceModel(expression, clazz.haxeClass);
       }
     }
-    this.file = file;
-    this.reference = reference;
-  }
-
-  @Nullable
-  public HaxeClassReferenceModel getImportedClassReference() {
     return reference;
   }
 

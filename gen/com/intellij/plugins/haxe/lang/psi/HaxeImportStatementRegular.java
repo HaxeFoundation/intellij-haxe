@@ -20,10 +20,13 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.model.HaxeImportModel;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
 public interface HaxeImportStatementRegular extends HaxePsiCompositeElement {
+  HaxeImportModel getModel();
 
   @Nullable
   HaxeReferenceExpression getReferenceExpression();
