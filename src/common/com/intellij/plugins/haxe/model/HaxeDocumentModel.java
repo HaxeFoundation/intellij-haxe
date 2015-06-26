@@ -18,24 +18,32 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.util.HaxeCharUtils;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 
 public class HaxeDocumentModel {
-  private Document document;
+  private final Document document;
+  private final PsiFile file;
+  private final Project project;
 
-  public HaxeDocumentModel(Document document) {
+  private HaxeDocumentModel(Document document, PsiFile file) {
     this.document = document;
+    this.file = file;
+    this.project = file.getProject();
   }
 
-  public HaxeDocumentModel(PsiElement aElementInDocument) {
-    this(PsiDocumentManager.getInstance(aElementInDocument.getProject()).getDocument(aElementInDocument.getContainingFile()));
+  static public HaxeDocumentModel fromFile(PsiFile file) {
+    Document document = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
+    return new HaxeDocumentModel(document, file);
   }
 
   static public HaxeDocumentModel fromElement(PsiElement aElementInDocument) {
-    return new HaxeDocumentModel(aElementInDocument);
+    return fromFile(aElementInDocument.getContainingFile());
   }
 
   public void replaceElementText(final PsiElement element, final String text) {
@@ -68,6 +76,7 @@ public class HaxeDocumentModel {
       }
     }
     document.replaceString(start, end, text);
+    reformat(start, start + text.length());
   }
 
   public void wrapElement(final PsiElement element, final String before, final String after) {
@@ -83,12 +92,20 @@ public class HaxeDocumentModel {
   public void addTextBeforeElement(final PsiElement element, final String text) {
     if (element == null) return;
     TextRange range = element.getTextRange();
-    document.replaceString(range.getStartOffset(), range.getStartOffset(), text);
+    int start = range.getStartOffset();
+    document.replaceString(start, start, text);
+    reformat(start, start + text.length());
   }
 
   public void addTextAfterElement(final PsiElement element, final String text) {
     if (element == null) return;
     TextRange range = element.getTextRange();
-    document.replaceString(range.getEndOffset(), range.getEndOffset(), text);
+    int end = range.getEndOffset();
+    document.replaceString(end, end, text);
+    reformat(end, end + text.length());
+  }
+
+  public void reformat(int start, int end) {
+    CodeStyleManager.getInstance(project).reformatText(file, start, end);
   }
 }

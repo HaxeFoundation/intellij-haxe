@@ -278,7 +278,7 @@ public class HaxeClassModel {
 
   @NotNull
   public HaxeDocumentModel getDocument() {
-    if (_document == null) _document = new HaxeDocumentModel(haxeClass);
+    if (_document == null) _document = HaxeDocumentModel.fromElement(haxeClass);
     return _document;
   }
 

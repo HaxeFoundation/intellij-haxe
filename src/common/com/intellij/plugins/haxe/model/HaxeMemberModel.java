@@ -47,7 +47,7 @@ abstract public class HaxeMemberModel {
   private HaxeDocumentModel _document = null;
   @NotNull
   public HaxeDocumentModel getDocument() {
-    if (_document == null) _document = new HaxeDocumentModel(this.getPsi());
+    if (_document == null) _document = HaxeDocumentModel.fromElement(this.getPsi());
     return _document;
   }
 

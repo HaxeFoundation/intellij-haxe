@@ -53,6 +53,10 @@ public class HaxeFileModel {
     return getProject().getPackageFromFile(file);
   }
 
+  public HaxeDocumentModel getDocument() {
+    return HaxeDocumentModel.fromFile(file);
+  }
+
   public List<HaxeClassModel> getImportedClasses() {
     LinkedList<HaxeClassModel> classes = new LinkedList<HaxeClassModel>();
 

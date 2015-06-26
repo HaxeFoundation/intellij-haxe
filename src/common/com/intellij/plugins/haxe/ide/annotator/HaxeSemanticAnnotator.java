@@ -26,10 +26,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
+import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -75,7 +72,8 @@ class ImportChecker {
     HaxeImportModel importModel = element.getModel();
     HaxeClassModel aClass = importModel.getImportedClass();
     if (aClass == null) {
-      holder.createErrorAnnotation(element, "Can't find class");
+      Annotation annotation = holder.createErrorAnnotation(element, "Can't find class");
+      annotation.registerFix(new HaxeRemoveFixer(element));
     }
   }
 }

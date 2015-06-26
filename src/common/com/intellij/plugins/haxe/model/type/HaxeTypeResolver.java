@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.fixer.HaxeCastFixer;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -218,10 +219,14 @@ public class HaxeTypeResolver {
     if (expectedType == null) return;
     for (ResultHolder retinfo : context.getReturnValues()) {
       if (expectedType.canAssign(retinfo)) continue;
-      context.addError(
-        retinfo.element,
-        "Can't return " + retinfo + ", expected " + expectedType.toStringWithoutConstant()
-      );
+      HaxeReturnStatement returnStatment = (HaxeReturnStatement)retinfo.element;
+      if (returnStatment != null) {
+        context.addError(
+          returnStatment,
+          "Can't return " + retinfo + ", expected " + expectedType.toStringWithoutConstant(),
+          new HaxeCastFixer(returnStatment.getExpression(), retinfo.getType(), expectedType.getType())
+        );
+      }
     }
   }
 

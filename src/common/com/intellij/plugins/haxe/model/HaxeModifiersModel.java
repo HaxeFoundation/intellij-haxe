@@ -81,7 +81,7 @@ public class HaxeModifiersModel {
   private HaxeDocumentModel _document = null;
   @NotNull
   public HaxeDocumentModel getDocument() {
-    if (_document == null) _document = new HaxeDocumentModel(baseElement);
+    if (_document == null) _document = HaxeDocumentModel.fromElement(baseElement);
     return _document;
   }
 
