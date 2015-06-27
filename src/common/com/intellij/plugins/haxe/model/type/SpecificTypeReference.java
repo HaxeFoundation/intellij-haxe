@@ -211,22 +211,21 @@ public abstract class SpecificTypeReference {
   }
 
   @NotNull
-  final public ResultHolder getIterableElementType(@NotNull HaxeExpressionEvaluatorContext context, @Nullable SpecificTypeReference iterable) {
-    if (iterable != null) {
-      final ResultHolder iterator = this.access("iterator", context);
-      if (iterator != null) {
-        final SpecificFunctionReference iteratorFunc = iterator.getFunctionType();
-        if (iteratorFunc != null) {
-          final ResultHolder iteratorReturnType = iteratorFunc.getReturnType();
-          final ResultHolder iteratorNextType = iteratorReturnType.getType().access("next", context);
-          if (iteratorNextType != null) {
-            final SpecificFunctionReference type = iteratorNextType.getFunctionType();
-            if (type != null) {
-              final ResultHolder returnType = type.getReturnType();
-              return returnType;
-            }
-          }
-        }
+  final public ResultHolder getIterableElementType(@NotNull HaxeExpressionEvaluatorContext context) {
+    final ResultHolder iterator = this.access("iterator", context);
+    if (iterator != null) {
+      final SpecificFunctionReference iteratorFunc = iterator.getFunctionType();
+      if (iteratorFunc != null) {
+        final ResultHolder iteratorReturnType = iteratorFunc.getReturnType();
+        return iteratorReturnType.getType().getIterableElementType(context);
+      }
+    }
+    final ResultHolder iteratorNextType = access("next", context);
+    if (iteratorNextType != null) {
+      final SpecificFunctionReference type = iteratorNextType.getFunctionType();
+      if (type != null) {
+        final ResultHolder returnType = type.getReturnType();
+        return returnType;
       }
     }
     return getDynamic(context.root).createHolder();
@@ -234,7 +233,9 @@ public abstract class SpecificTypeReference {
 
   @NotNull
   final public boolean isIterable(@NotNull HaxeExpressionEvaluatorContext context) {
-    return (this.access("iterator", context) != null);
+    if (this.access("iterator", context) != null) return true;
+    if ((this.access("next", context) != null) && (this.access("hasNext", context) != null)) return true;
+    return false;
   }
 
   public void applyGenerics(HaxeGenericResolver generic) {

@@ -112,7 +112,7 @@ public class HaxeExpressionEvaluator {
         if (!iterableValue.isIterable(context)) {
           context.addError(iterable, "Can't iterate " + iterableValue);
         }
-        SpecificTypeReference type = iterableValue.getIterableElementType(context, iterableValue).getType();
+        SpecificTypeReference type = iterableValue.getIterableElementType(context).getType();
         if (iterableValue.isConstant()) {
           final Object constant = iterableValue.getConstant();
           if (constant instanceof HaxeRange) {
@@ -135,7 +135,9 @@ public class HaxeExpressionEvaluator {
       ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(((HaxeNewExpression)element).getType());
       if (typeHolder.getType() instanceof SpecificHaxeClassReference) {
         final HaxeClassModel clazz = ((SpecificHaxeClassReference)typeHolder.getType()).getHaxeClassModel();
-        if (clazz != null) {
+        if (clazz == null) {
+          context.addError(((HaxeNewExpression)element).getType(), "Can't find type");
+        } else {
           HaxeMethodModel constructor = clazz.getConstructor();
           if (constructor == null) {
             context.addError(element, "Class " + clazz.getName() + " doesn't have a constructor", new HaxeFixer("Create constructor") {

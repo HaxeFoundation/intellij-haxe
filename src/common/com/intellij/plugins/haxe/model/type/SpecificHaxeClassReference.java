@@ -187,6 +187,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     final HaxeMemberModel member = clazz.getMember(name);
 
     if (member != null) {
+      // @TODO: Duplicate just in this generic so Unknown works
       final ResultHolder type = member.getMemberType().duplicate();
       final ResultHolder holder = type.applySpecifics(getGenericResolver());
       return holder;
