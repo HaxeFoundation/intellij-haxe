@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.google.common.collect.Lists;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Class;
@@ -46,8 +48,10 @@ public class HaxeClassModel {
     return HaxeModuleModel.fromElement(haxeClass);
   }
 
+  private HaxeFileModel file = null;
   public HaxeFileModel getFile() {
-    return new HaxeFileModel((HaxeFile)haxeClass.getContainingFile());
+    if (file == null) file = new HaxeFileModel((HaxeFile)haxeClass.getContainingFile());
+    return file;
   }
 
 
@@ -167,21 +171,25 @@ public class HaxeClassModel {
   }
 
   public boolean hasMethodSelf(String name) {
-    HaxeMethodModel method = getMethod(name);
-    if (method == null) return false;
-    return (method.getDeclaringClass() == this);
+    return getMethodSelf(name) != null;
   }
 
   public HaxeMethodModel getMethodSelf(String name) {
-    HaxeMethodModel method = getMethod(name);
-    if (method == null) return null;
-    return (method.getDeclaringClass() == this) ? method : null;
+    final HaxeMemberModel member = getMemberSelf(name);
+    return (member instanceof HaxeMethodModel) ? (HaxeMethodModel)member : null;
   }
 
+  public HaxeFieldModel getFieldSelf(String name) {
+    final HaxeMemberModel member = getMemberSelf(name);
+    return (member instanceof HaxeFieldModel) ? (HaxeFieldModel)member : null;
+  }
+
+  @Nullable
   public HaxeMethodModel getConstructorSelf() {
     return getMethodSelf("new");
   }
 
+  @Nullable
   public HaxeMethodModel getConstructor() {
     return getMethod("new");
   }
@@ -190,66 +198,112 @@ public class HaxeClassModel {
     return getConstructor() != null;
   }
 
+  @Nullable
   public HaxeMethodModel getParentConstructor() {
     HaxeClassReferenceModel parentClass = getParentClassReference();
     if (parentClass == null) return null;
     return parentClass.getHaxeClass().getMethod("new");
   }
 
+  @Nullable
   public HaxeMemberModel getMember(String name) {
-    final HaxeMethodModel method = getMethod(name);
-    final HaxeFieldModel field = getField(name);
-    return (method != null) ? method : field;
+    final HaxeMemberModel member = getMemberSelf(name);
+    if (member == null) {
+      // @TODO: Inherited
+    }
+    return member;
+  }
+
+  @Nullable
+  public HaxeMemberModel getMemberSelf(String name) {
+    final Map<String, HaxeMemberModel> membersSelf = getMembersMapSelf();
+    return membersSelf.get(name);
   }
 
   public List<HaxeMemberModel> getMembers() {
-    LinkedList<HaxeMemberModel> members = new LinkedList<HaxeMemberModel>();
-    for (HaxeMethodModel method : getMethods()) members.add(method);
-    for (HaxeFieldModel field : getFields()) members.add(field);
+    ArrayList<HaxeMemberModel> members = new ArrayList<HaxeMemberModel>();
+    for (HaxeMemberModel member : getMembersSelf()) {
+      members.add(member);
+    }
+    for (HaxeClassReferenceModel clazz : this.getImplementingInterfaces()) {
+      final HaxeClassModel clazzModel = clazz.getHaxeClass();
+      if (clazzModel != null) {
+        clazzModel.getMembers();
+      }
+    }
+
     return members;
+  }
+
+  private LinkedHashMap<String, HaxeMemberModel> selfMembersMap;
+
+  static final private Key<LinkedHashMap<String, HaxeMemberModel>> HAXE_CLASS_MEMBERS_MAP = new Key<LinkedHashMap<String, HaxeMemberModel>>("HAXE_CLASS_MEMBERS_MAP");
+
+  private void prepareMembers() {
+    getFile().removeCache(); // @TODO: Remove this line
+
+    final HaxeCacheModel cache = getFile().getCache();
+
+    if (!cache.has(HAXE_CLASS_MEMBERS_MAP)) {
+      LinkedHashMap<String, HaxeMemberModel> selfMembersMap = new LinkedHashMap<String, HaxeMemberModel>();
+      final PsiElement bodyPsi = this.getBodyPsi();
+      if (bodyPsi != null) {
+        for (PsiElement element : bodyPsi.getChildren()) {
+          HaxeMemberModel member = null;
+          if (element instanceof HaxeMethod) {
+            member = ((HaxeMethod)element).getModel();
+          } else if (element instanceof HaxeVarDeclaration) {
+            member = ((HaxeVarDeclaration)element).getModel();
+          }
+          if (member != null) {
+            selfMembersMap.put(member.getName(), member);
+          }
+        }
+      }
+      cache.put(HAXE_CLASS_MEMBERS_MAP, selfMembersMap);
+    }
+    this.selfMembersMap = cache.get(HAXE_CLASS_MEMBERS_MAP);
   }
 
   @NotNull
   public List<HaxeMemberModel> getMembersSelf() {
-    LinkedList<HaxeMemberModel> members = new LinkedList<HaxeMemberModel>();
-    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
-    if (body != null) {
-      for (PsiElement element : body.getChildren()) {
-        if (element instanceof HaxeMethod || element instanceof HaxeVarDeclaration) {
-          HaxeMemberModel model = HaxeMemberModel.fromPsi(element);
-          if (model != null) {
-            members.add(model);
-          }
-        }
-      }
-    }
-    return members;
+    prepareMembers();
+    return new ArrayList<HaxeMemberModel>(selfMembersMap.values());
   }
 
+  @NotNull
+  public Map<String, HaxeMemberModel> getMembersMapSelf() {
+    prepareMembers();
+    return selfMembersMap;
+  }
+
+  @Nullable
   public HaxeFieldModel getField(String name) {
-    HaxeVarDeclaration name1 = (HaxeVarDeclaration)haxeClass.findHaxeFieldByName(name);
-    return name1 != null ? name1.getModel() : null;
+    final HaxeMemberModel member = getMember(name);
+    return (member instanceof HaxeFieldModel) ? (HaxeFieldModel)member : null;
   }
 
   public HaxeMethodModel getMethod(String name) {
-    HaxeMethodPsiMixin name1 = (HaxeMethodPsiMixin)haxeClass.findHaxeMethodByName(name);
-    return name1 != null ? name1.getModel() : null;
+    final HaxeMemberModel member = getMember(name);
+    return (member instanceof HaxeMethodModel) ? (HaxeMethodModel)member : null;
   }
 
   public List<HaxeMethodModel> getMethods() {
-    List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
-    for (HaxeMethod method : haxeClass.getHaxeMethods()) {
-      models.add(method.getModel());
+    List<HaxeMethodModel> out = new ArrayList<HaxeMethodModel>();
+    for (HaxeMemberModel member : getMembers()) {
+      if (member instanceof HaxeMethodModel) out.add((HaxeMethodModel)member);
     }
-    return models;
+    return out;
   }
 
   public List<HaxeMethodModel> getMethodsSelf() {
-    List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
-    for (HaxeMethod method : haxeClass.getHaxeMethods()) {
-      if (method.getContainingClass() == this.haxeClass) models.add(method.getModel());
+    final ArrayList<HaxeMethodModel> out = new ArrayList<HaxeMethodModel>();
+    for (HaxeMemberModel member : getMembersSelf()) {
+      if (member instanceof HaxeMethodModel) {
+        out.add((HaxeMethodModel)member);
+      }
     }
-    return models;
+    return out;
   }
 
   public List<HaxeMethodModel> getAncestorMethods() {
@@ -266,8 +320,32 @@ public class HaxeClassModel {
   }
 
   @Nullable
-  public HaxeClassBody getBodyPsi() {
-    return (haxeClass instanceof HaxeClassDeclaration) ? ((HaxeClassDeclaration)haxeClass).getClassBody() : null;
+  public PsiElement getBodyPsi() {
+    if (haxeClass instanceof HaxeClassDeclaration) {
+      return ((HaxeClassDeclaration)haxeClass).getClassBody();
+    }
+    if (haxeClass instanceof HaxeAbstractClassDeclaration) {
+      return ((HaxeAbstractClassDeclaration)haxeClass).getClassBody();
+    }
+    if (haxeClass instanceof HaxeExternClassDeclaration) {
+      return ((HaxeExternClassDeclaration)haxeClass).getExternClassDeclarationBody();
+    }
+    if (haxeClass instanceof HaxeInterfaceDeclaration) {
+      return ((HaxeInterfaceDeclaration)haxeClass).getInterfaceBody();
+    }
+    if (haxeClass instanceof HaxeExternInterfaceDeclaration) {
+      return ((HaxeExternInterfaceDeclaration)haxeClass).getInterfaceBody();
+    }
+    if (haxeClass instanceof HaxeTypedefDeclaration) {
+      final HaxeTypeOrAnonymous anonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+      if (anonymous != null) {
+        final HaxeAnonymousType type = anonymous.getAnonymousType();
+        if (type != null) {
+          return type.getAnonymousTypeBody().getInterfaceBody();
+        }
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -292,24 +370,18 @@ public class HaxeClassModel {
   }
 
   public List<HaxeFieldModel> getFields() {
-    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
-    LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
-    if (body != null) {
-      for (HaxeVarDeclaration declaration : UsefulPsiTreeUtil.getChildren(body, HaxeVarDeclaration.class)) {
-        out.add(new HaxeFieldModel(declaration));
-      }
+    List<HaxeFieldModel> out = new ArrayList<HaxeFieldModel>();
+    for (HaxeMemberModel member : getMembers()) {
+      if (member instanceof HaxeFieldModel) out.add((HaxeFieldModel)member);
     }
     return out;
   }
 
   public List<HaxeFieldModel> getFieldsSelf() {
-    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
-    LinkedList<HaxeFieldModel> out = new LinkedList<HaxeFieldModel>();
-    if (body != null) {
-      for (HaxeVarDeclaration declaration : UsefulPsiTreeUtil.getChildren(body, HaxeVarDeclaration.class)) {
-        if (declaration.getContainingClass() == this.haxeClass) {
-          out.add(new HaxeFieldModel(declaration));
-        }
+    final ArrayList<HaxeFieldModel> out = new ArrayList<HaxeFieldModel>();
+    for (HaxeMemberModel member : getMembersSelf()) {
+      if (member instanceof HaxeFieldModel) {
+        out.add((HaxeFieldModel)member);
       }
     }
     return out;

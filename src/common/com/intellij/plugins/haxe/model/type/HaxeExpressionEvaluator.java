@@ -109,7 +109,10 @@ public class HaxeExpressionEvaluator {
       context.beginScope();
       try {
         final SpecificTypeReference iterableValue = handle(iterable, context).getType();
-        SpecificTypeReference type = iterableValue.getIterableElementType(iterableValue).getType();
+        if (!iterableValue.isIterable(context)) {
+          context.addError(iterable, "Can't iterate " + iterableValue);
+        }
+        SpecificTypeReference type = iterableValue.getIterableElementType(context, iterableValue).getType();
         if (iterableValue.isConstant()) {
           final Object constant = iterableValue.getConstant();
           if (constant instanceof HaxeRange) {

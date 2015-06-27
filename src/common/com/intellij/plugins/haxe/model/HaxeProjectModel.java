@@ -65,6 +65,7 @@ public class HaxeProjectModel {
   @Nullable
   public HaxeSourceRootModel getRootContaining(PsiDirectory dir) {
     List<HaxeSourceRootModel> roots = getRoots();
+    if (dir == null) return null;
     String dirString = dir.getVirtualFile().getCanonicalPath() + "/";
     for (HaxeSourceRootModel root : roots) {
       String rootString = root.rootPsi.getVirtualFile().getCanonicalPath() + "/";

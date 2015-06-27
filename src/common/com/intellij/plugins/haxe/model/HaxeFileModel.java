@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2File;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -33,6 +34,25 @@ public class HaxeFileModel {
 
   public HaxeFileModel(HaxeFile file) {
     this.file = file;
+  }
+
+  public long getModificationStamp() {
+    return file.getModificationStamp();
+  }
+
+  static final private Key<HaxeCacheModel> HAXE_FILE_CACHE = new Key<HaxeCacheModel>("HAXE_FILE_CACHE");
+
+  public void removeCache() {
+    file.putUserData(HAXE_FILE_CACHE, null);
+  }
+
+  public HaxeCacheModel getCache() {
+    final long stamp = getModificationStamp();
+    HaxeCacheModel cache = file.getUserData(HAXE_FILE_CACHE);
+    if (cache == null || cache.stamp != stamp) {
+      file.putUserData(HAXE_FILE_CACHE, cache = new HaxeCacheModel(stamp));
+    }
+    return cache;
   }
 
   public String getName() {

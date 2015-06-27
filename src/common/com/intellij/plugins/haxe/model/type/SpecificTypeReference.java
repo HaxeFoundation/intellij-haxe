@@ -142,14 +142,6 @@ public abstract class SpecificTypeReference {
     return getUnknown(context).createHolder();
   }
 
-  final public ResultHolder getIterableElementType(SpecificTypeReference iterable) {
-    if (isArray()) {
-      return getArrayElementType();
-    }
-    // @TODO: Must implement it (it is not int always)
-    return getInt(iterable.getElementContext()).createHolder();
-  }
-
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
 
   //public void mutateConstantValue(Object constantValue) {
@@ -217,4 +209,37 @@ public abstract class SpecificTypeReference {
   public ResultHolder createHolder() {
     return new ResultHolder(this);
   }
+
+  @NotNull
+  final public ResultHolder getIterableElementType(@NotNull HaxeExpressionEvaluatorContext context, @Nullable SpecificTypeReference iterable) {
+    if (iterable != null) {
+      final ResultHolder iterator = this.access("iterator", context);
+      if (iterator != null) {
+        final SpecificFunctionReference iteratorFunc = iterator.getFunctionType();
+        if (iteratorFunc != null) {
+          final ResultHolder iteratorReturnType = iteratorFunc.getReturnType();
+          final ResultHolder iteratorNextType = iteratorReturnType.getType().access("next", context);
+          if (iteratorNextType != null) {
+            final SpecificFunctionReference type = iteratorNextType.getFunctionType();
+            if (type != null) {
+              final ResultHolder returnType = type.getReturnType();
+              return returnType;
+            }
+          }
+        }
+      }
+    }
+    return getDynamic(context.root).createHolder();
+  }
+
+  @NotNull
+  final public boolean isIterable(@NotNull HaxeExpressionEvaluatorContext context) {
+    return (this.access("iterator", context) != null);
+  }
+
+  public void applyGenerics(HaxeGenericResolver generic) {
+
+  }
+
+  public abstract SpecificTypeReference duplicate();
 }

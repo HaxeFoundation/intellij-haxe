@@ -118,7 +118,7 @@ public class ResultHolder {
   }
 
   public ResultHolder duplicate() {
-    return new ResultHolder(this.getType());
+    return new ResultHolder(this.getType().duplicate());
   }
 
   public ResultHolder withConstantValue(Object constantValue) {
@@ -127,5 +127,15 @@ public class ResultHolder {
 
   public PsiElement getElementContext() {
     return type.getElementContext();
+  }
+
+  public ResultHolder applySpecifics(HaxeGenericResolver generic) {
+    final ResultHolder result = generic.resolve(this.toStringWithoutConstant());
+    if (result != null) {
+      this.setType(result.getType());
+    } else {
+      getType().applyGenerics(generic);
+    }
+    return this;
   }
 }

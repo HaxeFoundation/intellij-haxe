@@ -46,7 +46,7 @@ public class HaxeResolver2Class extends HaxeResolver2 {
 
     HaxeMemberModel member = clazz.getMember(key);
     if (member != null) {
-      result = member.getResultType();
+      result = member.getMemberType();
     }
 
     if (result == null) {
@@ -62,7 +62,7 @@ public class HaxeResolver2Class extends HaxeResolver2 {
 
     for (HaxeMemberModel member : clazz.getMembers()) {
       if (inStaticContext == member.isStatic()) {
-        results.put(member.getName(), member.getResultType());
+        results.put(member.getName(), member.getMemberType());
       }
     }
   }

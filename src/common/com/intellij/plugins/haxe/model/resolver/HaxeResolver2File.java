@@ -63,7 +63,7 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
     if (result == null) {
       for (int n = packages.size() - 1; n >= 0; n--) {
         HaxePackageModel packag = packages.get(n);
-        if (result == null) {
+        if (result == null && packag != null) {
           HaxeClassModel clazz = packag.getHaxeClass(key);
           if (clazz != null) {
             result = clazz.getClassType();

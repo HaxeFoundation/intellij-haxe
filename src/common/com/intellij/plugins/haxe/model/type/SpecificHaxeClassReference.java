@@ -168,6 +168,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   @Nullable
   @Override
   public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, boolean isStatic) {
+    // @TODO: Use HaxeResolver2
     if (this.isDynamic()) return this.withoutConstantValue().createHolder();
 
     if (name == null) {
@@ -186,9 +187,27 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     final HaxeMemberModel member = clazz.getMember(name);
 
     if (member != null) {
-      return member.getMemberType();
+      final ResultHolder type = member.getMemberType().duplicate();
+      final ResultHolder holder = type.applySpecifics(getGenericResolver());
+      return holder;
     } else {
       return null;
     }
+  }
+
+  @Override
+  public void applyGenerics(HaxeGenericResolver generic) {
+    for (ResultHolder specific : specifics) {
+      specific.applySpecifics(generic);
+    }
+  }
+
+  @Override
+  public SpecificTypeReference duplicate() {
+    final ResultHolder[] specifics = new ResultHolder[this.specifics.length];
+    for (int n = 0; n < specifics.length; n++) {
+      specifics[n] = this.specifics[n].duplicate();
+    }
+    return new SpecificHaxeClassReference(clazz, specifics, constantValue, rangeConstraint, context);
   }
 }
