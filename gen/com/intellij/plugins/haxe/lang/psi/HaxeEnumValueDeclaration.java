@@ -20,10 +20,15 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.model.HaxeEnumMemberModel;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
 public interface HaxeEnumValueDeclaration extends HaxePsiField {
+
+  @NotNull
+  HaxeEnumMemberModel getModel();
 
   @NotNull
   HaxeComponentName getComponentName();

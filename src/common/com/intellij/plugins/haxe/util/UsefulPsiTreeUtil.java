@@ -431,6 +431,7 @@ public class UsefulPsiTreeUtil {
   }
 
   static public PsiElement getToken(PsiElement element, String token) {
+    if (element == null) return null;
     for (ASTNode node : element.getNode().getChildren(null)) {
       if (node.getText().equals(token))  return node.getPsi();
     }

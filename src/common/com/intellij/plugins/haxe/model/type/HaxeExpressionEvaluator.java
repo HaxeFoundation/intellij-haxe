@@ -19,12 +19,13 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+import com.intellij.plugins.haxe.model.HaxeEnumMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
@@ -34,16 +35,11 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
-import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import com.intellij.spring.model.xml.beans.TypeHolder;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class HaxeExpressionEvaluator {
   @NotNull
@@ -59,20 +55,24 @@ public class HaxeExpressionEvaluator {
     }
     catch (Throwable t) {
       t.printStackTrace();
-      return SpecificHaxeClassReference.getUnknown(element).createHolder();
+      return SpecificHaxeClassReference.getUnknown(context.root).createHolder();
     }
   }
+
+  static private String SWITCH_TARGET = " $SWITCH_TARGET$ ";
+  static private Key<Set<HaxeMemberModel>> HAXE_SWITCH_MEMBER = new Key<Set<HaxeMemberModel>>("HAXE_SWITCH_MEMBER");
+  static private Key<HaxeSwitchStatement> SWITCH_ELEMENT = new Key<HaxeSwitchStatement>("SWITCH_ELEMENT");
+
 
   @NotNull
   static private ResultHolder _handle(final PsiElement element, final HaxeExpressionEvaluatorContext context) {
     if (element == null) {
-      System.out.println("getPsiElementType: " + element);
-      return SpecificHaxeClassReference.getUnknown(element).createHolder();
+      return SpecificHaxeClassReference.getUnknown(context.root).createHolder();
     }
     //System.out.println("Handling element: " + element.getClass());
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
-      ResultHolder type = SpecificHaxeClassReference.getUnknown(element).createHolder();
+      ResultHolder type = SpecificHaxeClassReference.getUnknown(context.root).createHolder();
       boolean deadCode = false;
       for (PsiElement childElement : element.getChildren()) {
         type = handle(childElement, context);
@@ -100,6 +100,93 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeIterable) {
       return handle(((HaxeIterable)element).getExpression(), context);
+    }
+
+    if (element instanceof HaxeSwitchStatement) {
+      final HaxeExpression targetExpression = ((HaxeSwitchStatement)element).getExpression();
+      final ResultHolder target = handle(targetExpression, context);
+      final SpecificHaxeClassReference targetType = target.getClassType();
+      if (targetType == null) {
+        context.addError(targetExpression, "Can't match functional types");
+      }
+      context.beginScope();
+      try {
+        context.putInfo(SWITCH_ELEMENT, (HaxeSwitchStatement)element);
+        context.setLocal(SWITCH_TARGET, target);
+        return handle(((HaxeSwitchStatement)element).getSwitchBlock(), context);
+      } finally {
+        context.endScope();
+      }
+    }
+
+    if (element instanceof HaxeSwitchBlock) {
+      ResultHolder result = null;
+      final ResultHolder targetResult = context.get(SWITCH_TARGET);
+      final HaxeDefaultCase defaultCase = ((HaxeSwitchBlock)element).getDefaultCase();
+      if (defaultCase != null) {
+        context.beginScope();
+        try {
+          final ResultHolder defaultResult = handle(defaultCase, context);
+          result = HaxeTypeUnifier.unify(result, defaultResult, element);
+        } finally {
+          context.endScope();
+        }
+      }
+      final SpecificHaxeClassReference targetValue = targetResult.getClassType();
+      final HaxeClassModel targetClass = (targetValue != null) ? targetValue.getHaxeClassModel() : null;
+      Set<HaxeMemberModel> missingMembers = null;
+      if ((targetClass != null) && targetClass.isEnum()) {
+        missingMembers = new HashSet<HaxeMemberModel>(targetClass.getMembersSelf());
+      }
+      for (HaxeSwitchCase aCase : ((HaxeSwitchBlock)element).getSwitchCaseList()) {
+        context.beginScope();
+        context.putInfo(HAXE_SWITCH_MEMBER, missingMembers);
+        final ResultHolder caseResult = handle(aCase, context);
+        result = HaxeTypeUnifier.unify(result, caseResult, element);
+        context.endScope();
+      }
+      if (missingMembers != null) {
+        if (!missingMembers.isEmpty() && defaultCase == null) {
+          context.addError(context.getInfo(SWITCH_ELEMENT).getExpression(), "Not exhaustive members. Missing: " + missingMembers);
+        }
+      } else {
+        if (defaultCase == null) {
+          context.addError(context.getInfo(SWITCH_ELEMENT).getExpression(), "Not exhaustive members. Put a default.");
+        }
+      }
+      return result;
+    }
+
+    if (element instanceof HaxeSwitchCase) {
+      final ResultHolder targetResult = context.get(SWITCH_TARGET);
+      final List<HaxeExpression> list = ((HaxeSwitchCase)element).getExpressionList();
+      final Set<HaxeMemberModel> missingMembers = context.getInfo(HAXE_SWITCH_MEMBER);
+      for (HaxeExpression expression : list) {
+        // Match and create scope!
+        final ResultHolder exprType = handle(expression, context);
+        if (!targetResult.canAssign(exprType)) {
+          context.addError(expression, "Incompatible type. Found " + exprType + " but expected " + targetResult);
+        }
+        if (missingMembers != null) {
+          final Object constant = exprType.getConstant();
+          if (constant instanceof HaxeEnumMemberModel) {
+            missingMembers.remove(constant);
+          }
+        }
+      }
+      return handle(((HaxeSwitchCase)element).getSwitchCaseBlock(), context);
+    }
+
+    if (element instanceof HaxeSwitchCaseBlock) {
+      ResultHolder holder = SpecificTypeReference.getDynamic(element).createHolder();
+      for (PsiElement psiElement : element.getChildren()) {
+        holder = handle(psiElement, context);
+      }
+      return holder;
+    }
+
+    if (element instanceof HaxeDefaultCase) {
+      return handle(((HaxeDefaultCase)element).getSwitchCaseBlock(), context);
     }
 
     if (element instanceof HaxeForStatement) {

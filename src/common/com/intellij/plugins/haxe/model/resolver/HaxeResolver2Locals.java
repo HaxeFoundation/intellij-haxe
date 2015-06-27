@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.resolver;
 
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,14 @@ public class HaxeResolver2Locals extends HaxeResolver2 {
 
   public HaxeResolver2Locals(@NotNull HaxeResolver2 parent) {
     this.parent = parent;
+  }
+
+  @Nullable
+  @Override
+  public <T> T getInfo(Key<T> key) {
+    T result = super.getInfo(key);
+    if (result == null && parent != null) result = parent.getInfo(key);
+    return result;
   }
 
   public HaxeResolver2Locals put(String key, ResultHolder result) {

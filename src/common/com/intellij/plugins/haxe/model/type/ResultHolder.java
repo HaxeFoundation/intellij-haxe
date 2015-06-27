@@ -125,6 +125,10 @@ public class ResultHolder {
     return duplicate().setType(getType().withConstantValue(constantValue), null);
   }
 
+  public Object getConstant() {
+    return getType().getConstant();
+  }
+
   public PsiElement getElementContext() {
     return type.getElementContext();
   }

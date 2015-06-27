@@ -17,15 +17,34 @@
  */
 package com.intellij.plugins.haxe.model.resolver;
 
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
 abstract public class HaxeResolver2 {
+  protected Map<Key, Object> infos = new HashMap<Key, Object>();
+
+  public <T> HaxeResolver2 putInfo(Key<T> key, T value) {
+    infos.put(key, value);
+    return this;
+  }
+
+  public <T> boolean hasInfo(Key<T> key) {
+    return getInfo(key) != null;
+  }
+
+  @Nullable
+  public <T> T getInfo(Key<T> key) {
+    T value = (T)infos.get(key);
+    return value;
+  }
+
   @Nullable
   abstract public ResultHolder get(String key);
 

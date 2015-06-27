@@ -20,6 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
+
+import com.intellij.plugins.haxe.model.HaxeEnumMemberModel;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -37,6 +39,14 @@ public class HaxeEnumValueDeclarationImpl extends HaxePsiFieldImpl implements Ha
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitEnumValueDeclaration(this);
     else super.accept(visitor);
+  }
+
+  private HaxeEnumMemberModel model = null;
+  @NotNull
+  @Override
+  public HaxeEnumMemberModel getModel() {
+    if (model == null) model = new HaxeEnumMemberModel(this);
+    return model;
   }
 
   @Override

@@ -24,23 +24,24 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMember;
 import org.jetbrains.annotations.NotNull;
 
 abstract public class HaxeMemberModel {
-  private PsiElement basePsi;
+  private PsiMember basePsi;
   private PsiElement modifiersPsi;
   private PsiElement baseNamePsi;
 
-  public HaxeMemberModel(PsiElement basePsi, PsiElement modifiersPsi, PsiElement baseNamePsi) {
+  public HaxeMemberModel(PsiMember basePsi, PsiElement modifiersPsi, PsiElement baseNamePsi) {
     this.basePsi = basePsi;
     this.modifiersPsi = modifiersPsi;
     this.baseNamePsi = baseNamePsi;
   }
 
-  final public boolean isPublic() {
+  public boolean isPublic() {
     return this.getModifiers().hasModifier(HaxeModifierType.PUBLIC);
   }
-  final public boolean isStatic() {
+  public boolean isStatic() {
     return getModifiers().hasModifier(HaxeModifierType.STATIC);
   }
 
@@ -82,7 +83,15 @@ abstract public class HaxeMemberModel {
     return element;
   }
 
-  abstract public HaxeClassModel getDeclaringClass();
+  private HaxeClassModel _declaringClass = null;
+
+  public HaxeClassModel getDeclaringClass() {
+    if (_declaringClass == null) {
+      HaxeClass aClass = (HaxeClass)this.basePsi.getContainingClass();
+      _declaringClass = (aClass != null) ? aClass.getModel() : null;
+    }
+    return _declaringClass;
+  }
 
   private HaxeModifiersModel _modifiers;
   @NotNull
@@ -112,4 +121,6 @@ abstract public class HaxeMemberModel {
     final HaxeClassModel aClass = getDeclaringClass().getParentClass();
     return (aClass != null) ? aClass.getMember(this.getName()) : null;
   }
+
+  public String toString() { return this.getName(); }
 }

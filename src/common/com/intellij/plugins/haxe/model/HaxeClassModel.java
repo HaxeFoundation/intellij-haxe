@@ -254,6 +254,8 @@ public class HaxeClassModel {
             member = ((HaxeMethod)element).getModel();
           } else if (element instanceof HaxeVarDeclaration) {
             member = ((HaxeVarDeclaration)element).getModel();
+          } else if (element instanceof HaxeEnumValueDeclaration) {
+            member = ((HaxeEnumValueDeclaration)element).getModel();
           }
           if (member != null) {
             selfMembersMap.put(member.getName(), member);
@@ -344,6 +346,9 @@ public class HaxeClassModel {
           return type.getAnonymousTypeBody().getInterfaceBody();
         }
       }
+    }
+    if (haxeClass instanceof HaxeEnumDeclaration) {
+      return ((HaxeEnumDeclaration)haxeClass).getEnumBody();
     }
     return null;
   }

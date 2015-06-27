@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
@@ -100,6 +101,19 @@ public class HaxeExpressionEvaluatorContext {
 
   public ResultHolder get(String key) {
     return this.resolver.get(key);
+  }
+
+  public <T> T getInfo(Key<T> key) {
+    return this.resolver.getInfo(key);
+  }
+
+  public <T> boolean hasInfo(Key<T> key) {
+    return this.resolver.hasInfo(key);
+  }
+
+  public <T> HaxeExpressionEvaluatorContext putInfo(Key<T> key, T value) {
+    this.resolver.putInfo(key, value);
+    return this;
   }
 
   @NotNull

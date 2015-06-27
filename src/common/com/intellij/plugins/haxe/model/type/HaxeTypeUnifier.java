@@ -28,7 +28,10 @@ import java.util.Set;
 
 public class HaxeTypeUnifier {
   @NotNull
-  static public ResultHolder unify(ResultHolder a, ResultHolder b) {
+  static public ResultHolder unify(ResultHolder a, ResultHolder b, @NotNull PsiElement context) {
+    if (a == null && b == null) return SpecificTypeReference.getUnknown(context).createHolder();
+    if (a == null) return b;
+    if (b == null) return a;
     return unify(a.getType(), b.getType(), a.getType().context).createHolder();
   }
 
@@ -62,11 +65,11 @@ public class HaxeTypeUnifier {
     int size = pa.size();
     final ArrayList<ResultHolder> params = new ArrayList<ResultHolder>();
     for (int n = 0; n < size; n++) {
-      final ResultHolder param = unify(pa.get(n), pb.get(n));
+      final ResultHolder param = unify(pa.get(n), pb.get(n), context);
       if (param.getType().isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
       params.add(param);
     }
-    final ResultHolder retval = unify(a.getReturnType(), b.getReturnType());
+    final ResultHolder retval = unify(a.getReturnType(), b.getReturnType(), context);
     return new SpecificFunctionReference(params, retval, null, context);
   }
 

@@ -48,15 +48,6 @@ public class HaxeFieldModel extends HaxeMemberModel {
     return element.getVarDeclarationPart();
   }
 
-  private HaxeClassModel _declaringClass = null;
-  public HaxeClassModel getDeclaringClass() {
-    if (_declaringClass == null) {
-      HaxeClass aClass = (HaxeClass)this.element.getContainingClass();
-      _declaringClass = (aClass != null) ? aClass.getModel() : null;
-    }
-    return _declaringClass;
-  }
-
   @Override
   public ResultHolder getMemberType() {
     return getResultType();
