@@ -49,6 +49,10 @@ public abstract class SpecificTypeReference {
     return primitive("Int", context);
   }
 
+  static public SpecificHaxeClassReference getClass(@NotNull PsiElement context) {
+    return primitive("Class", context);
+  }
+
   static public SpecificHaxeClassReference getInt(@NotNull PsiElement context, int value) {
     return primitive("Int", context, value);
   }

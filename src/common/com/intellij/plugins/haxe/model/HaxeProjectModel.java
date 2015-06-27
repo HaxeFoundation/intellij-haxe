@@ -64,11 +64,12 @@ public class HaxeProjectModel {
 
   @Nullable
   public HaxeSourceRootModel getRootContaining(PsiDirectory dir) {
-    // @TODO: Optimize this!
     List<HaxeSourceRootModel> roots = getRoots();
-    for (;dir != null; dir = dir.getParent()) {
-      for (HaxeSourceRootModel root : roots) {
-        if (root.rootPsi == dir) return root;
+    String dirString = dir.getVirtualFile().getCanonicalPath() + "/";
+    for (HaxeSourceRootModel root : roots) {
+      String rootString = root.rootPsi.getVirtualFile().getCanonicalPath() + "/";
+      if (dirString.startsWith(rootString)) {
+        return root;
       }
     }
     return null;

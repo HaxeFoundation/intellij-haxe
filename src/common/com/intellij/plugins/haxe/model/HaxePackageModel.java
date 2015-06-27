@@ -53,7 +53,7 @@ public class HaxePackageModel {
     HaxeSourceRootModel root = project.getRootContaining(file);
     if (root != null) {
       String pathToPackage = root.getPathToFile(file.getParent());
-      return project.rootPackage.access(pathToPackage);
+      return project.rootPackage.accessOrCreate(pathToPackage);
     }
     return null;
   }
@@ -64,15 +64,30 @@ public class HaxePackageModel {
   }
 
   @Nullable
-  public HaxePackageModel access(String path) {
+  public HaxePackageModel accessOrCreate(String path, boolean create) {
     if (path.isEmpty()) return this;
     if (path.contains(".")) {
       int i = path.indexOf('.');
-      HaxePackageModel child = getChild(path.substring(0, i));
-      return (child != null) ? child.access(path.substring(i + 1)) : null;
+      HaxePackageModel child = accessOrCreate(path.substring(0, i), create);
+      if (child == null) return null;
+      return child.accessOrCreate(path.substring(i + 1), create);
     } else {
-      return getChild(path);
+      HaxePackageModel child = getChild(path);
+      if (child == null && create) {
+        child = createChild(path);
+      }
+      return child;
     }
+  }
+
+  @Nullable
+  public HaxePackageModel access(String path) {
+    return accessOrCreate(path, false);
+  }
+
+  @NotNull
+  public HaxePackageModel accessOrCreate(String path) {
+    return accessOrCreate(path, true);
   }
 
   @NotNull

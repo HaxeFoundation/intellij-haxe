@@ -386,4 +386,15 @@ public class HaxeClassModel {
   public HaxeClassReference getReference() {
     return new HaxeClassReference(this, this.getPsi());
   }
+
+  public ResultHolder getInstanceType() {
+    return SpecificHaxeClassReference.withoutGenerics(getReference()).createHolder();
+  }
+
+  public ResultHolder getClassType() {
+    return SpecificHaxeClassReference.withGenerics(
+      SpecificHaxeClassReference.getClass(this.getPsi()).getHaxeClassRef(),
+      getInstanceType()
+    ).createHolder();
+  }
 }

@@ -98,7 +98,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return new SpecificHaxeClassReference(clazz, ResultHolder.EMPTY, constantValue, null, clazz.elementContext);
   }
 
+  /*
   static public SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder[] specifics) {
+    return new SpecificHaxeClassReference(clazz, specifics, null, null, clazz.elementContext);
+  }
+  */
+
+  static public SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder... specifics) {
     return new SpecificHaxeClassReference(clazz, specifics, null, null, clazz.elementContext);
   }
 

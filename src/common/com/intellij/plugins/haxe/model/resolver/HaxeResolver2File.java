@@ -26,23 +26,24 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class HaxeResolver2File extends HaxeResolver2Combined {
-  public HaxePackageModel packag;
+  public List<HaxePackageModel> packages = new ArrayList<HaxePackageModel>();
   public HaxeFileModel file;
   public Map<String, HaxeClassModel> importedClasses = new HashMap<String, HaxeClassModel>();
 
   public HaxeResolver2File(@NotNull HaxeFileModel file) {
     super();
-    HaxePackageModel aPackage = file.getPackage();
-    resolvers.add(aPackage.getResolver());
-    for (HaxeClassModel clazz : file.getImportedClasses()) {
+    packages.add(file.getProject().rootPackage);
+    packages.add(file.getPackage());
+    //for (HaxePackageModel aPackage : packages) {
+      //resolvers.add(aPackage.getResolver());
+    //}
+    for (HaxeClassModel clazz : file.getImports().getImportedClasses()) {
       importedClasses.put(clazz.getName(), clazz);
     }
     this.file = file;
-    this.packag = aPackage;
   }
 
   @Nullable
@@ -54,15 +55,20 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
     if (result == null) {
       HaxeClassModel clazz = file.getHaxeClass(key);
       if (clazz != null) {
-        result = SpecificHaxeClassReference.withoutGenerics(clazz.getReference()).createHolder();
+        result = clazz.getClassType();
       }
     }
 
     // Try to get from classes in this package
     if (result == null) {
-      HaxeClassModel classInPackage = packag.getHaxeClass(key);
-      if (classInPackage != null) {
-        result = SpecificHaxeClassReference.withoutGenerics(classInPackage.getReference()).createHolder();
+      for (int n = packages.size() - 1; n >= 0; n--) {
+        HaxePackageModel packag = packages.get(n);
+        if (result == null) {
+          HaxeClassModel clazz = packag.getHaxeClass(key);
+          if (clazz != null) {
+            result = clazz.getClassType();
+          }
+        }
       }
     }
 
@@ -77,11 +83,13 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
   @Override
   public void addResults(@NotNull Map<String, ResultHolder> results) {
     super.addResults(results);
-    for (HaxeClassModel model : file.getHaxeClasses()) {
-      results.put(model.getName(), SpecificHaxeClassReference.withoutGenerics(model.getReference()).createHolder());
+    for (HaxeClassModel clazz : file.getHaxeClasses()) {
+      results.put(clazz.getName(), clazz.getClassType());
     }
-    for (HaxeClassModel model : packag.getHaxeClasses()) {
-      results.put(model.getName(), SpecificHaxeClassReference.withoutGenerics(model.getReference()).createHolder());
+    for (HaxePackageModel packag : packages) {
+      for (HaxeClassModel clazz : packag.getHaxeClasses()) {
+        results.put(clazz.getName(), clazz.getClassType());
+      }
     }
   }
 }

@@ -57,28 +57,8 @@ public class HaxeFileModel {
     return HaxeDocumentModel.fromFile(file);
   }
 
-  public List<HaxeClassModel> getImportedClasses() {
-    LinkedList<HaxeClassModel> classes = new LinkedList<HaxeClassModel>();
-
-    classes.add(getProject().getClassFromFqName("Std"));
-
-    for (HaxeImportModel importModel : getImports()) {
-      HaxeClassModel importedClass = importModel.getImportedClass();
-      if (importedClass != null) {
-        classes.add(importedClass);
-      }
-    }
-    return classes;
-  }
-
-  public List<HaxeImportModel> getImports() {
-    ArrayList<HaxeImportModel> imports = new ArrayList<HaxeImportModel>();
-    for (PsiElement element : file.getChildren()) {
-      if (element instanceof HaxeImportStatementRegular) {
-        imports.add(new HaxeImportModel((HaxeImportStatementRegular)element));
-      }
-    }
-    return imports;
+  public HaxeImportsModel getImports() {
+    return new HaxeImportsModel(this);
   }
 
   @Nullable
