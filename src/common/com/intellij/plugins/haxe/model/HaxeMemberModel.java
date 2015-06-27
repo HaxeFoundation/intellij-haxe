@@ -102,6 +102,8 @@ abstract public class HaxeMemberModel {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.baseNamePsi);
   }
 
+  abstract public ResultHolder getMemberType();
+
   public String getPresentableText(HaxeMethodContext context) {
     return this.getName() + ":" + getResultType();
   }

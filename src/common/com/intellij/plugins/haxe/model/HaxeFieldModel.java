@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,11 @@ public class HaxeFieldModel extends HaxeMemberModel {
       _declaringClass = (aClass != null) ? aClass.getModel() : null;
     }
     return _declaringClass;
+  }
+
+  @Override
+  public ResultHolder getMemberType() {
+    return getResultType();
   }
 
   @Nullable

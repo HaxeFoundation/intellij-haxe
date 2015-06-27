@@ -21,6 +21,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -166,26 +167,28 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Nullable
   @Override
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, boolean isStatic) {
     if (this.isDynamic()) return this.withoutConstantValue().createHolder();
 
     if (name == null) {
       return null;
     }
-    HaxeClass aClass = this.clazz.getHaxeClass();
-    if (aClass == null) {
+
+    if (this.isClass()) {
+      final SpecificTypeReference type = this.specifics[0].getType();
+      return type.access(name, context, true);
+    }
+
+    final HaxeClassModel clazz = this.clazz.getHaxeClassModel();
+    if (clazz == null) {
       return null;
     }
-    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
-    AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name);
-    if (method != null) {
-      if (context.root == method) return null;
-      return HaxeTypeResolver.getMethodFunctionType(method, getGenericResolver());
+    final HaxeMemberModel member = clazz.getMember(name);
+
+    if (member != null) {
+      return member.getMemberType();
+    } else {
+      return null;
     }
-    if (field != null) {
-      if (context.root == field) return null;
-      return HaxeTypeResolver.getFieldOrMethodReturnType(field, getGenericResolver());
-    }
-    return null;
   }
 }

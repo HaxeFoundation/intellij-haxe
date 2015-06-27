@@ -126,6 +126,14 @@ public abstract class SpecificTypeReference {
     return false;
   }
 
+  final public boolean isClass() {
+    if (this instanceof SpecificHaxeClassReference) {
+      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
+      return reference.clazz.getName().equals("Class");
+    }
+    return false;
+  }
+
   final public ResultHolder getArrayElementType() {
     if (isArray()) {
       final ResultHolder[] specifics = ((SpecificHaxeClassReference)this).specifics;
@@ -189,7 +197,12 @@ public abstract class SpecificTypeReference {
   }
 
   @Nullable
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+  final public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+    return access(name, context, false);
+  }
+
+  @Nullable
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, boolean isStatic) {
     return null;
   }
 

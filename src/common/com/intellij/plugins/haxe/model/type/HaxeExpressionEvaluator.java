@@ -301,7 +301,6 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeReferenceExpression) {
       PsiElement[] children = element.getChildren();
       ResultHolder typeHolder = handle(children[0], context);
-      boolean resolved = true;
       for (int n = 1; n < children.length; n++) {
         String accessName = children[n].getText();
         if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
@@ -314,7 +313,6 @@ public class HaxeExpressionEvaluator {
         else {
           ResultHolder access = typeHolder.getType().access(accessName, context);
           if (access == null) {
-            resolved = false;
             Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType());
             if (children.length == 1) {
               annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
@@ -331,17 +329,6 @@ public class HaxeExpressionEvaluator {
         }
       }
 
-      // @TODO: this should be innecessary when code is working right!
-      if (!resolved) {
-        PsiReference reference = element.getReference();
-        if (reference != null) {
-          PsiElement subelement = reference.resolve();
-          if (subelement instanceof AbstractHaxeNamedComponent) {
-            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement);
-          }
-        }
-      }
-
       return (typeHolder != null) ? typeHolder : SpecificTypeReference.getDynamic(element).createHolder();
     }
 
@@ -349,19 +336,6 @@ public class HaxeExpressionEvaluator {
       HaxeCallExpression callelement = (HaxeCallExpression)element;
       HaxeExpression callLeft = ((HaxeCallExpression)element).getExpression();
       SpecificTypeReference functionType = handle(callLeft, context).getType();
-
-      // @TODO: this should be innecessary when code is working right!
-      if (functionType.isUnknown()) {
-        if (callLeft instanceof HaxeReference) {
-          PsiReference reference = callLeft.getReference();
-          if (reference != null) {
-            PsiElement subelement = reference.resolve();
-            if (subelement instanceof HaxeMethod) {
-              functionType = ((HaxeMethod)subelement).getModel().getFunctionType();
-            }
-          }
-        }
-      }
 
       if (functionType.isUnknown()) {
         //System.out.println("Couldn't resolve " + callLeft.getText());

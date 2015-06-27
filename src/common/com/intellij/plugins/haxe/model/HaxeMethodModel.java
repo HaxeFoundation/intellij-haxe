@@ -86,6 +86,11 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
     return _declaringClass;
   }
 
+  @Override
+  public ResultHolder getMemberType() {
+    return getFunctionType().createHolder();
+  }
+
   public String getFullName() {
     return this.getDeclaringClass().getName() + "." + this.getName();
   }
