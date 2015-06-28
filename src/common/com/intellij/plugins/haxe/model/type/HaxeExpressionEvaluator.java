@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeEnumMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -282,13 +283,11 @@ public class HaxeExpressionEvaluator {
         } else {
           HaxeMethodModel constructor = clazz.getConstructor();
           if (constructor == null) {
-            context.addError(element, "Class " + clazz.getName() + " doesn't have a constructor", new HaxeFixer("Create constructor") {
-              @Override
-              public void run() {
-                // @TODO: Check arguments
-                clazz.addMethod("new");
-              }
-            });
+            context.addError(
+              element,
+              "Class " + clazz.getName() + " doesn't have a constructor",
+              new HaxeCreateMethodFixer(clazz.getAliasOrSelf(), new HaxeMethodBuilder("new", null))
+            );
           }
           else {
             checkParameters(element, constructor, ((HaxeNewExpression)element).getExpressionList(), context);
@@ -467,7 +466,7 @@ public class HaxeExpressionEvaluator {
               SpecificHaxeClassReference classType = typeHolder.getClassType();
               if (classType != null) {
                 HaxeClassModel classModel = classType.getHaxeClassModel();
-                annotation.registerFix(new HaxeCreateMethodFixer(classModel, accessName));
+                annotation.registerFix(new HaxeCreateMethodFixer(classModel, new HaxeMethodBuilder(accessName, typeHolder)));
                 annotation.registerFix(new HaxeCreateFieldFixer(classModel, accessName));
               }
             }

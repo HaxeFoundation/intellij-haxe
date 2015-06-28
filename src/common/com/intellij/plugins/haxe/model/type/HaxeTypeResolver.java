@@ -86,6 +86,10 @@ public class HaxeTypeResolver {
     // Here detect assignment
     if (comp instanceof HaxeVarDeclarationPart) {
       HaxeTypeTag typeTag = ((HaxeVarDeclarationPart)comp).getTypeTag();
+      if (typeTag != null) {
+        return getTypeFromTypeTag(typeTag, comp);
+      }
+
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
@@ -99,9 +103,6 @@ public class HaxeTypeResolver {
           //System.out.println(decl.getText());
         }
         return isConstant ? type1 : type1.withConstantValue(null);
-      }
-      if (typeTag != null) {
-        return getTypeFromTypeTag(typeTag, comp);
       }
     }
 

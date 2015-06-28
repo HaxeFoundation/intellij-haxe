@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Class;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -49,6 +50,7 @@ public class HaxeClassModel {
   }
 
   private HaxeFileModel file = null;
+
   public HaxeFileModel getFile() {
     if (file == null) file = new HaxeFileModel((HaxeFile)haxeClass.getContainingFile());
     return file;
@@ -97,6 +99,29 @@ public class HaxeClassModel {
       out.add(new HaxeClassReferenceModel(type));
     }
     return out;
+  }
+
+  public HaxeClassModel getAliasOrSelf() {
+    final ResultHolder type = getAliasType();
+    final SpecificHaxeClassReference type1 = type != null ? type.getClassType() : null;
+    if (type1 != null) {
+      return type1.getHaxeClassModel();
+    }
+    return this;
+  }
+
+  @Nullable
+  public ResultHolder getAliasType() {
+    if (!(haxeClass instanceof HaxeTypedefDeclaration)) return null;
+    final HaxeTypeOrAnonymous anonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+    if (anonymous == null) return null;
+    final HaxeType type = anonymous.getType();
+    if (type == null) return null;
+    return HaxeTypeResolver.getTypeFromType(type);
+  }
+
+  public boolean isTypeAlias() {
+    return getAliasType() != null;
   }
 
   public boolean isExternOrInterface() {
@@ -263,7 +288,8 @@ public class HaxeClassModel {
 
   private LinkedHashMap<String, HaxeMemberModel> selfMembersMap;
 
-  static final private Key<LinkedHashMap<String, HaxeMemberModel>> HAXE_CLASS_MEMBERS_MAP = new Key<LinkedHashMap<String, HaxeMemberModel>>("HAXE_CLASS_MEMBERS_MAP");
+  static final private Key<LinkedHashMap<String, HaxeMemberModel>> HAXE_CLASS_MEMBERS_MAP =
+    new Key<LinkedHashMap<String, HaxeMemberModel>>("HAXE_CLASS_MEMBERS_MAP");
 
   private void prepareMembers(PsiElement element) {
     if (element == null) return;
@@ -278,13 +304,17 @@ public class HaxeClassModel {
       HaxeMemberModel member = null;
       if (child instanceof HaxeMethod) {
         member = ((HaxeMethod)child).getModel();
-      } else if (child instanceof HaxeVarDeclaration) {
+      }
+      else if (child instanceof HaxeVarDeclaration) {
         member = ((HaxeVarDeclaration)child).getModel();
-      } else if (child instanceof HaxeEnumValueDeclaration) {
+      }
+      else if (child instanceof HaxeEnumValueDeclaration) {
         member = ((HaxeEnumValueDeclaration)child).getModel();
-      } else if (child instanceof HaxeAnonymousTypeField) {
+      }
+      else if (child instanceof HaxeAnonymousTypeField) {
         member = new HaxeAnnonymousFieldModel((HaxeAnonymousTypeField)child);
       }
+
       if (member != null) {
         selfMembersMap.put(member.getName(), member);
       }
@@ -301,7 +331,8 @@ public class HaxeClassModel {
       cache.put(HAXE_CLASS_MEMBERS_MAP, this.selfMembersMap = selfMembersMap);
       final PsiElement bodyPsi = this.getBodyPsi();
       prepareMembers(bodyPsi);
-    } else {
+    }
+    else {
       this.selfMembersMap = cache.get(HAXE_CLASS_MEMBERS_MAP);
     }
   }
@@ -314,6 +345,15 @@ public class HaxeClassModel {
 
   @NotNull
   public Map<String, HaxeMemberModel> getMembersMapSelf() {
+    // @TODO: Maybe an alias should be treated in other way
+    final ResultHolder aliasType = getAliasType();
+    if (aliasType != null) {
+      final SpecificHaxeClassReference type = aliasType.getClassType();
+      final HaxeClassModel model = type != null ? type.getHaxeClassModel() : null;
+      if (model != null) {
+        return model.getMembersMapSelf();
+      }
+    }
     prepareMembers();
     return selfMembersMap;
   }
@@ -495,8 +535,8 @@ public class HaxeClassModel {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic var " + name + ":" + type.toStringWithoutConstant() + ";\n");
   }
 
-  public void addMethod(String name, String... args) {
-    this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic function " + name + "(" + StringUtils.join(args, ", ") + ") {\n}\n");
+  public void addMethod(HaxeMethodBuilder methodBuilder) {
+    this.getDocument().addTextAfterElement(getBodyPsi(), "public " + methodBuilder.toString());
   }
 
   public HaxeClassReference getReference() {

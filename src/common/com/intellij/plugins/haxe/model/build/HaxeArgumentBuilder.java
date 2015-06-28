@@ -15,25 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.fixer;
+package com.intellij.plugins.haxe.model.build;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
-import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class HaxeCreateMethodFixer extends HaxeFixer {
-  HaxeClassModel clazz;
-  HaxeMethodBuilder methodBuilder;
+public class HaxeArgumentBuilder {
+  @NotNull public final String name;
+  @Nullable public final ResultHolder type;
 
-  public HaxeCreateMethodFixer(HaxeClassModel clazz, HaxeMethodBuilder methodBuilder) {
-    super("Create method");
-    this.clazz = clazz;
-    this.methodBuilder = methodBuilder;
+  public HaxeArgumentBuilder(@NotNull String name, @Nullable ResultHolder type) {
+    this.name = name;
+    this.type = type;
   }
 
-  @Override
-  public void run() {
-    clazz.addMethod(methodBuilder);
+  public HaxeArgumentBuilder(@NotNull String name) {
+    this(name, null);
+  }
+
+  public String toString() {
+    return (type != null) ? (name + ":" + type) : name;
   }
 }

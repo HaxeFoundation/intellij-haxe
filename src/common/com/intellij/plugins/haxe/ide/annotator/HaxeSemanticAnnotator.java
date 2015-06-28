@@ -26,6 +26,8 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.build.HaxeArgumentBuilder;
+import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
@@ -144,7 +146,7 @@ class FieldChecker {
         HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
         if (method == null) {
           Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
-          annotation.registerFix(new HaxeCreateMethodFixer(field.getDeclaringClass(), methodName));
+          annotation.registerFix(new HaxeCreateMethodFixer(field.getDeclaringClass(), new HaxeMethodBuilder(methodName, fieldType)));
         } else {
           ResultHolder methodType = method.getResultType();
           if (!fieldType.canAssign(methodType)) {
@@ -158,7 +160,10 @@ class FieldChecker {
         HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
         if (method == null) {
           Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
-          annotation.registerFix(new HaxeCreateMethodFixer(field.getDeclaringClass(), methodName, "value"));
+          annotation.registerFix(new HaxeCreateMethodFixer(
+            field.getDeclaringClass(),
+            new HaxeMethodBuilder(methodName, fieldType, new HaxeArgumentBuilder("value", fieldType))
+          ));
         } else {
           HaxeParametersModel parameters = method.getParameters();
           if (parameters.length() != 1) {
