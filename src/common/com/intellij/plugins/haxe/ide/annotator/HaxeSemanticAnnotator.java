@@ -20,8 +20,6 @@ package com.intellij.plugins.haxe.ide.annotator;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -34,7 +32,6 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
 import com.intellij.psi.*;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -146,7 +143,7 @@ class FieldChecker {
         HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
         if (method == null) {
           Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
-          annotation.registerFix(new HaxeCreateMethodFixer(field.getDeclaringClass(), new HaxeMethodBuilder(methodName, fieldType)));
+          annotation.registerFix(new HaxeCreateMethodsFixer(field.getDeclaringClass(), new HaxeMethodBuilder(methodName, fieldType)));
         } else {
           ResultHolder methodType = method.getResultType();
           if (!fieldType.canAssign(methodType)) {
@@ -160,7 +157,7 @@ class FieldChecker {
         HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
         if (method == null) {
           Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
-          annotation.registerFix(new HaxeCreateMethodFixer(
+          annotation.registerFix(new HaxeCreateMethodsFixer(
             field.getDeclaringClass(),
             new HaxeMethodBuilder(methodName, fieldType, new HaxeArgumentBuilder("value", fieldType))
           ));
@@ -323,17 +320,18 @@ class ClassChecker {
     }
 
     if (missingMethods.size() > 0) {
-      // @TODO: Move to bundle
-      Annotation annotation = holder.createErrorAnnotation(
+      final ArrayList<HaxeMethodBuilder> methodBuilders = new ArrayList<HaxeMethodBuilder>();
+      for (HaxeMethodModel method : missingMethods) {
+        final HaxeMethodBuilder builder = HaxeMethodBuilder.fromModel(method);
+        methodBuilders.add(builder);
+      }
+
+      holder.createErrorAnnotation(
         intReference.getPsi(),
-        "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ")
-      );
-      annotation.registerFix(new HaxeFixer("Implement methods") {
-        @Override
-        public void run() {
-          clazz.addMethodsFromPrototype(missingMethods);
-        }
-      });
+        "Not implemented methods: " + missingMethodsNames
+      ).registerFix(new HaxeCreateMethodsFixer(
+        clazz, "Implement methods", methodBuilders.toArray(new HaxeMethodBuilder[methodBuilders.size()])
+      ));
     }
   }
 }

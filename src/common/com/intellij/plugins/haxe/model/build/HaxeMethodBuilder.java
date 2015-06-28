@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.model.build;
 
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.util.HaxeNameUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -38,6 +40,14 @@ public class HaxeMethodBuilder {
     this.name = name;
     this.retval = retval;
     this.args = new LinkedList<HaxeArgumentBuilder>(Arrays.asList(args));
+  }
+
+  static public HaxeMethodBuilder fromModel(HaxeMethodModel model) {
+    final HaxeMethodBuilder builder = new HaxeMethodBuilder(model.getName(), model.getReturnType(null));
+    for (HaxeParameterModel parameter : model.getParameters().parameters) {
+      builder.addArgument(parameter.getName(), parameter.getType());
+    }
+    return builder;
   }
 
   public HaxeMethodBuilder(String name, @Nullable ResultHolder retval, Collection<HaxeArgumentBuilder> args) {

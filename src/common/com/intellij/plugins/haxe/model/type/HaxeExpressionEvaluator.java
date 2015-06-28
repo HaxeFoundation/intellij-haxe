@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.google.common.reflect.TypeResolver;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.openapi.util.Key;
@@ -28,7 +27,6 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeEnumMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.build.HaxeArgumentBuilder;
 import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.util.HaxeNameUtils;
@@ -297,7 +295,7 @@ public class HaxeExpressionEvaluator {
             context.addError(
               element,
               "Class " + clazz.getName() + " doesn't have a constructor",
-              new HaxeCreateMethodFixer(clazz.getAliasOrSelf(), new HaxeMethodBuilder("new", null))
+              new HaxeCreateMethodsFixer(clazz.getAliasOrSelf(), new HaxeMethodBuilder("new", null))
             );
           }
           else {
@@ -525,7 +523,7 @@ public class HaxeExpressionEvaluator {
                       );
                     }
                   }
-                  annotation.registerFix(new HaxeCreateMethodFixer(classModel, methodBuilder));
+                  annotation.registerFix(new HaxeCreateMethodsFixer(classModel, methodBuilder));
                 }
                 annotation.registerFix(new HaxeCreateFieldFixer(classModel, accessName));
               }

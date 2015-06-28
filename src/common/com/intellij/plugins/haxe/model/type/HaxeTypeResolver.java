@@ -210,19 +210,29 @@ public class HaxeTypeResolver {
     //final ResultHolder retval = context.getReturnType();
 
     if (!(element instanceof HaxeMethod)) return;
-    final HaxeTypeTag typeTag = UsefulPsiTreeUtil.getChild(element, HaxeTypeTag.class);
+    final HaxeMethodModel method = ((HaxeMethod)element).getModel();
+    final HaxeTypeTag typeTag = method.getReturnTypeTagPsi();
+    ResultHolder typeTagType = null;
     ResultHolder expectedType = SpecificTypeReference.getDynamic(element).createHolder();
+    final List<ResultHolder> returnValues = context.getReturnValues();
     if (typeTag == null) {
-      final List<ResultHolder> infos = context.getReturnValues();
-      if (!infos.isEmpty()) {
-        expectedType = infos.get(0);
+      if (!returnValues.isEmpty()) {
+        expectedType = returnValues.get(0);
       }
     } else {
-      expectedType = getTypeFromTypeTag(typeTag, element);
+      expectedType = typeTagType = getTypeFromTypeTag(typeTag, element);
     }
 
     if (expectedType == null) return;
-    for (ResultHolder retinfo : context.getReturnValues()) {
+
+    if (typeTagType != null && !typeTagType.getType().isVoid() && (returnValues.size() == 0)) {
+      context.addError(
+        method.getReturnTypeTagOrNameOrBasePsi(),
+        "Expected returning " + typeTagType
+      );
+    }
+
+    for (ResultHolder retinfo : returnValues) {
       if (expectedType.canAssign(retinfo)) continue;
       HaxeReturnStatement returnStatment = (HaxeReturnStatement)retinfo.element;
       if (returnStatment != null) {

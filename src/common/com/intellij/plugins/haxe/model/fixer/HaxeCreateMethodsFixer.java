@@ -17,23 +17,25 @@
  */
 package com.intellij.plugins.haxe.model.fixer;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
-import com.intellij.psi.PsiElement;
 
-public class HaxeCreateMethodFixer extends HaxeFixer {
+public class HaxeCreateMethodsFixer extends HaxeFixer {
   HaxeClassModel clazz;
-  HaxeMethodBuilder methodBuilder;
+  HaxeMethodBuilder[] methodBuilders;
 
-  public HaxeCreateMethodFixer(HaxeClassModel clazz, HaxeMethodBuilder methodBuilder) {
-    super("Create method");
+  public HaxeCreateMethodsFixer(HaxeClassModel clazz, HaxeMethodBuilder... methodBuilders) {
+    this(clazz, (methodBuilders.length == 1) ? "Create method" : "Create methods", methodBuilders);
+  }
+
+  public HaxeCreateMethodsFixer(HaxeClassModel clazz, String text, HaxeMethodBuilder... methodBuilders) {
+    super(text);
     this.clazz = clazz;
-    this.methodBuilder = methodBuilder;
+    this.methodBuilders = methodBuilders;
   }
 
   @Override
   public void run() {
-    clazz.addMethod(methodBuilder);
+    clazz.addMethods(methodBuilders);
   }
 }

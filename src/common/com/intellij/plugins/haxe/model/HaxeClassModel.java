@@ -535,8 +535,13 @@ public class HaxeClassModel {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic var " + name + ":" + type.toStringWithoutConstant() + ";\n");
   }
 
-  public void addMethod(HaxeMethodBuilder methodBuilder) {
-    this.getDocument().addTextAfterElement(getBodyPsi(), "public " + methodBuilder.toString());
+  public void addMethods(HaxeMethodBuilder... methodBuilders) {
+    String out = "";
+    for (HaxeMethodBuilder builder : methodBuilders) {
+      out += "public " + builder.toString() + "\n";
+    }
+
+    this.getDocument().addTextAfterElement(getBodyPsi(), out);
   }
 
   public HaxeClassReference getReference() {
