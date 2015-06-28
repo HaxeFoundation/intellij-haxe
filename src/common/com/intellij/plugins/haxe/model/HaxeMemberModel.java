@@ -45,6 +45,12 @@ abstract public class HaxeMemberModel {
     return getModifiers().hasModifier(HaxeModifierType.STATIC);
   }
 
+  private HaxeMetasModel metas;
+  public HaxeMetasModel getMetas() {
+    if (metas == null) metas = new HaxeMetasModel(basePsi);
+    return metas;
+  }
+
   private HaxeDocumentModel _document = null;
   @NotNull
   public HaxeDocumentModel getDocument() {

@@ -39,10 +39,16 @@ public class HaxeProjectModel {
 
   public final HaxePackageModel rootPackage;
   private final Project project;
+  private HaxeTypesModel types;
 
   private HaxeProjectModel(Project project) {
     this.project = project;
     this.rootPackage = new HaxePackageModel(this, "", null);
+  }
+
+  public HaxeTypesModel getTypes() {
+    if (this.types == null) this.types = new HaxeTypesModel(this);
+    return this.types;
   }
 
   public Project getProject() {

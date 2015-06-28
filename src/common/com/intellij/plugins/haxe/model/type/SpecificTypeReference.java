@@ -45,6 +45,10 @@ public abstract class SpecificTypeReference {
     return primitive("Bool", context);
   }
 
+  static public SpecificHaxeClassReference getString(@NotNull PsiElement context) {
+    return primitive("String", context);
+  }
+
   static public SpecificHaxeClassReference getInt(@NotNull PsiElement context) {
     return primitive("Int", context);
   }

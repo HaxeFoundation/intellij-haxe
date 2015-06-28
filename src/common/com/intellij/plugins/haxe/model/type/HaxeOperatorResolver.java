@@ -17,10 +17,8 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
 
 public class HaxeOperatorResolver {
   static public SpecificTypeReference getBinaryOperatorResult(
@@ -30,20 +28,73 @@ public class HaxeOperatorResolver {
     String operator,
     HaxeExpressionEvaluatorContext context
   ) {
-    if (!HaxeTypeCompatible.canApplyBinaryOperator(left, right, operator)) {
-      context.addError(
-        elementContext,
-        "Can't apply operator " + operator + " for types " + left + " and " + right
-      );
+    final HaxeTypesModel types = context.getProject().getTypes();
+
+    SpecificTypeReference result = _getBinaryOperatorResult(elementContext, left, right, operator, context);
+
+    // @TODO: Check operator overloading
+    if (left.getConstant() != null && right.getConstant() != null) {
+      result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
     }
 
-    SpecificTypeReference result = result = HaxeTypeUnifier.unify(left, right, context.root);
-    if (operator.equals("/")) result = SpecificHaxeClassReference.primitive("Float", elementContext, null);
+    return result;
+  }
+
+  static public SpecificTypeReference _getBinaryOperatorResult(
+    PsiElement elementContext,
+    SpecificTypeReference left,
+    SpecificTypeReference right,
+    String operator,
+    HaxeExpressionEvaluatorContext context
+  ) {
+    final HaxeTypesModel types = context.getProject().getTypes();
+
+    if (left instanceof SpecificFunctionReference || right instanceof SpecificFunctionReference) {
+      context.addError(
+        elementContext,
+        "Can't apply operator " + operator + " for functional types " + left + " and " + right
+      );
+      return SpecificTypeReference.getDynamic(context.root);
+    }
+
+    final HaxeClassModel leftModel = ((SpecificHaxeClassReference)left).getHaxeClassModel();
+    final HaxeClassModel rightModel = ((SpecificHaxeClassReference)right).getHaxeClassModel();
+    if (leftModel != null && rightModel != null) {
+      final HaxeCustomOperatorsModel operators = leftModel.getBinaryOperators();
+      final HaxeCustomOperatorModel op = operators.get(operator);
+      if (op.enabled()) {
+        final ResultHolder type = op.getResultType(left, right);
+        if (type != null) {
+          return type.getType();
+        }
+      }
+    }
+
+    if (operator.equals("/")) {
+      return types.FLOAT;
+    }
 
     if (operator.equals("+")) {
-      if (left.toStringWithoutConstant().equals("String") || right.toStringWithoutConstant().equals("String")) {
-        return SpecificHaxeClassReference.primitive("String", elementContext);
+      if (left.isString() || right.isString()) {
+        return types.STRING;
       }
+    }
+
+    if (operator.equals("+") || operator.equals("-") || operator.equals("*")) {
+      if (left.isNumeric() && right.isNumeric()) {
+        if (left.isFloat() || right.isFloat()) {
+          return types.FLOAT;
+        } else {
+          return types.INT;
+        }
+      }
+    }
+
+    if (operator.equals("&&") || operator.equals("||")) {
+      if (!left.isBool() || !right.isBool()) {
+        invalid(context, elementContext, operator, left, right);
+      }
+      return types.BOOL;
     }
 
     if (
@@ -51,12 +102,23 @@ public class HaxeOperatorResolver {
       operator.equals("<") || operator.equals("<=") ||
       operator.equals(">") || operator.equals(">=")
       ) {
-      result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+      return types.BOOL;
     }
-    // @TODO: Check operator overloading
-    if (left.getConstant() != null && right.getConstant() != null) {
-      result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
-    }
-    return result;
+
+    invalid(context, elementContext, operator, left, right);
+
+    return types.DYNAMIC;
+  }
+
+  static private void invalid(
+    HaxeExpressionEvaluatorContext context,
+    PsiElement elementContext,
+    String operator,
+    SpecificTypeReference left, SpecificTypeReference right
+  ) {
+    context.addError(
+      elementContext,
+      "Can't apply operator " + operator + " for types " + left + " and " + right
+    );
   }
 }

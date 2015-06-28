@@ -25,10 +25,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeTypeCompatible {
+  /*
   static public boolean canApplyBinaryOperator(SpecificTypeReference left, SpecificTypeReference right, String operator) {
     // @TODO: Stub. Implement.
     return true;
   }
+  */
 
   static public boolean canAssignToFrom(SpecificTypeReference to, ResultHolder from) {
     return canAssignToFrom(to, from.getType());

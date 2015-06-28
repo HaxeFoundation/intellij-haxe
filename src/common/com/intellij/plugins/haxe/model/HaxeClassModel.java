@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -27,8 +26,8 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -380,6 +379,10 @@ public class HaxeClassModel {
     return selfMembersMap;
   }
 
+  public HaxeCustomOperatorsModel getBinaryOperators() {
+    return HaxeCustomOperatorsModel.fromClass(this);
+  }
+
   @Nullable
   public HaxeFieldModel getField(String name) {
     final HaxeMemberModel member = getMember(name);
@@ -570,6 +573,7 @@ public class HaxeClassModel {
     return new HaxeClassReference(this, this.getPsi());
   }
 
+  @NotNull
   public ResultHolder getInstanceType() {
     return SpecificHaxeClassReference.withoutGenerics(getReference()).createHolder();
   }

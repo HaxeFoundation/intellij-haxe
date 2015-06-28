@@ -340,8 +340,9 @@ public class UsefulPsiTreeUtil {
 
   @Nullable
   public static <T extends PsiElement> T getParentOfType(@Nullable PsiElement element, @NotNull Class<T> aClass) {
-    if (element == null)
+    if (element == null) {
       return null;
+    }
 
     while (element != null && !(element instanceof PsiFile)) {
       if (aClass.isInstance(element)) {
@@ -486,6 +487,25 @@ public class UsefulPsiTreeUtil {
     return sibling;
   }
 
+  @NotNull
+  public static <T extends PsiElement> List<T> getDescendantsOfType(PsiElement e, Class<T> clazz) {
+    final ArrayList<T> out = new ArrayList<T>();
+    getDescendantsOfType(e, clazz, out);
+    return out;
+  }
+
+  @Nullable
+  public static <T extends PsiElement> void getDescendantsOfType(@Nullable PsiElement e, @NotNull Class<T> clazz, List<T> out) {
+    if (e == null) return;
+    if (clazz.isAssignableFrom(e.getClass())) {
+    //if (clazz == e.getClass()) {
+      out.add((T)e);
+    }
+    for (PsiElement child = e.getFirstChild(); child != null; child = child.getNextSibling()) {
+      getDescendantsOfType(child, clazz, out);
+    }
+  }
+
   @Nullable
   public static <T extends PsiElement> T getLastDescendantOfType(PsiElement e, Class<T> clazz) {
     if (e == null) return null;
@@ -508,7 +528,7 @@ public class UsefulPsiTreeUtil {
     if (child != null) return child;
 
     child = element.getParent();
-    for (;child != null; child = child.getParent()) {
+    for (; child != null; child = child.getParent()) {
       if (child.getNextSibling() != null) {
         return child.getNextSibling();
       }

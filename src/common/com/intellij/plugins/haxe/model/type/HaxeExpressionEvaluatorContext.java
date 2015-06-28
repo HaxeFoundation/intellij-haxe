@@ -23,6 +23,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Locals;
@@ -48,6 +49,11 @@ public class HaxeExpressionEvaluatorContext {
     this.root = body;
     this.holder = holder;
     this.resolver = new HaxeResolver2Locals(resolver);
+  }
+
+  @NotNull
+  public HaxeProjectModel getProject() {
+    return HaxeProjectModel.fromElement(root);
   }
 
   public HaxeExpressionEvaluatorContext createChild(PsiElement body) {
