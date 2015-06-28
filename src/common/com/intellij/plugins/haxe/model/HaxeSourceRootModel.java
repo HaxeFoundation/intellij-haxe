@@ -47,6 +47,10 @@ public class HaxeSourceRootModel {
     return StringUtils.join(parts, '/');
   }
 
+  public boolean contains(PsiFileSystemItem file) {
+    return (file.getVirtualFile().getCanonicalPath() + "/").startsWith(root.getCanonicalPath() + "/");
+  }
+
   @Nullable
   public PsiDirectory access(String path) {
     if ((path == null) || path.isEmpty()) return rootPsi;

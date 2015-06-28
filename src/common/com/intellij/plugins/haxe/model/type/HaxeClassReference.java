@@ -48,7 +48,7 @@ public class HaxeClassReference {
     if (clazz == null) {
       clazz = HaxeResolveUtil.tryResolveClassByQName(elementContext);
       if (clazz == null) {
-        System.err.println("Not found '" + name + "' : " + elementContext + " : " + elementContext.getText());
+        System.err.println("Not found '" + name + "' : " + elementContext);
       }
     }
     return clazz;

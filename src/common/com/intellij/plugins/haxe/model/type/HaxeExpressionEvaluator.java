@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.google.common.reflect.TypeResolver;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.openapi.util.Key;
@@ -63,6 +64,13 @@ public class HaxeExpressionEvaluator {
   static private Key<Set<HaxeMemberModel>> HAXE_SWITCH_MEMBER = new Key<Set<HaxeMemberModel>>("HAXE_SWITCH_MEMBER");
   static private Key<HaxeSwitchStatement> SWITCH_ELEMENT = new Key<HaxeSwitchStatement>("SWITCH_ELEMENT");
 
+  static private ResultHolder setParameter(final HaxeExpressionEvaluatorContext context, final HaxeParameter param) {
+    final HaxeComponentName name = param.getComponentName();
+    final HaxeTypeTag tag = param.getTypeTag();
+    final ResultHolder result = HaxeTypeResolver.getTypeFromTypeTag(tag, context.root);
+    context.setLocal(name.getText(), result);
+    return result;
+  }
 
   @NotNull
   static private ResultHolder _handle(final PsiElement element, final HaxeExpressionEvaluatorContext context) {
@@ -177,6 +185,34 @@ public class HaxeExpressionEvaluator {
       return handle(((HaxeSwitchCase)element).getSwitchCaseBlock(), context);
     }
 
+    if (element instanceof HaxeTryStatement) {
+      PsiElement code = element.getChildren()[0];
+      final ResultHolder tryResult = handle(code, context);
+      ResultHolder result = tryResult;
+
+      for (HaxeCatchStatement statement : ((HaxeTryStatement)element).getCatchStatementList()) {
+        final ResultHolder catchResult = handle(statement, context);
+        result = HaxeTypeUnifier.unify(result, catchResult, context.root);
+      }
+      return result;
+    }
+
+    if (element instanceof HaxeCatchStatement) {
+      context.beginScope();
+      try {
+        final HaxeParameter parameter = ((HaxeCatchStatement)element).getParameter();
+        if (parameter != null) {
+          setParameter(context, parameter);
+          if (parameter.getTypeTag() == null) {
+            context.addError(parameter, "Required typetag");
+          }
+        }
+        return handle(element.getLastChild(), context);
+      } finally {
+        context.endScope();
+      }
+    }
+
     if (element instanceof HaxeSwitchCaseBlock) {
       ResultHolder holder = SpecificTypeReference.getDynamic(element).createHolder();
       for (PsiElement psiElement : element.getChildren()) {
@@ -269,7 +305,7 @@ public class HaxeExpressionEvaluator {
       ResultHolder holder = context.get(element.getText());
 
       if (holder == null) {
-        context.addError(element, "Unknown variable", new HaxeCreateLocalVariableFixer(element.getText(), element));
+        context.addError(element, "Unknown symbol", new HaxeCreateLocalVariableFixer(element.getText(), element));
 
         return SpecificTypeReference.getDynamic(element).createHolder();
       }
@@ -635,12 +671,7 @@ public class HaxeExpressionEvaluator {
       context.beginScope();
       try {
         for (HaxeParameter parameter : params.getParameterList()) {
-          ResultHolder vartype = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), element);
-          String name = parameter.getName();
-          if (name != null) {
-            context.setLocal(name, vartype);
-          }
-          results.add(vartype);
+          results.add(setParameter(context, parameter));
         }
         HaxeExpressionEvaluatorContext childContext = context.createChild(element.getLastChild());
         ResultHolder returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeLocalFunctionDeclaration)element).getTypeTag(), element);

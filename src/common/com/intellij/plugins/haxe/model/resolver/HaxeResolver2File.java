@@ -19,10 +19,8 @@ package com.intellij.plugins.haxe.model.resolver;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFileModel;
-import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.plugins.haxe.model.HaxePackageModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +34,7 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
   public HaxeResolver2File(@NotNull HaxeFileModel file) {
     super();
     packages.add(file.getProject().rootPackage);
-    packages.add(file.getPackage());
+    packages.add(file.getDetectedPackage());
     //for (HaxePackageModel aPackage : packages) {
       //resolvers.add(aPackage.getResolver());
     //}

@@ -45,6 +45,9 @@ public class HaxePackageModel {
     } else {
       this.fullName = name;
     }
+    if (this.fullName.contains("/")) {
+      System.out.println("Contains /!");
+    }
   }
 
   @Nullable
@@ -52,7 +55,7 @@ public class HaxePackageModel {
     HaxeProjectModel project = HaxeProjectModel.fromElement(file);
     HaxeSourceRootModel root = project.getRootContaining(file);
     if (root != null) {
-      String pathToPackage = root.getPathToFile(file.getParent());
+      String pathToPackage = root.getPathToFile(file.getParent()).replace('/', '.');
       return project.rootPackage.accessOrCreate(pathToPackage);
     }
     return null;
@@ -141,5 +144,25 @@ public class HaxePackageModel {
 
   public HaxeResolver2Package getResolver() {
     return new HaxeResolver2Package(this);
+  }
+
+  @Override
+  public String toString() {
+    return fullName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HaxePackageModel model = (HaxePackageModel)o;
+
+    return fullName.equals(model.fullName);
+  }
+
+  @Override
+  public int hashCode() {
+    return fullName.hashCode();
   }
 }

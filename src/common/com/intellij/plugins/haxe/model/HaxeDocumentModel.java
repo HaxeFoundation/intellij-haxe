@@ -108,4 +108,9 @@ public class HaxeDocumentModel {
   public void reformat(int start, int end) {
     CodeStyleManager.getInstance(project).reformatText(file, start, end);
   }
+
+  public void addTextAt(int offset, String s) {
+    document.replaceString(offset, offset, s);
+    reformat(offset, offset + s.length());
+  }
 }

@@ -31,8 +31,6 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -535,42 +533,27 @@ class MethodChecker {
 
 class PackageChecker {
   static public void check(final HaxePackageStatement element, final AnnotationHolder holder) {
+    final HaxeFileModel file = HaxeFileModel.fromElement(element);
+    final HaxeDocumentModel document = file.getDocument();
+
     final HaxeReferenceExpression expression = element.getReferenceExpression();
-    String packageName = (expression != null) ? expression.getText() : "";
-    PsiDirectory fileDirectory = element.getContainingFile().getParent();
-    List<PsiFileSystemItem> fileRange = PsiFileUtils.getRange(PsiFileUtils.findRoot(fileDirectory), fileDirectory);
-    fileRange.remove(0);
-    String actualPath = PsiFileUtils.getListPath(fileRange);
-    final String actualPackage = actualPath.replace('/', '.');
-    final String actualPackage2 = HaxeResolveUtil.getPackageName(element.getContainingFile());
-    // @TODO: Should use HaxeResolveUtil
+    final HaxePackageModel writtenPackage = file.getWrittenPackage();
+    final HaxePackageModel detectedPackage = file.getDetectedPackage();
 
-    for (String s : StringUtils.split(packageName, '.')) {
-      if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {
-        //HaxeSemanticError.addError(element, new HaxeSemanticError("Package name '" + s + "' must start with a lower case character"));
-        // @TODO: Move to bundle
-        holder.createErrorAnnotation(element, "Package name '" + s + "' must start with a lower case character");
-      }
-    }
-
-    if (!packageName.equals(actualPackage)) {
+    if (!detectedPackage.equals(writtenPackage)) {
       holder.createErrorAnnotation(
         element,
-        "Invalid package name! '" + packageName + "' should be '" + actualPackage + "'").registerFix(
+        "Invalid package name! '" + writtenPackage + "' should be '" + detectedPackage + "'").registerFix(
         new HaxeFixer("Fix package") {
           @Override
           public void run() {
-            Document document =
-              PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
-
             if (expression != null) {
-              TextRange range = expression.getTextRange();
-              document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
-            }
-            else {
-              int offset =
-                element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
-              document.replaceString(offset, offset, actualPackage);
+              document.replaceElementText(expression, detectedPackage.toString());
+            } else {
+              document.addTextAt(
+                element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset(),
+                " " + detectedPackage.toString()
+              );
             }
           }
         }

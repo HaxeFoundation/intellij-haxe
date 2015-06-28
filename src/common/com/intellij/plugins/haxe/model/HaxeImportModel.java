@@ -40,7 +40,8 @@ public class HaxeImportModel {
     HaxeReferenceExpression expression = regular.getReferenceExpression();
     if (expression != null) {
       fqName = expression.getText();
-      HaxeClassModel clazz = file.getProject().getClassFromFqName(fqName);
+      final HaxeProjectModel project = file.getProject();
+      HaxeClassModel clazz = project.getClassFromFqName(fqName);
       if (clazz != null) {
         reference = new HaxeClassReferenceModel(expression, clazz.haxeClass);
       }

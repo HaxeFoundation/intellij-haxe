@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.model.resolver.HaxeResolver2File;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -69,8 +70,21 @@ public class HaxeFileModel {
     return UsefulPsiTreeUtil.getChild(file, HaxePackageStatement.class);
   }
 
-  public HaxePackageModel getPackage() {
+  @NotNull
+  public HaxePackageModel getDetectedPackage() {
     return getProject().getPackageFromFile(file);
+  }
+
+  @NotNull
+  public HaxePackageModel getWrittenPackage() {
+    final HaxePackageStatement packagePsi = getPackagePsi();
+    if (packagePsi != null) {
+      final HaxeReferenceExpression expression = packagePsi.getReferenceExpression();
+      if (expression != null) {
+        return getProject().rootPackage.accessOrCreate(expression.getText());
+      }
+    }
+    return getProject().rootPackage;
   }
 
   public HaxeDocumentModel getDocument() {

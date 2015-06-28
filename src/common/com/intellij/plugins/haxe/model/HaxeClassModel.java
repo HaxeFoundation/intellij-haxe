@@ -240,7 +240,7 @@ public class HaxeClassModel {
   static final private Key<LinkedHashMap<String, HaxeMemberModel>> HAXE_CLASS_MEMBERS_MAP = new Key<LinkedHashMap<String, HaxeMemberModel>>("HAXE_CLASS_MEMBERS_MAP");
 
   private void prepareMembers() {
-    getFile().removeCache(); // @TODO: Remove this line
+    //getFile().removeCache(); // @TODO: Remove this line
 
     final HaxeCacheModel cache = getFile().getCache();
 

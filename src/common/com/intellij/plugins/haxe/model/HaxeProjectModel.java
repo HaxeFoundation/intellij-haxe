@@ -54,7 +54,7 @@ public class HaxeProjectModel {
   }
 
   public HaxePackageModel getPackageFromPath(String path) {
-    return rootPackage.access(path);
+    return rootPackage.accessOrCreate(path);
   }
 
   @Nullable
@@ -66,10 +66,8 @@ public class HaxeProjectModel {
   public HaxeSourceRootModel getRootContaining(PsiDirectory dir) {
     List<HaxeSourceRootModel> roots = getRoots();
     if (dir == null) return null;
-    String dirString = dir.getVirtualFile().getCanonicalPath() + "/";
     for (HaxeSourceRootModel root : roots) {
-      String rootString = root.rootPsi.getVirtualFile().getCanonicalPath() + "/";
-      if (dirString.startsWith(rootString)) {
+      if (root.contains(dir)) {
         return root;
       }
     }
@@ -90,7 +88,8 @@ public class HaxeProjectModel {
     String packageName = extractPackagePathFromClassFqName(fqName);
     String className = extractClassNameFromFqName(fqName);
     HaxePackageModel packageModel = getPackageFromPath(packageName);
-    return (packageModel != null) ? packageModel.getHaxeClass(className) : null;
+    if (packageModel == null) return null;
+    return packageModel.getHaxeClass(className);
   }
 
   static public HaxeProjectModel fromElement(PsiElement element) {
