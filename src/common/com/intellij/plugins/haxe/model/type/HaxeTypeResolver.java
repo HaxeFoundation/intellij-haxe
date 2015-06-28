@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeTypesModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeCastFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagRemoveFixer;
@@ -203,7 +204,7 @@ public class HaxeTypeResolver {
     if (type != null) {
       return getTypeFromType(type);
     }
-    return SpecificTypeReference.getDynamic(typeOrAnonymous).createHolder();
+    return HaxeTypesModel.fromElement(typeOrAnonymous).DYNAMIC.createHolder();
   }
 
   @NotNull
@@ -221,7 +222,7 @@ public class HaxeTypeResolver {
     final HaxeMethodModel method = ((HaxeMethod)element).getModel();
     final HaxeTypeTag typeTag = method.getReturnTypeTagPsi();
     ResultHolder typeTagType = null;
-    ResultHolder expectedType = SpecificTypeReference.getDynamic(element).createHolder();
+    ResultHolder expectedType = context.types.DYNAMIC.createHolder();
     final List<ResultHolder> returnValues = context.getReturnValues();
     if (typeTag == null) {
       if (!returnValues.isEmpty()) {

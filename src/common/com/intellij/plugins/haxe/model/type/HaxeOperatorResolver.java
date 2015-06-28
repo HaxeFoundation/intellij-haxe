@@ -28,8 +28,6 @@ public class HaxeOperatorResolver {
     String operator,
     HaxeExpressionEvaluatorContext context
   ) {
-    final HaxeTypesModel types = context.getProject().getTypes();
-
     SpecificTypeReference result = _getBinaryOperatorResult(elementContext, left, right, operator, context);
 
     // @TODO: Check operator overloading
@@ -47,14 +45,14 @@ public class HaxeOperatorResolver {
     String operator,
     HaxeExpressionEvaluatorContext context
   ) {
-    final HaxeTypesModel types = context.getProject().getTypes();
+    final HaxeTypesModel types = context.project.getTypes();
 
     if (left instanceof SpecificFunctionReference || right instanceof SpecificFunctionReference) {
       context.addError(
         elementContext,
         "Can't apply operator " + operator + " for functional types " + left + " and " + right
       );
-      return SpecificTypeReference.getDynamic(context.root);
+      return context.types.DYNAMIC;
     }
 
     final HaxeClassModel leftModel = ((SpecificHaxeClassReference)left).getHaxeClassModel();

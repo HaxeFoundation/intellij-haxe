@@ -167,7 +167,7 @@ public class HaxeExpressionEvaluator {
       return handleArrayLiteral((HaxeArrayLiteral)element, context);
     }
     else if (element instanceof PsiJavaToken) {
-      return handleJavaToken((PsiJavaToken)element);
+      return handleJavaToken((PsiJavaToken)element, context);
     }
     else if (element instanceof HaxeSuperExpression) {
       return handleSuperExpression((HaxeSuperExpression)element, context);
@@ -211,13 +211,13 @@ public class HaxeExpressionEvaluator {
       return handleSuffixExpression(element, context);
     }
     else {
-      return handleUnhandled(element);
+      return handleUnhandled(element, context);
     }
   }
 
-  private static ResultHolder handleUnhandled(PsiElement element) {
+  private static ResultHolder handleUnhandled(PsiElement element, HaxeExpressionEvaluatorContext context) {
     System.out.println("Unhandled " + element.getClass());
-    return SpecificHaxeClassReference.getDynamic(element).createHolder();
+    return context.types.DYNAMIC.createHolder();
   }
 
   @NotNull
@@ -275,11 +275,11 @@ public class HaxeExpressionEvaluator {
     PsiElement[] children = element.getChildren();
     if (children.length >= 1) {
       SpecificTypeReference expr = handle(children[0], context).getType();
-      if (!SpecificTypeReference.getBool(element).canAssign(expr)) {
+      if (!context.types.BOOL.canAssign(expr)) {
         context.addError(
           children[0],
           "If expr " + expr + " should be bool",
-          new HaxeCastFixer(children[0], expr, SpecificHaxeClassReference.getBool(element))
+          new HaxeCastFixer(children[0], expr, context.types.BOOL)
         );
       }
 
@@ -313,7 +313,7 @@ public class HaxeExpressionEvaluator {
       return HaxeTypeUnifier.unify(tTrue, tFalse, element).createHolder();
     }
     else {
-      return SpecificTypeReference.getVoid(element).createHolder();
+      return context.types.VOID.createHolder();
     }
   }
 
@@ -322,7 +322,7 @@ public class HaxeExpressionEvaluator {
     if (params == null) {
       return SpecificHaxeClassReference.getInvalid(element).createHolder();
     }
-    ResultHolder holder = SpecificTypeReference.getDynamic(element).createHolder();
+    ResultHolder holder = context.types.DYNAMIC.createHolder();
     LinkedList<ResultHolder> results = new LinkedList<ResultHolder>();
     context.beginScope();
     try {
@@ -356,7 +356,7 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getInvalid(element).createHolder();
     }
 
-    ResultHolder holder = SpecificTypeReference.getDynamic(element).createHolder();
+    ResultHolder holder = context.types.DYNAMIC.createHolder();
     LinkedList<ResultHolder> results = new LinkedList<ResultHolder>();
     context.beginScope();
     try {
@@ -404,7 +404,7 @@ public class HaxeExpressionEvaluator {
   private static ResultHolder handleThrowStatement(HaxeThrowStatement element, HaxeExpressionEvaluatorContext context) {
     final HaxeExpression throwExpression = element.getExpression();
     final ResultHolder throwResult = handle(throwExpression, context);
-    return SpecificFunctionReference.getVoid(element).createHolder();
+    return context.types.VOID.createHolder();
   }
 
   private static ResultHolder handleBreakStatement(HaxeBreakStatement element, HaxeExpressionEvaluatorContext context) {
@@ -420,12 +420,12 @@ public class HaxeExpressionEvaluator {
     if (loop == null) {
       context.addError(element, element.getText() + " is not inside a loop");
     }
-    return SpecificFunctionReference.getVoid(element).createHolder();
+    return context.types.VOID.createHolder();
   }
 
   private static ResultHolder handleReturnStatement(HaxeReturnStatement element, HaxeExpressionEvaluatorContext context) {
     PsiElement[] children = element.getChildren();
-    ResultHolder result = SpecificHaxeClassReference.getVoid(element).createHolder();
+    ResultHolder result = context.types.VOID.createHolder();
     if (children.length >= 1) {
       result = handle(children[0], context);
     }
@@ -477,7 +477,7 @@ public class HaxeExpressionEvaluator {
     if ((targetClass != null) && targetClass.isEnum()) {
       missingMembers = new HashSet<HaxeMemberModel>(targetClass.getMembersSelf());
     }
-    for (HaxeSwitchCase aCase : ((HaxeSwitchBlock)element).getSwitchCaseList()) {
+    for (HaxeSwitchCase aCase : element.getSwitchCaseList()) {
       context.beginScope();
       context.putInfo(HAXE_SWITCH_MEMBER, missingMembers);
       final ResultHolder caseResult = handle(aCase, context);
@@ -494,7 +494,7 @@ public class HaxeExpressionEvaluator {
         context.addError(context.getInfo(SWITCH_ELEMENT).getExpression(), "Not exhaustive members. Put a default.");
       }
     }
-    if (result == null) return SpecificTypeReference.getDynamic(element).createHolder();
+    if (result == null) return context.types.DYNAMIC.createHolder();
     return result;
   }
 
@@ -540,7 +540,7 @@ public class HaxeExpressionEvaluator {
       if (parameter != null) {
         setParameter(context, parameter);
         if (parameter.getTypeTag() == null) {
-          context.addError(parameter, "Required typetag");
+          context.addError(parameter, "Required TypeTag");
         }
       }
       return handle(element.getLastChild(), context);
@@ -551,7 +551,7 @@ public class HaxeExpressionEvaluator {
   }
 
   private static ResultHolder handleSwitchCaseBlock(PsiElement element, HaxeExpressionEvaluatorContext context) {
-    ResultHolder holder = SpecificTypeReference.getDynamic(element).createHolder();
+    ResultHolder holder = context.types.DYNAMIC.createHolder();
     for (PsiElement psiElement : element.getChildren()) {
       holder = handle(psiElement, context);
     }
@@ -595,11 +595,11 @@ public class HaxeExpressionEvaluator {
   }
 
   private static ResultHolder handleNewExpression(HaxeNewExpression element, HaxeExpressionEvaluatorContext context) {
-    ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(((HaxeNewExpression)element).getType());
+    ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(element.getType());
     if (typeHolder.getType() instanceof SpecificHaxeClassReference) {
       final HaxeClassModel clazz = ((SpecificHaxeClassReference)typeHolder.getType()).getHaxeClassModel();
       if (clazz == null) {
-        context.addError(((HaxeNewExpression)element).getType(), "Can't find type");
+        context.addError(element.getType(), "Can't find type");
       }
       else {
         HaxeMethodModel constructor = clazz.getConstructor();
@@ -611,7 +611,7 @@ public class HaxeExpressionEvaluator {
           );
         }
         else {
-          checkParameters(element, constructor, ((HaxeNewExpression)element).getExpressionList(), context);
+          checkParameters(element, constructor, element.getExpressionList(), context);
         }
       }
     }
@@ -625,7 +625,7 @@ public class HaxeExpressionEvaluator {
       context.addError(element, "Using this in a static context");
     }
     HaxeClass ancestor = UsefulPsiTreeUtil.getAncestor(element, HaxeClass.class);
-    if (ancestor == null) return SpecificTypeReference.getDynamic(element).createHolder();
+    if (ancestor == null) return context.types.DYNAMIC.createHolder();
     HaxeClassModel model = ancestor.getModel();
     if (model.isAbstract()) {
       HaxeTypeOrAnonymous type = model.getAbstractUnderlyingType();
@@ -646,7 +646,7 @@ public class HaxeExpressionEvaluator {
     if (holder == null) {
       context.addError(element, "Unknown symbol", new HaxeCreateLocalVariableFixer(element.getText(), element));
 
-      return SpecificTypeReference.getDynamic(element).createHolder();
+      return context.types.DYNAMIC.createHolder();
     }
 
     return holder;
@@ -673,13 +673,13 @@ public class HaxeExpressionEvaluator {
       lastExpression = expression;
     }
     if (type == null) {
-      type = SpecificTypeReference.getDynamic(element);
+      type = context.types.DYNAMIC;
     }
     if (!type.isBool() && lastExpression != null) {
       context.addError(
         lastExpression,
         "While expression must be boolean",
-        new HaxeCastFixer(lastExpression, type, SpecificHaxeClassReference.getBool(element))
+        new HaxeCastFixer(lastExpression, type, context.types.BOOL)
       );
     }
 
@@ -743,7 +743,8 @@ public class HaxeExpressionEvaluator {
           HaxeTypeUtils.getIntValue(right.getConstant())
         );
       }
-      return SpecificHaxeClassReference.getIterator(SpecificHaxeClassReference.getInt(element)).withConstantValue(constant)
+
+      return SpecificHaxeClassReference.getIterator(context.types.INT).withConstantValue(constant)
         .createHolder();
     }
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
@@ -784,7 +785,7 @@ public class HaxeExpressionEvaluator {
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
   }
 
-  private static ResultHolder handleJavaToken(PsiJavaToken element) {
+  private static ResultHolder handleJavaToken(PsiJavaToken element, HaxeExpressionEvaluatorContext context) {
     IElementType type = element.getTokenType();
 
     if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
@@ -804,7 +805,7 @@ public class HaxeExpressionEvaluator {
     }
     else {
       System.out.println("Unhandled literal type: " + type);
-      return SpecificHaxeClassReference.getDynamic(element).createHolder();
+      return context.types.DYNAMIC.createHolder();
     }
   }
 
@@ -1041,7 +1042,7 @@ public class HaxeExpressionEvaluator {
       String accessName = children[n].getText();
       if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
         String str = (String)typeHolder.getType().getConstant();
-        typeHolder = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
+        typeHolder = context.types.INT.withConstantValue((str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
         if (str == null || str.length() != 1) {
           context.addError(element, "String must be a single UTF8 char");
         }
@@ -1105,7 +1106,7 @@ public class HaxeExpressionEvaluator {
       }
     }
 
-    return (typeHolder != null) ? typeHolder : SpecificTypeReference.getDynamic(element).createHolder();
+    return (typeHolder != null) ? typeHolder : context.types.DYNAMIC.createHolder();
   }
 
   @NotNull

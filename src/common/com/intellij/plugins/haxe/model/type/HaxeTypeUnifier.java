@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeTypesModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,10 +76,11 @@ public class HaxeTypeUnifier {
 
   @NotNull
   static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b, @NotNull PsiElement context) {
+    final HaxeTypesModel types = HaxeTypesModel.fromElement(context);
     if (a.isDynamic()) return a.withoutConstantValue();
     if (b.isDynamic()) return b.withoutConstantValue();
-    if (a.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
-    if (b.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
+    if (a.getHaxeClassModel() == null) return types.DYNAMIC;
+    if (b.getHaxeClassModel() == null) return types.DYNAMIC;
     final Set<HaxeClassModel> atypes = a.getHaxeClassModel().getCompatibleTypes();
     final Set<HaxeClassModel> btypes = b.getHaxeClassModel().getCompatibleTypes();
     // @TODO: this could be really slow, hotspot for optimizing
@@ -92,7 +94,7 @@ public class HaxeTypeUnifier {
     }
 
     // @TODO: Do a proper unification
-    return SpecificTypeReference.getDynamic(a.getElementContext());
+    return types.DYNAMIC;
   }
 
   @NotNull

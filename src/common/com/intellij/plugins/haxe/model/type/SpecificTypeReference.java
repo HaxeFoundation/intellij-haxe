@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.model.HaxeTypesModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,32 +38,12 @@ public abstract class SpecificTypeReference {
     return this;
   }
 
-  static public SpecificHaxeClassReference getVoid(@NotNull PsiElement context) {
-    return primitive("Void", context);
-  }
-
-  static public SpecificHaxeClassReference getBool(@NotNull PsiElement context) {
-    return primitive("Bool", context);
-  }
-
   static public SpecificHaxeClassReference getString(@NotNull PsiElement context) {
     return primitive("String", context);
   }
 
-  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context) {
-    return primitive("Int", context);
-  }
-
   static public SpecificHaxeClassReference getClass(@NotNull PsiElement context) {
     return primitive("Class", context);
-  }
-
-  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context, int value) {
-    return primitive("Int", context, value);
-  }
-
-  static public SpecificHaxeClassReference getDynamic(@NotNull PsiElement context) {
-    return primitive("Dynamic", context);
   }
 
   static public SpecificHaxeClassReference getUnknown(@NotNull PsiElement context) {
@@ -232,7 +213,7 @@ public abstract class SpecificTypeReference {
         return returnType;
       }
     }
-    return getDynamic(context.root).createHolder();
+    return context.types.DYNAMIC.createHolder();
   }
 
   @NotNull

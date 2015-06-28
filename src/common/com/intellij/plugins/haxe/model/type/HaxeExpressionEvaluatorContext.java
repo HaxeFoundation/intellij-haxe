@@ -24,6 +24,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
+import com.intellij.plugins.haxe.model.HaxeTypesModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Locals;
@@ -44,16 +45,15 @@ public class HaxeExpressionEvaluatorContext {
   @NotNull public final PsiElement root;
   public ResultHolder functionType;
   @NotNull public HaxeResolver2Locals resolver;
+  @NotNull public final HaxeProjectModel project;
+  @NotNull public final HaxeTypesModel types;
 
   public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @NotNull HaxeResolver2 resolver, @Nullable AnnotationHolder holder) {
     this.root = body;
     this.holder = holder;
     this.resolver = new HaxeResolver2Locals(resolver);
-  }
-
-  @NotNull
-  public HaxeProjectModel getProject() {
-    return HaxeProjectModel.fromElement(root);
+    this.project = HaxeProjectModel.fromElement(root);
+    this.types = this.project.getTypes();
   }
 
   public HaxeExpressionEvaluatorContext createChild(PsiElement body) {
@@ -73,7 +73,7 @@ public class HaxeExpressionEvaluatorContext {
   }
 
   public ResultHolder getReturnType() {
-    if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root).createHolder();
+    if (returns.isEmpty()) return types.VOID.createHolder();
     return HaxeTypeUnifier.unify(ResultHolder.types(returns), root).createHolder();
   }
 

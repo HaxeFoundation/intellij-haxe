@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.model.HaxeTypesModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +69,7 @@ public class ResultHolder {
 
   public ResultHolder setType(@Nullable SpecificTypeReference type, @Nullable PsiElement element) {
     if (type == null) {
-      type = SpecificTypeReference.getDynamic(this.type.getElementContext());
+      type = HaxeTypesModel.fromElement(this.getElementContext()).DYNAMIC;
     }
     this.type = type;
     this.element = element;
