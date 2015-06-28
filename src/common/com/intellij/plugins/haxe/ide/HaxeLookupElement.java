@@ -21,9 +21,10 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
-import com.intellij.plugins.haxe.model.HaxeMethodContext;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeModifierType;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,26 +38,25 @@ import java.util.List;
 public class HaxeLookupElement extends LookupElement {
   private final HaxeComponentName myComponentName;
   private final HaxeClassResolveResult leftReference;
-  private final HaxeMethodContext context;
+  public boolean isExtensionMethod = false;
 
-  public static Collection<HaxeLookupElement> convert(HaxeClassResolveResult leftReference, @NotNull Collection<HaxeComponentName> componentNames, @NotNull Collection<HaxeComponentName> componentNamesExtension) {
+  public static Collection<HaxeLookupElement> convert(
+    HaxeClassResolveResult leftReference,
+    @NotNull Collection<HaxeComponentName> componentNames,
+    @NotNull Collection<HaxeComponentName> componentNamesExtension
+  ) {
     final List<HaxeLookupElement> result = new ArrayList<HaxeLookupElement>(componentNames.size());
     for (HaxeComponentName componentName : componentNames) {
-      HaxeMethodContext context = null;
-      if (componentNamesExtension.contains(componentName)) {
-        context = HaxeMethodContext.EXTENSION;
-      } else {
-        context = HaxeMethodContext.NO_EXTENSION;
-      }
-      result.add(new HaxeLookupElement(leftReference, componentName, context));
+      boolean isExtensionMethod = (componentNamesExtension.contains(componentName));
+      result.add(new HaxeLookupElement(leftReference, componentName, isExtensionMethod));
     }
     return result;
   }
 
-  public HaxeLookupElement(HaxeClassResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context) {
+  public HaxeLookupElement(HaxeClassResolveResult leftReference, HaxeComponentName name, boolean isExtensionMethod) {
     this.leftReference = leftReference;
     this.myComponentName = name;
-    this.context = context;
+    this.isExtensionMethod = isExtensionMethod;
   }
 
   @NotNull
@@ -83,7 +83,11 @@ public class HaxeLookupElement extends LookupElement {
     HaxeMemberModel member = HaxeMemberModel.fromPsi(myComponentName);
 
     if (member != null) {
-      presentableText = member.getPresentableText(context);
+      if (isExtensionMethod && member instanceof HaxeMethodModel) {
+        presentableText = ((HaxeMethodModel)member).asExtensionMethod().getPresentableText();
+      } else {
+        presentableText = member.getPresentableText();
+      }
 
       // Check deprecated modifiers
       if (member.getModifiers().hasModifier(HaxeModifierType.DEPRECATED)) {

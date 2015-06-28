@@ -41,12 +41,8 @@ public class HaxeResolver2Class extends HaxeResolver2 {
     this.file = clazz.getFile();
     this.fileResolver = this.file.getResolver();
     this.inStaticContext = inStaticContext;
-    System.out.println(name);
-    if (name.equals("String")) {
-      System.out.println(name);
-    }
     for (HaxeUsingModel using : referencedInFile.getUsings().getUsings()) {
-      System.out.println(name + "," + using.getHaxeClassReference());
+      //System.out.println(name + "," + using.getHaxeClassReference());
       //using.getHaxeClass()
     }
   }

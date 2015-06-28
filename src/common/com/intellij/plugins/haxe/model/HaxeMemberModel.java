@@ -113,7 +113,7 @@ abstract public class HaxeMemberModel {
 
   abstract public ResultHolder getMemberType();
 
-  public String getPresentableText(HaxeMethodContext context) {
+  public String getPresentableText() {
     return this.getName() + ":" + getResultType();
   }
 

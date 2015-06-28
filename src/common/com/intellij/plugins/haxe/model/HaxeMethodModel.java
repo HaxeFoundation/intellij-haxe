@@ -63,20 +63,13 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
 
   //private List<HaxeParameterModel> _parameters;
   public HaxeParametersModel getParameters() {
-    return getParametersWithContext(
-      isExtensionMethod ? HaxeMethodContext.EXTENSION : HaxeMethodContext.NO_EXTENSION
-    );
+    HaxeParameterList params = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
+    return HaxeParametersModel.fromHaxeParameterList(this, params, isExtensionMethod);
   }
 
   @Nullable
   public HaxeParameterModel getParameter(int index) {
     return getParameters().get(index);
-  }
-
-  public HaxeParametersModel getParametersWithContext(@Nullable HaxeMethodContext context) {
-    boolean isExtensionMethod = context != null && context.isExtensionMethod();
-    HaxeParameterList params = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
-    return HaxeParametersModel.fromHaxeParameterList(this, params, isExtensionMethod);
   }
 
   @Nullable
@@ -107,12 +100,12 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
   }
 
   @Override
-  public String getPresentableText(HaxeMethodContext context) {
+  public String getPresentableText() {
     String out = "";
     out += this.getName();
     out += "(";
     int index = 0;
-    for (HaxeParameterModel param : this.getParametersWithContext(context).parameters) {
+    for (HaxeParameterModel param : this.getParameters().parameters) {
       if (index > 0) out += ", ";
       out += param.getPresentableText();
       index++;
