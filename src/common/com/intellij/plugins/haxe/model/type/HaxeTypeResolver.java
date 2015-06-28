@@ -23,6 +23,8 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeCastFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeRemoveFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagRemoveFixer;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -228,7 +230,8 @@ public class HaxeTypeResolver {
     if (typeTagType != null && !typeTagType.getType().isVoid() && (returnValues.size() == 0)) {
       context.addError(
         method.getReturnTypeTagOrNameOrBasePsi(),
-        "Expected returning " + typeTagType
+        "Expected returning " + typeTagType,
+        new HaxeTypeTagRemoveFixer(typeTag)
       );
     }
 
