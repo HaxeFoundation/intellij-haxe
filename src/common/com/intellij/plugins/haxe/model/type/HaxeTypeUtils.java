@@ -59,6 +59,7 @@ public class HaxeTypeUtils {
     if (operator.equals(">=")) return leftv >= rightv;
     if (operator.equals("<<")) return (int)leftv << (int)rightv;
     if (operator.equals(">>")) return (int)leftv >> (int)rightv;
+    if (operator.equals(">>>")) return (int)leftv >>> (int)rightv;
     if (operator.equals("&")) return (int)leftv & (int)rightv;
     if (operator.equals("|")) return (int)leftv | (int)rightv;
     throw new RuntimeException("Unsupporteed operator '" + operator + "'");

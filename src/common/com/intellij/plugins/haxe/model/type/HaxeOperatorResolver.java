@@ -89,10 +89,15 @@ public class HaxeOperatorResolver {
     }
 
     if (operator.equals("&&") || operator.equals("||")) {
-      if (!left.isBool() || !right.isBool()) {
-        invalid(context, elementContext, operator, left, right);
+      if (left.isBool() && right.isBool()) {
+        return types.BOOL;
       }
-      return types.BOOL;
+    }
+
+    if (operator.equals("&") || operator.equals("|") || operator.equals("^") || operator.equals("<<") || operator.equals(">>") || operator.equals(">>>")) {
+      if (left.isInt() && right.isInt()) {
+        return types.INT;
+      }
     }
 
     if (
@@ -103,20 +108,11 @@ public class HaxeOperatorResolver {
       return types.BOOL;
     }
 
-    invalid(context, elementContext, operator, left, right);
-
-    return types.DYNAMIC;
-  }
-
-  static private void invalid(
-    HaxeExpressionEvaluatorContext context,
-    PsiElement elementContext,
-    String operator,
-    SpecificTypeReference left, SpecificTypeReference right
-  ) {
     context.addError(
       elementContext,
       "Can't apply operator " + operator + " for types " + left + " and " + right
     );
+
+    return types.DYNAMIC;
   }
 }

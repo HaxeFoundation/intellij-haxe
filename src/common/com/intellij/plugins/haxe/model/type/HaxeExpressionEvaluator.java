@@ -667,19 +667,14 @@ public class HaxeExpressionEvaluator {
   private static ResultHolder handleWhileStatement(HaxeWhileStatement element, HaxeExpressionEvaluatorContext context) {
     List<HaxeExpression> list = element.getExpressionList();
     SpecificTypeReference type = null;
-    HaxeExpression lastExpression = null;
-    for (HaxeExpression expression : list) {
-      type = handle(expression, context).getType();
-      lastExpression = expression;
+    if (list.size() >= 1) {
+      type = handle(list.get(0), context).getType();
     }
-    if (type == null) {
-      type = context.types.DYNAMIC;
-    }
-    if (!type.isBool() && lastExpression != null) {
+    if (type != null && !type.isBool()) {
       context.addError(
-        lastExpression,
-        "While expression must be boolean",
-        new HaxeCastFixer(lastExpression, type, context.types.BOOL)
+        list.get(0),
+        "While expression must be Bool but was " + type,
+        new HaxeCastFixer(list.get(0), type, context.types.BOOL)
       );
     }
 
@@ -688,7 +683,6 @@ public class HaxeExpressionEvaluator {
       context.beginScope();
       try {
         context.putInfo(LOOP_ELEMENT, element);
-        //return SpecificHaxeClassReference.createArray(result); // @TODO: Check this
         return handle(body, context);
       }
       finally {
@@ -789,7 +783,7 @@ public class HaxeExpressionEvaluator {
     IElementType type = element.getTokenType();
 
     if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
-      return SpecificHaxeClassReference.primitive("Int", element, Integer.decode(element.getText())).createHolder();
+      return SpecificHaxeClassReference.primitive("Int", element, Long.decode(element.getText())).createHolder();
     }
     else if (type == HaxeTokenTypes.LITFLOAT) {
       return SpecificHaxeClassReference.primitive("Float", element, Float.parseFloat(element.getText())).createHolder();
