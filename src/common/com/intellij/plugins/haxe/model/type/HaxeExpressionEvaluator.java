@@ -28,8 +28,10 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeEnumMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.build.HaxeArgumentBuilder;
 import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
 import com.intellij.plugins.haxe.model.fixer.*;
+import com.intellij.plugins.haxe.model.util.HaxeNameUtils;
 import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
@@ -64,6 +66,7 @@ public class HaxeExpressionEvaluator {
   static private String SWITCH_TARGET = " $SWITCH_TARGET$ ";
   static private Key<Set<HaxeMemberModel>> HAXE_SWITCH_MEMBER = new Key<Set<HaxeMemberModel>>("HAXE_SWITCH_MEMBER");
   static private Key<HaxeSwitchStatement> SWITCH_ELEMENT = new Key<HaxeSwitchStatement>("SWITCH_ELEMENT");
+  static private Key<PsiElement> LOOP_ELEMENT = new Key<PsiElement>("LOOP_ELEMENT");
 
   static private ResultHolder setParameter(final HaxeExpressionEvaluatorContext context, final HaxeParameter param) {
     final HaxeComponentName name = param.getComponentName();
@@ -108,13 +111,14 @@ public class HaxeExpressionEvaluator {
       return SpecificFunctionReference.getVoid(element).createHolder();
     }
 
-    if (element instanceof HaxeBreakStatement) {
+    if ((element instanceof HaxeBreakStatement) || (element instanceof HaxeContinueStatement)) {
+      final PsiElement loop = context.getInfo(LOOP_ELEMENT);
+      if (loop == null) {
+        context.addError(element, element.getText() + " is not inside a loop");
+      }
       return SpecificFunctionReference.getVoid(element).createHolder();
     }
 
-    if (element instanceof HaxeContinueStatement) {
-      return SpecificFunctionReference.getVoid(element).createHolder();
-    }
 
     if (element instanceof HaxeReturnStatement) {
       PsiElement[] children = element.getChildren();
@@ -142,7 +146,8 @@ public class HaxeExpressionEvaluator {
         context.putInfo(SWITCH_ELEMENT, (HaxeSwitchStatement)element);
         context.setLocal(SWITCH_TARGET, target);
         return handle(((HaxeSwitchStatement)element).getSwitchBlock(), context);
-      } finally {
+      }
+      finally {
         context.endScope();
       }
     }
@@ -156,7 +161,8 @@ public class HaxeExpressionEvaluator {
         try {
           final ResultHolder defaultResult = handle(defaultCase, context);
           result = HaxeTypeUnifier.unify(result, defaultResult, element);
-        } finally {
+        }
+        finally {
           context.endScope();
         }
       }
@@ -177,11 +183,13 @@ public class HaxeExpressionEvaluator {
         if (!missingMembers.isEmpty() && defaultCase == null) {
           context.addError(context.getInfo(SWITCH_ELEMENT).getExpression(), "Not exhaustive members. Missing: " + missingMembers);
         }
-      } else {
+      }
+      else {
         if (defaultCase == null) {
           context.addError(context.getInfo(SWITCH_ELEMENT).getExpression(), "Not exhaustive members. Put a default.");
         }
       }
+      if (result == null) return SpecificTypeReference.getDynamic(element).createHolder();
       return result;
     }
 
@@ -228,7 +236,8 @@ public class HaxeExpressionEvaluator {
           }
         }
         return handle(element.getLastChild(), context);
-      } finally {
+      }
+      finally {
         context.endScope();
       }
     }
@@ -250,6 +259,7 @@ public class HaxeExpressionEvaluator {
       final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
       final PsiElement body = element.getLastChild();
       context.beginScope();
+      context.putInfo(LOOP_ELEMENT, element);
       try {
         final SpecificTypeReference iterableValue = handle(iterable, context).getType();
         if (!iterableValue.isIterable(context)) {
@@ -280,7 +290,8 @@ public class HaxeExpressionEvaluator {
         final HaxeClassModel clazz = ((SpecificHaxeClassReference)typeHolder.getType()).getHaxeClassModel();
         if (clazz == null) {
           context.addError(((HaxeNewExpression)element).getType(), "Can't find type");
-        } else {
+        }
+        else {
           HaxeMethodModel constructor = clazz.getConstructor();
           if (constructor == null) {
             context.addError(
@@ -364,8 +375,14 @@ public class HaxeExpressionEvaluator {
 
       PsiElement body = element.getLastChild();
       if (body != null) {
-        //return SpecificHaxeClassReference.createArray(result); // @TODO: Check this
-        return handle(body, context);
+        context.beginScope();
+        try {
+          context.putInfo(LOOP_ELEMENT, element);
+          //return SpecificHaxeClassReference.createArray(result); // @TODO: Check this
+          return handle(body, context);
+        } finally {
+          context.endScope();
+        }
       }
 
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
@@ -412,30 +429,28 @@ public class HaxeExpressionEvaluator {
       final HaxeVarInit init = ((HaxeLocalVarDeclarationPart)element).getVarInit();
       final HaxeTypeTag typeTag = ((HaxeLocalVarDeclarationPart)element).getTypeTag();
       ResultHolder result = SpecificHaxeClassReference.getUnknown(element).createHolder();
+
       if (init != null) {
         result = handle(init, context);
       }
-      if (typeTag != null) {
-        result = HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
-      }
 
       if (typeTag != null) {
+        final ResultHolder left = result;
         final ResultHolder tag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
-        if (!tag.canAssign(result)) {
+
+        if (!tag.canAssign(left)) {
           result = tag.duplicate();
 
           context.addError(
             element,
             "Can't assign " + result + " to " + tag,
-            new HaxeTypeTagChangeFixer(typeTag, result.getType()),
+            new HaxeTypeTagChangeFixer(typeTag, left.getType()),
             new HaxeTypeTagRemoveFixer(typeTag)
           );
         }
       }
 
-      if (name != null) {
-        context.setLocal(name.getText(), result);
-      }
+      context.setLocal(name.getText(), result);
 
       return result;
     }
@@ -462,11 +477,56 @@ public class HaxeExpressionEvaluator {
             Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType());
             if (children.length == 1) {
               annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
-            } else {
+            }
+            else {
               SpecificHaxeClassReference classType = typeHolder.getClassType();
               if (classType != null) {
                 HaxeClassModel classModel = classType.getHaxeClassModel();
-                annotation.registerFix(new HaxeCreateMethodFixer(classModel, new HaxeMethodBuilder(accessName, typeHolder)));
+                final HaxeCallExpression callExpr = UsefulPsiTreeUtil.getAncestorWithAcceptableParents(
+                  element,
+                  HaxeCallExpression.class,
+                  HaxeReferenceExpression.class
+                );
+                if (callExpr != null) {
+                  final HaxeAssignExpression assign = UsefulPsiTreeUtil.getAncestorWithAcceptableParents(
+                    callExpr,
+                    HaxeAssignExpression.class,
+                    HaxeCallExpression.class,
+                    HaxeReferenceExpression.class
+                  );
+                  final HaxeLocalVarDeclarationPart varInit = UsefulPsiTreeUtil.getAncestorWithAcceptableParents(
+                    callExpr,
+                    HaxeLocalVarDeclarationPart.class,
+                    HaxeVarInit.class,
+                    HaxeCallExpression.class,
+                    HaxeReferenceExpression.class
+                  );
+                  ResultHolder returnType = null;
+                  if (assign != null) {
+                    final PsiElement[] children1 = assign.getChildren();
+                    if (children1.length >= 1) {
+                      returnType = handle(children1[0], context).withoutConstantValue();
+                    }
+                  }
+                  if (varInit != null) {
+                    final HaxeTypeTag tag = varInit.getTypeTag();
+                    if (tag != null) {
+                      returnType = HaxeTypeResolver.getTypeFromTypeTag(tag, element);
+                    }
+                  }
+                  final HaxeExpressionList list = callExpr.getExpressionList();
+                  final HaxeMethodBuilder methodBuilder = new HaxeMethodBuilder(accessName, returnType);
+                  if (list != null) {
+                    for (HaxeExpression expression : list.getExpressionList()) {
+                      final ResultHolder handle = handle(expression, context);
+                      methodBuilder.addArgument(
+                        HaxeNameUtils.getValidIdentifierFromExpression(expression, handle),
+                        handle.withoutConstantValue()
+                      );
+                    }
+                  }
+                  annotation.registerFix(new HaxeCreateMethodFixer(classModel, methodBuilder));
+                }
                 annotation.registerFix(new HaxeCreateFieldFixer(classModel, accessName));
               }
             }
@@ -699,7 +759,8 @@ public class HaxeExpressionEvaluator {
         holder.setType(new SpecificFunctionReference(results, returnType, null, element));
         childContext.functionType = holder;
         context.addLambda(childContext);
-      } finally {
+      }
+      finally {
         context.endScope();
       }
 
@@ -730,7 +791,8 @@ public class HaxeExpressionEvaluator {
         holder.setType(new SpecificFunctionReference(results, returnType, null, element));
         childContext.functionType = holder;
         context.addLambda(childContext);
-      } finally {
+      }
+      finally {
         context.endScope();
       }
 
@@ -881,7 +943,8 @@ public class HaxeExpressionEvaluator {
     }
     // Less parameters than expected
     else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
-      context.addError(callelement, "Less arguments than expected " + parameterExpressions.size() + " != " + ftype.getNonOptionalArgumentsCount());
+      context.addError(callelement,
+                       "Less arguments than expected " + parameterExpressions.size() + " != " + ftype.getNonOptionalArgumentsCount());
     }
   }
 

@@ -422,6 +422,20 @@ public class UsefulPsiTreeUtil {
     return getAncestor(element.getParent(), clazz);
   }
 
+  static public <T extends PsiElement> T getAncestorWithAcceptableParents(PsiElement element, Class<T> clazz, Class... acceptableClasses) {
+    if (element == null) return null;
+    final Class<? extends PsiElement> elementClass = element.getClass();
+    if (clazz.isAssignableFrom(elementClass)) return (T)element;
+    boolean anyAcceptable = false;
+    for (Class acceptableClass : acceptableClasses) {
+      if (acceptableClass.isAssignableFrom(elementClass)) {
+        anyAcceptable = true;
+        break;
+      }
+    }
+    return anyAcceptable ? getAncestorWithAcceptableParents(element.getParent(), clazz, acceptableClasses) : null;
+  }
+
   static public <T extends PsiElement> T getChild(PsiElement element, Class<T> clazz) {
     if (element == null) return null;
     for (PsiElement psiElement : element.getChildren()) {
@@ -468,5 +482,18 @@ public class UsefulPsiTreeUtil {
       sibling = sibling.getNextSibling();
     }
     return sibling;
+  }
+
+  @Nullable
+  public static <T extends PsiElement> T getLastDescendantOfType(PsiElement e, Class<T> clazz) {
+    if (e == null) return null;
+    if (clazz.isAssignableFrom(e.getClass())) return (T)e;
+    final PsiElement[] children = e.getChildren();
+    for (int n = children.length - 1; n >= 0; n--) {
+      final PsiElement child = children[n];
+      final T result = getLastDescendantOfType(child, clazz);
+      if (result != null) return result;
+    }
+    return null;
   }
 }

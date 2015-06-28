@@ -18,19 +18,44 @@
 package com.intellij.plugins.haxe.model.build;
 
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.util.HaxeNameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 public class HaxeMethodBuilder {
   public final String name;
   @Nullable public final ResultHolder retval;
-  public final HaxeArgumentBuilder[] args;
+  public final List<HaxeArgumentBuilder> args;
 
   public HaxeMethodBuilder(String name, @Nullable ResultHolder retval, HaxeArgumentBuilder... args) {
     this.name = name;
     this.retval = retval;
-    this.args = args;
+    this.args = new LinkedList<HaxeArgumentBuilder>(Arrays.asList(args));
+  }
+
+  public HaxeMethodBuilder(String name, @Nullable ResultHolder retval, Collection<HaxeArgumentBuilder> args) {
+    this(name, retval, args.toArray(new HaxeArgumentBuilder[args.size()]));
+  }
+
+  public void addArgument(HaxeArgumentBuilder arg) {
+    this.args.add(arg);
+  }
+
+  public void addArgument(@NotNull String name, @Nullable ResultHolder type) {
+    for (HaxeArgumentBuilder arg : args) {
+      if (arg.name.equals(name)) {
+        name = HaxeNameUtils.incrementNumber(name);
+      }
+    }
+
+    this.args.add(new HaxeArgumentBuilder(name, type));
   }
 
   public HaxeMethodBuilder(String name) {

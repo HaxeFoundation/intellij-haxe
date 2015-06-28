@@ -125,6 +125,10 @@ public class ResultHolder {
     return duplicate().setType(getType().withConstantValue(constantValue), null);
   }
 
+  public ResultHolder withoutConstantValue() {
+    return withConstantValue(null);
+  }
+
   public Object getConstant() {
     return getType().getConstant();
   }

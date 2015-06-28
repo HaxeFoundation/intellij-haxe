@@ -26,7 +26,7 @@ public class HaxeTypeTagChangeFixer extends HaxeFixer {
   private SpecificTypeReference result;
 
   public HaxeTypeTagChangeFixer(HaxeTypeTag typeTag, SpecificTypeReference result) {
-    super("HaxeTypeTagChangeFixer");
+    super("Change TypeTag");
     this.typeTag = typeTag;
     this.result = result;
   }
