@@ -34,10 +34,8 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
   public HaxeResolver2File(@NotNull HaxeFileModel file) {
     super();
     packages.add(file.getProject().rootPackage);
-    packages.add(file.getDetectedPackage());
-    //for (HaxePackageModel aPackage : packages) {
-      //resolvers.add(aPackage.getResolver());
-    //}
+    final HaxePackageModel aPackage = file.getDetectedPackage();
+    if (aPackage != null) packages.add(aPackage);
     for (HaxeClassModel clazz : file.getImports().getImportedClasses()) {
       importedClasses.put(clazz.getName(), clazz);
     }
@@ -46,23 +44,23 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
 
   @Nullable
   @Override
-  public ResultHolder get(String key) {
+  public ResultHolder get(String name) {
     ResultHolder result = null;
 
     // Try to get from classes in this file
     if (result == null) {
-      HaxeClassModel clazz = file.getHaxeClass(key);
+      HaxeClassModel clazz = file.getHaxeClass(name);
       if (clazz != null) {
         result = clazz.getClassType();
       }
     }
 
-    // Try to get from classes in this package
+    // Try to get from classes in available packages
     if (result == null) {
       for (int n = packages.size() - 1; n >= 0; n--) {
         HaxePackageModel packag = packages.get(n);
         if (result == null && packag != null) {
-          HaxeClassModel clazz = packag.getHaxeClass(key);
+          HaxeClassModel clazz = packag.getHaxeClass(name);
           if (clazz != null) {
             result = clazz.getClassType();
           }
@@ -70,9 +68,17 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
       }
     }
 
+    // Try to get imported classes
+    if (result == null) {
+      final HaxeClassModel clazz = importedClasses.get(name);
+      if (clazz != null) {
+        result = clazz.getClassType();
+      }
+    }
+
     // Try to get from super
     if (result == null) {
-      result = super.get(key);
+      result = super.get(name);
     }
 
     return result;
@@ -84,6 +90,11 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
     for (HaxeClassModel clazz : file.getHaxeClasses()) {
       results.put(clazz.getName(), clazz.getClassType());
     }
+
+    for (HaxeClassModel clazz : importedClasses.values()) {
+      results.put(clazz.getName(), clazz.getClassType());
+    }
+
     for (HaxePackageModel packag : packages) {
       for (HaxeClassModel clazz : packag.getHaxeClasses()) {
         results.put(clazz.getName(), clazz.getClassType());

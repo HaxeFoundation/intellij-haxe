@@ -52,7 +52,7 @@ abstract public class HaxeMemberModel {
     return _document;
   }
 
-  public PsiElement getPsi() { return basePsi; }
+  final public PsiElement getPsi() { return basePsi; }
 
   public HaxeNamedComponent getNamedComponentPsi() {
     return getNamedComponentPsi(basePsi);

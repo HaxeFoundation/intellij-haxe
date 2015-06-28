@@ -34,11 +34,6 @@ public class HaxeFieldModel extends HaxeMemberModel {
     this.element = element;
   }
 
-  @Override
-  public PsiElement getPsi() {
-    return element;
-  }
-
   public HaxeVarDeclaration getFieldPsi() {
     return element;
   }

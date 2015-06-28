@@ -70,9 +70,10 @@ public class HaxeFileModel {
     return UsefulPsiTreeUtil.getChild(file, HaxePackageStatement.class);
   }
 
-  @NotNull
+  @Nullable
   public HaxePackageModel getDetectedPackage() {
-    return getProject().getPackageFromFile(file);
+    final HaxeProjectModel project = getProject();
+    return project.getPackageFromFile(file);
   }
 
   @NotNull

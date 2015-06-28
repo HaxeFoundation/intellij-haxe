@@ -41,11 +41,6 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
     this.haxeMethod = haxeMethod;
   }
 
-  @Override
-  public PsiElement getPsi() {
-    return haxeMethod;
-  }
-
   public HaxeMethodPsiMixin getMethodPsi() {
     return haxeMethod;
   }

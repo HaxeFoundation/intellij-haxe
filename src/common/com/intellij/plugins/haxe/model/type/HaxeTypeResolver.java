@@ -155,12 +155,16 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public ResultHolder getTypeFromFunctionType(HaxeFunctionType type) {
+    // @TODO: This is messy, should be refactored
     ArrayList<ResultHolder> args = new ArrayList<ResultHolder>();
     for (HaxeTypeOrAnonymous anonymous : type.getTypeOrAnonymousList()) {
       args.add(getTypeFromTypeOrAnonymous(anonymous));
     }
     ResultHolder retval = args.get(args.size() - 1);
     args.remove(args.size() - 1);
+    if (args.size() == 1 && args.get(0).getType().toStringWithoutConstant().equals("Void")) {
+      args.clear();
+    }
     return new SpecificFunctionReference(args, retval, null, type).createHolder();
   }
 

@@ -88,12 +88,31 @@ public class HaxeExpressionEvaluator {
           //context.addWarning(childElement, "Unreachable statement");
           context.addUnreachable(childElement);
         }
-        if (childElement instanceof HaxeReturnStatement) {
+        if (
+          childElement instanceof HaxeReturnStatement ||
+          childElement instanceof HaxeThrowStatement ||
+          childElement instanceof HaxeBreakStatement ||
+          childElement instanceof HaxeContinueStatement
+          ) {
           deadCode = true;
         }
       }
       context.endScope();
       return type;
+    }
+
+    if (element instanceof HaxeThrowStatement) {
+      final HaxeExpression throwExpression = ((HaxeThrowStatement)element).getExpression();
+      final ResultHolder throwResult = handle(throwExpression, context);
+      return SpecificFunctionReference.getVoid(element).createHolder();
+    }
+
+    if (element instanceof HaxeBreakStatement) {
+      return SpecificFunctionReference.getVoid(element).createHolder();
+    }
+
+    if (element instanceof HaxeContinueStatement) {
+      return SpecificFunctionReference.getVoid(element).createHolder();
     }
 
     if (element instanceof HaxeReturnStatement) {
@@ -567,8 +586,11 @@ public class HaxeExpressionEvaluator {
       else if (type == HaxeTokenTypes.KNULL) {
         return SpecificHaxeClassReference.primitive("Dynamic", element, HaxeNull.instance).createHolder();
       }
+      else if (type == HaxeTokenTypes.REG_EXP) {
+        return SpecificHaxeClassReference.primitive("EReg", element).createHolder();
+      }
       else {
-        //System.out.println("Unhandled token type: " + tokenType);
+        System.out.println("Unhandled literal type: " + type);
         return SpecificHaxeClassReference.getDynamic(element).createHolder();
       }
     }
@@ -811,6 +833,11 @@ public class HaxeExpressionEvaluator {
       }
     }
 
+    if (element instanceof HaxeSuffixExpression) {
+      final PsiElement[] children = element.getChildren();
+      return handle(children[0], context);
+    }
+
     System.out.println("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getDynamic(element).createHolder();
   }
@@ -855,7 +882,7 @@ public class HaxeExpressionEvaluator {
     }
     // Less parameters than expected
     else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
-      context.addError(callelement, "Less arguments than expected");
+      context.addError(callelement, "Less arguments than expected " + parameterExpressions.size() + " != " + ftype.getNonOptionalArgumentsCount());
     }
   }
 

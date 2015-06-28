@@ -75,6 +75,7 @@ public class HaxeClassModel {
     return new HaxeResolver2Class(this, inStaticContext);
   }
 
+  @Nullable
   public HaxeClassModel getParentClass() {
     final HaxeClassReferenceModel reference = this.getParentClassReference();
     return (reference != null) ? reference.getHaxeClass() : null;
@@ -96,6 +97,10 @@ public class HaxeClassModel {
       out.add(new HaxeClassReferenceModel(type));
     }
     return out;
+  }
+
+  public boolean isExternOrInterface() {
+    return isExtern() || isInterface();
   }
 
   public boolean isExtern() {
@@ -207,11 +212,24 @@ public class HaxeClassModel {
 
   @Nullable
   public HaxeMemberModel getMember(String name) {
-    final HaxeMemberModel member = getMemberSelf(name);
-    if (member == null) {
-      // @TODO: Inherited
+    HaxeMemberModel member = getMemberSelf(name);
+    if (member != null) return member;
+
+    final HaxeClassModel parentClass = getParentClass();
+    if (parentClass != null) {
+      member = parentClass.getMember(name);
+      if (member != null) return member;
     }
-    return member;
+
+    for (HaxeClassReferenceModel clazzReference : getImplementingInterfaces()) {
+      final HaxeClassModel clazz = clazzReference.getHaxeClass();
+      if (clazz != null) {
+        member = clazz.getMember(name);
+        if (member != null) return member;
+      }
+    }
+
+    return null;
   }
 
   @Nullable
@@ -225,6 +243,14 @@ public class HaxeClassModel {
     for (HaxeMemberModel member : getMembersSelf()) {
       members.add(member);
     }
+
+    final HaxeClassModel parentClass = this.getParentClass();
+    if (parentClass != null) {
+      for (HaxeMemberModel member : getMembers()) {
+        members.add(member);
+      }
+    }
+
     for (HaxeClassReferenceModel clazz : this.getImplementingInterfaces()) {
       final HaxeClassModel clazzModel = clazz.getHaxeClass();
       if (clazzModel != null) {
@@ -239,32 +265,45 @@ public class HaxeClassModel {
 
   static final private Key<LinkedHashMap<String, HaxeMemberModel>> HAXE_CLASS_MEMBERS_MAP = new Key<LinkedHashMap<String, HaxeMemberModel>>("HAXE_CLASS_MEMBERS_MAP");
 
+  private void prepareMembers(PsiElement element) {
+    if (element == null) return;
+
+    if (element instanceof HaxeAnonymousTypeBody) {
+      prepareMembers(((HaxeAnonymousTypeBody)element).getAnonymousTypeFieldList());
+      prepareMembers(((HaxeAnonymousTypeBody)element).getInterfaceBody());
+      return;
+    }
+
+    for (PsiElement child : element.getChildren()) {
+      HaxeMemberModel member = null;
+      if (child instanceof HaxeMethod) {
+        member = ((HaxeMethod)child).getModel();
+      } else if (child instanceof HaxeVarDeclaration) {
+        member = ((HaxeVarDeclaration)child).getModel();
+      } else if (child instanceof HaxeEnumValueDeclaration) {
+        member = ((HaxeEnumValueDeclaration)child).getModel();
+      } else if (child instanceof HaxeAnonymousTypeField) {
+        member = new HaxeAnnonymousFieldModel((HaxeAnonymousTypeField)child);
+      }
+      if (member != null) {
+        selfMembersMap.put(member.getName(), member);
+      }
+    }
+  }
+
   private void prepareMembers() {
-    //getFile().removeCache(); // @TODO: Remove this line
+    getFile().removeCache(); // @TODO: Remove this line
 
     final HaxeCacheModel cache = getFile().getCache();
 
     if (!cache.has(HAXE_CLASS_MEMBERS_MAP)) {
       LinkedHashMap<String, HaxeMemberModel> selfMembersMap = new LinkedHashMap<String, HaxeMemberModel>();
+      cache.put(HAXE_CLASS_MEMBERS_MAP, this.selfMembersMap = selfMembersMap);
       final PsiElement bodyPsi = this.getBodyPsi();
-      if (bodyPsi != null) {
-        for (PsiElement element : bodyPsi.getChildren()) {
-          HaxeMemberModel member = null;
-          if (element instanceof HaxeMethod) {
-            member = ((HaxeMethod)element).getModel();
-          } else if (element instanceof HaxeVarDeclaration) {
-            member = ((HaxeVarDeclaration)element).getModel();
-          } else if (element instanceof HaxeEnumValueDeclaration) {
-            member = ((HaxeEnumValueDeclaration)element).getModel();
-          }
-          if (member != null) {
-            selfMembersMap.put(member.getName(), member);
-          }
-        }
-      }
-      cache.put(HAXE_CLASS_MEMBERS_MAP, selfMembersMap);
+      prepareMembers(bodyPsi);
+    } else {
+      this.selfMembersMap = cache.get(HAXE_CLASS_MEMBERS_MAP);
     }
-    this.selfMembersMap = cache.get(HAXE_CLASS_MEMBERS_MAP);
   }
 
   @NotNull
@@ -343,7 +382,7 @@ public class HaxeClassModel {
       if (anonymous != null) {
         final HaxeAnonymousType type = anonymous.getAnonymousType();
         if (type != null) {
-          return type.getAnonymousTypeBody().getInterfaceBody();
+          return type.getAnonymousTypeBody();
         }
       }
     }
