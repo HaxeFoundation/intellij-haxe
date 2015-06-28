@@ -75,4 +75,16 @@ public class HaxeNameUtils {
     // thing:s -> thing
     return name + "Element";
   }
+
+  public static boolean isValidIdentifier(String id) {
+    return ensureIdName(id).equals(id);
+  }
+
+  public static boolean isValidPackageName(String id) {
+    return ensureIdName(id).equals(id);
+  }
+
+  public static boolean isValidClassName(String id) {
+    return ensureClassName(id).equals(id);
+  }
 }

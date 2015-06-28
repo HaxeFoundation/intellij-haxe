@@ -127,4 +127,8 @@ public class HaxeFileModel {
   public HaxeResolver2File getResolver() {
     return new HaxeResolver2File(this);
   }
+
+  @NotNull public HaxeUsingsModel getUsings() {
+    return new HaxeUsingsModel(this);
+  }
 }

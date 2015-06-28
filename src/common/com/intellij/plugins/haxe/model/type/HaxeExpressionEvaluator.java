@@ -23,10 +23,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeEnumMemberModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.util.HaxeNameUtils;
@@ -40,6 +37,7 @@ import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -970,11 +968,74 @@ public class HaxeExpressionEvaluator {
     return SpecificHaxeClassReference.getUnknown(call).createHolder();
   }
 
+  @NotNull
+  private static List<HaxeIdentifier> getAccessIdentifiers(@NotNull HaxeReferenceExpression element) {
+    final LinkedList<HaxeIdentifier> identifiers = new LinkedList<HaxeIdentifier>();
+    if (!getAccessIdentifiers(element, identifiers)) {
+      return new LinkedList<HaxeIdentifier>();
+    }
+    return identifiers;
+  }
+
+  private static boolean getAccessIdentifiers(@NotNull HaxeReferenceExpression element, @NotNull List<HaxeIdentifier> out) {
+    for (PsiElement child : element.getChildren()) {
+      if (child instanceof HaxeReferenceExpression) {
+        if (!getAccessIdentifiers((HaxeReferenceExpression)child, out)) {
+          return false;
+        }
+      }
+      else if (child instanceof HaxeIdentifier) {
+        out.add((HaxeIdentifier)child);
+      }
+      else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Nullable
+  private static ResultHolder tryToGetFullyQualifiedName(
+    @NotNull HaxePackageModel currentPackage,
+    @NotNull HaxeReferenceExpression element,
+    @NotNull HaxeExpressionEvaluatorContext context
+  ) {
+    final List<HaxeIdentifier> identifiers = getAccessIdentifiers(element);
+
+    for (int i = 0; i < identifiers.size(); i++) {
+      HaxeIdentifier identifier = identifiers.get(i);
+      boolean lastOne = (i == identifiers.size() - 1);
+      final String id = identifier.getText();
+      if (HaxeNameUtils.isValidClassName(id)) {
+        final HaxeClassModel aClass = currentPackage.getHaxeClass(id);
+        if (aClass != null) {
+          return lastOne ? aClass.getClassType() : null;
+        }
+      }
+      else if (HaxeNameUtils.isValidPackageName(id)) {
+        currentPackage = currentPackage.getChild(id);
+        if (currentPackage == null) return null;
+      }
+      else {
+        // Other
+        return null;
+      }
+    }
+
+    return null;
+  }
+
   private static ResultHolder handleReferenceExpression(HaxeReferenceExpression element, HaxeExpressionEvaluatorContext context) {
+    final HaxeProjectModel project = HaxeProjectModel.fromElement(element);
+
+    // @TODO: We should be able to check right if we priorize locals first
+    final ResultHolder fqClass = tryToGetFullyQualifiedName(project.rootPackage, element, context);
+    if (fqClass != null) {
+      return fqClass;
+    }
+
     PsiElement[] children = element.getChildren();
     ResultHolder typeHolder = handle(children[0], context);
-
-    // First try to get a fully qualified name
 
     for (int n = 1; n < children.length; n++) {
       String accessName = children[n].getText();

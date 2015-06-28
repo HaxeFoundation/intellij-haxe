@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeFunctionLiteralImpl;
 import com.intellij.plugins.haxe.model.resolver.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeFunctionLiteralModel implements HaxeFunctionModel {
@@ -50,8 +51,8 @@ public class HaxeFunctionLiteralModel implements HaxeFunctionModel {
   }
 
   @Override
-  public HaxeResolver2 getResolver() {
-    HaxeResolver2Class classResolver = this.getDeclaringClass().getResolver(isStatic());
+  public HaxeResolver2 getResolver(@NotNull HaxeFileModel referencedInFile) {
+    HaxeResolver2Class classResolver = this.getDeclaringClass().getResolver(isStatic(), referencedInFile);
     HaxeResolver2Parameters parameterResolvers = getParameters().getResolver();
     return new HaxeResolver2Locals(new HaxeResolver2Combined(classResolver, parameterResolvers));
   }

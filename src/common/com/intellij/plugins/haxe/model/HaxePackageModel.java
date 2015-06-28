@@ -100,6 +100,12 @@ public class HaxePackageModel {
 
   @Nullable
   public HaxePackageModel getChild(String name) {
+    // @TODO: Optimize to avoid iterate over childs
+    for (HaxePackageModel packageModel : getChilds()) {
+      if (packageModel.name.equals(name)) {
+        return packageModel;
+      }
+    }
     return null;
   }
 
@@ -113,6 +119,7 @@ public class HaxePackageModel {
     return childs;
   }
 
+  @NotNull
   public List<PsiDirectory> getPackageDirectories() {
     LinkedList<PsiDirectory> out = new LinkedList<PsiDirectory>();
     String fullPath = fullName.replace('.', '/');
@@ -123,6 +130,7 @@ public class HaxePackageModel {
     return out;
   }
 
+  @Nullable
   public HaxeClassModel getHaxeClass(String name) {
     String hxname = name + ".hx";
     List<HaxeSourceRootModel> roots = project.getRoots();

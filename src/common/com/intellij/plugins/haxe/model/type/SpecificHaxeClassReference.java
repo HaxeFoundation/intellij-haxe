@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.psi.PsiElement;
@@ -184,7 +185,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (clazz == null) {
       return null;
     }
-    final HaxeMemberModel member = clazz.getMember(name);
+
+    final HaxeMemberModel member = clazz.getMemberWithFileContext(
+      name,
+      HaxeFileModel.fromElement(context.root)
+    );
 
     if (member != null) {
       // @TODO: Duplicate just in this generic so Unknown works

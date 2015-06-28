@@ -17,9 +17,11 @@
  */
 package com.intellij.plugins.haxe.model.resolver;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeUsingModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,12 +33,22 @@ public class HaxeResolver2Class extends HaxeResolver2 {
   public HaxeFileModel file;
   public HaxeResolver2 fileResolver;
   public boolean inStaticContext;
+  public String name;
 
-  public HaxeResolver2Class(@NotNull HaxeClassModel clazz, boolean inStaticContext) {
+  public HaxeResolver2Class(@NotNull HaxeClassModel clazz, boolean inStaticContext, @NotNull HaxeFileModel referencedInFile) {
     this.clazz = clazz;
+    this.name = clazz.getName();
     this.file = clazz.getFile();
     this.fileResolver = this.file.getResolver();
     this.inStaticContext = inStaticContext;
+    System.out.println(name);
+    if (name.equals("String")) {
+      System.out.println(name);
+    }
+    for (HaxeUsingModel using : referencedInFile.getUsings().getUsings()) {
+      System.out.println(name + "," + using.getHaxeClassReference());
+      //using.getHaxeClass()
+    }
   }
 
   @Nullable

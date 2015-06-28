@@ -18,8 +18,6 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
@@ -31,8 +29,8 @@ public class HaxeClassReferenceModel {
     this(type, null);
   }
 
-  public HaxeClassReferenceModel(PsiElement type, @Nullable HaxeClass _clazz) {
-    this._clazz = _clazz;
+  public HaxeClassReferenceModel(PsiElement type, @Nullable HaxeClass clazz) {
+    this.clazz = clazz;
     this.type = type;
   }
 
@@ -40,11 +38,17 @@ public class HaxeClassReferenceModel {
     return type;
   }
 
-  private HaxeClass _clazz;
+  private HaxeClass clazz;
   public HaxeClassModel getHaxeClass() {
-    if (_clazz == null) {
-      _clazz = HaxeResolveUtil.getHaxeClassResolveResult(type).getHaxeClass();
+    if (clazz == null) {
+      clazz = HaxeResolveUtil.getHaxeClassResolveResult(type).getHaxeClass();
     }
-    return (_clazz != null) ? _clazz.getModel() : null;
+    return (clazz != null) ? clazz.getModel() : null;
+  }
+
+  public String toString() {
+    if (type != null) return "Reference(" + type.getText() + ")";
+    if (getHaxeClass() != null) return "Reference(" + getHaxeClass() + ")";
+    return "Reference(...)";
   }
 }

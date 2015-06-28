@@ -17,29 +17,17 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class HaxeImportModel {
-  @NotNull
-  public final HaxeImportStatementRegular regular;
-
-  public HaxeImportModel(@NotNull HaxeImportStatementRegular regular) {
-    this.regular = regular;
-  }
-
-  @Nullable
-  public HaxeClassReferenceModel getHaxeClassReference() {
-    HaxeReferenceExpression expression = regular.getReferenceExpression();
-    if (expression == null) return null;
-    return HaxeImportsUtil.getReference(expression);
-  }
-
-  @Nullable
-  public HaxeClassModel getHaxeClass() {
-    HaxeClassReferenceModel reference = getHaxeClassReference();
-    return (reference != null) ? reference.getHaxeClass() : null;
+public class HaxeImportsUtil {
+  static public HaxeClassReferenceModel getReference(@NotNull HaxeReferenceExpression expression) {
+    HaxeClassReferenceModel reference = null;
+    String fqName = expression.getText();
+    HaxeClassModel clazz = HaxeProjectModel.fromElement(expression).getClassFromFqName(fqName);
+    if (clazz != null) {
+      reference = new HaxeClassReferenceModel(expression, clazz.haxeClass);
+    }
+    return reference;
   }
 }

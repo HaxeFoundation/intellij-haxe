@@ -17,43 +17,28 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
+import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-public class HaxeImportsModel {
-  @NotNull
-  public final HaxeFileModel file;
+public class HaxeUsingsModel {
+  private HaxeFileModel file;
 
-  public HaxeImportsModel(@NotNull HaxeFileModel file) {
+  public HaxeUsingsModel(HaxeFileModel file) {
     this.file = file;
   }
 
-  public List<HaxeClassModel> getImportedClasses() {
-    LinkedList<HaxeClassModel> classes = new LinkedList<HaxeClassModel>();
-
-    classes.add(file.getProject().getClassFromFqName("Std"));
-
-    for (HaxeImportModel importModel : getImports()) {
-      HaxeClassModel importedClass = importModel.getHaxeClass();
-      if (importedClass != null) {
-        classes.add(importedClass);
-      }
-    }
-    return classes;
-  }
-
-  public List<HaxeImportModel> getImports() {
-    ArrayList<HaxeImportModel> imports = new ArrayList<HaxeImportModel>();
+  @NotNull public List<HaxeUsingModel> getUsings() {
+    final ArrayList<HaxeUsingModel> models = new ArrayList<HaxeUsingModel>();
     for (PsiElement element : file.file.getChildren()) {
-      if (element instanceof HaxeImportStatementRegular) {
-        imports.add(new HaxeImportModel((HaxeImportStatementRegular)element));
+      if (element instanceof HaxeUsingStatement) {
+        models.add(new HaxeUsingModel((HaxeUsingStatement)element));
       }
     }
-    return imports;
+
+    return models;
   }
 }

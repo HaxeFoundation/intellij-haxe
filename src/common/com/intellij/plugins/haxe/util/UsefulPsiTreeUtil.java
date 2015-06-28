@@ -120,7 +120,7 @@ public class UsefulPsiTreeUtil {
   @NotNull
   public static boolean importStatementForClassName(HaxeImportStatementRegular importStatement, String className) {
     final HaxeImportStatementRegular regularImport = importStatement;
-    if(regularImport != null) {
+    if (regularImport != null) {
       final HaxeExpression expression = regularImport.getReferenceExpression();
       if (null == expression) {
         return false;
@@ -152,7 +152,7 @@ public class UsefulPsiTreeUtil {
 
   @NotNull
   public static boolean importStatementWithWildcardTypeForClassName(HaxeImportStatementWithWildcard importStatement, String className) {
-    if(importStatement != null) {
+    if (importStatement != null) {
       return getQNameForImportStatementWithWildcardType(importStatement).endsWith(className);
     }
     // TODO: other import types (inject util logic to ImportStatement?)
@@ -205,7 +205,8 @@ public class UsefulPsiTreeUtil {
   }
 
   @NotNull
-  public static boolean importStatementWithWildcardForClassName(HaxeImportStatementWithWildcard importStatementWithWildcard, String classname) {
+  public static boolean importStatementWithWildcardForClassName(HaxeImportStatementWithWildcard importStatementWithWildcard,
+                                                                String classname) {
     if (!Character.isUpperCase(classname.charAt(0))) {
       return false;
     }
@@ -242,7 +243,7 @@ public class UsefulPsiTreeUtil {
   public static String findHelperOwnerQName(PsiElement context, String className) {
     for (HaxeImportStatementRegular importStatement : getAllImportStatements(context)) {
       final HaxeImportStatementRegular regularImport = importStatement;
-      if(regularImport != null) {
+      if (regularImport != null) {
         final HaxeExpression expression = regularImport.getReferenceExpression();
         if (null == expression) {
           return null;
@@ -294,7 +295,8 @@ public class UsefulPsiTreeUtil {
   }
 
   @NotNull
-  public static List<HaxeNamedComponent> getImportStatementWithWildcardTypeNamedSubComponents(HaxeImportStatementWithWildcard importStatementWithWildcard, PsiFile psiFile) {
+  public static List<HaxeNamedComponent> getImportStatementWithWildcardTypeNamedSubComponents(HaxeImportStatementWithWildcard importStatementWithWildcard,
+                                                                                              PsiFile psiFile) {
     String qName = getQNameForImportStatementWithWildcardType(importStatementWithWildcard);
     boolean typeImport = isImportStatementWildcardForType(qName);
 
@@ -400,7 +402,7 @@ public class UsefulPsiTreeUtil {
 
   public static boolean importStatementForClass(@NotNull HaxeImportStatementRegular importStatement, @NotNull HaxeClass haxeClass) {
     final HaxeImportStatementRegular regularImport = importStatement;
-    if(regularImport != null) {
+    if (regularImport != null) {
       HaxeReferenceExpression importReferenceExpression = regularImport.getReferenceExpression();
       if (importReferenceExpression == null) {
         return false;
@@ -447,7 +449,7 @@ public class UsefulPsiTreeUtil {
   static public PsiElement getToken(PsiElement element, String token) {
     if (element == null) return null;
     for (ASTNode node : element.getNode().getChildren(null)) {
-      if (node.getText().equals(token))  return node.getPsi();
+      if (node.getText().equals(token)) return node.getPsi();
     }
     return null;
   }
@@ -479,7 +481,7 @@ public class UsefulPsiTreeUtil {
     if (element == null) return null;
     PsiElement sibling = element.getNextSibling();
     while (sibling != null && sibling instanceof PsiWhiteSpace) {
-      sibling = sibling.getNextSibling();
+      sibling = getNextSiblingNoSpaces(sibling);
     }
     return sibling;
   }
@@ -495,5 +497,32 @@ public class UsefulPsiTreeUtil {
       if (result != null) return result;
     }
     return null;
+  }
+
+  @Nullable
+  public static PsiElement getNextChildOrSibling(PsiElement element) {
+    PsiElement child = element.getFirstChild();
+    if (child != null) return child;
+
+    child = element.getNextSibling();
+    if (child != null) return child;
+
+    child = element.getParent();
+    for (;child != null; child = child.getParent()) {
+      if (child.getNextSibling() != null) {
+        return child.getNextSibling();
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static PsiElement getNextChildOrSiblingNoSpaces(PsiElement element) {
+    final PsiElement child = getNextChildOrSibling(element);
+    if (child instanceof PsiWhiteSpace) {
+      return getNextChildOrSiblingNoSpaces(child);
+    }
+    return child;
   }
 }

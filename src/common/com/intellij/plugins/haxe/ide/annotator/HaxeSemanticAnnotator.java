@@ -67,7 +67,7 @@ public class HaxeSemanticAnnotator implements Annotator {
 class ImportChecker {
   public static void check(HaxeImportStatementRegular element, AnnotationHolder holder) {
     HaxeImportModel importModel = element.getModel();
-    HaxeClassModel aClass = importModel.getImportedClass();
+    HaxeClassModel aClass = importModel.getHaxeClass();
     if (aClass == null) {
       Annotation annotation = holder.createErrorAnnotation(element, "Can't find class");
       annotation.registerFix(new HaxeRemoveFixer(element));
@@ -577,7 +577,7 @@ class MethodBodyChecker {
     final HaxeMethodModel method = psi.getModel();
     PsiElement body = method.getBodyPsi();
     if (body != null) {
-      HaxeTypeResolver.getPsiElementType(body, holder, method.getResolver());
+      HaxeTypeResolver.getPsiElementType(body, holder, method.getResolver(HaxeFileModel.fromElement(psi)));
     }
   }
 }

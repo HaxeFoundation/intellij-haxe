@@ -17,22 +17,20 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxeImportModel {
-  @NotNull
-  public final HaxeImportStatementRegular regular;
+public class HaxeUsingModel {
+  public final HaxeUsingStatement using;
 
-  public HaxeImportModel(@NotNull HaxeImportStatementRegular regular) {
-    this.regular = regular;
+  public HaxeUsingModel(HaxeUsingStatement using) {
+    this.using = using;
   }
 
   @Nullable
   public HaxeClassReferenceModel getHaxeClassReference() {
-    HaxeReferenceExpression expression = regular.getReferenceExpression();
+    HaxeReferenceExpression expression = using.getReferenceExpression();
     if (expression == null) return null;
     return HaxeImportsUtil.getReference(expression);
   }

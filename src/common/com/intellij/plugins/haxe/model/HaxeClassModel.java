@@ -73,8 +73,8 @@ public class HaxeClassModel {
     return name.substring(0, 1).equals(name.substring(0, 1).toUpperCase());
   }
 
-  public HaxeResolver2Class getResolver(boolean inStaticContext) {
-    return new HaxeResolver2Class(this, inStaticContext);
+  public HaxeResolver2Class getResolver(boolean inStaticContext, @NotNull HaxeFileModel referencedInFile) {
+    return new HaxeResolver2Class(this, inStaticContext, referencedInFile);
   }
 
   @Nullable
@@ -233,6 +233,28 @@ public class HaxeClassModel {
     HaxeClassReferenceModel parentClass = getParentClassReference();
     if (parentClass == null) return null;
     return parentClass.getHaxeClass().getMethod("new");
+  }
+
+  @Nullable
+  public HaxeMemberModel getMemberWithFileContext(String name, @NotNull HaxeFileModel file) {
+    final HaxeMemberModel member = this.getMember(name);
+    // @TODO: Can be moved to resolver?
+    if (member == null) {
+      for (HaxeUsingModel using : file.getUsings().getUsings()) {
+        final HaxeClassModel clazz = using.getHaxeClass();
+        if (clazz != null) {
+          HaxeMethodModel usingMethod = clazz.getMethod(name);
+          if (usingMethod != null) {
+            final HaxeParameterModel parameter = usingMethod.getParameter(0);
+            final ResultHolder firstParameter = parameter != null ? parameter.getType() : null;
+            if (firstParameter != null && firstParameter.canAssign(this.getInstanceType())) {
+              return usingMethod.asExtensionMethod();
+            }
+          }
+        }
+      }
+    }
+    return member;
   }
 
   @Nullable

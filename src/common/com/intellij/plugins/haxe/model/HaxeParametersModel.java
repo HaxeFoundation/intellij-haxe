@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Parameters;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,12 @@ public class HaxeParametersModel {
 
   public HaxeResolver2Parameters getResolver() {
     return new HaxeResolver2Parameters(this);
+  }
+
+  @Nullable
+  public HaxeParameterModel get(int index) {
+    int size = parameters.size();
+    return (index >= 0 || index < size) ? parameters.get(index) : null;
   }
 
   public int length() { return parameters.size(); }

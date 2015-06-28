@@ -29,16 +29,27 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionModel {
   private HaxeMethodPsiMixin haxeMethod;
+  private boolean isExtensionMethod;
 
   public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
+    this(haxeMethod, false);
+  }
+
+  public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod, boolean isExtensionMethod) {
     super(haxeMethod, haxeMethod, haxeMethod);
     this.haxeMethod = haxeMethod;
+    this.isExtensionMethod = isExtensionMethod;
+  }
+
+  public HaxeMethodModel asExtensionMethod() {
+    return new HaxeMethodModel(haxeMethod, true);
   }
 
   public HaxeMethodPsiMixin getMethodPsi() {
@@ -52,7 +63,14 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
 
   //private List<HaxeParameterModel> _parameters;
   public HaxeParametersModel getParameters() {
-    return getParametersWithContext(null);
+    return getParametersWithContext(
+      isExtensionMethod ? HaxeMethodContext.EXTENSION : HaxeMethodContext.NO_EXTENSION
+    );
+  }
+
+  @Nullable
+  public HaxeParameterModel getParameter(int index) {
+    return getParameters().get(index);
   }
 
   public HaxeParametersModel getParametersWithContext(@Nullable HaxeMethodContext context) {
@@ -132,8 +150,8 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
     return "HaxeMethodModel(" + this.getName() + ", " + this.getParameters() + ")";
   }
 
-  public HaxeResolver2 getResolver() {
-    HaxeResolver2Class classResolver = this.getDeclaringClass().getResolver(isStatic());
+  public HaxeResolver2 getResolver(@NotNull HaxeFileModel referencedInFile) {
+    HaxeResolver2Class classResolver = this.getDeclaringClass().getResolver(isStatic(), referencedInFile);
     HaxeResolver2Parameters parameterResolvers = getParameters().getResolver();
     return new HaxeResolver2Locals(new HaxeResolver2Combined(classResolver, parameterResolvers));
   }

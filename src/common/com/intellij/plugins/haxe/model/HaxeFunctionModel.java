@@ -19,11 +19,12 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface HaxeFunctionModel {
   HaxeParametersModel getParameters();
-  HaxeResolver2 getResolver();
+  HaxeResolver2 getResolver(@NotNull HaxeFileModel referencedInFile);
   boolean isStatic();
   @Nullable PsiElement getBodyPsi();
 }

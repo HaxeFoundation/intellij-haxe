@@ -21,6 +21,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
+import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeCastFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeRemoveFixer;
@@ -113,22 +114,27 @@ public class HaxeTypeResolver {
 
   @NotNull
   static private ResultHolder getFunctionReturnType(AbstractHaxeNamedComponent comp) {
-    if (comp instanceof HaxeMethodImpl) {
-      HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
-      if (typeTag != null) {
-        return getTypeFromTypeTag(typeTag, comp);
+    if (comp != null) {
+      if (comp instanceof HaxeMethodImpl) {
+        HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
+        if (typeTag != null) {
+          return getTypeFromTypeTag(typeTag, comp);
+        }
+      }
+
+      final HaxeFileModel file = HaxeFileModel.fromElement(comp);
+
+      if (comp instanceof HaxeMethod) {
+        HaxeMethodModel methodModel = ((HaxeMethod)comp).getModel();
+        final HaxeExpressionEvaluatorContext context = getPsiElementType(methodModel.getBodyPsi(), null, methodModel.getResolver(file));
+        return context.getReturnType();
+      } else if (comp instanceof HaxeFunctionLiteral) {
+        final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), null, ((HaxeFunctionLiteral)comp).getModel().getResolver(file));
+        return context.getReturnType();
       }
     }
-    if (comp instanceof HaxeMethod) {
-      HaxeMethodModel methodModel = ((HaxeMethod)comp).getModel();
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(methodModel.getBodyPsi(), null, methodModel.getResolver());
-      return context.getReturnType();
-    } else if (comp instanceof HaxeFunctionLiteral) {
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), null, ((HaxeFunctionLiteral)comp).getModel().getResolver());
-      return context.getReturnType();
-    } else {
-      throw new RuntimeException("Can't get the body of a no PsiMethod");
-    }
+
+    throw new RuntimeException("Can't get the body of a no PsiMethod");
   }
 
   @NotNull
