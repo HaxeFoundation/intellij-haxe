@@ -134,6 +134,9 @@ public class HaxeExpressionEvaluator {
     else if (element instanceof HaxeWhileStatement) {
       return handleWhileStatement((HaxeWhileStatement)element, context);
     }
+    else if (element instanceof HaxeDoWhileStatement) {
+      return handleDoWhileStatement((HaxeDoWhileStatement)element, context);
+    }
     else if (element instanceof HaxeLocalVarDeclaration) {
       return handleLocalVarDeclaration((HaxeLocalVarDeclaration)element, context);
     }
@@ -156,7 +159,7 @@ public class HaxeExpressionEvaluator {
       return handleLiteralExpression((HaxeLiteralExpression)element, context);
     }
     else if (element instanceof HaxeStringLiteralExpression) {
-      return handleStringLiteralExpression((HaxeStringLiteralExpression)element);
+      return handleStringLiteralExpression((HaxeStringLiteralExpression)element, context);
     }
     else if (element instanceof HaxeExpressionList) {
       return handleExpressionList((HaxeExpressionList)element, context);
@@ -670,33 +673,37 @@ public class HaxeExpressionEvaluator {
     }
   }
 
-  private static ResultHolder handleWhileStatement(HaxeWhileStatement element, HaxeExpressionEvaluatorContext context) {
-    List<HaxeExpression> list = element.getExpressionList();
-    SpecificTypeReference type = null;
-    if (list.size() >= 1) {
-      type = handle(list.get(0), context).getType();
-    }
-    if (type != null && !type.isBool()) {
-      context.addError(
-        list.get(0),
-        "While expression must be Bool but was " + type,
-        new HaxeCastFixer(list.get(0), type, context.types.BOOL)
-      );
-    }
+  private static ResultHolder handleWhileOrDoWhileStatement(PsiElement element, HaxeExpressionEvaluatorContext context, boolean isDoWhile) {
+    PsiElement[] children = element.getChildren();
 
-    PsiElement body = element.getLastChild();
-    if (body != null) {
-      context.beginScope();
-      try {
-        context.putInfo(LOOP_ELEMENT, element);
-        return handle(body, context);
-      }
-      finally {
-        context.endScope();
+    context.beginScope();
+    context.putInfo(LOOP_ELEMENT, element);
+    for (int i = 0; i < children.length; i++) {
+      PsiElement child = children[i];
+      SpecificTypeReference result = handle(child, context).getType();
+      boolean isFirst = i == 0;
+      boolean isLast = i == (children.length - 1);
+      if ((isDoWhile && isLast) || (!isDoWhile && isFirst)) {
+        if (!result.isBool()) {
+          context.addError(
+            child,
+            "While expression must be Bool but was " + result,
+            new HaxeCastFixer(child, result, context.types.BOOL)
+          );
+        }
       }
     }
+    context.endScope();
 
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  private static ResultHolder handleWhileStatement(HaxeWhileStatement element, HaxeExpressionEvaluatorContext context) {
+    return handleWhileOrDoWhileStatement(element, context, false);
+  }
+
+  private static ResultHolder handleDoWhileStatement(HaxeDoWhileStatement element, HaxeExpressionEvaluatorContext context) {
+    return handleWhileOrDoWhileStatement(element, context, true);
   }
 
   private static ResultHolder handleArrayAccessExpression(HaxeArrayAccessExpression element, HaxeExpressionEvaluatorContext context) {
@@ -810,6 +817,9 @@ public class HaxeExpressionEvaluator {
   }
 
   private static ResultHolder handleArrayLiteral(HaxeArrayLiteral element, HaxeExpressionEvaluatorContext context) {
+
+    checkExpressionSemicolon(element, context);
+
     HaxeExpressionList list = element.getExpressionList();
     if (list != null) {
       final List<HaxeExpression> list1 = list.getExpressionList();
@@ -853,8 +863,11 @@ public class HaxeExpressionEvaluator {
     return HaxeTypeUnifier.unifyHolders(references, element);
   }
 
-  private static ResultHolder handleStringLiteralExpression(HaxeStringLiteralExpression element) {
+  private static ResultHolder handleStringLiteralExpression(HaxeStringLiteralExpression element, HaxeExpressionEvaluatorContext context) {
     // @TODO: check if it has string interpolation inside, in that case text is not constant
+
+    checkExpressionSemicolon(element, context);
+
     return SpecificHaxeClassReference.primitive(
       "String",
       element,
@@ -873,8 +886,21 @@ public class HaxeExpressionEvaluator {
   }
 
   // @TODO: Maybe this could be "epxression is statement" that would allow for example marking an arithmetic expression as dummy.
+  // @TODO: Also, all this work should be done in the BnF file. Also a better BnF would make this much easier, clean and less prone to errors.
   private static boolean expressionRequireSemicolon(PsiElement element) {
     PsiElement parent = element.getParent();
+    if (parent == null) return false;
+
+    PsiElement[] children = parent.getChildren();
+
+    // First position in while/if is a expression not a statement!
+    if (parent instanceof HaxeWhileStatement || parent instanceof HaxeIfStatement) {
+      if (children[0] == element) return false;
+    }
+
+    if (parent instanceof HaxeDoWhileStatement) {
+      if (children[children.length - 1] == element) return false;
+    }
 
     if (parent instanceof PsiStatement) {
       return true;
@@ -887,7 +913,9 @@ public class HaxeExpressionEvaluator {
     return false;
   }
 
-  private static void checkExpressionSemicolon(PsiElement element, HaxeExpressionEvaluatorContext context) {
+  private static void checkExpressionSemicolon(@Nullable PsiElement element, HaxeExpressionEvaluatorContext context) {
+    if (element == null) return;
+
     if (expressionRequireSemicolon(element)) {
       boolean hasSemicolon = false;
       if (UsefulPsiTreeUtil.isToken(element.getLastChild(), ";")) hasSemicolon = true;
@@ -962,6 +990,7 @@ public class HaxeExpressionEvaluator {
 
   @NotNull
   private static ResultHolder handleLiteralExpression(HaxeLiteralExpression element, HaxeExpressionEvaluatorContext context) {
+    checkExpressionSemicolon(element, context);
     return handle(element.getFirstChild(), context);
   }
 
@@ -1061,6 +1090,8 @@ public class HaxeExpressionEvaluator {
 
   private static ResultHolder handleReferenceExpression(HaxeReferenceExpression element, HaxeExpressionEvaluatorContext context) {
     final HaxeProjectModel project = HaxeProjectModel.fromElement(element);
+
+    checkExpressionSemicolon(element, context);
 
     // @TODO: We should be able to check right if we priorize locals first
     final ResultHolder fqClass = tryToGetFullyQualifiedName(project.rootPackage, element, context);

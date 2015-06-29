@@ -107,7 +107,10 @@ public class HaxeOperatorResolver {
       operator.equals("<") || operator.equals("<=") ||
       operator.equals(">") || operator.equals(">=")
       ) {
-      return types.BOOL;
+      // @TODO: Instead of canAssign, we should check if they are the same type or compatible
+      if (left.canAssign(right)) {
+        return types.BOOL;
+      }
     }
 
     context.addError(
