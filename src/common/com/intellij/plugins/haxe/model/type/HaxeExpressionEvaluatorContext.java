@@ -20,7 +20,9 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.editor.impl.TextRangeInterval;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
@@ -29,6 +31,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Locals;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.text.TextRangeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,13 +126,25 @@ public class HaxeExpressionEvaluatorContext {
   }
 
   @NotNull
-  public Annotation addError(PsiElement element, String error, HaxeFixer... fixers) {
-    if (holder == null) return createDummyAnnotation();
-    Annotation annotation = holder.createErrorAnnotation(element, error);
+  public Annotation addError(@Nullable TextRange range, String error, HaxeFixer... fixers) {
+    if (range == null || holder == null) return createDummyAnnotation();
+    Annotation annotation = holder.createErrorAnnotation(range, error);
     for (HaxeFixer fixer : fixers) {
       annotation.registerFix(fixer);
     }
     return annotation;
+  }
+
+  @NotNull
+  public Annotation addError(@Nullable PsiElement element, String error, HaxeFixer... fixers) {
+    return addError((element != null) ? element.getTextRange() : null, error, fixers);
+  }
+
+  @NotNull
+  public Annotation addErrorAfter(@Nullable PsiElement element, String error, HaxeFixer... fixers) {
+    TextRange range = element != null ? element.getTextRange() : null;
+    // @TODO: this puts in the last character, but should be put in an empty cell for missing stuff
+    return addError((range != null) ? new TextRange(range.getEndOffset() - 1, range.getEndOffset()) : null, error, fixers);
   }
 
   @NotNull

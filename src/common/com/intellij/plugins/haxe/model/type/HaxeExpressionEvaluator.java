@@ -31,9 +31,7 @@ import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiCodeBlock;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaToken;
+import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
@@ -229,6 +227,9 @@ public class HaxeExpressionEvaluator {
   private static ResultHolder handleBinaryExpression(HaxeExpression element, HaxeExpressionEvaluatorContext context) {
     PsiElement[] children = element.getChildren();
     String operatorText;
+
+    checkExpressionSemicolon(element, context);
+
     if (children.length == 3) {
       operatorText = children[1].getText();
       return HaxeOperatorResolver.getBinaryOperatorResult(
@@ -429,6 +430,11 @@ public class HaxeExpressionEvaluator {
     if (children.length >= 1) {
       result = handle(children[0], context);
     }
+
+    if (!UsefulPsiTreeUtil.isToken(element.getLastChild(), ";")) {
+      context.addErrorAfter(element, "Missing semicolon", new AddSemicolonFixer(element));
+    }
+
     context.addReturnType(result, element);
     return result;
   }
@@ -860,7 +866,36 @@ public class HaxeExpressionEvaluator {
     for (HaxeLocalVarDeclarationPart part : element.getLocalVarDeclarationPartList()) {
       handle(part, context);
     }
+    if (!UsefulPsiTreeUtil.isToken(element.getLastChild(), ";")) {
+      context.addErrorAfter(element, "Missing semicolon", new AddSemicolonFixer(element));
+    }
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  // @TODO: Maybe this could be "epxression is statement" that would allow for example marking an arithmetic expression as dummy.
+  private static boolean expressionRequireSemicolon(PsiElement element) {
+    PsiElement parent = element.getParent();
+
+    if (parent instanceof PsiStatement) {
+      return true;
+    }
+
+    if (parent instanceof PsiMember) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private static void checkExpressionSemicolon(PsiElement element, HaxeExpressionEvaluatorContext context) {
+    if (expressionRequireSemicolon(element)) {
+      boolean hasSemicolon = false;
+      if (UsefulPsiTreeUtil.isToken(element.getLastChild(), ";")) hasSemicolon = true;
+      if (UsefulPsiTreeUtil.isToken(UsefulPsiTreeUtil.getNextSiblingNoSpaces(element), ";")) hasSemicolon = true;
+      if (!hasSemicolon) {
+        context.addErrorAfter(element, "Missing semicolon", new AddSemicolonFixer(element));
+      }
+    }
   }
 
   private static ResultHolder handleAssignExpression(HaxeAssignExpression element, HaxeExpressionEvaluatorContext context) {
@@ -886,6 +921,8 @@ public class HaxeExpressionEvaluator {
       if (leftResult.isImmutable()) {
         context.addError(element, "Trying to change an immutable value");
       }
+
+      checkExpressionSemicolon(element, context);
 
       return rightResult;
     }
@@ -931,6 +968,8 @@ public class HaxeExpressionEvaluator {
   private static ResultHolder handleCallExpression(HaxeCallExpression call, HaxeExpressionEvaluatorContext context) {
     HaxeExpression callLeft = call.getExpression();
     SpecificTypeReference functionType = handle(callLeft, context).getType();
+
+    checkExpressionSemicolon(call, context);
 
     if (functionType.isUnknown()) {
       //System.out.println("Couldn't resolve " + callLeft.getText());

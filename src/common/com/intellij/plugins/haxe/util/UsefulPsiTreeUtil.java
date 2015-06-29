@@ -545,4 +545,11 @@ public class UsefulPsiTreeUtil {
     }
     return child;
   }
+
+  public static boolean isToken(PsiElement child, String s) {
+    if (child instanceof PsiJavaToken) {
+      return child.getText().equals(s);
+    }
+    return false;
+  }
 }

@@ -69,7 +69,9 @@ public class HaxeOperatorResolver {
     }
 
     if (operator.equals("/")) {
-      return types.FLOAT;
+      if (left.isNumeric() || right.isNumeric()) {
+        return types.FLOAT;
+      }
     }
 
     if (operator.equals("+")) {
