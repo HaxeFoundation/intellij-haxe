@@ -19,36 +19,52 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeExpressionEvaluatorContext {
-  public SpecificTypeReference result;
-  private List<SpecificTypeReference> returns = new ArrayList<SpecificTypeReference>();
+  public ResultHolder result;
+  private List<ResultHolder> returns = new ArrayList<ResultHolder>();
   private List<PsiElement> returnElements = new ArrayList<PsiElement>();
   private List<ReturnInfo> returnInfos = new ArrayList<ReturnInfo>();
 
   public AnnotationHolder holder;
-  private HaxeScope<SpecificTypeReference> scope = new HaxeScope<SpecificTypeReference>();
+  private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
   public PsiElement root;
 
-  public void addReturnType(SpecificTypeReference type, PsiElement element) {
+  public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @Nullable AnnotationHolder holder) {
+    this.root = body;
+    this.holder = holder;
+  }
+
+  public HaxeExpressionEvaluatorContext createChild(PsiElement body) {
+    HaxeExpressionEvaluatorContext that = new HaxeExpressionEvaluatorContext(body, this.holder);
+    that.scope = this.scope;
+    that.beginScope();
+    return that;
+  }
+
+  public void addReturnType(ResultHolder type, PsiElement element) {
     this.returns.add(type);
     this.returnElements.add(element);
     this.returnInfos.add(new ReturnInfo(element, type));
   }
 
-  public SpecificTypeReference getReturnType() {
-    if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root);
-    return HaxeTypeUnifier.unify(returns);
+  public ResultHolder getReturnType() {
+    if (returns.isEmpty()) return SpecificHaxeClassReference.getVoid(root).createHolder();
+    return HaxeTypeUnifier.unify(ResultHolder.types(returns), root).createHolder();
   }
 
-  public List<SpecificTypeReference> getReturnValues() {
+  public List<ResultHolder> getReturnValues() {
     return returns;
   }
 
@@ -65,18 +81,18 @@ public class HaxeExpressionEvaluatorContext {
   }
 
   public void beginScope() {
-    scope = new HaxeScope<SpecificTypeReference>(scope);
+    scope = new HaxeScope<ResultHolder>(scope);
   }
 
   public void endScope() {
     scope = scope.parent;
   }
 
-  public void setLocal(String key, SpecificTypeReference value) {
+  public void setLocal(String key, ResultHolder value) {
     this.scope.set(key, value);
   }
 
-  public void setLocalWhereDefined(String key, SpecificTypeReference value) {
+  public void setLocalWhereDefined(String key, ResultHolder value) {
     this.scope.setWhereDefined(key, value);
   }
 
@@ -84,12 +100,13 @@ public class HaxeExpressionEvaluatorContext {
     return this.scope.has(key);
   }
 
-  public SpecificTypeReference get(String key) {
+  public ResultHolder get(String key) {
     return this.scope.get(key);
   }
 
+  @NotNull
   public Annotation addError(PsiElement element, String error, HaxeFixer... fixers) {
-    if (holder == null) return null;
+    if (holder == null) return createDummyAnnotation();
     Annotation annotation = holder.createErrorAnnotation(element, error);
     for (HaxeFixer fixer : fixers) {
       annotation.registerFix(fixer);
@@ -97,8 +114,9 @@ public class HaxeExpressionEvaluatorContext {
     return annotation;
   }
 
+  @NotNull
   public Annotation addWarning(PsiElement element, String error, HaxeFixer... fixers) {
-    if (holder == null) return null;
+    if (holder == null) return createDummyAnnotation();
     Annotation annotation = holder.createWarningAnnotation(element, error);
     for (HaxeFixer fixer : fixers) {
       annotation.registerFix(fixer);
@@ -106,19 +124,29 @@ public class HaxeExpressionEvaluatorContext {
     return annotation;
   }
 
+  private Annotation createDummyAnnotation() {
+    return new Annotation(0, 0, HighlightSeverity.ERROR, "", "");
+  }
+
+  @NotNull
   public Annotation addUnreachable(PsiElement element) {
-    if (holder == null) return null;
+    if (holder == null) return createDummyAnnotation();
     Annotation annotation = holder.createInfoAnnotation(element, null);
     annotation.setTextAttributes(HaxeSyntaxHighlighterColors.LINE_COMMENT);
     return annotation;
   }
+
+  final public List<HaxeExpressionEvaluatorContext> lambdas = new LinkedList<HaxeExpressionEvaluatorContext>();
+  public void addLambda(HaxeExpressionEvaluatorContext child) {
+    lambdas.add(child);
+  }
 }
 
 class ReturnInfo {
-  final public SpecificTypeReference type;
+  final public ResultHolder type;
   final public PsiElement element;
 
-  public ReturnInfo(PsiElement element, SpecificTypeReference type) {
+  public ReturnInfo(PsiElement element, ResultHolder type) {
     this.element = element;
     this.type = type;
   }

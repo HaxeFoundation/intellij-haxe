@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -51,7 +52,7 @@ import java.util.Set;
 abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
-  public SpecificTypeReference _cachedType;
+  public ResultHolder _cachedType;
   public long _cachedTypeStamp;
 
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
@@ -108,11 +109,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             result.append("(").append(parameterList).append(")");
           }
 
-          SpecificTypeReference returnType = HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this);
-          if (returnType != null) {
-            result.append(":");
-            result.append(returnType.toString());
-          }
+          result.append(":");
+          result.append(HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this).toString());
         }
 
         return result.toString();

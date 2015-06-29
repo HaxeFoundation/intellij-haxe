@@ -19,10 +19,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
@@ -131,11 +128,19 @@ public class HaxeMethodModel extends HaxeMemberModel {
   }
 
   public SpecificFunctionReference getFunctionType() {
-    LinkedList<SpecificTypeReference> args = new LinkedList<SpecificTypeReference>();
+    return getFunctionType(null);
+  }
+
+  public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
+    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi(), resolver);
+  }
+
+  public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
+    LinkedList<ResultHolder> args = new LinkedList<ResultHolder>();
     for (HaxeParameterModel param : this.getParameters()) {
-      args.add(SpecificHaxeClassReference.ensure(HaxeTypeResolver.getTypeFromTypeTag(param.getTypeTagPsi())));
+      args.add(param.getType(resolver));
     }
-    return new SpecificFunctionReference(args, HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi()), this);
+    return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);
   }
 
   public HaxeMethodModel getParentMethod() {

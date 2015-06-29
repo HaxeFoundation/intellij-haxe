@@ -18,6 +18,8 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,8 +27,14 @@ import java.util.List;
 import java.util.Set;
 
 public class HaxeTypeUnifier {
-  static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b) {
-    if (a == null && b == null) return SpecificTypeReference.getUnknown(null);
+  @NotNull
+  static public ResultHolder unify(ResultHolder a, ResultHolder b) {
+    return unify(a.getType(), b.getType(), a.getType().context).createHolder();
+  }
+
+  @NotNull
+  static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b, @NotNull PsiElement context) {
+    if (a == null && b == null) return SpecificTypeReference.getUnknown(context);
     if (a == null) return b;
     if (b == null) return a;
 
@@ -36,36 +44,38 @@ public class HaxeTypeUnifier {
     }
 
     if (a instanceof SpecificHaxeClassReference && b instanceof SpecificHaxeClassReference) {
-      return unifyTypes((SpecificHaxeClassReference)a, (SpecificHaxeClassReference)b);
+      return unifyTypes((SpecificHaxeClassReference)a, (SpecificHaxeClassReference)b, context);
     }
     if (a instanceof SpecificFunctionReference && b instanceof SpecificFunctionReference) {
-      return unifyFunctions((SpecificFunctionReference)a, (SpecificFunctionReference)b);
+      return unifyFunctions((SpecificFunctionReference)a, (SpecificFunctionReference)b, context);
     }
 
     return SpecificTypeReference.getUnknown(a.getElementContext());
   }
 
-  static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b) {
-    final List<SpecificTypeReference> pa = a.getParameters();
-    final List<SpecificTypeReference> pb = b.getParameters();
+  @NotNull
+  static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b, @NotNull PsiElement context) {
+    final List<ResultHolder> pa = a.getParameters();
+    final List<ResultHolder> pb = b.getParameters();
     //if (pa.size() != pb.size()) throw new HaxeCannotUnifyException();
     if (pa.size() != pb.size()) return SpecificTypeReference.getInvalid(a.getElementContext());
     int size = pa.size();
-    final ArrayList<SpecificTypeReference> params = new ArrayList<SpecificTypeReference>();
+    final ArrayList<ResultHolder> params = new ArrayList<ResultHolder>();
     for (int n = 0; n < size; n++) {
-      final SpecificTypeReference param = unify(pa.get(n), pb.get(n));
-      if (param.isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
+      final ResultHolder param = unify(pa.get(n), pb.get(n));
+      if (param.getType().isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
       params.add(param);
     }
-    final SpecificTypeReference retval = unify(a.getReturnType(), b.getReturnType());
-    return new SpecificFunctionReference(params, retval, null);
+    final ResultHolder retval = unify(a.getReturnType(), b.getReturnType());
+    return new SpecificFunctionReference(params, retval, null, context);
   }
 
-  static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
+  @NotNull
+  static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b, @NotNull PsiElement context) {
     if (a.isDynamic()) return a.withoutConstantValue();
     if (b.isDynamic()) return b.withoutConstantValue();
-    if (a.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(null);
-    if (b.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(null);
+    if (a.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
+    if (b.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
     final Set<HaxeClassModel> atypes = a.getHaxeClassModel().getCompatibleTypes();
     final Set<HaxeClassModel> btypes = b.getHaxeClassModel().getCompatibleTypes();
     // @TODO: this could be really slow, hotspot for optimizing
@@ -73,7 +83,7 @@ public class HaxeTypeUnifier {
       if (btypes.contains(type)) {
         // @TODO: generics
         return SpecificHaxeClassReference.withoutGenerics(
-          new HaxeClassReference(type)
+          new HaxeClassReference(type, context)
         );
       }
     }
@@ -82,18 +92,26 @@ public class HaxeTypeUnifier {
     return SpecificTypeReference.getDynamic(a.getElementContext());
   }
 
-  static public SpecificTypeReference unify(SpecificTypeReference[] types) {
-    return unify(Arrays.asList(types));
+  @NotNull
+  static public SpecificTypeReference unify(SpecificTypeReference[] types, @NotNull PsiElement context) {
+    return unify(Arrays.asList(types), context);
   }
 
-  static public SpecificTypeReference unify(List<SpecificTypeReference> types) {
+  @NotNull
+  static public SpecificTypeReference unify(List<SpecificTypeReference> types, @NotNull PsiElement context) {
     if (types.size() == 0) {
-      return SpecificTypeReference.getUnknown(null);
+      return SpecificTypeReference.getUnknown(context);
     }
     SpecificTypeReference type = types.get(0);
     for (int n = 1; n < types.size(); n++) {
-      type = unify(type, types.get(n));
+      type = unify(type, types.get(n), context);
     }
     return type;
+  }
+
+  @NotNull
+  static public ResultHolder unifyHolders(List<ResultHolder> typeHolders, @NotNull PsiElement context) {
+    // @TODO: This should mutate unknown holders?
+    return unify(ResultHolder.types(typeHolders), context).createHolder();
   }
 }

@@ -18,64 +18,102 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class SpecificTypeReference {
-  static public SpecificTypeReference ensure(SpecificTypeReference clazz) {
-    return (clazz != null) ? clazz : new SpecificHaxeClassReference(null, SpecificHaxeClassReference.EMPTY, null, null);
+  final protected PsiElement context;
+
+  public SpecificTypeReference(@NotNull PsiElement context) {
+    this.context = context;
   }
 
-  static public SpecificTypeReference createArray(SpecificTypeReference elementType) {
-    return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Array", null), new SpecificTypeReference[]{elementType}, null);
+  static public SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
+    return SpecificHaxeClassReference
+      .withGenerics(new HaxeClassReference("Array", elementType.getElementContext()), new ResultHolder[]{elementType}, null);
   }
 
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
     return this;
   }
 
-  static public SpecificHaxeClassReference getVoid(PsiElement context) {
+  static public SpecificHaxeClassReference getVoid(@NotNull PsiElement context) {
     return primitive("Void", context);
   }
 
-  static public SpecificHaxeClassReference getBool(PsiElement context) {
+  static public SpecificHaxeClassReference getBool(@NotNull PsiElement context) {
     return primitive("Bool", context);
   }
-  static public SpecificHaxeClassReference getInt(PsiElement context) {
+
+  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context) {
     return primitive("Int", context);
   }
-  static public SpecificHaxeClassReference getInt(PsiElement context, int value) {
+
+  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context, int value) {
     return primitive("Int", context, value);
   }
 
-  static public SpecificHaxeClassReference getDynamic(PsiElement context) {
+  static public SpecificHaxeClassReference getDynamic(@NotNull PsiElement context) {
     return primitive("Dynamic", context);
   }
 
-  static public SpecificHaxeClassReference getUnknown(PsiElement context) {
+  static public SpecificHaxeClassReference getUnknown(@NotNull PsiElement context) {
     return primitive("Unknown", context);
   }
-  static public SpecificHaxeClassReference getInvalid(PsiElement context) {
+
+  static public SpecificHaxeClassReference getInvalid(@NotNull PsiElement context) {
     return primitive("@@Invalid", context);
   }
+
   static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
     return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Iterator", type.getElementContext()),
-                                                   new SpecificTypeReference[]{type});
+                                                   new ResultHolder[]{type.createHolder()});
   }
-  static public SpecificHaxeClassReference primitive(String name, PsiElement context) {
+
+  static public SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
     return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context));
   }
-  static public SpecificHaxeClassReference primitive(String name, PsiElement context, Object constant) {
+
+  static public SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context, Object constant) {
     return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context), constant);
   }
 
-  final public boolean isUnknown() { return this.toStringWithoutConstant().equals("Unknown"); }
-  final public boolean isDynamic() { return this.toStringWithoutConstant().equals("Dynamic"); }
-  final public boolean isInvalid() { return this.toStringWithoutConstant().equals("@@Invalid"); }
-  final public boolean isVoid() { return this.toStringWithoutConstant().equals("Void"); }
-  final public boolean isInt() { return this.toStringWithoutConstant().equals("Int"); }
-  final public boolean isNumeric() { return isInt() || isFloat(); }
-  final public boolean isBool() { return this.toStringWithoutConstant().equals("Bool"); }
-  final public boolean isFloat() { return this.toStringWithoutConstant().equals("Float"); }
-  final public boolean isString() { return this.toStringWithoutConstant().equals("String"); }
+  final public boolean isUnknown() {
+    return this.toStringWithoutConstant().equals("Unknown");
+  }
+
+  final public boolean isDynamic() {
+    return this.toStringWithoutConstant().equals("Dynamic");
+  }
+
+  final public boolean isInvalid() {
+    return this.toStringWithoutConstant().equals("@@Invalid");
+  }
+
+  final public boolean isVoid() {
+    return this.toStringWithoutConstant().equals("Void");
+  }
+
+  final public boolean isInt() {
+    return this.toStringWithoutConstant().equals("Int");
+  }
+
+  final public boolean isNumeric() {
+    return isInt() || isFloat();
+  }
+
+  final public boolean isBool() {
+    return this.toStringWithoutConstant().equals("Bool");
+  }
+
+  final public boolean isFloat() {
+    return this.toStringWithoutConstant().equals("Float");
+  }
+
+  final public boolean isString() {
+    return this.toStringWithoutConstant().equals("String");
+  }
+
   final public boolean isArray() {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
@@ -83,54 +121,83 @@ public abstract class SpecificTypeReference {
     }
     return false;
   }
-  final public SpecificTypeReference getArrayElementType() {
+
+  final public ResultHolder getArrayElementType() {
     if (isArray()) {
-      final SpecificTypeReference[] specifics = ((SpecificHaxeClassReference)this).specifics;
+      final ResultHolder[] specifics = ((SpecificHaxeClassReference)this).specifics;
       if (specifics.length >= 1) return specifics[0];
     }
-    return null;
+    return getUnknown(context).createHolder();
   }
 
-  final public SpecificTypeReference getIterableElementType(SpecificTypeReference iterable) {
+  final public ResultHolder getIterableElementType(SpecificTypeReference iterable) {
     if (isArray()) {
       return getArrayElementType();
     }
     // @TODO: Must implement it (it is not int always)
-    return getInt(iterable.getElementContext());
+    return getInt(iterable.getElementContext()).createHolder();
   }
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
-  public SpecificTypeReference withoutConstantValue() {
+
+  //public void mutateConstantValue(Object constantValue) {
+//
+  //}
+  final public SpecificTypeReference withoutConstantValue() {
     return withConstantValue(null);
   }
+
   public boolean isConstant() {
     return this.getConstant() != null;
   }
+
   public HaxeRange getRangeConstraint() {
     return null;
   }
+
   public Object getConstant() {
     return null;
   }
+
   final public boolean getConstantAsBool() {
     return HaxeTypeUtils.getBoolValue(getConstant());
   }
+
   final public double getConstantAsDouble() {
     return HaxeTypeUtils.getDoubleValue(getConstant());
   }
+
   final public int getConstantAsInt() {
     return HaxeTypeUtils.getIntValue(getConstant());
   }
-  abstract public PsiElement getElementContext();
+
+  @NotNull
+  final public PsiElement getElementContext() {
+    return context;
+  }
+
   abstract public String toString();
+
   abstract public String toStringWithoutConstant();
+
   public String toStringWithConstant() {
     return toString();
   }
-  public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
+
+  @Nullable
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
     return null;
   }
+
   final public boolean canAssign(SpecificTypeReference type2) {
-    return HaxeTypeCompatible.isAssignable(this, type2);
+    return HaxeTypeCompatible.canAssignToFrom(this, type2);
+  }
+
+  final public boolean canAssign(ResultHolder type2) {
+    return HaxeTypeCompatible.canAssignToFrom(this, type2);
+  }
+
+  public ResultHolder createHolder() {
+    return new ResultHolder(this);
   }
 }

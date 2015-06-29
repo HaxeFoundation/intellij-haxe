@@ -18,20 +18,32 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   static public SpecificHaxeClassReference[] EMPTY = new SpecificHaxeClassReference[0];
-  final public HaxeClassReference clazz;
-  final public SpecificTypeReference[] specifics;
+  @NotNull final public HaxeClassReference clazz;
+
+  // @TODO: Change specifics with generics + generic resolver?
+  final public ResultHolder[] specifics;
   final public Object constantValue;
   final public HaxeRange rangeConstraint;
 
-  public SpecificHaxeClassReference(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue, HaxeRange rangeConstraint) {
+  public SpecificHaxeClassReference(
+    @NotNull HaxeClassReference clazz,
+    ResultHolder[] specifics,
+    Object constantValue,
+    HaxeRange rangeConstraint,
+    @NotNull PsiElement context
+  ) {
+    super(context);
     this.clazz = clazz;
     this.specifics = specifics;
     this.constantValue = constantValue;
@@ -43,23 +55,29 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public HaxeClass getHaxeClass() {
-    return (this.clazz != null) ? this.clazz.getHaxeClass() : null;
+    return this.clazz.getHaxeClass();
   }
 
   public HaxeClassModel getHaxeClassModel() {
-    final HaxeClass aClass = getHaxeClass();;
+    final HaxeClass aClass = getHaxeClass();
+    ;
     return (aClass != null) ? aClass.getModel() : null;
   }
 
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
     //if (this.constantValue == constantValue) return this;
-    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null);
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, null, context);
   }
+
+  //@Override
+  //public void mutateConstantValue(Object constantValue) {
+  //  this.constantValue = constantValue;
+  //}
 
   @Override
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
     if (this.rangeConstraint == range) return this;
-    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, range);
+    return new SpecificHaxeClassReference(clazz, specifics.clone(), constantValue, range, context);
   }
 
   @Override
@@ -72,33 +90,23 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return this.constantValue;
   }
 
-  @Override
-  public PsiElement getElementContext() {
-    return this.clazz.elementContext;
+  static public SpecificHaxeClassReference withoutGenerics(@NotNull HaxeClassReference clazz) {
+    return new SpecificHaxeClassReference(clazz, ResultHolder.EMPTY, null, null, clazz.elementContext);
   }
 
-  public SpecificHaxeClassReference withoutConstantValue() {
-    return withConstantValue(null);
+  static public SpecificHaxeClassReference withoutGenerics(@NotNull HaxeClassReference clazz, Object constantValue) {
+    return new SpecificHaxeClassReference(clazz, ResultHolder.EMPTY, constantValue, null, clazz.elementContext);
   }
 
-  static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz) {
-    return new SpecificHaxeClassReference(clazz, EMPTY, null, null);
+  static public SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder[] specifics) {
+    return new SpecificHaxeClassReference(clazz, specifics, null, null, clazz.elementContext);
   }
 
-  static public SpecificHaxeClassReference withoutGenerics(HaxeClassReference clazz, Object constantValue) {
-    return new SpecificHaxeClassReference(clazz, EMPTY, constantValue, null);
-  }
-
-  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics) {
-    return new SpecificHaxeClassReference(clazz, specifics, null, null);
-  }
-
-  static public SpecificHaxeClassReference withGenerics(HaxeClassReference clazz, SpecificTypeReference[] specifics, Object constantValue) {
-    return new SpecificHaxeClassReference(clazz, specifics, constantValue, null);
+  static public SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder[] specifics, Object constantValue) {
+    return new SpecificHaxeClassReference(clazz, specifics, constantValue, null, clazz.elementContext);
   }
 
   public String toStringWithoutConstant() {
-    if (this.clazz == null) return "Unknown";
     String out = this.clazz.getName();
     if (specifics.length > 0) {
       out += "<";
@@ -116,9 +124,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (constantValue != null) {
       if (out.equals("Int")) {
         out += " = " + (int)HaxeTypeUtils.getDoubleValue(constantValue);
-      } else if (out.equals("String")) {
+      }
+      else if (out.equals("String")) {
         out += " = " + constantValue + "";
-      } else {
+      }
+      else {
         out += " = " + constantValue;
       }
     }
@@ -134,26 +144,41 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return toStringWithConstant();
   }
 
-  @Override
-  public SpecificTypeReference access(String name, HaxeExpressionEvaluatorContext context) {
-    if (this.isDynamic()) return this.withoutConstantValue();
+  public HaxeGenericResolver getGenericResolver() {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    HaxeClassModel model = getHaxeClassModel();
+    if (model != null) {
+      List<HaxeGenericParamModel> params = model.getGenericParams();
+      for (int n = 0; n < params.size(); n++) {
+        HaxeGenericParamModel paramModel = params.get(n);
+        ResultHolder specific = (n < specifics.length) ? this.specifics[n] : getUnknown(context).createHolder();
+        resolver.resolvers.put(paramModel.getName(), specific);
+      }
+    }
+    return resolver;
+  }
 
-    if (this.clazz == null || name == null) {
+  @Nullable
+  @Override
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+    if (this.isDynamic()) return this.withoutConstantValue().createHolder();
+
+    if (name == null) {
       return null;
     }
     HaxeClass aClass = this.clazz.getHaxeClass();
-    if (aClass ==  null) {
+    if (aClass == null) {
       return null;
     }
     AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
     AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name);
     if (method != null) {
       if (context.root == method) return null;
-      return HaxeTypeResolver.getMethodFunctionType(method);
+      return HaxeTypeResolver.getMethodFunctionType(method, getGenericResolver());
     }
     if (field != null) {
       if (context.root == field) return null;
-      return HaxeTypeResolver.getFieldOrMethodReturnType(field);
+      return HaxeTypeResolver.getFieldOrMethodReturnType(field, getGenericResolver());
     }
     return null;
   }

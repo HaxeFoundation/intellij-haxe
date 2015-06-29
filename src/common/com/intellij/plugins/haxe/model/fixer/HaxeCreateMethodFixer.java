@@ -15,10 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide.annotator;
+package com.intellij.plugins.haxe.model.fixer;
 
-public class HaxeSemanticAnnotatorConfig {
-  // @TODO: Add a proper UI configuration checkbox
-  //static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = true;
-  static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = false;
+import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.psi.PsiElement;
+
+public class HaxeCreateMethodFixer extends HaxeFixer {
+  public HaxeCreateMethodFixer(String name, PsiElement context) {
+    super("Create method");
+  }
+
+  @Override
+  public void run() {
+    // @TODO: Stub. Implement.
+  }
 }

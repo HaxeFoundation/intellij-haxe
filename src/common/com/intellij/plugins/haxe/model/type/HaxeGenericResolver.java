@@ -15,10 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide.annotator;
+package com.intellij.plugins.haxe.model.type;
 
-public class HaxeSemanticAnnotatorConfig {
-  // @TODO: Add a proper UI configuration checkbox
-  //static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = true;
-  static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = false;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class HaxeGenericResolver {
+  final public Map<String, ResultHolder> resolvers;
+
+  public HaxeGenericResolver() {
+    this.resolvers = new HashMap<String, ResultHolder>();
+  }
+
+  @Nullable
+  public ResultHolder resolve(String name) {
+    return resolvers.get(name);
+  }
 }

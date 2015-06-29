@@ -20,18 +20,20 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class SpecificFunctionReference extends SpecificTypeReference {
-  final public List<SpecificTypeReference> params;
-  final public SpecificTypeReference retval;
+  final public List<ResultHolder> params;
+  final public ResultHolder retval;
 
   @Nullable
   final public HaxeMethodModel method;
 
-  public SpecificFunctionReference(List<SpecificTypeReference> params, SpecificTypeReference retval, @Nullable HaxeMethodModel method) {
+  public SpecificFunctionReference(List<ResultHolder> params, ResultHolder retval, @Nullable HaxeMethodModel method, @NotNull PsiElement context) {
+    super(context);
     this.params = params;
     this.retval = retval;
     this.method = method;
@@ -39,19 +41,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
   @Override
   public SpecificFunctionReference withConstantValue(Object constantValue) {
-    return new SpecificFunctionReference(params, retval, method);
-  }
-
-  @Override
-  public SpecificFunctionReference withoutConstantValue() {
-    return withConstantValue(null);
-  }
-
-  @Override
-  public PsiElement getElementContext() {
-    if (retval != null) return retval.getElementContext();
-    if (params.size() > 0) return params.get(0).getElementContext();
-    return null;
+    return new SpecificFunctionReference(params, retval, method, context);
   }
 
   public int getNonOptionalArgumentsCount() {
@@ -69,11 +59,11 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return params.size();
   }
 
-  public List<SpecificTypeReference> getParameters() {
+  public List<ResultHolder> getParameters() {
     return params;
   }
 
-  public SpecificTypeReference getReturnType() {
+  public ResultHolder getReturnType() {
     return retval;
   }
 

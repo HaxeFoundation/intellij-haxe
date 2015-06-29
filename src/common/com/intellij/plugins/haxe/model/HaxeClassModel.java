@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -237,6 +238,7 @@ public class HaxeClassModel {
     return models;
   }
 
+  @NotNull
   public HaxeClass getPsi() {
     return haxeClass;
   }
@@ -321,19 +323,33 @@ public class HaxeClassModel {
 
     // @CHECK abstract FROM
     for (HaxeType type : getAbstractFromList()) {
-      final SpecificTypeReference aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      if (aTypeRef instanceof SpecificHaxeClassReference) {
-        ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
+      final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
+      SpecificHaxeClassReference classType = aTypeRef.getClassType();
+      if (classType != null) {
+        classType.getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
 
     // @CHECK abstract TO
     for (HaxeType type : getAbstractToList()) {
-      final SpecificTypeReference aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      if (aTypeRef instanceof SpecificHaxeClassReference) {
-        ((SpecificHaxeClassReference)aTypeRef).getHaxeClassModel().writeCompatibleTypes(output);
+      final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
+      SpecificHaxeClassReference classType = aTypeRef.getClassType();
+      if (classType != null) {
+        classType.getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
+  }
+
+  public List<HaxeGenericParamModel> getGenericParams() {
+    List<HaxeGenericParamModel> out = new LinkedList<HaxeGenericParamModel>();
+    if (getPsi().getGenericParam() != null) {
+      int index = 0;
+      for (HaxeGenericListPart part : getPsi().getGenericParam().getGenericListPartList()) {
+        out.add(new HaxeGenericParamModel(part, index));
+        index++;
+      }
+    }
+    return out;
   }
 
   public void addField(String name, SpecificTypeReference type) {

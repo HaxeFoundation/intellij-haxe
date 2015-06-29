@@ -22,11 +22,12 @@ import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
+import com.intellij.spring.model.xml.beans.TypeHolder;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeParameterModel {
   private HaxeParameter parameter;
@@ -66,6 +67,10 @@ public class HaxeParameterModel {
     return result;
   }
 
+  public PsiElement getContextElement() {
+    return getNameOrBasePsi();
+  }
+
   public PsiElement getOptionalPsi() {
     return UsefulPsiTreeUtil.getToken(parameter, "?");
   }
@@ -90,8 +95,17 @@ public class HaxeParameterModel {
     return parameter.getTypeTag();
   }
 
-  public SpecificTypeReference getType() {
-    return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi());
+  public ResultHolder getType() {
+    return getType(null);
+  }
+
+  public ResultHolder getType(@Nullable HaxeGenericResolver resolver) {
+    if (resolver != null) {
+      ResultHolder typeResult = getType(null);
+      ResultHolder resolved = resolver.resolve(typeResult.getType().toStringWithoutConstant());
+      if (resolved != null) return resolved;
+    }
+    return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
   }
 
   public PsiParameter getParameter() {

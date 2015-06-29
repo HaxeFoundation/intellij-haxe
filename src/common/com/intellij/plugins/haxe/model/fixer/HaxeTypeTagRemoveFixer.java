@@ -15,10 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide.annotator;
+package com.intellij.plugins.haxe.model.fixer;
 
-public class HaxeSemanticAnnotatorConfig {
-  // @TODO: Add a proper UI configuration checkbox
-  //static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = true;
-  static public boolean ENABLE_EXPERIMENTAL_BODY_CHECK = false;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+
+public class HaxeTypeTagRemoveFixer extends HaxeFixer {
+  private HaxeTypeTag typeTag;
+
+  public HaxeTypeTagRemoveFixer(HaxeTypeTag typeTag) {
+    super("Remove TypeTag");
+    this.typeTag = typeTag;
+  }
+
+  @Override
+  public void run() {
+    HaxeDocumentModel.fromElement(typeTag).replaceElementText(
+      typeTag,
+      ""
+    );
+  }
 }
