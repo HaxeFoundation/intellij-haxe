@@ -132,11 +132,12 @@ public class HaxePackageModel {
 
   @Nullable
   public HaxeClassModel getHaxeClass(String name) {
-    return getHaxeClassFromFileName(name + ".hx", name);
+    return getHaxeClassFromFileName(name, name);
   }
 
   @Nullable
-  public HaxeClassModel getHaxeClassFromFileName(String hxname, String name) {
+  public HaxeClassModel getHaxeClassFromFileName(String filename, String name) {
+    String hxname = filename + ".hx";
     List<PsiDirectory> directories = getPackageDirectories();
     for (PsiDirectory directory : directories) {
       PsiFile file = directory.findFile(hxname);

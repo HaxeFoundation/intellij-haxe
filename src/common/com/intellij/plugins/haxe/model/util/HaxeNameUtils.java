@@ -81,10 +81,20 @@ public class HaxeNameUtils {
   }
 
   public static boolean isValidPackageName(String id) {
-    return ensureIdName(id).equals(id);
+    if (id == null || id.length() == 0) return false;
+    return isFullLowerCase(id.substring(0, 1));
   }
 
   public static boolean isValidClassName(String id) {
-    return ensureClassName(id).equals(id);
+    if (id == null || id.length() == 0) return false;
+    return isFullUpperCase(id.substring(0, 1));
+  }
+
+  public static boolean isFullUpperCase(String id) {
+    return id.toUpperCase().equals(id);
+  }
+
+  public static boolean isFullLowerCase(String id) {
+    return id.toLowerCase().equals(id);
   }
 }

@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 public class HaxeOperatorResolver {
   static public SpecificTypeReference getBinaryOperatorResult(
@@ -38,6 +39,7 @@ public class HaxeOperatorResolver {
     return result;
   }
 
+  @NotNull
   static public SpecificTypeReference _getBinaryOperatorResult(
     PsiElement elementContext,
     SpecificTypeReference left,

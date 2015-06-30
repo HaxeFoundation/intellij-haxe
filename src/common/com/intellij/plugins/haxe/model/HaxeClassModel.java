@@ -23,8 +23,10 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Class;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.util.HaxeFileNameUtils;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import org.apache.commons.lang.NotImplementedException;
@@ -55,11 +57,20 @@ public class HaxeClassModel {
     return file;
   }
 
+  @Nullable
+  public FqInfo getFqInfo() {
+    PsiFile file = haxeClass.getContainingFile();
+    String directory = getProject().getPathToDirectory(file.getParent());
+    if (directory == null) return null;
+    String className = haxeClass.getName();
+    String fileName = HaxeFileNameUtils.removeExtension(file.getName());
+
+    return new FqInfo(directory.replace('/', '.'), fileName, className);
+  }
 
   public HaxePackageModel getPackage() {
-    String fqName = haxeClass.getQualifiedName();
-    if (fqName == null) return null;
-    return getProject().getPackageFromPath(HaxeProjectModel.extractPackagePathFromClassFqName(fqName));
+    FqInfo info = getFqInfo();
+    return (info != null) ? getProject().getPackageFromPath(info.packagePath) : null;
   }
 
   public HaxeClassReferenceModel getParentClassReference() {

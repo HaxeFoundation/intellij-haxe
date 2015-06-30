@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.google.common.base.Joiner;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.openapi.util.Key;
@@ -810,7 +811,9 @@ public class HaxeExpressionEvaluator {
     else if (type == HaxeTokenTypes.REG_EXP) {
       return SpecificHaxeClassReference.primitive("EReg", element).createHolder();
     }
-    else {
+    else if (type == HaxeTokenTypes.OSEMI) {
+      return context.types.VOID.createHolder();
+    } else {
       System.out.println("Unhandled literal type: " + type);
       return context.types.DYNAMIC.createHolder();
     }
@@ -1057,32 +1060,28 @@ public class HaxeExpressionEvaluator {
     return true;
   }
 
+  private static List<String> convertIdentifierList(List<HaxeIdentifier> idents) {
+    ArrayList<String> out = new ArrayList<String>();
+    for (HaxeIdentifier ident : idents) {
+      out.add(ident.getText());
+    }
+
+    return out;
+  }
+
   @Nullable
   private static ResultHolder tryToGetFullyQualifiedName(
-    @NotNull HaxePackageModel currentPackage,
     @NotNull HaxeReferenceExpression element,
     @NotNull HaxeExpressionEvaluatorContext context
   ) {
     final List<HaxeIdentifier> identifiers = getAccessIdentifiers(element);
 
-    for (int i = 0; i < identifiers.size(); i++) {
-      HaxeIdentifier identifier = identifiers.get(i);
-      boolean lastOne = (i == identifiers.size() - 1);
-      final String id = identifier.getText();
-      if (HaxeNameUtils.isValidClassName(id)) {
-        final HaxeClassModel aClass = currentPackage.getHaxeClass(id);
-        if (aClass != null) {
-          return lastOne ? aClass.getClassType() : null;
-        }
-      }
-      else if (HaxeNameUtils.isValidPackageName(id)) {
-        currentPackage = currentPackage.getChild(id);
-        if (currentPackage == null) return null;
-      }
-      else {
-        // Other
-        return null;
-      }
+    if (identifiers.size() > 0) {
+      String path = Joiner.on('.').join(convertIdentifierList(identifiers));
+      FqInfo fqInfo = FqInfo.parse(path);
+
+      HaxeClassModel type = (fqInfo != null) ? context.types.project.getClassFromFqInfo(fqInfo) : null;
+      return (type != null) ? type.getClassType() : null;
     }
 
     return null;
@@ -1094,7 +1093,7 @@ public class HaxeExpressionEvaluator {
     checkExpressionSemicolon(element, context);
 
     // @TODO: We should be able to check right if we priorize locals first
-    final ResultHolder fqClass = tryToGetFullyQualifiedName(project.rootPackage, element, context);
+    final ResultHolder fqClass = tryToGetFullyQualifiedName(element, context);
     if (fqClass != null) {
       return fqClass;
     }

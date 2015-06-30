@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderEnumerator;
@@ -25,13 +27,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeModuleSourceRoot;
 import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.model.util.HaxeNameUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HaxeProjectModel {
@@ -69,6 +74,19 @@ public class HaxeProjectModel {
   }
 
   @Nullable
+  public String getPathToDirectory(PsiDirectory directory) {
+    HaxeSourceRootModel root = getRootContaining(directory);
+    return root != null ? root.getPathToFile(directory) : null;
+  }
+
+  @Nullable
+  public String getPathToFile(PsiFile file) {
+    String path = getPathToDirectory(file.getParent());
+    if (path == null) return null;
+    return path + "/" + file.getName();
+  }
+
+  @Nullable
   public HaxeSourceRootModel getRootContaining(PsiDirectory dir) {
     List<HaxeSourceRootModel> roots = getRoots();
     if (dir == null) return null;
@@ -90,12 +108,16 @@ public class HaxeProjectModel {
   }
 
   @Nullable
-  public HaxeClassModel getClassFromFqName(String fqName) {
-    String packageName = extractPackagePathFromClassFqName(fqName);
-    String className = extractClassNameFromFqName(fqName);
-    HaxePackageModel packageModel = getPackageFromPath(packageName);
+  public HaxeClassModel getClassFromFqInfo(@NotNull FqInfo fqInfo) {
+    HaxePackageModel packageModel = getPackageFromPath(fqInfo.packagePath);
     if (packageModel == null) return null;
-    return packageModel.getHaxeClass(className);
+    return packageModel.getHaxeClassFromFileName(fqInfo.fileName, fqInfo.className);
+  }
+
+  @Nullable
+  public HaxeClassModel getClassFromFqName(String fqName) {
+    FqInfo fqInfo = FqInfo.parse(fqName);
+    return (fqInfo != null) ? getClassFromFqInfo(fqInfo) : null;
   }
 
   static public HaxeProjectModel fromElement(PsiElement element) {
@@ -109,16 +131,6 @@ public class HaxeProjectModel {
       project.putUserData(HAXE_PROJECT_MODEL, model = new HaxeProjectModel(project));
     }
     return model;
-  }
-
-  static public String extractPackagePathFromClassFqName(@NotNull String fqName) {
-    int i = fqName.lastIndexOf('.');
-    return (i >= 0) ? fqName.substring(0, i) : "";
-  }
-
-  static public String extractClassNameFromFqName(@NotNull String fqName) {
-    int i = fqName.lastIndexOf('.');
-    return (i >= 0) ? fqName.substring(i + 1) : fqName;
   }
 
   public HaxePackageModel getPackageFromFile(PsiFile file) {

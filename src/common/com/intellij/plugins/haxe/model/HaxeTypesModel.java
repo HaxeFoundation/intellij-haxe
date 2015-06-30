@@ -34,16 +34,16 @@ public class HaxeTypesModel {
 
   public HaxeTypesModel(@NotNull HaxeProjectModel project) {
     this.project = project;
-    this.DYNAMIC = getPrimitive(project, "Dynamic");
-    this.FLOAT = getPrimitive(project, "Float");
-    this.INT = getPrimitive(project, "Int");
-    this.BOOL = getPrimitive(project, "Bool");
+    this.DYNAMIC = getPrimitive(project, "StdTypes.Dynamic");
+    this.FLOAT = getPrimitive(project, "StdTypes.Float");
+    this.INT = getPrimitive(project, "StdTypes.Int");
+    this.BOOL = getPrimitive(project, "StdTypes.Bool");
+    this.VOID = getPrimitive(project, "StdTypes.Void");
     this.STRING = getPrimitive(project, "String");
-    this.VOID = getPrimitive(project, "Void");
   }
 
   static private SpecificHaxeClassReference getPrimitive(@NotNull HaxeProjectModel project, String name) {
-    final HaxeClassModel clazz = project.rootPackage.getHaxeClassFromFileName("StdTypes.hx", name);
+    final HaxeClassModel clazz = project.getClassFromFqName(name);
     if (clazz != null) {
       return clazz.getInstanceType().getClassType();
     }
