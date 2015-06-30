@@ -66,4 +66,8 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
   public void testThisInStaticContext() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testMissingSemicolons() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

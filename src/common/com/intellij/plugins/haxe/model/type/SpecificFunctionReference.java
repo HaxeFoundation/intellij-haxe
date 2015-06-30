@@ -100,14 +100,20 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
   @Override
   public void applyGenerics(HaxeGenericResolver generic) {
-    for (ResultHolder param : params) {
-      param.applySpecifics(generic);
+    for (int i = 0; i < params.size(); i++) {
+      ResultHolder param = params.get(i);
+      if (!param.isUnknown()) {
+        final ResultHolder result = generic.resolve(param);
+        if (result != null) {
+          params.set(i, result.isUnknown() ? result : result.duplicate());
+        }
+      }
     }
-    getReturnType().applySpecifics(generic);
   }
 
   @Override
   public SpecificTypeReference duplicate() {
+    if (isUnknown()) return this;
     final ArrayList<ResultHolder> params = new ArrayList<ResultHolder>();
     for (ResultHolder param : this.params) {
       params.add(param.duplicate());

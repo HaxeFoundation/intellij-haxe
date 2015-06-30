@@ -200,6 +200,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
       // @TODO: Duplicate just in this generic so Unknown works
       final ResultHolder type = member.getMemberType().duplicate();
+      //final ResultHolder type = member.getMemberType();
       final ResultHolder holder = type.applySpecifics(getGenericResolver());
       return holder;
     } else {
@@ -209,8 +210,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Override
   public void applyGenerics(HaxeGenericResolver generic) {
-    for (ResultHolder specific : specifics) {
-      specific.applySpecifics(generic);
+    for (int i = 0; i < specifics.length; i++) {
+      ResultHolder specific = specifics[i];
+      if (!specific.isUnknown()) {
+        final ResultHolder result = generic.resolve(specific);
+        if (result != null) {
+          specifics[i] = result.isUnknown() ? result : result.duplicate();
+        }
+      }
     }
   }
 

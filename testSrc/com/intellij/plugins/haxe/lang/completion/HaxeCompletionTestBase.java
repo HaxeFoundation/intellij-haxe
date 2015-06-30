@@ -126,6 +126,7 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
       }
     }
 
+    HaxeTestUtils.copyStdToOutput(myFixture);
     myFixture.complete(type, count);
     checkCompletion(checkType, variants);
   }

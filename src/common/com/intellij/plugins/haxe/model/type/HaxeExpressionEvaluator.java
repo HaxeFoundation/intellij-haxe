@@ -340,7 +340,7 @@ public class HaxeExpressionEvaluator {
         results.add(vartype);
       }
       HaxeExpressionEvaluatorContext childContext = context.createChild(element.getLastChild());
-      ResultHolder returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeFunctionLiteral)element).getTypeTag(), element);
+      ResultHolder returnType = HaxeTypeResolver.getTypeFromTypeTag(element.getTypeTag(), element);
       holder.setType(new SpecificFunctionReference(results, returnType, null, element));
       childContext.functionType = holder;
       context.addLambda(childContext);

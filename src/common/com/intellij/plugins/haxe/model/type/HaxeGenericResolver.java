@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -32,5 +33,15 @@ public class HaxeGenericResolver {
   @Nullable
   public ResultHolder resolve(String name) {
     return resolvers.get(name);
+  }
+
+  @Nullable
+  public ResultHolder resolve(@NotNull SpecificTypeReference type) {
+    return resolve(type.toStringWithoutConstant());
+  }
+
+  @Nullable
+  public ResultHolder resolve(@NotNull ResultHolder type) {
+    return resolve(type.getType());
   }
 }

@@ -38,9 +38,11 @@ public class HaxeTypeCompatible {
 
   static public boolean canAssignToFrom(ResultHolder to, ResultHolder from) {
     if (to.isUnknown()) {
+      //System.out.println("Unknown holder to change: " + System.identityHashCode(to) + " <- " + from.getType().withoutConstantValue());
       to.setType(from.getType().withoutConstantValue());
     }
     else if (from.isUnknown()) {
+      //System.out.println("Unknown holder from change: " + System.identityHashCode(to) + " <- " + to.getType().withoutConstantValue());
       from.setType(to.getType().withoutConstantValue());
     }
     return canAssignToFrom(to.getType(), from.getType());

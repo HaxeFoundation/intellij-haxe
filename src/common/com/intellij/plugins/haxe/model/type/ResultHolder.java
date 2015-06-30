@@ -42,6 +42,15 @@ public class ResultHolder {
 
   public ResultHolder(@NotNull SpecificTypeReference type) {
     this.type = type;
+    check(false);
+  }
+
+  private void check(boolean type) {
+    /*
+    if (isUnknown()) {
+      System.out.println("Holder set to unknown (" + type + "): " + System.identityHashCode(this));
+    }
+    */
   }
 
   @NotNull
@@ -74,6 +83,7 @@ public class ResultHolder {
     this.type = type;
     this.element = element;
     mutationCount++;
+    check(true);
     return this;
   }
 
@@ -119,7 +129,8 @@ public class ResultHolder {
   }
 
   public ResultHolder duplicate() {
-    return new ResultHolder(this.getType().duplicate());
+    // Don't duplicate unknown holders
+    return isUnknown() ? this : new ResultHolder(this.getType().duplicate());
   }
 
   public ResultHolder withConstantValue(Object constantValue) {
@@ -139,8 +150,12 @@ public class ResultHolder {
   }
 
   public ResultHolder applySpecifics(HaxeGenericResolver generic) {
+    if (this.isUnknown()) return this;
     final ResultHolder result = generic.resolve(this.toStringWithoutConstant());
     if (result != null) {
+      if (result.isUnknown() || result.getType().isUnknown()) {
+        System.out.println("Nope!");
+      }
       this.setType(result.getType());
     } else {
       getType().applyGenerics(generic);
