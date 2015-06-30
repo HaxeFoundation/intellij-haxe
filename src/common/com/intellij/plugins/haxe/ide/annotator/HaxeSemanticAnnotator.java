@@ -259,7 +259,7 @@ class ClassChecker {
     }
 
     for (HaxeMemberModel member : repeatedMembers) {
-      holder.createErrorAnnotation(member.getNameOrBasePsi(), "Duplicate class field declaration : " + member.getName());
+      holder.createErrorAnnotation(member.getNameOrBasePsi(), "Duplicate class member declaration : " + member.getName());
     }
 
 

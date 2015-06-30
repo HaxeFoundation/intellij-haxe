@@ -37,7 +37,9 @@ public class HaxeResolver2File extends HaxeResolver2Combined {
     final HaxePackageModel aPackage = file.getDetectedPackage();
     if (aPackage != null) packages.add(aPackage);
     for (HaxeClassModel clazz : file.getImports().getImportedClasses()) {
-      importedClasses.put(clazz.getName(), clazz);
+      if (clazz != null) {
+        importedClasses.put(clazz.getName(), clazz);
+      }
     }
     this.file = file;
   }

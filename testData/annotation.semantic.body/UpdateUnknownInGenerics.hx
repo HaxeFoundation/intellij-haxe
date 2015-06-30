@@ -10,6 +10,6 @@ class Test {
 class Demo<T> {
   public function new() { }
 
-  public function push(value:T):Int {
+  public function push(value:T):Void {
   }
 }

@@ -38,6 +38,12 @@ public class HaxeTypesModel {
     this.BOOL = getPrimitive(project, "StdTypes.Bool");
     this.VOID = getPrimitive(project, "StdTypes.Void");
     this.STRING = getPrimitive(project, "String");
+    assert this.DYNAMIC != null;
+    assert this.FLOAT != null;
+    assert this.INT != null;
+    assert this.BOOL != null;
+    assert this.VOID != null;
+    assert this.STRING != null;
   }
 
   static private SpecificHaxeClassReference getPrimitive(@NotNull HaxeProjectModel project, String name) {

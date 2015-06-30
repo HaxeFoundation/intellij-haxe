@@ -70,7 +70,7 @@ public class HaxeModifiersModel {
   public void removeModifier(HaxeModifierType modifier) {
     PsiElement psi = getModifierPsi(modifier);
     if (psi != null) {
-      getDocument().replaceElementText(psi, "", StripSpaces.AFTER);
+      psi.delete();
     }
   }
 

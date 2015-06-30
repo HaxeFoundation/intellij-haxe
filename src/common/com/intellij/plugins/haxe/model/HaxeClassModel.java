@@ -336,9 +336,10 @@ public class HaxeClassModel {
   }
 
   private LinkedHashMap<String, HaxeMemberModel> selfMembersMap;
+  private List<HaxeMemberModel> selfMembersList;
 
-  static final private Key<LinkedHashMap<String, HaxeMemberModel>> HAXE_CLASS_MEMBERS_MAP =
-    new Key<LinkedHashMap<String, HaxeMemberModel>>("HAXE_CLASS_MEMBERS_MAP");
+  static final private Key<LinkedHashMap<String, HaxeMemberModel>> HAXE_CLASS_MEMBERS_MAP = new Key<LinkedHashMap<String, HaxeMemberModel>>("HAXE_CLASS_MEMBERS_MAP");
+  static final private Key<List<HaxeMemberModel>> HAXE_CLASS_MEMBERS_LIST = new Key<List<HaxeMemberModel>>("HAXE_CLASS_MEMBERS_LIST");
 
   private void prepareMembers(PsiElement element) {
     if (element == null) return;
@@ -366,6 +367,7 @@ public class HaxeClassModel {
 
       if (member != null) {
         selfMembersMap.put(member.getName(), member);
+        selfMembersList.add(member);
       }
     }
   }
@@ -377,19 +379,22 @@ public class HaxeClassModel {
 
     if (!cache.has(HAXE_CLASS_MEMBERS_MAP)) {
       LinkedHashMap<String, HaxeMemberModel> selfMembersMap = new LinkedHashMap<String, HaxeMemberModel>();
+      List<HaxeMemberModel> selfMembersList = new ArrayList<HaxeMemberModel>();
       cache.put(HAXE_CLASS_MEMBERS_MAP, this.selfMembersMap = selfMembersMap);
+      cache.put(HAXE_CLASS_MEMBERS_LIST, this.selfMembersList = selfMembersList);
       final PsiElement bodyPsi = this.getBodyPsi();
       prepareMembers(bodyPsi);
     }
     else {
       this.selfMembersMap = cache.get(HAXE_CLASS_MEMBERS_MAP);
+      this.selfMembersList = cache.get(HAXE_CLASS_MEMBERS_LIST);
     }
   }
 
   @NotNull
   public List<HaxeMemberModel> getMembersSelf() {
     prepareMembers();
-    return new ArrayList<HaxeMemberModel>(selfMembersMap.values());
+    return selfMembersList;
   }
 
   @NotNull

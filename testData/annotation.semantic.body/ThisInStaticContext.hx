@@ -12,13 +12,13 @@ class Test {
   }
 
   static public function demo2() {
-    this.demo();
+    <error descr="Using this in a static context">this</error>.demo();
     function lambda() {
-      this.demo();
+      <error descr="Using this in a static context">this</error>.demo();
     }
 
     var test = function() {
-      this.demo();
+      <error descr="Using this in a static context">this</error>.demo();
     };
   }
 }

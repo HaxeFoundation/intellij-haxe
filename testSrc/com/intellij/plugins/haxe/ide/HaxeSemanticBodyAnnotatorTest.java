@@ -38,7 +38,7 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
   private void doTestNoFix(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings) throws Exception {
     boolean old = HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK;
     HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK = true;
-    myFixture.configureByFiles(getTestName(false) + ".hx");
+    myFixture.configureByFiles(getTestName(false) + ".hx", "StdTypes.hx", "String.hx");
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
