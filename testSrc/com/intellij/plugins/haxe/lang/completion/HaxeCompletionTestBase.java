@@ -24,11 +24,11 @@ import com.intellij.openapi.util.text.CharFilter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.LineSeparator;
-import org.apache.sanselan.util.IOUtils;
 
 import java.util.*;
 
@@ -104,6 +104,7 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
       //System.out.println(line);
     }
     //System.out.println(text);
+    HaxeTestUtils.copyStdToOutput(myFixture);
     myFixture.complete(CompletionType.BASIC, 1);
     checkCompletion(CheckType.INCLUDES, includeLines);
     checkCompletion(CheckType.EXCLUDES, excludeLines);

@@ -342,9 +342,7 @@ class MethodChecker {
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
     checkOverride(methodPsi, holder);
-    if (HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK) {
-      MethodBodyChecker.check(methodPsi, holder);
-    }
+    MethodBodyChecker.check(methodPsi, holder);
     //currentMethod.getBodyPsi()
   }
 

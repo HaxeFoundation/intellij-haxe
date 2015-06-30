@@ -27,8 +27,9 @@ public class HaxeTypesModel {
   public final SpecificHaxeClassReference FLOAT;
   public final SpecificHaxeClassReference INT;
   public final SpecificHaxeClassReference BOOL;
-  public final SpecificHaxeClassReference STRING;
   public final SpecificHaxeClassReference VOID;
+  public final SpecificHaxeClassReference STRING;
+  public final SpecificHaxeClassReference ARRAY;
 
   public HaxeTypesModel(@NotNull HaxeProjectModel project) {
     this.project = project;
@@ -38,12 +39,14 @@ public class HaxeTypesModel {
     this.BOOL = getPrimitive(project, "StdTypes.Bool");
     this.VOID = getPrimitive(project, "StdTypes.Void");
     this.STRING = getPrimitive(project, "String");
+    this.ARRAY = getPrimitive(project, "Array");
     assert this.DYNAMIC != null;
     assert this.FLOAT != null;
     assert this.INT != null;
     assert this.BOOL != null;
     assert this.VOID != null;
     assert this.STRING != null;
+    assert this.ARRAY != null;
   }
 
   static private SpecificHaxeClassReference getPrimitive(@NotNull HaxeProjectModel project, String name) {

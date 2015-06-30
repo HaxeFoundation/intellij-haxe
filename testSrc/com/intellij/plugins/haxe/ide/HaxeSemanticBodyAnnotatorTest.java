@@ -17,17 +17,12 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.Arrays;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 
 public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
@@ -36,14 +31,12 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
   }
 
   private void doTestNoFix(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings) throws Exception {
-    boolean old = HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK;
-    HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK = true;
-    myFixture.configureByFiles(getTestName(false) + ".hx", "StdTypes.hx", "String.hx");
+    myFixture.configureByFiles(getTestName(false) + ".hx");
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
+    HaxeTestUtils.copyStdToOutput(myFixture);
     myFixture.testHighlighting(true, false, false);
-    HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK = old;
   }
 
   private void doTestNoFixWithWarnings() throws Exception {

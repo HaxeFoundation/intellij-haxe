@@ -320,7 +320,7 @@ public class HaxeClassModel {
 
     final HaxeClassModel parentClass = this.getParentClass();
     if (parentClass != null) {
-      for (HaxeMemberModel member : getMembers()) {
+      for (HaxeMemberModel member : parentClass.getMembers()) {
         members.add(member);
       }
     }

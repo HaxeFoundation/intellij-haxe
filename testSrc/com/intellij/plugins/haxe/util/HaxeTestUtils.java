@@ -17,9 +17,14 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.testFramework.fixtures.TempDirTestFixture;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by fedorkorotkov.
@@ -36,5 +41,23 @@ public class HaxeTestUtils {
       return f.getAbsolutePath();
     }
     return PathManager.getHomePath() + "/plugins/haxe/testData";
+  }
+
+  static public void copyStdToOutput(JavaCodeInsightTestFixture fixture) {
+    String outputDir = fixture.getTempDirPath();
+    String stdFolder = HaxeTestUtils.BASE_TEST_DATA_PATH + "/std";
+
+    for (File input : new File(stdFolder).listFiles()) {
+      File output = new File(outputDir + "/" + input.getName());
+      try {
+        Files.copy(input, output);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+    LocalFileSystem.getInstance().findFileByIoFile(new File(outputDir)).refresh(false, false);
+    //outputDir.getVirtualFile().refresh(false, false);
   }
 }

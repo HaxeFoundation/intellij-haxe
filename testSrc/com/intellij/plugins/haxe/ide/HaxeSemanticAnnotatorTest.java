@@ -33,6 +33,9 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.ActionRunner;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
@@ -46,10 +49,13 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   private void doTestNoFix(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings) throws Exception {
-    myFixture.configureByFiles(getTestName(false) + ".hx", "StdTypes.hx", "String.hx");
+    myFixture.configureByFiles(getTestName(false) + ".hx");
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
+
+    HaxeTestUtils.copyStdToOutput(myFixture);
+
     myFixture.testHighlighting(true, false, false);
   }
 

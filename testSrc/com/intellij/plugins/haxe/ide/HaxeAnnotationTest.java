@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.util.ArrayUtil;
 
 /**
@@ -37,6 +38,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   private void doTest(String... additionalPaths) throws Exception {
     final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
+    HaxeTestUtils.copyStdToOutput(myFixture);
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     try {
       LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
@@ -47,7 +49,8 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
       finally {
         LanguageAnnotators.INSTANCE.removeExplicitExtension(HaxeLanguage.INSTANCE, annotator);
       }
-    } finally {
+    }
+    finally {
       LanguageAnnotators.INSTANCE.removeExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     }
   }
@@ -82,5 +85,4 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
   }
-
 }

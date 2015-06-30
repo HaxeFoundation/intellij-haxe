@@ -1,1 +1,1 @@
-import haxe.macro.Tools;
+<error descr="Can't find class">import haxe.macro.Tools;</error>

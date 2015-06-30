@@ -4,4 +4,4 @@ foo3():Bool = true
 mybool1:Bool
 mybool2:Bool
 mybool3:Bool = false
-mybool4:Bool = false
+mybool4:Bool
