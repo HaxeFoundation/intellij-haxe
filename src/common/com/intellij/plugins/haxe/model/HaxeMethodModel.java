@@ -121,6 +121,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
     return getFunctionType(null);
   }
 
+  @NotNull
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi(), resolver);
   }

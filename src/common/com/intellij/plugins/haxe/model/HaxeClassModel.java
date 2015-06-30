@@ -177,32 +177,49 @@ public class HaxeClassModel {
   }
 
   // @TODO: this should be properly parsed in haxe.bnf so searching for to is not required
-  public List<HaxeType> getAbstractToList() {
+  public List<ResultHolder> getAbstractToList() {
     if (!isAbstract()) return Collections.emptyList();
-    List<HaxeType> types = new LinkedList<HaxeType>();
+    List<ResultHolder> types = new LinkedList<ResultHolder>();
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("to")) {
         PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingNoSpaces(id);
         if (sibling instanceof HaxeType) {
-          types.add((HaxeType)sibling);
+          types.add(HaxeTypeResolver.getTypeFromType((HaxeType)sibling));
         }
       }
     }
+
+    for (HaxeMethodModel method : getMethods()) {
+      if (method.getMetas().getMeta("@:to") != null) {
+        types.add(method.getReturnType(null));
+      }
+    }
+
     return types;
   }
 
   // @TODO: this should be properly parsed in haxe.bnf so searching for from is not required
-  public List<HaxeType> getAbstractFromList() {
+  public List<ResultHolder> getAbstractFromList() {
     if (!isAbstract()) return Collections.emptyList();
-    List<HaxeType> types = new LinkedList<HaxeType>();
+    List<ResultHolder> types = new LinkedList<ResultHolder>();
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("from")) {
         PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingNoSpaces(id);
         if (sibling instanceof HaxeType) {
-          types.add((HaxeType)sibling);
+          types.add(HaxeTypeResolver.getTypeFromType((HaxeType)sibling));
         }
       }
     }
+
+    for (HaxeMethodModel method : getMethods()) {
+      if (method.getMetas().getMeta("@:from") != null) {
+        HaxeParameterModel firstParam = method.getParameter(0);
+        if (firstParam != null) {
+          types.add(firstParam.getType());
+        }
+      }
+    }
+
     return types;
   }
 
@@ -537,20 +554,24 @@ public class HaxeClassModel {
     }
 
     // @CHECK abstract FROM
-    for (HaxeType type : getAbstractFromList()) {
-      final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      SpecificHaxeClassReference classType = aTypeRef.getClassType();
+    for (ResultHolder type : getAbstractFromList()) {
+      SpecificHaxeClassReference classType = type.getClassType();
       if (classType != null) {
-        classType.getHaxeClassModel().writeCompatibleTypes(output);
+        HaxeClassModel clazz = classType.getHaxeClassModel();
+        if (clazz != null) {
+          clazz.writeCompatibleTypes(output);
+        }
       }
     }
 
     // @CHECK abstract TO
-    for (HaxeType type : getAbstractToList()) {
-      final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
-      SpecificHaxeClassReference classType = aTypeRef.getClassType();
+    for (ResultHolder type : getAbstractToList()) {
+      SpecificHaxeClassReference classType = type.getClassType();
       if (classType != null) {
-        classType.getHaxeClassModel().writeCompatibleTypes(output);
+        HaxeClassModel clazz = classType.getHaxeClassModel();
+        if (clazz != null) {
+          clazz.writeCompatibleTypes(output);
+        }
       }
     }
   }

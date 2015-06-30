@@ -36,7 +36,7 @@ public class HaxeImportsModel {
   public List<HaxeClassModel> getImportedClasses() {
     LinkedList<HaxeClassModel> classes = new LinkedList<HaxeClassModel>();
 
-    classes.add(file.getProject().getClassFromFqName("Std"));
+    classes.add(file.getProject().rootPackage.accessClass("Std"));
 
     for (HaxeImportModel importModel : getImports()) {
       HaxeClassModel importedClass = importModel.getHaxeClass();

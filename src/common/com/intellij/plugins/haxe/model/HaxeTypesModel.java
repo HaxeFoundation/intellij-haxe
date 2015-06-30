@@ -17,9 +17,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +41,7 @@ public class HaxeTypesModel {
   }
 
   static private SpecificHaxeClassReference getPrimitive(@NotNull HaxeProjectModel project, String name) {
-    final HaxeClassModel clazz = project.getClassFromFqName(name);
+    final HaxeClassModel clazz = project.rootPackage.accessClass(name);
     if (clazz != null) {
       return clazz.getInstanceType().getClassType();
     }

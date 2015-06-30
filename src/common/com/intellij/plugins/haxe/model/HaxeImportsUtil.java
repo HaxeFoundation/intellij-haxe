@@ -24,7 +24,7 @@ public class HaxeImportsUtil {
   static public HaxeClassReferenceModel getReference(@NotNull HaxeReferenceExpression expression) {
     HaxeClassReferenceModel reference = null;
     String fqName = expression.getText();
-    HaxeClassModel clazz = HaxeProjectModel.fromElement(expression).getClassFromFqName(fqName);
+    HaxeClassModel clazz = HaxeProjectModel.fromElement(expression).rootPackage.accessClass(fqName);
     if (clazz != null) {
       reference = new HaxeClassReferenceModel(expression, clazz.haxeClass);
     }

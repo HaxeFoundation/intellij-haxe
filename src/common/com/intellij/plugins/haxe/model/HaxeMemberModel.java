@@ -46,6 +46,7 @@ abstract public class HaxeMemberModel {
   }
 
   private HaxeMetasModel metas;
+  @NotNull
   public HaxeMetasModel getMetas() {
     if (metas == null) metas = new HaxeMetasModel(basePsi);
     return metas;

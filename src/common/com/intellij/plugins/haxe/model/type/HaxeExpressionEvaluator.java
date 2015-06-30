@@ -1079,9 +1079,21 @@ public class HaxeExpressionEvaluator {
     if (identifiers.size() > 0) {
       String path = Joiner.on('.').join(convertIdentifierList(identifiers));
       FqInfo fqInfo = FqInfo.parse(path);
+      if (fqInfo == null) return null;
 
-      HaxeClassModel type = (fqInfo != null) ? context.types.project.getClassFromFqInfo(fqInfo) : null;
-      return (type != null) ? type.getClassType() : null;
+      HaxeProjectModel project = context.types.project;
+      HaxePackageModel rootPackage = project.rootPackage;
+      HaxePackageModel currentPackage = HaxeFileModel.fromElement(element).getDetectedPackage();
+
+      HaxeClassModel type = null;
+      if (currentPackage != null) {
+        type = currentPackage.accessClass(fqInfo);
+      }
+      if (type == null) {
+        type = rootPackage.accessClass(fqInfo);
+      }
+
+      return type != null ? type.getClassType() : null;
     }
 
     return null;
@@ -1114,7 +1126,7 @@ public class HaxeExpressionEvaluator {
       else {
         ResultHolder access = typeHolder.getType().access(accessName, accessElement, context);
         if (access == null) {
-          Annotation annotation = context.addError(accessElement, "Can't resolve '" + accessName + "' in " + typeHolder.getType());
+          Annotation annotation = context.addUnresolvedError(accessElement, "Can't resolve '" + accessName + "' in " + typeHolder.getType());
           if (children.length == 1) {
             annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
           }

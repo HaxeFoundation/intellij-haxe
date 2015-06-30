@@ -42,6 +42,7 @@ import java.util.List;
 public class HaxeProjectModel {
   static private Key<HaxeProjectModel> HAXE_PROJECT_MODEL = new Key<HaxeProjectModel>("HAXE_PROJECT_MODEL");
 
+  @NotNull
   public final HaxePackageModel rootPackage;
   private final Project project;
   private HaxeTypesModel types;
@@ -105,19 +106,6 @@ public class HaxeProjectModel {
       out.add(new HaxeSourceRootModel(project, sourceRoot));
     }
     return out;
-  }
-
-  @Nullable
-  public HaxeClassModel getClassFromFqInfo(@NotNull FqInfo fqInfo) {
-    HaxePackageModel packageModel = getPackageFromPath(fqInfo.packagePath);
-    if (packageModel == null) return null;
-    return packageModel.getHaxeClassFromFileName(fqInfo.fileName, fqInfo.className);
-  }
-
-  @Nullable
-  public HaxeClassModel getClassFromFqName(String fqName) {
-    FqInfo fqInfo = FqInfo.parse(fqName);
-    return (fqInfo != null) ? getClassFromFqInfo(fqInfo) : null;
   }
 
   static public HaxeProjectModel fromElement(PsiElement element) {

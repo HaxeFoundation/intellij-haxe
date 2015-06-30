@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.ide.highlighter.JavaHighlightingColors;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -129,15 +130,23 @@ public class HaxeExpressionEvaluatorContext {
   public Annotation addError(@Nullable TextRange range, String error, HaxeFixer... fixers) {
     if (range == null || holder == null) return createDummyAnnotation();
     Annotation annotation = holder.createErrorAnnotation(range, error);
-    for (HaxeFixer fixer : fixers) {
-      annotation.registerFix(fixer);
-    }
+    for (HaxeFixer fixer : fixers) annotation.registerFix(fixer);
     return annotation;
   }
 
   @NotNull
   public Annotation addError(@Nullable PsiElement element, String error, HaxeFixer... fixers) {
     return addError((element != null) ? element.getTextRange() : null, error, fixers);
+  }
+
+  @NotNull
+  public Annotation addUnresolvedError(@Nullable PsiElement element, String error, HaxeFixer... fixers) {
+    if (element == null || holder == null) return createDummyAnnotation();
+    Annotation annotation = holder.createInfoAnnotation(element, error);
+    // @TODO: Put red color as java does
+    annotation.setTextAttributes(HaxeSyntaxHighlighterColors.BAD_CHARACTER);
+    for (HaxeFixer fixer : fixers) annotation.registerFix(fixer);
+    return annotation;
   }
 
   @NotNull

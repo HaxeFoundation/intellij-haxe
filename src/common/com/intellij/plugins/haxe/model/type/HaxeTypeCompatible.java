@@ -108,8 +108,8 @@ public class HaxeTypeCompatible {
     HaxeClass thisClassPsi = to.clazz.getHaxeClass();
     if (thisClassPsi != null) {
       HaxeClassModel thisClass = thisClassPsi.getModel();
-      for (HaxeType type : thisClass.getAbstractFromList()) {
-        if (HaxeTypeResolver.getTypeFromType(type).toStringWithoutConstant().equals(from.toStringWithoutConstant())) {
+      for (ResultHolder type : thisClass.getAbstractFromList()) {
+        if (type.toStringWithoutConstant().equals(from.toStringWithoutConstant())) {
           return true;
         }
       }
@@ -121,7 +121,6 @@ public class HaxeTypeCompatible {
       HaxeClassModel thatClass = thatClassPsi.getModel();
 
       if (thatClass.isAbstract()) {
-
         // Check if this is required!
         HaxeTypeOrAnonymous underlyingAbstractType = thatClass.getAbstractUnderlyingType();
         if (underlyingAbstractType != null) {
@@ -131,8 +130,8 @@ public class HaxeTypeCompatible {
           }
         }
 
-        for (HaxeType type : thatClass.getAbstractToList()) {
-          if (to.canAssign(HaxeTypeResolver.getTypeFromType(type))) {
+        for (ResultHolder type : thatClass.getAbstractToList()) {
+          if (to.canAssign(type)) {
             return true;
           }
         }

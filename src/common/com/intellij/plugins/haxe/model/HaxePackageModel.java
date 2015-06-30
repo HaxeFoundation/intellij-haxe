@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Package;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +47,19 @@ public class HaxePackageModel {
     if (this.fullName.contains("/")) {
       System.out.println("Contains /!");
     }
+  }
+
+  @Nullable
+  public HaxeClassModel accessClass(@NotNull FqInfo fqInfo) {
+    HaxePackageModel packageModel = access(fqInfo.packagePath);
+    if (packageModel == null) return null;
+    return packageModel.getHaxeClassFromFileName(fqInfo.fileName, fqInfo.className);
+  }
+
+  @Nullable
+  public HaxeClassModel accessClass(String fqName) {
+    FqInfo fqInfo = FqInfo.parse(fqName);
+    return (fqInfo != null) ? accessClass(fqInfo) : null;
   }
 
   @Nullable
