@@ -32,7 +32,6 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Locals;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.text.TextRangeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
