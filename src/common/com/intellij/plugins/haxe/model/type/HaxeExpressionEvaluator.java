@@ -1102,7 +1102,8 @@ public class HaxeExpressionEvaluator {
     ResultHolder typeHolder = handle(children[0], context);
 
     for (int n = 1; n < children.length; n++) {
-      String accessName = children[n].getText();
+      PsiElement accessElement = children[n];
+      String accessName = accessElement.getText();
       if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
         String str = (String)typeHolder.getType().getConstant();
         typeHolder = context.types.INT.withConstantValue((str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
@@ -1111,9 +1112,9 @@ public class HaxeExpressionEvaluator {
         }
       }
       else {
-        ResultHolder access = typeHolder.getType().access(accessName, context);
+        ResultHolder access = typeHolder.getType().access(accessName, accessElement, context);
         if (access == null) {
-          Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType());
+          Annotation annotation = context.addError(accessElement, "Can't resolve '" + accessName + "' in " + typeHolder.getType());
           if (children.length == 1) {
             annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
           }

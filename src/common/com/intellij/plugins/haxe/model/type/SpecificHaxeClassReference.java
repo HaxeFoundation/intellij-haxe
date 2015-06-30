@@ -168,7 +168,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Nullable
   @Override
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, boolean isStatic) {
+  public ResultHolder access(String name, @Nullable PsiElement accessElement, HaxeExpressionEvaluatorContext context, boolean isStatic) {
     // @TODO: Use HaxeResolver2
     if (this.isDynamic()) return this.withoutConstantValue().createHolder();
 
@@ -178,7 +178,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
     if (this.isClass()) {
       final SpecificTypeReference type = this.specifics[0].getType();
-      return type.access(name, context, true);
+      return type.access(name, accessElement, context, true);
     }
 
     final HaxeClassModel clazz = this.clazz.getHaxeClassModel();
@@ -192,6 +192,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     );
 
     if (member != null) {
+      if (isStatic && !member.isStatic()) {
+        context.addError(accessElement, "Access in static context");
+      } else if (!isStatic && member.isStatic()) {
+        context.addError(accessElement, "Access in non static context");
+      }
+
       // @TODO: Duplicate just in this generic so Unknown works
       final ResultHolder type = member.getMemberType().duplicate();
       final ResultHolder holder = type.applySpecifics(getGenericResolver());

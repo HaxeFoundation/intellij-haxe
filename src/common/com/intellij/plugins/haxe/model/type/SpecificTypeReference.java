@@ -174,12 +174,12 @@ public abstract class SpecificTypeReference {
   }
 
   @Nullable
-  final public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
-    return access(name, context, false);
+  final public ResultHolder access(String name, PsiElement accessElement, HaxeExpressionEvaluatorContext context) {
+    return access(name, accessElement, context, false);
   }
 
   @Nullable
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, boolean isStatic) {
+  public ResultHolder access(String name, @Nullable PsiElement accessElement, HaxeExpressionEvaluatorContext context, boolean isStatic) {
     return null;
   }
 
@@ -197,7 +197,7 @@ public abstract class SpecificTypeReference {
 
   @NotNull
   final public ResultHolder getIterableElementType(@NotNull HaxeExpressionEvaluatorContext context) {
-    final ResultHolder iterator = this.access("iterator", context);
+    final ResultHolder iterator = this.access("iterator", null, context);
     if (iterator != null) {
       final SpecificFunctionReference iteratorFunc = iterator.getFunctionType();
       if (iteratorFunc != null) {
@@ -205,7 +205,7 @@ public abstract class SpecificTypeReference {
         return iteratorReturnType.getType().getIterableElementType(context);
       }
     }
-    final ResultHolder iteratorNextType = access("next", context);
+    final ResultHolder iteratorNextType = access("next", null, context);
     if (iteratorNextType != null) {
       final SpecificFunctionReference type = iteratorNextType.getFunctionType();
       if (type != null) {
@@ -218,8 +218,8 @@ public abstract class SpecificTypeReference {
 
   @NotNull
   final public boolean isIterable(@NotNull HaxeExpressionEvaluatorContext context) {
-    if (this.access("iterator", context) != null) return true;
-    if ((this.access("next", context) != null) && (this.access("hasNext", context) != null)) return true;
+    if (this.access("iterator", null, context) != null) return true;
+    if ((this.access("next", null, context) != null) && (this.access("hasNext", null, context) != null)) return true;
     return false;
   }
 
