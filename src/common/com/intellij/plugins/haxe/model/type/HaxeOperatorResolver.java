@@ -57,6 +57,10 @@ public class HaxeOperatorResolver {
       return context.types.DYNAMIC;
     }
 
+    if (left.isDynamic() || right.isDynamic()) {
+      return left.withoutConstantValue();
+    }
+
     final HaxeClassModel leftModel = ((SpecificHaxeClassReference)left).getHaxeClassModel();
     final HaxeClassModel rightModel = ((SpecificHaxeClassReference)right).getHaxeClassModel();
     if (leftModel != null && rightModel != null) {
