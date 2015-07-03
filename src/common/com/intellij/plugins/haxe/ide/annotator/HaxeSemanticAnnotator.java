@@ -36,6 +36,7 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -183,7 +184,18 @@ class FieldChecker {
 
 class TypeChecker {
   static public void check(final HaxeType type, final AnnotationHolder holder) {
-    check(type.getReferenceExpression().getIdentifier(), holder);
+    if (true) {
+      // HACK - Find the identifier manually, rather than just getting it from the reference.
+      // There is an error in the BNF that maps a number of reference types to HaxeReferenceExpression
+      // even though the types do not necessarily have one.  If an identifier doesn't exist,
+      // HaxeReferenceExpression.getIdentifier() will throw a NotNull exception; searching the
+      // children doesn't.
+      HaxeReferenceExpression expression = type.getReferenceExpression();
+      HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(expression, HaxeIdentifier.class);
+      check(identifier, holder);
+    } else {
+      check(type.getReferenceExpression().getIdentifier(), holder);
+    }
   }
 
   static public void check(final PsiIdentifier identifier, final AnnotationHolder holder) {
