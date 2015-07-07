@@ -26,7 +26,6 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
-import com.intellij.spring.model.xml.beans.TypeHolder;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeParameterModel {
