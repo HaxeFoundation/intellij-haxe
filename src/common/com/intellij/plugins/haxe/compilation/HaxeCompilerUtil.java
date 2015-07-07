@@ -19,8 +19,10 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.ToolWindowManager;
 
 /**
  * @author: Fedor.Korotkov
@@ -36,35 +38,52 @@ public class HaxeCompilerUtil
             addErrorToContext(error, context, errorRoot);
         }
     }
-    
+
     private static void addErrorToContext(String error, CompileContext context,
                                           String errorRoot)
     {
-        // First, force in a warning just to make the compilation window always
-        // visible.  This is so that informational messages, which can be
-        // interesting and should be shown as soon as they are immediately
-        // available, are displayed.  I have no idea why IntelliJ doesn't show
-        // "informational" messages if there hasn't been a warning or error ...
-        if (context.getUserData(hasShowWindowWarning) == null) {
-            context.addMessage(CompilerMessageCategory.WARNING,
-                               "This is not a real warning, it's just here " +
-                               "to force this window to open ...", null, -1, -1);
-            context.putUserData(hasShowWindowWarning, "yes");
+        // TODO: Add a button to the Haxe module settings to control whether we always open the window or not.
+        if (context.getUserData(messageWindowAutoOpened) == null) {
+            openCompilerMessagesWindow(context);
+            context.putUserData(messageWindowAutoOpened, "yes");
         }
-        
+
         final HaxeCompilerError compilerError = HaxeCompilerError.create
             (errorRoot,
              error,
              !ApplicationManager.getApplication().isUnitTestMode());
         
-        context.addMessage
-            (compilerError.getCategory(),
-             compilerError.getErrorMessage(),
-             VfsUtilCore.pathToUrl(compilerError.getPath()),
-             compilerError.getLine(),
-             compilerError.getColumn());
+
+        if (null != compilerError) {
+            context.addMessage
+                (compilerError.getCategory(),
+                 compilerError.getErrorMessage(),
+                 VfsUtilCore.pathToUrl(compilerError.getPath()),
+                 compilerError.getLine(),
+                 compilerError.getColumn());
+        }
     }
-    
-    private static com.intellij.openapi.util.Key hasShowWindowWarning =
-        new com.intellij.openapi.util.Key("hasShowWindowWarning");
+
+    private static boolean isHeadless() {
+      return ApplicationManager.getApplication().isUnitTestMode() || ApplicationManager.getApplication().isHeadlessEnvironment();
+    }
+
+    private static void openCompilerMessagesWindow(final CompileContext context) {
+        // Force the compile window open.  We should probably have a configuration button
+        // on the compile gui page to force it open or not.
+        if (!isHeadless()) {
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+                public void run() {
+                    // This was lifted from intellij-community/java/compiler/impl/src/com/intellij/compiler/progress/CompilerTask.java
+                    final ToolWindow tw = ToolWindowManager.getInstance(context.getProject()).getToolWindow(ToolWindowId.MESSAGES_WINDOW);
+                    if (tw != null) {
+                        tw.activate(null, false);
+                    }
+                }
+            });
+        }
+    }
+
+    private static com.intellij.openapi.util.Key messageWindowAutoOpened =
+        new com.intellij.openapi.util.Key("messageWindowAutoOpened");
 }

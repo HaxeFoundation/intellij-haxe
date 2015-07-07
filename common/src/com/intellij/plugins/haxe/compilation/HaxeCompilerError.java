@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,7 +82,7 @@ public class HaxeCompilerError {
         // Error: Library ([^\w]+) is not installed(.*)
         if ((m = pLibraryNotInstalled.matcher(message)).matches()) {
             return new HaxeCompilerError(CompilerMessageCategory.WARNING,
-                                         "Library " + m.group(1).trim() + 
+                                         "Library " + m.group(1).trim() +
                                          "is not installed " +
                                          m.group(2).trim(), "", -1, -1);
         }
@@ -103,17 +105,27 @@ public class HaxeCompilerError {
         }
         // ([^:]*)Error:(.*)
         else if ((m = pBareError.matcher(message)).matches()) {
-          StringBuilder err = new StringBuilder();
-          String errType = m.group(1).trim();
-          if (!errType.isEmpty()) {
-            err.append(" (");
-            err.append(errType);
-            err.append(") ");
-          }
-          err.append(m.group(2).trim());
+          String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
           return new HaxeCompilerError(CompilerMessageCategory.ERROR,
-                                       err.toString(), "", -1, -1);
+                                       msg, "", -1, -1);
         }
+        // ([^:]+) : (.+)  Keep this pattern *last* because it's the most generic
+        // and the least useful to users.  There are a number of messages that
+        // match the expression that are not errors.  Those we try to ignore.
+        // Windows file paths don't have spaces around the colon, so should not
+        // match the pattern.
+        else if ((m = pGenericError.matcher(message)).matches()) {
+          String error = m.group(1).trim();
+          if (isInformationalMessage(error)) {
+            return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
+                                         message.trim(), "", -1, -1);
+          }
+
+          String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
+          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+                                       msg, "", -1, -1);
+        }
+
         // Anything that doesn't match error patterns is purely informational
         else {
             return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
@@ -129,9 +141,9 @@ public class HaxeCompilerError {
 
         if (checkExistence &&
             !(new File(FileUtil.toSystemDependentName(filePath)).exists())) {
-            return null;
+                filePath = "Missing file: " + filePath;
         }
-        
+
         int line, column;
 
         try {
@@ -164,11 +176,40 @@ public class HaxeCompilerError {
         }
     }
 
+    private static String buildGenericErrorMessage(String error, String reason) {
+      StringBuilder msg = new StringBuilder();
+      String errType = error;
+      if (!errType.isEmpty()) {
+        msg.append(" (");
+        msg.append(errType);
+        msg.append(") ");
+      }
+      msg.append(reason);
+      return msg.toString();
+    }
+
+    private static boolean isInformationalMessage(String message) {
+      return pGeneratingStatusMessage.matcher(message).matches() || mInformationalMessages.contains(message);
+    }
+
     static Pattern pLibraryNotInstalled = Pattern.compile
         ("Error: Library ([\\S]+) is not installed(.*)");
     static Pattern pBareError = Pattern.compile("([^:]*)Error:(.*)", Pattern.CASE_INSENSITIVE);
-    static Pattern pColumnError = 
+    static Pattern pColumnError =
         Pattern.compile("([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
     static Pattern pLineError =
         Pattern.compile("([^:]+):([\\d]+): lines [\\d]+-[\\d]+ :(.*)");
+    // Unfortunately, the Haxe compiler doesn't always mark its error lines with
+    // a useful "Warning" or "Error" prefix.  However, the common error output (main.ml)
+    // uses the pattern "%s : %s".
+    static Pattern pGenericError = Pattern.compile("([^:]+) : (.+)");
+
+    // These are a few well-known informational patterns that should NOT be marked
+    // as errors.  Keeping this up to date will always be an arms race.
+    static HashSet<String> mInformationalMessages = new HashSet<String>();
+    static {
+      String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file" };
+      mInformationalMessages.addAll(Arrays.asList(nonErrors));
+    }
+    static Pattern pGeneratingStatusMessage = Pattern.compile("Generating (.+)");
 }
