@@ -104,7 +104,7 @@ class TypeTagChecker {
 
 class FieldChecker {
   public static void check(final HaxeVarDeclaration var, final AnnotationHolder holder) {
-    HaxeFieldModel field = var.getModel();
+    HaxeFieldModel field = new HaxeFieldModel(var);
     if (field.isProperty()) {
       checkProperty(field, holder);
     }

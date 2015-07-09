@@ -20,12 +20,11 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
-
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
 public interface HaxeVarDeclarationPart extends HaxePsiField {
+
   @NotNull
   HaxeComponentName getComponentName();
 
