@@ -206,7 +206,7 @@ public class HaxeClassModel {
 
   public HaxeFieldModel getField(String name) {
     HaxeVarDeclaration name1 = (HaxeVarDeclaration)haxeClass.findHaxeFieldByName(name);
-    return name1 != null ? name1.getModel() : null;
+    return name1 != null ? new HaxeFieldModel(name1) : null;
   }
 
   public HaxeMethodModel getMethod(String name) {

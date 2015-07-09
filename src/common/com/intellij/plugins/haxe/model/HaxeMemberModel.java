@@ -90,7 +90,7 @@ abstract public class HaxeMemberModel {
 
   public static HaxeMemberModel fromPsi(PsiElement element) {
     if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
-    if (element instanceof HaxeVarDeclaration) return ((HaxeVarDeclaration)element).getModel();
+    if (element instanceof HaxeVarDeclaration) return new HaxeFieldModel((HaxeVarDeclaration)element);
     final PsiElement parent = element.getParent();
     return (parent != null) ? fromPsi(parent) : null;
   }
