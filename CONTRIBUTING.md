@@ -73,7 +73,7 @@ enabled in the test instance of Idea that is launched.)
 ###Steps to configure a IntelliJ Platform Plugin SDK:
 - Open Module Settings
 - SDKs -> + button -> IntelliJ Platform Plugin SDK -> Choose a folder with IntelliJ Ultimate(!) or *.App on Mac
-- Go to the SDK’s settings page -> Classpath tab -> + button(upper right corner) -> add plugins: flex
+- Go to the SDK’s settings page -> Classpath tab -> + button(upper right corner or bottom left corner in IntelliJ 14) -> add plugins: flex
 - To add a plugin go to IntelliJ IDEA folder/plugins/<plugin-name>/lib and choose all jars
 - Add *all* libraries from <your_IDEA_install_directory>/lib directory.  Do this after each upgrade, too,
 particularly if you see ClassNotFound exceptions when attempting to run the plugin.
