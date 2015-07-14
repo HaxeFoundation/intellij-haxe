@@ -29,13 +29,13 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.5.TiVo.preview for @plugin.compatibility.description@</version>
+  <version>0.9.5 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
-      <p>0.9.5.TiVo.preview: (community release)</p>
+      <p>0.9.5: (community release)</p>
       <ul>
         <li>Add new typing support for type checking and completion. (Thanks to Carlos Ballesteros!) (Issues #288,#291,#308,#317)</li>
         <li>Support static extensions in completion. (Again, Thanks, Carlos!)<li>
