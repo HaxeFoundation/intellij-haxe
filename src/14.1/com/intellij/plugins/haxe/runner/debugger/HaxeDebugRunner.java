@@ -394,7 +394,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           catch (IOException e) {
           }
         }
-        // Stop the queue. Otherwise we get a bunch of pointless dialogs.
+        // Stop the write queue. Otherwise we get a bunch of pointless dialogs.
         mWriteQueue.dismissLastTasks(0);
       }
     }
@@ -483,7 +483,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       }
       catch (IOException e) {
         DebugProcess.this.error
-          ("Debugger protocol error: exception queueing write " +
+          ("Debugger error: exception queueing write " +
            "command " + JavaProtocol.commandToString(command) + ": " +
            e);
       }
