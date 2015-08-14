@@ -63,6 +63,7 @@ import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator;
 import com.intellij.xdebugger.frame.*;
 import com.intellij.xdebugger.impl.XSourcePositionImpl;
+import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodeImpl;
 import haxe.root.JavaProtocol;
 import org.jetbrains.annotations.NotNull;
 
@@ -1113,8 +1114,17 @@ public class HaxeDebugRunner extends DefaultProgramRunner
                                      mIcon = AllIcons.General.Error;
                                      mValue = mType = "<Unavailable>";
                                  }
-                                 
-                                 Value.this.computePresentation(node, place);
+
+                               // If fromStructuredValue contained a list, we need to add all items to the node.
+                               if (null != mChildren) {
+                                 XValueChildrenList childrenList = new XValueChildrenList();
+                                 for (Value v : mChildren) {
+                                   childrenList.add(v.mName, v);
+                                 }
+                                 ((XValueNodeImpl)node).addChildren(childrenList, false);
+                               }
+
+                               Value.this.computePresentation(node, place);
                              }
                          });
                 }

@@ -20,9 +20,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import java.util.List;
-
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -40,11 +37,6 @@ public class HaxeVarDeclarationImpl extends HaxePsiFieldImpl implements HaxeVarD
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitVarDeclaration(this);
     else super.accept(visitor);
-  }
-
-  @Override
-  public HaxeFieldModel getModel() {
-    return new HaxeFieldModel(this);
   }
 
   @Override

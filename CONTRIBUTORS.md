@@ -4,10 +4,12 @@ Recent contributors
  - AS3Boyan <denis.flash.as3@gmail.com>
  - bjitivo <bji@tivo.com>
  - Bryan Ischo <bryan@ischo.com>
+ - Carlos Ballesteros Velasco <soywiz@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
  - eliasku <deadbabe@gmail.com>
  - Elias Ku <deadbabe@gmail.com>
  - Eric B <ebishton@tivo.com>
+ - Gabor Csomak <csomakk@gmail.com>
  - giabao <giabao@sandinh.net>
  - Hays Clark <hays@infinitedescent.com>
  - Jérémy Faivre <jeremy.faivre@gmail.com>
@@ -28,6 +30,7 @@ All contributors
 - bjitivo <bji@tivo.com>
 - Bruno Garcia <b@aduros.com>
 - Bryan Ischo <bryan@ischo.com>
+- Carlos Ballesteros Velasco <soywiz@gmail.com>
 - Chris Decoster <impaler777@gmail.com>
 - Constantine Plotnikov <constantine.plotnikov@gmail.com>
 - Denis.Zhdanov <denzhdanov@gmail.com>
@@ -45,6 +48,7 @@ All contributors
 - Fedor Korotkov <fedor.korotkov@jetbrains.com>
 - Fedor Korotkov <fedor.korotkov@odnoklassniki.ru>
 - fkorotkov <fkorotkov@twitter.com>
+- Gabor Csomak <csomakk@gmail.com>
 - giabao <giabao@sandinh.net>
 - Gregory.Shrago <gregory.shrago@jetbrains.com>
 - Hays Clark <hays@infinitedescent.com>

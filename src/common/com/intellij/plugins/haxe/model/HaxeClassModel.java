@@ -356,7 +356,7 @@ public class HaxeClassModel {
         member = ((HaxeMethod)child).getModel();
       }
       else if (child instanceof HaxeVarDeclaration) {
-        member = ((HaxeVarDeclaration)child).getModel();
+        member = new HaxeFieldModel((HaxeVarDeclaration)child);
       }
       else if (child instanceof HaxeEnumValueDeclaration) {
         member = ((HaxeEnumValueDeclaration)child).getModel();
@@ -418,8 +418,10 @@ public class HaxeClassModel {
 
   @Nullable
   public HaxeFieldModel getField(String name) {
-    final HaxeMemberModel member = getMember(name);
-    return (member instanceof HaxeFieldModel) ? (HaxeFieldModel)member : null;
+    //final HaxeMemberModel member = getMember(name);
+    //return (member instanceof HaxeFieldModel) ? (HaxeFieldModel)member : null;
+    HaxeVarDeclaration name1 = (HaxeVarDeclaration)haxeClass.findHaxeFieldByName(name);
+    return name1 != null ? new HaxeFieldModel(name1) : null;
   }
 
   public HaxeMethodModel getMethod(String name) {

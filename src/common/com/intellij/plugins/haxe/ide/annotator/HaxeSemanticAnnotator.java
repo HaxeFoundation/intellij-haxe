@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -113,7 +114,7 @@ class TypeTagChecker {
 
 class FieldChecker {
   public static void check(final HaxeVarDeclaration var, final AnnotationHolder holder) {
-    HaxeFieldModel field = var.getModel();
+    HaxeFieldModel field = new HaxeFieldModel(var);
     if (field.isProperty()) {
       checkProperty(field, holder);
     }
@@ -144,10 +145,12 @@ class FieldChecker {
         if (method == null) {
           Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
           annotation.registerFix(new HaxeCreateMethodsFixer(field.getDeclaringClass(), new HaxeMethodBuilder(methodName, fieldType)));
-        } else {
+        }
+        else {
           ResultHolder methodType = method.getResultType();
           if (!fieldType.canAssign(methodType)) {
-            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Return type " + methodType + " must match getter type " + fieldType);
+            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
+                                         "Return type " + methodType + " must match getter type " + fieldType);
           }
         }
       }
@@ -161,19 +164,23 @@ class FieldChecker {
             field.getDeclaringClass(),
             new HaxeMethodBuilder(methodName, fieldType, new HaxeArgumentBuilder("value", fieldType))
           ));
-        } else {
+        }
+        else {
           HaxeParametersModel parameters = method.getParameters();
           if (parameters.length() != 1) {
             holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Setter must receive one parameter");
-          } else {
+          }
+          else {
             HaxeParameterModel parameter = parameters.parameters.get(0);
             ResultHolder argType = parameter.getType();
             ResultHolder methodType = method.getResultType();
             if (!fieldType.canAssign(argType)) {
-              holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "First argument type " + argType + " must match getter type " + fieldType);
+              holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
+                                           "First argument type " + argType + " must match getter type " + fieldType);
             }
             if (!fieldType.canAssign(methodType)) {
-              holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Return type " + methodType + " must match getter type " + fieldType);
+              holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
+                                           "Return type " + methodType + " must match getter type " + fieldType);
             }
           }
         }
@@ -212,7 +219,19 @@ class FieldChecker {
 
 class TypeChecker {
   static public void check(final HaxeType type, final AnnotationHolder holder) {
-    check(type.getReferenceExpression().getIdentifier(), holder);
+    if (true) {
+      // HACK - Find the identifier manually, rather than just getting it from the reference.
+      // There is an error in the BNF that maps a number of reference types to HaxeReferenceExpression
+      // even though the types do not necessarily have one.  If an identifier doesn't exist,
+      // HaxeReferenceExpression.getIdentifier() will throw a NotNull exception; searching the
+      // children doesn't.
+      HaxeReferenceExpression expression = type.getReferenceExpression();
+      HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(expression, HaxeIdentifier.class);
+      check(identifier, holder);
+    }
+    else {
+      check(type.getReferenceExpression().getIdentifier(), holder);
+    }
   }
 
   static public void check(final PsiIdentifier identifier, final AnnotationHolder holder) {

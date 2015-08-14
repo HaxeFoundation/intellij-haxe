@@ -3,7 +3,17 @@
      Warning: This plugin will NOT work correctly using IDEA version 14.1.2. It works well with
      versions 14.1 and 14.1.1. Version 14.1.3 is still being tested.
   </p>
-
+  <p>0.9.5: (community release)</p>
+  <ul>
+    <li>Add new typing support for type checking and completion. (Thanks to Carlos Ballesteros!) (Issues #288,#291,#308,#317)</li>
+    <li>Support static extensions in completion. (Again, Thanks, Carlos!)<li>
+    <li>Fix debugger getting stuck "collecting data" for some variables (particularly, "this"). (Issue #325)</li>
+    <li>Better compiler error highlighting. (Issue #180 redux.)</li>
+    <li>Fix Cut/Copy/Paste buffer inconsistencies (Issue #196)</li>
+    <li>Add generics support. (First level only, chained sequences remain incomplete.)</li>
+    <li>Allow object literals as return statements. (Issue #278)</li>
+    <li>Fix NPE during annotation, causing annotation to stop. (Issue #316)</li>
+  </ul>
   <p>0.9.4: (community release)</p>
   <ul>
     <li>Fix compile error highlighting in the output pane and jumping to source location when an error is clicked upon (Issues #129, #160, #180).</li>

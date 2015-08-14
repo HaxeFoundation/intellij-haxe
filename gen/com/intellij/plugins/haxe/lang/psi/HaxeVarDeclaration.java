@@ -20,14 +20,10 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
-
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
 public interface HaxeVarDeclaration extends HaxePsiField {
-  HaxeFieldModel getModel();
 
   @NotNull
   List<HaxeAutoBuildMacro> getAutoBuildMacroList();
