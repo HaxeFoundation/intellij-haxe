@@ -55,6 +55,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.concurrency.QueueProcessor;
 import com.intellij.xdebugger.*;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
@@ -69,6 +70,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
@@ -295,6 +297,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       mBreakpointHandlers = this.createBreakpointHandlers();
       mMap =
         new HashMap<XLineBreakpoint<XBreakpointProperties>, Integer>();
+
+      mWriteQueue = QueueProcessor.createRunnableQueueProcessor(QueueProcessor.ThreadToUse.POOLED);
     }
 
     public void setExecutionResult(ExecutionResult executionResult) {
@@ -390,6 +394,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           catch (IOException e) {
           }
         }
+        // Stop the write queue. Otherwise we get a bunch of pointless dialogs.
+        mWriteQueue.dismissLastTasks(0);
       }
     }
 
@@ -448,7 +454,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                           });
     }
 
-    private void enqueueCommand(debugger.Command command,
+    private void enqueueCommand(final debugger.Command command,
                                 MessageListener listener) {
 //            System.out.println("Writing command: " +
 //                               JavaProtocol.commandToString(command));
@@ -459,19 +465,25 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             return;
           }
           mListenerQueue.add(listener);
-          JavaProtocol.writeCommand(mDebugSocket.getOutputStream(),
-                                    command);
+          final OutputStream os = mDebugSocket.getOutputStream();
+          mWriteQueue.add(new Runnable() {
+            public void run() {
+              try {
+                JavaProtocol.writeCommand(os, command);
+              }
+              catch (RuntimeException e) {
+                DebugProcess.this.error
+                  ("Debugger protocol error: exception while writing " +
+                   "command " + JavaProtocol.commandToString(command) + ": " +
+                   e);
+              }
+            }
+          });
         }
-      }
-      catch (RuntimeException e) {
-        DebugProcess.this.error
-          ("Debugger protocol error: exception while writing " +
-           "command " + JavaProtocol.commandToString(command) + ": " +
-           e);
       }
       catch (IOException e) {
         DebugProcess.this.error
-          ("Debugger protocol error: exception while writing " +
+          ("Debugger error: exception queueing write " +
            "command " + JavaProtocol.commandToString(command) + ": " +
            e);
       }
@@ -484,6 +496,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         mServerSocket = null;
         JavaProtocol.readClientIdentification
           (mDebugSocket.getInputStream());
+        // XXX: Put this on the write thread/queue, instead of just posting it?
         JavaProtocol.writeServerIdentification
           (mDebugSocket.getOutputStream());
         // Enqueue a classList callback to populate the class list
@@ -1155,6 +1168,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     private boolean mStoppedOnce;
     private LinkedList<Pair<debugger.Command,
       MessageListener>> mDeferredQueue;
+    private QueueProcessor<Runnable> mWriteQueue;
     private LinkedList<MessageListener> mListenerQueue;
     private java.net.ServerSocket mServerSocket;
     private java.net.Socket mDebugSocket;
