@@ -490,8 +490,15 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     private void readLoop() throws IOException {
+      java.net.ServerSocket serverSocket;
       synchronized (this) {
-        mDebugSocket = mServerSocket.accept();
+         serverSocket = mServerSocket;
+      }
+      // Don't synchronize around the accept.  It locks up the rest of the debugger still
+      // running on the AWT thread if the application isn't starting correctly.
+      java.net.Socket debugSocket = serverSocket.accept();
+      synchronized (this) {
+        mDebugSocket = debugSocket;
         mServerSocket.close();
         mServerSocket = null;
         JavaProtocol.readClientIdentification
@@ -512,7 +519,6 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                             });
       }
       while (true) {
-        java.net.Socket debugSocket;
         synchronized (this) {
           debugSocket = mDebugSocket;
         }
@@ -871,11 +877,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                    (debugger.StringList)
                      message.params.__a[0];
                  addChildren(childrenList, stringList);
-                 for (String c : DebugProcess.this.mClassesWithStatics) {
-                   childrenList.add("statics of " + c,
-                                    new Value(c, true));
-                 }
                  node.addChildren(childrenList, false);
+                 addStaticChildren(node);
                }
                else {
                  DebugProcess.this.warn
@@ -894,12 +897,31 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           }
 
           String string = (String)stringList.params.__a[0];
-
-          childrenList.add(string, new Value(string));
+          if (! isIntermediateVariableName(string)) {
+            childrenList.add(string, new Value(string));
+          }
 
           stringList = (debugger.StringList)stringList.params.__a[1];
         }
       }
+
+      /** Determines whether a variable name has been introduced by
+       * the compiler's target backend (e.g. hxcpp).
+       */
+      private boolean isIntermediateVariableName(String s) {
+        return s.startsWith("_g");
+      }
+
+      private void addStaticChildren(@NotNull final XCompositeNode node) {
+        XValueChildrenList childrenList = new XValueChildrenList();
+
+        for (String c : DebugProcess.this.mClassesWithStatics) {
+          childrenList.add("statics of " + c,
+                           new Value(c, true));
+        }
+        node.addChildren(childrenList, true);
+      }
+
 
       private class Value extends XValue {
         public Value(String name) {
@@ -936,6 +958,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             return;
           }
 
+          setPresentation(node);
+        }
+
+        private void setPresentation(@NotNull XValueNode node) {
           node.setPresentation
             (mIcon, mType, mValue, (mChildren != null));
         }
@@ -997,20 +1023,48 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
         @Override
         public void computeChildren(@NotNull final XCompositeNode node) {
-          if (mChildren == null) {
+          internalComputeChildren(node);
+        }
+
+        private void internalComputeChildren(@NotNull Obsolescent node) {
+          // mWaitingforChildrenResults tells us wether a request for
+          // the children is already in flight.  In the case that one
+          // is, we do NOT want to call node.addChildren(list,true),
+          // because that tells the UI that we have computed all of the
+          // children for this node.
+          //
+          // mChildrenComputationRequested notifies the fetchValue
+          // callback that the UI has attempted to draw any elements
+          // and won't request them again, so the callback should
+          // notify the UI that new children are available (by calling
+          // this function again).
+
+          if (mChildren == null || mWaitingForChildrenResults) {
+            mChildrenComputationRequested = true;
             return;
           }
+          mChildrenComputationRequested = false;
 
           XValueChildrenList childrenList =
             new XValueChildrenList(mChildren.size());
           for (Value child : mChildren) {
             childrenList.add(child.mName, child);
           }
-          node.addChildren(childrenList, true);
+
+          // Stupid hack to get around the fact that we're abusing the APIs.
+          if (node instanceof XValueNodeImpl) {
+            ((XValueNodeImpl)node).addChildren(childrenList, true);
+          } else if(node instanceof XCompositeNode) {
+            ((XCompositeNode)node).addChildren(childrenList, true);
+          } else {
+            error("Unexpected node type in debugger screen: " +
+                  node.getClass().toString());
+          }
         }
 
         private void fetchValue(@NotNull final XValueNode node,
                                 @NotNull final XValuePlace place) {
+          mWaitingForChildrenResults = true;
           DebugProcess.this.enqueueCommand
             (debugger.Command.GetStructured(false, mExpression),
              new MessageListener() {
@@ -1025,19 +1079,21 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                  }
                  else {
                    mIcon = AllIcons.General.Error;
-                   mValue = mType = "<Unavailable>";
+                   mValue = mType = "<Unavailable - " +
+                                    message.toString() + ">";
                  }
 
-                 // If fromStructuredValue contained a list, we need to add all items to the node.
-                 if (null != mChildren) {
-                   XValueChildrenList childrenList = new XValueChildrenList();
-                   for (Value v : mChildren) {
-                     childrenList.add(v.mName, v);
-                   }
-                   ((XValueNodeImpl)node).addChildren(childrenList, false);
+                 // If fromStructuredValue contained a list, the nodes
+                 // need to be added to the UI.  The UI usually requests
+                 // them via computeChildren().  In some cases,
+                 // computeChildren() is called before we have retrieved
+                 // the results, and we need to re-trigger the computation.
+                 mWaitingForChildrenResults = false;
+                 if (mChildrenComputationRequested) {
+                   Value.this.internalComputeChildren(node);
                  }
 
-                 Value.this.computePresentation(node, place);
+                 Value.this.setPresentation(node);
                }
              });
         }
@@ -1153,6 +1209,11 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         private String mType;
         private String mValue;
         private LinkedList<Value> mChildren;
+
+        // These two manage how/when the child nodes are fetched.
+        // See internalComputeChildren for an explanation.
+        private boolean mWaitingForChildrenResults;
+        private boolean mChildrenComputationRequested;
       }
 
       private int mFrameNumber;
