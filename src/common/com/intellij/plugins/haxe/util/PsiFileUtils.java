@@ -62,7 +62,9 @@ public class PsiFileUtils {
     List<VirtualFile> roots = new ArrayList<VirtualFile>();
     for (Module module : modules) {
       Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-      roots.addAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
+      if (null != sdk) {
+        roots.addAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
+      }
     }
     roots.addAll(Arrays.asList(ProjectRootManager.getInstance(project).getContentSourceRoots()));
 

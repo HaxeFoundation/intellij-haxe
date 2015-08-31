@@ -55,6 +55,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.concurrency.QueueProcessor;
 import com.intellij.xdebugger.*;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
@@ -69,6 +70,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
@@ -295,6 +297,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       mBreakpointHandlers = this.createBreakpointHandlers();
       mMap =
         new HashMap<XLineBreakpoint<XBreakpointProperties>, Integer>();
+
+      mWriteQueue = QueueProcessor.createRunnableQueueProcessor(QueueProcessor.ThreadToUse.POOLED);
     }
 
     public void setExecutionResult(ExecutionResult executionResult) {
@@ -390,6 +394,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           catch (IOException e) {
           }
         }
+        // Stop the write queue. Otherwise we get a bunch of pointless dialogs.
+        mWriteQueue.dismissLastTasks(0);
       }
     }
 
@@ -448,7 +454,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                           });
     }
 
-    private void enqueueCommand(debugger.Command command,
+    private void enqueueCommand(final debugger.Command command,
                                 MessageListener listener) {
 //            System.out.println("Writing command: " +
 //                               JavaProtocol.commandToString(command));
@@ -459,31 +465,45 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             return;
           }
           mListenerQueue.add(listener);
-          JavaProtocol.writeCommand(mDebugSocket.getOutputStream(),
-                                    command);
+          final OutputStream os = mDebugSocket.getOutputStream();
+          mWriteQueue.add(new Runnable() {
+            public void run() {
+              try {
+                JavaProtocol.writeCommand(os, command);
+              }
+              catch (RuntimeException e) {
+                DebugProcess.this.error
+                  ("Debugger protocol error: exception while writing " +
+                   "command " + JavaProtocol.commandToString(command) + ": " +
+                   e);
+              }
+            }
+          });
         }
-      }
-      catch (RuntimeException e) {
-        DebugProcess.this.error
-          ("Debugger protocol error: exception while writing " +
-           "command " + JavaProtocol.commandToString(command) + ": " +
-           e);
       }
       catch (IOException e) {
         DebugProcess.this.error
-          ("Debugger protocol error: exception while writing " +
+          ("Debugger error: exception queueing write " +
            "command " + JavaProtocol.commandToString(command) + ": " +
            e);
       }
     }
 
     private void readLoop() throws IOException {
+      java.net.ServerSocket serverSocket;
       synchronized (this) {
-        mDebugSocket = mServerSocket.accept();
+         serverSocket = mServerSocket;
+      }
+      // Don't synchronize around the accept.  It locks up the rest of the debugger still
+      // running on the AWT thread if the application isn't starting correctly.
+      java.net.Socket debugSocket = serverSocket.accept();
+      synchronized (this) {
+        mDebugSocket = debugSocket;
         mServerSocket.close();
         mServerSocket = null;
         JavaProtocol.readClientIdentification
           (mDebugSocket.getInputStream());
+        // XXX: Put this on the write thread/queue, instead of just posting it?
         JavaProtocol.writeServerIdentification
           (mDebugSocket.getOutputStream());
         // Enqueue a classList callback to populate the class list
@@ -499,7 +519,6 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                             });
       }
       while (true) {
-        java.net.Socket debugSocket;
         synchronized (this) {
           debugSocket = mDebugSocket;
         }
@@ -858,11 +877,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                    (debugger.StringList)
                      message.params.__a[0];
                  addChildren(childrenList, stringList);
-                 for (String c : DebugProcess.this.mClassesWithStatics) {
-                   childrenList.add("statics of " + c,
-                                    new Value(c, true));
-                 }
                  node.addChildren(childrenList, false);
+                 addStaticChildren(node);
                }
                else {
                  DebugProcess.this.warn
@@ -881,12 +897,31 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           }
 
           String string = (String)stringList.params.__a[0];
-
-          childrenList.add(string, new Value(string));
+          if (! isIntermediateVariableName(string)) {
+            childrenList.add(string, new Value(string));
+          }
 
           stringList = (debugger.StringList)stringList.params.__a[1];
         }
       }
+
+      /** Determines whether a variable name has been introduced by
+       * the compiler's target backend (e.g. hxcpp).
+       */
+      private boolean isIntermediateVariableName(String s) {
+        return s.startsWith("_g");
+      }
+
+      private void addStaticChildren(@NotNull final XCompositeNode node) {
+        XValueChildrenList childrenList = new XValueChildrenList();
+
+        for (String c : DebugProcess.this.mClassesWithStatics) {
+          childrenList.add("statics of " + c,
+                           new Value(c, true));
+        }
+        node.addChildren(childrenList, true);
+      }
+
 
       private class Value extends XValue {
         public Value(String name) {
@@ -923,6 +958,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             return;
           }
 
+          setPresentation(node);
+        }
+
+        private void setPresentation(@NotNull XValueNode node) {
           node.setPresentation
             (mIcon, mType, mValue, (mChildren != null));
         }
@@ -984,20 +1023,48 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
         @Override
         public void computeChildren(@NotNull final XCompositeNode node) {
-          if (mChildren == null) {
+          internalComputeChildren(node);
+        }
+
+        private void internalComputeChildren(@NotNull Obsolescent node) {
+          // mWaitingforChildrenResults tells us wether a request for
+          // the children is already in flight.  In the case that one
+          // is, we do NOT want to call node.addChildren(list,true),
+          // because that tells the UI that we have computed all of the
+          // children for this node.
+          //
+          // mChildrenComputationRequested notifies the fetchValue
+          // callback that the UI has attempted to draw any elements
+          // and won't request them again, so the callback should
+          // notify the UI that new children are available (by calling
+          // this function again).
+
+          if (mChildren == null || mWaitingForChildrenResults) {
+            mChildrenComputationRequested = true;
             return;
           }
+          mChildrenComputationRequested = false;
 
           XValueChildrenList childrenList =
             new XValueChildrenList(mChildren.size());
           for (Value child : mChildren) {
             childrenList.add(child.mName, child);
           }
-          node.addChildren(childrenList, true);
+
+          // Stupid hack to get around the fact that we're abusing the APIs.
+          if (node instanceof XValueNodeImpl) {
+            ((XValueNodeImpl)node).addChildren(childrenList, true);
+          } else if(node instanceof XCompositeNode) {
+            ((XCompositeNode)node).addChildren(childrenList, true);
+          } else {
+            error("Unexpected node type in debugger screen: " +
+                  node.getClass().toString());
+          }
         }
 
         private void fetchValue(@NotNull final XValueNode node,
                                 @NotNull final XValuePlace place) {
+          mWaitingForChildrenResults = true;
           DebugProcess.this.enqueueCommand
             (debugger.Command.GetStructured(false, mExpression),
              new MessageListener() {
@@ -1012,19 +1079,21 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                  }
                  else {
                    mIcon = AllIcons.General.Error;
-                   mValue = mType = "<Unavailable>";
+                   mValue = mType = "<Unavailable - " +
+                                    message.toString() + ">";
                  }
 
-                 // If fromStructuredValue contained a list, we need to add all items to the node.
-                 if (null != mChildren) {
-                   XValueChildrenList childrenList = new XValueChildrenList();
-                   for (Value v : mChildren) {
-                     childrenList.add(v.mName, v);
-                   }
-                   ((XValueNodeImpl)node).addChildren(childrenList, false);
+                 // If fromStructuredValue contained a list, the nodes
+                 // need to be added to the UI.  The UI usually requests
+                 // them via computeChildren().  In some cases,
+                 // computeChildren() is called before we have retrieved
+                 // the results, and we need to re-trigger the computation.
+                 mWaitingForChildrenResults = false;
+                 if (mChildrenComputationRequested) {
+                   Value.this.internalComputeChildren(node);
                  }
 
-                 Value.this.computePresentation(node, place);
+                 Value.this.setPresentation(node);
                }
              });
         }
@@ -1140,6 +1209,11 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         private String mType;
         private String mValue;
         private LinkedList<Value> mChildren;
+
+        // These two manage how/when the child nodes are fetched.
+        // See internalComputeChildren for an explanation.
+        private boolean mWaitingForChildrenResults;
+        private boolean mChildrenComputationRequested;
       }
 
       private int mFrameNumber;
@@ -1155,6 +1229,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     private boolean mStoppedOnce;
     private LinkedList<Pair<debugger.Command,
       MessageListener>> mDeferredQueue;
+    private QueueProcessor<Runnable> mWriteQueue;
     private LinkedList<MessageListener> mListenerQueue;
     private java.net.ServerSocket mServerSocket;
     private java.net.Socket mDebugSocket;
