@@ -6,8 +6,6 @@ Recent contributors
  - Bryan Ischo <bryan@ischo.com>
  - Carlos Ballesteros Velasco <soywiz@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
- - eliasku <deadbabe@gmail.com>
- - Elias Ku <deadbabe@gmail.com>
  - Eric B <ebishton@tivo.com>
  - Gabor Csomak <csomakk@gmail.com>
  - giabao <giabao@sandinh.net>

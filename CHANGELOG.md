@@ -3,6 +3,12 @@
      Warning: This plugin will NOT work correctly using IDEA version 14.1.2. It works well with
      versions 14.1 and 14.1.1. Version 14.1.3 is still being tested.
   </p>
+  <p>0.9.6: (community release)</p>
+  <ul>
+    <li>Fix debugger trying to populate all variables when stopped at a breakpoint.</li>
+    <li>Suppress display of back-end generated intermediate variables when debugging.</li>
+    <li>Fix NPE when editing files outside of a project.</li>
+  </ul>
   <p>0.9.5: (community release)</p>
   <ul>
     <li>Add new typing support for type checking and completion. (Thanks to Carlos Ballesteros!) (Issues #288,#291,#308,#317)</li>
