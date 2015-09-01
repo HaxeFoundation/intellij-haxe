@@ -76,14 +76,22 @@ public final class HaxelibLibraryCache {
       // add haxelib classpath to lookup cache
       final List<String> pathCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, pathCmdline);
       for (final String s : pathCmdOutput) {
-        if (s.startsWith("-")) continue; // skip entries that don't have haxelib path
-        final int tmpSeparator = s.lastIndexOf('/');
-        final int endSeparator = s.lastIndexOf('/', tmpSeparator-1);
-        final int beginSeparator = s.lastIndexOf(File.separatorChar, endSeparator - 1);
-        final String haxelibName = s.substring(beginSeparator+1, endSeparator);
-        final HaxeClasspath classpath = new HaxeClasspath();
-        classpath.add(new HaxelibItem(haxelibName, s));
-        myCache.add(new HaxelibLibraryEntry(haxelibName, classpath));
+        if (s.startsWith("-")) continue; // skip lines that don't contain haxelib path
+        try {
+          final int tmpSeparator = s.lastIndexOf('/');
+          final int endSeparator = s.lastIndexOf('/', tmpSeparator-1);
+          final int beginSeparator = s.lastIndexOf(File.separatorChar, endSeparator - 1);
+          final String haxelibName = s.substring(beginSeparator+1, endSeparator);
+          final HaxeClasspath classpath = new HaxeClasspath();
+          classpath.add(new HaxelibItem(haxelibName, s));
+          myCache.add(new HaxelibLibraryEntry(haxelibName, classpath));
+        }
+        catch (IndexOutOfBoundsException e) {
+          // defensive try-catch block to handle possible exceptions when 'haxelib path'
+          // output does not match above parsing expectations
+          // e.g. when haxelib path output order or format is changed (happened once),
+          //   or when platform specific (Windows OS) format errors occur
+        }
       }
     }
     /* END of code that should be moved to HaxelibUtils.getInstalledLibraries. */
