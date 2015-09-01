@@ -1,7 +1,7 @@
 #Changelog
   <p>
      Warning: This plugin will NOT work correctly using IDEA version 14.1.2. It works well with
-     versions 14.1 and 14.1.1. Version 14.1.3 is still being tested.
+     versions 14.1 and 14.1.1, and 14.1.3.
   </p>
   <p>0.9.6: (community release)</p>
   <ul>
