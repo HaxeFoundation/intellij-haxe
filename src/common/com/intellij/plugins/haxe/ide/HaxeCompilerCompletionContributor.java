@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide;
 import com.google.common.base.Joiner;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeStyle.CodeStyleFacade;
 import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.editor.Document;
@@ -28,6 +29,7 @@ import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
@@ -60,6 +62,25 @@ import java.util.List;
 public class HaxeCompilerCompletionContributor extends CompletionContributor {
   static HashMap<String, List<String>> openFLDisplayArguments = new HashMap<String, List<String>>();
 
+  // Because FileDocumentManager.getLineSeparator() can assert and force the failure
+  // of completion, we make sure that there is *always* a line separator available
+  // on the file, so that we don't fail the completion.
+  @NotNull
+  private static void ensureLineSeparatorIsSet(@NotNull Project project, @NotNull Document document, VirtualFile file) {
+    // FileDocumentManagerImpl.LINE_SEPARATOR_KEY is private.  So we have
+    // to use the deprecated hack to find it.
+    Key<String> key = (Key<String>)Key.findKeyByName("LINE_SEPARATOR_KEY");
+    String lineSeparator = document.getUserData(key);
+
+    if (null == lineSeparator) {
+      CodeStyleFacade settingsManager = project == null
+                                        ? CodeStyleFacade.getInstance()
+                                        : CodeStyleFacade.getInstance(project);
+      lineSeparator = settingsManager.getLineSeparator();
+      document.putUserData(key, lineSeparator);
+    }
+  }
+
   public HaxeCompilerCompletionContributor() {
     //Trigger completion only on HaxeReferenceExpressions
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.ID)
@@ -82,6 +103,8 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                Editor editor = parameters.getEditor();
                Document document = editor.getDocument();
                VirtualFile file2 = file.getVirtualFile();
+               Project project = file.getProject();
+               ensureLineSeparatorIsSet(project, document, file2);
                String separator = FileDocumentManagerImpl.getLineSeparator(document, file2);
 
                //IntelliJ IDEA normalizes file line endings, so if file line endings is CRLF - then we have to shift an offset so Haxe compiler could get proper offset
@@ -91,7 +114,6 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                  offset += lineNumber;
                }
 
-               Project project = file.getProject();
                Module moduleForFile = ModuleUtil.findModuleForFile(file.getVirtualFile(), project);
 
                if (moduleForFile != null) {
