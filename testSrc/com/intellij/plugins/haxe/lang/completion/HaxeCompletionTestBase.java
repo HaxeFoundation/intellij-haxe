@@ -59,9 +59,7 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
   }
 
   protected PsiFile configureFileByText(String fname, String text) {
-    String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
     PsiFile newFile = myFixture.configureByText(fname, text);
-    newFile.getVirtualFile().setDetectedLineSeparator(lineSeparator);
     return newFile;
   }
 
