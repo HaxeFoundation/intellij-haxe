@@ -74,6 +74,8 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author: Fedor.Korotkov
@@ -1080,7 +1082,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                  else {
                    mIcon = AllIcons.General.Error;
                    mValue = mType = "<Unavailable - " +
-                                    message.toString() + ">";
+                                    getErrorString(message) + ">";
                  }
 
                  // If fromStructuredValue contained a list, the nodes
@@ -1201,6 +1203,23 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           else {
             return "<Unavailable>";
           }
+        }
+
+        private String getErrorString(debugger.Message debugMessage) {
+          String message = debugMessage.toString();
+
+          // Strip the enumeration text.
+          Pattern wrapperPattern = Pattern.compile("ErrorEvaluatingExpression\\((.*)\\)", Pattern.DOTALL);
+          Matcher m = wrapperPattern.matcher(message);
+          String description = m.matches() ? m.group(1) : message;
+
+          // Strip the call stack.
+          final String callStackMarker = "\nCalled from ";
+          if (description.contains(callStackMarker)) {
+            description = description.substring(0, description.indexOf(callStackMarker));
+          }
+
+          return description;
         }
 
         private String mName;
