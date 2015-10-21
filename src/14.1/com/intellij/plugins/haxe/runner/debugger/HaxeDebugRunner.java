@@ -877,8 +877,16 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                    (debugger.StringList)
                      message.params.__a[0];
                  addChildren(childrenList, stringList);
-                 node.addChildren(childrenList, false);
-                 addStaticChildren(node);
+                 if (true) {
+                   node.addChildren(childrenList, true);
+                 } else {
+                   // Note: Removed because it cluttered the variable list.
+                   //       It's a candidate for reinstatement, possibly with
+                   //       a control variable.
+                   node.addChildren(childrenList, false);
+                   // Add all statics to the list of variables.
+                   addStaticChildren(node);
+                 }
                }
                else {
                  DebugProcess.this.warn
