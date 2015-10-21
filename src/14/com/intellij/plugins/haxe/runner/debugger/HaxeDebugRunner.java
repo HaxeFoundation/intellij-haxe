@@ -1102,10 +1102,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
         private void fromStructuredValue
           (debugger.StructuredValue structuredValue) {
-          if (structuredValue.index == 0) {
+          if (structuredValue.index == 0) {  // Elided
             mExpression = (String)structuredValue.params.__a[1];
           }
-          else if (structuredValue.index == 1) {
+          else if (structuredValue.index == 1) {  // Single
             debugger.StructuredValueType type =
               (debugger.StructuredValueType)
                 structuredValue.params.__a[0];
@@ -1113,9 +1113,9 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
               structuredValue.params.__a[1];
             mIcon = AllIcons.Debugger.Value;
             mType = getTypeString(type);
-            mValue = value;
+            mValue = stripErrorAdornments(value);
           }
-          else if (structuredValue.index == 2) {
+          else if (structuredValue.index == 2) {  // List
             debugger.StructuredValueListType type =
               (debugger.StructuredValueListType)
                 structuredValue.params.__a[0];
@@ -1206,7 +1206,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         }
 
         private String getErrorString(debugger.Message debugMessage) {
-          String message = debugMessage.toString();
+          return stripErrorAdornments(debugMessage.toString());
+        }
+
+        private String stripErrorAdornments(String message) {
 
           // Strip the enumeration text.
           Pattern wrapperPattern = Pattern.compile("ErrorEvaluatingExpression\\((.*)\\)", Pattern.DOTALL);
