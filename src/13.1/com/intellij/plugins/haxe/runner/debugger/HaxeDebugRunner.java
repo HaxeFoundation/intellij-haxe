@@ -74,6 +74,8 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author: Fedor.Korotkov
@@ -1096,7 +1098,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                  else {
                    mIcon = AllIcons.General.Error;
                    mValue = mType = "<Unavailable - " +
-                                    message.toString() + ">";
+                                    getErrorString(message) + ">";
                  }
 
                  // If fromStructuredValue contained a list, the nodes
@@ -1116,10 +1118,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
         private void fromStructuredValue
           (debugger.StructuredValue structuredValue) {
-          if (structuredValue.index == 0) {
+          if (structuredValue.index == 0) {  // Elided
             mExpression = (String)structuredValue.params.__a[1];
           }
-          else if (structuredValue.index == 1) {
+          else if (structuredValue.index == 1) {  // Single
             debugger.StructuredValueType type =
               (debugger.StructuredValueType)
                 structuredValue.params.__a[0];
@@ -1127,9 +1129,9 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
               structuredValue.params.__a[1];
             mIcon = AllIcons.Debugger.Value;
             mType = getTypeString(type);
-            mValue = value;
+            mValue = stripErrorAdornments(value);
           }
-          else if (structuredValue.index == 2) {
+          else if (structuredValue.index == 2) {  // List
             debugger.StructuredValueListType type =
               (debugger.StructuredValueListType)
                 structuredValue.params.__a[0];
@@ -1217,6 +1219,26 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           else {
             return "<Unavailable>";
           }
+        }
+
+        private String getErrorString(debugger.Message debugMessage) {
+          return stripErrorAdornments(debugMessage.toString());
+        }
+
+        private String stripErrorAdornments(String message) {
+
+          // Strip the enumeration text.
+          Pattern wrapperPattern = Pattern.compile("ErrorEvaluatingExpression\\((.*)\\)", Pattern.DOTALL);
+          Matcher m = wrapperPattern.matcher(message);
+          String description = m.matches() ? m.group(1) : message;
+
+          // Strip the call stack.
+          final String callStackMarker = "\nCalled from ";
+          if (description.contains(callStackMarker)) {
+            description = description.substring(0, description.indexOf(callStackMarker));
+          }
+
+          return description;
         }
 
         private String mName;
