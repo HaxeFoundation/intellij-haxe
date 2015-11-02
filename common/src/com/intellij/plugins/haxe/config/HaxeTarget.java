@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.config;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -106,5 +107,26 @@ public enum HaxeTarget {
   @Override
   public String toString() {
     return description;
+  }
+
+  /**
+   * Match the string against the compiler's argument/parameter/flag for the
+   * target output.
+   *
+   * @param compilerTargetArgument - string to compare, e.g. '-js', '-neko'
+   * @return The target matching the flag, or null, if not found.
+   */
+  @Nullable
+  public static HaxeTarget matchOutputTarget(String compilerTargetArgument) {
+    for (HaxeTarget t : HaxeTarget.values()) {
+      if (t.getCompilerFlag().equals(compilerTargetArgument)) {
+        return t;
+      }
+    }
+    // as3 is an old case.
+    if ("-as3".equals(compilerTargetArgument)) {
+      return HaxeTarget.JAVA_SCRIPT;
+    }
+    return null;
   }
 }
