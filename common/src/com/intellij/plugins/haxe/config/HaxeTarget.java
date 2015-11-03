@@ -125,7 +125,7 @@ public enum HaxeTarget {
     }
     // as3 is an old case.
     if ("-as3".equals(compilerTargetArgument)) {
-      return HaxeTarget.JAVA_SCRIPT;
+      return HaxeTarget.FLASH;
     }
     return null;
   }
