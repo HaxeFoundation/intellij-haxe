@@ -38,12 +38,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VFileProperty;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
+import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.NMERunningState;
@@ -65,6 +67,7 @@ import com.intellij.xdebugger.evaluation.XDebuggerEvaluator;
 import com.intellij.xdebugger.frame.*;
 import com.intellij.xdebugger.impl.XSourcePositionImpl;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodeImpl;
+import gnu.trove.THashSet;
 import haxe.root.JavaProtocol;
 import org.jetbrains.annotations.NotNull;
 
@@ -784,6 +787,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         mClassAndFunctionName =
           ((String)frameList.params.__a[2] + "." +
            (String)frameList.params.__a[3]);
+        VirtualFile file = null;
+
         String fileName = VfsUtil.extractFileName(mFileName);
         if (fileName == null) {
           fileName = mFileName;
@@ -796,18 +801,35 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             (project, fileName,
              GlobalSearchScope.allScope(project));
         }
-        VirtualFile file = null;
+
+        java.util.Collection<VirtualFile> matches = new THashSet<VirtualFile>();
         if (!files.isEmpty()) {
           for (VirtualFile f : files) {
-            if (f.getPath() == mFileName) {
-              file = f;
-              break;
+            if (f.getPath().endsWith(mFileName)) {
+              matches.add(f);
             }
           }
-          if (file == null) {
-            file = files.iterator().next();
-          }
         }
+        if (matches.isEmpty()) {
+          // If we don't have a match yet, then walk the classpath looking for
+          // an appropriate file.
+          file = HaxelibClasspathUtils.findFileOnClasspath(module, mFileName);
+        } else if (matches.size() == 1) {
+          // Got one.  If it's a good file, keep it.  Otherwise, try to pick it
+          // out of the classpath.
+          VirtualFile possible = matches.iterator().next();
+          file = possible.isValid() ? possible : HaxelibClasspathUtils.findFileOnClasspath(module, possible.toString());
+        } else {
+          // Too many matches. Get the first that occurs on the classpath.
+          file = HaxelibClasspathUtils.findFirstFileOnClasspath(module, matches);
+        }
+
+        // Now, work around the fact that IDEA treats symlinks as separate files.
+        // XXX: This should be controlled via an UI option.
+        if (null != file && file.is(VFileProperty.SYMLINK)) {
+          file = file.getCanonicalFile();
+        }
+
         mSourcePosition =
           XSourcePositionImpl.create(file, mLineNumber - 1);
       }

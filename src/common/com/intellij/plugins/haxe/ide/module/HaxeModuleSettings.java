@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -85,6 +86,45 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   public String getFlexSdkName() {
     return flexSdkName;
   }
+
+  public HaxeTarget getCompilationTarget() {
+    HaxeTarget defaultTarget;
+    String targetArgs;
+
+    if (isUseNmmlToBuild()) {             // NME
+      defaultTarget = getNmeTarget().getOutputTarget();
+      targetArgs = getNmeFlags();
+    } else if (isUseOpenFLToBuild()) {    // OpenFL
+      defaultTarget = getOpenFLTarget().getOutputTarget();
+      targetArgs = getOpenFLFlags();
+    } else {                              // HXML or haxe compiler
+      defaultTarget = getHaxeTarget();
+      targetArgs = getArguments();
+    }
+
+    HaxeTarget t = getTargetFromCompilerArguments(targetArgs);
+    if (null == t) {
+      t = defaultTarget;
+    }
+    return t;
+  }
+
+  @Nullable
+  private static HaxeTarget getTargetFromCompilerArguments(String arguments) {
+    HaxeTarget target = null;
+    if (null != arguments && !arguments.isEmpty()) {
+      String[] args = arguments.split(" ");
+      for (String a : args) {
+        HaxeTarget matched = HaxeTarget.matchOutputTarget(a);
+        if (null != matched) {
+          target = matched;
+          break;
+        }
+      }
+    }
+    return target;
+  }
+
 
   public static HaxeModuleSettings getInstance(@NotNull Module module) {
     return ModuleServiceManager.getService(module, HaxeModuleSettings.class);
