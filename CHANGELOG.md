@@ -1,8 +1,25 @@
 #Changelog
   <p>
      Warning: This plugin will NOT work correctly using IDEA version 14.1.2. It works well with
-     versions 14.1 and 14.1.1, and 14.1.3.
+     versions 14.1 and 14.1.1, 14.1.3, and 14.1.4.
   </p>
+  <p>0.9.7: (community release)</p>
+  <ul>
+    <li>Fix the watch pane when debugging: typing and completion now work.</li>
+    <li>Load files using canonical names so that sym-linked files use the same buffer
+        as the original file.
+    </li>
+    <li>Use full package name when determining file to open when debugging.</li>
+    <li>Attempt to follow the classpath to determine which file to open when
+        multiple files have the same package names.
+    </li>
+    <li>Use implicit classpath entries during classpath operations. (e.g. haxe/std)</li>
+    <li>Remove "statics of XXX" from the debugger variable window pane.  (The Haxe debugger
+        at http://github.com/tivo/hxcpp-debugger has been updated to show statics
+        as part of the object tree for objects in view.
+    </li>
+    <li>Remove error embellishments before displaying errors in the debugger variable pane.</li>
+  </ul>
   <p>0.9.6: (community release)</p>
   <ul>
     <li>Fix debugger trying to populate all variables when stopped at a breakpoint.</li>

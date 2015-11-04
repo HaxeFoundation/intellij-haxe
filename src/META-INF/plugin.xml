@@ -29,12 +29,29 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.6 for @plugin.compatibility.description@</version>
+  <version>0.9.7 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>0.9.7: (community release)</p>
+      <ul>
+        <li>Fix the watch pane when debugging: typing and completion now work.</li>
+        <li>Load files using canonical names so that sym-linked files use the same buffer
+            as the original file.
+        </li>
+        <li>Use full package name when determining file to open when debugging.</li>
+        <li>Attempt to follow the classpath to determine which file to open when
+            multiple files have the same package names.
+        </li>
+        <li>Use implicit classpath entries during classpath operations. (e.g. haxe/std)</li>
+        <li>Remove "statics of XXX" from the debugger variable window pane.  (The Haxe debugger
+            at http://github.com/tivo/hxcpp-debugger has been updated to show statics
+            as part of the object tree for objects in view.
+        </li>
+        <li>Remove error embellishments before displaying errors in the debugger variable pane.</li>
+      </ul>
       <p>0.9.6: (community release)</p>
       <ul>
         <li>Fix debugger trying to populate all variables when stopped at a breakpoint.</li>
