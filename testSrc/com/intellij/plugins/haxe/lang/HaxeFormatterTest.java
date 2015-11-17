@@ -227,4 +227,16 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     myTestStyleSettings.METHOD_BRACE_STYLE = CommonCodeStyleSettings.NEXT_LINE_SHIFTED;
     doTest();
   }
+
+  public void testCommentAlignmentNormal() throws Exception {
+    myTestStyleSettings.KEEP_LINE_BREAKS = true;
+    myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = false;
+    doTest();
+  }
+
+  public void testCommentAlignmentKeepLeft() throws Exception {
+    myTestStyleSettings.KEEP_LINE_BREAKS = true;
+    myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = true;
+    doTest();
+  }
 }

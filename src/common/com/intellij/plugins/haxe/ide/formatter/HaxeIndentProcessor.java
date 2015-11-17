@@ -19,7 +19,10 @@ package com.intellij.plugins.haxe.ide.formatter;
 
 import com.intellij.formatting.Indent;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
@@ -55,7 +58,7 @@ public class HaxeIndentProcessor {
       return Indent.getNoneIndent();
     }
     if (COMMENTS.contains(elementType)) {
-      if (settings.KEEP_FIRST_COLUMN_COMMENT) {
+      if (settings.KEEP_FIRST_COLUMN_COMMENT && isAtFirstColumn(node)) {
         return Indent.getAbsoluteNoneIndent();
       }
       return Indent.getNormalIndent();
@@ -129,5 +132,24 @@ public class HaxeIndentProcessor {
     result = result || type == SWITCH_BLOCK;
     result = result || type == SWITCH_CASE_BLOCK;
     return result;
+  }
+
+  private static boolean isAtFirstColumn(ASTNode node) {
+    PsiElement element = node.getPsi();
+    if (null == element) {
+      return false;
+    }
+    PsiFile file = element.getContainingFile();
+    Project project = element.getProject();
+    if (null == file || null == project) {
+      return false;
+    }
+    Document doc = PsiDocumentManager.getInstance(project).getDocument(file);
+    if (null == doc) {
+      return false;
+    }
+    int line = doc.getLineNumber(node.getStartOffset());
+    int lineStart = doc.getLineStartOffset(line);
+    return node.getStartOffset() == lineStart;
   }
 }
