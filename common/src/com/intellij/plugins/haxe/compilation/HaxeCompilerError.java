@@ -189,7 +189,10 @@ public class HaxeCompilerError {
     }
 
     private static boolean isInformationalMessage(String message) {
-      return pGeneratingStatusMessage.matcher(message).matches() || mInformationalMessages.contains(message);
+      Boolean isStatusMessage = pGeneratingStatusMessage.matcher(message).matches();
+      Boolean isInfoMessages =  mInformationalMessages.contains(message);
+      Boolean isCompilingStatusMessage = pCompilingStatusMessage.matcher(message).matches();
+      return  isStatusMessage || isInfoMessages || isCompilingStatusMessage;
     }
 
     static Pattern pLibraryNotInstalled = Pattern.compile
@@ -199,6 +202,7 @@ public class HaxeCompilerError {
         Pattern.compile("([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
     static Pattern pLineError =
         Pattern.compile("([^:]+):([\\d]+): lines [\\d]+-[\\d]+ :(.*)");
+
     // Unfortunately, the Haxe compiler doesn't always mark its error lines with
     // a useful "Warning" or "Error" prefix.  However, the common error output (main.ml)
     // uses the pattern "%s : %s".
@@ -208,8 +212,9 @@ public class HaxeCompilerError {
     // as errors.  Keeping this up to date will always be an arms race.
     static HashSet<String> mInformationalMessages = new HashSet<String>();
     static {
-      String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file" };
+      String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file", "Using default windows compiler" };
       mInformationalMessages.addAll(Arrays.asList(nonErrors));
     }
     static Pattern pGeneratingStatusMessage = Pattern.compile("Generating (.+)");
+    static Pattern pCompilingStatusMessage = Pattern.compile("- Compiling (.+)");
 }
