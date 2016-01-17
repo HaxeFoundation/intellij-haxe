@@ -96,14 +96,20 @@
 
   <!-- Lookup table for properties files.  Add new versions here. -->
   <condition property="plugin.properties.file" value="idea_v14.1.properties">
-    <matches pattern="-141." string="${idea.sdk.version}"/>
+    <matches pattern="-141.[0-2]" string="${idea.sdk.version}"/>
   </condition>
+
+  <condition property="plugin.properties.file" value="idea_v14.1.6.properties">
+    <matches pattern="-141.[3-9]" string="${idea.sdk.version}"/>
+  </condition>
+
   <condition property="plugin.properties.file" value="idea_v14.properties">
     <matches pattern="-139." string="${idea.sdk.version}"/>
   </condition>
   <condition property="plugin.properties.file" value="idea_v13.properties">
     <matches pattern="-135." string="${idea.sdk.version}"/>
   </condition>
+
   <echo level="debug">Idea property file is ${plugin.properties.file}</echo>
 
   <fail unless="plugin.properties.file">
