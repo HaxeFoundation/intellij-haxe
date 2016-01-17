@@ -19,25 +19,37 @@ package com.intellij.plugins.haxe.build;
 public class IdeaTarget {
 
   // Loads the string at compile-time from a templatized class.
-  public static final String SDK_VERSION_STRING = IdeaSDKIdentifier.BUILD_IDENTIFIER;
-  public static final String SDK_TYPE = IdeaSDKIdentifier.BUILD_TYPE;
-  public static final int SDK_CODELINE = IdeaSDKIdentifier.BUILD_CODELINE;
-  public static final int SDK_BUILD_NUMBER = IdeaSDKIdentifier.BUILD_NUMBER;
-  public static final int SDK_BUILD_PATCH = IdeaSDKIdentifier.BUILD_PATCH;
+  private static final String SDK_VERSION_STRING = IdeaSDKIdentifier.BUILD_IDENTIFIER;
+  private static final String SDK_TYPE = IdeaSDKIdentifier.BUILD_TYPE;
+  private static final int SDK_CODELINE = IdeaSDKIdentifier.BUILD_CODELINE;
+  private static final int SDK_BUILD_NUMBER = IdeaSDKIdentifier.BUILD_NUMBER;
+  private static final int SDK_BUILD_PATCH = IdeaSDKIdentifier.BUILD_PATCH;
 
   // Add new constants for specific requirements here.
-  // All of these should be boolean constants.  They will
-  // be used by the compiler to eliminate dead code, and to
+  // All of these should be boolean constants resolvable at compile time.
+  // They will be used by the compiler to eliminate dead code, and to
   // allow non-compatible code to exist in the same file.
   //
-  // Always use the most generic of the compatibility strings possible.
+  // Specific code inflection points (breaking changes in a codeline)
+  // that require special handling should be placed here as well, perhaps
+  // even documenting the change(s) that necessitated the check.
+  //
+  // When writing code using these constants, always use the most generic
+  // of the compatibility strings possible.
+  //
 
-  public static final boolean IS_VERSION_13_COMPATIBLE = (SDK_CODELINE == 133 || SDK_CODELINE == 135);
-  public static final boolean IS_VERSION_13_0_COMPATIBLE = (SDK_CODELINE == 133);
-  public static final boolean IS_VERSION_13_1_COMPATIBLE = (SDK_CODELINE == 135);
+  public static final boolean IS_VERSION_15_1_COMPATIBLE = (SDK_CODELINE >= 145);
+  public static final boolean IS_VERSION_15_0_COMPATIBLE = (SDK_CODELINE >= 143);
+  public static final boolean IS_VERSION_15_COMPATIBLE = (IS_VERSION_15_0_COMPATIBLE || IS_VERSION_15_1_COMPATIBLE);
 
-  public static final boolean IS_VERSION_14_COMPATIBLE = (SDK_CODELINE == 139 || SDK_CODELINE == 141);
-  public static final boolean IS_VERSION_14_0_COMPATIBLE = (SDK_CODELINE == 139);
-  public static final boolean IS_VERSION_14_1_COMPATIBLE = (SDK_CODELINE == 141);
+  public static final boolean IS_VERSION_14_1_6_COMPATIBLE = (SDK_CODELINE > 141 ||
+                                                              ( SDK_CODELINE == 141 && SDK_BUILD_NUMBER >= 3056));
 
+  public static final boolean IS_VERSION_14_1_COMPATIBLE = (SDK_CODELINE >= 141);
+  public static final boolean IS_VERSION_14_0_COMPATIBLE = (SDK_CODELINE >= 139);
+  public static final boolean IS_VERSION_14_COMPATIBLE = (IS_VERSION_14_0_COMPATIBLE || IS_VERSION_14_1_COMPATIBLE);
+
+  public static final boolean IS_VERSION_13_1_COMPATIBLE = (SDK_CODELINE >= 137);
+  public static final boolean IS_VERSION_13_0_COMPATIBLE = (SDK_CODELINE >= 135);
+  public static final boolean IS_VERSION_13_COMPATIBLE = (IS_VERSION_13_0_COMPATIBLE || IS_VERSION_13_1_COMPATIBLE);
 }
