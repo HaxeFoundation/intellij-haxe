@@ -99,7 +99,7 @@
     <matches pattern="-141.[0-2]" string="${idea.sdk.version}"/>
   </condition>
 
-  <condition property="plugin.properties.file" value="idea_v14.1.6.properties">
+  <condition property="plugin.properties.file" value="idea_v14.1.5.properties">
     <matches pattern="-141.[3-9]" string="${idea.sdk.version}"/>
   </condition>
 
