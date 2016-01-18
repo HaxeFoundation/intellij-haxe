@@ -94,40 +94,8 @@
   <loadfile property="idea.sdk.version" srcFile="${idea.ultimate.build}/build.txt"/>
   <echo level="debug">Using installed IDEA version of ${idea.sdk.version}</echo>
 
-  <!-- Lookup table for properties files.  Add new versions here. -->
-  <condition property="plugin.properties.file" value="idea_v14.1.properties">
-    <matches pattern="-141." string="${idea.sdk.version}"/>
-  </condition>
-  <condition property="plugin.properties.file" value="idea_v14.properties">
-    <matches pattern="-139." string="${idea.sdk.version}"/>
-  </condition>
-  <condition property="plugin.properties.file" value="idea_v13.properties">
-    <matches pattern="-135." string="${idea.sdk.version}"/>
-  </condition>
-  <echo level="debug">Idea property file is ${plugin.properties.file}</echo>
-
-  <fail unless="plugin.properties.file">
-    Unable to load properties.
-
-    Could not locate properties for IDEA SDK version ${idea.sdk.version}.
-
-    If you are compiling a a newly released version of IDEA, perhaps the version
-    number(s) must be added to the lookup table in common.xml.
-  </fail>
-
-  <!-- The properties are mostly used as filters, but they can be useful for other things. -->
-  <property file="${plugin.properties.file}"/>
-
-  <!-- defines a path for code specific to an intellij version.
-     intellij SDK has non-backward compatible changes which requires
-     some duplicated Java files.
-
-     This property defaults to "src/common" if missing, this way you can
-     choose not to include any version specific code -->
-  <property name="version.specific.code.location" location="src/common" />
-
   <!-- Pull apart the build version into component pieces -->
-
+  <!-- Also look up the property string because we've got the info already here. -->
   <script language="javascript">
     <![CDATA[
       var buildId = project.getProperty("idea.sdk.version");
@@ -144,6 +112,24 @@
       project.setNewProperty("idea.sdk.codeline", codeLine);
       project.setNewProperty("idea.sdk.build.number", buildNumber);
       project.setNewProperty("idea.sdk.patch.number", patchNumber);
+
+      // Lookup table for properties files.  Add new versions here.
+      var propertiesFile = "";
+      switch(parseInt(codeLine, 10)) {
+        case 141:
+          if (parseInt(buildNumber, 10) <= 2734) {
+             propertiesFile = "idea_v14.1.properties";
+          } else {
+             propertiesFile = "idea_v14.1.5.properties";
+          }
+          break;
+        case 139:   propertiesFile = "idea_v14.properties";   break;
+        case 137:   propertiesFile = "idea_v13.properties";   break;
+        case 135:   propertiesFile = "idea_v13.properties";   break;
+      }
+      if (0 != propertiesFile.length) {
+        project.setNewProperty("plugin.properties.file", propertiesFile);
+      }
     ]]>
   </script>
 
@@ -157,6 +143,28 @@
     </echo>
   </target>
 
+  <echo level="debug">Idea property file is ${plugin.properties.file}</echo>
+
+  <fail unless="plugin.properties.file">
+    Unable to load properties.
+
+    Could not locate properties for IDEA SDK version ${idea.sdk.version}.
+
+    If you are compiling a a newly released version of IDEA, perhaps the version
+    number(s) must be added to the lookup table in common.xml.
+  </fail>
+
+  <!-- The properties are mostly used as filters, but they can be useful for other things. -->
+  <property file="${plugin.properties.file}"/>
+
+  <!-- defines a path for code specific to an intellij version.
+     IntelliJ SDK has non-backward compatible changes which require
+     some duplicated Java files.
+
+     This property defaults to "src/common" if it wasn't specified in
+     the ${plugin.properties.file}, this way you can
+     choose not to include any version specific code -->
+  <property name="version.specific.code.location" location="src/common" />
 
   <property name="plugin.autogen.warning">
 
