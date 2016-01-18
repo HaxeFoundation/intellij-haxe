@@ -21,7 +21,10 @@ import com.intellij.formatting.Block;
 import com.intellij.formatting.FormattingDocumentModel;
 import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelProvider;
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.build.ApiInvoker;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
@@ -32,10 +35,18 @@ import org.jetbrains.annotations.NotNull;
 public class HaxeFormattingModel implements FormattingModel {
   private final FormattingModel myModel;
 
+  // Need an abstract method call because of an API change.
+  private final ApiInvoker<TextRange> shiftIndentInsideRangeInvoker;
+
   public HaxeFormattingModel(final PsiFile file,
                              CodeStyleSettings settings,
                              final Block rootBlock) {
     myModel = FormattingModelProvider.createFormattingModelForPsiFile(file, rootBlock, settings);
+
+    shiftIndentInsideRangeInvoker = new ApiInvoker<TextRange>(myModel, "shiftIndentInsideRange",
+                                                              IdeaTarget.IS_VERSION_14_1_5_COMPATIBLE
+                                                              ? new Class<?>[] {ASTNode.class, TextRange.class, int.class }
+                                                              : new Class<?>[] {TextRange.class, int.class} );
   }
 
   @NotNull
@@ -52,8 +63,14 @@ public class HaxeFormattingModel implements FormattingModel {
     return myModel.replaceWhiteSpace(textRange, whiteSpace);
   }
 
+  // @Override
+  public TextRange shiftIndentInsideRange(ASTNode node, TextRange range, int i) {
+    return shiftIndentInsideRangeInvoker.invoke(node, range, i);
+  }
+
+  // @Override
   public TextRange shiftIndentInsideRange(TextRange range, int indent) {
-    return myModel.shiftIndentInsideRange(range, indent);
+    return shiftIndentInsideRangeInvoker.invoke(range, indent);
   }
 
   public void commitChanges() {
