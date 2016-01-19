@@ -3,6 +3,12 @@
      Warning: This plugin will NOT work correctly using IDEA version 14.1.2. It works well with
      versions 14.1 and 14.1.1, 14.1.3, and 14.1.4.
   </p>
+  <p>0.9.8: (community release)</p>
+  <ul>
+    <li>Version 14.1.5 and 14.1.6 compatibility.</li>
+    <li>Fix up some expressions to ignore non-error messages.</li>
+    <li>Fix comment alignment for single-line comments.(Issue #295)</li>
+  </ul>
   <p>0.9.7: (community release)</p>
   <ul>
     <li>Fix the watch pane when debugging: typing and completion now work.</li>

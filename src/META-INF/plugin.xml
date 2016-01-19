@@ -29,12 +29,18 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.7 for @plugin.compatibility.description@</version>
+  <version>0.9.8 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>0.9.8: (community release)</p>
+      <ul>
+        <li>Version 14.1.5 and 14.1.6 compatibility.</li>
+        <li>Fix up some expressions to ignore non-error messages.</li>
+        <li>Fix comment alignment for single-line comments.(Issue #295)</li>
+      </ul>
       <p>0.9.7: (community release)</p>
       <ul>
         <li>Fix the watch pane when debugging: typing and completion now work.</li>
