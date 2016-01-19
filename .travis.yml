@@ -13,7 +13,6 @@ before_script:
 - mkdir report
 script: make test
 env:
-    - IDEA_VERSION=13.1.6
     - IDEA_VERSION=14.0.4
     - IDEA_VERSION=14.1.6
 notifications:
