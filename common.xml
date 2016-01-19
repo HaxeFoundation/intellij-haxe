@@ -235,6 +235,8 @@
     <echo>Using IDEA build at "${idea.ultimate.build}"</echo>
     <echo>Idea property file is ${plugin.properties.file}</echo>
     <echo>Including version specific code from ${version.specific.code.location}</echo>
+    <echo>The minimum IDEA version required to install will be ${plugin.installable.since}</echo>
+    <echo>The maximum IDEA version allowed to install will be ${plugin.installable.until}</echo>
   </target>
 
 

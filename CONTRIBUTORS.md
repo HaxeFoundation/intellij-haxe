@@ -1,13 +1,12 @@
 Recent contributors
 -----------------------------------
  - as3boyan <denis.flash.as3@gmail.com>
- - AS3Boyan <denis.flash.as3@gmail.com>
- - bjitivo <bji@tivo.com>
  - Carlos Ballesteros Velasco <soywiz@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
  - Eric B <ebishton@tivo.com>
  - Gabor Csomak <csomakk@gmail.com>
  - giabao <giabao@sandinh.net>
+ - isBatak <ivicabatinic123@gmail.com>
  - Jérémy Faivre <jeremy.faivre@gmail.com>
  - jeremyfa <jeremy.faivre@gmail.com>
  - sganapavarapu1 <ganapavarapu@tivo.com>
@@ -49,6 +48,7 @@ All contributors
 - Gregory.Shrago <gregory.shrago@jetbrains.com>
 - Hays Clark <hays@infinitedescent.com>
 - impaler <user123@server.fake>
+- isBatak <ivicabatinic123@gmail.com>
 - Jérémy Faivre <jeremy.faivre@gmail.com>
 - jeremyfa <jeremy.faivre@gmail.com>
 - kirill.safonov <kirill.safonov@jetbrains.com>
