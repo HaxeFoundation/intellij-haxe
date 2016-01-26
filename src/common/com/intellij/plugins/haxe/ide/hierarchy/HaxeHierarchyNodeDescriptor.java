@@ -41,7 +41,7 @@ public class HaxeHierarchyNodeDescriptor extends HierarchyNodeDescriptor {
     : new FieldWrapper<PsiElement>(SmartElementDescriptor.class, "myElement");  // One of our superclasses.
   private static MethodWrapper<PsiElement> getPsiElementWrapper =
     IdeaTarget.IS_VERSION_15_0_COMPATIBLE
-    ? new MethodWrapper<PsiElement>(HaxeHierarchyNodeDescriptor.class, "getPsiElement", null)
+    ? new MethodWrapper<PsiElement>(HaxeHierarchyNodeDescriptor.class, "getPsiElement", (Class[])null)
     : null;
 
   public HaxeHierarchyNodeDescriptor(@NotNull Project project,
@@ -53,7 +53,7 @@ public class HaxeHierarchyNodeDescriptor extends HierarchyNodeDescriptor {
   @Nullable
   public PsiElement getMyPsiElement() {
     if (IdeaTarget.IS_VERSION_15_COMPATIBLE) {
-      return getPsiElementWrapper.invoke(this, null);
+      return getPsiElementWrapper.invoke(this, (Object[])null);
     } else {
       return myElementFieldWrapper.get(this);
     }
