@@ -116,7 +116,7 @@
       // Lookup table for properties files.  Add new versions here.
       var propertiesFile = "";
       switch(parseInt(codeLine, 10)) {
-        case 143:   propertiesFile = "idea_v15.properties";
+        case 143:   propertiesFile = "idea_v15.properties";   break;
         case 141:
           if (parseInt(buildNumber, 10) <= 2734) {
              propertiesFile = "idea_v14.1.properties";

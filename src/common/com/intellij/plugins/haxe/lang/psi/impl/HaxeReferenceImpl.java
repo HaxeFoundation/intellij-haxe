@@ -33,7 +33,7 @@ import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.impl.source.tree.SourceUtil;
+import com.intellij.psi.impl.source.tree.JavaSourceUtil;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
@@ -795,7 +795,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public String getQualifiedName() {
-    return SourceUtil.getReferenceText(this);
+    return JavaSourceUtil.getReferenceText(this);
   }
 
   // PsiJavaReference overrides

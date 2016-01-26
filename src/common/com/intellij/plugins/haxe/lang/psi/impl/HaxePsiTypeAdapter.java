@@ -250,12 +250,6 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   }
 
   @Override
-  @Deprecated
-  protected String getAnnotationsTextPrefix(boolean qualified, boolean leadingSpace, boolean trailingSpace) {
-    return "";
-  }
-
-  @Override
   public String toString() {
     return "HaxePsiTypeAdapter:" + getPresentableText();
   }
