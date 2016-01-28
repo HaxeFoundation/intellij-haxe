@@ -96,6 +96,10 @@ public class HaxeTypeCompatible {
         }
         return true;
       }
+      // issue #388: allow `public var m:Map<String, String> = new Map();`
+      else if(from.specifics.length == 0) {
+        return true;
+      }
     }
 
     if (to.toStringWithoutConstant().equals(from.toStringWithoutConstant())) {
