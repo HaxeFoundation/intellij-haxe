@@ -22,16 +22,14 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFileSystemItem;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class PsiFileUtils {
 
@@ -64,6 +62,10 @@ public class PsiFileUtils {
       Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
       if (null != sdk) {
         roots.addAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
+      }
+      // issue #387: add roots from external libraries
+      for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
+        Collections.addAll(roots, entry.getFiles(OrderRootType.CLASSES));
       }
     }
     roots.addAll(Arrays.asList(ProjectRootManager.getInstance(project).getContentSourceRoots()));
