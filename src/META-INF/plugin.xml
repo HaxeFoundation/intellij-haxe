@@ -695,6 +695,9 @@
     <component>
       <implementation-class>com.intellij.plugins.haxe.haxelib.HaxelibModuleManager</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.intellij.plugins.haxe.openfl.ProjectFileListener</implementation-class>
+    </component>
   </module-components>
 
   <actions>
