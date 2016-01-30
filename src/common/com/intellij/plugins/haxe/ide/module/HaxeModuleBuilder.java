@@ -17,17 +17,33 @@
  */
 package com.intellij.plugins.haxe.ide.module;
 
+import com.intellij.codeInsight.navigation.NavigationUtil;
+import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
 import com.intellij.ide.util.projectWizard.SourcePathsBuilder;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
+import com.intellij.psi.PsiManager;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsBuilder, ModuleBuilderListener {
   @Override
@@ -51,6 +67,34 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
     final CompilerModuleExtension model = (CompilerModuleExtension)CompilerModuleExtension.getInstance(module).getModifiableModel(true);
     model.setCompilerOutputPath(model.getCompilerOutputUrl());
     model.inheritCompilerOutputPath(false);
+
+    Project project = module.getProject();
+    List<Pair<String, String>> sourcePaths = getSourcePaths();
+    String srcPath = null;
+
+    if ((sourcePaths.size() > 0)) {
+      srcPath = sourcePaths.get(0).getFirst();
+      VirtualFile dir = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(srcPath));
+
+      if (dir != null) {
+        try {
+          HaxeFileTemplateUtil
+            .createClass("Main", "", PsiManager.getInstance(project).findDirectory(dir), "HaxeMainClass",
+                         null);
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
+      HaxeModuleSettings.getInstance(module).setMainClass("Main");
+
+      assert dir != null;
+      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(dir.getCanonicalPath() + "/Main.hx");
+      assert (file != null);
+      FileEditorManager.getInstance(project).openFile(file, true);
+    }
+
     model.commit();
   }
 }

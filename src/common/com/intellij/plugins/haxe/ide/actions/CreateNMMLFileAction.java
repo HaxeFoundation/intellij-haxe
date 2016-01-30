@@ -49,7 +49,7 @@ public class CreateNMMLFileAction extends CreateFileFromTemplateAction implement
   @Override
   protected void buildDialog(Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
     builder.setTitle(HaxeBundle.message("create.nmml.file.action"));
-    for (FileTemplate fileTemplate : HaxeFileTemplateUtil.getNMMLTemplates()) {
+    for (FileTemplate fileTemplate : HaxeFileTemplateUtil.getNMMLTemplates(project)) {
       final String templateName = fileTemplate.getName();
       final String shortName = HaxeFileTemplateUtil.getTemplateShortName(templateName);
       builder.addKind(shortName, icons.HaxeIcons.Nmml_16, templateName);
