@@ -526,8 +526,13 @@ public class HaxeResolveUtil {
       return null;
     }
 
+    // can be accessed without full QName
+    HaxeClass result = findClassByQName(type.getText(), type.getContext());
+    if(result != null) {
+      return result;
+    }
     String name = getQName(type);
-    HaxeClass result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
+    result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
