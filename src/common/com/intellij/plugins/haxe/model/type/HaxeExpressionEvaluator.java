@@ -445,10 +445,10 @@ public class HaxeExpressionEvaluator {
       IElementType type = ((PsiJavaToken)element).getTokenType();
 
       if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
-        return SpecificHaxeClassReference.primitive("Int", element, Integer.decode(element.getText())).createHolder();
+        return SpecificHaxeClassReference.primitive("Int", element, Long.decode(element.getText())).createHolder();
       }
       else if (type == HaxeTokenTypes.LITFLOAT) {
-        return SpecificHaxeClassReference.primitive("Float", element, Float.parseFloat(element.getText())).createHolder();
+        return SpecificHaxeClassReference.primitive("Float", element, Double.parseDouble(element.getText())).createHolder();
       }
       else if (type == HaxeTokenTypes.KFALSE || type == HaxeTokenTypes.KTRUE) {
         return SpecificHaxeClassReference.primitive("Bool", element, type == HaxeTokenTypes.KTRUE).createHolder();
