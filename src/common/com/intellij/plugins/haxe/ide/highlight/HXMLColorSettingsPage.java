@@ -63,7 +63,9 @@ public class HXMLColorSettingsPage implements ColorSettingsPage {
            "\n" +
            "# --next\n" +
            "# -swf bin/Test.swf\n" +
-           "# -cmd open bin/Test.swf";
+           "# -cmd open bin/Test.swf\n" +
+           "\n" +
+           "test.pack.ForceImportMe\n";
   }
 
   @Nullable

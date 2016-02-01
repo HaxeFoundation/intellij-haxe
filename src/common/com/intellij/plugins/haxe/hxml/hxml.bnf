@@ -17,7 +17,7 @@
 
 simpleFile ::= item_*
 
-private item_ ::= (hxml | lib | define | classpath | main | property | COMMENT | CRLF)
+private item_ ::= (hxml | lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF)
 
 hxml ::= HXML_FILE
 property ::= (KEY SEPARATOR VALUE) | KEY {methods=[getKey getValue]}

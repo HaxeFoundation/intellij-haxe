@@ -109,7 +109,7 @@ public class HXMLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // hxml | lib | define | classpath | main | property | COMMENT | CRLF
+  // hxml | lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF
   static boolean item_(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "item_")) return false;
     boolean r;
@@ -120,6 +120,7 @@ public class HXMLParser implements PsiParser, LightPsiParser {
     if (!r) r = classpath(b, l + 1);
     if (!r) r = main(b, l + 1);
     if (!r) r = property(b, l + 1);
+    if (!r) r = qualifiedName(b, l + 1);
     if (!r) r = consumeToken(b, COMMENT);
     if (!r) r = consumeToken(b, CRLF);
     exit_section_(b, m, null, r);

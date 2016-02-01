@@ -41,7 +41,7 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 public class HXMLSyntaxHighlighter extends SyntaxHighlighterBase {
   public static final TextAttributesKey KEY = createTextAttributesKey("SIMPLE_KEY", DefaultLanguageHighlighterColors.KEYWORD);
   public static final TextAttributesKey VALUE = createTextAttributesKey("SIMPLE_VALUE", DefaultLanguageHighlighterColors.STRING);
-  public static final TextAttributesKey CLASS_NAME = createTextAttributesKey("SIMPLE_CLASS_NAME", DefaultLanguageHighlighterColors.KEYWORD);
+  public static final TextAttributesKey CLASS_NAME = createTextAttributesKey("SIMPLE_CLASS_NAME", DefaultLanguageHighlighterColors.CLASS_REFERENCE);
   public static final TextAttributesKey COMMENT = createTextAttributesKey("SIMPLE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
   public static final TextAttributesKey INCLUDE = createTextAttributesKey("SIMPLE_INCLUDE", DefaultLanguageHighlighterColors.CONSTANT);
 
