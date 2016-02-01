@@ -53,7 +53,7 @@ public class HXMLColorSettingsPage implements ColorSettingsPage {
   @NotNull
   @Override
   public String getDemoText() {
-    return "build-each.hxml\n" +
+    return "build-each2.hxml\n" +
            "\n" +
            "-main test.Test\n" +
            "--each\n" +
@@ -65,7 +65,7 @@ public class HXMLColorSettingsPage implements ColorSettingsPage {
            "# -swf bin/Test.swf\n" +
            "# -cmd open bin/Test.swf\n" +
            "\n" +
-           "test.pack.ForceImportMe\n";
+           "test.pack.ForceImportMe2016\n";
   }
 
   @Nullable

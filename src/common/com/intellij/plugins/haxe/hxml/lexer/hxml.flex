@@ -33,8 +33,8 @@ LINE_COMMENT=("#")[^\r\n]*
 SEPARATOR=[\ ]
 KEY_CHARACTER=[^\ \n\r\t\f\\]
 HXML_FILE=[A-Za-z0-9_\-\\/]+".hxml"
-CLASS_NAME_WORD=[a-z]
-QUALIFIED_NAME_WORD=[a-zA-Z]+"."
+CLASS_NAME_WORD=[a-z0-9]
+QUALIFIED_NAME_WORD=[a-zA-Z0-9]+"."
 
 %state WAITING_VALUE
 
@@ -45,7 +45,6 @@ QUALIFIED_NAME_WORD=[a-zA-Z]+"."
 <YYINITIAL> {HXML_FILE}                                     { yybegin(YYINITIAL); return HXMLTypes.HXML_FILE; }
 <YYINITIAL> {SEPARATOR}                                     { yybegin(WAITING_VALUE); return HXMLTypes.SEPARATOR; }
 <YYINITIAL> {H_QUALIFIED_NAME}                              { yybegin(YYINITIAL); return HXMLTypes.QUALIFIEDCLASSNAME; }
-<YYINITIAL> {FIRST_CLASS_CHARACTER}{CLASS_NAME_WORD}+       { yybegin(WAITING_VALUE); return HXMLTypes.QUALIFIEDCLASSNAME; }
 <WAITING_VALUE> {CRLF}                                      { yybegin(YYINITIAL); return HXMLTypes.CRLF; }
 <WAITING_VALUE> {WHITE_SPACE}+                              { yybegin(WAITING_VALUE); return TokenType.WHITE_SPACE; }
 <WAITING_VALUE> {H_QUALIFIED_NAME}                          { yybegin(YYINITIAL); return HXMLTypes.QUALIFIEDCLASSNAME; }
