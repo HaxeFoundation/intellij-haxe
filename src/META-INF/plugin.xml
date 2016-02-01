@@ -35,6 +35,12 @@
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>0.9.9: (community release)</p>
+      <ul>
+        <li>Fix extending anonymous types. (Issue #353)</li>
+        <li>Error annotation if type extends itself</li>
+        <li>Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)</li>
+      </ul>
       <p>0.9.8: (community release)</p>
       <ul>
         <li>Version 14.1.5 and 14.1.6 compatibility.</li>

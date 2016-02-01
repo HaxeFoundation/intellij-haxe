@@ -257,11 +257,40 @@ class ClassChecker {
     HaxeClassReferenceModel reference = clazz.getParentClassReference();
     if (reference != null) {
       HaxeClassModel aClass1 = reference.getHaxeClass();
-      if (aClass1 != null && !aClass1.isClass()) {
-        // @TODO: Move to bundle
-        holder.createErrorAnnotation(reference.getPsi(), "Not a class");
+      if (aClass1 != null) {
+        if(isAnonymousType(clazz)) {
+          if(!isAnonymousType(aClass1)) {
+            holder.createErrorAnnotation(reference.getPsi(), "Not an anonymous type");
+          }
+        }
+        else if(!aClass1.isClass()) {
+          // @TODO: Move to bundle
+          holder.createErrorAnnotation(reference.getPsi(), "Not a class");
+        }
+
+        final String qname1 = aClass1.haxeClass.getQualifiedName();
+        final String qname2 = clazz.haxeClass.getQualifiedName();
+        if(qname1.equals(qname2)) {
+          holder.createErrorAnnotation(reference.getPsi(), "Cannot extend self");
+        }
       }
     }
+  }
+
+  static private boolean isAnonymousType(HaxeClassModel clazz) {
+    if(clazz != null && clazz.haxeClass != null) {
+      HaxeClass haxeClass = clazz.haxeClass;
+      if(haxeClass instanceof HaxeAnonymousType) {
+        return true;
+      }
+      if(haxeClass instanceof HaxeTypedefDeclaration) {
+        HaxeTypeOrAnonymous anonOrType = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+        if(anonOrType != null) {
+          return anonOrType.getAnonymousType() != null;
+        }
+      }
+    }
+    return false;
   }
 
   static public void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {

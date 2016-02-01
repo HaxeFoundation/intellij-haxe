@@ -72,13 +72,22 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public String getQualifiedName() {
-    final String name = getName();
+    String name = getName();
     if (getParent() == null) {
       return name == null ? "" : name;
     }
+
+    if(name == null && this instanceof HaxeAnonymousType) {
+      // restore name from parent
+      HaxeTypedefDeclaration typedefDecl = (HaxeTypedefDeclaration)(getParent().getParent());
+      if(typedefDecl != null) {
+        name = typedefDecl.getName();
+      }
+    }
+
     final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
     String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
-    if (isAncillaryClass(name, fileName)) {
+    if (name != null && isAncillaryClass(name, fileName)) {
       packageName = HaxeResolveUtil.joinQName(packageName, fileName);
     }
     return HaxeResolveUtil.joinQName(packageName, name);
@@ -90,10 +99,14 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return _model;
   }
 
-  private boolean isAncillaryClass(String name, String fileName) {
-    return (!(this instanceof  HaxeExternClassDeclaration)) &&
-           (!fileName.equals(name)) &&
-           (HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null);
+  // check if class is declared inside haxe module
+  private boolean isAncillaryClass(@NotNull String name, String fileName) {
+    // 1. class is not extern
+    // 2. class name and file name is different
+    // 3. class declared in this file
+    return !isExtern() &&
+           !fileName.equals(name) &&
+           HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
   }
 
   @Override
