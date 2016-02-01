@@ -1,6 +1,6 @@
 build-each-32-64.hxml
 
--main com.company.product.GameMain
+-main com.company.product.GameMain 
 -cp main/haxe/src
 
 --each
