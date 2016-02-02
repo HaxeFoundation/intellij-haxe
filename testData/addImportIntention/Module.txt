@@ -1,0 +1,4 @@
+import foo.Types.Type1;
+class Module {
+  var t:Type1;
+}
