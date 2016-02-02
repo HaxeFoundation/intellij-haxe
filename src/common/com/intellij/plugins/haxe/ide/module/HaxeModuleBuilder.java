@@ -77,72 +77,76 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
 
     final Project project = module.getProject();
     List<Pair<String, String>> sourcePaths = getSourcePaths();
-    String srcPath = null;
+    String srcPath;
 
     if ((sourcePaths.size() > 0)) {
       srcPath = sourcePaths.get(0).getFirst();
       VirtualFile dir = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(srcPath));
+      VirtualFile mainClassFile = dir.findFileByRelativePath("Main.hx");
 
-      if (dir != null) {
-        try {
-          VirtualFile mainClassFile = dir.findFileByRelativePath("Main.hx");
-          if (mainClassFile == null) {
+      if (mainClassFile == null) {
+        if (dir != null) {
+          try {
             HaxeFileTemplateUtil
               .createClass("Main", "", PsiManager.getInstance(project).findDirectory(dir), "HaxeMainClass",
                            null);
           }
-        }
-        catch (Exception e) {
-          e.printStackTrace();
+          catch (Exception e) {
+            e.printStackTrace();
+          }
         }
       }
 
-      HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(module);
-      moduleSettings.setMainClass("Main");
-      moduleSettings.setArguments("");
-      moduleSettings.setNmeFlags("");
-      moduleSettings.setHaxeTarget(HaxeTarget.NEKO);
-      moduleSettings.setExcludeFromCompilation(false);
-      moduleSettings.setBuildConfig(HaxeModuleSettingsBaseImpl.USE_PROPERTIES);
-      moduleSettings.setOutputFileName("Main.n");
-      String outputFolder = PathUtil.toSystemIndependentName(project.getBasePath() + "/out/production");
-      moduleSettings.setOutputFolder(outputFolder);
-      //String releaseFolder = PathUtil.toSystemIndependentName(outputFolder + "/release");
-      //boolean mkdirs = new File(releaseFolder).mkdirs();
-
-      String url = VfsUtil.pathToUrl(outputFolder);
-      model.setCompilerOutputPath(url);
-
-      assert dir != null;
       final VirtualFile file = dir.findFileByRelativePath("Main.hx");
-      assert (file != null);
 
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          FileEditorManager.getInstance(project).openFile(file, true);
-        }
-      });
+      if (file != null) {
+        setHaxeModuleSettingsForMainFile(module, model, project);
 
-      ConfigurationFactory[] factories =
-        ConfigurationTypeUtil.findConfigurationType(HaxeRunConfigurationType.class).getConfigurationFactories();
-
-      if ((factories.length > 0)) {
-        RunConfiguration configuration = factories[0].createTemplateConfiguration(project);
-        RunManager manager = RunManager.getInstance(project);
-        RunnerAndConfigurationSettings runnerAndConfigurationSettings = manager.createConfiguration(configuration, factories[0]);
-        RunConfiguration configuration1 = runnerAndConfigurationSettings.getConfiguration();
-        if (configuration1 instanceof HaxeApplicationConfiguration) {
-          HaxeApplicationConfiguration haxeApplicationConfiguration = (HaxeApplicationConfiguration)configuration1;
-          haxeApplicationConfiguration.setModule(module);
-        }
-        manager.addConfiguration(runnerAndConfigurationSettings, false);
-        manager.setSelectedConfiguration(runnerAndConfigurationSettings);
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            FileEditorManager.getInstance(project).openFile(file, true);
+          }
+        });
       }
 
-
+      createHaxeRunConfigurationAndSetActive(module, project);
     }
 
     model.commit();
+  }
+
+  public void createHaxeRunConfigurationAndSetActive(@NotNull Module module, Project project) {
+    ConfigurationFactory[] factories =
+      ConfigurationTypeUtil.findConfigurationType(HaxeRunConfigurationType.class).getConfigurationFactories();
+
+    if ((factories.length > 0)) {
+      RunConfiguration configuration = factories[0].createTemplateConfiguration(project);
+      RunManager manager = RunManager.getInstance(project);
+      RunnerAndConfigurationSettings runnerAndConfigurationSettings = manager.createConfiguration(configuration, factories[0]);
+      RunConfiguration configuration1 = runnerAndConfigurationSettings.getConfiguration();
+      if (configuration1 instanceof HaxeApplicationConfiguration) {
+        HaxeApplicationConfiguration haxeApplicationConfiguration = (HaxeApplicationConfiguration)configuration1;
+        haxeApplicationConfiguration.setModule(module);
+      }
+      manager.addConfiguration(runnerAndConfigurationSettings, false);
+      manager.setSelectedConfiguration(runnerAndConfigurationSettings);
+    }
+  }
+
+  public void setHaxeModuleSettingsForMainFile(@NotNull Module module, CompilerModuleExtension model, Project project) {
+    HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(module);
+    moduleSettings.setMainClass("Main");
+    moduleSettings.setArguments("");
+    moduleSettings.setNmeFlags("");
+    moduleSettings.setHaxeTarget(HaxeTarget.NEKO);
+    moduleSettings.setExcludeFromCompilation(false);
+    moduleSettings.setBuildConfig(HaxeModuleSettingsBaseImpl.USE_PROPERTIES);
+    moduleSettings.setOutputFileName("Main.n");
+    String outputFolder = PathUtil.toSystemIndependentName(project.getBasePath() + "/out/production");
+    moduleSettings.setOutputFolder(outputFolder);
+
+    String url = VfsUtil.pathToUrl(outputFolder);
+    model.setCompilerOutputPath(url);
   }
 }
