@@ -330,8 +330,12 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     return new HaxeCompilerCompletionItem(parameters, retType);
   }
 
-  public static void clearOpenFLDisplayArguments() {
-    openFLDisplayArguments.clear();
-    LOG.debug("Open FL Display Arguments were cleared");
+  public static void clearOpenFLDisplayArguments(Module module, String targetFlag) {
+    String key = module.getModuleFilePath() + targetFlag;
+    if (openFLDisplayArguments.containsKey(key)) {
+      openFLDisplayArguments.remove(key);
+      LOG.debug("Open FL Display Arguments were cleared");
+    }
+    LOG.debug("Open FL Display Arguments for key {0} not found", key);
   }
 }

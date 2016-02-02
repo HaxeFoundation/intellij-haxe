@@ -47,8 +47,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.openfl.ProjectFileListener;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.
-  GlobalSearchScope;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -475,7 +473,8 @@ public class HaxeConfigurationEditor {
 
     if (!openFLPath.equals(openFLPathNew)) {
       settings.setOpenFLPath(openFLPathNew);
-      HaxeCompilerCompletionContributor.clearOpenFLDisplayArguments();
+      String targetFlag = settings.getOpenFLTarget().getTargetFlag();
+      HaxeCompilerCompletionContributor.clearOpenFLDisplayArguments(myModule, targetFlag);
       ProjectFileListener projectFileListener = myModule.getComponent(ProjectFileListener.class);
       projectFileListener.setOpenFLPath(openFLPathNew);
     }

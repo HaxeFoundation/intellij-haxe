@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,19 +41,24 @@ public class ProjectFileListener implements com.intellij.openapi.module.ModuleCo
 
   Module mMyModule = null;
   VirtualFileAdapter myAdapter = null;
+  HaxeModuleSettings moduleSettings;
   public ProjectFileListener(Module myModule) {
     mMyModule = myModule;
   }
 
   @Override
   public void projectOpened() {
-    HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(mMyModule);
+    moduleSettings = HaxeModuleSettings.getInstance(mMyModule);
     String openFLPath = moduleSettings.getOpenFLPath();
     setOpenFLPath(openFLPath);
   }
 
   public void setOpenFLPath(String openFLPath) {
     removeListener();
+
+    if (moduleSettings.getBuildConfig() != HaxeModuleSettingsBaseImpl.USE_OPENFL) {
+      return;
+    }
 
     if (openFLPath.isEmpty()) {
       //default project file name
@@ -66,7 +72,8 @@ public class ProjectFileListener implements com.intellij.openapi.module.ModuleCo
         public void contentsChanged(@NotNull VirtualFileEvent event) {
           super.contentsChanged(event);
           if (event.getFile().equals(projectXmlFile)) {
-            HaxeCompilerCompletionContributor.clearOpenFLDisplayArguments();
+            String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
+            HaxeCompilerCompletionContributor.clearOpenFLDisplayArguments(mMyModule, targetFlag);
           }
         }
       };
@@ -83,6 +90,7 @@ public class ProjectFileListener implements com.intellij.openapi.module.ModuleCo
   public void removeListener() {
     if (myAdapter != null) {
       VirtualFileManager.getInstance().removeVirtualFileListener(myAdapter);
+      myAdapter = null;
     }
   }
 
