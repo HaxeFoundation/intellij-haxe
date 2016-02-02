@@ -178,4 +178,13 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testSimpleAssignUnknownGeneric() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testExtendsAnonymousType() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  // TODO: test never completes (that cases works in plugin, but just not work in unit-tests environment)
+  //public void testExtendsSelf() throws Exception {
+  //  doTestNoFixWithWarnings();
+  //}
 }
