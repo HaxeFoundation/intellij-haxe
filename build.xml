@@ -47,7 +47,7 @@
         <javac2
             destdir="${jps.build.output.directory}"
             verbose="false"
-            debug="true"
+            debug="false"
             source="1.6"
             target="1.6"
             fork="true"
@@ -90,7 +90,9 @@
             debug="true"
             source="1.6"
             target="1.6"
-            includeantruntime="true" >
+            includedestclasses="false"
+            createmissingpackageinfoclass="false"
+            includeantruntime="false" >
 
             <src path="${version.specific.code.location}" />
             <src path="src/common" />

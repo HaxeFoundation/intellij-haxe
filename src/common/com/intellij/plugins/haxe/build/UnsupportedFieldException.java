@@ -16,16 +16,16 @@ package com.intellij.plugins.haxe.build;
 /**
  * Created by ebishton on 1/17/16.
  */
-class UnsupportedApiException extends UnsupportedOperationException {
-  public UnsupportedApiException() {
+class UnsupportedFieldException extends UnsupportedOperationException {
+  public UnsupportedFieldException() {
     super();
   }
 
-  public UnsupportedApiException(String reason) {
+  public UnsupportedFieldException(String reason) {
     super(reason);
   }
 
-  public UnsupportedApiException(String reason, Throwable cause) {
+  public UnsupportedFieldException(String reason, Throwable cause) {
     super(reason + ":" + cause.getMessage(), cause);
   }
 }
