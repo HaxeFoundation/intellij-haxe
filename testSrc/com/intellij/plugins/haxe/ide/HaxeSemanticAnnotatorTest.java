@@ -184,7 +184,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   // TODO: test never completes (that cases works in plugin, but just not work in unit-tests environment)
-  //public void testExtendsSelf() throws Exception {
-  //  doTestNoFixWithWarnings();
-  //}
+  public void testExtendsSelf() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
