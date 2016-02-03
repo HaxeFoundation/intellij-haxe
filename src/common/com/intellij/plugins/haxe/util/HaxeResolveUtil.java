@@ -526,8 +526,8 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    String name = getQName(type);
-    HaxeClass result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
+    final String name = getQName(type);
+    HaxeClass result = name == null ? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
@@ -540,18 +540,16 @@ public class HaxeResolveUtil {
       if (topmostParentOfType == null) {
         topmostParentOfType = (HaxeReferenceExpression)type;
       }
+      
+      HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
+      if (haxeClass != null) {
+        return topmostParentOfType.getText();
+      }
 
-      if (topmostParentOfType != null) {
-        HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
-        if (haxeClass != null) {
-          return topmostParentOfType.getText();
-        }
-
-        PsiElement parent = type.getParent();
-        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
-        if (classByQName != null) {
-          return parent.getText();
-        }
+      PsiElement parent = type.getParent();
+      HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
+      if (classByQName != null) {
+        return parent.getText();
       }
     }
 
