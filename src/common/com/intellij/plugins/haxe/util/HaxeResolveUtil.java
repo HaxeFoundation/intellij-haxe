@@ -537,7 +537,7 @@ public class HaxeResolveUtil {
     if (type instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression topmostParentOfType = PsiTreeUtil.getTopmostParentOfType(type, HaxeReferenceExpression.class);
 
-      if (topmostParentOfType == null && type instanceof HaxeReferenceExpression) {
+      if (topmostParentOfType == null) {
         topmostParentOfType = (HaxeReferenceExpression)type;
       }
 
