@@ -88,10 +88,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
     String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
 
-    // Check type is `Ancillary` if:
-    // 1. NOT root package! (packageName is NOT empty)
-    // 2. `name` is not null
-    if (name != null && !packageName.isEmpty() && isAncillaryClass(name, fileName)) {
+    if (name != null && isAncillaryClass(packageName, name, fileName)) {
       packageName = HaxeResolveUtil.joinQName(packageName, fileName);
     }
 
@@ -104,14 +101,18 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return _model;
   }
 
-  // check if class is declared inside haxe module
-  private boolean isAncillaryClass(@NotNull String name, String fileName) {
-    // 1. class is not extern
-    // 2. class name and file name is different
-    // 3. class declared in this file
-    return !isExtern() &&
-           !fileName.equals(name) &&
-           HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
+  // check if class is declared inside haxe module `MyClass.MySupportType`
+  private boolean isAncillaryClass(@NotNull String packageName, @NotNull String name, @NotNull String fileName) {
+    // if file name matches type name
+    if(fileName.equals(name)) {
+      return false;
+    }
+    // if StdTypes
+    if(packageName.isEmpty() && fileName.equals("StdTypes")) {
+      return false;
+    }
+    // file contains valid type declaration
+    return HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
   }
 
   @Override
