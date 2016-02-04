@@ -33,6 +33,9 @@ public class HXMLColorSettingsPage implements ColorSettingsPage {
   private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
     new AttributesDescriptor("Key", HXMLSyntaxHighlighter.KEY),
     new AttributesDescriptor("Value", HXMLSyntaxHighlighter.VALUE),
+    new AttributesDescriptor("Comment", HXMLSyntaxHighlighter.COMMENT),
+    new AttributesDescriptor("Include", HXMLSyntaxHighlighter.INCLUDE),
+    new AttributesDescriptor("ClassName", HXMLSyntaxHighlighter.CLASS_NAME),
   };
 
   @Nullable
@@ -50,18 +53,19 @@ public class HXMLColorSettingsPage implements ColorSettingsPage {
   @NotNull
   @Override
   public String getDemoText() {
-    return "# You are reading the \".properties\" entry.\n" +
-           "! The exclamation mark can also mark text as comments.\n" +
-           "website = http://en.wikipedia.org/\n" +
-           "language = English\n" +
-           "# The backslash below tells the application to continue reading\n" +
-           "# the value onto the next line.\n" +
-           "message = Welcome to \\\n" +
-           "          Wikipedia!\n" +
-           "# Add spaces to the key\n" +
-           "key\\ with\\ spaces = This is the value that could be looked up with the key \"key with spaces\".\n" +
-           "# Unicode\n" +
-           "tab : \\u0009";
+    return "build-each2.hxml\n" +
+           "\n" +
+           "-main test.Test\n" +
+           "--each\n" +
+           "\n" +
+           "-neko bin/Test.n\n" +
+           "-cmd neko bin/Test.n\n" +
+           "\n" +
+           "# --next\n" +
+           "# -swf bin/Test.swf\n" +
+           "# -cmd open bin/Test.swf\n" +
+           "\n" +
+           "test.pack.ForceImportMe2016\n";
   }
 
   @Nullable
@@ -85,6 +89,6 @@ public class HXMLColorSettingsPage implements ColorSettingsPage {
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Simple";
+    return "HXML";
   }
 }

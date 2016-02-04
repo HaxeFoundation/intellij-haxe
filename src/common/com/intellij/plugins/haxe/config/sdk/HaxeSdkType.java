@@ -117,7 +117,7 @@ public class HaxeSdkType extends SdkType {
   public FileChooserDescriptor getHomeChooserDescriptor() {
     final FileChooserDescriptor result = super.getHomeChooserDescriptor();
     if (SystemInfo.isMac) {
-      result.putUserData(PathChooserDialog.NATIVE_MAC_CHOOSER_SHOW_HIDDEN_FILES, Boolean.TRUE);
+      result.withShowHiddenFiles(true); // TODO: Test on a mac: converted for v15.
     }
     return result;
   }
