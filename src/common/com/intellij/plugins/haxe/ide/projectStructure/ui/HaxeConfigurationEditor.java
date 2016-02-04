@@ -87,6 +87,7 @@ public class HaxeConfigurationEditor {
   private JPanel myBuildFilePanel;
   private JPanel myCompilerOptionsWrapper;
   private TextFieldWithBrowseButton myOpenFLFileChooserTextField;
+  private RawCommandLineEditor myOpenFLArgumentTextField;
 
   private HaxeTarget selectedHaxeTarget = HaxeTarget.NEKO;
   private NMETarget selectedNmeTarget = NMETarget.FLASH;
@@ -382,6 +383,7 @@ public class HaxeConfigurationEditor {
 
     result = result || !settings.getArguments().equals(myAppArguments.getText());
     result = result || !settings.getNmeFlags().equals(myNMEArguments.getText());
+    result = result || !settings.getOpenFLFlags().equals(myOpenFLArgumentTextField.getText());
     result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
     result = result || !settings.getOutputFileName().equals(myOutputFileNameTextField.getText());
     result = result || !settings.getOutputFolder().equals(myFolderTextField.getText());
@@ -416,6 +418,7 @@ public class HaxeConfigurationEditor {
     myOpenFLFileChooserTextField.setText(settings.getOpenFLPath());
     myNMEFileChooserTextField.setText(settings.getNmmlPath());
     myNMEArguments.setText(settings.getNmeFlags());
+    myOpenFLArgumentTextField.setText(settings.getOpenFLFlags());
 
     myHxmlFileRadioButton.setSelected(settings.isUseHxmlToBuild());
     myNmmlFileRadioButton.setSelected(settings.isUseNmmlToBuild());
@@ -431,6 +434,7 @@ public class HaxeConfigurationEditor {
     settings.setMainClass(myMainClassFieldWithButton.getText());
     settings.setArguments(myAppArguments.getText());
     settings.setNmeFlags(myNMEArguments.getText());
+    settings.setOpenFLFlags(myOpenFLArgumentTextField.getText());
     if (myNmmlFileRadioButton.isSelected()) {
       settings.setNmeTarget((NMETarget)myTargetComboBox.getSelectedItem());
     }
