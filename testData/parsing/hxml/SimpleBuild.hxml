@@ -1,0 +1,17 @@
+build-each-32-64.hxml
+
+-main com.company.product.GameMain 
+-cp main/haxe/src
+
+--each
+
+-lib utest:0.0.1
+-swf game.swf
+
+--next
+-js game.js
+-debug
+
+com.company.product.data.StubData1
+com.company.product.data.StubData2
+com.company.product.data.StubData3

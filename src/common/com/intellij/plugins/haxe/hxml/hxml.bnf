@@ -17,10 +17,10 @@
 
 simpleFile ::= item_*
 
-private item_ ::= (lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF)
+private item_ ::= (hxml | lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF)
 
+hxml ::= HXML_FILE
 property ::= (KEY SEPARATOR VALUE) | KEY {methods=[getKey getValue]}
-
 define ::= '-D' SEPARATOR VALUE
 lib ::= '-lib' SEPARATOR VALUE (':' VALUE)? {methods=[getValue]}
 classpath ::= '-cp' SEPARATOR VALUE {methods=[getValue]}
