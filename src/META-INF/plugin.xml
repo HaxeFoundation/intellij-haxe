@@ -37,6 +37,11 @@
       <p/>
       <p>0.9.9: (community release)</p>
       <ul>
+        <li>HXML: Fix `Editor/Colors & Fonts/HXML` tab (name & preview)</li>
+        <li>HXML: highlighting for included `.hxml` file</li>
+        <li>Fix unhandled exceptions while parsing numeric constants</li>
+        <li>Fix typedef types not resolved variants for completion list</li>
+        <li>Fix error annotation when implements `extern interface`</li>
         <li>Fix extending anonymous types. (Issue #353)</li>
         <li>Error annotation if type extends itself</li>
         <li>Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)</li>

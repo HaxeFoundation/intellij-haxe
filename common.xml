@@ -21,18 +21,18 @@
 
       &lt;property environment="env"/&gt;
       &lt;property name="idea.installation.dir" location="$${env.HOME}/intellij_idea" /&gt;
-      &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-135.1286/" &gt;
-        &lt;matches pattern="13." string="$${version}"/&gt;
+      &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-143.1184.17/" &gt;
+        &lt;matches pattern="-15$" string="$${version}"/&gt;
       &lt;/condition&gt;
       &lt;condition property="idea.ultimate.build" value="$${idea.installation.dir}/idea-IU-139.1117.1/"&gt;
-        &lt;matches pattern="14." string="$${version}"/&gt;
+        &lt;matches pattern="-14$" string="$${version}"/&gt;
       &lt;/condition&gt;
 
     &lt;/project&gt;
 
     Or, more simply:
     &lt;project name="local-overrides"&gt;
-      &lt;property name="idea.ultimate.build" location="/home/username/intellij_idea/idea-IU-135.1286/" /&gt;
+      &lt;property name="idea.ultimate.build" location="/home/username/intellij_idea/idea-IU-143.381.42/" /&gt;
     &lt;/project&gt;
 
   </description>
@@ -116,7 +116,7 @@
       // Lookup table for properties files.  Add new versions here.
       var propertiesFile = "";
       switch(parseInt(codeLine, 10)) {
-        case 143:   propertiesFile = "idea_v15.properties";
+        case 143:   propertiesFile = "idea_v15.properties";   break;
         case 141:
           if (parseInt(buildNumber, 10) <= 2734) {
              propertiesFile = "idea_v14.1.properties";
@@ -125,8 +125,6 @@
           }
           break;
         case 139:   propertiesFile = "idea_v14.properties";   break;
-        case 137:   propertiesFile = "idea_v13.properties";   break;
-        case 135:   propertiesFile = "idea_v13.properties";   break;
       }
       if (0 != propertiesFile.length) {
         project.setNewProperty("plugin.properties.file", propertiesFile);

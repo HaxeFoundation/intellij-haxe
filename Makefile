@@ -20,4 +20,5 @@ protocol:
 
 #Build and run the unit tests
 test:
-	./travis.sh $(IDEA_VERSION)
+	./travis.sh $(IDEA_VERSION) $(ANT_TARGET)
+

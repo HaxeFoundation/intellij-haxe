@@ -30,6 +30,7 @@
         </fileset>
         <fileset dir="${java.home}/../lib">
             <include name="**/*.jar" />
+            <exclude name="missioncontrol/**" />
         </fileset>
         <fileset dir="${idea.ultimate.build}/plugins">
             <include name="**/**.jar" />
@@ -62,6 +63,7 @@
             classpathref="classpath"
             verbose="false"
             debug="true"
+            debuglevel="lines,vars,source"
             source="1.6"
             target="1.6"
             includeantruntime="false" >

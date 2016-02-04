@@ -165,6 +165,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testImplementExternInterface() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testSimpleAssignUnknownGeneric() throws Exception {
     doTestNoFixWithWarnings();
   }
