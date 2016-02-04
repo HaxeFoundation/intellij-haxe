@@ -39,6 +39,9 @@
       <ul>
         <li>HXML: Fix `Editor/Colors & Fonts/HXML` tab (name & preview)</li>
         <li>HXML: highlighting for included `.hxml` file</li>
+        <li>Fix unhandled exceptions while parsing numeric constants</li>
+        <li>Fix typedef types not resolved variants for completion list</li>
+        <li>Fix error annotation when implements `extern interface`</li>
       </ul>
       <p>0.9.8: (community release)</p>
       <ul>
