@@ -289,6 +289,7 @@ public class HaxeConfigurationEditor {
     if (myOpenFLFileRadioButton.isSelected() && !containsOpenFL) {
       myBuildFilePanel.add(myOpenFLFilePanel, constraints);
     }
+    myBuildFilePanel.repaint();
   }
 
   private void updateUserProperties() {
