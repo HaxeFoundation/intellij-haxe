@@ -192,6 +192,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
+  public void testLocalTypedef() throws Throwable {
+    myFixture.configureByFiles("com/testing/LocalTypedef.hx", "com/util/Bar.hx");
+    doTestVariantsInner("com/testing/LocalTypedef.txt");
+  }
+
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
   /*
   public void testExtensionMethod1() throws Throwable {

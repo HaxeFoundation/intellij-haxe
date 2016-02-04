@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.util.CompositeAppearance;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyNodeDescriptor;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeExternClassDeclaration;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -38,7 +39,8 @@ import java.awt.*;
 /**
  * Created by srikanthg on 12/30/14.
  */
-final public class HaxeTypeHierarchyNodeDescriptor extends HierarchyNodeDescriptor {
+final public class HaxeTypeHierarchyNodeDescriptor extends HaxeHierarchyNodeDescriptor {
+
   public HaxeTypeHierarchyNodeDescriptor(final Project project,
                                          final HierarchyNodeDescriptor parentDescriptor,
                                          final PsiClass haxePsiClass,
@@ -50,16 +52,6 @@ final public class HaxeTypeHierarchyNodeDescriptor extends HierarchyNodeDescript
   @Override
   public PsiFile getContainingFile() {
     return super.getContainingFile();
-  }
-
-  @Nullable
-  public final HaxeClass getHaxeClass() {
-    return (myElement instanceof HaxeClass) ? (HaxeClass) myElement : null;
-  }
-
-  public final boolean isValid() {
-    final HaxeClass haxePsiClass = getHaxeClass();
-    return haxePsiClass != null && haxePsiClass.isValid();
   }
 
   public final boolean update() {

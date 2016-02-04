@@ -17,48 +17,39 @@
  */
 package com.intellij.plugins.haxe.build;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
  * Created by ebishton on 1/16/16.
  */
-public class ApiInvoker<R> {
+public class MethodWrapper<R> {
 
-  private Object myInstance;
   private Method myMethodToInvoke;
   private String myDebugName;
 
-  public ApiInvoker(Object o, String methodName, Class<?>... argTypes) {
-    Class klass;
+  public MethodWrapper(@NotNull Class klass, @NotNull String methodName, Class<?>... argTypes) {
     myDebugName = "";
     try {
-      if (o instanceof Class) {
-        // We're looking for a static method.
-        myInstance = null;
-        klass = (Class) o;
-      } else {
-        // We have an instance method.
-        myInstance = o;
-        klass = o.getClass();
-      }
-      myDebugName = (null == klass ? "<unknown>" : klass.getName())
-                    + "." + methodName;
-      // Don't stop of null klass... Just let the exception be thrown
-      // naturally.
-      myMethodToInvoke = klass.getDeclaredMethod(methodName, argTypes);
+      myDebugName = klass.getName() + "." + methodName;
+      // XXX: Could use getDeclaredMethod() if we want to get protected methods, but we
+      //      will have to walk the class hierarchy ourselves.  See the Java
+      //      Reflection sources for how to do that.
+      myMethodToInvoke = klass.getMethod(methodName, argTypes);
     } catch (NoSuchMethodException e) {
-      throw new UnsupportedApiException("Didn't find " + myDebugName + ";", e);
+      throw new UnsupportedMethodException("Didn't find " + myDebugName + ";", e);
     }
   }
 
-  public R invoke(Object... args) {
+  public R invoke(Object instance, Object... args) {
     try {
-      return (R) myMethodToInvoke.invoke(myInstance, args);
+      return (R) myMethodToInvoke.invoke(instance, args);
     } catch (IllegalAccessException e) {
-      throw new UnsupportedApiException("Error invoking " + myDebugName + ";", e);
+      throw new UnsupportedMethodException("Error invoking " + myDebugName + ";", e);
     } catch (InvocationTargetException e) {
-      throw new UnsupportedApiException("Error invoking " + myDebugName + ";", e.getCause());
+      throw new UnsupportedMethodException("Error invoking " + myDebugName + ";", e.getCause());
     }
   }
 }

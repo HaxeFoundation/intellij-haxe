@@ -79,7 +79,7 @@ public class HaxeRestoreReferencesDialog extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     final JPanel panel = new JPanel(new BorderLayout(UIUtil.DEFAULT_HGAP, UIUtil.DEFAULT_VGAP));
-    myList = new JBList(myNamedElements);
+    myList = new JBList((Object[])myNamedElements);
     myList.setCellRenderer(new FQNameCellRenderer());
     panel.add(ScrollPaneFactory.createScrollPane(myList), BorderLayout.CENTER);
 

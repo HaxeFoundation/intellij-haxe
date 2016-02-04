@@ -1,4 +1,8 @@
 /*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2016 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,21 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.build;
 
-/**
- * Created by ebishton on 1/17/16.
- */
-class UnsupportedApiException extends UnsupportedOperationException {
-  public UnsupportedApiException() {
-    super();
-  }
+// This is a generated file. Not intended for manual editing.
+package com.intellij.plugins.haxe.hxml.psi;
 
-  public UnsupportedApiException(String reason) {
-    super(reason);
-  }
+import java.util.List;
+import org.jetbrains.annotations.*;
+import com.intellij.psi.PsiElement;
 
-  public UnsupportedApiException(String reason, Throwable cause) {
-    super(reason + ":" + cause.getMessage(), cause);
-  }
+public interface HXMLHxml extends PsiElement {
+
 }
