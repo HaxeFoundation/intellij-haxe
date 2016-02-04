@@ -135,7 +135,8 @@ public enum HaxeComponentType {
     if (element instanceof HaxeEnumDeclaration) {
       return ENUM;
     }
-    if (element instanceof HaxeInterfaceDeclaration) {
+    if (element instanceof HaxeInterfaceDeclaration ||
+        element instanceof HaxeExternInterfaceDeclaration) {
       return INTERFACE;
     }
     if (element instanceof HaxeTypedefDeclaration) {
