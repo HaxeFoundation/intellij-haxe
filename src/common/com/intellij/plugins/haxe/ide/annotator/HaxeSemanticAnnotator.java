@@ -260,7 +260,14 @@ class ClassChecker {
       if (aClass1 != null) {
         if(isAnonymousType(clazz)) {
           if(!isAnonymousType(aClass1)) {
+            // @TODO: Move to bundle
             holder.createErrorAnnotation(reference.getPsi(), "Not an anonymous type");
+          }
+        }
+        else if(clazz.isInterface()) {
+          if(!aClass1.isInterface()) {
+            // @TODO: Move to bundle
+            holder.createErrorAnnotation(reference.getPsi(), "Not an interface");
           }
         }
         else if(!aClass1.isClass()) {
@@ -271,6 +278,7 @@ class ClassChecker {
         final String qname1 = aClass1.haxeClass.getQualifiedName();
         final String qname2 = clazz.haxeClass.getQualifiedName();
         if(qname1.equals(qname2)) {
+          // @TODO: Move to bundle
           holder.createErrorAnnotation(reference.getPsi(), "Cannot extend self");
         }
       }

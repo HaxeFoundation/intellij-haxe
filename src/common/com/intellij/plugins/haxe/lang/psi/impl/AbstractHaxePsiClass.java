@@ -127,13 +127,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public List<HaxeType> getHaxeExtendsList() {
-    List<HaxeType> list = new ArrayList<HaxeType>();
-    for (HaxeType type : HaxeResolveUtil.findExtendsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class))) {
-      if (type.getReferenceExpression().resolve() != this) {
-        list.add(type);
-      }
-    }
-    return list;
+    return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
   }
 
   @NotNull

@@ -17,23 +17,13 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInsight.CodeInsightUtilBase;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.impl.ApplicationImpl;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
-import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
-import com.intellij.util.ActionRunner;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
 
@@ -45,7 +35,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     return "/annotation.semantic/";
   }
 
-  private void doTestNoFix(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings) throws Exception {
+  private void doTestNoFix(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings, String... additionalFiles) throws Exception {
+    myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(true) + ".hx"}, additionalFiles));
     myFixture.configureByFiles(getTestName(false) + ".hx");
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
@@ -53,12 +44,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testHighlighting(true, false, false);
   }
 
-  private void doTestNoFixWithWarnings() throws Exception {
-    doTestNoFix(true, false, false);
+  private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
+    doTestNoFix(true, false, false, additionalFiles);
   }
 
-  private void doTestNoFixWithoutWarnings() throws Exception {
-    doTestNoFix(false, false, false);
+  private void doTestNoFixWithoutWarnings(String... additionalFiles) throws Exception {
+    doTestNoFix(false, false, false, additionalFiles);
   }
 
   private void doTest(String... filters) throws Exception {
@@ -183,8 +174,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
-  // TODO: test never completes (that cases works in plugin, but just not work in unit-tests environment)
   public void testExtendsSelf() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings("test/Bar.hx", "test/IBar.hx", "test/TBar.hx");
   }
 }

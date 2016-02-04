@@ -41,12 +41,7 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
   public List<HaxeType> getHaxeExtendsList() {
     final HaxeTypeExtends typeExtends = getAnonymousTypeBody().getTypeExtends();
     if (typeExtends != null) {
-      HaxeType type = typeExtends.getType();
-      PsiElement resolve = type.getReferenceExpression().resolve();
-      PsiElement parent = this.getParent().getParent();
-      if (resolve != parent) {
-        return Arrays.asList(type);
-      }
+      return Arrays.asList(typeExtends.getType());
     }
     return super.getHaxeExtendsList();
   }
