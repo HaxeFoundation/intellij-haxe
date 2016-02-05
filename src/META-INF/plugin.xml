@@ -42,6 +42,9 @@
         <li>Fix unhandled exceptions while parsing numeric constants</li>
         <li>Fix typedef types not resolved variants for completion list</li>
         <li>Fix error annotation when implements `extern interface`</li>
+        <li>Fix extending anonymous types. (Issue #353)</li>
+        <li>Error annotation if type extends itself</li>
+        <li>Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)</li>
         <li>Using file with multiple helper classes typedefs (for example `haxe.macro.Tools`)</li>
       </ul>
       <p>0.9.8: (community release)</p>

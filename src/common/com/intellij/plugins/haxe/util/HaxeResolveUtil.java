@@ -267,8 +267,16 @@ public class HaxeResolveUtil {
           unfilteredResult.add(namedComponent);
         }
       }
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeExtendsList()));
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
+
+      List<HaxeType> extendsList = haxeClass.getHaxeExtendsList();
+      extendsList.addAll(haxeClass.getHaxeImplementsList());
+      List<HaxeClass> extendedTypes = tyrResolveClassesByQName(extendsList);
+      for(HaxeClass extendedType : extendedTypes) {
+        if(extendedType != haxeClass) {
+          classes.add(extendedType);
+        }
+      }
+
     }
     if (!unique) {
       return unfilteredResult;

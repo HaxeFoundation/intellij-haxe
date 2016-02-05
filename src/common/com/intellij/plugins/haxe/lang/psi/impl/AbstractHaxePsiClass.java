@@ -72,15 +72,26 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public String getQualifiedName() {
-    final String name = getName();
+    String name = getName();
     if (getParent() == null) {
       return name == null ? "" : name;
     }
+
+    if(name == null && this instanceof HaxeAnonymousType) {
+      // restore name from parent
+      HaxeTypedefDeclaration typedefDecl = (HaxeTypedefDeclaration)(getParent().getParent());
+      if(typedefDecl != null) {
+        name = typedefDecl.getName();
+      }
+    }
+
     final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
     String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
-    if (isAncillaryClass(name, fileName)) {
+
+    if (name != null && isAncillaryClass(packageName, name, fileName)) {
       packageName = HaxeResolveUtil.joinQName(packageName, fileName);
     }
+
     return HaxeResolveUtil.joinQName(packageName, name);
   }
 
@@ -90,10 +101,18 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return _model;
   }
 
-  private boolean isAncillaryClass(String name, String fileName) {
-    return (!(this instanceof  HaxeExternClassDeclaration)) &&
-           (!fileName.equals(name)) &&
-           (HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null);
+  // check if class is declared inside haxe module `MyClass.MySupportType`
+  private boolean isAncillaryClass(@NotNull String packageName, @NotNull String name, @NotNull String fileName) {
+    // if file name matches type name
+    if(fileName.equals(name)) {
+      return false;
+    }
+    // if StdTypes
+    if(packageName.isEmpty() && fileName.equals("StdTypes")) {
+      return false;
+    }
+    // file contains valid type declaration
+    return HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
   }
 
   @Override
