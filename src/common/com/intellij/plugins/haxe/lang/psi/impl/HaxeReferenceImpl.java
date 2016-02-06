@@ -396,7 +396,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           return resolveResult;
         }
         // std Array
-        if ("Array".equalsIgnoreCase(resolveResultHaxeClass.getQualifiedName())) {
+        if ("Array".equals(resolveResultHaxeClass.getQualifiedName())) {
           HaxeClassResolveResult arrayResolveResult = resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
 
           if (arrayResolveResult != null) {

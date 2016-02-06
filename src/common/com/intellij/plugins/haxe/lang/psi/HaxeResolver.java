@@ -250,7 +250,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         VirtualFile importVFile = importDir == null ? null : importDir.findChild(fileName);
         importPsiFile = importVFile == null ? null : PsiManager.getInstance(reference.getProject()).findFile(importVFile);
         if (importPsiFile != null) {
-          break;
+          // for addition case-sensetive check because find file is not case-sensetive
+          if(!fileName.equals(importPsiFile.getName())) {
+            importPsiFile = null;
+          }
+          else {
+            break;
+          }
         }
       }
     }
