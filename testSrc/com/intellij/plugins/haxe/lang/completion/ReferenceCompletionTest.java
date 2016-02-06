@@ -197,6 +197,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("com/testing/LocalTypedef.txt");
   }
 
+  public void testGenericFromSuperPackage() throws Throwable {
+    myFixture.configureByFiles("generic1/clients/Client.hx", "generic1/GenericInSuperPackage.hx");
+    doTestVariantsInner("generic1/clients/Client.txt");
+  }
+
   public void testLowerCase() throws Throwable {
     myFixture.configureByFiles("LowerCase.hx", "com/util/Bar.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx");
     doTestVariantsInner("LowerCase.txt");
