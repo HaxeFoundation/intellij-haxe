@@ -87,7 +87,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     if (leftReference != null && reference.getParent() instanceof HaxeReference) {
       List<? extends PsiElement> result = resolveChain(leftReference, reference);
-      return (result != null && result.isEmpty()) ? itWasPackage : result;
+      return (result != null && result.isEmpty() && itWasPackage != null) ? itWasPackage : result;
     }
 
     // then maybe chain
@@ -95,7 +95,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
       List<? extends PsiElement> result = resolveChain(childReferences[0], childReferences[1]);
-      return (result != null && result.isEmpty()) ? itWasPackage : result;
+      return (result != null && result.isEmpty() && itWasPackage != null) ? itWasPackage : result;
     }
 
     if (reference instanceof HaxeSuperExpression) {
