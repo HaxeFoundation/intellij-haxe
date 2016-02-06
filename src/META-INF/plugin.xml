@@ -45,6 +45,7 @@
         <li>Fix extending anonymous types. (Issue #353)</li>
         <li>Error annotation if type extends itself</li>
         <li>Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)</li>
+        <li>Fix for resolving variables with names as any type name (Issues #405, #234)</li>
       </ul>
       <p>0.9.8: (community release)</p>
       <ul>
