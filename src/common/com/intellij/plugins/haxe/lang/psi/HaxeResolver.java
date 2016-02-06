@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -52,8 +53,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
     isExtension.set(false);
 
+    //Logger.getInstance("RESOLVER__").warn(reference.getText());
+    final String aReferenceText = reference.getText();
     final HaxeType type = PsiTreeUtil.getParentOfType(reference, HaxeType.class);
+    final String aReferenceType = type != null ? type.getText() : null;
     final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
+    final String aReferenceHaxeClass = haxeClassInType != null ? haxeClassInType.getText() : null;
     if (type != null && haxeClassInType != null) {
       return toCandidateInfoArray(haxeClassInType.getComponentName());
     }
@@ -64,29 +69,33 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return toCandidateInfoArray(resultClass.getComponentName());
     }
 
-    // Maybe a package name
-    final PsiPackage psiPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(reference.getText());
-    if (psiPackage != null) {
-      return toCandidateInfoArray(psiPackage);
-    }
     // See if it's a source file we're importing... (most likely a convenience library, such as haxe.macro.Tools)
     final PsiFile importFile = resolveImportFile(reference);
     if (null != importFile) {
       return toCandidateInfoArray(importFile);
     }
 
+    // Maybe a package name
+    List<? extends PsiElement> itWasPackage = null;
+    final PsiPackage psiPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(reference.getText());
+    if (psiPackage != null) {
+      itWasPackage = toCandidateInfoArray(psiPackage);
+    }
+
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     if (leftReference != null && reference.getParent() instanceof HaxeReference) {
-      return resolveChain(leftReference, reference);
+      List<? extends PsiElement> result = resolveChain(leftReference, reference);
+      return (result != null && result.isEmpty()) ? itWasPackage : result;
     }
 
     // then maybe chain
     // node(foo.node(bar)).node(baz)
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
-      return resolveChain(childReferences[0], childReferences[1]);
+      List<? extends PsiElement> result = resolveChain(childReferences[0], childReferences[1]);
+      return (result != null && result.isEmpty()) ? itWasPackage : result;
     }
 
     if (reference instanceof HaxeSuperExpression) {
@@ -202,6 +211,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         result.add(importStatementWithInSupport.getReferenceExpression().resolve());
         return result;
       }
+    }
+
+    if(itWasPackage != null) {
+      return itWasPackage;
     }
 
     return ContainerUtil.emptyList();

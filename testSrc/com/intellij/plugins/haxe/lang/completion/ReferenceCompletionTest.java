@@ -197,6 +197,15 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("com/testing/LocalTypedef.txt");
   }
 
+  public void testRootPackageName() throws Throwable {
+    myFixture.configureByFiles("com/testing/RootPackageName.hx", "std/String.hx", "std/StdTypes.hx");
+    doTestVariantsInner("com/testing/RootPackageName.txt");
+    myFixture.configureByFiles("com/testing/RootPackageName2.hx", "std/String.hx", "std/StdTypes.hx");
+    doTestVariantsInner("com/testing/RootPackageName2.txt");
+    myFixture.configureByFiles("com/testing/RootPackageName3.hx", "com/testing/subs/PackageData.hx", "std/String.hx", "std/StdTypes.hx");
+    doTestVariantsInner("com/testing/RootPackageName3.txt");
+  }
+
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
   /*
   public void testExtensionMethod1() throws Throwable {
