@@ -197,6 +197,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("com/testing/LocalTypedef.txt");
   }
 
+  public void testGenericFromSuperPackage() throws Throwable {
+    myFixture.configureByFiles("generic1/clients/Client.hx", "generic1/GenericInSuperPackage.hx");
+    doTestVariantsInner("generic1/clients/Client.txt");
+  }
+
   public void testRootPackageName() throws Throwable {
     myFixture.configureByFiles("com/testing/RootPackageName.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("com/testing/RootPackageName.txt");
