@@ -53,12 +53,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
     isExtension.set(false);
 
-    //Logger.getInstance("RESOLVER__").warn(reference.getText());
-    final String aReferenceText = reference.getText();
     final HaxeType type = PsiTreeUtil.getParentOfType(reference, HaxeType.class);
-    final String aReferenceType = type != null ? type.getText() : null;
     final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
-    final String aReferenceHaxeClass = haxeClassInType != null ? haxeClassInType.getText() : null;
     if (type != null && haxeClassInType != null) {
       return toCandidateInfoArray(haxeClassInType.getComponentName());
     }
