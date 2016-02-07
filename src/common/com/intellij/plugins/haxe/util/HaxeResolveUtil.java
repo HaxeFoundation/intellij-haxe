@@ -572,7 +572,7 @@ public class HaxeResolveUtil {
     HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(type.getContainingFile(), HaxePackageStatement.class);
     String packageName = getPackageName(packageStatement);
     String[] packages = packageName.split("\\.");
-    String typeName = type.getText();
+    String typeName = (type instanceof HaxeType ? ((HaxeType)type).getReferenceExpression() : type).getText();
     for (int i = packages.length - 1; i >= 0; --i) {
       StringBuilder qNameBuilder = new StringBuilder();
       for (int j = 0; j <= i; ++j) {
