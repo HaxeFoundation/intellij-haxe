@@ -202,6 +202,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("generic1/clients/Client.txt");
   }
 
+  public void testLowerCase() throws Throwable {
+    myFixture.configureByFiles("LowerCase.hx", "com/util/Bar.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx");
+    doTestVariantsInner("LowerCase.txt");
+  }
+
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
   /*
   public void testExtensionMethod1() throws Throwable {
