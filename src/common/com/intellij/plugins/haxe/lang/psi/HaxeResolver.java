@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -64,29 +65,33 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return toCandidateInfoArray(resultClass.getComponentName());
     }
 
-    // Maybe a package name
-    final PsiPackage psiPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(reference.getText());
-    if (psiPackage != null) {
-      return toCandidateInfoArray(psiPackage);
-    }
     // See if it's a source file we're importing... (most likely a convenience library, such as haxe.macro.Tools)
     final PsiFile importFile = resolveImportFile(reference);
     if (null != importFile) {
       return toCandidateInfoArray(importFile);
     }
 
+    // Maybe a package name
+    List<? extends PsiElement> itWasPackage = null;
+    final PsiPackage psiPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(reference.getText());
+    if (psiPackage != null) {
+      itWasPackage = toCandidateInfoArray(psiPackage);
+    }
+
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     if (leftReference != null && reference.getParent() instanceof HaxeReference) {
-      return resolveChain(leftReference, reference);
+      List<? extends PsiElement> result = resolveChain(leftReference, reference);
+      return (result != null && result.isEmpty() && itWasPackage != null) ? itWasPackage : result;
     }
 
     // then maybe chain
     // node(foo.node(bar)).node(baz)
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
-      return resolveChain(childReferences[0], childReferences[1]);
+      List<? extends PsiElement> result = resolveChain(childReferences[0], childReferences[1]);
+      return (result != null && result.isEmpty() && itWasPackage != null) ? itWasPackage : result;
     }
 
     if (reference instanceof HaxeSuperExpression) {
@@ -204,6 +209,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
+    if(itWasPackage != null) {
+      return itWasPackage;
+    }
+
     return ContainerUtil.emptyList();
   }
 
@@ -250,7 +259,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         VirtualFile importVFile = importDir == null ? null : importDir.findChild(fileName);
         importPsiFile = importVFile == null ? null : PsiManager.getInstance(reference.getProject()).findFile(importVFile);
         if (importPsiFile != null) {
-          break;
+          // for addition case-sensetive check because find file is not case-sensetive
+          if(!fileName.equals(importPsiFile.getName())) {
+            importPsiFile = null;
+          }
+          else {
+            break;
+          }
         }
       }
     }
