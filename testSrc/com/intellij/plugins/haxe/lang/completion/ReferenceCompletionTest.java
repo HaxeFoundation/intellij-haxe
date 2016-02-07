@@ -197,6 +197,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("com/testing/LocalTypedef.txt");
   }
 
+  public void testAnonymousExtends() throws Throwable {
+    doTestInclude();
+  }
+
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
   /*
   public void testExtensionMethod1() throws Throwable {
