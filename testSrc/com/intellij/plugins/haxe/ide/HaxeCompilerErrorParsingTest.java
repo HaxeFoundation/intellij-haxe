@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import com.intellij.execution.Platform;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
 import junit.framework.TestCase;
@@ -73,7 +74,9 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
 
     assertNotNull(compilerError);
     assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
-    assertEquals("/an/absolute/path/HelloWorld.hx", compilerError.getPath());
+    if (Platform.current() == Platform.UNIX) {
+      assertEquals("/an/absolute/path/HelloWorld.hx", compilerError.getPath());
+    }
     assertEquals("Unknown identifier : addEvetListener", compilerError.getErrorMessage());
     assertEquals(12, compilerError.getLine());
     assertEquals(1, compilerError.getColumn());
