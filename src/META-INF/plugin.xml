@@ -48,6 +48,7 @@
         <li>Fix resolving variables having names identical to type names except for case. (Issues #405, #234)</li>
         <li>Fix incorrect package resolution. (Issues #95, #176)</li>
         <li>Fix base fields resolving for extended anonymous types (Issue #408)</li>
+        <li>Using file with multiple helper classes typedefs (for example `haxe.macro.Tools`)</li>
       </ul>
       <p>0.9.8: (community release)</p>
       <ul>
