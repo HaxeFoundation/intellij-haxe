@@ -199,14 +199,14 @@ public class HaxeCompilerError {
         ("Error: Library ([\\S]+) is not installed(.*)");
     static Pattern pBareError = Pattern.compile("([^:]*)Error:(.*)", Pattern.CASE_INSENSITIVE);
     static Pattern pColumnError =
-        Pattern.compile("([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
+        Pattern.compile("(.+?):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
     static Pattern pLineError =
-        Pattern.compile("([^:]+):([\\d]+): lines [\\d]+-[\\d]+ :(.*)");
+        Pattern.compile("(.+?):([\\d]+): lines [\\d]+-[\\d]+ :(.*)");
 
     // Unfortunately, the Haxe compiler doesn't always mark its error lines with
     // a useful "Warning" or "Error" prefix.  However, the common error output (main.ml)
     // uses the pattern "%s : %s".
-    static Pattern pGenericError = Pattern.compile("([^:]+) : (.+)");
+    static Pattern pGenericError = Pattern.compile("(.+?) : (.+)");
 
     // These are a few well-known informational patterns that should NOT be marked
     // as errors.  Keeping this up to date will always be an arms race.

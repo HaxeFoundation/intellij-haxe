@@ -29,7 +29,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.8 for @plugin.compatibility.description@</version>
+  <version>0.9.9 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
@@ -37,16 +37,26 @@
       <p/>
       <p>0.9.9: (community release)</p>
       <ul>
+        <li>IDEA v15 compatibility.  (IDEA 13 compatiblity removed.)</li>
+        <li>v15 Project Structure and Module settings dialogs work. (TiVo Issue #380)</li>
         <li>HXML: Fix `Editor/Colors & Fonts/HXML` tab (name & preview)</li>
         <li>HXML: highlighting for included `.hxml` file</li>
         <li>Fix unhandled exceptions while parsing numeric constants</li>
         <li>Fix typedef types not resolved variants for completion list</li>
         <li>Fix error annotation when implements `extern interface`</li>
-        <li>Fix extending anonymous types. (Issue #353)</li>
-        <li>Error annotation if type extends itself</li>
+        <li>Fix extending anonymous types. (TiVo Issue #353)</li>
+        <li>Error annotation if type extends itself. (TiVo Issue #377)</li>
         <li>Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)</li>
-        <li>Fix resolving variables having names identical to type names except for case. (Issues #405, #234)</li>
-        <li>Fix incorrect package resolution. (Issues #95, #176)</li>
+        <li>Fix resolving variables having names identical to type names except for case. (TiVo Issues #405, #234)</li>
+        <li>Fix incorrect package resolution. (TiVo Issues #95, #176)</li>
+        <li>Fix base fields resolving for extended anonymous types (TiVo Issue #408)</li>
+        <li>Prevent recursion due to extending self for classes and typedefs.</li>
+        <li>Using file with multiple helper classes typedefs (for example `haxe.macro.Tools`) (TiVo Issue #128)</li>
+        <li>Allow short assignment syntax for generics. (TiVo Issue #388)</li>
+        <li>Fixed expected package name to no longer reference the system root. (TiVo Issue #387)</li>
+        <li>Save and restore OpenFL arguments on the Haxe Module settings dialog. (TiVo Issue #74)</li>
+        <li>Fixed repainting issue for OpenFL dialog when selecting compiler types. (TiVo Issue #44)</li>
+        <li>Fixed error parsing for Windows platforms.</li>
       </ul>
       <p>0.9.8: (community release)</p>
       <ul>

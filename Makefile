@@ -1,6 +1,6 @@
 #Default IDEA version to build against, can be overriden
 #by env variable
-IDEA_VERSION?=13.1.6
+IDEA_VERSION?=15.0.3
 
 #build the intellij-haxe.jar file which can be
 #installed in Intellij

@@ -17,7 +17,9 @@
  */
 package com.intellij.plugins.haxe.ide.index;
 
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiFile;
@@ -99,16 +101,25 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
     @NotNull
     public Map<String, Void> map(final FileContent inputData) {
       final PsiFile psiFile = inputData.getPsiFile();
+      final String moduleName = FileUtil.getNameWithoutExtension(inputData.getFileName());
       final List<HaxeClass> classes = HaxeResolveUtil.findComponentDeclarations(psiFile);
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
+      boolean moduleAdded = false;
       final Map<String, Void> result = new THashMap<String, Void>(classes.size());
       for (HaxeClass haxeClass : classes) {
         final String className = haxeClass.getName();
         if (className != null) {
+          if(!moduleAdded && className.equals(moduleName)) {
+            moduleAdded = true;
+          }
           result.put(haxeClass.getQualifiedName(), null);
         }
+      }
+      if(!moduleAdded) {
+        String mainModuleName = HaxeResolveUtil.joinQName(HaxeResolveUtil.getPackageName(psiFile), moduleName);
+        result.put(mainModuleName, null);
       }
       return result;
     }

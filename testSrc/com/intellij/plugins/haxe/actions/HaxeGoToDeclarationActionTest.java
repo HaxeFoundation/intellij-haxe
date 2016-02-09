@@ -121,6 +121,10 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("UsingUtil2.hx", "com/utils/MathUtil.hx", "std/StdTypes.hx", "std/String.hx"), 0);
   }
 
+  public void testUsingUtil3() {
+    doTest(myFixture.configureByFiles("UsingUtil3.hx", "com/utils/StringUtil.hx", "com/utils/Tools.hx", "com/utils/MathUtil.hx", "std/StdTypes.hx", "std/String.hx"), 1);
+  }
+
   public void testSamePackage() {
     doTest(myFixture.configureByFiles("com/bar/Baz.hx", "com/bar/Foo.hx"), 1);
   }

@@ -40,6 +40,7 @@ import gnu.trove.THashSet;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
+import org.apache.xmlbeans.impl.common.ResolverUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -321,7 +322,10 @@ public class HaxeResolveUtil {
     else if (haxeClass instanceof HaxeTypedefDeclaration) {
       final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
       if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
-        typeOrAnonymous.getAnonymousType();
+        HaxeAnonymousType anonymous = typeOrAnonymous.getAnonymousType();
+        if(anonymous != null) {
+          return getNamedSubComponents(anonymous);
+        }
       }
       else if (typeOrAnonymous != null) {
         final HaxeClass typeClass = getHaxeClassResolveResult(typeOrAnonymous.getType()).getHaxeClass();
@@ -795,10 +799,40 @@ public class HaxeResolveUtil {
     for (HaxeUsingStatement usingStatement : usingStatements) {
       final HaxeExpression usingStatementExpression = usingStatement.getReferenceExpression();
       if (usingStatementExpression == null) continue;
-      final HaxeClass haxeClass = findClassByQName(usingStatementExpression.getText(), file);
-      if (haxeClass != null) {
-        result.add(haxeClass);
+
+      PsiManager manager = file.getManager();
+      if(manager != null) {
+        GlobalSearchScope scope = getScopeForElement(file);
+        final List<VirtualFile> classFiles = HaxeComponentFileNameIndex.getFilesNameByQName(usingStatementExpression.getText(), scope);
+        for(VirtualFile vf : classFiles) {
+          PsiFile pf = manager.findFile(vf);
+          if(pf != null) {
+            List<HaxeClass> classes = findComponentDeclarations(pf);
+            for(HaxeClass cls : classes) {
+              if(cls instanceof HaxeTypedefDeclaration) {
+                HaxeTypeOrAnonymous toa = ((HaxeTypedefDeclaration)cls).getTypeOrAnonymous();
+                if(toa != null) {
+                  HaxeType t = toa.getType();
+                  if(t != null) {
+                    HaxeClass typeClass = t.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+                    if(typeClass != null) {
+                      result.add(typeClass);
+                    }
+                  }
+                }
+              }
+              else {
+                result.add(cls);
+              }
+            }
+          }
+        }
       }
+
+      //final HaxeClass haxeClass = findClassByQName(usingStatementExpression.getText(), file);
+      //if (haxeClass != null) {
+      //  result.add(haxeClass);
+      //}
     }
     return result;
   }

@@ -156,6 +156,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("UsingUtil2.txt");
   }
 
+  public void testUsingUtil3() throws Throwable {
+    myFixture.configureByFiles("UsingUtil3.hx", "com/util/Tools.hx", "com/util/StringUtil.hx", "com/util/MathUtil.hx", "std/String.hx", "std/StdTypes.hx");
+    doTestVariantsInner("UsingUtil3.txt");
+  }
+
   //https://github.com/TiVo/intellij-haxe/issues/28
   public void testTypedefOptionalField() throws Throwable {
     myFixture.configureByFiles("TypedefOptionalField.hx");
@@ -214,6 +219,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("com/testing/RootPackageName2.txt");
     myFixture.configureByFiles("com/testing/RootPackageName3.hx", "com/testing/subs/PackageData.hx", "std/String.hx", "std/StdTypes.hx");
     doTestVariantsInner("com/testing/RootPackageName3.txt");
+  }
+
+  public void testAnonymousExtends() throws Throwable {
+    doTestInclude();
   }
 
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
