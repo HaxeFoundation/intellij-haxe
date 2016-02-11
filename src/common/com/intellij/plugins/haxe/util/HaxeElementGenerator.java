@@ -30,6 +30,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -78,7 +79,9 @@ public class HaxeElementGenerator {
   // XXX: Eventually, this ordering should come from the class order in
   //      preferences... once we have one.
   private static List<HaxeNamedComponent> sortNamedSubComponents(List<HaxeNamedComponent> unsorted) {
-    Collections.sort(unsorted, new Comparator<HaxeNamedComponent>() {
+    // Can't sort a hashed collection, so we must copy it to an orderable type.
+    List<HaxeNamedComponent> sorted = new ArrayList<HaxeNamedComponent>(unsorted);
+    Collections.sort(sorted, new Comparator<HaxeNamedComponent>() {
       @Override
       public int compare(HaxeNamedComponent o1, HaxeNamedComponent o2) {
         String name1 = o1.getName();
@@ -86,7 +89,7 @@ public class HaxeElementGenerator {
         return name1.compareTo(name2);
       }
     });
-    return unsorted;
+    return sorted;
   }
 
   public static List<HaxeNamedComponent> createNamedSubComponentsFromText(Project myProject, String text) {
