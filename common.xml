@@ -44,10 +44,16 @@
   <!-- set global properties for this build -->
   <property name="build.compiler" value="modern"/>
 
+  <!-- On a mac, the build.txt is in a Resources directory, whereas on
+       Windows and Linux, it's in the root. -->
+  <condition property="idea.build.id.file" value="Resources/build.txt">
+    <os family="mac"/>
+  </condition>
+  <property name="idea.build.id.file" value="build.txt"/>
+
   <!-- See if we're being run from within IDEA (or at least an IDEA
        directory is ANT_HOME). -->
   <property name="idea.candidate.directory" location="${ant.home}/../.."/>
-  <property name="idea.build.id.file" value="build.txt"/>
   <condition property="idea.ultimate.build" value="${idea.candidate.directory}">
     <and>
       <matches pattern=".*[\\/]lib[\\/]ant" string="${ant.home}"/>
@@ -91,7 +97,7 @@
   </fail>
 
   <!-- the version of intellij we are using as the SDK. -->
-  <loadfile property="idea.sdk.version" srcFile="${idea.ultimate.build}/build.txt"/>
+  <loadfile property="idea.sdk.version" srcFile="${idea.ultimate.build}/${idea.build.id.file}"/>
   <echo level="debug">Using installed IDEA version of ${idea.sdk.version}</echo>
 
   <!-- Pull apart the build version into component pieces -->
