@@ -30,6 +30,8 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -73,11 +75,25 @@ public class HaxeElementGenerator {
     return (HaxeVarDeclaration)haxeClass.getVarDeclarations().iterator().next();
   }
 
+  // XXX: Eventually, this ordering should come from the class order in
+  //      preferences... once we have one.
+  private static List<HaxeNamedComponent> sortNamedSubComponents(List<HaxeNamedComponent> unsorted) {
+    Collections.sort(unsorted, new Comparator<HaxeNamedComponent>() {
+      @Override
+      public int compare(HaxeNamedComponent o1, HaxeNamedComponent o2) {
+        String name1 = o1.getName();
+        String name2 = o2.getName();
+        return name1.compareTo(name2);
+      }
+    });
+    return unsorted;
+  }
+
   public static List<HaxeNamedComponent> createNamedSubComponentsFromText(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return HaxeResolveUtil.findNamedSubComponents(haxeClass);
+    return sortNamedSubComponents(HaxeResolveUtil.findNamedSubComponents(haxeClass));
   }
 
   @Nullable
