@@ -55,4 +55,8 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   public void testStaticMethod() throws Throwable {
     doTest("fooNew", "additional/StaticMethodHelper.hx");
   }
+
+  public void testCatchParameter() throws Throwable {
+    doTest("error");
+  }
 }
