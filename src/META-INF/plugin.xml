@@ -35,6 +35,9 @@
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+
+      <p>Fix catch parameter declaration (issue #419)</p>
+
       <p>0.9.9: (community release)</p>
       <ul>
         <li>IDEA v15 compatibility.  (IDEA 13 compatiblity removed.)</li>
