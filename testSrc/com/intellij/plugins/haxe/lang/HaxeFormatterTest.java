@@ -27,7 +27,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import junit.framework.Assert;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -52,10 +51,10 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   private void setTestStyleSettings() {
     Project project = getProject();
     CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
-    Assert.assertNotNull(currSettings);
+    assertNotNull(currSettings);
     CodeStyleSettings tempSettings = currSettings.clone();
     CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.HAXE_FILE_TYPE);
-    Assert.assertNotNull(indentOptions);
+    assertNotNull(indentOptions);
     defineStyleSettings(tempSettings);
     CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);
   }
