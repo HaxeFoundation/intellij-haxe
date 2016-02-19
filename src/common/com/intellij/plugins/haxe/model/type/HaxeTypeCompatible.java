@@ -24,6 +24,9 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HaxeTypeCompatible {
   static public boolean canApplyBinaryOperator(SpecificTypeReference left, SpecificTypeReference right, String operator) {
     // @TODO: Stub. Implement.
@@ -137,6 +140,20 @@ public class HaxeTypeCompatible {
           if (to.canAssign(HaxeTypeResolver.getTypeFromType(type))) {
             return true;
           }
+        }
+      }
+    }
+
+    // check interface/class type overrides
+    HaxeClass baseClass = to.clazz.getHaxeClass();
+    HaxeClass derivedClass = from.clazz.getHaxeClass();
+    if (baseClass != null && derivedClass != null) {
+      List<HaxeType> baseTypes = new ArrayList<HaxeType>();
+      baseTypes.addAll(derivedClass.getHaxeImplementsList());
+      baseTypes.addAll(derivedClass.getHaxeExtendsList());
+      for (HaxeType baseType : baseTypes) {
+        if(to.canAssign(HaxeTypeResolver.getTypeFromType(baseType))) {
+          return true;
         }
       }
     }
