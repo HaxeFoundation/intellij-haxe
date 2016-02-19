@@ -124,33 +124,7 @@ class FieldChecker {
       holder.createErrorAnnotation(field.getSetterPsi(), "Invalid setter accessor");
     }
 
-    if (field.getGetterType() == HaxeAccessorType.GET) {
-      final String methodName = "get_" + field.getName();
-      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
-      if (method == null) {
-        Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(methodName);
-          }
-        });
-      }
-    }
-
-    if (field.getSetterType() == HaxeAccessorType.SET) {
-      final String methodName = "set_" + field.getName();
-      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
-      if (method == null) {
-        Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(methodName);
-          }
-        });
-      }
-    }
+    checkPropertyAccessorMethods(field, holder);
 
     if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
       final HaxeVarInit psi = field.getInitializerPsi();
@@ -175,6 +149,40 @@ class FieldChecker {
           @Override
           public void run() {
             document.replaceElementText(field.getSetterPsi(), "null");
+          }
+        });
+      }
+    }
+  }
+
+  static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
+    if (field.getDeclaringClass().isInterface()) {
+      return;
+    }
+
+    if (field.getGetterType() == HaxeAccessorType.GET) {
+      final String methodName = "get_" + field.getName();
+      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      if (method == null) {
+        Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
+        annotation.registerFix(new HaxeFixer("Add method") {
+          @Override
+          public void run() {
+            field.getDeclaringClass().addMethod(methodName);
+          }
+        });
+      }
+    }
+
+    if (field.getSetterType() == HaxeAccessorType.SET) {
+      final String methodName = "set_" + field.getName();
+      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      if (method == null) {
+        Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
+        annotation.registerFix(new HaxeFixer("Add method") {
+          @Override
+          public void run() {
+            field.getDeclaringClass().addMethod(methodName);
           }
         });
       }
