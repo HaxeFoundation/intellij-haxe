@@ -21,10 +21,14 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.impl.source.resolve.ResolveClassUtil;
+import org.apache.xmlbeans.impl.common.ResolverUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class HaxeTypeCompatible {
@@ -148,14 +152,9 @@ public class HaxeTypeCompatible {
     HaxeClass baseClass = to.clazz.getHaxeClass();
     HaxeClass derivedClass = from.clazz.getHaxeClass();
     if (baseClass != null && derivedClass != null) {
-      List<HaxeType> baseTypes = new ArrayList<HaxeType>();
-      baseTypes.addAll(derivedClass.getHaxeImplementsList());
-      baseTypes.addAll(derivedClass.getHaxeExtendsList());
-      for (HaxeType baseType : baseTypes) {
-        final SpecificHaxeClassReference baseClassRef = HaxeTypeResolver.getTypeFromType(baseType).getClassType();
-        if(baseClassRef != null && baseClassRef.clazz.getHaxeClass() != derivedClass && to.canAssign(baseClassRef)) {
-          return true;
-        }
+      final HashSet<HaxeClass> set = HaxeResolveUtil.getBaseClassesSet(derivedClass, new HashSet<HaxeClass>());
+      if(set.contains(baseClass)) {
+        return true;
       }
     }
 
