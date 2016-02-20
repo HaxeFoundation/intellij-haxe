@@ -152,7 +152,8 @@ public class HaxeTypeCompatible {
       baseTypes.addAll(derivedClass.getHaxeImplementsList());
       baseTypes.addAll(derivedClass.getHaxeExtendsList());
       for (HaxeType baseType : baseTypes) {
-        if(to.canAssign(HaxeTypeResolver.getTypeFromType(baseType))) {
+        final SpecificHaxeClassReference baseClassRef = HaxeTypeResolver.getTypeFromType(baseType).getClassType();
+        if(baseClassRef != null && baseClassRef.clazz.getHaxeClass() != derivedClass && to.canAssign(baseClassRef)) {
           return true;
         }
       }
