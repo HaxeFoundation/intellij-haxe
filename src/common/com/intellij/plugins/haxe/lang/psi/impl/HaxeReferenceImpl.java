@@ -740,11 +740,18 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     boolean extern = haxeClass.isExtern();
     boolean isEnum = haxeClass instanceof HaxeEnumDeclaration;
+    boolean isAbstractEnum = HaxeAbstractEnumUtil.isAbstractEnum(haxeClass);
 
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
-      if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum) && namedComponent.getComponentName() != null) {
-        suggestedVariants.add(namedComponent.getComponentName());
+      final HaxeComponentName componentName = namedComponent.getComponentName();
+      if(componentName != null) {
+        if(isAbstractEnum && HaxeAbstractEnumUtil.isAbstractEnumField(namedComponent)) {
+          suggestedVariants.add(componentName);
+        }
+        else if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum)) {
+          suggestedVariants.add(componentName);
+        }
       }
     }
   }
@@ -755,9 +762,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     boolean extern = haxeClass.isExtern();
+    boolean isAbstractEnum = HaxeAbstractEnumUtil.isAbstractEnum(haxeClass);
 
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
+      if(isAbstractEnum && HaxeAbstractEnumUtil.isAbstractEnumField(namedComponent)) {
+        continue;
+      }
       if ((extern || !needFilter) && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
       }

@@ -459,6 +459,11 @@ public class HaxeResolveUtil {
       return result;
     }
 
+    result = HaxeAbstractEnumUtil.resolveFieldType(element);
+    if(result != null) {
+      return result;
+    }
+
     if (specialization.containsKey(null, element.getText())) {
       return specialization.get(null, element.getText());
     }

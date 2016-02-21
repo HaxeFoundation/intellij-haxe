@@ -21,6 +21,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
+import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -80,8 +81,18 @@ public class HaxeTypeResolver {
   static private ResultHolder getFieldType(AbstractHaxeNamedComponent comp) {
     //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
+
+    ResultHolder result = HaxeAbstractEnumUtil.getFieldType(comp);
+    if(result != null) {
+      return result;
+    }
+
     if (comp instanceof HaxeVarDeclarationPart) {
       HaxeTypeTag typeTag = ((HaxeVarDeclarationPart)comp).getTypeTag();
+      if (typeTag != null) {
+        return getTypeFromTypeTag(typeTag, comp);
+      }
+
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
@@ -94,9 +105,6 @@ public class HaxeTypeResolver {
           //System.out.println(decl.getText());
         }
         return isConstant ? type1 : type1.withConstantValue(null);
-      }
-      if (typeTag != null) {
-        return getTypeFromTypeTag(typeTag, comp);
       }
     }
 
