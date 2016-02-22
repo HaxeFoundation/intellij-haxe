@@ -101,6 +101,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testNonConstantArgumentAbstractEnum() throws Exception {
+    doTestNoFixWithWarnings("test/SampleAbstractEnum.hx", "std/StdTypes.hx");
+  }
+
   public void testConstructorMustNotBeStatic() throws Exception {
     doTestNoFixWithWarnings();
   }

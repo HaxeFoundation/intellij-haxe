@@ -185,6 +185,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
+  public void testAutodetectConstant() throws Throwable {
+    doTestInclude();
+  }
+
   public void testAutodetectProperties() throws Throwable {
     doTestInclude();
   }
