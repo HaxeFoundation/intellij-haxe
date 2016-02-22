@@ -233,6 +233,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
+  public void testAbstractEnumFields3() throws Throwable {
+    doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
   //public void testUsingStringTools() throws Throwable {
   //  myFixture.configureByFiles("UsingStringTools.hx", "std/StringTools.hx", "std/String.hx", "std/StdTypes.hx");
   //  doTestVariantsInner("UsingStringTools.txt");
