@@ -32,11 +32,11 @@ public class HaxeAbstractEnumUtil {
 
   public static boolean isAbstractEnum(@Nullable PsiClass clazz) {
     if(clazz != null && clazz instanceof HaxeAbstractClassDeclaration) {
-      final HaxeMacroClassList macroListDecl = ((HaxeAbstractClassDeclaration)clazz).getMacroClassList();
-      final List<HaxeMacroClass> macroList = macroListDecl != null ? macroListDecl.getMacroClassList() : null;
-      if(macroList != null) {
-        for (HaxeMacroClass macroClass : macroList) {
-          if (macroClass.getText().equals("@:enum")) {
+      final HaxeMacroClassList metaList = ((HaxeAbstractClassDeclaration)clazz).getMacroClassList();
+      final List<HaxeMacroClass> metas = metaList != null ? metaList.getMacroClassList() : null;
+      if(metas != null) {
+        for (HaxeMacroClass meta : metas) {
+          if (meta.getText().equals("@:enum")) {
             return true;
           }
         }
@@ -57,32 +57,6 @@ public class HaxeAbstractEnumUtil {
     return false;
   }
 
-  //public static boolean checkFieldType(@Nullable PsiElement element) {
-  //  if(element != null && element instanceof HaxeVarDeclarationPart) {
-  //    final HaxeVarDeclarationPart decl = (HaxeVarDeclarationPart)element;
-  //    final HaxeTypeTag tag = decl.getTypeTag();
-  //    if (tag == null) {
-  //      return true;
-  //    }
-  //    final String className = decl.getContainingClass().getNameIdentifier().getText();
-  //    return className.equals(tag.getText());
-  //    //if(containingClass instanceof HaxeAbstractClassDeclaration)
-  //    //final SpecificHaxeClassReference classRef = HaxeTypeResolver.getTypeFromTypeTag(tag, element).getClassType();
-  //    //return classRef != null && classRef.getHaxeClass() == containingClass;
-  //  }
-  //  return false;
-  //}
-
-  @Nullable
-  public static HaxeAbstractClassDeclaration getFieldClass(@Nullable PsiElement element) {
-    if (!HaxeAbstractEnumUtil.isAbstractEnumField(element)) {
-      return null;
-    }
-    final HaxeAbstractClassDeclaration abstractEnumClass =
-      PsiTreeUtil.getParentOfType(element, HaxeAbstractClassDeclaration.class);
-    return isAbstractEnum(abstractEnumClass) ? abstractEnumClass : null;
-  }
-
   @Nullable
   public static HaxeClassResolveResult resolveFieldType(@Nullable PsiElement element) {
     final HaxeClass cls = getFieldClass(element);
@@ -99,20 +73,6 @@ public class HaxeAbstractEnumUtil {
         .withConstantValue(element.getText());
   }
 
-  //public static boolean checkExpressionIsConst(@Nullable PsiElement expression) {
-  //  if(expression != null) {
-  //    final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
-  //    if (childReferences != null && childReferences.length == 2) {
-  //      final HaxeClass leftClass = childReferences[0].resolveHaxeClass().getHaxeClass();
-  //      if (isAbstractEnum(leftClass)) {
-  //        final HaxeNamedComponent field = leftClass.findHaxeFieldByName(childReferences[1].getText());
-  //        return HaxeAbstractEnumUtil.isAbstractEnumField(field);
-  //      }
-  //    }
-  //  }
-  //  return false;
-  //}
-
   @Nullable
   public static ResultHolder getStaticMemberExpression(@Nullable PsiElement expression) {
     if(expression != null) {
@@ -121,6 +81,24 @@ public class HaxeAbstractEnumUtil {
         final HaxeClass leftClass = childReferences[0].resolveHaxeClass().getHaxeClass();
         if (isAbstractEnum(leftClass)) {
           return getFieldType(leftClass.findHaxeFieldByName(childReferences[1].getText()));
+        }
+      }
+    }
+    return null;
+  }
+
+  /*** HELPERS ***/
+
+  @Nullable
+  private static HaxeAbstractClassDeclaration getFieldClass(@Nullable PsiElement element) {
+    final HaxeVarDeclarationPart varDecl = element != null && (element instanceof HaxeVarDeclarationPart) ?
+                                           (HaxeVarDeclarationPart)element : null;
+    if (varDecl != null && HaxeAbstractEnumUtil.isAbstractEnumField(varDecl)) {
+      final HaxeAbstractClassDeclaration abstractEnumClass =
+        PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
+      if (isAbstractEnum(abstractEnumClass)) {
+        if (varDecl.getTypeTag() == null) {
+          return abstractEnumClass;
         }
       }
     }
