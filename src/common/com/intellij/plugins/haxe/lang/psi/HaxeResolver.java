@@ -318,7 +318,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           haxeNamedComponent.isStatic() &&
           haxeNamedComponent.getComponentName() != null) {
         final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
-        final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == leftClass;
+        final HaxeClass resolvedClass = resolveResult.getHaxeClass();
+        boolean needToAdd = resolvedClass == null || resolvedClass == leftClass;
+        if (!needToAdd && leftClass != null) {
+          final List<HaxeType> extendsImplementsList = leftClass.getHaxeExtendsList();
+          extendsImplementsList.addAll(leftClass.getHaxeImplementsList());
+          for (HaxeType extendsClass : extendsImplementsList) {
+            if (extendsClass.getReferenceExpression().resolveHaxeClass().getHaxeClass() == resolvedClass) {
+              needToAdd = true;
+              break;
+            }
+          }
+        }
         if (needToAdd) {
           isExtension.set(true);
           return toCandidateInfoArray(haxeNamedComponent.getComponentName());
