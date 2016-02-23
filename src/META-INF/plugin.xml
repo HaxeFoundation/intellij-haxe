@@ -40,6 +40,7 @@
         <li>Better packages resolving</li>
         <li>Fix catch parameter declaration (issue #419)</li>
         <li>Fix inherited type in field initializer (issue #412)</li>
+        <li>Fix typedef generic params resolving (issue #304)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>

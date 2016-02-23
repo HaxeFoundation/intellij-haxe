@@ -230,6 +230,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("NullTypedef.txt");
   }
 
+  public void testRefTypedef() throws Throwable {
+    myFixture.configureByFiles("RefTypedef.hx", "std/String.hx");
+    doTestVariantsInner("RefTypedef.txt");
+  }
+
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
   /*
   public void testExtensionMethod1() throws Throwable {
