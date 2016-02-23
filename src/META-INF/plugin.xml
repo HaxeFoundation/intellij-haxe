@@ -39,6 +39,7 @@
       <ul>
         <li>Better packages resolving</li>
         <li>Fix catch parameter declaration (issue #419)</li>
+        <li>General "@:enum abstract" support (issues #427, #428, #429)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
