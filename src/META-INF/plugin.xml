@@ -35,6 +35,13 @@
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>Unreleased changes:</p>
+      <ul>
+        <li>Better packages resolving</li>
+        <li>Fix catch parameter declaration (issue #419)</li>
+        <li>Fix inherited type in field initializer (issue #412)</li>
+        <li>Delete single-class file in one operation from Project View (issue #424)</li>
+      </ul>
       <p>0.9.9: (community release)</p>
       <ul>
         <li>IDEA v15 compatibility.  (IDEA 13 compatiblity removed.)</li>

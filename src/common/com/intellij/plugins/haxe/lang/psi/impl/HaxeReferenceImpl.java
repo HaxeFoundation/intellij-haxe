@@ -620,8 +620,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
       }
     }
-    if (leftReference != null && getParent() instanceof HaxeReference && name != null && leftReference.getText().equals(
-      name)) {
+    if (leftReference != null && getParent() instanceof HaxeReference && name != null &&
+        HaxeResolveUtil.splitQName(leftReference.getText()).getSecond().equals(name)) {
+
       addClassStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
                                     !(leftReference instanceof HaxeThisExpression));
       addChildClassVariants(suggestedVariants, result.getHaxeClass());
@@ -635,7 +636,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                          !(leftReference instanceof HaxeThisExpression));
         addUsingVariants(suggestedVariants, suggestedVariantsExtensions, haxeClass,
                          HaxeResolveUtil.findUsingClasses(getContainingFile()));
-        addChildClassVariants(suggestedVariants, haxeClass);
       }
     }
     else {
@@ -656,6 +656,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (leftTarget instanceof PsiPackage) {
       return ArrayUtil.mergeArrays(variants, ((PsiPackage)leftTarget).getSubPackages());
+    }
+    else if (leftTarget instanceof HaxeFile) {
+      return ArrayUtil.mergeArrays(variants, ((HaxeFile)leftTarget).getClasses());
     }
     else if (leftReference == null) {
       PsiPackage rootPackage = JavaPsiFacade.getInstance(getElement().getProject()).findPackage("");
