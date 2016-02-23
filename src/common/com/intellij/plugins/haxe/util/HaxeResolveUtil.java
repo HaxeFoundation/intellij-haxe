@@ -424,7 +424,7 @@ public class HaxeResolveUtil {
     if (element instanceof HaxeComponentName) {
       return getHaxeClassResolveResult(element.getParent(), specialization);
     }
-    if (element instanceof AbstractHaxeTypeDefImpl) {
+    if (element instanceof HaxeTypedefDeclaration) {
       final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
       return typeDef.getTargetClass(specialization);
     }
@@ -485,6 +485,12 @@ public class HaxeResolveUtil {
     HaxeClass haxeClass = type == null ? null : tryResolveClassByQName(type);
     if (haxeClass == null && type != null && specialization.containsKey(element, type.getText())) {
       return specialization.get(element, type.getText());
+    }
+
+    if(haxeClass instanceof HaxeTypedefDeclaration) {
+      HaxeClassResolveResult temp = HaxeClassResolveResult.create(haxeClass, specialization);
+      temp.specializeByParameters(type.getTypeParam());
+      specialization = temp.getSpecialization();
     }
 
     HaxeClassResolveResult result = getHaxeClassResolveResult(haxeClass, specialization.getInnerSpecialization(element));
