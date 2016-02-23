@@ -184,4 +184,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testExtendsSelf() throws Exception {
     doTestNoFixWithWarnings("test/Bar.hx", "test/IBar.hx", "test/TBar.hx");
   }
+
+  public void testFieldInitializerCheck() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

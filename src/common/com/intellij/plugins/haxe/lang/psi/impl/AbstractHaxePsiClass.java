@@ -528,4 +528,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     }
   };
 
+  @Override
+  public void delete() {
+    // FIX: for twice deletion of file in project view (issue #424)
+    final HaxeFile file = (HaxeFile)getContainingFile();
+    super.delete();
+    if(file != null && file.getClasses().length == 0) {
+      file.delete();
+    }
+  }
 }
