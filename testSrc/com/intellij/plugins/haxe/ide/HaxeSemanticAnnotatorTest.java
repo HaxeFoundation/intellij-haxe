@@ -181,6 +181,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings("test/Bar.hx", "test/IBar.hx", "test/TBar.hx");
   }
 
+  public void testFieldInitializerCheck() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testVariableRedefinition() throws Exception {
     doTestNoFixWithWarnings();
   }

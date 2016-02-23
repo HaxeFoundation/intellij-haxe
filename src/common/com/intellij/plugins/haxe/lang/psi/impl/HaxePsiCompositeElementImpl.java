@@ -114,6 +114,13 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     if (this instanceof HaxeForStatement && ((HaxeForStatement)this).getIterable() != lastParent) {
       result.add(this);
     }
+
+    if (this instanceof HaxeCatchStatement) {
+      final HaxeParameter catchParameter = PsiTreeUtil.getChildOfType(this, HaxeParameter.class);
+      if(catchParameter != null) {
+        result.add(catchParameter);
+      }
+    }
     return result;
   }
 

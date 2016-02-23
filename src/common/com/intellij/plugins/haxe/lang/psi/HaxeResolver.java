@@ -71,11 +71,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return toCandidateInfoArray(importFile);
     }
 
-    // Maybe a package name
-    List<? extends PsiElement> itWasPackage = null;
-    final PsiPackage psiPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(reference.getText());
-    if (psiPackage != null) {
-      itWasPackage = toCandidateInfoArray(psiPackage);
+    // Awaiting statement with package references
+    // TODO: optimize, get root element and check class
+    if(PsiTreeUtil.getParentOfType(reference,
+                                   HaxePackageStatement.class,
+                                   HaxeImportStatementRegular.class,
+                                   HaxeImportStatementWithInSupport.class,
+                                   HaxeImportStatementWithWildcard.class,
+                                   HaxeUsingStatement.class) != null) {
+      return toCandidateInfoArray(resolvePackage(reference));
     }
 
     // if not first in chain
@@ -83,7 +87,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     if (leftReference != null && reference.getParent() instanceof HaxeReference) {
       List<? extends PsiElement> result = resolveChain(leftReference, reference);
-      return (result != null && result.isEmpty() && itWasPackage != null) ? itWasPackage : result;
+      if(result != null && !result.isEmpty()) {
+        return result;
+      }
+      return toCandidateInfoArray(resolvePackage(reference));
     }
 
     // then maybe chain
@@ -91,7 +98,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
       List<? extends PsiElement> result = resolveChain(childReferences[0], childReferences[1]);
-      return (result != null && result.isEmpty() && itWasPackage != null) ? itWasPackage : result;
+      if(result != null && !result.isEmpty()) {
+        return result;
+      }
+      return toCandidateInfoArray(resolvePackage(reference));
     }
 
     if (reference instanceof HaxeSuperExpression) {
@@ -209,10 +219,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
-    if(itWasPackage != null) {
-      return itWasPackage;
-    }
-
     return ContainerUtil.emptyList();
   }
 
@@ -271,6 +277,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     return importPsiFile;
+  }
+
+  private PsiPackage resolvePackage(HaxeReference reference) {
+    final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
+    String packageName = reference.getText();
+    if(leftReference != null && reference.getParent() instanceof HaxeReference) {
+      packageName = leftReference.getText() + "." + packageName;
+    }
+    return JavaPsiFacade.getInstance(reference.getProject()).findPackage(packageName);
   }
 
   /**
