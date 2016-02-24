@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
@@ -28,7 +27,6 @@ import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -42,7 +40,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -712,17 +709,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName() != null) {
           final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
           final HaxeClass resolvedClass = resolveResult.getHaxeClass();
-          boolean needToAdd = resolvedClass == null || resolvedClass == ourClass;
-          if (!needToAdd && ourClass != null) {
-            List<HaxeType> extendsImplementsList = ourClass.getHaxeExtendsList();
-            extendsImplementsList.addAll(ourClass.getHaxeImplementsList());
-            for (HaxeType extendsClass : extendsImplementsList) {
-              if (extendsClass.getReferenceExpression().resolveHaxeClass().getHaxeClass() == resolvedClass) {
-                needToAdd = true;
-                break;
-              }
-            }
-          }
+          final HashSet<HaxeClass> baseClassesSet = ourClass != null ? HaxeResolveUtil.getBaseClassesSet(ourClass) : null;
+          final boolean needToAdd = resolvedClass == null || resolvedClass == ourClass
+            || (baseClassesSet != null && baseClassesSet.contains(resolvedClass));
           if (needToAdd) {
             variants.add(haxeNamedComponent.getComponentName());
             variantsWithExtension.add(haxeNamedComponent.getComponentName());
