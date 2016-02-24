@@ -746,7 +746,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       final HaxeComponentName componentName = namedComponent.getComponentName();
       if(componentName != null) {
-        if(isAbstractEnum && HaxeAbstractEnumUtil.isAbstractEnumField(namedComponent)) {
+        if(isAbstractEnum && HaxeAbstractEnumUtil.checkField(namedComponent)) {
           suggestedVariants.add(componentName);
         }
         else if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum)) {
@@ -766,7 +766,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
-      if(isAbstractEnum && HaxeAbstractEnumUtil.isAbstractEnumField(namedComponent)) {
+      if(isAbstractEnum && HaxeAbstractEnumUtil.checkField(namedComponent)) {
         continue;
       }
       if ((extern || !needFilter) && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {

@@ -24,12 +24,14 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class HaxeAbstractEnumUtil {
 
+  @Contract("null -> false")
   public static boolean isAbstractEnum(@Nullable PsiClass clazz) {
     if(clazz != null && clazz instanceof HaxeAbstractClassDeclaration) {
       final HaxeMacroClassList metaList = ((HaxeAbstractClassDeclaration)clazz).getMacroClassList();
@@ -45,12 +47,15 @@ public class HaxeAbstractEnumUtil {
     return false;
   }
 
-  public static boolean isAbstractEnumField(@Nullable PsiElement element) {
+  /**
+   * If this element suitable for processing by `@:enum abstract` logic
+   * IMPORTANT: This method doesn't check if this field inside `@:enum abstract`!
+   */
+  @Contract("null -> false")
+  public static boolean checkField(@Nullable PsiElement element) {
     if(element != null && element instanceof HaxeVarDeclarationPart) {
       final HaxeVarDeclarationPart decl = (HaxeVarDeclarationPart)element;
-      final PsiClass containingClass = decl.getContainingClass();
-      if(containingClass instanceof HaxeAbstractClassDeclaration &&
-         decl.getPropertyDeclaration() == null && !decl.isStatic()) {
+       if(decl.getPropertyDeclaration() == null && !decl.isStatic()) {
         return true;
       }
     }
@@ -80,6 +85,7 @@ public class HaxeAbstractEnumUtil {
   }
 
   @Nullable
+  @Contract("null -> null")
   public static ResultHolder getStaticMemberExpression(@Nullable PsiElement expression) {
     if(expression != null) {
       final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
@@ -105,7 +111,7 @@ public class HaxeAbstractEnumUtil {
   private static HaxeClass getFieldClass(@Nullable PsiElement element) {
     final HaxeVarDeclarationPart varDecl = element != null && (element instanceof HaxeVarDeclarationPart) ?
                                            (HaxeVarDeclarationPart)element : null;
-    if (varDecl != null && isAbstractEnumField(varDecl)) {
+    if (checkField(varDecl)) {
       final HaxeAbstractClassDeclaration abstractEnumClass =
         PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
       if (isAbstractEnum(abstractEnumClass)) {
