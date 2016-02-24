@@ -259,6 +259,7 @@ public class HaxeResolveUtil {
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @NotNull HaxeClass... rootHaxeClasses) {
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<HaxeNamedComponent>();
     final LinkedList<HaxeClass> classes = new LinkedList<HaxeClass>();
+    final HashSet<HaxeClass> processed = new HashSet<HaxeClass>();
     classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
@@ -268,12 +269,13 @@ public class HaxeResolveUtil {
         }
       }
 
-      List<HaxeType> extendsList = haxeClass.getHaxeExtendsList();
-      extendsList.addAll(haxeClass.getHaxeImplementsList());
-      List<HaxeClass> extendedTypes = tyrResolveClassesByQName(extendsList);
-      for(HaxeClass extendedType : extendedTypes) {
-        if(extendedType != haxeClass) {
-          classes.add(extendedType);
+      List<HaxeType> baseTypes = new ArrayList<HaxeType>();
+      baseTypes.addAll(haxeClass.getHaxeExtendsList());
+      baseTypes.addAll(haxeClass.getHaxeImplementsList());
+      List<HaxeClass> baseClasses = tyrResolveClassesByQName(baseTypes);
+      for(HaxeClass baseClass : baseClasses) {
+        if(processed.add(baseClass)) {
+          classes.add(baseClass);
         }
       }
 
@@ -863,5 +865,19 @@ public class HaxeResolveUtil {
 
   public static HaxeParameterListPsiMixinImpl toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
     return new HaxeParameterListPsiMixinImpl(haxeParameterList.getNode());
+  }
+
+  @NotNull
+  public static HashSet<HaxeClass> getBaseClassesSet(@NotNull HaxeClass clazz, @NotNull HashSet<HaxeClass> outClasses) {
+    List<HaxeType> types = new ArrayList<HaxeType>();
+    types.addAll(clazz.getHaxeExtendsList());
+    types.addAll(clazz.getHaxeImplementsList());
+    for(HaxeType baseType : types) {
+      final HaxeClass baseClass = HaxeResolveUtil.tryResolveClassByQName(baseType);
+      if(baseClass != null && outClasses.add(baseClass)) {
+        getBaseClassesSet(baseClass, outClasses);
+      }
+    }
+    return outClasses;
   }
 }
