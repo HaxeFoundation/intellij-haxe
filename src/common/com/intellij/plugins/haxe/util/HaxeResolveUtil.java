@@ -594,6 +594,7 @@ public class HaxeResolveUtil {
 
   @Nullable
   private static HaxeClass tryFindHelper(PsiElement element) {
+    // FIXME: don't use getText(), find "Ref" instead of "Ref<String>"
     final HaxeClass ownerClass = findClassByQName(UsefulPsiTreeUtil.findHelperOwnerQName(element, element.getText()), element);
     return ownerClass == null ? null : findComponentDeclaration(ownerClass.getContainingFile(), element.getText());
   }
