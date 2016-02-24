@@ -113,7 +113,7 @@ class FieldChecker {
     }
 
     // Checking for variable redefinition.
-    HashSet<HaxeClassModel> classSet = new HashSet<>();
+    HashSet<HaxeClassModel> classSet = new HashSet<HaxeClassModel>();
     HaxeClassModel fieldDeclaringClass = field.getDeclaringClass();
     classSet.add(fieldDeclaringClass);
     while (fieldDeclaringClass != null) {
