@@ -32,7 +32,11 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testRename(getTestName(false) + ".hx", getTestName(false) + "After.hx", newName, additionalFiles);
   }
 
-  public void testLocalVariable() throws Throwable {
+  public void testLocalVariable1() throws Throwable {
+    doTest("fooNew");
+  }
+
+  public void testLocalVariable2() throws Throwable {
     doTest("fooNew");
   }
 
