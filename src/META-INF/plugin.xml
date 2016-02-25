@@ -41,6 +41,7 @@
         <li>Fix catch parameter declaration (issue #419)</li>
         <li>Fix inherited type in field initializer (issue #412)</li>
         <li>Delete single-class file in one operation from Project View (issue #424)</li>
+        <li>Fix import / using statements class name completion (issue #286)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
