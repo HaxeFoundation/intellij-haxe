@@ -62,25 +62,16 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeComponentName getComponentName() {
-    return new HaxeComponentNameImpl(getNode());
-    ////this.getName();
-    //return findNotNullChildByClass(HaxeComponentName.class);
+    return null;
   }
 
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    PsiIdentifier foundName = null;
-    ASTNode node = getNode();
-    if (null != node) {
-      ASTNode element = node.findChildByType(HaxeTokenTypes.IDENTIFIER);
-      if (null != element) {
-        foundName = (PsiIdentifier) element.getPsi();
-      }
-    }
-    return foundName;
+    HaxeComponentName name = getComponentName();
+    return name != null ? name.getIdentifier() : null;
   }
 
   @Nullable
