@@ -29,6 +29,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * Extensions for resolving and analyzing Haxe @:enum abstract type
+ */
 public class HaxeAbstractEnumUtil {
 
   @Contract("null -> false")
@@ -52,7 +55,7 @@ public class HaxeAbstractEnumUtil {
    * IMPORTANT: This method doesn't check if this field inside `@:enum abstract`!
    */
   @Contract("null -> false")
-  public static boolean checkField(@Nullable PsiElement element) {
+  public static boolean couldBeAbstractEnumField(@Nullable PsiElement element) {
     if(element != null && element instanceof HaxeVarDeclarationPart) {
       final HaxeVarDeclarationPart decl = (HaxeVarDeclarationPart)element;
        if(decl.getPropertyDeclaration() == null && !decl.isStatic()) {
@@ -111,7 +114,7 @@ public class HaxeAbstractEnumUtil {
   private static HaxeClass getFieldClass(@Nullable PsiElement element) {
     final HaxeVarDeclarationPart varDecl = element != null && (element instanceof HaxeVarDeclarationPart) ?
                                            (HaxeVarDeclarationPart)element : null;
-    if (checkField(varDecl)) {
+    if (couldBeAbstractEnumField(varDecl)) {
       final HaxeAbstractClassDeclaration abstractEnumClass =
         PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
       if (isAbstractEnum(abstractEnumClass)) {

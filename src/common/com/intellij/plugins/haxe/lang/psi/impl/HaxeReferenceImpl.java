@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
@@ -28,7 +27,6 @@ import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -42,7 +40,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -746,7 +743,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       final HaxeComponentName componentName = namedComponent.getComponentName();
       if(componentName != null) {
-        if(isAbstractEnum && HaxeAbstractEnumUtil.checkField(namedComponent)) {
+        if(isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
           suggestedVariants.add(componentName);
         }
         else if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum)) {
@@ -766,7 +763,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
-      if(isAbstractEnum && HaxeAbstractEnumUtil.checkField(namedComponent)) {
+      if(isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
         continue;
       }
       if ((extern || !needFilter) && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {
