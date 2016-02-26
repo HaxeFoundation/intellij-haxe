@@ -236,4 +236,12 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude("ExtensionMethodExt.hx");
   }
   */
+
+  public void testExtensions() throws Throwable {
+    for (int i = 1; i <= 5; i++) {
+      String filename = "Extensions" + i;
+      myFixture.configureByFiles(filename + ".hx", "extensions/Stuff.hx");
+      doTestVariantsInner(filename + ".txt");
+    }
+  }
 }
