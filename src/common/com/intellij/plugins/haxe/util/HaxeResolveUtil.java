@@ -487,6 +487,12 @@ public class HaxeResolveUtil {
       return specialization.get(element, type.getText());
     }
 
+    if(haxeClass instanceof HaxeTypedefDeclaration) {
+      HaxeClassResolveResult temp = HaxeClassResolveResult.create(haxeClass, specialization);
+      temp.specializeByParameters(type.getTypeParam());
+      specialization = temp.getSpecialization();
+    }
+
     HaxeClassResolveResult result = getHaxeClassResolveResult(haxeClass, specialization.getInnerSpecialization(element));
     if (result.getHaxeClass() != null) {
       result.specializeByParameters(type == null ? null : type.getTypeParam());
@@ -870,6 +876,10 @@ public class HaxeResolveUtil {
 
   public static HaxeParameterListPsiMixinImpl toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
     return new HaxeParameterListPsiMixinImpl(haxeParameterList.getNode());
+  }
+
+  public static HashSet<HaxeClass> getBaseClassesSet(@NotNull HaxeClass clazz) {
+    return getBaseClassesSet(clazz, new HashSet<HaxeClass>());
   }
 
   @NotNull

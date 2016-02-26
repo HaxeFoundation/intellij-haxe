@@ -44,6 +44,8 @@
         <li>Fix interface properties accessor check annotation (issue #411)</li>
         <li>Error highlighting added for variable redefinition (issue #431)</li>
         <li>Fix generic sub-type resolving when import just type-module (issue #435)</li>
+        <li>Extensions: using variants and resolving for children and implementations of base class or interface added (issue #433)</li>
+        <li>Fix typedef generic params resolving (issue #304)</li>
         <li>Fix use scope for var declarations (issue #235)</li>
       </ul>
       <p>0.9.9: (community release)</p>

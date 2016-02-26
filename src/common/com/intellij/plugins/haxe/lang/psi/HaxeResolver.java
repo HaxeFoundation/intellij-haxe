@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -38,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -333,7 +333,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           haxeNamedComponent.isStatic() &&
           haxeNamedComponent.getComponentName() != null) {
         final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
-        final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == leftClass;
+        final HaxeClass resolvedClass = resolveResult.getHaxeClass();
+        final HashSet<HaxeClass> baseClassesSet = leftClass != null ? HaxeResolveUtil.getBaseClassesSet(leftClass) : null;
+        final boolean needToAdd = resolvedClass == null || resolvedClass == leftClass
+          || (baseClassesSet != null && baseClassesSet.contains(resolvedClass));
         if (needToAdd) {
           isExtension.set(true);
           return toCandidateInfoArray(haxeNamedComponent.getComponentName());
