@@ -64,6 +64,7 @@
         <li>Save and restore OpenFL arguments on the Haxe Module settings dialog. (TiVo Issue #74)</li>
         <li>Fixed repainting issue for OpenFL dialog when selecting compiler types. (TiVo Issue #44)</li>
         <li>Fixed error parsing for Windows platforms.</li>
+        <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
       </ul>
       <p>0.9.8: (community release)</p>
       <ul>
