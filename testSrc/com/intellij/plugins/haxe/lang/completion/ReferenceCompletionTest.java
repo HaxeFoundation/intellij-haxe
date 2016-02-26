@@ -225,10 +225,33 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
+  public void testImportGenericSubType() throws Throwable {
+    myFixture.configureByFiles("ImportGenericSubType.hx", "generic1/ClassWithGenericSubClass.hx", "std/StdTypes.hx");
+    doTestVariantsInner("ImportGenericSubType.txt");
+  }
+
+  public void testNullTypedef() throws Throwable {
+    myFixture.configureByFiles("NullTypedef.hx", "std/StdTypes.hx", "std/String.hx");
+    doTestVariantsInner("NullTypedef.txt");
+  }
+
+  public void testRefTypedef() throws Throwable {
+    myFixture.configureByFiles("RefTypedef.hx", "std/String.hx");
+    doTestVariantsInner("RefTypedef.txt");
+  }
+
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
   /*
   public void testExtensionMethod1() throws Throwable {
     doTestInclude("ExtensionMethodExt.hx");
   }
   */
+
+  public void testExtensions() throws Throwable {
+    for (int i = 1; i <= 5; i++) {
+      String filename = "Extensions" + i;
+      myFixture.configureByFiles(filename + ".hx", "extensions/Stuff.hx");
+      doTestVariantsInner(filename + ".txt");
+    }
+  }
 }

@@ -79,9 +79,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
     if(name == null && this instanceof HaxeAnonymousType) {
       // restore name from parent
-      HaxeTypedefDeclaration typedefDecl = (HaxeTypedefDeclaration)(getParent().getParent());
-      if(typedefDecl != null) {
-        name = typedefDecl.getName();
+      final PsiElement typedefDecl = getParent().getParent();
+      if(typedefDecl != null && typedefDecl instanceof HaxeTypedefDeclaration) {
+        name = ((HaxeTypedefDeclaration)typedefDecl).getName();
       }
     }
 
