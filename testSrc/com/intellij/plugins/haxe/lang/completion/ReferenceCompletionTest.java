@@ -247,11 +247,28 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
   */
 
-  public void testExtensions() throws Throwable {
-    for (int i = 1; i <= 5; i++) {
-      String filename = "Extensions" + i;
-      myFixture.configureByFiles(filename + ".hx", "extensions/Stuff.hx");
-      doTestVariantsInner(filename + ".txt");
-    }
+  public void testExtensions1() throws Throwable {
+    myFixture.configureByFiles("Extensions1.hx", "extensions/Stuff.hx");
+    doTestVariantsInner("Extensions1.txt");
+  }
+
+  public void testExtensions2() throws Throwable {
+    myFixture.configureByFiles("Extensions2.hx", "extensions/Stuff.hx");
+    doTestVariantsInner("Extensions2.txt");
+  }
+
+  public void testExtensions3() throws Throwable {
+    myFixture.configureByFiles("Extensions3.hx", "extensions/Stuff.hx");
+    doTestVariantsInner("Extensions3.txt");
+  }
+
+  public void testExtensions4() throws Throwable {
+    myFixture.configureByFiles("Extensions4.hx", "extensions/Stuff.hx");
+    doTestVariantsInner("Extensions4.txt");
+  }
+
+  public void testExtensions5() throws Throwable {
+    myFixture.configureByFiles("Extensions5.hx", "extensions/Stuff.hx");
+    doTestVariantsInner("Extensions5.txt");
   }
 }
