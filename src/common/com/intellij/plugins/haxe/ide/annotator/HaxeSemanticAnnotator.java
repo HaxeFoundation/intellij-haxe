@@ -111,6 +111,28 @@ class FieldChecker {
     if (field.hasInitializer() && field.hasTypeTag()) {
       TypeTagChecker.check(field.getPsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
     }
+
+    // Checking for variable redefinition.
+    HashSet<HaxeClassModel> classSet = new HashSet<HaxeClassModel>();
+    HaxeClassModel fieldDeclaringClass = field.getDeclaringClass();
+    classSet.add(fieldDeclaringClass);
+    while (fieldDeclaringClass != null) {
+      fieldDeclaringClass = fieldDeclaringClass.getParentClass();
+      if (classSet.contains(fieldDeclaringClass)) {
+        break;
+      } else {
+        classSet.add(fieldDeclaringClass);
+      }
+      if (fieldDeclaringClass != null) {
+        for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {
+          if (parentField.getName().equals(field.getName())) {
+            holder.createErrorAnnotation(field.getDeclarationPsi(), "Redefinition of variable '" + field.getName()
+              + "' in subclass is not allowed. Previously declared at '" + fieldDeclaringClass.getName() + "'.");
+            break;
+          }
+        }
+      }
+    }
   }
 
   public static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
@@ -122,6 +144,42 @@ class FieldChecker {
 
     if (field.getSetterPsi() != null && !field.getSetterType().isValidSetter()) {
       holder.createErrorAnnotation(field.getSetterPsi(), "Invalid setter accessor");
+    }
+
+    checkPropertyAccessorMethods(field, holder);
+
+    if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
+      final HaxeVarInit psi = field.getInitializerPsi();
+      Annotation annotation = holder.createErrorAnnotation(
+        field.getInitializerPsi(),
+        "This field cannot be initialized because it is not a real variable"
+      );
+      annotation.registerFix(new HaxeFixer("Remove init") {
+        @Override
+        public void run() {
+          document.replaceElementText(psi, "", StripSpaces.BEFORE);
+        }
+      });
+      annotation.registerFix(new HaxeFixer("Add @:isVar") {
+        @Override
+        public void run() {
+          field.getModifiers().addModifier(HaxeModifierType.IS_VAR);
+        }
+      });
+      if (field.getSetterPsi() != null) {
+        annotation.registerFix(new HaxeFixer("Make setter null") {
+          @Override
+          public void run() {
+            document.replaceElementText(field.getSetterPsi(), "null");
+          }
+        });
+      }
+    }
+  }
+
+  static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
+    if (field.getDeclaringClass().isInterface()) {
+      return;
     }
 
     if (field.getGetterType() == HaxeAccessorType.GET) {
@@ -147,34 +205,6 @@ class FieldChecker {
           @Override
           public void run() {
             field.getDeclaringClass().addMethod(methodName);
-          }
-        });
-      }
-    }
-
-    if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
-      final HaxeVarInit psi = field.getInitializerPsi();
-      Annotation annotation = holder.createErrorAnnotation(
-        field.getInitializerPsi(),
-        "This field cannot be initialized because it is not a real variable"
-      );
-      annotation.registerFix(new HaxeFixer("Remove init") {
-        @Override
-        public void run() {
-          document.replaceElementText(psi, "", StripSpaces.BEFORE);
-        }
-      });
-      annotation.registerFix(new HaxeFixer("Add @:isVar") {
-        @Override
-        public void run() {
-          field.getModifiers().addModifier(HaxeModifierType.IS_VAR);
-        }
-      });
-      if (field.getSetterPsi() != null) {
-        annotation.registerFix(new HaxeFixer("Make setter null") {
-          @Override
-          public void run() {
-            document.replaceElementText(field.getSetterPsi(), "null");
           }
         });
       }
