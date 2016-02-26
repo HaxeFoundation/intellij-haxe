@@ -2,25 +2,51 @@ Haxe plugin for Intellij IDEA
 ======================================
 
 This plugin allows you to develop [Haxe](http://haxe.org/) programs with Intellij IDEA.
-It requires Intellij IDEA Ultimate 13 or 14.
+It requires Intellij IDEA Ultimate or Community Edition, versions 14 or 15.
 
 Install
 -------
 
-###Install from Intellij plugin repository
-Use [Intellij plugin install documentation](https://www.jetbrains.com/idea/plugins/) to install the [Haxe plugin](https://plugins.jetbrains.com/plugin/6873?pr=idea).
+*JetBrains' official plugin installation documentation is at [https://www.jetbrains.com/idea/plugins/](https://www.jetbrains.com/idea/plugins/).
+The Haxe plugin page is [https://plugins.jetbrains.com/plugin/6873?pr=idea](https://plugins.jetbrains.com/plugin/6873?pr=idea).*
 
-###Install the latest or a previous Github release
+###To install using IDEA (from Intellij plugin repository):
+
+Install and start IDEA.  It is found at [https://www.jetbrains.com/idea](https://www.jetbrains.com/idea)
+
+If you do not have a project open in IDEA (and after first-time setup):
+- On the IDEA welcome screen, select "Configure(dropdown)->Plugins"
+- Click on the "Browse Repositories..." button.
+- Type 'haxe' to see the description for the plugin.
+- Select 'Install' to install it.
+- Allow IDEA to restart and initialize the plugin.
+
+If you already have a project open in IDEA:
+- Open the Settings dialog (File->Settings...)
+- Highlight "Plugins" in the leftmost column
+- Click on the "Browse Repositories..." button.
+- Type 'haxe' to see the description for the plugin.
+- Select 'Install' to install it.
+- Allow IDEA to restart and initialize the plugin.
+
+###To manually install the latest or a previous Github release
 
 Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/TiVo/intellij-haxe/releases).
 More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-14.1.1.jar`)
 Make sure that you pick the proper one for your release.  A message should pop up and warn you if a release is incompatible.
 
-In Intellij:
-- open the Settings
-- Go to plugin
-- Click “install from disk”
+If you do not yet have a project open in IDEA (and after first-time setup):
+- On the IDEA welcome screen, select "Configure(dropdown)->Plugins"
+- Click “Install plugin from disk...”
 - Select the “intellij-haxe.jar” file you downloaded
+- Allow IDEA to restart and initialize the plugin.
+
+If you already have a project open IDEA:
+- Open the Settings dialog (File->Settings...)
+- Highlight "Plugins" in the leftmost column
+- Click “Install plugin from disk...”
+- Select the “intellij-haxe.jar” file you downloaded
+- Allow IDEA to restart and initialize the plugin.
 
 Build
 -----
