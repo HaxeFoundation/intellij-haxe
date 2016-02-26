@@ -225,6 +225,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
+  public void testImportGenericSubType() throws Throwable {
+    myFixture.configureByFiles("ImportGenericSubType.hx", "generic1/ClassWithGenericSubClass.hx", "std/StdTypes.hx");
+    doTestVariantsInner("ImportGenericSubType.txt");
+  }
+
   public void testNullTypedef() throws Throwable {
     myFixture.configureByFiles("NullTypedef.hx", "std/StdTypes.hx", "std/String.hx");
     doTestVariantsInner("NullTypedef.txt");
