@@ -872,6 +872,10 @@ public class HaxeResolveUtil {
     return new HaxeParameterListPsiMixinImpl(haxeParameterList.getNode());
   }
 
+  public static HashSet<HaxeClass> getBaseClassesSet(@NotNull HaxeClass clazz) {
+    return getBaseClassesSet(clazz, new HashSet<HaxeClass>());
+  }
+
   @NotNull
   public static HashSet<HaxeClass> getBaseClassesSet(@NotNull HaxeClass clazz, @NotNull HashSet<HaxeClass> outClasses) {
     List<HaxeType> types = new ArrayList<HaxeType>();
