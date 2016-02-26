@@ -229,6 +229,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
+  public void testImportGenericSubType() throws Throwable {
+    myFixture.configureByFiles("ImportGenericSubType.hx", "generic1/ClassWithGenericSubClass.hx", "std/StdTypes.hx");
+    doTestVariantsInner("ImportGenericSubType.txt");
+  }
+
   public void testAbstractEnumFields() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
