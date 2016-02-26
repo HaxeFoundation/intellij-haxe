@@ -708,7 +708,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
         if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName() != null) {
           final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
-          final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == ourClass;
+          final HaxeClass resolvedClass = resolveResult.getHaxeClass();
+          final HashSet<HaxeClass> baseClassesSet = ourClass != null ? HaxeResolveUtil.getBaseClassesSet(ourClass) : null;
+          final boolean needToAdd = resolvedClass == null || resolvedClass == ourClass
+            || (baseClassesSet != null && baseClassesSet.contains(resolvedClass));
           if (needToAdd) {
             variants.add(haxeNamedComponent.getComponentName());
             variantsWithExtension.add(haxeNamedComponent.getComponentName());
