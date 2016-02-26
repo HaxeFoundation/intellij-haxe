@@ -41,6 +41,8 @@
         <li>Fix catch parameter declaration (issue #419)</li>
         <li>Fix inherited type in field initializer (issue #412)</li>
         <li>Delete single-class file in one operation from Project View (issue #424)</li>
+        <li>Fix interface properties accessor check annotation (issue #411)</li>
+        <li>Error highlighting added for variable redefinition (issue #431)</li>
         <li>Fix typedef generic params resolving (issue #304)</li>
       </ul>
       <p>0.9.9: (community release)</p>

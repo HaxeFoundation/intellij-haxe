@@ -10,3 +10,7 @@ class Test2 {
   public var a(<error descr="Invalid getter accessor">set</error>, never):Int;
   public var b(never, <error descr="Invalid setter accessor">get</error>):Int;
 }
+
+interface ITest {
+  var a(get, set):Int;
+}
