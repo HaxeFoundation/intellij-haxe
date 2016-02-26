@@ -424,7 +424,7 @@ public class HaxeResolveUtil {
     if (element instanceof HaxeComponentName) {
       return getHaxeClassResolveResult(element.getParent(), specialization);
     }
-    if (element instanceof HaxeTypedefDeclaration) {
+    if (element instanceof AbstractHaxeTypeDefImpl) {
       final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
       return typeDef.getTargetClass(specialization);
     }
