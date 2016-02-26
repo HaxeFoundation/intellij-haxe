@@ -111,6 +111,28 @@ class FieldChecker {
     if (field.hasInitializer() && field.hasTypeTag()) {
       TypeTagChecker.check(field.getPsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
     }
+
+    // Checking for variable redefinition.
+    HashSet<HaxeClassModel> classSet = new HashSet<HaxeClassModel>();
+    HaxeClassModel fieldDeclaringClass = field.getDeclaringClass();
+    classSet.add(fieldDeclaringClass);
+    while (fieldDeclaringClass != null) {
+      fieldDeclaringClass = fieldDeclaringClass.getParentClass();
+      if (classSet.contains(fieldDeclaringClass)) {
+        break;
+      } else {
+        classSet.add(fieldDeclaringClass);
+      }
+      if (fieldDeclaringClass != null) {
+        for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {
+          if (parentField.getName().equals(field.getName())) {
+            holder.createErrorAnnotation(field.getDeclarationPsi(), "Redefinition of variable '" + field.getName()
+              + "' in subclass is not allowed. Previously declared at '" + fieldDeclaringClass.getName() + "'.");
+            break;
+          }
+        }
+      }
+    }
   }
 
   public static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
