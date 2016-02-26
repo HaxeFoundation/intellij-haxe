@@ -43,6 +43,7 @@
         <li>Delete single-class file in one operation from Project View (issue #424)</li>
         <li>Fix interface properties accessor check annotation (issue #411)</li>
         <li>Error highlighting added for variable redefinition (issue #431)</li>
+        <li>Fix generic sub-type resolving when import just type-module (issue #435)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
