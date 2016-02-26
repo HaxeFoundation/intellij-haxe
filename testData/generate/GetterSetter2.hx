@@ -1,6 +1,12 @@
 class GetterSetter2 {
-  var foo:Int;
+  public static var sfoo:Int;
+  public var foo:Int;
   var bar:String;
+
+  @:getter(sfoo)
+  public static function get_sfoo():Int {
+    return sfoo;
+  }
 
   @:getter(foo)
   public function get_foo():Int {

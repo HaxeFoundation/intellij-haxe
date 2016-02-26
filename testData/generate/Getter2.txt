@@ -1,5 +1,10 @@
 class Getter2 {
+  static var bar(never, null):Int;
   var foo(never, null):Int;
+
+    static function get_bar():Int {
+        return bar;
+    }
 
     function get_foo():Int {
         return foo;
