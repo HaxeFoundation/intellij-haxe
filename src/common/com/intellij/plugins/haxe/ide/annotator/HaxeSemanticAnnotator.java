@@ -77,13 +77,7 @@ class TypeTagChecker {
     final AnnotationHolder holder
   ) {
     final ResultHolder type1 = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
-    ResultHolder t2 = HaxeTypeResolver.getPsiElementType(initExpression);
-
-    ResultHolder aeExpr = HaxeAbstractEnumUtil.getStaticMemberExpression(initExpression.getExpression());
-    if(aeExpr != null) {
-      t2 = aeExpr;
-    }
-    final ResultHolder type2 = t2;
+    final ResultHolder type2 = getTypeFromVarInit(initExpression);
 
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
     if (!type1.canAssign(type2)) {
@@ -104,11 +98,19 @@ class TypeTagChecker {
       });
     }
     else if (requireConstant && type2.getType().getConstant() == null) {
-      //if(!HaxeAbstractEnumUtil.checkExpressionIsConst(initExpression.getExpression())) {
-      // @TODO: Move to bundle
+      // TODO: Move to bundle
       holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
-      //}
     }
+  }
+
+  @NotNull
+  static ResultHolder getTypeFromVarInit(HaxeVarInit init) {
+    final ResultHolder abstractEnumFieldInitType = HaxeAbstractEnumUtil.getStaticMemberExpression(init.getExpression());
+    if(abstractEnumFieldInitType != null) {
+      return abstractEnumFieldInitType;
+    }
+    // fallback to simple init expression
+    return HaxeTypeResolver.getPsiElementType(init);
   }
 }
 
