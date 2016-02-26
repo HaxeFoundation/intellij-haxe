@@ -188,4 +188,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testFieldInitializerCheck() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testVariableRedefinition() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
