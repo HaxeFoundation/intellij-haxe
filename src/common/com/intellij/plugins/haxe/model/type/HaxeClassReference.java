@@ -37,7 +37,7 @@ public class HaxeClassReference {
   public HaxeClassReference(HaxeClassModel clazz, @NotNull PsiElement elementContext) {
     this.name = clazz.getName();
     this.elementContext = elementContext;
-    this.clazz = null;
+    this.clazz = clazz;
   }
 
   public HaxeClass getHaxeClass() {

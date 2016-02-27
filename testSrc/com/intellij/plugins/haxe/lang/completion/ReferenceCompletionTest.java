@@ -185,6 +185,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
+  public void testAutodetectConstant() throws Throwable {
+    doTestInclude();
+  }
+
   public void testAutodetectProperties() throws Throwable {
     doTestInclude();
   }
@@ -239,6 +243,23 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     myFixture.configureByFiles("RefTypedef.hx", "std/String.hx");
     doTestVariantsInner("RefTypedef.txt");
   }
+
+  public void testAbstractEnumFields() throws Throwable {
+    doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
+  public void testAbstractEnumFields2() throws Throwable {
+    doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
+  public void testAbstractEnumFields3() throws Throwable {
+    doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
+  //public void testUsingStringTools() throws Throwable {
+  //  myFixture.configureByFiles("UsingStringTools.hx", "std/StringTools.hx", "std/String.hx", "std/StdTypes.hx");
+  //  doTestVariantsInner("UsingStringTools.txt");
+  //}
 
   // @TODO: Temporarily disabled. Not being recognized for an unknown reason.
   /*

@@ -21,6 +21,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
+import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -80,23 +81,35 @@ public class HaxeTypeResolver {
   static private ResultHolder getFieldType(AbstractHaxeNamedComponent comp) {
     //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
+    final ResultHolder abstractEnumType = HaxeAbstractEnumUtil.getFieldType(comp);
+    if(abstractEnumType != null) {
+      return abstractEnumType;
+    }
+
     if (comp instanceof HaxeVarDeclarationPart) {
-      HaxeTypeTag typeTag = ((HaxeVarDeclarationPart)comp).getTypeTag();
+      ResultHolder result = null;
+
       HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
-        ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child);
+        final ResultHolder initType = HaxeTypeResolver.getPsiElementType(child);
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
         if (decl != null) {
-          isConstant = decl.hasModifierProperty(HaxePsiModifier.INLINE);
-          PsiModifierList modifierList = decl.getModifierList();
-          //System.out.println(decl.getText());
+          isConstant = decl.hasModifierProperty(HaxePsiModifier.INLINE) && decl.isStatic();
         }
-        return isConstant ? type1 : type1.withConstantValue(null);
+        result = isConstant ? initType : initType.withConstantValue(null);
       }
+
+      HaxeTypeTag typeTag = ((HaxeVarDeclarationPart)comp).getTypeTag();
       if (typeTag != null) {
-        return getTypeFromTypeTag(typeTag, comp);
+        final ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
+        final Object initConstant = result != null ? result.getType().getConstant() : null;
+        result = typeFromTag.withConstantValue(initConstant);
+      }
+
+      if(result != null) {
+        return result;
       }
     }
 
