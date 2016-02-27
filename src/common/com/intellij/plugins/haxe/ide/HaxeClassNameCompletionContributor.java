@@ -30,6 +30,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -52,8 +53,30 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     final PsiElementPattern.Capture<PsiElement> idInExpression =
       psiElement().withSuperParent(1, HaxeIdentifier.class).withSuperParent(2, HaxeReference.class);
     final PsiElementPattern.Capture<PsiElement> inComplexExpression = psiElement().withSuperParent(3, HaxeReference.class);
+    final PsiElementPattern.Capture<PsiElement> isSimpleIdentifier =
+      psiElement().andOr(StandardPatterns.instanceOf(HaxeType.class), idInExpression.andNot(inComplexExpression));
+
+    final PsiElementPattern.Capture<PsiElement> matchUsingAndImport = psiElement().andOr(
+      StandardPatterns.instanceOf(HaxeUsingStatement.class),
+      StandardPatterns.instanceOf(HaxeImportStatementRegular.class),
+      StandardPatterns.instanceOf(HaxeImportStatementWithWildcard.class),
+      StandardPatterns.instanceOf(HaxeImportStatementWithInSupport.class));
+
+    final PsiElementPattern.Capture<PsiElement> inImportOrUsing = psiElement().withSuperParent(3, matchUsingAndImport);
+
     extend(CompletionType.BASIC,
-           psiElement().andOr(StandardPatterns.instanceOf(HaxeType.class), idInExpression.andNot(inComplexExpression)),
+           isSimpleIdentifier.and(inImportOrUsing),
+           new CompletionProvider<CompletionParameters>() {
+             @Override
+             protected void addCompletions(@NotNull CompletionParameters parameters,
+                                           ProcessingContext context,
+                                           @NotNull CompletionResultSet result) {
+               addVariantsFromIndex(result, parameters.getOriginalFile(), null, FULL_PATH_INSERT_HANDLER);
+             }
+           });
+
+    extend(CompletionType.BASIC,
+           isSimpleIdentifier.andNot(inImportOrUsing),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
@@ -62,8 +85,9 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                addVariantsFromIndex(result, parameters.getOriginalFile(), null, CLASS_INSERT_HANDLER);
              }
            });
+
     extend(CompletionType.BASIC,
-           psiElement().and(inComplexExpression),
+           inComplexExpression.andNot(inImportOrUsing),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
@@ -123,6 +147,30 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       protected void run(Result result) throws Throwable {
         final String importPath = (String)item.getObject();
         HaxeAddImportHelper.addImport(importPath, context.getFile());
+      }
+    }.execute();
+  }
+
+  /** Full path insert handler **/
+  private static final InsertHandler<LookupElement> FULL_PATH_INSERT_HANDLER = new InsertHandler<LookupElement>() {
+    public void handleInsert(final InsertionContext context, final LookupElement item) {
+      replaceElementToFullPath(context, item, context.getTailOffset() - 1);
+    }
+  };
+
+  private static void replaceElementToFullPath(final InsertionContext context, final LookupElement item, final int tailOffset) {
+    new WriteCommandAction(context.getProject(), context.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        final String importPath = (String)item.getObject();
+        final PsiReference currentReference = context.getFile().findReferenceAt(context.getTailOffset() - 1);
+        if(currentReference != null && currentReference.getElement() != null) {
+          final PsiElement currentElement = currentReference.getElement();
+          final HaxeReference fullPathReference = HaxeElementGenerator.createReferenceFromText(context.getProject(), importPath);
+          if(fullPathReference != null) {
+            currentElement.replace(fullPathReference);
+          }
+        }
       }
     }.execute();
   }
