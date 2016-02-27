@@ -48,6 +48,7 @@
         <li>Fix typedef generic params resolving (issue #304)</li>
         <li>General "@:enum abstract" support (issues #427, #428, #429)</li>
         <li>Fix import / using statements class name completion (issue #286)</li>
+        <li>Incorrect “public” modifier when override methods fixed (issue #439)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
