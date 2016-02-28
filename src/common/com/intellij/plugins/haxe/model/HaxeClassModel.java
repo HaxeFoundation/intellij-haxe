@@ -102,9 +102,17 @@ public class HaxeClassModel {
   public HaxeTypeOrAnonymous getAbstractUnderlyingType() {
     if (!isAbstract()) return null;
     PsiElement[] children = getPsi().getChildren();
-    if (children.length >= 2) {
-      if (children[1] instanceof HaxeTypeOrAnonymous) {
-        return (HaxeTypeOrAnonymous)children[1];
+    // FIX: support list of metas before ComponentName
+    for(int i = 0; i < children.length; ++i) {
+      PsiElement child = children[i];
+      if(child instanceof HaxeComponentName) {
+        if(i + 1 < children.length) {
+          child = children[i + 1];
+          if(child instanceof HaxeTypeOrAnonymous) {
+            return (HaxeTypeOrAnonymous)child;
+          }
+        }
+        break;
       }
     }
     return null;
