@@ -24,6 +24,8 @@ import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttribute;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 
@@ -42,7 +44,11 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
   protected String buildFunctionsText(HaxeNamedComponent element) {
     final HaxeComponentType componentType = HaxeComponentType.typeOf(element);
     final StringBuilder result = new StringBuilder();
-    if (override && !element.isOverride()) {
+
+    final PsiClass containingClass = element instanceof PsiMember ? ((PsiMember)element).getContainingClass() : null;
+    final boolean isInterfaceElement = containingClass != null && containingClass.isInterface();
+
+    if (!isInterfaceElement && override && !element.isOverride()) {
       result.append("override ");
     }
     final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
@@ -55,7 +61,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       }, " "));
       result.append(" ");
     }
-    if (!result.toString().contains("public")) {
+    if (isInterfaceElement && !result.toString().contains("public")) {
       result.insert(0, "public ");
     }
     if (componentType == HaxeComponentType.FIELD) {
