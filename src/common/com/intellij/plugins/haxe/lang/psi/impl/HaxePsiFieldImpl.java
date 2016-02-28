@@ -22,6 +22,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
@@ -209,15 +210,9 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @NotNull
   @Override
   public SearchScope getUseScope() {
-    final PsiElement parent = getParent();
-    if(parent != null) {
-      if (this instanceof HaxeLocalVarDeclarationPart) {
-        // parent of local var declaration-Part
-        return new LocalSearchScope(parent.getParent());
-      }
-      else if (this instanceof HaxeLocalVarDeclaration) {
-        return new LocalSearchScope(parent);
-      }
+    final PsiElement localVar = UsefulPsiTreeUtil.getParentOfType(this, HaxeLocalVarDeclaration.class);
+    if(localVar != null) {
+      return new LocalSearchScope(localVar.getParent());
     }
     return super.getUseScope();
   }
