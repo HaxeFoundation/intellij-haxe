@@ -3,5 +3,3 @@ foo2():Float = 10.0
 foo3():Bool = true
 mybool1:Bool
 mybool2:Bool
-mybool3:Bool = false
-mybool4:Bool = false

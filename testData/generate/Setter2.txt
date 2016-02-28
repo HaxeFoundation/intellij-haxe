@@ -1,5 +1,10 @@
 class Setter2 {
+  static var bar(never, null):Int;
   var foo(never, null):Int;
+
+    static function set_bar(value:Int) {
+        return bar = value;
+    }
 
     function set_foo(value:Int) {
         return this.foo = value;
