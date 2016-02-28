@@ -1,4 +1,5 @@
 class Setter1 {
-  var foo:Int;
+  public static var bar:Int;
+  public var foo:Int;
   <caret>
 }

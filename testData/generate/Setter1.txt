@@ -1,5 +1,10 @@
 class Setter1 {
-  @:isVar public var foo(null, set):Int;
+  @:isVar public static var bar(null, set):Int;
+    @:isVar public var foo(null, set):Int;
+
+    static function set_bar(value:Int) {
+        return bar = value;
+    }
 
     function set_foo(value:Int) {
         return this.foo = value;
