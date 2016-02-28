@@ -67,14 +67,15 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Override
   @Nullable
   public HaxeComponentName getComponentName() {
-    return null;
+    final PsiIdentifier identifier = getNameIdentifier();
+    return identifier != null ? new HaxeComponentNameImpl(getNode()) : null;
   }
 
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    HaxeComponentName name = getComponentName();
-    return name != null ? name.getIdentifier() : null;
+    final HaxeComponentName compName = PsiTreeUtil.getChildOfType(this, HaxeComponentName.class);
+    return compName != null ? PsiTreeUtil.getChildOfType(compName, HaxeIdentifier.class) : null;
   }
 
   @Nullable
@@ -212,7 +213,10 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   public SearchScope getUseScope() {
     final PsiElement localVar = UsefulPsiTreeUtil.getParentOfType(this, HaxeLocalVarDeclaration.class);
     if(localVar != null) {
-      return new LocalSearchScope(localVar.getParent());
+      final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(localVar, HaxeBlockStatement.class);
+      if(outerBlock != null) {
+        return new LocalSearchScope(outerBlock);
+      }
     }
     return super.getUseScope();
   }

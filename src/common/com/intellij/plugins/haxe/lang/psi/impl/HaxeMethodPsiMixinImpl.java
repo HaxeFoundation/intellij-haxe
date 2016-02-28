@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -349,7 +350,10 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Override
   public SearchScope getUseScope() {
     if(this instanceof HaxeLocalFunctionDeclaration) {
-      return new LocalSearchScope(getParent());
+      final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(this, HaxeBlockStatement.class);
+      if(outerBlock != null) {
+        return new LocalSearchScope(outerBlock);
+      }
     }
     return super.getUseScope();
   }
