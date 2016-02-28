@@ -49,6 +49,7 @@
         <li>General "@:enum abstract" support (issues #427, #428, #429)</li>
         <li>Fix import / using statements class name completion (issue #286)</li>
         <li>Incorrect “public” modifier when override methods fixed (issue #439)</li>
+        <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
