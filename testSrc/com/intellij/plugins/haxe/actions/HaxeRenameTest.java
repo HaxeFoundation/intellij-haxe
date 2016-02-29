@@ -63,4 +63,8 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   public void testCatchParameter() throws Throwable {
     doTest("error");
   }
+
+  public void testForVar() throws Throwable {
+    doTest("index");
+  }
 }
