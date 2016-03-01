@@ -36,6 +36,7 @@ import com.intellij.util.io.KeyDescriptor;
 import gnu.trove.THashMap;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -158,13 +159,14 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
     return true;
   }
 
-  private static Class[] BODY_TYPES =
+  private static final Class[] BODY_TYPES =
     new Class[]{HaxeClassBody.class, HaxeEnumBody.class, HaxeExternClassDeclarationBody.class, HaxeAnonymousTypeBody.class};
-  private static Class[] MEMBER_TYPES =
+  private static final Class[] MEMBER_TYPES =
     new Class[]{HaxeEnumValueDeclaration.class, HaxeExternFunctionDeclaration.class, HaxeFunctionDeclarationWithAttributes.class,
       HaxeVarDeclarationPart.class};
 
-  private static List<HaxeNamedComponent> getNamedComponents(HaxeClass cls) {
+  @NotNull
+  private static List<HaxeNamedComponent> getNamedComponents(@Nullable final HaxeClass cls) {
     final PsiElement body = PsiTreeUtil.getChildOfAnyType(cls, BODY_TYPES);
     final List<HaxeNamedComponent> components = new ArrayList<HaxeNamedComponent>();
     if (body != null) {
