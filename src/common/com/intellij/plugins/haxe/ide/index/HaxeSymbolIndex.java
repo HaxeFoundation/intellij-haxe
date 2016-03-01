@@ -160,20 +160,20 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
 
   private static Class[] BODY_TYPES =
     new Class[]{HaxeClassBody.class, HaxeEnumBody.class, HaxeExternClassDeclarationBody.class, HaxeAnonymousTypeBody.class};
+  private static Class[] MEMBER_TYPES =
+    new Class[]{HaxeEnumValueDeclaration.class, HaxeExternFunctionDeclaration.class, HaxeFunctionDeclarationWithAttributes.class,
+      HaxeVarDeclarationPart.class};
 
   private static List<HaxeNamedComponent> getNamedComponents(HaxeClass cls) {
     final PsiElement body = PsiTreeUtil.getChildOfAnyType(cls, BODY_TYPES);
     final List<HaxeNamedComponent> components = new ArrayList<HaxeNamedComponent>();
     if (body != null) {
-      final Collection<HaxeMethod> methods = PsiTreeUtil.findChildrenOfType(body, HaxeMethod.class);
-      for (HaxeMethod method : methods) {
-        if (!method.isConstructor()) {
-          components.add(method);
+      final Collection<HaxeNamedComponent> members = PsiTreeUtil.findChildrenOfAnyType(body, MEMBER_TYPES);
+      for (HaxeNamedComponent member : members) {
+        if (member instanceof HaxeMethod && ((HaxeMethod)member).isConstructor()) {
+          continue;
         }
-      }
-      final Collection<HaxePsiField> fields = PsiTreeUtil.findChildrenOfType(body, HaxePsiField.class);
-      for (HaxePsiField field : fields) {
-        components.add(field);
+        components.add(member);
       }
     }
     return components;
