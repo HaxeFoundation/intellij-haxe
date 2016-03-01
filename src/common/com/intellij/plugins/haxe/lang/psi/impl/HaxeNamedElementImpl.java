@@ -95,7 +95,7 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
       return super.getUseScope();
     }
     if (type == HaxeComponentType.FUNCTION || type == HaxeComponentType.PARAMETER || type == HaxeComponentType.VARIABLE) {
-      return new LocalSearchScope(component);
+      return new LocalSearchScope(component.getParent());
     }
     return super.getUseScope();
   }

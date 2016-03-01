@@ -20,10 +20,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.plugins.haxe.lang.psi.HaxeModifierList;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -155,8 +152,8 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    // TODO:  Implement 'public PsiIdentifier getNameIdentifier()'
-    return null;
+    final HaxeComponentName componentName = getComponentName();
+    return componentName != null ? componentName.getIdentifier() : null;
   }
 
   @NotNull
