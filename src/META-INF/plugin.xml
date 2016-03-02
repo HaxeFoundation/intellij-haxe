@@ -52,6 +52,7 @@
         <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
         <li>Fix use scope for var declarations (issue #235)</li>
         <li>Find usages import filtering (issue #426)</li>
+        <li>Forwarding abstract fields not resolved. Autocomplete don't work for forwarding abstract fields. (issue #447)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
