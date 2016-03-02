@@ -763,6 +763,19 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     boolean extern = haxeClass.isExtern();
     boolean isAbstractEnum = HaxeAbstractEnumUtil.isAbstractEnum(haxeClass);
+    boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(haxeClass);
+
+    if (isAbstractForward) {
+      final List<HaxeNamedComponent> forwardingHaxeNamedComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass);
+      if (forwardingHaxeNamedComponents != null) {
+        for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
+          final boolean needFilter = filterByAccess && !namedComponent.isPublic();
+          if ((extern || !needFilter) && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+            suggestedVariants.add(namedComponent.getComponentName());
+          }
+        }
+      }
+    }
 
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
