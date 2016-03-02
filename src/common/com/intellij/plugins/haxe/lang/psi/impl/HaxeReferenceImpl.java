@@ -641,10 +641,15 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
       final boolean isChain = childReferences != null && childReferences.length == 2;
       if (!isChain) {
-        PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
-        addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
-        PsiFile psiFile = this.getContainingFile();
-        addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
+        final boolean isElementInForwardMeta = HaxeAbstractForwardUtil.isElementInForwardMeta(this);
+        if (isElementInForwardMeta) {
+          addAbstractUnderlyingClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), true);
+        } else {
+          PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
+          addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
+          PsiFile psiFile = this.getContainingFile();
+          addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
+        }
       }
     }
 
@@ -731,6 +736,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         suggestedVariants.add(namedComponent.getComponentName());
       }
     }
+  }
+
+  private static void addAbstractUnderlyingClassVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+    final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(haxeClass);
+    if (underlyingClass == null) {
+      return;
+    }
+    addClassVariants(suggestedVariants, underlyingClass, filterByAccess);
   }
 
   private static void addClassStaticMembersVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {

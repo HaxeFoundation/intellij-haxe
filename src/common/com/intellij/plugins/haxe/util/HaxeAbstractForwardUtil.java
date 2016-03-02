@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,16 @@ public class HaxeAbstractForwardUtil {
   @Contract("null -> false")
   public static boolean isAbstractForward(@Nullable PsiClass clazz) {
     return HaxeAbstractUtil.hasMeta(clazz, "@:forward");
+  }
+
+  public static boolean isElementInForwardMeta(@Nullable PsiElement element) {
+    if (element != null) {
+      if (element instanceof HaxeCustomMeta) {
+        return element.getText().contains("@:forward(");
+      }
+      return isElementInForwardMeta(element.getParent());
+    }
+    return false;
   }
 
   @Nullable

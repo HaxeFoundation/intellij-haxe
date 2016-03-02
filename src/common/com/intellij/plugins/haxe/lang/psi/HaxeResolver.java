@@ -23,6 +23,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
+import com.intellij.plugins.haxe.util.HaxeAbstractUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -336,11 +337,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass, @NotNull HaxeReference reference) {
-    final HaxeNamedComponent namedSubComponent =
+    HaxeNamedComponent namedSubComponent =
       HaxeResolveUtil.findNamedSubComponent(leftClass, reference.getText());
-    final HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
+    HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
     if (componentName != null) {
       return toCandidateInfoArray(componentName);
+    }
+    // if class is abstract try find in forwards
+    final boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftClass);
+    if (isAbstractForward) {
+      final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(leftClass);
+      if (underlyingClass != null) {
+        namedSubComponent = HaxeResolveUtil.findNamedSubComponent(underlyingClass, reference.getText());
+        componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
+        if (componentName != null) {
+          return toCandidateInfoArray(componentName);
+        }
+      }
     }
     // try find using
     for (HaxeClass haxeClass : HaxeResolveUtil.findUsingClasses(reference.getContainingFile())) {
