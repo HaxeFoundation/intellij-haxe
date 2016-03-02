@@ -51,6 +51,7 @@
         <li>Incorrect “public” modifier when override methods fixed (issue #439)</li>
         <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
         <li>Fix use scope for var declarations (issue #235)</li>
+        <li>Find usages import filtering (issue #426)</li>
         <li>Navigate to symbols (issue #340)</li>
       </ul>
       <p>0.9.9: (community release)</p>
@@ -680,9 +681,7 @@
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeTypeDefInheritanceIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex"/>
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeSymbolIndex"/>
     <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeClassContributor"/>
-    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.HaxeSymbolContributor"/>
 
     <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor"/>
 
