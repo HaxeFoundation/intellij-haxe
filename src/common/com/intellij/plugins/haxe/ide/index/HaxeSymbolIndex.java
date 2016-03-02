@@ -120,9 +120,11 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
       }
       final Map<String, Void> result = new THashMap<String, Void>();
       for (HaxeClass haxeClass : classes) {
-        if (haxeClass.getName() == null) {
+        final String className = haxeClass.getName();
+        if (className == null) {
           continue;
         }
+        result.put(className, null);
         for (HaxeNamedComponent namedComponent : getNamedComponents(haxeClass)) {
           result.put(namedComponent.getName(), null);
         }
