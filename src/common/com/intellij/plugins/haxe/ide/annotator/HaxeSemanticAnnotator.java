@@ -137,7 +137,7 @@ class FieldChecker {
       }
       if (fieldDeclaringClass != null) {
         for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {
-          if (parentField.getName().equals(field.getName())) {
+          if (parentField.getName().equals(field.getName()) && !parentField.isStatic()) {
             holder.createErrorAnnotation(field.getDeclarationPsi(), "Redefinition of variable '" + field.getName()
               + "' in subclass is not allowed. Previously declared at '" + fieldDeclaringClass.getName() + "'.");
             break;
@@ -490,7 +490,7 @@ class MethodChecker {
         );
       }
     }
-    else if (parentMethod != null) {
+    else if (parentMethod != null && !parentMethod.isStatic()) {
       requiredOverride = true;
 
       if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
