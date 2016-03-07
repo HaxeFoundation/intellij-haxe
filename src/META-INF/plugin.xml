@@ -46,6 +46,12 @@
         <li>Fix generic sub-type resolving when import just type-module (issue #435)</li>
         <li>Extensions: using variants and resolving for children and implementations of base class or interface added (issue #433)</li>
         <li>Fix typedef generic params resolving (issue #304)</li>
+        <li>General "@:enum abstract" support (issues #427, #428, #429)</li>
+        <li>Fix import / using statements class name completion (issue #286)</li>
+        <li>Incorrect “public” modifier when override methods fixed (issue #439)</li>
+        <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
+        <li>Fix use scope for var declarations (issue #235)</li>
+        <li>Find usages import filtering (issue #426)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
@@ -684,6 +690,8 @@
                     serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeSettingsConfigurable" id="haxe.settings" key="haxe.settings.name"
                          bundle="com.intellij.plugins.haxe.HaxeBundle" nonDefaultProject="true"/>
+
+    <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
 
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>

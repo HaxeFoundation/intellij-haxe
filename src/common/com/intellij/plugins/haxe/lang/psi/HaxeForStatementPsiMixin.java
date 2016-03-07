@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.psi.PsiNameIdentifierOwner;
+
 /**
  * We need a mixin specifically for the 'for' statement in order for it
  * to be both a statement and an AbstractHaxeNamedComponent.  The
@@ -26,7 +28,7 @@ package com.intellij.plugins.haxe.lang.psi;
  * See HaxePsiCompositeElementImpl.getDeclarationToProcess() to see how
  * that works.
  */
-public interface HaxeForStatementPsiMixin extends HaxeStatementPsiMixin {
+public interface HaxeForStatementPsiMixin extends HaxeStatementPsiMixin, PsiNameIdentifierOwner {
 
   // The funny thing is that we don't need any interfaces at this level.
   // We just need to introduce a specific inheritance.

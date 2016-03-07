@@ -33,6 +33,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
@@ -76,7 +77,8 @@ class TypeTagChecker {
     final AnnotationHolder holder
   ) {
     final ResultHolder type1 = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
-    final ResultHolder type2 = HaxeTypeResolver.getPsiElementType(initExpression);
+    final ResultHolder type2 = getTypeFromVarInit(initExpression);
+
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
@@ -96,9 +98,19 @@ class TypeTagChecker {
       });
     }
     else if (requireConstant && type2.getType().getConstant() == null) {
-      // @TODO: Move to bundle
+      // TODO: Move to bundle
       holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
     }
+  }
+
+  @NotNull
+  static ResultHolder getTypeFromVarInit(HaxeVarInit init) {
+    final ResultHolder abstractEnumFieldInitType = HaxeAbstractEnumUtil.getStaticMemberExpression(init.getExpression());
+    if(abstractEnumFieldInitType != null) {
+      return abstractEnumFieldInitType;
+    }
+    // fallback to simple init expression
+    return HaxeTypeResolver.getPsiElementType(init);
   }
 }
 

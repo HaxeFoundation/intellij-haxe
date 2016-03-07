@@ -23,10 +23,13 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.search.LocalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -223,15 +226,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    PsiIdentifier foundName = null;
-    ASTNode node = getNode();
-    if (null != node) {
-      ASTNode element = node.findChildByType(HaxeTokenTypes.IDENTIFIER);
-      if (null != element) {
-        foundName = (PsiIdentifier) element.getPsi();
-      }
-    }
-    return foundName;
+    final HaxeComponentName componentName = getComponentName();
+    return componentName != null ? componentName.getIdentifier() : null;
   }
 
   @NotNull
@@ -348,5 +344,17 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   public PsiParameterList getParameterList() {
     final HaxeParameterList list = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
     return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list")));
+  }
+
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    if(this instanceof HaxeLocalFunctionDeclaration) {
+      final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(this, HaxeBlockStatement.class);
+      if(outerBlock != null) {
+        return new LocalSearchScope(outerBlock);
+      }
+    }
+    return super.getUseScope();
   }
 }

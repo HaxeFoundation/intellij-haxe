@@ -1,5 +1,5 @@
 class FunctionParameter {
-  function bar(foo:LocalVariable){
+  function bar(foo:FunctionParameter){
     fo<caret>o;
   }
 }

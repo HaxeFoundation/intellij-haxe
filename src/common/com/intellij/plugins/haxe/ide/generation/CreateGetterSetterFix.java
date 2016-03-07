@@ -66,12 +66,12 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
       if (null == myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(namedComponent.getName()))) {
-        buildGetter(result, namedComponent.getName(), typeText);
+        buildGetter(result, namedComponent, typeText);
       }
     }
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
       if (null == myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(namedComponent.getName()))) {
-        buildSetter(result, namedComponent.getName(), typeText);
+        buildSetter(result, namedComponent, typeText);
       }
     }
     return result.toString();
@@ -90,7 +90,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclarationPart)namedComponent).getTypeTag());
 
     final HaxeVarDeclaration declaration =
-      HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent.getName(), typeText));
+      HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent, typeText));
     final HaxePropertyDeclaration propertyDeclaration = declaration.getVarDeclarationPart().getPropertyDeclaration();
     if (propertyDeclaration != null) {
       HaxeVarDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeVarDeclaration.class, false);
@@ -100,10 +100,17 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     }
   }
 
-  private String buildVarDeclaration(String name, String typeText) {
+  private String buildVarDeclaration(HaxeNamedComponent namedComponent, String typeText) {
     final StringBuilder result = new StringBuilder();
-    result.append("@:isVar public var ");
-    result.append(name);
+    result.append("@:isVar ");
+    if (namedComponent.isPublic()) {
+      result.append("public ");
+    }
+    if (namedComponent.isStatic()) {
+      result.append("static ");
+    }
+    result.append("var ");
+    result.append(namedComponent.getName());
     result.append("(");
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
       result.append("get");
@@ -128,15 +135,20 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     return result.toString();
   }
 
-  private static void buildGetter(StringBuilder result, String name, String typeText) {
-    build(result, name, typeText, true);
+  private static void buildGetter(StringBuilder result, HaxeNamedComponent namedComponent, String typeText) {
+    build(result, namedComponent, typeText, true);
   }
 
-  private static void buildSetter(StringBuilder result, String name, String typeText) {
-    build(result, name, typeText, false);
+  private static void buildSetter(StringBuilder result, HaxeNamedComponent namedComponent, String typeText) {
+    build(result, namedComponent, typeText, false);
   }
 
-  private static void build(StringBuilder result, String name, String typeText, boolean isGetter) {
+  private static void build(StringBuilder result, HaxeNamedComponent namedComponent, String typeText, boolean isGetter) {
+    Boolean isStatic = namedComponent.isStatic();
+    String name = namedComponent.getName();
+    if (isStatic) {
+      result.append("static ");
+    }
     result.append("function ");
     result.append(isGetter ? HaxePresentableUtil.getterName(name) : HaxePresentableUtil.setterName(name));
     result.append("(");
@@ -161,9 +173,11 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     }
     else {
       result.append("return ");
-      result.append("this.");
+      if (!isStatic) {
+        result.append("this.");
+      }
       result.append(name);
-      result.append("=value;");
+      result.append("= value;");
     }
     result.append("\n}");
   }
