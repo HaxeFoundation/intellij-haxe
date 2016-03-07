@@ -96,6 +96,15 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
       @Override
       public String getPresentableText() {
         final StringBuilder result = new StringBuilder();
+
+        if (AbstractHaxeNamedComponent.this instanceof HaxeLocalVarDeclarationPart) {
+          result.append(AbstractHaxeNamedComponent.this.getName());
+          result.append(":");
+          result.append(HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this).toString());
+          return result.toString();
+        }
+
+        //TODO: implement HaxeFieldModel or analogous model for local var declaration part
         HaxeMemberModel member = HaxeMemberModel.fromPsi(AbstractHaxeNamedComponent.this);
 
         if (member == null) {
