@@ -36,18 +36,7 @@ public class HaxeAbstractEnumUtil {
 
   @Contract("null -> false")
   public static boolean isAbstractEnum(@Nullable PsiClass clazz) {
-    if(clazz != null && clazz instanceof HaxeAbstractClassDeclaration) {
-      final HaxeMacroClassList metaList = ((HaxeAbstractClassDeclaration)clazz).getMacroClassList();
-      final List<HaxeMacroClass> metas = metaList != null ? metaList.getMacroClassList() : null;
-      if(metas != null) {
-        for (HaxeMacroClass meta : metas) {
-          if (meta.getText().equals("@:enum")) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
+    return HaxeAbstractUtil.hasMeta(clazz, "@:enum");
   }
 
   /**
