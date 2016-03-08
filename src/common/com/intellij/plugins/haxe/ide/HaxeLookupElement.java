@@ -83,7 +83,7 @@ public class HaxeLookupElement extends LookupElement {
     HaxeMemberModel member = HaxeMemberModel.fromPsi(myComponentName);
 
     if (member != null) {
-      presentableText = member.getPresentableText(context);
+      //presentableText = member.getPresentableText(context);
 
       // Check deprecated modifiers
       if (member.getModifiers().hasModifier(HaxeModifierType.DEPRECATED)) {
