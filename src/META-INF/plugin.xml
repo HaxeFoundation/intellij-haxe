@@ -52,7 +52,8 @@
         <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
         <li>Fix use scope for var declarations (issue #235)</li>
         <li>Find usages import filtering (issue #426)</li>
-        <li>Incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
+        <li>Fix forwarding abstract fields completion and resolving. (issue #447, #108)</li>
+        <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
