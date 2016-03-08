@@ -256,6 +256,22 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude("com/util/SampleAbstractEnum.hx");
   }
 
+  public void testAbstractForward() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
+  }
+
+  public void testAbstractForward1() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
+  }
+
+  public void testAbstractForward2() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
+  }
+
+  public void testAbstractForward3() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
+  }
+
   //public void testUsingStringTools() throws Throwable {
   //  myFixture.configureByFiles("UsingStringTools.hx", "std/StringTools.hx", "std/String.hx", "std/StdTypes.hx");
   //  doTestVariantsInner("UsingStringTools.txt");
