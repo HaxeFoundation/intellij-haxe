@@ -22,6 +22,8 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
+import com.intellij.plugins.haxe.util.HaxeAbstractUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -299,12 +301,28 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   @Nullable
   private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
     HaxeComponentName componentName = null;
-    final HaxeClass leftResultClass = HaxeResolveUtil.tryResolveClassByQName(leftReference);
+    HaxeClass leftResultClass = HaxeResolveUtil.tryResolveClassByQName(leftReference);
     if (leftResultClass != null) {
       // helper reference via class com.bar.FooClass.HelperClass
       final HaxeClass componentDeclaration =
         HaxeResolveUtil.findComponentDeclaration(leftResultClass.getContainingFile(), helperName);
       componentName = componentDeclaration == null ? null : componentDeclaration.getComponentName();
+    } else {
+      // try to find component at abstract forwarding underlying class
+      leftResultClass = leftReference.resolveHaxeClass().getHaxeClass();
+      final Boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftResultClass);
+      if (isAbstractForward) {
+        final List<HaxeNamedComponent> forwardingHaxeNamedComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass);
+        if (forwardingHaxeNamedComponents != null) {
+          for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
+            final HaxeComponentName forwardingComponentName = namedComponent.getComponentName();
+            if (forwardingComponentName != null && forwardingComponentName.getText().equals(helperName)) {
+              componentName = forwardingComponentName;
+              break;
+            }
+          }
+        }
+      }
     }
     return componentName;
   }
@@ -319,11 +337,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass, @NotNull HaxeReference reference) {
-    final HaxeNamedComponent namedSubComponent =
+    HaxeNamedComponent namedSubComponent =
       HaxeResolveUtil.findNamedSubComponent(leftClass, reference.getText());
-    final HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
+    HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
     if (componentName != null) {
       return toCandidateInfoArray(componentName);
+    }
+    // if class is abstract try find in forwards
+    final boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftClass);
+    if (isAbstractForward) {
+      final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(leftClass);
+      if (underlyingClass != null) {
+        namedSubComponent = HaxeResolveUtil.findNamedSubComponent(underlyingClass, reference.getText());
+        componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
+        if (componentName != null) {
+          return toCandidateInfoArray(componentName);
+        }
+      }
     }
     // try find using
     for (HaxeClass haxeClass : HaxeResolveUtil.findUsingClasses(reference.getContainingFile())) {
