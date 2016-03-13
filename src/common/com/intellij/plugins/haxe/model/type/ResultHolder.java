@@ -128,6 +128,14 @@ public class ResultHolder {
     return this.getType().toStringWithoutConstant();
   }
 
+  public String toStringWithConstant(boolean withConstant) {
+    if (withConstant) {
+      return this.getType().toStringWithConstant();
+    } else {
+      return this.getType().toStringWithoutConstant();
+    }
+  }
+
   public ResultHolder duplicate() {
     // Don't duplicate unknown holders
     return isUnknown() ? this : new ResultHolder(this.getType().duplicate());

@@ -19,11 +19,13 @@ package com.intellij.plugins.haxe.lang.completion;
 
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.util.text.CharFilter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -134,12 +136,11 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
   }
 
   protected void checkCompletion(CheckType checkType, List<String> variants) {
-    List<String> stringList = myFixture.getLookupElementStrings();
+    LinkedHashSet<String> stringList = new LinkedHashSet<String>();
     LookupElement[] elements = myFixture.getLookupElements();
 
-    if (stringList == null) {
-      stringList = Collections.emptyList();
-    }
+    List<String> stringList1 = myFixture.getLookupElementStrings();
+    if (stringList1 != null) stringList.addAll(stringList1);
 
     if (elements == null) {
       elements = new LookupElement[0];
@@ -148,8 +149,20 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
     for (LookupElement element : elements) {
       PsiElement element1 = element.getPsiElement();
       if (element1 instanceof NavigationItem) {
+        ItemPresentation presentation = ((NavigationItem)element1).getPresentation();
         //System.out.println(((NavigationItem)element1).getPresentation().getPresentableText());
-        stringList.add(((NavigationItem)element1).getPresentation().getPresentableText());
+        PsiElement parent = element1.getParent();
+        if (parent instanceof AbstractHaxeNamedComponent) {
+          String text1 = ((AbstractHaxeNamedComponent)parent).getPresentationWithConstants(false).getPresentableText();
+          String text2 = ((AbstractHaxeNamedComponent)parent).getPresentationWithConstants(true).getPresentableText();
+          //System.out.println(text1);
+          //System.out.println(text2);
+          stringList.add(text1);
+          stringList.add(text2);
+        }
+        if (presentation != null) {
+          stringList.add(presentation.getPresentableText());
+        }
       }
     }
 

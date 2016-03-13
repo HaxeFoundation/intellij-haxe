@@ -148,7 +148,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Override
   public String toString() {
-    //return toStringWithoutConstant();
     return toStringWithConstant();
   }
 

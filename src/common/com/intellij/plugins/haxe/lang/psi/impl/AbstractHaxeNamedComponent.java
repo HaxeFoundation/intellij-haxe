@@ -92,6 +92,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public ItemPresentation getPresentation() {
+    return getPresentationWithConstants(true);
+  }
+
+  public ItemPresentation getPresentationWithConstants(final boolean withConstants) {
     return new ItemPresentation() {
       @Override
       public String getPresentableText() {
@@ -110,7 +114,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
           }
 
           result.append(":");
-          result.append(HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this).toString());
+          result.append(HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this).toStringWithConstant(withConstants));
         }
 
         return result.toString();
