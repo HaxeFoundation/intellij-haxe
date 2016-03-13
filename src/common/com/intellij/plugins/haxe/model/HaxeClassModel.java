@@ -28,7 +28,6 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -294,11 +293,15 @@ public class HaxeClassModel {
 
   @Nullable
   public HaxeMemberModel getMember(String name) {
-    return _getMember(name, new HashSet<String>());
+    return _getMember(name, new HashSet<String>(), true);
   }
 
+  @Nullable
+  public HaxeMemberModel getMemberNoInterfaces(String name) {
+    return _getMember(name, new HashSet<String>(), false);
+  }
 
-  private HaxeMemberModel _getMember(String name, @NotNull HashSet<String> exploredClasses) {
+  private HaxeMemberModel _getMember(String name, @NotNull HashSet<String> exploredClasses, boolean exploreInterfaces) {
     // Avoid recursion
     if (exploredClasses.contains(this.getName())) return null;
     exploredClasses.add(this.getName());
@@ -313,15 +316,17 @@ public class HaxeClassModel {
     }
 
     if (parentClass != null) {
-      member = parentClass._getMember(name, exploredClasses);
+      member = parentClass._getMember(name, exploredClasses, exploreInterfaces);
       if (member != null) return member;
     }
 
-    for (HaxeClassReferenceModel clazzReference : getImplementingInterfaces()) {
-      final HaxeClassModel clazz = clazzReference.getHaxeClass();
-      if (clazz != null) {
-        member = clazz._getMember(name, exploredClasses);
-        if (member != null) return member;
+    if (exploreInterfaces) {
+      for (HaxeClassReferenceModel clazzReference : getImplementingInterfaces()) {
+        final HaxeClassModel clazz = clazzReference.getHaxeClass();
+        if (clazz != null) {
+          member = clazz._getMember(name, exploredClasses, exploreInterfaces);
+          if (member != null) return member;
+        }
       }
     }
 
@@ -448,6 +453,11 @@ public class HaxeClassModel {
 
   public HaxeMethodModel getMethod(String name) {
     final HaxeMemberModel member = getMember(name);
+    return (member instanceof HaxeMethodModel) ? (HaxeMethodModel)member : null;
+  }
+
+  public HaxeMethodModel getMethodNoInterfaces(String name) {
+    final HaxeMemberModel member = getMemberNoInterfaces(name);
     return (member instanceof HaxeMethodModel) ? (HaxeMethodModel)member : null;
   }
 
@@ -644,5 +654,11 @@ public class HaxeClassModel {
       SpecificHaxeClassReference.getClass(this.getPsi()).getHaxeClassRef(),
       getInstanceType()
     ).createHolder();
+  }
+
+  public void addMethod(HaxeMethodModel method) {
+    ArrayList<HaxeMethodModel> list = new ArrayList<HaxeMethodModel>();
+    list.add(method);
+    addMethodsFromPrototype(list);
   }
 }

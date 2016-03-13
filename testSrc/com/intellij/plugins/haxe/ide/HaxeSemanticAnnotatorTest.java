@@ -93,6 +93,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTest("Remove init");
   }
 
+  public void testInterfaceImplementedInParent() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testInterfaceMethodsShouldHaveTypeTags() throws Exception {
     doTestNoFixWithWarnings();
   }

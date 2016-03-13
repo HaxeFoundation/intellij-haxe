@@ -32,8 +32,6 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -263,13 +261,13 @@ class FieldChecker {
 
     if (field.getGetterType() == HaxeAccessorType.GET) {
       final String methodName = "get_" + field.getName();
-      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      final HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
       if (method == null) {
         Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
         annotation.registerFix(new HaxeFixer("Add method") {
           @Override
           public void run() {
-            //field.getDeclaringClass().addMethod(methodName);
+            field.getDeclaringClass().addMethod(method);
           }
         });
       }
@@ -277,13 +275,13 @@ class FieldChecker {
 
     if (field.getSetterType() == HaxeAccessorType.SET) {
       final String methodName = "set_" + field.getName();
-      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      final HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
       if (method == null) {
         Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
         annotation.registerFix(new HaxeFixer("Add method") {
           @Override
           public void run() {
-            //field.getDeclaringClass().addMethod(methodName);
+            field.getDeclaringClass().addMethod(method);
           }
         });
       }
@@ -437,7 +435,7 @@ class ClassChecker {
     if (intReference.getHaxeClass() != null) {
       for (HaxeMethodModel intMethod : intReference.getHaxeClass().getMethods()) {
         if (!intMethod.isStatic()) {
-          HaxeMethodModel selfMethod = clazz.getMethodSelf(intMethod.getName());
+          HaxeMethodModel selfMethod = clazz.getMethodNoInterfaces(intMethod.getName());
           if (selfMethod == null) {
             missingMethods.add(intMethod);
             missingMethodsNames.add(intMethod.getName());
