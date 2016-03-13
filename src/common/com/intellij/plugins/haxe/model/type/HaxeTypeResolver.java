@@ -105,10 +105,10 @@ public class HaxeTypeResolver {
       if (init != null) {
         PsiElement child = init.getExpression();
 
-        ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child, new HaxeResolver2Dummy());
+        //ResultHolder type1 = HaxeTypeResolver.getPsiElementType(child, new HaxeResolver2Dummy());
         // @TODO: resolver should be calculated (if var has static modifier)
 
-        final ResultHolder initType = HaxeTypeResolver.getPsiElementType(child, null);
+        final ResultHolder initType = HaxeTypeResolver.getPsiElementType(child, new HaxeResolver2Dummy());
 
         HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
         boolean isConstant = false;
@@ -227,7 +227,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getPsiElementType(PsiElement element, HaxeResolver2 resolver) {
+  static public ResultHolder getPsiElementType(PsiElement element, @NotNull HaxeResolver2 resolver) {
     return getPsiElementType(element, null, resolver).result;
   }
 

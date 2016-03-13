@@ -294,19 +294,33 @@ public class HaxeClassModel {
 
   @Nullable
   public HaxeMemberModel getMember(String name) {
+    return _getMember(name, new HashSet<String>());
+  }
+
+
+  private HaxeMemberModel _getMember(String name, @NotNull HashSet<String> exploredClasses) {
+    // Avoid recursion
+    if (exploredClasses.contains(this.getName())) return null;
+    exploredClasses.add(this.getName());
+
     HaxeMemberModel member = getMemberSelf(name);
     if (member != null) return member;
 
     final HaxeClassModel parentClass = getParentClass();
+
+    if (parentClass == this) {
+      return null;
+    }
+
     if (parentClass != null) {
-      member = parentClass.getMember(name);
+      member = parentClass._getMember(name, exploredClasses);
       if (member != null) return member;
     }
 
     for (HaxeClassReferenceModel clazzReference : getImplementingInterfaces()) {
       final HaxeClassModel clazz = clazzReference.getHaxeClass();
       if (clazz != null) {
-        member = clazz.getMember(name);
+        member = clazz._getMember(name, exploredClasses);
         if (member != null) return member;
       }
     }
