@@ -189,27 +189,32 @@ public class HaxeCompilerError {
     }
 
     private static boolean isInformationalMessage(String message) {
-      return pGeneratingStatusMessage.matcher(message).matches() || mInformationalMessages.contains(message);
+      Boolean isStatusMessage = pGeneratingStatusMessage.matcher(message).matches();
+      Boolean isInfoMessages =  mInformationalMessages.contains(message);
+      Boolean isCompilingStatusMessage = pCompilingStatusMessage.matcher(message).matches();
+      return  isStatusMessage || isInfoMessages || isCompilingStatusMessage;
     }
 
     static Pattern pLibraryNotInstalled = Pattern.compile
         ("Error: Library ([\\S]+) is not installed(.*)");
     static Pattern pBareError = Pattern.compile("([^:]*)Error:(.*)", Pattern.CASE_INSENSITIVE);
     static Pattern pColumnError =
-        Pattern.compile("([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
+        Pattern.compile("(.+?):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
     static Pattern pLineError =
-        Pattern.compile("([^:]+):([\\d]+): lines [\\d]+-[\\d]+ :(.*)");
+        Pattern.compile("(.+?):([\\d]+): lines [\\d]+-[\\d]+ :(.*)");
+
     // Unfortunately, the Haxe compiler doesn't always mark its error lines with
     // a useful "Warning" or "Error" prefix.  However, the common error output (main.ml)
     // uses the pattern "%s : %s".
-    static Pattern pGenericError = Pattern.compile("([^:]+) : (.+)");
+    static Pattern pGenericError = Pattern.compile("(.+?) : (.+)");
 
     // These are a few well-known informational patterns that should NOT be marked
     // as errors.  Keeping this up to date will always be an arms race.
     static HashSet<String> mInformationalMessages = new HashSet<String>();
     static {
-      String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file" };
+      String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file", "Using default windows compiler" };
       mInformationalMessages.addAll(Arrays.asList(nonErrors));
     }
     static Pattern pGeneratingStatusMessage = Pattern.compile("Generating (.+)");
+    static Pattern pCompilingStatusMessage = Pattern.compile("- Compiling (.+)");
 }

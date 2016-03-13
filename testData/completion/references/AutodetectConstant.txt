@@ -1,0 +1,2 @@
+mybool3:Bool = false
+mybool4:Bool = false

@@ -31,6 +31,9 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.resolver.HaxeResolver2Dummy;
+import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -87,6 +90,8 @@ class TypeTagChecker {
     final ResultHolder type1 = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
     final ResultHolder type2 = HaxeTypeResolver.getPsiElementType(initExpression, new HaxeResolver2Dummy());
     // @TODO: false should check if is static context
+    //final ResultHolder type2 = getTypeFromVarInit(initExpression);
+
     final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
@@ -106,9 +111,19 @@ class TypeTagChecker {
       });
     }
     else if (requireConstant && type2.getType().getConstant() == null) {
-      // @TODO: Move to bundle
+      // TODO: Move to bundle
       holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
     }
+  }
+
+  @NotNull
+  static ResultHolder getTypeFromVarInit(HaxeVarInit init) {
+    final ResultHolder abstractEnumFieldInitType = HaxeAbstractEnumUtil.getStaticMemberExpression(init.getExpression());
+    if(abstractEnumFieldInitType != null) {
+      return abstractEnumFieldInitType;
+    }
+    // fallback to simple init expression
+    return HaxeTypeResolver.getPsiElementType(init, null);
   }
 }
 
@@ -120,6 +135,28 @@ class FieldChecker {
     }
     if (field.hasInitializer() && field.hasTypeTag()) {
       TypeTagChecker.check(field.getPsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
+    }
+
+    // Checking for variable redefinition.
+    HashSet<HaxeClassModel> classSet = new HashSet<HaxeClassModel>();
+    HaxeClassModel fieldDeclaringClass = field.getDeclaringClass();
+    classSet.add(fieldDeclaringClass);
+    while (fieldDeclaringClass != null) {
+      fieldDeclaringClass = fieldDeclaringClass.getParentClass();
+      if (classSet.contains(fieldDeclaringClass)) {
+        break;
+      } else {
+        classSet.add(fieldDeclaringClass);
+      }
+      if (fieldDeclaringClass != null) {
+        for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {
+          if (parentField.getName().equals(field.getName())) {
+            holder.createErrorAnnotation(field.getDeclarationPsi(), "Redefinition of variable '" + field.getName()
+              + "' in subclass is not allowed. Previously declared at '" + fieldDeclaringClass.getName() + "'.");
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -187,6 +224,9 @@ class FieldChecker {
       }
     }
 
+    // @TODO: CHECK
+    checkPropertyAccessorMethods(field, holder);
+
     if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
       final HaxeVarInit psi = field.getInitializerPsi();
       Annotation annotation = holder.createErrorAnnotation(
@@ -210,6 +250,40 @@ class FieldChecker {
           @Override
           public void run() {
             document.replaceElementText(field.getSetterPsi(), "null");
+          }
+        });
+      }
+    }
+  }
+
+  static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
+    if (field.getDeclaringClass().isInterface()) {
+      return;
+    }
+
+    if (field.getGetterType() == HaxeAccessorType.GET) {
+      final String methodName = "get_" + field.getName();
+      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      if (method == null) {
+        Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
+        annotation.registerFix(new HaxeFixer("Add method") {
+          @Override
+          public void run() {
+            //field.getDeclaringClass().addMethod(methodName);
+          }
+        });
+      }
+    }
+
+    if (field.getSetterType() == HaxeAccessorType.SET) {
+      final String methodName = "set_" + field.getName();
+      HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      if (method == null) {
+        Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
+        annotation.registerFix(new HaxeFixer("Add method") {
+          @Override
+          public void run() {
+            //field.getDeclaringClass().addMethod(methodName);
           }
         });
       }
@@ -293,11 +367,48 @@ class ClassChecker {
     HaxeClassReferenceModel reference = clazz.getParentClassReference();
     if (reference != null) {
       HaxeClassModel aClass1 = reference.getHaxeClass();
-      if (aClass1 != null && !aClass1.isClass()) {
-        // @TODO: Move to bundle
-        holder.createErrorAnnotation(reference.getPsi(), "Not a class");
+      if (aClass1 != null) {
+        if(isAnonymousType(clazz)) {
+          if(!isAnonymousType(aClass1)) {
+            // @TODO: Move to bundle
+            holder.createErrorAnnotation(reference.getPsi(), "Not an anonymous type");
+          }
+        }
+        else if(clazz.isInterface()) {
+          if(!aClass1.isInterface()) {
+            // @TODO: Move to bundle
+            holder.createErrorAnnotation(reference.getPsi(), "Not an interface");
+          }
+        }
+        else if(!aClass1.isClass()) {
+          // @TODO: Move to bundle
+          holder.createErrorAnnotation(reference.getPsi(), "Not a class");
+        }
+
+        final String qname1 = aClass1.haxeClass.getQualifiedName();
+        final String qname2 = clazz.haxeClass.getQualifiedName();
+        if(qname1.equals(qname2)) {
+          // @TODO: Move to bundle
+          holder.createErrorAnnotation(reference.getPsi(), "Cannot extend self");
+        }
       }
     }
+  }
+
+  static private boolean isAnonymousType(HaxeClassModel clazz) {
+    if(clazz != null && clazz.haxeClass != null) {
+      HaxeClass haxeClass = clazz.haxeClass;
+      if(haxeClass instanceof HaxeAnonymousType) {
+        return true;
+      }
+      if(haxeClass instanceof HaxeTypedefDeclaration) {
+        HaxeTypeOrAnonymous anonOrType = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+        if(anonOrType != null) {
+          return anonOrType.getAnonymousType() != null;
+        }
+      }
+    }
+    return false;
   }
 
   static public void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {

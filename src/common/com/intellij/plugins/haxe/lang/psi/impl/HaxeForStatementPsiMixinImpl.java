@@ -18,7 +18,10 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by ebishton on 12/4/14.
@@ -27,6 +30,13 @@ public abstract class HaxeForStatementPsiMixinImpl extends AbstractHaxeNamedComp
 
   public HaxeForStatementPsiMixinImpl(ASTNode node) {
     super(node);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getNameIdentifier() {
+    final HaxeComponentName componentName = getComponentName();
+    return componentName != null ? componentName.getNameIdentifier() : null;
   }
 
 }

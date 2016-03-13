@@ -2,8 +2,7 @@ Contributing
 ============
 
 *NOTE: TiVo and the Haxe Foundation are moving our development focus to IDEA version 14 and later.
-Support for version 13.1 is not being removed, but will no longer be tested or regarded as
-development progresses.*
+Support for version 13.1 been removed as of release 0.9.8.*
 
 ##Reporting errors  
 ------------------
@@ -25,7 +24,9 @@ can reproduce the issue.
 ##Development Environment
 -------------------------
 
-You will need the release version of Intellij IDEA Ultimate 13.1, 14.0, or later to develop the plugin.
+You will need the release version of Intellij IDEA Ultimate 14.x, 15.x, or later to develop the plugin.
+*There are reports that you can develop with IDEA Community Edition, though extended functionality such as
+diagrams and hierarchy panels will not be available and you wont be able to test their Haxe equivalents.*
 
 ###Plugins
 Install the following plugins [from Intellij IDEA plugin manager](https://www.jetbrains.com/idea/plugins/).
@@ -94,11 +95,15 @@ particularly if you see ClassNotFound exceptions when attempting to run the plug
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
 by the plugin team.  At the time of this writing, that would be 14.0.4, 
-and 14.1.1.  As new versions are released this will continue to be 
+and 14.1.1, 14.1.5 (introduced a breaking change), and 15.0.3.
+As new versions are released this will continue to be
 a moving target, as we attempt to keep up with the development community.
 
 We do NOT expect contributors to keep up to date with EAP releases, nor does 
 the team support them (though the plugin may work, and will usually install).
+
+*According to JetBrains, IDEA releases 16 EAP and later require JDK 8.  That
+build environment has not been successfully used for this plugin at this time.*
 
 ####Ant Builds
 
@@ -393,12 +398,12 @@ repository.
 - TiVo releases will be built and tested for the following environments:  
    OS: Linux(Ubuntu14.04 and Centos6.5), OSX  
    JVM: Sun Java 1.6  
-   IDEA versions: 14, 14.1 (release versions  EAP will not be tracked).  
+   IDEA versions: 14, 14.1, 14.1.6, and 15 (release versions  EAP will not be tracked).
 - JetBrains releases will be built and smoke tested for the following environments:  
    OS: Linux(Ubuntu14.04), OSX, Windows  
    JVM: Sun Java 1.6 target, using Sun Java 1.8 compilers (because the Java 1.6 and 1.7 
    maintenance windows have closed)  
-   IDEA versions: 14, 14.1 (release versions)  
+   IDEA versions: 14, 14.1, 14.1.6, and 15 (release versions)
 
 ####Who will test:
 
@@ -438,9 +443,10 @@ then copy the relevant section to CHANGELOG.md.
 can test and tag it.
 
 4. Build *each* of the releases: For each release, run make (or your local equivalent) 
-    - `IDEA_VERSION=13.1.6 make`, or `ant -Didea.ultimate.build=<path_to_intellij_13.1.6>` 
-    - `IDEA_VERSION=14.0.4 make`
-    - `IDEA_VERSION=14.1.1 make`
+    - `IDEA_VERSION=14.0.4 make`, or `ant -Didea.ultimate.build=<path_to_intellij_14.0.4>`
+    - `IDEA_VERSION=14.1.4 make`
+    - `IDEA_VERSION=14.1.6 make`
+    - `IDEA_VERSION=15.0.3 make`
 
 5. Smoke test *each* of the releases.  A smoke test includes loading the releases in a primary instance of IDEA and verifying 
 basic functionality:  

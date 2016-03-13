@@ -48,7 +48,6 @@ public abstract class HaxeGenerateAccessorHandler extends BaseHaxeGenerateHandle
 
     for (HaxeNamedComponent haxeNamedComponent : subComponents) {
       if (!(haxeNamedComponent instanceof HaxeVarDeclarationPart)) continue;
-      if (haxeNamedComponent.isStatic()) continue;
 
       if (!myStrategy.accept(haxeNamedComponent.getName(), componentMap.keySet())) continue;
 

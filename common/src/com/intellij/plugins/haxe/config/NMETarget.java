@@ -25,24 +25,37 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public enum NMETarget {
-  IOS("iOS", "ios", "-simulator"),
-  ANDROID("Android", "android"),
-  WEBOS("webOS", "webos"),
-  BLACKBERRY("BlackBerry", "blackberry"),
-  WINDOWS("Windows", "windows"),
-  MAC("Mac OS", "mac"),
-  LINUX("Linux", "linux"),
-  LINUX64("Linux 64", "linux", "-64"),
-  FLASH("Flash", "flash"),
-  HTML5("HTML5", "html5"),
-  NEKO("Neko", "neko");
+
+  // The HaxeTarget values declared here are the most obvious intention.
+  // They may not be correct.  They follow the mapping that the lime command
+  // does when invoked for a target OS.  They are used by the classpath generator
+  // the create the implicit classpath that the Haxe compiler uses.
+  // This may lead to the wrong source file being presented when debugging,
+  // but it's a definite step up from showing the interface file.
+  // Note that the HaxeTarget is only used for IDEA's convenience and is not
+  // passed to the compiler (lime) command, while the flags (third and later
+  // arguments) are passed to the compiler.
+
+  IOS("iOS", HaxeTarget.NEKO, "ios", "-simulator"),
+  ANDROID("Android", HaxeTarget.NEKO, "android"),
+  WEBOS("webOS", HaxeTarget.NEKO, "webos"),
+  BLACKBERRY("BlackBerry", HaxeTarget.NEKO, "blackberry"),
+  WINDOWS("Windows", HaxeTarget.NEKO, "windows"),
+  MAC("Mac OS", HaxeTarget.NEKO, "mac"),
+  LINUX("Linux", HaxeTarget.NEKO, "linux"),
+  LINUX64("Linux 64", HaxeTarget.NEKO,  "linux", "-64"),
+  FLASH("Flash", HaxeTarget.FLASH, "flash"),
+  HTML5("HTML5", HaxeTarget.JAVA_SCRIPT, "html5"),
+  NEKO("Neko", HaxeTarget.NEKO, "neko");
 
   private final String[] flags;
   private final String description;
+  private final HaxeTarget outputTarget;
 
-  NMETarget(String description, String... flags) {
+  NMETarget(String description, HaxeTarget target, String... flags) {
     this.flags = flags;
     this.description = description;
+    this.outputTarget = target;
   }
 
   public String getTargetFlag() {
@@ -52,6 +65,8 @@ public enum NMETarget {
   public String[] getFlags() {
     return flags;
   }
+
+  public HaxeTarget getOutputTarget() { return outputTarget; }
 
   public static void initCombo(@NotNull DefaultComboBoxModel comboBoxModel) {
     for (NMETarget target : NMETarget.values()) {

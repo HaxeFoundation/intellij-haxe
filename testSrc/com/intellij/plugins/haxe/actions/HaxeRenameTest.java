@@ -32,7 +32,11 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testRename(getTestName(false) + ".hx", getTestName(false) + "After.hx", newName, additionalFiles);
   }
 
-  public void testLocalVariable() throws Throwable {
+  public void testLocalVariable1() throws Throwable {
+    doTest("fooNew");
+  }
+
+  public void testLocalVariable2() throws Throwable {
     doTest("fooNew");
   }
 
@@ -54,5 +58,13 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
 
   public void testStaticMethod() throws Throwable {
     doTest("fooNew", "additional/StaticMethodHelper.hx");
+  }
+
+  public void testCatchParameter() throws Throwable {
+    doTest("error");
+  }
+
+  public void testForVar() throws Throwable {
+    doTest("index");
   }
 }

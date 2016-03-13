@@ -25,26 +25,38 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public enum OpenFLTarget {
-  IOS("iOS", "ios", "-simulator"),
-  ANDROID("Android", "android"),
-  WEBOS("webOS", "webos"),
-  BLACKBERRY("BlackBerry", "blackberry"),
-  WINDOWS("Windows", "windows"),
-  MAC("Mac OS", "mac"),
-  LINUX("Linux", "linux"),
-  LINUX64("Linux 64", "linux", "-64"),
-  FLASH("Flash", "flash"),
-  HTML5("HTML5", "html5"),
-  NEKO("Neko", "neko"),
-  TIZEN("Tizen", "tizen"),
-  EMSCRIPTEN("Emscripten", "emscripten");
+
+  // This mapping of the target to output target is the most likely scenario
+  // and is mapped according to the lime templates.  (In other words,
+  // this is what target lime will pick for you when you select an
+  // OS target.)  This may end up being incorrect, but it's normally
+  // correct when degugging and is a lot better than being presented
+  // the interface file.
+  // Note that the HaxeTarget is only used for IDEA's convenience and is not
+  // passed to the compiler (lime) command, while the flags (third and later
+  // arguments) are passed to the compiler.
+  IOS("iOS", HaxeTarget.CPP, "ios", "-simulator"),
+  ANDROID("Android", HaxeTarget.CPP, "android"),
+  WEBOS("webOS", HaxeTarget.CPP, "webos"),
+  BLACKBERRY("BlackBerry", HaxeTarget.CPP, "blackberry"),
+  WINDOWS("Windows", HaxeTarget.CPP, "windows"),
+  MAC("Mac OS", HaxeTarget.CPP, "mac"),
+  LINUX("Linux", HaxeTarget.CPP, "linux"),
+  LINUX64("Linux 64", HaxeTarget.CPP, "linux", "-64"),
+  FLASH("Flash", HaxeTarget.FLASH, "flash"),
+  HTML5("HTML5", HaxeTarget.JAVA_SCRIPT, "html5"),
+  NEKO("Neko", HaxeTarget.NEKO, "neko"),
+  TIZEN("Tizen", HaxeTarget.CPP, "tizen"),
+  EMSCRIPTEN("Emscripten", HaxeTarget.CPP, "emscripten");
 
   private final String[] flags;
   private final String description;
+  private final HaxeTarget outputTarget;
 
-  OpenFLTarget(String description, String... flags) {
+  OpenFLTarget(String description, HaxeTarget target, String... flags) {
     this.flags = flags;
     this.description = description;
+    this.outputTarget = target;
   }
 
   public String getTargetFlag() {
@@ -53,6 +65,10 @@ public enum OpenFLTarget {
 
   public String[] getFlags() {
     return flags;
+  }
+
+  public HaxeTarget getOutputTarget() {
+    return outputTarget;
   }
 
   public static void initCombo(@NotNull DefaultComboBoxModel comboBoxModel) {

@@ -1,8 +1,6 @@
 class Methods {
   public var mybool1 = false;
   public var mybool2:Bool = false;
-  public inline var mybool3 = false;
-  public inline var mybool4:Bool = false;
   public function foo() return 10;
   public function foo2() {
     return 10.0;

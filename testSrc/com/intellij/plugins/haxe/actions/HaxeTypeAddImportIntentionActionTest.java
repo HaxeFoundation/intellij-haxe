@@ -59,4 +59,10 @@ public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixture
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Bar.hx");
     doTest();
   }
+  
+  public void testModule() throws Throwable {
+    myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Types.hx");
+    doTest();
+  }
+  
 }

@@ -40,6 +40,7 @@ import gnu.trove.THashSet;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
+import org.apache.xmlbeans.impl.common.ResolverUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -258,6 +259,7 @@ public class HaxeResolveUtil {
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @NotNull HaxeClass... rootHaxeClasses) {
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<HaxeNamedComponent>();
     final LinkedList<HaxeClass> classes = new LinkedList<HaxeClass>();
+    final HashSet<HaxeClass> processed = new HashSet<HaxeClass>();
     classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
@@ -266,8 +268,17 @@ public class HaxeResolveUtil {
           unfilteredResult.add(namedComponent);
         }
       }
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeExtendsList()));
-      classes.addAll(tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
+
+      List<HaxeType> baseTypes = new ArrayList<HaxeType>();
+      baseTypes.addAll(haxeClass.getHaxeExtendsList());
+      baseTypes.addAll(haxeClass.getHaxeImplementsList());
+      List<HaxeClass> baseClasses = tyrResolveClassesByQName(baseTypes);
+      for(HaxeClass baseClass : baseClasses) {
+        if(processed.add(baseClass)) {
+          classes.add(baseClass);
+        }
+      }
+
     }
     if (!unique) {
       return unfilteredResult;
@@ -313,7 +324,10 @@ public class HaxeResolveUtil {
     else if (haxeClass instanceof HaxeTypedefDeclaration) {
       final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
       if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
-        typeOrAnonymous.getAnonymousType();
+        HaxeAnonymousType anonymous = typeOrAnonymous.getAnonymousType();
+        if(anonymous != null) {
+          return getNamedSubComponents(anonymous);
+        }
       }
       else if (typeOrAnonymous != null) {
         final HaxeClass typeClass = getHaxeClassResolveResult(typeOrAnonymous.getType()).getHaxeClass();
@@ -447,6 +461,11 @@ public class HaxeResolveUtil {
       return result;
     }
 
+    result = HaxeAbstractEnumUtil.resolveFieldType(element);
+    if(result != null) {
+      return result;
+    }
+
     if (specialization.containsKey(null, element.getText())) {
       return specialization.get(null, element.getText());
     }
@@ -471,6 +490,12 @@ public class HaxeResolveUtil {
     HaxeClass haxeClass = type == null ? null : tryResolveClassByQName(type);
     if (haxeClass == null && type != null && specialization.containsKey(element, type.getText())) {
       return specialization.get(element, type.getText());
+    }
+
+    if(haxeClass instanceof HaxeTypedefDeclaration) {
+      HaxeClassResolveResult temp = HaxeClassResolveResult.create(haxeClass, specialization);
+      temp.specializeByParameters(type.getTypeParam());
+      specialization = temp.getSpecialization();
     }
 
     HaxeClassResolveResult result = getHaxeClassResolveResult(haxeClass, specialization.getInnerSpecialization(element));
@@ -526,8 +551,8 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    String name = getQName(type);
-    HaxeClass result = name == null? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
+    final String name = getQName(type);
+    HaxeClass result = name == null ? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, type.getContext());
     result = result != null ? result : tryFindHelper(type);
     result = result != null ? result : findClassByQNameInSuperPackages(type);
     return result;
@@ -536,17 +561,20 @@ public class HaxeResolveUtil {
   private static String tryResolveFullyQualifiedHaxeReferenceExpression(PsiElement type) {
     if (type instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression topmostParentOfType = PsiTreeUtil.getTopmostParentOfType(type, HaxeReferenceExpression.class);
-      if (topmostParentOfType != null) {
-        HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
-        if (haxeClass != null) {
-          return topmostParentOfType.getText();
-        }
 
-        PsiElement parent = type.getParent();
-        HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
-        if (classByQName != null) {
-          return parent.getText();
-        }
+      if (topmostParentOfType == null) {
+        topmostParentOfType = (HaxeReferenceExpression)type;
+      }
+      
+      HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
+      if (haxeClass != null) {
+        return topmostParentOfType.getText();
+      }
+
+      PsiElement parent = type.getParent();
+      HaxeClass classByQName = findClassByQName(parent.getText(), parent.getContext());
+      if (classByQName != null) {
+        return parent.getText();
       }
     }
 
@@ -558,7 +586,7 @@ public class HaxeResolveUtil {
     HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(type.getContainingFile(), HaxePackageStatement.class);
     String packageName = getPackageName(packageStatement);
     String[] packages = packageName.split("\\.");
-    String typeName = type.getText();
+    String typeName = (type instanceof HaxeType ? ((HaxeType)type).getReferenceExpression() : type).getText();
     for (int i = packages.length - 1; i >= 0; --i) {
       StringBuilder qNameBuilder = new StringBuilder();
       for (int j = 0; j <= i; ++j) {
@@ -577,8 +605,13 @@ public class HaxeResolveUtil {
 
   @Nullable
   private static HaxeClass tryFindHelper(PsiElement element) {
-    final HaxeClass ownerClass = findClassByQName(UsefulPsiTreeUtil.findHelperOwnerQName(element, element.getText()), element);
-    return ownerClass == null ? null : findComponentDeclaration(ownerClass.getContainingFile(), element.getText());
+    // issue #435: don't use getText(), find "Ref" instead of "Ref<String>"
+    String className = element.getText();
+    if (element instanceof HaxeType) {
+      className = ((HaxeType)element).getReferenceExpression().getText();
+    }
+    final HaxeClass ownerClass = findClassByQName(UsefulPsiTreeUtil.findHelperOwnerQName(element, className), element);
+    return ownerClass == null ? null : findComponentDeclaration(ownerClass.getContainingFile(), className);
   }
 
   @Nullable
@@ -784,10 +817,40 @@ public class HaxeResolveUtil {
     for (HaxeUsingStatement usingStatement : usingStatements) {
       final HaxeExpression usingStatementExpression = usingStatement.getReferenceExpression();
       if (usingStatementExpression == null) continue;
-      final HaxeClass haxeClass = findClassByQName(usingStatementExpression.getText(), file);
-      if (haxeClass != null) {
-        result.add(haxeClass);
+
+      PsiManager manager = file.getManager();
+      if(manager != null) {
+        GlobalSearchScope scope = getScopeForElement(file);
+        final List<VirtualFile> classFiles = HaxeComponentFileNameIndex.getFilesNameByQName(usingStatementExpression.getText(), scope);
+        for(VirtualFile vf : classFiles) {
+          PsiFile pf = manager.findFile(vf);
+          if(pf != null) {
+            List<HaxeClass> classes = findComponentDeclarations(pf);
+            for(HaxeClass cls : classes) {
+              if(cls instanceof HaxeTypedefDeclaration) {
+                HaxeTypeOrAnonymous toa = ((HaxeTypedefDeclaration)cls).getTypeOrAnonymous();
+                if(toa != null) {
+                  HaxeType t = toa.getType();
+                  if(t != null) {
+                    HaxeClass typeClass = t.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+                    if(typeClass != null) {
+                      result.add(typeClass);
+                    }
+                  }
+                }
+              }
+              else {
+                result.add(cls);
+              }
+            }
+          }
+        }
       }
+
+      //final HaxeClass haxeClass = findClassByQName(usingStatementExpression.getText(), file);
+      //if (haxeClass != null) {
+      //  result.add(haxeClass);
+      //}
     }
     return result;
   }
@@ -818,5 +881,23 @@ public class HaxeResolveUtil {
 
   public static HaxeParameterListPsiMixinImpl toHaxePsiParameterList(HaxeParameterList haxeParameterList) {
     return new HaxeParameterListPsiMixinImpl(haxeParameterList.getNode());
+  }
+
+  public static HashSet<HaxeClass> getBaseClassesSet(@NotNull HaxeClass clazz) {
+    return getBaseClassesSet(clazz, new HashSet<HaxeClass>());
+  }
+
+  @NotNull
+  public static HashSet<HaxeClass> getBaseClassesSet(@NotNull HaxeClass clazz, @NotNull HashSet<HaxeClass> outClasses) {
+    List<HaxeType> types = new ArrayList<HaxeType>();
+    types.addAll(clazz.getHaxeExtendsList());
+    types.addAll(clazz.getHaxeImplementsList());
+    for(HaxeType baseType : types) {
+      final HaxeClass baseClass = HaxeResolveUtil.tryResolveClassByQName(baseType);
+      if(baseClass != null && outClasses.add(baseClass)) {
+        getBaseClassesSet(baseClass, outClasses);
+      }
+    }
+    return outClasses;
   }
 }

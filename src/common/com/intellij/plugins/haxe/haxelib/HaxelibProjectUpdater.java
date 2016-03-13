@@ -216,7 +216,10 @@ public class HaxelibProjectUpdater  {
     HaxeClasspath inheritedClasspaths = HaxelibClasspathUtils.getSdkClasspath(
       HaxelibSdkUtils.lookupSdk(module));
     if (rootManager.isSdkInherited()) {
-      inheritedClasspaths.addAll(getProjectClasspath(tracker));
+      // Add project classpaths before SDK class paths for correct precedence.
+      HaxeClasspath projectClasspaths =  getProjectClasspath(tracker);
+      projectClasspaths.addAll(inheritedClasspaths);
+      inheritedClasspaths = projectClasspaths;
     }
 
     class NewPathCollector implements HaxeClasspath.Lambda {

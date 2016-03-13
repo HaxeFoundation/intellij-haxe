@@ -947,10 +947,24 @@ public class HaxeExpressionEvaluator {
       final SpecificTypeReference leftValue = leftResult.getType();
       final SpecificTypeReference rightValue = rightResult.getType();
 
+      //ResultHolder type = leftValue.getArrayElementType();
+
       //leftValue.mutateConstantValue(null);
       if (!leftResult.canAssign(rightResult)) {
         context.addError(element, "Can't assign " + rightValue + " to " + leftValue, new HaxeCastFixer(right, rightValue, leftValue));
       }
+      //if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
+      //  return SpecificHaxeClassReference.primitive("Int", element, Long.decode(element.getText())).createHolder();
+      //}
+      //else if (type == HaxeTokenTypes.LITFLOAT) {
+      //  return SpecificHaxeClassReference.primitive("Float", element, Double.parseDouble(element.getText())).createHolder();
+      //}
+      //else if (type == HaxeTokenTypes.KFALSE || type == HaxeTokenTypes.KTRUE) {
+      //  return SpecificHaxeClassReference.primitive("Bool", element, type == HaxeTokenTypes.KTRUE).createHolder();
+      //}
+      //else if (type == HaxeTokenTypes.KNULL) {
+      //  return SpecificHaxeClassReference.primitive("Dynamic", element, HaxeNull.instance).createHolder();
+      //}
 
       if (leftResult.isImmutable()) {
         context.addError(element, "Trying to change an immutable value");

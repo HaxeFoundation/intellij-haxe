@@ -21,8 +21,15 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.impl.source.resolve.ResolveClassUtil;
+import org.apache.xmlbeans.impl.common.ResolverUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 public class HaxeTypeCompatible {
   /*
@@ -100,6 +107,10 @@ public class HaxeTypeCompatible {
         }
         return true;
       }
+      // issue #388: allow `public var m:Map<String, String> = new Map();`
+      else if(from.specifics.length == 0) {
+        return true;
+      }
     }
 
     if (to.toStringWithoutConstant().equals(from.toStringWithoutConstant())) {
@@ -137,6 +148,16 @@ public class HaxeTypeCompatible {
             return true;
           }
         }
+      }
+    }
+
+    // check interface/class type overrides
+    HaxeClass baseClass = to.clazz.getHaxeClass();
+    HaxeClass derivedClass = from.clazz.getHaxeClass();
+    if (baseClass != null && derivedClass != null) {
+      final HashSet<HaxeClass> set = HaxeResolveUtil.getBaseClassesSet(derivedClass, new HashSet<HaxeClass>());
+      if(set.contains(baseClass)) {
+        return true;
       }
     }
 

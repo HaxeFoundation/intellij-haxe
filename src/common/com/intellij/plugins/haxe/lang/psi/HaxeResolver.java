@@ -22,6 +22,8 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
+import com.intellij.plugins.haxe.util.HaxeAbstractUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -64,29 +67,43 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return toCandidateInfoArray(resultClass.getComponentName());
     }
 
-    // Maybe a package name
-    final PsiPackage psiPackage = JavaPsiFacade.getInstance(reference.getProject()).findPackage(reference.getText());
-    if (psiPackage != null) {
-      return toCandidateInfoArray(psiPackage);
-    }
     // See if it's a source file we're importing... (most likely a convenience library, such as haxe.macro.Tools)
     final PsiFile importFile = resolveImportFile(reference);
     if (null != importFile) {
       return toCandidateInfoArray(importFile);
     }
 
+    // Awaiting statement with package references
+    // TODO: optimize, get root element and check class
+    if(PsiTreeUtil.getParentOfType(reference,
+                                   HaxePackageStatement.class,
+                                   HaxeImportStatementRegular.class,
+                                   HaxeImportStatementWithInSupport.class,
+                                   HaxeImportStatementWithWildcard.class,
+                                   HaxeUsingStatement.class) != null) {
+      return toCandidateInfoArray(resolvePackage(reference));
+    }
+
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     if (leftReference != null && reference.getParent() instanceof HaxeReference) {
-      return resolveChain(leftReference, reference);
+      List<? extends PsiElement> result = resolveChain(leftReference, reference);
+      if(result != null && !result.isEmpty()) {
+        return result;
+      }
+      return toCandidateInfoArray(resolvePackage(reference));
     }
 
     // then maybe chain
     // node(foo.node(bar)).node(baz)
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length == 2) {
-      return resolveChain(childReferences[0], childReferences[1]);
+      List<? extends PsiElement> result = resolveChain(childReferences[0], childReferences[1]);
+      if(result != null && !result.isEmpty()) {
+        return result;
+      }
+      return toCandidateInfoArray(resolvePackage(reference));
     }
 
     if (reference instanceof HaxeSuperExpression) {
@@ -250,12 +267,27 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         VirtualFile importVFile = importDir == null ? null : importDir.findChild(fileName);
         importPsiFile = importVFile == null ? null : PsiManager.getInstance(reference.getProject()).findFile(importVFile);
         if (importPsiFile != null) {
-          break;
+          // for addition case-sensetive check because find file is not case-sensetive
+          if(!fileName.equals(importPsiFile.getName())) {
+            importPsiFile = null;
+          }
+          else {
+            break;
+          }
         }
       }
     }
 
     return importPsiFile;
+  }
+
+  private PsiPackage resolvePackage(HaxeReference reference) {
+    final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
+    String packageName = reference.getText();
+    if(leftReference != null && reference.getParent() instanceof HaxeReference) {
+      packageName = leftReference.getText() + "." + packageName;
+    }
+    return JavaPsiFacade.getInstance(reference.getProject()).findPackage(packageName);
   }
 
   /**
@@ -269,12 +301,28 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   @Nullable
   private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
     HaxeComponentName componentName = null;
-    final HaxeClass leftResultClass = HaxeResolveUtil.tryResolveClassByQName(leftReference);
+    HaxeClass leftResultClass = HaxeResolveUtil.tryResolveClassByQName(leftReference);
     if (leftResultClass != null) {
       // helper reference via class com.bar.FooClass.HelperClass
       final HaxeClass componentDeclaration =
         HaxeResolveUtil.findComponentDeclaration(leftResultClass.getContainingFile(), helperName);
       componentName = componentDeclaration == null ? null : componentDeclaration.getComponentName();
+    } else {
+      // try to find component at abstract forwarding underlying class
+      leftResultClass = leftReference.resolveHaxeClass().getHaxeClass();
+      final Boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftResultClass);
+      if (isAbstractForward) {
+        final List<HaxeNamedComponent> forwardingHaxeNamedComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass);
+        if (forwardingHaxeNamedComponents != null) {
+          for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
+            final HaxeComponentName forwardingComponentName = namedComponent.getComponentName();
+            if (forwardingComponentName != null && forwardingComponentName.getText().equals(helperName)) {
+              componentName = forwardingComponentName;
+              break;
+            }
+          }
+        }
+      }
     }
     return componentName;
   }
@@ -289,11 +337,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass, @NotNull HaxeReference reference) {
-    final HaxeNamedComponent namedSubComponent =
+    HaxeNamedComponent namedSubComponent =
       HaxeResolveUtil.findNamedSubComponent(leftClass, reference.getText());
-    final HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
+    HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
     if (componentName != null) {
       return toCandidateInfoArray(componentName);
+    }
+    // if class is abstract try find in forwards
+    final boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftClass);
+    if (isAbstractForward) {
+      final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(leftClass);
+      if (underlyingClass != null) {
+        namedSubComponent = HaxeResolveUtil.findNamedSubComponent(underlyingClass, reference.getText());
+        componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
+        if (componentName != null) {
+          return toCandidateInfoArray(componentName);
+        }
+      }
     }
     // try find using
     for (HaxeClass haxeClass : HaxeResolveUtil.findUsingClasses(reference.getContainingFile())) {
@@ -303,7 +363,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           haxeNamedComponent.isStatic() &&
           haxeNamedComponent.getComponentName() != null) {
         final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
-        final boolean needToAdd = resolveResult.getHaxeClass() == null || resolveResult.getHaxeClass() == leftClass;
+        final HaxeClass resolvedClass = resolveResult.getHaxeClass();
+        final HashSet<HaxeClass> baseClassesSet = leftClass != null ? HaxeResolveUtil.getBaseClassesSet(leftClass) : null;
+        final boolean needToAdd = resolvedClass == null || resolvedClass == leftClass
+          || (baseClassesSet != null && baseClassesSet.contains(resolvedClass));
         if (needToAdd) {
           isExtension.set(true);
           return toCandidateInfoArray(haxeNamedComponent.getComponentName());

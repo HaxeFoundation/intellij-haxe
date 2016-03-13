@@ -1,8 +1,61 @@
 #Changelog
   <p>
-     Warning: This plugin will NOT work correctly using IDEA version 14.1.2. It works well with
-     versions 14.1 and 14.1.1. Version 14.1.3 is still being tested.
+     Warning: The 14.1 version of this plugin will NOT work correctly using IDEA version 14.1.2.
+     It works well with versions 14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version
+     of the plugin is for IDEA versions 14.1.5 and 14.1.6.
   </p>
+  <p>0.9.9: (community release)</p>
+  <ul>
+    <li>IDEA v15 compatibility.  (IDEA 13 compatiblity removed.)</li>
+    <li>v15 Project Structure and Module settings dialogs work. (TiVo Issue #380)</li>
+    <li>HXML: Fix `Editor/Colors & Fonts/HXML` tab (name & preview)</li>
+    <li>HXML: highlighting for included `.hxml` file</li>
+    <li>Fix unhandled exceptions while parsing numeric constants</li>
+    <li>Fix typedef types not resolved variants for completion list</li>
+    <li>Fix error annotation when implements `extern interface`</li>
+    <li>Fix extending anonymous types. (TiVo Issue #353)</li>
+    <li>Error annotation if type extends itself. (TiVo Issue #377)</li>
+    <li>Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)</li>
+    <li>Fix resolving variables having names identical to type names except for case. (TiVo Issues #405, #234)</li>
+    <li>Fix incorrect package resolution. (TiVo Issues #95, #176)</li>
+    <li>Fix base fields resolving for extended anonymous types (TiVo Issue #408)</li>
+    <li>Prevent recursion due to extending self for classes and typedefs.</li>
+    <li>Using file with multiple helper classes typedefs (for example `haxe.macro.Tools`) (TiVo Issue #128)</li>
+    <li>Allow short assignment syntax for generics. (TiVo Issue #388)</li>
+    <li>Fixed expected package name to no longer reference the system root. (TiVo Issue #387)</li>
+    <li>Save and restore OpenFL arguments on the Haxe Module settings dialog. (TiVo Issue #74)</li>
+    <li>Fixed repainting issue for OpenFL dialog when selecting compiler types. (TiVo Issue #44)</li>
+    <li>Fixed error parsing for Windows platforms.</li>
+  </ul>
+  <p>0.9.8: (community release)</p>
+  <ul>
+    <li>Version 14.1.5 and 14.1.6 compatibility.</li>
+    <li>Fix up some expressions to ignore non-error messages.</li>
+    <li>Fix comment alignment for single-line comments.(Issue #295)</li>
+  </ul>
+  <p>0.9.7: (community release)</p>
+  <ul>
+    <li>Fix the watch pane when debugging: typing and completion now work.</li>
+    <li>Load files using canonical names so that sym-linked files use the same buffer
+        as the original file.
+    </li>
+    <li>Use full package name when determining file to open when debugging.</li>
+    <li>Attempt to follow the classpath to determine which file to open when
+        multiple files have the same package names.
+    </li>
+    <li>Use implicit classpath entries during classpath operations. (e.g. haxe/std)</li>
+    <li>Remove "statics of XXX" from the debugger variable window pane.  (The Haxe debugger
+        at http://github.com/tivo/hxcpp-debugger has been updated to show statics
+        as part of the object tree for objects in view.
+    </li>
+    <li>Remove error embellishments before displaying errors in the debugger variable pane.</li>
+  </ul>
+  <p>0.9.6: (community release)</p>
+  <ul>
+    <li>Fix debugger trying to populate all variables when stopped at a breakpoint.</li>
+    <li>Suppress display of back-end generated intermediate variables when debugging.</li>
+    <li>Fix NPE when editing files outside of a project.</li>
+  </ul>
   <p>0.9.5: (community release)</p>
   <ul>
     <li>Add new typing support for type checking and completion. (Thanks to Carlos Ballesteros!) (Issues #288,#291,#308,#317)</li>
