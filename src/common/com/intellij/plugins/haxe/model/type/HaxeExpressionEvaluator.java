@@ -26,7 +26,6 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.build.HaxeMethodBuilder;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
@@ -620,7 +619,7 @@ public class HaxeExpressionEvaluator {
           context.addError(
             element,
             "Class " + clazz.getName() + " doesn't have a constructor",
-            new HaxeCreateMethodsFixer(clazz.getAliasOrSelf(), new HaxeMethodBuilder("new", null))
+            new HaxeCreateMethodsFixer(clazz.getAliasTypedefOrSelf(), new HaxeMethodBuilder("new", null))
           );
         }
         else {

@@ -110,7 +110,7 @@ public class HaxeClassModel {
     return out;
   }
 
-  public HaxeClassModel getAliasOrSelf() {
+  public HaxeClassModel getAliasTypedefOrSelf() {
     final ResultHolder type = getAliasType();
     final SpecificHaxeClassReference type1 = type != null ? type.getClassType() : null;
     if (type1 != null) {
