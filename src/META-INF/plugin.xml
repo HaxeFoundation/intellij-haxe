@@ -54,6 +54,14 @@
         <li>Find usages import filtering (issue #426)</li>
         <li>Fix forwarding abstract fields completion and resolving. (issue #447, #108)</li>
         <li>Navigate to symbols (issue #340)</li>
+
+        <li>PR #322 (Improved Semantics) and Issue #321:</li>
+        <li>Create method is now working and induce types from parameters + return type from assignments, also create argument names based on used identifiers and types</li>
+        <li>Switch is now implemented and check exhaustiveness (at least on some simple cases)</li>
+        <li>Error reporting about using `break;` and `continue;` outside loops</li>
+        <li>Implemented implement methods fix</li>
+        <li>Report missing semicolons</li>
+        <li>Fixed implementing interface with methods implemented in an ancestor class</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
