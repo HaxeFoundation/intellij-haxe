@@ -105,7 +105,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
     out += this.getName();
     out += "(";
     int index = 0;
-    for (HaxeParameterModel param : this.getParameters().parameters) {
+    for (HaxeParameterModel param : this.getParameters()) {
       if (index > 0) out += ", ";
       out += param.getPresentableText();
       index++;
@@ -128,7 +128,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeFunctionMode
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
     LinkedList<ResultHolder> args = new LinkedList<ResultHolder>();
-    for (HaxeParameterModel param : this.getParameters().parameters) {
+    for (HaxeParameterModel param : this.getParameters()) {
       args.add(param.getType(resolver));
     }
     return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);

@@ -44,7 +44,7 @@ public class HaxeMethodBuilder {
 
   static public HaxeMethodBuilder fromModel(HaxeMethodModel model) {
     final HaxeMethodBuilder builder = new HaxeMethodBuilder(model.getName(), model.getReturnType(null));
-    for (HaxeParameterModel parameter : model.getParameters().parameters) {
+    for (HaxeParameterModel parameter : model.getParameters()) {
       builder.addArgument(parameter.getName(), parameter.getType());
     }
     return builder;

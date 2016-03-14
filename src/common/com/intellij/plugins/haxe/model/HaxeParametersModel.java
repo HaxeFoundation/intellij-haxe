@@ -23,12 +23,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
-public class HaxeParametersModel {
-  @NotNull public final List<HaxeParameterModel> parameters;
-
-  @NotNull public final HaxeFunctionModel function;
+public class HaxeParametersModel implements Iterable<HaxeParameterModel> {
+  @NotNull private final List<HaxeParameterModel> parameters;
+  @NotNull private final HaxeFunctionModel function;
 
   private HaxeParametersModel(@NotNull HaxeFunctionModel function) {
     this.function = function;
@@ -57,4 +58,18 @@ public class HaxeParametersModel {
   }
 
   public int length() { return parameters.size(); }
+
+  @NotNull
+  public HaxeFunctionModel getFunction() {
+    return function;
+  }
+
+  public List<HaxeParameterModel> getList() {
+    return Collections.unmodifiableList(parameters);
+  }
+
+  @Override
+  public Iterator<HaxeParameterModel> iterator() {
+    return parameters.iterator();
+  }
 }

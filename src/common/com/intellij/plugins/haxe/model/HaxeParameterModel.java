@@ -115,7 +115,7 @@ public class HaxeParameterModel {
   }
 
   public HaxeFunctionModel getFunction() {
-    return parameters.function;
+    return parameters.getFunction();
   }
 
   public String getPresentableText() {

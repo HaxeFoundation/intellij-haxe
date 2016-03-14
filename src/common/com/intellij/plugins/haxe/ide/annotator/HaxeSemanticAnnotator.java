@@ -206,7 +206,7 @@ class FieldChecker {
             holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Setter must receive one parameter");
           }
           else {
-            HaxeParameterModel parameter = parameters.parameters.get(0);
+            HaxeParameterModel parameter = parameters.get(0);
             ResultHolder argType = parameter.getType();
             ResultHolder methodType = method.getResultType();
             if (!fieldType.canAssign(argType)) {
@@ -480,7 +480,7 @@ class MethodChecker {
       if (currentMethod.getReturnTypeTagPsi() == null) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
       }
-      for (final HaxeParameterModel param : currentMethod.getParameters().parameters) {
+      for (final HaxeParameterModel param : currentMethod.getParameters()) {
         if (param.getTypeTagPsi() == null) {
           holder.createErrorAnnotation(param.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
         }
@@ -491,7 +491,7 @@ class MethodChecker {
   static public void checkMethodArguments(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     boolean hasOptional = false;
     HashMap<String, PsiElement> argumentNames = new HashMap<String, PsiElement>();
-    for (final HaxeParameterModel param : currentMethod.getParameters().parameters) {
+    for (final HaxeParameterModel param : currentMethod.getParameters()) {
       String paramName = param.getName();
 
       if (param.hasOptionalPsi() && param.getVarInitPsi() != null) {
@@ -610,8 +610,8 @@ class MethodChecker {
   ) {
     final HaxeDocumentModel document = currentMethod.getDocument();
 
-    List<HaxeParameterModel> currentParameters = currentMethod.getParameters().parameters;
-    final List<HaxeParameterModel> parentParameters = parentMethod.getParameters().parameters;
+    List<HaxeParameterModel> currentParameters = currentMethod.getParameters();
+    final List<HaxeParameterModel> parentParameters = parentMethod.getParameters();
     int minParameters = Math.min(currentParameters.size(), parentParameters.size());
 
     if (currentParameters.size() > parentParameters.size()) {

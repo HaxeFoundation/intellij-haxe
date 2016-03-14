@@ -35,7 +35,7 @@ public class HaxeResolver2Parameters extends HaxeResolver2 {
   @Nullable
   @Override
   public ResultHolder get(String key) {
-    for (HaxeParameterModel parameter : parameters.parameters) {
+    for (HaxeParameterModel parameter : parameters) {
       if (parameter.getName().equals(key)) {
         return parameter.getType();
       }
@@ -46,13 +46,13 @@ public class HaxeResolver2Parameters extends HaxeResolver2 {
 
   @Override
   public void addResults(@NotNull Map<String, ResultHolder> results) {
-    for (HaxeParameterModel parameter : parameters.parameters) {
+    for (HaxeParameterModel parameter : parameters) {
       results.put(parameter.getName(), parameter.getType());
     }
   }
 
   @Override
   public boolean isInStaticContext() {
-    return parameters.function.isStatic();
+    return parameters.getFunction().isStatic();
   }
 }
