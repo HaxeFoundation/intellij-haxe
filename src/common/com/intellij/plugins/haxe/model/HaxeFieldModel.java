@@ -98,14 +98,22 @@ public class HaxeFieldModel extends HaxeMemberModel {
     return isRealVar() || this.getSetterType().isAllowedFromInside();
   }
 
+  public String getGetterMethodName() {
+    return "get_" + this.getName();
+  }
+
+  public String getSetterMethodName() {
+    return "set_" + this.getName();
+  }
+
   public HaxeMethodModel getGetterMethod() {
     if (getGetterType() != HaxeAccessorType.GET) return null;
-    return this.getDeclaringClass().getMethod("get_" + this.getName());
+    return this.getDeclaringClass().getMethod(getGetterMethodName());
   }
 
   public HaxeMethodModel getSetterMethod() {
-    if (getGetterType() != HaxeAccessorType.SET) return null;
-    return this.getDeclaringClass().getMethod("set_" + this.getName());
+    if (getSetterType() != HaxeAccessorType.SET) return null;
+    return this.getDeclaringClass().getMethod(getSetterMethodName());
   }
 
   public boolean isRealVar() {

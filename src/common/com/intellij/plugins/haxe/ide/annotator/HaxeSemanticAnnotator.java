@@ -175,9 +175,9 @@ class FieldChecker {
 
     if (!clazz.isExternOrInterface()) {
       if (field.getGetterType() == HaxeAccessorType.GET) {
-        final String methodName = "get_" + field.getName();
-        HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+        final HaxeMethodModel method = field.getGetterMethod();
         if (method == null) {
+          final String methodName = field.getGetterMethodName();
           Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
           annotation.registerFix(new HaxeCreateMethodsFixer(field.getDeclaringClass(), new HaxeMethodBuilder(methodName, fieldType)));
         }
@@ -191,9 +191,9 @@ class FieldChecker {
       }
 
       if (field.getSetterType() == HaxeAccessorType.SET) {
-        final String methodName = "set_" + field.getName();
-        HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+        final HaxeMethodModel method = field.getSetterMethod();
         if (method == null) {
+          final String methodName = field.getSetterMethodName();
           Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
           annotation.registerFix(new HaxeCreateMethodsFixer(
             field.getDeclaringClass(),
