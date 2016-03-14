@@ -610,9 +610,9 @@ class MethodChecker {
   ) {
     final HaxeDocumentModel document = currentMethod.getDocument();
 
-    List<HaxeParameterModel> currentParameters = currentMethod.getParameters();
-    final List<HaxeParameterModel> parentParameters = parentMethod.getParameters();
-    int minParameters = Math.min(currentParameters.size(), parentParameters.size());
+    final List<HaxeParameterModel> currentParameters = currentMethod.getParameters().getList();
+    final List<HaxeParameterModel> parentParameters = parentMethod.getParameters().getList();
+    final int minParameters = Math.min(currentParameters.size(), parentParameters.size());
 
     if (currentParameters.size() > parentParameters.size()) {
       for (int n = minParameters; n < currentParameters.size(); n++) {
