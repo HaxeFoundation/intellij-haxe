@@ -46,17 +46,19 @@ public class FqInfo {
       if (HaxeNameUtils.isValidClassName(part)) {
         classParts.add(part);
         inClassPart = true;
-      } else if (HaxeNameUtils.isValidPackageName(part)) {
+      }
+      else if (HaxeNameUtils.isValidPackageName(part)) {
         if (inClassPart) {
           return null;
         }
         packageParts.add(part);
-      } else {
+      }
+      else {
         return null;
       }
     }
 
-    if (classParts.size() > 2) {
+    if (classParts.isEmpty() || classParts.size() > 2) {
       return null;
     }
 
@@ -68,5 +70,10 @@ public class FqInfo {
     }
 
     return new FqInfo(Joiner.on('.').join(packageParts), fileName, className);
+  }
+
+  @Override
+  public String toString() {
+    return "FqInfo(" + packagePath + ":" + fileName + ":" + className + ")";
   }
 }
