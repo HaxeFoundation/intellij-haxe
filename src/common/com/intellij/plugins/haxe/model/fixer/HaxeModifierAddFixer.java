@@ -17,18 +17,18 @@
  */
 package com.intellij.plugins.haxe.model.fixer;
 
-import com.intellij.plugins.haxe.model.HaxeModifierType;
+import com.intellij.plugins.haxe.model.HaxeModifier;
 import com.intellij.plugins.haxe.model.HaxeModifiersModel;
 
 public class HaxeModifierAddFixer extends HaxeFixer {
   private HaxeModifiersModel modifiers;
-  private HaxeModifierType modifier;
+  private HaxeModifier modifier;
 
-  public HaxeModifierAddFixer(HaxeModifiersModel modifiers, HaxeModifierType modifier) {
-    this(modifiers, modifier, "Add " + modifier.s);
+  public HaxeModifierAddFixer(HaxeModifiersModel modifiers, HaxeModifier modifier) {
+    this(modifiers, modifier, "Add " + modifier.getKeyword());
   }
 
-  public HaxeModifierAddFixer(HaxeModifiersModel modifiers, HaxeModifierType modifier, String string) {
+  public HaxeModifierAddFixer(HaxeModifiersModel modifiers, HaxeModifier modifier, String string) {
     super(string);
     this.modifiers = modifiers;
     this.modifier = modifier;

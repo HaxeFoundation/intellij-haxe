@@ -169,58 +169,6 @@ class FieldChecker {
       holder.createErrorAnnotation(field.getSetterPsi(), "Invalid setter accessor");
     }
 
-    ResultHolder fieldType = field.getResultType();
-
-    final HaxeClassModel clazz = field.getDeclaringClass();
-
-    if (!clazz.isExternOrInterface()) {
-      if (field.getGetterType() == HaxeAccessorType.GET) {
-        final HaxeMethodModel method = field.getGetterMethod();
-        if (method == null) {
-          final String methodName = field.getGetterMethodName();
-          Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
-          annotation.registerFix(new HaxeCreateMethodsFixer(field.getDeclaringClass(), new HaxeMethodBuilder(methodName, fieldType)));
-        }
-        else {
-          ResultHolder methodType = method.getResultType();
-          if (!fieldType.canAssign(methodType)) {
-            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
-                                         "Return type " + methodType + " must match getter type " + fieldType);
-          }
-        }
-      }
-
-      if (field.getSetterType() == HaxeAccessorType.SET) {
-        final HaxeMethodModel method = field.getSetterMethod();
-        if (method == null) {
-          final String methodName = field.getSetterMethodName();
-          Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
-          annotation.registerFix(new HaxeCreateMethodsFixer(
-            field.getDeclaringClass(),
-            new HaxeMethodBuilder(methodName, fieldType, new HaxeArgumentBuilder("value", fieldType))
-          ));
-        }
-        else {
-          HaxeParametersModel parameters = method.getParameters();
-          if (parameters.length() != 1) {
-            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Setter must receive one parameter");
-          }
-          else {
-            HaxeParameterModel parameter = parameters.get(0);
-            ResultHolder argType = parameter.getType();
-            ResultHolder methodType = method.getResultType();
-            if (!fieldType.canAssign(argType)) {
-              holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
-                                           "First argument type " + argType + " must match getter type " + fieldType);
-            }
-            if (!fieldType.canAssign(methodType)) {
-              holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
-                                           "Return type " + methodType + " must match getter type " + fieldType);
-            }
-          }
-        }
-      }
-    }
 
     // @TODO: CHECK
     checkPropertyAccessorMethods(field, holder);
@@ -240,7 +188,7 @@ class FieldChecker {
       annotation.registerFix(new HaxeFixer("Add @:isVar") {
         @Override
         public void run() {
-          field.getModifiers().addModifier(HaxeModifierType.IS_VAR);
+          field.getModifiers().addModifier(HaxeExtraModifiers.IS_VAR);
         }
       });
       if (field.getSetterPsi() != null) {
@@ -255,38 +203,69 @@ class FieldChecker {
   }
 
   static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
-    if (field.getDeclaringClass().isInterface()) {
+    final ResultHolder fieldType = field.getResultType();
+    final HaxeClassModel clazz = field.getDeclaringClass();
+
+    if (clazz.isExternOrInterface()) {
       return;
     }
 
     if (field.getGetterType() == HaxeAccessorType.GET) {
-      final String methodName = "get_" + field.getName();
-      final HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      final HaxeMethodModel method = field.getGetterMethod();
       if (method == null) {
+        final String methodName = field.getGetterMethodName();
         Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(method);
-          }
-        });
+        annotation.registerFix(new HaxeCreateMethodsFixer(field.getDeclaringClass(), new HaxeMethodBuilder(
+          new HaxeModifiersList(HaxeVisibility.PRIVATE),
+          methodName,
+          fieldType
+        )));
+      }
+      else {
+        ResultHolder methodType = method.getResultType();
+        if (!fieldType.canAssign(methodType)) {
+          holder.createErrorAnnotation(
+            method.getReturnTypeTagOrNameOrBasePsi(),
+            "Return type " + methodType + " must match getter type " + fieldType);
+        }
       }
     }
 
     if (field.getSetterType() == HaxeAccessorType.SET) {
-      final String methodName = "set_" + field.getName();
-      final HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
+      final HaxeMethodModel method = field.getSetterMethod();
       if (method == null) {
+        final String methodName = field.getSetterMethodName();
         Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(method);
+        annotation.registerFix(new HaxeCreateMethodsFixer(
+          field.getDeclaringClass(),
+          new HaxeMethodBuilder(
+            new HaxeModifiersList(HaxeVisibility.PRIVATE),
+            methodName, fieldType, new HaxeArgumentBuilder("value", fieldType)
+          )
+        ));
+      }
+      else {
+        HaxeParametersModel parameters = method.getParameters();
+        if (parameters.length() != 1) {
+          holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(), "Setter must receive one parameter");
+        }
+        else {
+          HaxeParameterModel parameter = parameters.get(0);
+          ResultHolder argType = parameter.getType();
+          ResultHolder methodType = method.getResultType();
+          if (!fieldType.canAssign(argType)) {
+            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
+                                         "First argument type " + argType + " must match getter type " + fieldType);
           }
-        });
+          if (!fieldType.canAssign(methodType)) {
+            holder.createErrorAnnotation(method.getReturnTypeTagOrNameOrBasePsi(),
+                                         "Return type " + methodType + " must match getter type " + fieldType);
+          }
+        }
       }
     }
   }
+
 }
 
 class TypeChecker {
@@ -451,6 +430,9 @@ class ClassChecker {
       final ArrayList<HaxeMethodBuilder> methodBuilders = new ArrayList<HaxeMethodBuilder>();
       for (HaxeMethodModel method : missingMethods) {
         final HaxeMethodBuilder builder = HaxeMethodBuilder.fromModel(method);
+        if (method.getDeclaringClass().isInterface()) {
+          builder.modifiers.replaceVisibility(HaxeVisibility.PUBLIC);
+        }
         methodBuilders.add(builder);
       }
 
@@ -540,31 +522,31 @@ class MethodChecker {
 
     if (currentMethod.isConstructor()) {
       requiredOverride = false;
-      if (currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+      if (currentModifiers.hasModifier(HaxeExtraModifiers.STATIC)) {
         // @TODO: Move to bundle
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Constructor can't be static").registerFix(
-          new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.STATIC)
+          new HaxeModifierRemoveFixer(currentModifiers, HaxeExtraModifiers.STATIC)
         );
       }
     }
     else if (currentMethod.isStaticInit()) {
       requiredOverride = false;
-      if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+      if (!currentModifiers.hasModifier(HaxeExtraModifiers.STATIC)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
-          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.STATIC)
+          new HaxeModifierAddFixer(currentModifiers, HaxeExtraModifiers.STATIC)
         );
       }
     }
     else if (parentMethod != null) {
       requiredOverride = true;
 
-      if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
+      if (parentModifiers.hasAnyModifier(HaxeExtraModifiers.INLINE, HaxeExtraModifiers.STATIC, HaxeExtraModifiers.FINAL)) {
         Annotation annotation =
           holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
-        for (HaxeModifierType mod : new HaxeModifierType[]{HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC}) {
+        for (HaxeModifier mod : new HaxeModifier[]{HaxeExtraModifiers.FINAL, HaxeExtraModifiers.INLINE, HaxeExtraModifiers.STATIC}) {
           if (parentModifiers.hasModifier(mod)) {
             annotation.registerFix(
-              new HaxeModifierRemoveFixer(parentModifiers, mod, "Remove " + mod.s + " from " + parentMethod.getFullName())
+              new HaxeModifierRemoveFixer(parentModifiers, mod, "Remove " + mod.getKeyword() + " from " + parentMethod.getFullName())
             );
           }
         }
@@ -585,15 +567,15 @@ class MethodChecker {
     }
 
     //System.out.println(aClass);
-    if (currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && !requiredOverride) {
-      holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
-        new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.OVERRIDE)
+    if (currentModifiers.hasModifier(HaxeExtraModifiers.OVERRIDE) && !requiredOverride) {
+      holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeExtraModifiers.OVERRIDE), "Overriding nothing").registerFix(
+        new HaxeModifierRemoveFixer(currentModifiers, HaxeExtraModifiers.OVERRIDE)
       );
     }
     else if (requiredOverride) {
-      if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE)) {
+      if (!currentModifiers.hasModifier(HaxeExtraModifiers.OVERRIDE)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
-          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.OVERRIDE)
+          new HaxeModifierAddFixer(currentModifiers, HaxeExtraModifiers.OVERRIDE)
         );
       }
       else {

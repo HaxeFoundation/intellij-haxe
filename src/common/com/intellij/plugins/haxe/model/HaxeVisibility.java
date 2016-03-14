@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
+ * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,26 +17,13 @@
  */
 package com.intellij.plugins.haxe.model;
 
-public enum HaxeModifierType {
-  OVERRIDE("override"),
-  STATIC("static"),
-  PUBLIC("public"),
-  PRIVATE("private"),
-  EMPTY(""),
-  INLINE("inline"),
-  FINAL("@:final"),
-  IS_VAR("@:isVar"),
-  DEPRECATED("@:deprecated");
+public enum HaxeVisibility implements HaxeModifier {
+  PUBLIC("public"), PRIVATE("private"), EMPTY("");
 
+  public String name;
 
-  public String s;
-
-  HaxeModifierType(String s) {
-    this.s = s;
-  }
-
-  public String getStringWithSpace() {
-    return (this.s.length() == 0) ? "" : (this.s + " ");
+  HaxeVisibility(String name) {
+    this.name = name;
   }
 
   public int getVisibilityValue() {
@@ -51,7 +38,15 @@ public enum HaxeModifierType {
     return -1;
   }
 
-  public boolean hasLowerVisibilityThan(HaxeModifierType that) {
+  public boolean hasLowerVisibilityThan(HaxeVisibility that) {
     return this.getVisibilityValue() < that.getVisibilityValue();
+  }
+
+  public String getKeyword() {
+    return this.name;
+  }
+
+  public String getKeywordWithSpace() {
+    return (this.name.length() == 0) ? "" : (this.name + " ");
   }
 }

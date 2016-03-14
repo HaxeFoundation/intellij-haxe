@@ -25,7 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeModifierType;
+import com.intellij.plugins.haxe.model.HaxeExtraModifiers;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -90,7 +90,7 @@ public class HaxeLookupElement extends LookupElement {
       }
 
       // Check deprecated modifiers
-      if (member.getModifiers().hasModifier(HaxeModifierType.DEPRECATED)) {
+      if (member.getModifiers().hasModifier(HaxeExtraModifiers.DEPRECATED)) {
         presentation.setStrikeout(true);
       }
 

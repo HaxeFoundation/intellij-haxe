@@ -17,8 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.build;
 
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.util.HaxeNameUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -32,26 +31,28 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeMethodBuilder {
+  public final HaxeModifiers modifiers;
   public final String name;
   @Nullable public final ResultHolder retval;
   public final List<HaxeArgumentBuilder> args;
 
-  public HaxeMethodBuilder(String name, @Nullable ResultHolder retval, HaxeArgumentBuilder... args) {
+  public HaxeMethodBuilder(HaxeModifiers modifiers, String name, @Nullable ResultHolder retval, HaxeArgumentBuilder... args) {
+    this.modifiers = new HaxeModifiersList(modifiers);
     this.name = name;
     this.retval = retval;
     this.args = new LinkedList<HaxeArgumentBuilder>(Arrays.asList(args));
   }
 
   static public HaxeMethodBuilder fromModel(HaxeMethodModel model) {
-    final HaxeMethodBuilder builder = new HaxeMethodBuilder(model.getName(), model.getReturnType(null));
+    final HaxeMethodBuilder builder = new HaxeMethodBuilder(new HaxeModifiersList(model.getModifiers()), model.getName(), model.getReturnType(null));
     for (HaxeParameterModel parameter : model.getParameters()) {
       builder.addArgument(parameter.getName(), parameter.getType());
     }
     return builder;
   }
 
-  public HaxeMethodBuilder(String name, @Nullable ResultHolder retval, Collection<HaxeArgumentBuilder> args) {
-    this(name, retval, args.toArray(new HaxeArgumentBuilder[args.size()]));
+  public HaxeMethodBuilder(HaxeModifiers modifiers, String name, @Nullable ResultHolder retval, Collection<HaxeArgumentBuilder> args) {
+    this(modifiers, name, retval, args.toArray(new HaxeArgumentBuilder[args.size()]));
   }
 
   public void addArgument(HaxeArgumentBuilder arg) {
@@ -69,7 +70,7 @@ public class HaxeMethodBuilder {
   }
 
   public HaxeMethodBuilder(String name) {
-    this(name, null);
+    this(new HaxeModifiersList(HaxeVisibility.PUBLIC), name, null);
   }
 
   public String toString() {

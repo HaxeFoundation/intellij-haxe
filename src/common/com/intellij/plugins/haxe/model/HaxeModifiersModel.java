@@ -17,60 +17,60 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.google.common.collect.Lists;
 import com.intellij.plugins.haxe.lang.psi.HaxeCustomMeta;
 import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttribute;
 import com.intellij.plugins.haxe.lang.psi.HaxeFinalMeta;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
-public class HaxeModifiersModel {
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class HaxeModifiersModel extends HaxeModifiers {
   private PsiElement baseElement;
 
   public HaxeModifiersModel(PsiElement baseElement) {
     this.baseElement = baseElement;
   }
 
-  public boolean hasModifier(HaxeModifierType modifier) {
+  @Override
+  public boolean hasModifier(HaxeModifier modifier) {
     return getModifierPsi(modifier) != null;
   }
 
-  public boolean hasAnyModifier(HaxeModifierType... modifiers) {
-    for (HaxeModifierType modifier : modifiers) if (hasModifier(modifier)) return true;
-    return false;
-  }
-
-  public boolean hasAllModifiers(HaxeModifierType... modifiers) {
-    for (HaxeModifierType modifier : modifiers) if (!hasModifier(modifier)) return false;
-    return true;
-  }
-
-  public PsiElement getModifierPsi(HaxeModifierType modifier) {
-    PsiElement result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeDeclarationAttribute.class, modifier.s);
-    if (result == null) result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeFinalMeta.class, modifier.s);
-    if (result == null) result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeCustomMeta.class, modifier.s);
+  // @TODO: This is bad! We need to parse this better!
+  public PsiElement getModifierPsi(HaxeModifier modifier) {
+    PsiElement result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeDeclarationAttribute.class, modifier.getKeyword());
+    if (result == null) result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeFinalMeta.class, modifier.getKeyword());
+    if (result == null) result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeCustomMeta.class, modifier.getKeyword());
     return result;
   }
 
-  public PsiElement getModifierPsiOrBase(HaxeModifierType modifier) {
+  public PsiElement getModifierPsiOrBase(HaxeModifier modifier) {
     PsiElement psi = getModifierPsi(modifier);
     if (psi == null) psi = this.baseElement;
     return psi;
   }
 
-  public void replaceVisibility(HaxeModifierType modifier) {
-    PsiElement psi = getVisibilityPsi();
-    if (psi != null) {
-      getDocument().replaceElementText(psi, modifier.getStringWithSpace(), StripSpaces.AFTER);
-    } else {
-      addModifier(modifier);
-    }
-  }
-
-  public void removeModifier(HaxeModifierType modifier) {
+  @Override
+  public void removeModifier(HaxeModifier modifier) {
     PsiElement psi = getModifierPsi(modifier);
     if (psi != null) {
       psi.delete();
+    }
+  }
+
+  @Override
+  public void replaceModifier(HaxeModifier oldModifier, HaxeModifier newModifier) {
+    PsiElement psi = getModifierPsi(oldModifier);
+    if (psi != null) {
+      getDocument().replaceElementText(psi, newModifier.getKeywordWithSpace(), StripSpaces.AFTER);
+    } else {
+      addModifier(newModifier);
     }
   }
 
@@ -85,19 +85,24 @@ public class HaxeModifiersModel {
     return _document;
   }
 
-  public void addModifier(HaxeModifierType modifier) {
-    getDocument().addTextBeforeElement(baseElement, modifier.getStringWithSpace());
+  @Override
+  public void addModifier(HaxeModifier modifier) {
+    getDocument().addTextBeforeElement(baseElement, modifier.getKeywordWithSpace());
   }
 
-  public PsiElement getVisibilityPsi() {
-    PsiElement element = getModifierPsi(HaxeModifierType.PUBLIC);
-    if (element == null) element = getModifierPsi(HaxeModifierType.PRIVATE);
-    return element;
+  // @TODO: This is really bad! We need to parse this better!
+  @Override
+  public List<HaxeModifier> getAllModifiers() {
+    ArrayList<HaxeModifier> modifiers = new ArrayList<HaxeModifier>();
+
+    for (HaxeModifier mod : HaxeExtraModifiers.values()) if (hasModifier(mod)) modifiers.add(mod);
+    for (HaxeModifier mod : HaxeVisibility.values()) if (hasModifier(mod)) modifiers.add(mod);
+
+    return modifiers;
   }
 
-  public HaxeModifierType getVisibility() {
-    if (getModifierPsi(HaxeModifierType.PUBLIC) != null) return HaxeModifierType.PUBLIC;
-    if (getModifierPsi(HaxeModifierType.PRIVATE) != null) return HaxeModifierType.PRIVATE;
-    return HaxeModifierType.EMPTY;
+  @Override
+  public Iterator<HaxeModifier> iterator() {
+    return getAllModifiers().iterator();
   }
 }

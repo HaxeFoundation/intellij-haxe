@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +116,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
   }
 
   public boolean isRealVar() {
-    if (this.getModifiers().hasModifier(HaxeModifierType.IS_VAR)) return true;
+    if (this.getModifiers().hasModifier(HaxeExtraModifiers.IS_VAR)) return true;
     if (!isProperty()) return true;
     if (getSetterType() == HaxeAccessorType.NULL || getSetterType() == HaxeAccessorType.DEFAULT) {
       return true;

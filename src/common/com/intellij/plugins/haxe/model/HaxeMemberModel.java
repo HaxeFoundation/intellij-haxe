@@ -21,7 +21,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
@@ -39,10 +38,10 @@ abstract public class HaxeMemberModel {
   }
 
   public boolean isPublic() {
-    return this.getModifiers().hasModifier(HaxeModifierType.PUBLIC);
+    return this.getModifiers().hasModifier(HaxeVisibility.PUBLIC);
   }
   public boolean isStatic() {
-    return getModifiers().hasModifier(HaxeModifierType.STATIC);
+    return getModifiers().hasModifier(HaxeExtraModifiers.STATIC);
   }
 
   private HaxeMetasModel metas;

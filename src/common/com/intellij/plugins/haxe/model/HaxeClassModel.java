@@ -634,7 +634,7 @@ public class HaxeClassModel {
   public void addMethods(HaxeMethodBuilder... methodBuilders) {
     String out = "";
     for (HaxeMethodBuilder builder : methodBuilders) {
-      out += "public " + builder.toString() + "\n";
+      out += builder.modifiers.toStringCombined() + " " + builder.toString() + "\n";
     }
 
     this.getDocument().addTextAfterElement(getBodyPsi(), out);
@@ -656,7 +656,7 @@ public class HaxeClassModel {
     ).createHolder();
   }
 
-  public void addMethod(HaxeMethodModel method) {
+  public void addMethod(@NotNull HaxeMethodModel method) {
     ArrayList<HaxeMethodModel> list = new ArrayList<HaxeMethodModel>();
     list.add(method);
     addMethodsFromPrototype(list);

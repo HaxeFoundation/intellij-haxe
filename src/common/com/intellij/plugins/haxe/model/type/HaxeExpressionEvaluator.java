@@ -619,7 +619,7 @@ public class HaxeExpressionEvaluator {
           context.addError(
             element,
             "Class " + clazz.getName() + " doesn't have a constructor",
-            new HaxeCreateMethodsFixer(clazz.getAliasTypedefOrSelf(), new HaxeMethodBuilder("new", null))
+            new HaxeCreateMethodsFixer(clazz.getAliasTypedefOrSelf(), new HaxeMethodBuilder(new HaxeModifiersList(HaxeVisibility.PUBLIC), "new", null))
           );
         }
         else {
@@ -1163,7 +1163,7 @@ public class HaxeExpressionEvaluator {
                   }
                 }
                 final HaxeExpressionList list = callExpr.getExpressionList();
-                final HaxeMethodBuilder methodBuilder = new HaxeMethodBuilder(accessName, returnType);
+                final HaxeMethodBuilder methodBuilder = new HaxeMethodBuilder(new HaxeModifiersList(HaxeVisibility.PUBLIC), accessName, returnType);
                 if (list != null) {
                   for (HaxeExpression expression : list.getExpressionList()) {
                     final ResultHolder handle = handle(expression, context);

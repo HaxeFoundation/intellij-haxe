@@ -15,27 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.model.fixer;
+package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.model.HaxeModifier;
-import com.intellij.plugins.haxe.model.HaxeModifiersModel;
+public enum HaxeExtraModifiers implements HaxeModifier {
+  OVERRIDE("override"),
+  STATIC("static"),
+  INLINE("inline"),
+  FINAL("@:final"),
+  IS_VAR("@:isVar"),
+  DEPRECATED("@:deprecated");
 
-public class HaxeModifierRemoveFixer extends HaxeFixer {
-  private HaxeModifiersModel modifiers;
-  private HaxeModifier modifier;
 
-  public HaxeModifierRemoveFixer(HaxeModifiersModel modifiers, HaxeModifier modifier) {
-    this(modifiers, modifier, "Remove " + modifier.getKeyword());
+  public String s;
+
+  HaxeExtraModifiers(String s) {
+    this.s = s;
   }
 
-  public HaxeModifierRemoveFixer(HaxeModifiersModel modifiers, HaxeModifier modifier, String string) {
-    super(string);
-    this.modifiers = modifiers;
-    this.modifier = modifier;
+  public String getKeywordWithSpace() {
+    return (this.s.length() == 0) ? "" : (this.s + " ");
   }
 
   @Override
-  public void run() {
-    modifiers.removeModifier(modifier);
+  public String getKeyword() {
+    return s;
   }
 }
