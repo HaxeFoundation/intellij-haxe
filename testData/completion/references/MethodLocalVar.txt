@@ -1,0 +1,3 @@
+:INCLUDE
+methodLocalVar1
+methodLocalVar2
