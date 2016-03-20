@@ -2,8 +2,8 @@ class MethodLocalVar {
   function new() {}
 
   public function testMethod() {
-    var methodLocalVar1:String = "hello";
-    var methodLocalVar2:String = "hello";
+    var localVar1:String = "hello";
+    var localVar2 = "hello";
     <caret>
   }
 

@@ -1,7 +1,7 @@
 class MethodArg {
   function new() {}
 
-  public function testMethod(methodArg1:String, methodArg2) {
+  public function testMethod(argument1:String, argument2) {
     <caret>
   }
 
