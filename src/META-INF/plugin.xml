@@ -54,6 +54,7 @@
         <li>Find usages import filtering (issue #426)</li>
         <li>Fix forwarding abstract fields completion and resolving. (issue #447, #108)</li>
         <li>Navigate to symbols (issue #340)</li>
+        <li>Fix method local variables and arguments completion. (issue #455)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
