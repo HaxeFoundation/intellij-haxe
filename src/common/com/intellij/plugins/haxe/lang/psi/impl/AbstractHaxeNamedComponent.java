@@ -109,8 +109,11 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             result.append("(").append(parameterList).append(")");
           }
 
-          result.append(":");
-          result.append(HaxeTypeResolver.getFieldOrMethodReturnType(AbstractHaxeNamedComponent.this).toString());
+          final ResultHolder resultType = member.getResultType();
+          if (resultType != null) {
+            result.append(":");
+            result.append(member.getResultType().toString());
+          }
         }
 
         return result.toString();
