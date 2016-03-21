@@ -1,3 +1,8 @@
 :INCLUDE
 argument1
+argument1:String
 argument2
+
+:EXCLUDE
+argument1:Unknown
+argument2:Unknown
