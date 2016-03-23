@@ -59,7 +59,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
       _parameters = new ArrayList<HaxeParameterModel>();
       if (parameterList != null) {
         for (HaxeParameter parameter : parameterList.getParameterList()) {
-          _parameters.add(new HaxeParameterModel(parameter, this));
+          _parameters.add(new HaxeParameterModel(parameter));
         }
       }
   //  }
