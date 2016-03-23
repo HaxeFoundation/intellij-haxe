@@ -84,10 +84,6 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return (psi != null) ? psi : getNameOrBasePsi();
   }
 
-  public boolean isStatic() {
-    return getModifiers().hasModifier(HaxeModifierType.STATIC);
-  }
-
   private HaxeClassModel _declaringClass = null;
   public HaxeClassModel getDeclaringClass() {
     if (_declaringClass == null) {

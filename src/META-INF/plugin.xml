@@ -54,6 +54,7 @@
         <li>Find usages import filtering (issue #426)</li>
         <li>Fix forwarding abstract fields completion and resolving. (issue #447, #108)</li>
         <li>Navigate to symbols (issue #340)</li>
+        <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
