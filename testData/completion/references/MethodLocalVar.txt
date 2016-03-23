@@ -1,0 +1,8 @@
+:INCLUDE
+localVar1
+localVar1:String
+localVar2
+
+:EXCLUDE
+localVar1:Unknown
+localVar2:Unknown
