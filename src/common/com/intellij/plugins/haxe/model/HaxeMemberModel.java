@@ -41,6 +41,10 @@ abstract public class HaxeMemberModel {
     return this.getModifiers().hasModifier(HaxeModifierType.PUBLIC);
   }
 
+  public boolean isStatic() {
+    return getModifiers().hasModifier(HaxeModifierType.STATIC);
+  }
+
   private HaxeDocumentModel _document = null;
   @NotNull
   public HaxeDocumentModel getDocument() {
