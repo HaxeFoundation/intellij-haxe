@@ -138,8 +138,13 @@ class FieldChecker {
       if (fieldDeclaringClass != null) {
         for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {
           if (parentField.getName().equals(field.getName())) {
-            holder.createErrorAnnotation(field.getDeclarationPsi(), "Redefinition of variable '" + field.getName()
-              + "' in subclass is not allowed. Previously declared at '" + fieldDeclaringClass.getName() + "'.");
+            if (parentField.isStatic()) {
+              holder.createWarningAnnotation(field.getNameOrBasePsi(), "Field '" + field.getName()
+                + "' overrides a static field of a superclass.");
+            } else {
+              holder.createErrorAnnotation(field.getDeclarationPsi(), "Redefinition of variable '" + field.getName()
+                + "' in subclass is not allowed. Previously declared at '" + fieldDeclaringClass.getName() + "'.");
+            }
             break;
           }
         }
@@ -491,31 +496,37 @@ class MethodChecker {
       }
     }
     else if (parentMethod != null) {
-      requiredOverride = true;
+      if (parentMethod.isStatic()) {
+        holder.createWarningAnnotation(currentMethod.getNameOrBasePsi(), "Method '" + currentMethod.getName()
+          + "' overrides a static method of a superclass");
+      }
+      else {
+        requiredOverride = true;
 
-      if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
-        Annotation annotation =
-          holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
-        for (HaxeModifierType mod : new HaxeModifierType[]{HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC}) {
-          if (parentModifiers.hasModifier(mod)) {
-            annotation.registerFix(
-              new HaxeModifierRemoveFixer(parentModifiers, mod, "Remove " + mod.s + " from " + parentMethod.getFullName())
-            );
+        if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
+          Annotation annotation =
+            holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
+          for (HaxeModifierType mod : new HaxeModifierType[]{HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC}) {
+            if (parentModifiers.hasModifier(mod)) {
+              annotation.registerFix(
+                new HaxeModifierRemoveFixer(parentModifiers, mod, "Remove " + mod.s + " from " + parentMethod.getFullName())
+              );
+            }
           }
         }
-      }
 
-      if (currentModifiers.getVisibility().hasLowerVisibilityThan(parentModifiers.getVisibility())) {
-        Annotation annotation = holder.createErrorAnnotation(
-          currentMethod.getNameOrBasePsi(),
-          "Field " +
-          currentMethod.getName() +
-          " has less visibility (public/private) than superclass one"
-        );
-        annotation.registerFix(
-          new HaxeModifierReplaceVisibilityFixer(currentModifiers, parentModifiers.getVisibility(), "Change current method visibility"));
-        annotation.registerFix(
-          new HaxeModifierReplaceVisibilityFixer(parentModifiers, currentModifiers.getVisibility(), "Change parent method visibility"));
+        if (currentModifiers.getVisibility().hasLowerVisibilityThan(parentModifiers.getVisibility())) {
+          Annotation annotation = holder.createErrorAnnotation(
+            currentMethod.getNameOrBasePsi(),
+            "Field " +
+            currentMethod.getName() +
+            " has less visibility (public/private) than superclass one"
+          );
+          annotation.registerFix(
+            new HaxeModifierReplaceVisibilityFixer(currentModifiers, parentModifiers.getVisibility(), "Change current method visibility"));
+          annotation.registerFix(
+            new HaxeModifierReplaceVisibilityFixer(parentModifiers, currentModifiers.getVisibility(), "Change parent method visibility"));
+        }
       }
     }
 

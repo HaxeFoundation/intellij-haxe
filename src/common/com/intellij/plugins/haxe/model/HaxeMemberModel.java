@@ -41,6 +41,10 @@ abstract public class HaxeMemberModel {
     return this.getModifiers().hasModifier(HaxeModifierType.PUBLIC);
   }
 
+  public boolean isStatic() {
+    return getModifiers().hasModifier(HaxeModifierType.STATIC);
+  }
+
   private HaxeDocumentModel _document = null;
   @NotNull
   public HaxeDocumentModel getDocument() {
@@ -91,6 +95,8 @@ abstract public class HaxeMemberModel {
   public static HaxeMemberModel fromPsi(PsiElement element) {
     if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
     if (element instanceof HaxeVarDeclaration) return new HaxeFieldModel((HaxeVarDeclaration)element);
+    if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);
+    if (element instanceof HaxeParameter) return new HaxeParameterModel((HaxeParameter)element);
     final PsiElement parent = element.getParent();
     return (parent != null) ? fromPsi(parent) : null;
   }

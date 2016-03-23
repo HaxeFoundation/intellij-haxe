@@ -181,6 +181,14 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  public void testMethodLocalVar() throws Throwable {
+    doTestInclude();
+  }
+
+  public void testMethodArg() throws Throwable {
+    doTestInclude();
+  }
+
   public void testAutodetectMethod() throws Throwable {
     doTestInclude();
   }
@@ -258,6 +266,22 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 
   public void testAbstractEnumFields3() throws Throwable {
     doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
+  public void testAbstractForward() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
+  }
+
+  public void testAbstractForward1() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
+  }
+
+  public void testAbstractForward2() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
+  }
+
+  public void testAbstractForward3() throws Throwable {
+    doTestInclude("com/util/UnderlyingType.hx");
   }
 
   //public void testUsingStringTools() throws Throwable {
