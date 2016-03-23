@@ -70,6 +70,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  public void testSuperMembers() throws Throwable {
+    doTest();
+  }
+
   public void testClassName() throws Throwable {
     myFixture.configureByFiles("ClassName.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("ClassName.txt");
