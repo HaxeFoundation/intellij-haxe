@@ -26,13 +26,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.util.CompositeAppearance;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Iconable;
+import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyNodeDescriptor;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFunctionalExpression;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.presentation.java.ClassPresentationUtil;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.RowIcon;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,7 +43,7 @@ import java.awt.*;
 /**
  * Created by ebishton on 11/3/14.
  */
-public final class HaxeMethodHierarchyNodeDescriptor extends HierarchyNodeDescriptor {
+public final class HaxeMethodHierarchyNodeDescriptor extends HaxeHierarchyNodeDescriptor {
 
   //
   // Lifted, Lock, Stock, and Barrel from MethodHierarchyNodeDescriptor.  Then
@@ -70,11 +73,6 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HierarchyNodeDescri
     return HaxeHierarchyUtils.findBaseMethodInClass(myTreeStructure.getBaseMethod(), aClass, checkBases);
   }
 
-  @Nullable
-  public final HaxeClass getHaxeClass() {
-    return (myElement instanceof HaxeClass) ? (HaxeClass) myElement : null;
-  }
-
   /**
   * Element for OpenFileDescriptor
   */
@@ -84,11 +82,6 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HierarchyNodeDescri
     final PsiMethod method = getMethod(theHaxeClass, false);
     if (method != null) return method;
     return theHaxeClass;
-  }
-
-  public final boolean isValid() {
-    final HaxeClass haxePsiClass = getHaxeClass();
-    return haxePsiClass != null && haxePsiClass.isValid();
   }
 
   public final boolean update() {

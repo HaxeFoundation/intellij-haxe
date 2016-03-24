@@ -22,6 +22,10 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeModifierType;
+import com.intellij.plugins.haxe.model.HaxeModifiersModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.log4j.Level;
@@ -46,22 +50,19 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
 
   @Override
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
-    for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+    HaxeClassModel clazz = haxeClass.getModel();
 
-      if (!(haxeNamedComponent instanceof HaxeFunctionDeclarationWithAttributes)) {
-        continue;
+    for (HaxeMethodModel method : clazz.getAncestorMethods()) {
+      // Only add methods that doesn't have @:final or static modifiers and also that are not constructors
+      if (
+        !method.getModifiers().hasAnyModifier(
+          HaxeModifierType.FINAL,
+          HaxeModifierType.STATIC
+        ) &&
+        !method.isConstructor()
+      ) {
+        candidates.add(method.getMethodPsi());
       }
-
-      if (haxeNamedComponent.isStatic()) {
-        continue;
-      }
-
-      // already
-      if (haxeNamedComponent.isOverride() && PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class) == haxeClass) {
-        continue;
-      }
-
-      candidates.add(haxeNamedComponent);
     }
   }
 

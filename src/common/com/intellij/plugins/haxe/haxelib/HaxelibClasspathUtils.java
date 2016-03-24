@@ -18,19 +18,25 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.google.common.base.Joiner;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -41,10 +47,9 @@ import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
+import com.intellij.util.io.URLUtil;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 
 /**
@@ -53,9 +58,14 @@ import java.util.*;
 public class HaxelibClasspathUtils {
 
   static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils");
-  {
+  static {
     LOG.setLevel(Level.DEBUG);
   }
+
+  /** Old environment variable name for the Haxe standard library location. */
+  final public static String HAXE_LIBRARY_PATH = "HAXE_LIBRARY_PATH";
+  /** Modern environment variable name for the Haxe standard library location. */
+  final public static String HAXE_STD_PATH = "HAXE_STD_PATH";
 
   /**
    * Gets the libraries specified for the IDEA project; source paths and
@@ -209,6 +219,63 @@ public class HaxelibClasspathUtils {
     HaxeClasspath moduleClasspath = loadClasspathFrom(libraryTable);
     rootModel.dispose();    // MUST dispose of the model.
     return moduleClasspath;
+  }
+
+  /**
+   * Get the classpath that the compiler will use without it being specified.
+   *
+   * @param module - the module to be compiled.
+   * @return HaxeClasspath according to the module compilation options.
+   */
+  @NotNull
+  public static HaxeClasspath getImplicitClassPath(@NotNull Module module) {
+
+    // Figure out which target is being compiled to, because that tells us
+    // which backend implementation to use on the classpath.
+    HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+    HaxeTarget target = settings.getCompilationTarget();
+    String targetFlag = target.getFlag();
+
+    // Find the standard library.
+    String libraryPath = System.getenv(HAXE_STD_PATH);
+    if (null == libraryPath) {
+      // Back off to the old name if the modern one isn't found.
+      libraryPath = System.getenv(HAXE_LIBRARY_PATH);
+    }
+    if (null == libraryPath) {
+      return HaxeClasspath.EMPTY_CLASSPATH;
+    }
+
+    HaxeClasspath cp = new HaxeClasspath();
+
+    if (null != targetFlag) {
+      cp.add(new HaxeClasspathEntry("Std library target implementation",
+                                    libraryPath + File.separator + targetFlag +
+                                      File.separator + "_std"));
+    }
+    cp.add(new HaxeClasspathEntry("Standard Library", libraryPath));
+    return cp;
+  }
+
+
+  /**
+   * Get the complete classpath for a module, including implicit paths and
+   * all of the paths from the project and SDK.  Must be run inside of a
+   * read action.
+   *
+   * @param module to look up haxelib for.
+   * @return a (possibly empty) collection of classpaths.  These should
+   *         be properly ordered and are unique; duplicates occurring
+   *         later in the list are removed.
+   */
+  @NotNull
+  public static HaxeClasspath getFullClasspath(@NotNull Module module) {
+    HaxeClasspath classpath = getImplicitClassPath(module);
+    classpath.addAll(getModuleClasspath(module));
+    classpath.addAll(getProjectLibraryClasspath(module.getProject()));
+    // This grabs either the module's SDK, or the inherited one, if any.
+    classpath.addAll(getSdkClasspath(ModuleRootManager.getInstance(module).getSdk()));
+    return classpath;
   }
 
 
@@ -385,5 +452,135 @@ public class HaxelibClasspathUtils {
     return haxelibNewItems;
   }
 
+  /**
+   * Finds the first file on the classpath having the given name or relative path.
+   * This is attempting to emulate what the compiler would do.
+   *
+   * @param module - Module from which to gather the classpath.
+   * @param filePath - filePath name or relative path.
+   * @return a VirtualFile if found, or null otherwise.
+   */
+  @Nullable
+  public static VirtualFile findFileOnClasspath(@NotNull final Module module, @NotNull final String filePath) {
+    if (filePath.isEmpty()) {
+      return null;
+    }
+
+    return ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>() {
+      @Override
+      public VirtualFile compute() {
+        final String fixedPath = null == VirtualFileManager.extractProtocol(filePath)
+                                  ? VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, filePath)
+                                  : filePath;
+        VirtualFile found = VirtualFileManager.getInstance().findFileByUrl(fixedPath);
+        if (null == found) {
+          found = findFileOnOneClasspath(getImplicitClassPath(module), filePath);
+        }
+        if (null == found) {
+          found = findFileOnOneClasspath(getModuleClasspath(module), filePath);
+        }
+        if (null == found) {
+          found = findFileOnOneClasspath(getProjectLibraryClasspath(module.getProject()), filePath);
+        }
+        if (null == found) {
+          // This grabs either the module's SDK, or the inherited one, if any.
+          found = findFileOnOneClasspath(getSdkClasspath(ModuleRootManager.getInstance(module).getSdk()), filePath);
+        }
+        return found;
+      }
+    });
+  }
+
+  /**
+   * Workhorse for findFileOnClasspath.
+   * @param cp
+   * @param filePath
+   * @return
+   */
+  @Nullable
+  private static VirtualFile findFileOnOneClasspath(@NotNull HaxeClasspath cp, @NotNull final String filePath) {
+    final VirtualFileManager vfmInstance = VirtualFileManager.getInstance();
+
+    class MyLambda implements HaxeClasspath.Lambda {
+      public VirtualFile found = null;
+      public boolean processEntry(HaxeClasspathEntry entry) {
+        String dirUrl = entry.getUrl();
+        if (!URLUtil.containsScheme(dirUrl)) {
+          dirUrl = vfmInstance.constructUrl(URLUtil.FILE_PROTOCOL, dirUrl);
+        }
+        VirtualFile dirName = vfmInstance.findFileByUrl(dirUrl);
+        if (null != dirName && dirName.isDirectory()) {
+          found = dirName.findFileByRelativePath(filePath);
+          if (null != found) {
+            return false;  // Stop the search.
+          }
+        }
+        return true;
+      }
+    }
+
+    MyLambda lambda = new MyLambda();
+    cp.iterate(lambda);
+    return lambda.found;
+  }
+
+  /**
+   * Given a module and a list of files, find the first one that occurs on the
+   * classpath.
+   *
+   * @param module - Module from which to obtain the classpath.
+   * @param files - a list of files to check.
+   * @return the first of the list of files that occurs on the classpath, or
+   *         null if none appear there.
+   */
+  @Nullable
+  public static VirtualFile findFirstFileOnClasspath(@NotNull final Module module,
+                                                     @NotNull final java.util.Collection<VirtualFile> files) {
+    if (files.isEmpty()) {
+      return null;
+    }
+
+    final VirtualFileManager vfmInstance = VirtualFileManager.getInstance();
+    final HaxeClasspath cp = ApplicationManager.getApplication().runReadAction(new Computable<HaxeClasspath>() {
+      @Override
+      public HaxeClasspath compute() {
+        return getFullClasspath(module);
+      }
+    });
+
+    class MyLambda implements HaxeClasspath.Lambda {
+      public VirtualFile found;
+      public boolean processEntry(HaxeClasspathEntry entry) {
+        String dirUrl = entry.getUrl();
+        if (!URLUtil.containsScheme(dirUrl)) {
+          dirUrl = vfmInstance.constructUrl(URLUtil.FILE_PROTOCOL, dirUrl);
+        }
+        VirtualFile dirName = vfmInstance.findFileByUrl(dirUrl);
+        if (null != dirName && dirName.isDirectory()) {
+          for (VirtualFile f : files) {
+            if (f.exists()) {
+              // We have a complete path, compare the leading paths.
+              String filePath = f.getCanonicalPath();
+              String dirPath = dirName.getCanonicalPath();
+              if (filePath.startsWith(dirPath)) {
+                found = f;
+              }
+            } else {
+              // We have a partial path, search the path for a matching file.
+              found = dirName.findFileByRelativePath(f.toString());
+            }
+            if (null != found) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+    }
+
+    MyLambda lambda = new MyLambda();
+    cp.iterate(lambda);
+    return lambda.found;
+  }
 
 }

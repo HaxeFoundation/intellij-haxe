@@ -103,4 +103,31 @@ public class HaxeGenericSpecialization implements Cloneable {
     result.append(genericName);
     return result.toString();
   }
+
+  public String debugDump() {
+    return debugDump(null);
+  }
+
+  public String debugDump( String linePrefix ) {
+    StringBuilder builder = new StringBuilder();
+    if (linePrefix == null) {
+      linePrefix = "";
+    }
+    builder.append(linePrefix);
+    builder.append(getClass().getName());
+    builder.append(" : size=");
+    builder.append(map.size());
+    builder.append("\n");
+
+    String prefix = linePrefix + "    ";
+
+    for (String key : map.keySet()) {
+      builder.append(prefix);
+      builder.append(key);
+      builder.append(" -> ");
+      HaxeClassResolveResult result = map.get(key);
+      builder.append(result == null ? "<no value>\n" : result.debugDump(prefix));
+    }
+    return builder.toString();
+  }
 }

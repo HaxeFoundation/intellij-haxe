@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
+ * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +27,10 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
+import com.intellij.lang.LightPsiParser;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
-public class HXMLParser implements PsiParser {
+public class HXMLParser implements PsiParser, LightPsiParser {
 
   public ASTNode parse(IElementType t, PsiBuilder b) {
     parseLight(t, b);
@@ -45,6 +46,9 @@ public class HXMLParser implements PsiParser {
     }
     else if (t == DEFINE) {
       r = define(b, 0);
+    }
+    else if (t == HXML) {
+      r = hxml(b, 0);
     }
     else if (t == LIB) {
       r = lib(b, 0);
@@ -93,12 +97,25 @@ public class HXMLParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF
+  // HXML_FILE
+  public static boolean hxml(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "hxml")) return false;
+    if (!nextTokenIs(b, HXML_FILE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, HXML_FILE);
+    exit_section_(b, m, HXML, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // hxml | lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF
   static boolean item_(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "item_")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = lib(b, l + 1);
+    r = hxml(b, l + 1);
+    if (!r) r = lib(b, l + 1);
     if (!r) r = define(b, l + 1);
     if (!r) r = classpath(b, l + 1);
     if (!r) r = main(b, l + 1);

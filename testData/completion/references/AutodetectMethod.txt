@@ -1,0 +1,5 @@
+foo():Int = 10
+foo2():Float = 10.0
+foo3():Bool = true
+mybool1:Bool
+mybool2:Bool

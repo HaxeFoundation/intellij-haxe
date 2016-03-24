@@ -1,0 +1,1 @@
+<error descr="Invalid package name! 'test.pack' should be ''">package test.pack;</error>

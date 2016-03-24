@@ -57,7 +57,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -214,7 +216,10 @@ public class HaxelibProjectUpdater  {
     HaxeClasspath inheritedClasspaths = HaxelibClasspathUtils.getSdkClasspath(
       HaxelibSdkUtils.lookupSdk(module));
     if (rootManager.isSdkInherited()) {
-      inheritedClasspaths.addAll(getProjectClasspath(tracker));
+      // Add project classpaths before SDK class paths for correct precedence.
+      HaxeClasspath projectClasspaths =  getProjectClasspath(tracker);
+      projectClasspaths.addAll(inheritedClasspaths);
+      inheritedClasspaths = projectClasspaths;
     }
 
     class NewPathCollector implements HaxeClasspath.Lambda {

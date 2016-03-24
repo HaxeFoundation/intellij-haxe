@@ -34,8 +34,8 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
   }
 
   public HaxeSdkAdditionalDataBaseImpl(String homePath, String version) {
-    this.homePath = homePath;
-    this.version = version;
+    this.homePath = null == homePath ? "" : homePath;
+    this.version  = null == version  ? "" : version;
   }
 
   public String getHomePath() {
@@ -51,7 +51,7 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
   }
 
   public void setNekoBinPath(String nekoBinPath) {
-    this.nekoBinPath = nekoBinPath;
+    this.nekoBinPath = null == nekoBinPath ? "" : nekoBinPath;
   }
 
   public String getHaxelibPath() {
@@ -59,6 +59,6 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
   }
 
   public void setHaxelibPath(String haxelibPath) {
-    this.haxelibPath = haxelibPath;
+    this.haxelibPath = null == haxelibPath ? "" : haxelibPath;
   }
 }

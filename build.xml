@@ -38,7 +38,7 @@
         <mkdir dir="${build.output.directory}"/>
     </target>
 
-    <target name="compile" depends="clean,init,compile.common,compile.jps,compile.plugin" description="Compile Haxe Plugin Cleanly">
+    <target name="compile" depends="clean,init,generateTemplatedFiles,compile.common,compile.jps,compile.plugin" description="Compile Haxe Plugin Cleanly">
     </target>
 
     <target name="compile.jps" depends="compile.common" description="Compile JPS Runtime Support Incrementally">
@@ -47,7 +47,7 @@
         <javac2
             destdir="${jps.build.output.directory}"
             verbose="false"
-            debug="true"
+            debug="false"
             source="1.6"
             target="1.6"
             fork="true"
@@ -90,7 +90,9 @@
             debug="true"
             source="1.6"
             target="1.6"
-            includeantruntime="true" >
+            includedestclasses="false"
+            createmissingpackageinfoclass="false"
+            includeantruntime="false" >
 
             <src path="${version.specific.code.location}" />
             <src path="src/common" />

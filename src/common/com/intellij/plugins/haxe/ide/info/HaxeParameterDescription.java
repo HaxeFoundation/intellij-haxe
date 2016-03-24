@@ -21,6 +21,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,12 +39,16 @@ public class HaxeParameterDescription {
   }
 
 
-  public static HaxeParameterDescription[] getParameters(HaxeNamedComponent element, HaxeGenericSpecialization specialization) {
+  public static HaxeParameterDescription[] getParameters(HaxeNamedComponent element, HaxeGenericSpecialization specialization, boolean isExtension) {
     final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterList.class);
     if (parameterList == null) {
       return new HaxeParameterDescription[0];
     }
-    final List<HaxeParameter> list = parameterList.getParameterList();
+    List<HaxeParameter> list = parameterList.getParameterList();
+    if (isExtension) {
+      list = new ArrayList<HaxeParameter>(list);
+      list.remove(0);
+    }
     final HaxeParameterDescription[] result = new HaxeParameterDescription[list.size()];
     for (int i = 0, size = list.size(); i < size; i++) {
       HaxeParameter parameter = list.get(i);

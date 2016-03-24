@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang;
 
-import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -28,7 +27,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import junit.framework.Assert;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -53,10 +51,10 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
   private void setTestStyleSettings() {
     Project project = getProject();
     CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
-    Assert.assertNotNull(currSettings);
+    assertNotNull(currSettings);
     CodeStyleSettings tempSettings = currSettings.clone();
     CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.HAXE_FILE_TYPE);
-    Assert.assertNotNull(indentOptions);
+    assertNotNull(indentOptions);
     defineStyleSettings(tempSettings);
     CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);
   }
@@ -226,6 +224,18 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.BRACE_STYLE = CommonCodeStyleSettings.END_OF_LINE;
     myTestStyleSettings.METHOD_BRACE_STYLE = CommonCodeStyleSettings.NEXT_LINE_SHIFTED;
+    doTest();
+  }
+
+  public void testCommentAlignmentNormal() throws Exception {
+    myTestStyleSettings.KEEP_LINE_BREAKS = true;
+    myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = false;
+    doTest();
+  }
+
+  public void testCommentAlignmentKeepLeft() throws Exception {
+    myTestStyleSettings.KEEP_LINE_BREAKS = true;
+    myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = true;
     doTest();
   }
 }

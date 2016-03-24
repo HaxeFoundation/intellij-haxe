@@ -22,13 +22,11 @@ import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParam;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
 import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -186,7 +184,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
   @Override
   public boolean isAssignableFrom(@NotNull PsiType type) {
-    // Java uses the TypeConversionUtil.isAssignable, which will most likely fail.
+    // Java uses the TypeConversionUtil.canAssignToFrom, which will most likely fail.
     // TODO: Implement HaxePsiAdapter.isAssignableFrom
     LOG.debug("Implement HaxePsiAdapter.isAssignableFrom()");
     return super.isAssignableFrom(type);
@@ -249,12 +247,6 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   @Override
   public PsiAnnotation[] getApplicableAnnotations() {
     return PsiAnnotation.EMPTY_ARRAY;
-  }
-
-  @Override
-  @Deprecated
-  protected String getAnnotationsTextPrefix(boolean qualified, boolean leadingSpace, boolean trailingSpace) {
-    return "";
   }
 
   @Override

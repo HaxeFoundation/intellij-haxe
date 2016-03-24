@@ -26,14 +26,16 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.*;
+import com.intellij.psi.impl.InheritanceImplUtil;
+import com.intellij.psi.impl.PsiClassImplUtil;
+import com.intellij.psi.impl.PsiImplUtil;
+import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.search.LocalSearchScope;
-import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
@@ -70,22 +72,47 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public String getQualifiedName() {
-    final String name = getName();
+    String name = getName();
     if (getParent() == null) {
       return name == null ? "" : name;
     }
+
+    if(name == null && this instanceof HaxeAnonymousType) {
+      // restore name from parent
+      final PsiElement typedefDecl = getParent().getParent();
+      if(typedefDecl != null && typedefDecl instanceof HaxeTypedefDeclaration) {
+        name = ((HaxeTypedefDeclaration)typedefDecl).getName();
+      }
+    }
+
     final String fileName = FileUtil.getNameWithoutExtension(getContainingFile().getName());
     String packageName = HaxeResolveUtil.getPackageName(getContainingFile());
-    if (isAncillaryClass(name, fileName)) {
+
+    if (name != null && isAncillaryClass(packageName, name, fileName)) {
       packageName = HaxeResolveUtil.joinQName(packageName, fileName);
     }
+
     return HaxeResolveUtil.joinQName(packageName, name);
   }
 
-  private boolean isAncillaryClass(String name, String fileName) {
-    return (!(this instanceof  HaxeExternClassDeclaration)) &&
-           (!fileName.equals(name)) &&
-           (HaxeResolveUtil.findComponentDeclaration(getContainingFile(), fileName) != null);
+  private HaxeClassModel _model = null;
+  public HaxeClassModel getModel() {
+    if (_model == null) _model = new HaxeClassModel(this);
+    return _model;
+  }
+
+  // check if class is declared inside haxe module `MyClass.MySupportType`
+  private boolean isAncillaryClass(@NotNull String packageName, @NotNull String name, @NotNull String fileName) {
+    // if file name matches type name
+    if(fileName.equals(name)) {
+      return false;
+    }
+    // if StdTypes
+    if(packageName.isEmpty() && fileName.equals("StdTypes")) {
+      return false;
+    }
+    // file contains valid type declaration
+    return HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
   }
 
   @Override
@@ -501,4 +528,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     }
   };
 
+  @Override
+  public void delete() {
+    // FIX: for twice deletion of file in project view (issue #424)
+    final HaxeFile file = (HaxeFile)getContainingFile();
+    super.delete();
+    if(file != null && file.getClasses().length == 0) {
+      file.delete();
+    }
+  }
 }

@@ -24,7 +24,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.Icon;
+import javax.swing.*;
 
 public class HXMLFileType extends LanguageFileType {
 

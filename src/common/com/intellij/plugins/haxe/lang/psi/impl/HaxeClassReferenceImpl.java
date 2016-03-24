@@ -19,7 +19,11 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
+import com.intellij.plugins.haxe.lang.psi.HaxeFunctionType;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -32,6 +36,9 @@ import org.jetbrains.annotations.NotNull;
  * @author: Fedor.Korotkov
  */
 public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
+
+  public static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+
   public HaxeClassReferenceImpl(ASTNode node) {
     super(node);
   }

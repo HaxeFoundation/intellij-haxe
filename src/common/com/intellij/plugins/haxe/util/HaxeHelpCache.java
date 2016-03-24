@@ -18,8 +18,8 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
-import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
+import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -17,9 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.psi.NavigatablePsiElement;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 
 /**

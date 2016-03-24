@@ -22,17 +22,17 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.search.LocalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Level;
-
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Created by srikanthg on 10/9/14.
@@ -65,25 +65,17 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeComponentName getComponentName() {
-    return new HaxeComponentNameImpl(getNode());
-    ////this.getName();
-    //return findNotNullChildByClass(HaxeComponentName.class);
+    final PsiIdentifier identifier = getNameIdentifier();
+    return identifier != null ? new HaxeComponentNameImpl(getNode()) : null;
   }
 
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    PsiIdentifier foundName = null;
-    ASTNode node = getNode();
-    if (null != node) {
-      ASTNode element = node.findChildByType(HaxeTokenTypes.IDENTIFIER);
-      if (null != element) {
-        foundName = (PsiIdentifier) element.getPsi();
-      }
-    }
-    return foundName;
+    final HaxeComponentName compName = PsiTreeUtil.getChildOfType(this, HaxeComponentName.class);
+    return compName != null ? PsiTreeUtil.getChildOfType(compName, HaxeIdentifier.class) : null;
   }
 
   @Nullable
@@ -198,10 +190,13 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
       list.setModifierProperty(HaxePsiModifier.STATIC, true);
     }
 
+    if (isInline()) {
+      list.setModifierProperty(HaxePsiModifier.INLINE, true);
+    }
+
     if (isPublic()) {
       list.setModifierProperty(HaxePsiModifier.PUBLIC, true);
-    }
-    else {
+    } else {
       list.setModifierProperty(HaxePsiModifier.PRIVATE, true);
     }
 
@@ -213,4 +208,16 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     return this.getModifierList().hasModifierProperty(name);
   }
 
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    final PsiElement localVar = UsefulPsiTreeUtil.getParentOfType(this, HaxeLocalVarDeclaration.class);
+    if(localVar != null) {
+      final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(localVar, HaxeBlockStatement.class);
+      if(outerBlock != null) {
+        return new LocalSearchScope(outerBlock);
+      }
+    }
+    return super.getUseScope();
+  }
 }

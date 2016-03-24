@@ -18,17 +18,15 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiDocComment;
 import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
@@ -339,6 +337,20 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
+  public static PsiElement getParentOfType(@Nullable PsiElement element, @NotNull Class<? extends PsiElement> aClass) {
+    if (element == null)
+      return null;
+
+    while (element != null && !(element instanceof PsiFile)) {
+      if (aClass.isInstance(element)) {
+        return element;
+      }
+      element = element.getParent();
+    }
+    return null;
+  }
+
+  @Nullable
   public static List<PsiElement> getPathToParentOfType(@Nullable PsiElement element,
                                                        @NotNull Class<? extends PsiElement> aClass) {
     if (element == null) return null;
@@ -402,5 +414,58 @@ public class UsefulPsiTreeUtil {
     }
     // TODO: other import types (inject util logic to ImportStatement?)
     return false;
+  }
+
+  static public <T extends PsiElement> T getAncestor(PsiElement element, Class<T> clazz) {
+    if (element == null) return null;
+    if (clazz.isAssignableFrom(element.getClass())) return (T)element;
+    return getAncestor(element.getParent(), clazz);
+  }
+
+  static public <T extends PsiElement> T getChild(PsiElement element, Class<T> clazz) {
+    if (element == null) return null;
+    for (PsiElement psiElement : element.getChildren()) {
+      if (clazz.isAssignableFrom(psiElement.getClass())) return (T)psiElement;
+    }
+    return null;
+  }
+
+  static public PsiElement getToken(PsiElement element, String token) {
+    for (ASTNode node : element.getNode().getChildren(null)) {
+      if (node.getText().equals(token))  return node.getPsi();
+    }
+    return null;
+  }
+
+  static public <T extends PsiElement> T getChildWithText(PsiElement element, Class<T> clazz, String text) {
+    if (element == null) return null;
+    for (PsiElement psiElement : element.getChildren()) {
+      if (clazz.isAssignableFrom(psiElement.getClass()) && psiElement.getText().equals(text)) return (T)psiElement;
+    }
+    return null;
+  }
+
+  static public <T extends PsiElement> List<T> getChildren(PsiElement element, Class<T> clazz) {
+    if (element == null) return null;
+    ArrayList<T> ts = new ArrayList<T>();
+    for (PsiElement psiElement : element.getChildren()) {
+      if (clazz.isAssignableFrom(psiElement.getClass())) ts.add((T)psiElement);
+    }
+    return ts;
+  }
+
+  static public void replaceElementWithText(PsiElement element, String text) {
+    Document document = PsiDocumentManager.getInstance(element.getProject()).getDocument(element.getContainingFile());
+    TextRange range = element.getTextRange();
+    document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
+  }
+
+  public static PsiElement getNextSiblingNoSpaces(PsiElement element) {
+    if (element == null) return null;
+    PsiElement sibling = element.getNextSibling();
+    while (sibling != null && sibling instanceof PsiWhiteSpace) {
+      sibling = sibling.getNextSibling();
+    }
+    return sibling;
   }
 }

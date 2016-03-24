@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe;
 
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
@@ -28,6 +29,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   protected HaxeCodeInsightFixtureTestCase() {
     super();
+    HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
     PlatformTestCase.initPlatformLangPrefix();
   }
 

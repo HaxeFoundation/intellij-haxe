@@ -1,15 +1,16 @@
 Recent contributors
 -----------------------------------
  - as3boyan <denis.flash.as3@gmail.com>
- - AS3Boyan <denis.flash.as3@gmail.com>
- - bjitivo <bji@tivo.com>
- - Bryan Ischo <bryan@ischo.com>
+ - Carlos Ballesteros Velasco <soywiz@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
- - eliasku <deadbabe@gmail.com>
  - Elias Ku <deadbabe@gmail.com>
  - Eric B <ebishton@tivo.com>
+ - Gabor Csomak <csomakk@gmail.com>
  - giabao <giabao@sandinh.net>
- - Hays Clark <hays@infinitedescent.com>
+ - grosmar <zubak.balazs@gmail.com>
+ - Ilya Kuzmichev <IlyaK@playtika.by>
+ - Ilya Kuzmichev <ilyak@playtika.com>
+ - isBatak <ivicabatinic123@gmail.com>
  - Jérémy Faivre <jeremy.faivre@gmail.com>
  - jeremyfa <jeremy.faivre@gmail.com>
  - sganapavarapu1 <ganapavarapu@tivo.com>
@@ -28,6 +29,7 @@ All contributors
 - bjitivo <bji@tivo.com>
 - Bruno Garcia <b@aduros.com>
 - Bryan Ischo <bryan@ischo.com>
+- Carlos Ballesteros Velasco <soywiz@gmail.com>
 - Chris Decoster <impaler777@gmail.com>
 - Constantine Plotnikov <constantine.plotnikov@gmail.com>
 - Denis.Zhdanov <denzhdanov@gmail.com>
@@ -45,10 +47,15 @@ All contributors
 - Fedor Korotkov <fedor.korotkov@jetbrains.com>
 - Fedor Korotkov <fedor.korotkov@odnoklassniki.ru>
 - fkorotkov <fkorotkov@twitter.com>
+- Gabor Csomak <csomakk@gmail.com>
 - giabao <giabao@sandinh.net>
 - Gregory.Shrago <gregory.shrago@jetbrains.com>
+- grosmar <zubak.balazs@gmail.com>
 - Hays Clark <hays@infinitedescent.com>
+- Ilya Kuzmichev <IlyaK@playtika.by>
+- Ilya Kuzmichev <ilyak@playtika.com>
 - impaler <user123@server.fake>
+- isBatak <ivicabatinic123@gmail.com>
 - Jérémy Faivre <jeremy.faivre@gmail.com>
 - jeremyfa <jeremy.faivre@gmail.com>
 - kirill.safonov <kirill.safonov@jetbrains.com>

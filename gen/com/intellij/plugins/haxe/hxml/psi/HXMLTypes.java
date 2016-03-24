@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
+ * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ public interface HXMLTypes {
 
   IElementType CLASSPATH = new HXMLElementType("CLASSPATH");
   IElementType DEFINE = new HXMLElementType("DEFINE");
+  IElementType HXML = new HXMLElementType("HXML");
   IElementType LIB = new HXMLElementType("LIB");
   IElementType MAIN = new HXMLElementType("MAIN");
   IElementType PROPERTY = new HXMLElementType("PROPERTY");
@@ -35,6 +36,7 @@ public interface HXMLTypes {
 
   IElementType COMMENT = new HXMLTokenType("COMMENT");
   IElementType CRLF = new HXMLTokenType("CRLF");
+  IElementType HXML_FILE = new HXMLTokenType("HXML_FILE");
   IElementType KEY = new HXMLTokenType("KEY");
   IElementType QUALIFIEDCLASSNAME = new HXMLTokenType("QUALIFIEDCLASSNAME");
   IElementType SEPARATOR = new HXMLTokenType("SEPARATOR");
@@ -48,6 +50,9 @@ public interface HXMLTypes {
       }
       else if (type == DEFINE) {
         return new HXMLDefineImpl(node);
+      }
+      else if (type == HXML) {
+        return new HXMLHxmlImpl(node);
       }
       else if (type == LIB) {
         return new HXMLLibImpl(node);

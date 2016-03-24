@@ -19,17 +19,16 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkTypeId;
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
-import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
@@ -60,36 +59,40 @@ public final class HaxelibLibraryCache {
     /* TODO: EMB Note: This block of code belongs in HaxelibUtils.getInstalledLibraries.
      *       I'm leaving it here for now, to simplify the merge, but really should be moved.
      */
-
-    /* 'haxelib' has been  enhanced to support 'list-path' command.
-     *  (Changes may not have made it out to Open Source yet.)
-     * Here, we're checking the output to see if the version of haxelib
-     * currently installed supports the new command.  If so, we'll
-     * use the new functionality (and save many seconds by not having to
-     * fork a new process for each installed library).
-     */
-    boolean isHaxelibListPathCmdSupported = true;
-    final List<String> haxelibCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list-path");
-    if ((haxelibCmdOutput.size() < 1) || (haxelibCmdOutput.get(0).contains("Unknown command"))) {
-      isHaxelibListPathCmdSupported = false;
-    }
-    if (isHaxelibListPathCmdSupported) {
-        final List<String> installedHaxelibs = new ArrayList<String>();
-        // Initialize the internal cache with the list of libraries known to haxelib,
-        // using the haxelib path specified in the SDK.
-        for (String s : haxelibCmdOutput) {
-            // haxelib list-path output format is, library-name:version:install/path
-            final String[] haxelibProperties = s.split(":");
-            if (haxelibProperties.length < 3) continue; // avoid ArrayIndexOutOfBoundsException
-            // Note: when the class HaxelibItem is enhanced to support creating a new instance
-            // of it just from name... above line should be changed to '< 1'... also... below
-            // code should create only using element [0]... there's a TODO in HaxelibItem.java
-            installedHaxelibs.add(haxelibProperties[0]);
-            final HaxeClasspath classpath = new HaxeClasspath();
-            classpath.add(new HaxelibItem(haxelibProperties[0], haxelibProperties[2]));
-            myCache.add(new HaxelibLibraryEntry(haxelibProperties[0], classpath));
+    final List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
+    if ((listCmdOutput.size() > 0) && (! listCmdOutput.get(0).contains("Unknown command"))) {
+      final List<String> installedHaxelibs = new ArrayList<String>();
+      // add haxelib names as args for 'haxelib path' command
+      final String[] pathCmdline = new String[listCmdOutput.size()+1];
+      int index = 0;
+      pathCmdline[index++] = "path";
+      for (final String line : listCmdOutput) {
+        final String[] tokens = line.split(":");
+        pathCmdline[index++] = tokens[0];
+        installedHaxelibs.add(tokens[0]);
+      }
+      // update list of known haxelibs
+      knownLibraries = new ConcurrentSkipListSet<String>(installedHaxelibs);
+      // add haxelib classpath to lookup cache
+      final List<String> pathCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, pathCmdline);
+      for (final String s : pathCmdOutput) {
+        if (s.startsWith("-")) continue; // skip lines that don't contain haxelib path
+        try {
+          final int tmpSeparator = s.lastIndexOf('/');
+          final int endSeparator = s.lastIndexOf('/', tmpSeparator-1);
+          final int beginSeparator = s.lastIndexOf(File.separatorChar, endSeparator - 1);
+          final String haxelibName = s.substring(beginSeparator+1, endSeparator);
+          final HaxeClasspath classpath = new HaxeClasspath();
+          classpath.add(new HaxelibItem(haxelibName, s));
+          myCache.add(new HaxelibLibraryEntry(haxelibName, classpath));
         }
-        knownLibraries = new ConcurrentSkipListSet<String>(installedHaxelibs);
+        catch (IndexOutOfBoundsException e) {
+          // defensive try-catch block to handle possible exceptions when 'haxelib path'
+          // output does not match above parsing expectations
+          // e.g. when haxelib path output order or format is changed (happened once),
+          //   or when platform specific (Windows OS) format errors occur
+        }
+      }
     }
     /* END of code that should be moved to HaxelibUtils.getInstalledLibraries. */
   }

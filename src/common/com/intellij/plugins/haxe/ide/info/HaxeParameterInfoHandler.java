@@ -80,11 +80,15 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   @Nullable
   private static HaxeFunctionDescription tryGetDescription(HaxeCallExpression callExpression) {
-    final PsiElement target = ((HaxeReference)callExpression.getExpression()).resolve();
+    final HaxeGenericSpecialization specialization = callExpression.getSpecialization();
+
+    final HaxeReference expression = (HaxeReference)callExpression.getExpression();
+    final PsiElement target = expression.resolve();
+    final boolean isStaticExtension = expression.resolveIsStaticExtension();
     if (target instanceof HaxeMethod) {
       final HaxeClass targetParent = (HaxeClass) ((HaxeMethod) target).getContainingClass();
-      final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(targetParent);
-      return HaxeFunctionDescription.createDescription((HaxeNamedComponent) target, resolveResult);
+      final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(targetParent, specialization);
+      return HaxeFunctionDescription.createDescription((HaxeNamedComponent) target, resolveResult, isStaticExtension);
     }
     return null;
   }

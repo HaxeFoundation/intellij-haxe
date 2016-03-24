@@ -42,9 +42,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.lang.parser.GeneratedParserUtilBase._NONE_;
-import static com.intellij.lang.parser.GeneratedParserUtilBase.adapt_builder_;
-import static com.intellij.lang.parser.GeneratedParserUtilBase.enter_section_;
+import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -140,8 +138,7 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
       final PsiBuilder psiBuilder = factory.createBuilder(getProject(), chameleon);
       final PsiBuilder builder = adapt_builder_(HaxeTokenTypes.EXPRESSION, psiBuilder, new HaxeParser());
 
-      final PsiBuilder.Marker marker = builder.mark();
-      enter_section_(builder, 0, _NONE_, "<code fragment>");
+      final PsiBuilder.Marker marker = enter_section_(builder, 0, _NONE_, "<code fragment>");
       HaxeParser.expression(builder, 1);
       while (builder.getTokenType() != null) {
         builder.advanceLexer();

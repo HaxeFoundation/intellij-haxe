@@ -21,10 +21,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -155,8 +152,8 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    // TODO:  Implement 'public PsiIdentifier getNameIdentifier()'
-    return null;
+    final HaxeComponentName componentName = getComponentName();
+    return componentName != null ? componentName.getIdentifier() : null;
   }
 
   @NotNull
@@ -164,8 +161,13 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   public HaxeModifierList getModifierList() {
     HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
 
+    // Triplicated code! HaxeMethodPsiMixinImpl + HaxeParameterPsiMixinImpl + HaxePsiFieldImpl
     if (isStatic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
+    }
+
+    if (isInline()) {
+      haxePsiModifierList.setModifierProperty(HaxePsiModifier.INLINE, true);
     }
 
     if (isPublic()) {

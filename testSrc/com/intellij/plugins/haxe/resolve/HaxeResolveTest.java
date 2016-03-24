@@ -17,25 +17,16 @@
  */
 package com.intellij.plugins.haxe.resolve;
 
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
-import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtilCore;
+import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.MultiFileTestCase;
-import com.intellij.refactoring.PackageWrapper;
-import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
-import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
-import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesProcessor;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Created by Boch on 20.04.2015.
@@ -46,6 +37,7 @@ public class HaxeResolveTest extends MultiFileTestCase {
     return HaxeTestUtils.BASE_TEST_DATA_PATH;
   }
 
+  @NotNull
   @Override
   protected String getTestRoot() {
     return "/resolve/";
@@ -69,6 +61,7 @@ public class HaxeResolveTest extends MultiFileTestCase {
 
         String pathToExternEnum = "bar/Bar.hx";
         final VirtualFile externEnumFile = VfsUtil.findRelativeFile(pathToExternEnum, rootDir);
+        assert externEnumFile != null;
         PsiElement file2 = myPsiManager.findFile(externEnumFile);
 
         HaxeFile haxeFile = (HaxeFile)file;
@@ -77,7 +70,9 @@ public class HaxeResolveTest extends MultiFileTestCase {
 
         assertNotNull(functionDeclarationWithAttributes);
 
-        HaxeExpression expression = functionDeclarationWithAttributes.getBlockStatement().getReturnStatementList().get(0).getExpression();
+        HaxeBlockStatement statement = functionDeclarationWithAttributes.getBlockStatement();
+        assert statement != null;
+        HaxeExpression expression = statement.getReturnStatementList().get(0).getExpression();
         assertNotNull(expression);
 
         HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)expression;
@@ -86,8 +81,11 @@ public class HaxeResolveTest extends MultiFileTestCase {
         assertNotNull(resolve);
 
         HaxeFile haxeFile2 = (HaxeFile)file2;
+        assert haxeFile2 != null;
         HaxeEnumDeclaration enumDeclaration = (HaxeEnumDeclaration)haxeFile2.getClasses()[0];
-        assertTrue(enumDeclaration.getEnumBody().getEnumValueDeclarationList().contains(resolve));
+        HaxeEnumBody enumBody = enumDeclaration.getEnumBody();
+        assert enumBody != null;
+        assertTrue(enumBody.getEnumValueDeclarationList().contains(resolve));
       }
     });
   }
