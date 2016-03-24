@@ -32,4 +32,12 @@ public class TypedefDeclarationTest extends DeclarationTestBase {
   public void testPoints() throws Throwable {
     doTest(true);
   }
+
+  public void testFunctionTypedef() throws Throwable {
+    doTest(true);
+  }
+
+  public void testFunctionTypedefWithFunctionParameter() throws Throwable {
+    doTest(true);
+  }
 }
