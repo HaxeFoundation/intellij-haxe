@@ -70,6 +70,10 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  public void testSuperMembers() throws Throwable {
+    doTest();
+  }
+
   public void testClassName() throws Throwable {
     myFixture.configureByFiles("ClassName.hx", "com/util/ClassFactory.hx");
     doTestVariantsInner("ClassName.txt");
@@ -175,6 +179,14 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   //https://github.com/TiVo/intellij-haxe/issues/262
   public void testStaticField() throws Throwable {
     doTest();
+  }
+
+  public void testMethodLocalVar() throws Throwable {
+    doTestInclude();
+  }
+
+  public void testMethodArg() throws Throwable {
+    doTestInclude();
   }
 
   public void testAutodetectMethod() throws Throwable {

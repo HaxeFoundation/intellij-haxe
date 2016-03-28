@@ -59,7 +59,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
       _parameters = new ArrayList<HaxeParameterModel>();
       if (parameterList != null) {
         for (HaxeParameter parameter : parameterList.getParameterList()) {
-          _parameters.add(new HaxeParameterModel(parameter, this));
+          _parameters.add(new HaxeParameterModel(parameter));
         }
       }
   //  }
@@ -82,10 +82,6 @@ public class HaxeMethodModel extends HaxeMemberModel {
   public PsiElement getReturnTypeTagOrNameOrBasePsi() {
     HaxeTypeTag psi = getReturnTypeTagPsi();
     return (psi != null) ? psi : getNameOrBasePsi();
-  }
-
-  public boolean isStatic() {
-    return getModifiers().hasModifier(HaxeModifierType.STATIC);
   }
 
   private HaxeClassModel _declaringClass = null;
