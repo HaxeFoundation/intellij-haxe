@@ -35,6 +35,9 @@
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>Unreleased:</p>
+      <ul>
+      </ul>
       <p>0.9.10: (community release)</p>
       <ul>
         <li>Better packages resolving</li>
@@ -57,7 +60,6 @@
         <li>Navigate to symbols (issue #340)</li>
         <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
         <li>Fix method local variables and arguments completion. (issue #455)</li>
-        <li>Fix
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
