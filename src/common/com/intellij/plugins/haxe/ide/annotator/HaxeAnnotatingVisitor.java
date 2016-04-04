@@ -94,7 +94,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   public void visitFunctionDeclarationWithAttributes(@NotNull HaxeFunctionDeclarationWithAttributes functionDeclaration) {
     List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
     for (HaxeCustomMeta meta : metas) {
-      if ("@:deprecated".equals(meta.getText())) {
+      if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
         handleDeprecatedFunctionDeclaration(functionDeclaration);
       }
     }
@@ -114,7 +114,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
         List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
         for (HaxeCustomMeta meta : metas) {
-          if ("@:deprecated".equals(meta.getText())) {
+          if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
             handleDeprecatedCallExpression(referenceExpression);
           }
         }
@@ -128,7 +128,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   public void visitVarDeclaration(@NotNull HaxeVarDeclaration varDeclaration) {
     List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
     for (HaxeCustomMeta meta : metas) {
-      if ("@:deprecated".equals(meta.getText())) {
+      if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
         handleDeprecatedVarDeclaration(varDeclaration);
       }
     }
@@ -151,11 +151,13 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
     PsiElement reference = referenceExpression.resolve();
 
     if (reference instanceof HaxeVarDeclarationPart) {
-      HaxeVarDeclarationPart varDeclaration = (HaxeVarDeclarationPart) reference;
+      HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration) reference.getParent();
 
-      PsiModifierList metas = varDeclaration.getModifierList();
-      if (metas != null && metas.hasExplicitModifier(HaxeModifierType.DEPRECATED.s)) {
-        handleDeprecatedCallExpression(referenceExpression);
+      List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
+      for (HaxeCustomMeta meta : metas) {
+        if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
+          handleDeprecatedCallExpression(referenceExpression);
+        }
       }
     }
   }
