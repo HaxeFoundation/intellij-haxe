@@ -720,6 +720,11 @@
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
 
+    <localInspection language="Haxe" shortName="HaxeDeprecatedSymbol" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspection.deprecated.symbol"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeDeprecatedInspection"/>
+
     <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspection.preprocessor.symbol.name"
                      groupKey="inspections.group.name" enabledByDefault="true"
