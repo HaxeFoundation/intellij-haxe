@@ -115,7 +115,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
         List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
         for (HaxeCustomMeta meta : metas) {
           if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
-            handleDeprecatedCallExpression(referenceExpression);
+            handleDeprecatedCallExpression((HaxeReferenceExpression)referenceExpression.getLastChild());
           }
         }
       }
@@ -156,7 +156,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
       List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
       for (HaxeCustomMeta meta : metas) {
         if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
-          handleDeprecatedCallExpression(referenceExpression);
+          handleDeprecatedCallExpression((HaxeReferenceExpression)referenceExpression.getLastChild());
         }
       }
     }
