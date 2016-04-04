@@ -35,6 +35,10 @@
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>Unreleased changes:</p>
+      <ul>
+        <li>@:deprecated support (issue #459)</li>
+      </ul>
       <p>0.9.10: (community release)</p>
       <ul>
         <li>Better packages resolving</li>
