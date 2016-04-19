@@ -19,21 +19,21 @@ public class ClassList extends haxe.lang.ParamEnum
 	
 	public static debugger.ClassList Continued(java.lang.String continuation)
 	{
-		//line 187 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 187 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.ClassList(1, new java.lang.Object[]{continuation});
 	}
 	
 	
 	public static debugger.ClassList Element(java.lang.String className, boolean hasStatics, debugger.ClassList next)
 	{
-		//line 188 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 188 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.ClassList(2, new java.lang.Object[]{className, hasStatics, next});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 184 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 184 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.ClassList.__hx_constructs[this.index];
 	}
 	

@@ -17,70 +17,70 @@ public class Message extends haxe.lang.ParamEnum
 	
 	public static debugger.Message ErrorInternal(java.lang.String details)
 	{
-		//line 343 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 343 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(0, new java.lang.Object[]{details});
 	}
 	
 	
 	public static debugger.Message ErrorNoSuchThread(int number)
 	{
-		//line 344 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 344 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(1, new java.lang.Object[]{number});
 	}
 	
 	
 	public static debugger.Message ErrorNoSuchFile(java.lang.String fileName)
 	{
-		//line 345 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 345 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(2, new java.lang.Object[]{fileName});
 	}
 	
 	
 	public static debugger.Message ErrorNoSuchBreakpoint(int number)
 	{
-		//line 346 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 346 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(3, new java.lang.Object[]{number});
 	}
 	
 	
 	public static debugger.Message ErrorBadClassNameRegex(java.lang.String details)
 	{
-		//line 347 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 347 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(4, new java.lang.Object[]{details});
 	}
 	
 	
 	public static debugger.Message ErrorBadFunctionNameRegex(java.lang.String details)
 	{
-		//line 348 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 348 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(5, new java.lang.Object[]{details});
 	}
 	
 	
 	public static debugger.Message ErrorNoMatchingFunctions(java.lang.String className, java.lang.String functionName, debugger.StringList unresolvableClasses)
 	{
-		//line 349 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 349 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(6, new java.lang.Object[]{className, functionName, unresolvableClasses});
 	}
 	
 	
 	public static debugger.Message ErrorBadCount(int count)
 	{
-		//line 351 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 351 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(7, new java.lang.Object[]{count});
 	}
 	
 	
 	public static debugger.Message ErrorCurrentThreadNotStopped(int threadNumber)
 	{
-		//line 352 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 352 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(8, new java.lang.Object[]{threadNumber});
 	}
 	
 	
 	public static debugger.Message ErrorEvaluatingExpression(java.lang.String details)
 	{
-		//line 353 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 353 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(9, new java.lang.Object[]{details});
 	}
 	
@@ -93,147 +93,147 @@ public class Message extends haxe.lang.ParamEnum
 	
 	public static debugger.Message Files(debugger.StringList list)
 	{
-		//line 359 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 359 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(13, new java.lang.Object[]{list});
 	}
 	
 	
 	public static debugger.Message AllClasses(debugger.StringList list)
 	{
-		//line 360 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 360 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(14, new java.lang.Object[]{list});
 	}
 	
 	
 	public static debugger.Message Classes(debugger.ClassList list)
 	{
-		//line 361 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 361 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(15, new java.lang.Object[]{list});
 	}
 	
 	
 	public static debugger.Message MemBytes(int bytes)
 	{
-		//line 362 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 362 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(16, new java.lang.Object[]{bytes});
 	}
 	
 	
 	public static debugger.Message Compacted(int bytesBefore, int bytesAfter)
 	{
-		//line 363 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 363 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(17, new java.lang.Object[]{bytesBefore, bytesAfter});
 	}
 	
 	
 	public static debugger.Message Collected(int bytesBefore, int bytesAfter)
 	{
-		//line 364 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 364 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(18, new java.lang.Object[]{bytesBefore, bytesAfter});
 	}
 	
 	
 	public static debugger.Message ThreadLocation(int number, int stackFrame, java.lang.String className, java.lang.String functionName, java.lang.String fileName, int lineNumber, int columnNumber)
 	{
-		//line 366 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 366 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(19, new java.lang.Object[]{number, stackFrame, className, functionName, fileName, lineNumber, columnNumber});
 	}
 	
 	
 	public static debugger.Message FileLineBreakpointNumber(int number)
 	{
-		//line 370 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 370 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(20, new java.lang.Object[]{number});
 	}
 	
 	
 	public static debugger.Message ClassFunctionBreakpointNumber(int number, debugger.StringList unresolvableClasses)
 	{
-		//line 371 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 371 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(21, new java.lang.Object[]{number, unresolvableClasses});
 	}
 	
 	
 	public static debugger.Message Breakpoints(debugger.BreakpointList list)
 	{
-		//line 373 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 373 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(22, new java.lang.Object[]{list});
 	}
 	
 	
 	public static debugger.Message BreakpointDescription(int number, debugger.BreakpointLocationList list)
 	{
-		//line 374 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 374 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(23, new java.lang.Object[]{number, list});
 	}
 	
 	
 	public static debugger.Message BreakpointStatuses(debugger.BreakpointStatusList list)
 	{
-		//line 375 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 375 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(24, new java.lang.Object[]{list});
 	}
 	
 	
 	public static debugger.Message ThreadsWhere(debugger.ThreadWhereList list)
 	{
-		//line 376 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 376 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(25, new java.lang.Object[]{list});
 	}
 	
 	
 	public static debugger.Message Variables(debugger.StringList list)
 	{
-		//line 377 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 377 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(26, new java.lang.Object[]{list});
 	}
 	
 	
 	public static debugger.Message Value(java.lang.String expression, java.lang.String type, java.lang.String value)
 	{
-		//line 378 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 378 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(27, new java.lang.Object[]{expression, type, value});
 	}
 	
 	
 	public static debugger.Message Structured(debugger.StructuredValue structuredValue)
 	{
-		//line 379 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 379 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(28, new java.lang.Object[]{structuredValue});
 	}
 	
 	
 	public static debugger.Message ThreadCreated(int number)
 	{
-		//line 382 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 382 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(29, new java.lang.Object[]{number});
 	}
 	
 	
 	public static debugger.Message ThreadTerminated(int number)
 	{
-		//line 383 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 383 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(30, new java.lang.Object[]{number});
 	}
 	
 	
 	public static debugger.Message ThreadStarted(int number)
 	{
-		//line 384 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 384 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(31, new java.lang.Object[]{number});
 	}
 	
 	
 	public static debugger.Message ThreadStopped(int number, int stackFrame, java.lang.String className, java.lang.String functionName, java.lang.String fileName, int lineNumber, int columnNumber)
 	{
-		//line 385 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 385 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.Message(32, new java.lang.Object[]{number, stackFrame, className, functionName, fileName, lineNumber, columnNumber});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 340 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 340 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.Message.__hx_constructs[this.index];
 	}
 	

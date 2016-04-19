@@ -8,9 +8,9 @@ public class HaxeProtocol extends haxe.lang.HxObject
 {
 	static
 	{
-		//line 134 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 134 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		debugger.HaxeProtocol.gClientIdentification = "Haxe debug client v1.1 coming at you!\n\n";
-		//line 136 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 136 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		debugger.HaxeProtocol.gServerIdentification = "Haxe debug server v1.1 ready and willing, sir!\n\n";
 	}
 	
@@ -21,7 +21,7 @@ public class HaxeProtocol extends haxe.lang.HxObject
 	
 	public HaxeProtocol()
 	{
-		//line 28 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 28 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		debugger.HaxeProtocol.__hx_ctor_debugger_HaxeProtocol(this);
 	}
 	
@@ -33,26 +33,26 @@ public class HaxeProtocol extends haxe.lang.HxObject
 	
 	public static void writeClientIdentification(haxe.io.Output output)
 	{
-		//line 32 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 32 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		output.writeString(debugger.HaxeProtocol.gClientIdentification);
 	}
 	
 	
 	public static void writeServerIdentification(haxe.io.Output output)
 	{
-		//line 37 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 37 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		output.writeString(debugger.HaxeProtocol.gServerIdentification);
 	}
 	
 	
 	public static void readClientIdentification(haxe.io.Input input)
 	{
-		//line 42 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 42 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		haxe.io.Bytes id = input.read(debugger.HaxeProtocol.gClientIdentification.length());
-		//line 43 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 43 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		if ( ! (haxe.lang.Runtime.valEq(id.toString(), debugger.HaxeProtocol.gClientIdentification)) ) 
 		{
-			//line 44 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 44 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			throw haxe.lang.HaxeException.wrap(( "Unexpected client identification string: " + haxe.root.Std.string(id) ));
 		}
 		
@@ -61,12 +61,12 @@ public class HaxeProtocol extends haxe.lang.HxObject
 	
 	public static void readServerIdentification(haxe.io.Input input)
 	{
-		//line 50 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 50 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		haxe.io.Bytes id = input.read(debugger.HaxeProtocol.gServerIdentification.length());
-		//line 51 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 51 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		if ( ! (haxe.lang.Runtime.valEq(id.toString(), debugger.HaxeProtocol.gServerIdentification)) ) 
 		{
-			//line 52 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 52 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			throw haxe.lang.HaxeException.wrap(( "Unexpected server identification string: " + haxe.root.Std.string(id) ));
 		}
 		
@@ -75,46 +75,46 @@ public class HaxeProtocol extends haxe.lang.HxObject
 	
 	public static void writeCommand(haxe.io.Output output, debugger.Command command)
 	{
-		//line 59 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 59 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		debugger.HaxeProtocol.writeDynamic(output, command);
 	}
 	
 	
 	public static void writeMessage(haxe.io.Output output, debugger.Message message)
 	{
-		//line 65 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 65 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		debugger.HaxeProtocol.writeDynamic(output, message);
 	}
 	
 	
 	public static debugger.Command readCommand(haxe.io.Input input)
 	{
-		//line 70 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 70 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		java.lang.Object raw = debugger.HaxeProtocol.readDynamic(input);
-		//line 74 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 74 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		try 
 		{
-			//line 74 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 74 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			return ((debugger.Command) (raw) );
 		}
 		catch (java.lang.Throwable __temp_catchallException1)
 		{
-			//line 74 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 74 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			haxe.lang.Exceptions.setException(__temp_catchallException1);
-			//line 77 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 77 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			java.lang.Object __temp_catchall2 = __temp_catchallException1;
-			//line 77 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 77 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			if (( __temp_catchall2 instanceof haxe.lang.HaxeException )) 
 			{
-				//line 77 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 77 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				__temp_catchall2 = ((haxe.lang.HaxeException) (__temp_catchallException1) ).obj;
 			}
 			
-			//line 77 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 77 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			{
-				//line 77 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 77 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				java.lang.Object e = __temp_catchall2;
-				//line 77 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 77 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				throw haxe.lang.HaxeException.wrap(( ( ( "Expected Command, but got " + haxe.root.Std.string(raw) ) + ": " ) + haxe.root.Std.string(e) ));
 			}
 			
@@ -126,32 +126,32 @@ public class HaxeProtocol extends haxe.lang.HxObject
 	
 	public static debugger.Message readMessage(haxe.io.Input input)
 	{
-		//line 83 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 83 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		java.lang.Object raw = debugger.HaxeProtocol.readDynamic(input);
-		//line 87 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 87 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		try 
 		{
-			//line 87 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 87 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			return ((debugger.Message) (raw) );
 		}
 		catch (java.lang.Throwable __temp_catchallException1)
 		{
-			//line 87 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 87 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			haxe.lang.Exceptions.setException(__temp_catchallException1);
-			//line 90 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 90 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			java.lang.Object __temp_catchall2 = __temp_catchallException1;
-			//line 90 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 90 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			if (( __temp_catchall2 instanceof haxe.lang.HaxeException )) 
 			{
-				//line 90 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 90 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				__temp_catchall2 = ((haxe.lang.HaxeException) (__temp_catchallException1) ).obj;
 			}
 			
-			//line 90 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 90 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			{
-				//line 90 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 90 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				java.lang.Object e = __temp_catchall2;
-				//line 90 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 90 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				throw haxe.lang.HaxeException.wrap(( ( ( "Expected Message, but got " + haxe.root.Std.string(raw) ) + ": " ) + haxe.root.Std.string(e) ));
 			}
 			
@@ -163,67 +163,67 @@ public class HaxeProtocol extends haxe.lang.HxObject
 	
 	public static void writeDynamic(haxe.io.Output output, java.lang.Object value)
 	{
-		//line 98 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 98 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		java.lang.String string = haxe.Serializer.run(value);
-		//line 101 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 101 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		int msg_len = string.length();
-		//line 102 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 102 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		haxe.io.Bytes msg_len_raw = haxe.io.Bytes.alloc(8);
-		//line 104 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 104 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		{
-			//line 104 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 104 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			int _g = 0;
-			//line 104 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 104 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			while (( _g < 8 ))
 			{
-				//line 104 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 104 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				int i = _g++;
-				//line 105 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 105 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				msg_len_raw.b[( 7 - i )] = ((byte) (( ( msg_len % 10 ) + 48 )) );
-				//line 106 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 106 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				msg_len = ((int) (( msg_len / 10 )) );
 			}
 			
 		}
 		
-		//line 109 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 109 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		output.write(msg_len_raw);
-		//line 110 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 110 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		output.writeString(string);
 	}
 	
 	
 	public static java.lang.Object readDynamic(haxe.io.Input input)
 	{
-		//line 115 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 115 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		haxe.io.Bytes msg_len_raw = input.read(8);
-		//line 118 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 118 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		int msg_len = 0;
-		//line 119 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 119 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		{
-			//line 119 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 119 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			int _g = 0;
-			//line 119 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 119 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			while (( _g < 8 ))
 			{
-				//line 119 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 119 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				int i = _g++;
-				//line 120 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 120 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				msg_len *= 10;
-				//line 121 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+				//line 121 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 				msg_len += ( (( msg_len_raw.b[i] & 255 )) - 48 );
 			}
 			
 		}
 		
-		//line 126 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 126 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		if (( msg_len > 2097152 )) 
 		{
-			//line 127 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+			//line 127 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 			throw haxe.lang.HaxeException.wrap(( ( "Read bad message length: " + msg_len ) + "." ));
 		}
 		
-		//line 131 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 131 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		return haxe.Unserializer.run(input.read(msg_len).toString());
 	}
 	
@@ -234,14 +234,14 @@ public class HaxeProtocol extends haxe.lang.HxObject
 	
 	public static java.lang.Object __hx_createEmpty()
 	{
-		//line 28 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 28 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		return new debugger.HaxeProtocol(haxe.lang.EmptyObject.EMPTY);
 	}
 	
 	
 	public static java.lang.Object __hx_create(haxe.root.Array arr)
 	{
-		//line 28 "/home/mike/cmps116/hxcpp-debugger/debugger/HaxeProtocol.hx"
+		//line 28 "/home/mike/haxe/hxcpp-debugger/debugger/HaxeProtocol.hx"
 		return new debugger.HaxeProtocol();
 	}
 	

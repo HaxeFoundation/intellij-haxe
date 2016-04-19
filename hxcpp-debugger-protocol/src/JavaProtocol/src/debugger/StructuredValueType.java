@@ -27,28 +27,28 @@ public class StructuredValueType extends haxe.lang.ParamEnum
 	
 	public static debugger.StructuredValueType TypeInstance(java.lang.String className)
 	{
-		//line 278 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 278 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValueType(5, new java.lang.Object[]{className});
 	}
 	
 	
 	public static debugger.StructuredValueType TypeEnum(java.lang.String enumName)
 	{
-		//line 279 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 279 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValueType(6, new java.lang.Object[]{enumName});
 	}
 	
 	
 	public static debugger.StructuredValueType TypeAnonymous(debugger.StructuredValueTypeList elements)
 	{
-		//line 280 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 280 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValueType(7, new java.lang.Object[]{elements});
 	}
 	
 	
 	public static debugger.StructuredValueType TypeClass(java.lang.String className)
 	{
-		//line 281 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 281 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValueType(8, new java.lang.Object[]{className});
 	}
 	
@@ -59,7 +59,7 @@ public class StructuredValueType extends haxe.lang.ParamEnum
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 271 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 271 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.StructuredValueType.__hx_constructs[this.index];
 	}
 	

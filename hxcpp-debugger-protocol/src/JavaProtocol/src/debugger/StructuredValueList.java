@@ -19,14 +19,14 @@ public class StructuredValueList extends haxe.lang.ParamEnum
 	
 	public static debugger.StructuredValueList Element(java.lang.String name, debugger.StructuredValue value, debugger.StructuredValueList next)
 	{
-		//line 315 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 315 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValueList(1, new java.lang.Object[]{name, value, next});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 312 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 312 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.StructuredValueList.__hx_constructs[this.index];
 	}
 	

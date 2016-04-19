@@ -19,14 +19,14 @@ public class ThreadWhereList extends haxe.lang.ParamEnum
 	
 	public static debugger.ThreadWhereList Where(int number, debugger.ThreadStatus status, debugger.FrameList frameList, debugger.ThreadWhereList next)
 	{
-		//line 263 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 263 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.ThreadWhereList(1, new java.lang.Object[]{number, status, frameList, next});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 260 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 260 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.ThreadWhereList.__hx_constructs[this.index];
 	}
 	

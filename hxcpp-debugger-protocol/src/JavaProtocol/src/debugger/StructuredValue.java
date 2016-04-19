@@ -17,28 +17,28 @@ public class StructuredValue extends haxe.lang.ParamEnum
 	
 	public static debugger.StructuredValue Elided(debugger.StructuredValueType type, java.lang.String getExpression)
 	{
-		//line 328 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 328 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValue(0, new java.lang.Object[]{type, getExpression});
 	}
 	
 	
 	public static debugger.StructuredValue Single(debugger.StructuredValueType type, java.lang.String value)
 	{
-		//line 330 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 330 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValue(1, new java.lang.Object[]{type, value});
 	}
 	
 	
 	public static debugger.StructuredValue List(debugger.StructuredValueListType type, debugger.StructuredValueList list)
 	{
-		//line 332 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 332 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StructuredValue(2, new java.lang.Object[]{type, list});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 323 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 323 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.StructuredValue.__hx_constructs[this.index];
 	}
 	

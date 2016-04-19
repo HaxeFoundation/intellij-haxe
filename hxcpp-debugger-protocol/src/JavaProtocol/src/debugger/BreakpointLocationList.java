@@ -19,21 +19,21 @@ public class BreakpointLocationList extends haxe.lang.ParamEnum
 	
 	public static debugger.BreakpointLocationList FileLine(java.lang.String fileName, int lineNumber, int columnNumber, debugger.BreakpointLocationList next)
 	{
-		//line 209 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 209 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.BreakpointLocationList(1, new java.lang.Object[]{fileName, lineNumber, columnNumber, next});
 	}
 	
 	
 	public static debugger.BreakpointLocationList ClassFunction(java.lang.String className, java.lang.String functionName, debugger.BreakpointLocationList next)
 	{
-		//line 211 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 211 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.BreakpointLocationList(2, new java.lang.Object[]{className, functionName, next});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 206 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 206 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.BreakpointLocationList.__hx_constructs[this.index];
 	}
 	

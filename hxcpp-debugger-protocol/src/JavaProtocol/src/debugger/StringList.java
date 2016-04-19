@@ -19,14 +19,14 @@ public class StringList extends haxe.lang.ParamEnum
 	
 	public static debugger.StringList Element(java.lang.String string, debugger.StringList next)
 	{
-		//line 175 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 175 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.StringList(1, new java.lang.Object[]{string, next});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 172 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 172 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.StringList.__hx_constructs[this.index];
 	}
 	

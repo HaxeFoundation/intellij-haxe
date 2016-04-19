@@ -21,7 +21,7 @@ public class ThreadStatus extends haxe.lang.ParamEnum
 	
 	public static debugger.ThreadStatus StoppedBreakpoint(int number)
 	{
-		//line 239 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 239 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.ThreadStatus(2, new java.lang.Object[]{number});
 	}
 	
@@ -30,14 +30,14 @@ public class ThreadStatus extends haxe.lang.ParamEnum
 	
 	public static debugger.ThreadStatus StoppedCriticalError(java.lang.String description)
 	{
-		//line 241 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 241 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return new debugger.ThreadStatus(4, new java.lang.Object[]{description});
 	}
 	
 	
 	@Override public java.lang.String getTag()
 	{
-		//line 235 "/home/mike/cmps116/hxcpp-debugger/debugger/IController.hx"
+		//line 235 "/home/mike/haxe/hxcpp-debugger/debugger/IController.hx"
 		return debugger.ThreadStatus.__hx_constructs[this.index];
 	}
 	
