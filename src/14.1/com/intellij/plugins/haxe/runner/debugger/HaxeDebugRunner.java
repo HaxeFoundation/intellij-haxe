@@ -404,6 +404,17 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       }
     }
 
+    public int getColumnNumber(XSourcePosition position) {
+      int line = position.getLine() + 1;
+      VirtualFile file = position.getFile();
+      int offset = position.getOffset();
+      int currentOffset = 0;
+      XSourcePosition marker = XSourcePositionImpl.create(file, line-1);
+      currentOffset = marker.getOffset();
+
+      return (offset - currentOffset + 1);
+    }
+
     @Override
     public void runToPosition(@NotNull XSourcePosition position) {
       // Complicated!  Basically, just make sure that there is a single
@@ -411,6 +422,41 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       // hit, set breakpoints back to how they were before ... but ...
       // what about breaking and setting breakpoints and stuff while
       // waiting on runToPosition?  Have to be clever there ...
+      int columnNumber = getColumnNumber(position);
+      System.out.println(getColumnNumber(position));
+
+      DebugProcess.this.enqueueCommand
+        (debugger.Command.DisableBreakpointRange(-1,-1),
+         new MessageListener() {
+           public void handleMessage(int messageId,
+                                     debugger.Message message) {
+             // Could verify that the response was Deleted ...
+           }
+         });
+
+
+      String path = getRelativePath(mProject, position.getFile());
+
+      DebugProcess.this.enqueueCommand
+        (debugger.Command.AddFileLineBreakpoint(path, position.getLine()+1, columnNumber),
+         new MessageListener() {
+           public void handleMessage(int messageId,
+                                     debugger.Message message) {
+             // Could verify that the response was Deleted ...
+           }
+         });
+
+      resume();
+
+
+         DebugProcess.this.enqueueCommand
+           (debugger.Command.EnableBreakpointRange(-1,-1),
+            new MessageListener() {
+              public void handleMessage(int messageId,
+                                        debugger.Message message) {
+                // Could verify that the response was Deleted ...
+              }
+            });
     }
 
     private void info(String message) {
