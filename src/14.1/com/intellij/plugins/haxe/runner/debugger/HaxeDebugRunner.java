@@ -936,7 +936,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                                     SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
         component.append(mClassAndFunctionName + "  [" + mFileName +
-                         ":" + mLineNumber + "]", attr);
+                         ":" + mLineNumber + ":" + mColumnNumber + "]", attr);
         component.setIcon(AllIcons.Debugger.StackFrame);
       }
 

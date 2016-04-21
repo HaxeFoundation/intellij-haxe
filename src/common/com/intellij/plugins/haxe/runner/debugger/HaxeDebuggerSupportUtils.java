@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 
 /**
  * @author: Fedor.Korotkov
@@ -45,6 +46,7 @@ public class HaxeDebuggerSupportUtils {
 
   @Nullable
   public static PsiElement getContextElement(VirtualFile virtualFile, int offset, final @NotNull Project project) {
+    System.out.println("getContextElement(): " + offset);
     Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
     PsiFile file = PsiManager.getInstance(project).findFile(virtualFile);
     if (file == null || document == null) {
@@ -65,6 +67,7 @@ public class HaxeDebuggerSupportUtils {
       }
 
       offset = element.getTextRange().getEndOffset() + 1;
+      System.out.println("getContextElement(): " + offset);
     }
     while (offset < lineEndOffset);
 
