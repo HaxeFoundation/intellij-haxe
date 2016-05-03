@@ -67,6 +67,7 @@ import com.intellij.xdebugger.evaluation.XDebuggerEvaluator;
 import com.intellij.xdebugger.frame.*;
 import com.intellij.xdebugger.impl.XSourcePositionImpl;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodeImpl;
+import com.intellij.xdebugger.impl.ui.ExecutionPointHighlighter;
 import gnu.trove.THashSet;
 import haxe.root.JavaProtocol;
 import org.jetbrains.annotations.NotNull;
@@ -91,6 +92,7 @@ import java.util.regex.Pattern;
  */
 public class HaxeDebugRunner extends DefaultProgramRunner {
   public static final String HAXE_DEBUG_RUNNER_ID = "HaxeDebugRunner";
+  public int breakpointCount;
 
   @NotNull
   @Override
@@ -415,6 +417,24 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       return (offset - currentOffset + 1);
     }
 
+    public int getMessageId() {
+      java.net.Socket debugSocket;
+      synchronized (this) {
+        debugSocket = mDebugSocket;
+      }
+      if(debugSocket == null) {
+        return -1;
+      }
+      debugger.Message message;
+      try {
+        message = JavaProtocol.readMessage(debugSocket.getInputStream());
+      } catch (IOException e) {
+        return -1;
+      }
+      int messageId = JavaProtocol.getMessageId(message);
+      return messageId;
+    }
+
     @Override
     public void runToPosition(@NotNull XSourcePosition position) {
       // Complicated!  Basically, just make sure that there is a single
@@ -425,6 +445,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       int columnNumber = getColumnNumber(position);
       System.out.println(getColumnNumber(position));
 
+      /*
       DebugProcess.this.enqueueCommand
         (debugger.Command.DisableBreakpointRange(-1,-1),
          new MessageListener() {
@@ -433,9 +454,15 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
              // Could verify that the response was Deleted ...
            }
          });
+      */
 
 
       String path = getRelativePath(mProject, position.getFile());
+      System.out.println("ColumnNumber: " + columnNumber);
+      if(columnNumber == 1) {
+        System.out.println("Breaking at line number " + position.getLine() + 1);
+        columnNumber = -1;
+      }
 
       DebugProcess.this.enqueueCommand
         (debugger.Command.AddFileLineBreakpoint(path, position.getLine()+1, columnNumber),
@@ -445,12 +472,13 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
              // Could verify that the response was Deleted ...
            }
          });
+      breakpointCount++;
+      System.out.println("breakpointCount: " + breakpointCount);
 
       resume();
 
-
          DebugProcess.this.enqueueCommand
-           (debugger.Command.EnableBreakpointRange(-1,-1),
+           (debugger.Command.DeleteBreakpointRange(breakpointCount,breakpointCount),
             new MessageListener() {
               public void handleMessage(int messageId,
                                         debugger.Message message) {
@@ -672,6 +700,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       }
 
       String path = getRelativePath(mProject, position.getFile());
+      breakpointCount++;
 
       DebugProcess.this.enqueueCommand
         (debugger.Command.AddFileLineBreakpoint
@@ -837,6 +866,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         mFileName = (String)frameList.params[4];
         mLineNumber = (((Integer)frameList.params[5]).intValue());
         mColumnNumber = (((Integer)frameList.params[6]).intValue());
+        breakpointCount = 0;
         mClassAndFunctionName =
           ((String)frameList.params[2] + "." +
            (String)frameList.params[3]);
