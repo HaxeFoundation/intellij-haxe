@@ -89,6 +89,11 @@ public class HaxeImportOptimizer implements ImportOptimizer {
 
   public static void reorderImports(final PsiFile file) {
     List<HaxeImportStatementRegular> allImports = UsefulPsiTreeUtil.getAllImportStatements(file);
+
+    if (allImports.size() < 2) {
+      return;
+    }
+
     List<String> sortedImports = new ArrayList<String>();
 
     for (HaxeImportStatementRegular currentImport : allImports) {
