@@ -37,7 +37,7 @@
       <p/>
       <p>Unreleased changes:</p>
       <ul>
-        <li>@:deprecated support (issue #459)</li>
+        <li>@:deprecated support (issue #459, #473)</li>
       </ul>
       <p>0.9.10: (community release)</p>
       <ul>
