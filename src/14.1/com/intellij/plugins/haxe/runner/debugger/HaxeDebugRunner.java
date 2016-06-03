@@ -443,7 +443,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       // what about breaking and setting breakpoints and stuff while
       // waiting on runToPosition?  Have to be clever there ...
       int columnNumber = getColumnNumber(position);
-      System.out.println(getColumnNumber(position));
+      //System.out.println(getColumnNumber(position));
 
       /*
       DebugProcess.this.enqueueCommand
@@ -458,9 +458,9 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
 
       String path = getRelativePath(mProject, position.getFile());
-      System.out.println("ColumnNumber: " + columnNumber);
+      //System.out.println("ColumnNumber: " + columnNumber);
       if(columnNumber == 1) {
-        System.out.println("Breaking at line number " + position.getLine() + 1);
+        //System.out.println("Breaking at line number " + position.getLine() + 1);
         columnNumber = -1;
       }
 
@@ -473,7 +473,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
            }
          });
       breakpointCount++;
-      System.out.println("breakpointCount: " + breakpointCount);
+      //System.out.println("breakpointCount: " + breakpointCount);
 
       resume();
 
@@ -535,8 +535,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     private void enqueueCommand(final debugger.Command command,
                                 MessageListener listener) {
-            System.out.println("\n\nWriting command: " +
-                               JavaProtocol.commandToString(command)+"\n\n");
+            //System.out.println("\n\nWriting command: " +
+            //                   JavaProtocol.commandToString(command)+"\n\n");
       try {
         synchronized (this) {
           if (mDebugSocket == null) {
@@ -606,8 +606,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         }
         debugger.Message message = JavaProtocol.readMessage
           (debugSocket.getInputStream());
-                System.out.println("\n\nReceived message: " +
-                                   JavaProtocol.messageToString(message)+"\n\n");
+                //System.out.println("\n\nReceived message: " +
+                //                   JavaProtocol.messageToString(message)+"\n\n");
         int messageId = JavaProtocol.getMessageId(message);
         if (messageId == JavaProtocol.IdThreadCreated) {
           // Console it out
@@ -799,11 +799,11 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         int number = ((Integer)whereList.params[0]).intValue();
         debugger.ThreadStatus status = (debugger.ThreadStatus)
           whereList.params[1];
-        System.out.println("DEBUG:" + whereList.params[2]);
-        System.out.println("Line 729: debugger.FrameList frameList = (debugger.FrameList)");
+        //System.out.println("DEBUG:" + whereList.params[2]);
+        //System.out.println("Line 729: debugger.FrameList frameList = (debugger.FrameList)");
         debugger.FrameList frameList = (debugger.FrameList)
           whereList.params[2];
-        System.out.println("Line 729 complete.");
+        //System.out.println("Line 729 complete.");
 
         executionStacks.addElement
           (new ExecutionStack(project, module, number, frameList));
@@ -849,11 +849,11 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         mStackFrames.addElement(new StackFrame(project, module,
                                                frameList));
 
-        System.out.println("Debug:" + frameList.params[7] + " , " + frameList.params.length);
-        System.out.println("Executing line 779:");
+        //System.out.println("Debug:" + frameList.params[7] + " , " + frameList.params.length);
+        //System.out.println("Executing line 779:");
         this.addFrameList(project, module, (debugger.FrameList)
           frameList.params[7]);
-        System.out.println("Line 779 complete.");
+        //System.out.println("Line 779 complete.");
       }
 
       private Vector<XStackFrame> mStackFrames;
