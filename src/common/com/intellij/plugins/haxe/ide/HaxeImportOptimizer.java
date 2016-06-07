@@ -102,7 +102,8 @@ public class HaxeImportOptimizer implements ImportOptimizer {
 
     Collections.sort(sortedImports);
 
-    final Document document = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
+    final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(file.getProject());
+    final Document document = psiDocumentManager.getDocument(file);
     if (document != null) {
       final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(file.getProject());
 
