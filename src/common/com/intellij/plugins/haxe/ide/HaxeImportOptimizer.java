@@ -30,7 +30,9 @@ import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -94,6 +96,21 @@ public class HaxeImportOptimizer implements ImportOptimizer {
       return;
     }
 
+    int startOffset = allImports.get(0).getStartOffsetInParent();
+    HaxeImportStatementRegular lastImport = allImports.get(allImports.size() - 1);
+    int endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
+
+    // We assume the common practice of placing all imports in a single “block” at the top of a file. If there is something else (comments,
+    // code, etc) there we just stop reordering to prevent data loss.
+    for (PsiElement child : file.getChildren()) {
+      int childOffset = child.getStartOffsetInParent();
+      if (childOffset >= startOffset && childOffset <= endOffset
+          && !(child instanceof HaxeImportStatementRegular)
+          && !(child instanceof PsiWhiteSpace)) {
+        return;
+      }
+    }
+
     List<String> sortedImports = new ArrayList<String>();
 
     for (HaxeImportStatementRegular currentImport : allImports) {
@@ -106,10 +123,6 @@ public class HaxeImportOptimizer implements ImportOptimizer {
     final Document document = psiDocumentManager.getDocument(file);
     if (document != null) {
       final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(file.getProject());
-
-      int startOffset = allImports.get(0).getStartOffsetInParent();
-      HaxeImportStatementRegular lastImport = allImports.get(allImports.size() - 1);
-      int endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
 
       documentManager.doPostponedOperationsAndUnblockDocument(document);
       document.deleteString(startOffset, endOffset);
