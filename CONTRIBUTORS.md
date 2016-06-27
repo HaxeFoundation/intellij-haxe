@@ -1,6 +1,7 @@
 Recent contributors
 -----------------------------------
  - as3boyan <denis.flash.as3@gmail.com>
+ - bynuff <igor.bulankov@gmail.com>
  - Carlos Ballesteros Velasco <soywiz@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
  - Elias Ku <deadbabe@gmail.com>
@@ -11,11 +12,9 @@ Recent contributors
  - Ilya Kuzmichev <IlyaK@playtika.by>
  - Ilya Kuzmichev <ilyak@playtika.com>
  - isBatak <ivicabatinic123@gmail.com>
- - Jérémy Faivre <jeremy.faivre@gmail.com>
- - jeremyfa <jeremy.faivre@gmail.com>
  - sganapavarapu1 <ganapavarapu@tivo.com>
  - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
- - vaukalak <lahmataja.pa4vara@gmia>
+ - Usievaład Čorny <anibyl@riseup.net>
  - Yannick Dominguez <yannick.dominguez@gmail.com>
  - yannick <yannnick.dominguez@gmail.com>
 
@@ -29,6 +28,7 @@ All contributors
 - bjitivo <bji@tivo.com>
 - Bruno Garcia <b@aduros.com>
 - Bryan Ischo <bryan@ischo.com>
+- bynuff <igor.bulankov@gmail.com>
 - Carlos Ballesteros Velasco <soywiz@gmail.com>
 - Chris Decoster <impaler777@gmail.com>
 - Constantine Plotnikov <constantine.plotnikov@gmail.com>
@@ -72,6 +72,7 @@ All contributors
 - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
 - Tim Hepner <tim@hepners.net>
 - Todd Brannam <tbrannam@casualpenguin.com>
+- Usievaład Čorny <anibyl@riseup.net>
 - Vassiliy Kudryashov <Vassiliy.Kudryashov@jetbrains.com>
 - vaukalak <lahmataja.pa4vara@gmia>
 - vladimir.krivosheev <vladimir.krivosheev@jetbrains.com>

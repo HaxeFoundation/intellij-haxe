@@ -94,9 +94,10 @@ public class HaxeImportUtil {
       public void visitElement(PsiElement element) {
         super.visitElement(element);
         if (element instanceof HaxeReference) {
-          HaxeClass haxeClass = ((HaxeReference)element).resolveHaxeClass().getHaxeClass();
-          if (haxeClass != null) {
-            classesInFile.add(haxeClass);
+          PsiElement resolvedElement = ((HaxeReference)element).resolve();
+
+          if (resolvedElement instanceof HaxeClass) {
+            classesInFile.add((HaxeClass) resolvedElement);
           }
         }
       }

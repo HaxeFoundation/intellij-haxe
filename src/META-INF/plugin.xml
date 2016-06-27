@@ -29,13 +29,18 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.9 for @plugin.compatibility.description@</version>
+  <version>0.9.10 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
       <p>Unreleased changes:</p>
+      <ul>
+        <li>@:deprecated support (issue #459)</li>
+        <li>Alias imports support (issue #466)</li>
+      </ul>
+      <p>0.9.10: (community release)</p>
       <ul>
         <li>Better packages resolving</li>
         <li>Fix catch parameter declaration (issue #419)</li>
@@ -57,6 +62,7 @@
         <li>Navigate to symbols (issue #340)</li>
         <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
         <li>Fix method local variables and arguments completion. (issue #455)</li>
+        <li>Fix
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
@@ -718,6 +724,11 @@
                      key="haxe.inspection.unresolved.symbol"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeDeprecatedSymbol" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspection.deprecated.symbol"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeDeprecatedInspection"/>
 
     <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspection.preprocessor.symbol.name"
