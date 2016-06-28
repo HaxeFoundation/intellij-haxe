@@ -1,6 +1,6 @@
 language: java
 jdk:
-- oraclejdk8
+- oraclejdk7
 before_script:
 - sudo add-apt-repository ppa:eyecreate/haxe -y
 - sudo apt-get update
@@ -16,6 +16,6 @@ env:
     - IDEA_VERSION=14.0.4 ANT_TARGET=test
     - IDEA_VERSION=14.1.6 ANT_TARGET=test
     - IDEA_VERSION=15.0.4 ANT_TARGET=compile_test
-    - IDEA_VERSION=2016.1.3 ANT_TARGET=test
+    - IDEA_VERSION=2016.1.3 ANT_TARGET=compile_test
 notifications:
   email: false
