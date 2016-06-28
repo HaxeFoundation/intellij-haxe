@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
+import com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;

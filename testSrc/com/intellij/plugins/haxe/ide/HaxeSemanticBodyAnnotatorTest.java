@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
+import com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
