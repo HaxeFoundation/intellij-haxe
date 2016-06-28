@@ -95,6 +95,7 @@
             includeantruntime="false" >
 
             <src path="${version.specific.code.location}" />
+            <src path="${version.compat.code.location}" />
             <src path="src/common" />
             <src path="src/icons" />
             <src path="gen" />

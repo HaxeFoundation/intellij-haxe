@@ -171,6 +171,7 @@
      the ${plugin.properties.file}, this way you can
      choose not to include any version specific code -->
   <property name="version.specific.code.location" location="src/common" />
+  <property name="version.compat.code.location" location="src/common" />
 
   <property name="plugin.autogen.warning">
 
