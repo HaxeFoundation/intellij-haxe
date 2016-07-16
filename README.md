@@ -4,6 +4,12 @@ Haxe plugin for Intellij IDEA
 This plugin allows you to develop [Haxe](http://haxe.org/) programs with Intellij IDEA.
 It requires Intellij IDEA Ultimate or Community Edition, versions 14 or 15.
 
+Warning
+-------
+
+This branch -- master-ImprovedSemantics -- is neither stable nor currently up-to-date with the master branch.
+However, the intent is to bring it up to date and make this branch stable, eventually merging it with the master.
+
 Install
 -------
 
