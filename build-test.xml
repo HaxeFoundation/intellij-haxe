@@ -64,11 +64,12 @@
             verbose="false"
             debug="true"
             debuglevel="lines,vars,source"
-            source="1.6"
-            target="1.6"
+            source="1.8"
+            target="1.8"
             includeantruntime="false" >
 
             <src path="${version.specific.code.location}" />
+            <src path="${version.compat.code.location}" />
             <src path="src/common" />
             <src path="src/icons" />
             <src path="gen" />
@@ -106,13 +107,14 @@
         <property name="suspend" value="n"/>
 
         <junit
-            haltonfailure="false"
+            haltonfailure="true"
             showoutput="no"
             failureProperty="failure_found"
             fork="yes"
             forkmode="once"
             reloading="no"
-            enabletestlistenerevents="true">
+            enabletestlistenerevents="true"
+            jvm="${idea.ultimate.build}/jre/jdk/Contents/Home/jre/bin/java">
 
             <jvmarg value="-Didea.home.path=${idea.ultimate.build}"/>
             <jvmarg value="-Xbootclasspath/a:${idea.ultimate.build}/lib/boot.jar"/>
@@ -121,7 +123,9 @@
             <jvmarg line="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=${suspend},address=43251"/>
             <jvmarg value="-Didea.launcher.bin.path=${idea.ultimate.build}/bin"/>
             <!-- Tests fail with a default MaxPermSize.  They use up all of the PermGen memory. -->
-            <jvmarg value="-XX:MaxPermSize=256m"/>
+            <!--<jvmarg value="-XX:MaxPermSize=256m"/>-->
+            <jvmarg value="-XX:MaxMetaspaceSize=256m" />
+
             <classpath refid="classpath.test"/>
 
             <formatter type="brief" usefile="false"/>

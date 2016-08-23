@@ -4,6 +4,10 @@
      It works well with versions 14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version
      of the plugin is for IDEA versions 14.1.5 and 14.1.6.
   </p>
+  <p>0.9.11: (community release)</p>
+  <ul>
+    <li>Idea 16 support</li>
+  </ul>
   <p>0.9.10: (community release)</p>
   <ul>
     <li>Better packages resolving</li>
@@ -26,7 +30,7 @@
     <li>Navigate to symbols (issue #340)</li>
     <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
     <li>Fix method local variables and arguments completion. (issue #455)</li>
-    <li>Fix
+    <li>Fix</li>
   </ul>
   <p>0.9.9: (community release)</p>
   <ul>

@@ -65,7 +65,7 @@
 
   <!-- If nothing else, assume that the IDEA installation is in a subdirectory
        of the project.  This is the case when building on Travis.ci, for example. -->
-  <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
+  <property name="idea.ultimate.build" location="${basedir}/idea-IU/Contents/" />
 
   <echo level="debug">idea.ultimate.build is set to "${idea.ultimate.build}"</echo>
   <echo level="debug">version is set to "${version}"</echo>
@@ -122,6 +122,7 @@
       // Lookup table for properties files.  Add new versions here.
       var propertiesFile = "";
       switch(parseInt(codeLine, 10)) {
+        case 145:   propertiesFile = "idea_v16.properties";   break;
         case 143:   propertiesFile = "idea_v15.properties";   break;
         case 141:
           if (parseInt(buildNumber, 10) <= 2734) {
@@ -170,6 +171,7 @@
      the ${plugin.properties.file}, this way you can
      choose not to include any version specific code -->
   <property name="version.specific.code.location" location="src/common" />
+  <property name="version.compat.code.location" location="src/common" />
 
   <property name="plugin.autogen.warning">
 
