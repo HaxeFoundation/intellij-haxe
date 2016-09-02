@@ -35,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -125,7 +126,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     boolean flashDebug = false, hxcppDebug = false;
 
-    if (settings.isUseHxmlToBuild()) {
+    if (settings.isUseHxmlToBuild() || settings.isUseUserPropertiesToBuild()) {
       if (settings.getHaxeTarget() == HaxeTarget.FLASH) {
         flashDebug = true;
       }
@@ -163,8 +164,16 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     if (flashDebug) {
-      return runFlash(module, settings, env, executor,
-                      configuration.getCustomFileToLaunchPath());
+      String flashFileToDebug = null;
+      if(configuration.isCustomFileToLaunch()) {
+        flashFileToDebug = configuration.getCustomFileToLaunchPath();
+      }
+      else {
+        final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
+        assert model != null;
+        flashFileToDebug = model.getCompilerOutputUrl() + "/debug/" + settings.getOutputFileName();
+      }
+      return runFlash(module, settings, env, executor, flashFileToDebug);
     }
     else if (hxcppDebug) {
       final Project project = env.getProject();
