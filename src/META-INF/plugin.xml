@@ -37,6 +37,7 @@
       <p/>
       <p>0.10.0: (community release)</p>
       <ul>
+        <li>Fixed creating classes in TEST source roots</li>
         <li>Fixed debug Flash on Haxe-compiler target</li>
         <li>Fixed crash on MACRO_CLASS_LIST assert</li>
         <li>IDEA 2016 support</li>
