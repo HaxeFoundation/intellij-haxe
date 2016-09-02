@@ -41,7 +41,7 @@
         <li>Fixed debug Flash on Haxe-compiler target</li>
         <li>Fixed crash on MACRO_CLASS_LIST assert</li>
         <li>IDEA 2016 support</li>
-        <li>@:deprecated support (issue #459)</li>
+        <li>@:deprecated support (issue #459, #473)</li>
         <li>Alias imports support (issue #466)</li>
       </ul>
       <p>0.9.10: (community release)</p>
