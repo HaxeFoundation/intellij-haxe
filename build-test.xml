@@ -68,8 +68,9 @@
             target="1.8"
             includeantruntime="false" >
 
+            <compilerarg value="-Xlint:deprecation" />
+            <compilerarg value="-Xlint:unchecked" />
             <src path="${version.specific.code.location}" />
-            <src path="${version.compat.code.location}" />
             <src path="src/common" />
             <src path="src/icons" />
             <src path="gen" />
@@ -119,18 +120,19 @@
             <jvmarg value="-Didea.home.path=${idea.ultimate.build}"/>
             <jvmarg value="-Xbootclasspath/a:${idea.ultimate.build}/lib/boot.jar"/>
             <jvmarg value="-Dfile.encoding=UTF-8"/>
-            <jvmarg value="-ea"/>
+            <!--<jvmarg value="-Dsun.io.useCanonCaches=false" />-->
+            <!--<jvmarg value="-ea"/>-->
             <jvmarg line="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=${suspend},address=43251"/>
             <jvmarg value="-Didea.launcher.bin.path=${idea.ultimate.build}/bin"/>
             <!-- Tests fail with a default MaxPermSize.  They use up all of the PermGen memory. -->
-            <!--<jvmarg value="-XX:MaxPermSize=256m"/>-->
             <jvmarg value="-XX:MaxMetaspaceSize=256m" />
+            <!--<jvmarg value="-Xmx450m" />-->
 
             <classpath refid="classpath.test"/>
 
             <formatter type="brief" usefile="false"/>
 
-            <batchtest>
+            <batchtest fork="yes">
                 <fileset dir="testSrc">
                     <include name="**/*Test.java"/>
                     <exclude name="**/*TestCase.java"/>
@@ -140,6 +142,5 @@
 
         <fail if="failure_found" message="Unit test failures detected."/>
     </target>
-
 
 </project>

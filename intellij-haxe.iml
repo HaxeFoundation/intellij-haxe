@@ -12,10 +12,11 @@
       <sourceFolder url="file://$MODULE_DIR$/src/common" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/icons" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/META-INF" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/14.1" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/16.0" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/compat16" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/build_test" />
+      <excludeFolder url="file://$MODULE_DIR$/idea-IU" />
       <excludeFolder url="file://$MODULE_DIR$/src/13.1" />
       <excludeFolder url="file://$MODULE_DIR$/src/14" />
     </content>
