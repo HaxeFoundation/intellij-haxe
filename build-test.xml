@@ -115,7 +115,7 @@
             forkmode="once"
             reloading="no"
             enabletestlistenerevents="true"
-            jvm="${idea.ultimate.build}/jre/jdk/Contents/Home/jre/bin/java">
+            jvm="${idea.ultimate.build}/jre/jre/bin/java">
 
             <jvmarg value="-Didea.home.path=${idea.ultimate.build}"/>
             <jvmarg value="-Xbootclasspath/a:${idea.ultimate.build}/lib/boot.jar"/>

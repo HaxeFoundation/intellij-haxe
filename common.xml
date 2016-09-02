@@ -65,7 +65,7 @@
 
   <!-- If nothing else, assume that the IDEA installation is in a subdirectory
        of the project.  This is the case when building on Travis.ci, for example. -->
-  <property name="idea.ultimate.build" location="${basedir}/idea-IU/Contents/" />
+  <property name="idea.ultimate.build" location="${basedir}/idea-IU/" />
 
   <echo level="debug">idea.ultimate.build is set to "${idea.ultimate.build}"</echo>
   <echo level="debug">version is set to "${version}"</echo>
