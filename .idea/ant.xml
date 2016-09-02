@@ -2,16 +2,10 @@
 <project version="4">
   <component name="AntConfiguration">
     <buildFile url="file://$PROJECT_DIR$/build-test.xml">
-      <antCommandLine value="-v" />
-      <maximumHeapSize value="512" />
-      <maximumStackSize value="100" />
-      <properties>
-        <property name="version" value="2016.1.3" />
-      </properties>
+      <maximumHeapSize value="256" />
+      <maximumStackSize value="16" />
     </buildFile>
-    <buildFile url="file://$PROJECT_DIR$/build.xml">
-      <antCommandLine value="-f" />
-    </buildFile>
+    <buildFile url="file://$PROJECT_DIR$/build.xml" />
     <buildFile url="file://$PROJECT_DIR$/common.xml">
       <executeOn event="beforeCompilation" target="generateTemplatedFiles" />
     </buildFile>
