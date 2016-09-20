@@ -17,17 +17,11 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.Arrays;
 
 public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
@@ -41,7 +35,7 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
     myFixture.configureByFiles(getTestName(false) + ".hx");
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-    myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
+    myFixture.enableInspections(getAnnotatorBasedInspection());
     myFixture.testHighlighting(true, false, false);
     HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK = old;
   }
