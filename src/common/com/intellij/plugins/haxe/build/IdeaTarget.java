@@ -38,6 +38,7 @@ public class IdeaTarget {
   // of the compatibility strings possible.
   //
 
+  public static final boolean IS_VERSION_16_2_COMPATIBLE = (SDK_CODELINE >= 162);
   public static final boolean IS_VERSION_16_1_COMPATIBLE = (SDK_CODELINE >= 145);
   // There was no 2016.0 release.
   public static final boolean IS_VERSTION_16_COMPATIBLE = (IS_VERSION_16_1_COMPATIBLE);
