@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe;
 
-import com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.plugins.haxe.build.ClassWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
