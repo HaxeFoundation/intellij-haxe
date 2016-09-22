@@ -37,8 +37,9 @@
       <p/>
       <p>Unreleased changes:</p>
       <ul>
-        <li>@:deprecated support (issue #459)</li>
+        <li>@:deprecated support (issue #459, #473)</li>
         <li>Alias imports support (issue #466)</li>
+        <li>Imports optimization: reordering added (issue #471)</li>
       </ul>
       <p>0.9.10: (community release)</p>
       <ul>
