@@ -1,3 +1,5 @@
 package com.foo;
 
-class Foo {}
+class Foo implements IFoo {
+  public function foo() {}
+}
