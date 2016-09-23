@@ -17,11 +17,16 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.execution.Platform;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+
+import java.io.File;
 
 /**
  * Created by as3boyan on 15.11.14.
@@ -31,16 +36,16 @@ public class HaxeHelpUtil {
     String haxePath = "haxe";
     if (myModule != null) {
       Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-      if (sdk != null) {
-        SdkAdditionalData data = sdk.getSdkAdditionalData();
+      if (sdk != null && sdk.getSdkType().equals(HaxeSdkType.getInstance())) {
+        String path = FileUtil.toSystemIndependentName(sdk.getHomePath()) + "/haxe";
 
-        if (data instanceof HaxeSdkData) {
-          HaxeSdkData sdkData;
-          sdkData = (HaxeSdkData)data;
-          String path = sdkData.getHomePath();
-          if (!path.isEmpty()) {
-            haxePath = path;
-          }
+        if (Platform.current().equals(Platform.WINDOWS)) {
+          path += ".exe";
+        }
+
+        File file = new File(path);
+        if (!path.isEmpty() && file.exists() && file.isFile()) {
+          haxePath = path;
         }
       }
     }
