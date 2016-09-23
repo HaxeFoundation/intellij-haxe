@@ -32,9 +32,11 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(int expectedLength) throws Throwable {
     myFixture.configureByFile(getTestName(false) + ".hx");
+    GotoImplementationHandler gtiHandler = new GotoImplementationHandler();
     final GotoTargetHandler.GotoData data =
-      new GotoImplementationHandler().getSourceAndTargetElements(myFixture.getEditor(), myFixture.getFile());
+      gtiHandler.getSourceAndTargetElements(myFixture.getEditor(), myFixture.getFile());
     assertNotNull(myFixture.getFile().toString(), data);
+    // TODO: listen updater task?
     assertEquals(expectedLength, data.targets.length);
   }
 
@@ -47,7 +49,7 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testGti3() throws Throwable {
-    doTest(3);
+    doTest(2);
   }
 
   public void testGti4() throws Throwable {

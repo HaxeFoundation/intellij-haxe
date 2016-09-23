@@ -37,6 +37,7 @@ public class IdeaTarget {
   // When writing code using these constants, always use the most generic
   // of the compatibility strings possible.
   //
+  //
 
   public static final boolean IS_VERSION_15_1_COMPATIBLE = (SDK_CODELINE >= 145);
   public static final boolean IS_VERSION_15_0_COMPATIBLE = (SDK_CODELINE >= 143);

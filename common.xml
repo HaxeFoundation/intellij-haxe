@@ -122,15 +122,8 @@
       // Lookup table for properties files.  Add new versions here.
       var propertiesFile = "";
       switch(parseInt(codeLine, 10)) {
-        case 143:   propertiesFile = "idea_v15.properties";   break;
-        case 141:
-          if (parseInt(buildNumber, 10) <= 2734) {
-             propertiesFile = "idea_v14.1.properties";
-          } else {
-             propertiesFile = "idea_v14.1.5.properties";
-          }
-          break;
-        case 139:   propertiesFile = "idea_v14.properties";   break;
+        case 145:   propertiesFile = "idea_v16.properties";   break;
+        case 162:   propertiesFile = "idea_v16.properties";   break;
       }
       if (0 != propertiesFile.length) {
         project.setNewProperty("plugin.properties.file", propertiesFile);

@@ -29,14 +29,18 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.10 for @plugin.compatibility.description@</version>
+  <version>0.10.0 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
-      <p>Unreleased changes:</p>
+      <p>0.10.0: (community release)</p>
       <ul>
+        <li>Fixed creating classes in TEST source roots</li>
+        <li>Fixed debug Flash on Haxe-compiler target</li>
+        <li>Fixed crash on MACRO_CLASS_LIST assert</li>
+        <li>IDEA 2016 support</li>
         <li>@:deprecated support (issue #459, #473)</li>
         <li>Alias imports support (issue #466)</li>
         <li>Imports optimization: reordering added (issue #471)</li>

@@ -1,7 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2014-2016 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,12 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
+import com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.Arrays;
 
 public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
