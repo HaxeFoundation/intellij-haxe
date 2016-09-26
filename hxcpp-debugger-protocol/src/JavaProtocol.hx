@@ -117,7 +117,7 @@ class JavaProtocol
             return IdCompacted;
         case Collected(bytesBefore, a):
             return IdCollected;
-        case ThreadLocation(number, s, c, f, fi, l):
+        case ThreadLocation(number, s, c, f, fi, l, columnNumber):
             return IdThreadLocation;
         case FileLineBreakpointNumber(number):
             return IdFileLineBreakpointNumber;
@@ -143,7 +143,7 @@ class JavaProtocol
             return IdThreadTerminated;
         case ThreadStarted(number):
             return IdThreadStarted;
-        case ThreadStopped(number, s, c, f, fi, l):
+        case ThreadStopped(number, s, c, f, fi, l, columnNumber):
             return IdThreadStopped;
         }
     }
@@ -163,9 +163,9 @@ class JavaProtocol
         var stdout = untyped __java__('System.out');
         HaxeProtocol.writeMessage(new OutputAdapter(stdout),
                                   Message.ThreadsWhere
-                     (Where(0, Running, 
+                     (Where(0, Running,
                             Frame(true, 0, "h", "i", "p",
-                                  10, Terminator),
+                                  10, 10, Terminator),
                             Terminator)));
         Sys.stderr().writeString("Reading message\n");
         var msg = readMessage(untyped __java__('System.in'));

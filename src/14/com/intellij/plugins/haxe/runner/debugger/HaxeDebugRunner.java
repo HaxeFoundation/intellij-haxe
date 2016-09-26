@@ -883,7 +883,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                                     SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
         component.append(mClassAndFunctionName + "  [" + mFileName +
-                         ":" + mLineNumber + "]", attr);
+                         ":" + mLineNumber + ":" + mColumnNumber + "]", attr);
         component.setIcon(AllIcons.Debugger.StackFrame);
       }
 
@@ -1010,7 +1010,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 //                            System.out.println("Setting value of " +
 //                                               Value.this.mName + " with " +
 //                                               "expression " +
-//                                               Value.this.mExpression  + 
+//                                               Value.this.mExpression  +
 //                                               " to " + expression);
 //                            DebugProcess.this.enqueueCommand
 //                                (debugger.Command.SetExpression
