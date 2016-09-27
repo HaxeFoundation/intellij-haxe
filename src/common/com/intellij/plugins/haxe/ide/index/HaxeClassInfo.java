@@ -49,4 +49,23 @@ public class HaxeClassInfo {
   public Icon getIcon() {
     return type == null ? null : type.getIcon();
   }
+
+  private int getTypeKey() {
+    return type != null ? type.getKey() : -1;
+  }
+
+  public int hashCode() {
+    return 31 * value.hashCode() + getTypeKey();
+  }
+
+  public boolean equals(Object obj) {
+    if(obj == this) {
+      return true;
+    }
+    if(obj != null && obj.getClass() == getClass()) {
+      final HaxeClassInfo info = (HaxeClassInfo)obj;
+      return info.value.equals(value) && info.getTypeKey() == getTypeKey();
+    }
+    return false;
+  }
 }
