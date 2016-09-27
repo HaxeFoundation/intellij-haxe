@@ -122,6 +122,7 @@
       // Lookup table for properties files.  Add new versions here.
       var propertiesFile = "";
       switch(parseInt(codeLine, 10)) {
+        case 163:   propertiesFile = "idea_v16.properties";   break; // EAP
         case 162:   propertiesFile = "idea_v16.properties";   break;
         case 145:   propertiesFile = "idea_v16.properties";   break;
         case 143:   propertiesFile = "idea_v15.properties";   break;
