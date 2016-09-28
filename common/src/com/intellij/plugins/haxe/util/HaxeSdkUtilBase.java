@@ -107,13 +107,22 @@ public class HaxeSdkUtilBase {
   private static String getEnvironmentPathPatch(@Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     String result = "";
     if(haxeSdkData != null) {
-      String sdkHome = haxeSdkData.getHomePath();
-      if (sdkHome != null && !sdkHome.isEmpty()) {
+      final String sdkHome = haxeSdkData.getHomePath();
+      final String haxelibBin = haxeSdkData.getHaxelibPath();
+      final String nekoBin = haxeSdkData.getNekoBinPath();
+
+      if(sdkHome != null && !sdkHome.isEmpty()) {
         result += ":" + sdkHome;
       }
-      String nekoBin = haxeSdkData.getNekoBinPath();
+      else if(haxelibBin != null && !haxelibBin.isEmpty()) {
+        // fallback to haxelib path
+        final File f = new File(haxelibBin);
+        result += ":" + f.getParent();
+      }
+
+
       if (nekoBin != null && !nekoBin.isEmpty()) {
-        File f = new File(nekoBin);
+        final File f = new File(nekoBin);
         result += ":" + f.getParent();
       }
     }
