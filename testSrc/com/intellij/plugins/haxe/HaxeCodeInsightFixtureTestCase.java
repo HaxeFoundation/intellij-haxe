@@ -17,6 +17,9 @@
  */
 package com.intellij.plugins.haxe;
 
+import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.plugins.haxe.build.ClassWrapper;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
@@ -37,4 +40,31 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
   protected String getTestDataPath() {
     return HaxeTestUtils.BASE_TEST_DATA_PATH + getBasePath();
   }
+
+  /**
+   * Use reflection to load an annotator inspection class.
+   * Specific to annotation tests, but placed here just to avoid adding yet another single-function base class.
+   *
+   * When we don't support versions of the plugin prior to v2016.1, we can revert the code to importing
+   * the classes directly and get rid of this function.
+   *
+   * @return - An annotator-based inspection class instance.
+   */
+  protected InspectionProfileEntry getAnnotatorBasedInspection() {
+    // Because we're loading an inner class, and Class.forName simply substitutes '.' for '/', it won't find
+    // the class unless we use the '$' as the final path separator.  (Which is what the Java compiler does
+    // when it  creates an inner class.)
+    //String defaultInspectorClassName = IdeaTarget.IS_VERSTION_16_COMPATIBLE
+    //                       ? "com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection$AnnotatorBasedInspection"
+    //                       : "com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection$AnnotatorBasedInspection";
+    String defaultInspectorClassName = IdeaTarget.IS_VERSTION_16_COMPATIBLE
+                                       ? "com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection"
+                                       : "com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection";
+
+    ClassWrapper<InspectionProfileEntry> wrapper = new ClassWrapper<InspectionProfileEntry>(defaultInspectorClassName);
+    ClassWrapper<InspectionProfileEntry> annotator = new ClassWrapper<InspectionProfileEntry>(wrapper, "AnnotatorBasedInspection");
+
+    return annotator.newInstance();
+  }
+
 }
