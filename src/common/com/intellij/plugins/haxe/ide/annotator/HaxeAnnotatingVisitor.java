@@ -103,18 +103,20 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   @Override
   public void visitCallExpression(@NotNull HaxeCallExpression o) {
-    PsiElement child = o.getFirstChild();
+    final PsiElement child = o.getFirstChild();
     if (child instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression) child;
-      PsiElement reference = referenceExpression.resolve();
+      final PsiElement reference = referenceExpression.resolve();
+      final PsiElement lastChild = referenceExpression.getLastChild();
 
-      if (reference instanceof HaxeFunctionDeclarationWithAttributes) {
-        HaxeFunctionDeclarationWithAttributes functionDeclaration = (HaxeFunctionDeclarationWithAttributes)reference;
+      if (reference instanceof HaxeFunctionDeclarationWithAttributes &&
+          lastChild != null && lastChild instanceof HaxeReferenceExpression) {
 
-        List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
+        final HaxeFunctionDeclarationWithAttributes functionDeclaration = (HaxeFunctionDeclarationWithAttributes)reference;
+        final List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
         for (HaxeCustomMeta meta : metas) {
           if (isDeprecatedMeta(meta)) {
-            handleDeprecatedCallExpression((HaxeReferenceExpression)referenceExpression.getLastChild());
+            handleDeprecatedCallExpression((HaxeReferenceExpression)lastChild);
           }
         }
       }
