@@ -183,6 +183,9 @@ public class HaxelibCommandUtils {
     return strings;
   }
 
+
+  //private static Logger log = Logger.getInstance(HaxelibCommandUtils.class);
+
   public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, File dir, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     List<String> strings = new ArrayList<String>();
 
@@ -197,7 +200,9 @@ public class HaxelibCommandUtils {
         strings.add(nextLine);
       }
 
+      //log.error(StringUtil.join(strings, "\n"));
       process.waitFor();
+
       /*
       try {
         Thread.sleep(250);
@@ -215,9 +220,11 @@ public class HaxelibCommandUtils {
     }
     catch (IOException e) {
       e.printStackTrace();
+      //log.error(StringUtil.getMessage(e));
     }
     catch (InterruptedException e) {
       e.printStackTrace();
+      //log.error(StringUtil.getMessage(e));
     }
 
     return strings;
