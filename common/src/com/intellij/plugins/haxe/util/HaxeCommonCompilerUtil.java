@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.util.BooleanValueHolder;
 import com.intellij.util.PathUtil;
@@ -49,6 +50,9 @@ import java.util.List;
  */
 public class HaxeCommonCompilerUtil {
   public interface CompilationContext {
+
+    HaxeSdkAdditionalDataBase getHaxeSdkData();
+
     @NotNull
     HaxeModuleSettingsBase getModuleSettings();
 
@@ -202,7 +206,7 @@ public class HaxeCommonCompilerUtil {
         if (!workingDirectory.mkdirs()) throw new IOException("Cannot create directory " + workingPath);
       }
       final BaseOSProcessHandler handler = new ColoredProcessHandler(
-        new ProcessBuilder(commandLine).directory(workingDirectory).start(),
+        HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData()).start(),
         null,
         Charset.defaultCharset()
       );

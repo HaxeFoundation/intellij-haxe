@@ -18,11 +18,19 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author: Fedor.Korotkov
@@ -71,5 +79,61 @@ public class HaxeSdkUtilBase {
 
   private static boolean fileExists(@Nullable String filePath) {
     return filePath != null && new File(FileUtil.toSystemDependentName(filePath)).exists();
+  }
+
+  @Nullable
+  public static HaxeSdkAdditionalDataBase getSdkData(@Nullable Module module) {
+    if(module != null) {
+      ModuleRootManager manager = ModuleRootManager.getInstance(module);
+      if (manager != null) {
+        return getSdkData(manager.getSdk());
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static HaxeSdkAdditionalDataBase getSdkData(@Nullable Sdk sdk) {
+    if(sdk != null) {
+      SdkAdditionalData sdkData = sdk.getSdkAdditionalData();
+      if(sdkData != null && sdkData instanceof HaxeSdkAdditionalDataBase) {
+        return (HaxeSdkAdditionalDataBase)sdkData;
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  private static String getEnvironmentPathPatch(@Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    String result = "";
+    if(haxeSdkData != null) {
+      String sdkHome = haxeSdkData.getHomePath();
+      if (sdkHome != null && !sdkHome.isEmpty()) {
+        result += ":" + sdkHome;
+      }
+      String nekoBin = haxeSdkData.getNekoBinPath();
+      if (nekoBin != null && !nekoBin.isEmpty()) {
+        File f = new File(nekoBin);
+        result += ":" + f.getParent();
+      }
+    }
+    return result;
+  }
+
+  @NotNull
+  public static ProcessBuilder createProcessBuilder(List<String> commandLine, @Nullable File workingDirectory, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    final ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
+
+    if(workingDirectory != null) {
+      processBuilder.directory(workingDirectory);
+    }
+
+    if (haxeSdkData != null && SystemInfo.isMac) {
+      final Map<String, String> env = processBuilder.environment();
+      final String path = env.get("PATH") + getEnvironmentPathPatch(haxeSdkData);
+      env.put("PATH", path);
+    }
+
+    return processBuilder;
   }
 }
