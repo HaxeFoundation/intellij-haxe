@@ -468,12 +468,6 @@ public class HaxelibProjectUpdater  {
           if (file != null && file.getFileType().equals(HXMLFileType.INSTANCE)) {
             PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
             if (psiFile != null) {
-              Collection<HXMLClasspath> hxmlClasspaths = PsiTreeUtil.findChildrenOfType(psiFile, HXMLClasspath.class);
-              for (HXMLClasspath hxmlClasspath : hxmlClasspaths) {
-                String classpath = hxmlClasspath.getValue();
-                haxelibExternalItems.add(new HaxelibItem(classpath, VfsUtil.pathToUrl(classpath)));
-              }
-
               Collection<HXMLLib> hxmlLibs = PsiTreeUtil.findChildrenOfType(psiFile, HXMLLib.class);
               for (HXMLLib hxmlLib : hxmlLibs) {
                 String name = hxmlLib.getValue();
@@ -488,14 +482,7 @@ public class HaxelibProjectUpdater  {
 
       case HaxeModuleSettings.USE_PROPERTIES:
         timeLog.stamp("Start loading classpaths from properties.");
-        String arguments = settings.getArguments();
-        if (!arguments.isEmpty()) {
-          List<String> classpaths = HaxelibClasspathUtils.getHXMLFileClasspaths(project, arguments);
 
-          for (String classpath : classpaths) {
-            haxelibExternalItems.add(new HaxelibItem(classpath, VfsUtil.pathToUrl(classpath)));
-          }
-        }
         timeLog.stamp("Finish loading classpaths from properties.");
         break;
     }
