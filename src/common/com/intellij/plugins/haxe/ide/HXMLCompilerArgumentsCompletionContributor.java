@@ -19,12 +19,14 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.module.Module;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -89,10 +91,11 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
   }
 
   private List<String> getStrings(ArrayList<String> commandLine) {
-    commandLine.add(HaxeHelpUtil.getHaxePath(HaxelibCache.getHaxeModule()));
+    Module module = HaxelibCache.getHaxeModule();
+    commandLine.add(HaxeHelpUtil.getHaxePath(module));
     commandLine.add("--help");
 
-    List<String> strings = HaxelibCommandUtils.getProcessStderr(commandLine);
+    List<String> strings = HaxelibCommandUtils.getProcessStderr(commandLine, HaxeSdkUtilBase.getSdkData(module));
     if (strings.size() > 0) {
       strings.remove(0);
     }

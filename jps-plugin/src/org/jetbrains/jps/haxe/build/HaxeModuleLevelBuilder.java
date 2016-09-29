@@ -18,10 +18,14 @@
 package org.jetbrains.jps.haxe.build;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
+import com.intellij.rt.execution.testFrameworks.ProcessBuilder;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
@@ -119,6 +123,11 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
 
     boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
       private String myErrorRoot;
+
+      @Override
+      public HaxeSdkAdditionalDataBase getHaxeSdkData() {
+        return jpsSdk.getSdkProperties();
+      }
 
       @NotNull
       @Override
