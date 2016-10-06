@@ -89,15 +89,16 @@ public class HaxeImportOptimizer implements ImportOptimizer {
     // TODO Remove unused usings.
   }
 
-  public static void reorderImports(final PsiFile file) {
+  private static void reorderImports(final PsiFile file) {
     List<HaxeImportStatementRegular> allImports = UsefulPsiTreeUtil.getAllImportStatements(file);
 
     if (allImports.size() < 2) {
       return;
     }
 
-    int startOffset = allImports.get(0).getStartOffsetInParent();
-    HaxeImportStatementRegular lastImport = allImports.get(allImports.size() - 1);
+    final HaxeImportStatementRegular firstImport = allImports.get(0);
+    int startOffset = firstImport.getStartOffsetInParent();
+    final HaxeImportStatementRegular lastImport = allImports.get(allImports.size() - 1);
     int endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
 
     // We assume the common practice of placing all imports in a single “block” at the top of a file. If there is something else (comments,
@@ -124,7 +125,15 @@ public class HaxeImportOptimizer implements ImportOptimizer {
     if (document != null) {
       final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(file.getProject());
 
+      /* This operation trims the document if necessary (e.g. it happens with “\n” at the very beginning).
+         Need to reevaluate offsets here.
+       */
       documentManager.doPostponedOperationsAndUnblockDocument(document);
+
+      // Reevaluating offset values according to the previous comment.
+      startOffset = firstImport.getStartOffsetInParent();
+      endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
+
       document.deleteString(startOffset, endOffset);
 
       StringBuilder sortedImportsText = new StringBuilder();
