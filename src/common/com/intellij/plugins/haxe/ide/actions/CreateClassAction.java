@@ -34,21 +34,25 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.ContainerUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 
 import javax.swing.*;
-import java.util.Collections;
+import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
+
+  private static Set<JavaSourceRootType> SOURCES;
+  static {
+    SOURCES = ContainerUtilRt.newHashSet(JavaSourceRootType.SOURCE, JavaSourceRootType.TEST_SOURCE);
+  }
+
   public CreateClassAction() {
-    super(HaxeBundle.message("action.create.new.class"),
-          HaxeBundle.message("action.create.new.class"),
-          icons.HaxeIcons.Haxe_16,
-          Collections.singleton(JavaSourceRootType.SOURCE));
+    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), icons.HaxeIcons.Haxe_16, SOURCES);
   }
 
   @Override
@@ -90,7 +94,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
       return createClass(className, packageName, dir, templateName).getContainingFile();
     }
     catch (Exception e) {
-      throw new IncorrectOperationException(e.getMessage(), e);
+      throw new IncorrectOperationException(e.getMessage());
     }
   }
 

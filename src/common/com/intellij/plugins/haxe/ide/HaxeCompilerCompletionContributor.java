@@ -40,6 +40,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -134,7 +135,8 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                            commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
                            List<String> stderr =
-                             HaxelibCommandUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
+                             HaxelibCommandUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project),
+                                                                  HaxeSdkUtilBase.getSdkData(moduleForFile));
 
                            getCompletionFromXml(result, project, stderr);
                          }
@@ -158,7 +160,8 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                          commandLineArguments.add(targetFlag);
 
                          stdout = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
-                                                                       BuildProperties.getProjectBaseDir(project));
+                                                                       BuildProperties.getProjectBaseDir(project),
+                                                                       HaxeSdkUtilBase.getSdkData(moduleForFile));
 
                          openFLDisplayArguments.put(moduleForFile.getModuleFilePath() + targetFlag, stdout);
                        }
@@ -173,7 +176,9 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
                        List<String> stderr =
-                         HaxelibCommandUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
+                         HaxelibCommandUtils.getProcessStderr(commandLineArguments,
+                                                              BuildProperties.getProjectBaseDir(project),
+                                                              HaxeSdkUtilBase.getSdkData(moduleForFile));
 
                        getCompletionFromXml(result, project, stderr);
                        break;
@@ -186,7 +191,9 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                          commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
                          List<String> stderr1 =
-                           HaxelibCommandUtils.getProcessStderr(commandLineArguments, BuildProperties.getProjectBaseDir(project));
+                           HaxelibCommandUtils.getProcessStderr(commandLineArguments,
+                                                                BuildProperties.getProjectBaseDir(project),
+                                                                HaxeSdkUtilBase.getSdkData(moduleForFile));
 
                          getCompletionFromXml(result, project, stderr1);
                        }

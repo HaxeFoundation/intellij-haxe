@@ -20,7 +20,9 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,8 +95,7 @@ public class HaxelibCommandUtils {
       commandLineArguments.add(arg);
     }
 
-    List<String> strings = getProcessStdout(commandLineArguments);
-    return strings;
+    return getProcessStdout(commandLineArguments, HaxeSdkUtilBase.getSdkData(sdk));
   }
 
 
@@ -138,11 +139,11 @@ public class HaxelibCommandUtils {
    * @return the output of the command, as a list of strings, one line per string.
    */
   @NotNull
-  public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments, @Nullable File dir) {
+  public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments, @Nullable File dir, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     List<String> strings = new ArrayList<String>();
 
     try {
-      ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
+      ProcessBuilder builder = HaxeSdkUtilBase.createProcessBuilder(commandLineArguments, dir, haxeSdkData);
       builder.redirectErrorStream(true);
       if (dir != null) {
         builder = builder.directory(dir);
@@ -182,14 +183,14 @@ public class HaxelibCommandUtils {
     return strings;
   }
 
-  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, File dir) {
+
+  //private static Logger log = Logger.getInstance(HaxelibCommandUtils.class);
+
+  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, File dir, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     List<String> strings = new ArrayList<String>();
 
     try {
-      ProcessBuilder builder = new ProcessBuilder(commandLineArguments);
-      if (dir != null) {
-        builder = builder.directory(dir);
-      }
+      ProcessBuilder builder = HaxeSdkUtilBase.createProcessBuilder(commandLineArguments, dir, haxeSdkData);
       Process process = builder.start();
       InputStreamReader reader = new InputStreamReader(process.getErrorStream());
       Scanner scanner = new Scanner(reader);
@@ -199,7 +200,9 @@ public class HaxelibCommandUtils {
         strings.add(nextLine);
       }
 
+      //log.error(StringUtil.join(strings, "\n"));
       process.waitFor();
+
       /*
       try {
         Thread.sleep(250);
@@ -217,9 +220,11 @@ public class HaxelibCommandUtils {
     }
     catch (IOException e) {
       e.printStackTrace();
+      //log.error(StringUtil.getMessage(e));
     }
     catch (InterruptedException e) {
       e.printStackTrace();
+      //log.error(StringUtil.getMessage(e));
     }
 
     return strings;
@@ -233,12 +238,12 @@ public class HaxelibCommandUtils {
    * @return the output of the command, as a list of strings, one line per string.
    */
   @NotNull
-  public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments) {
-    return getProcessStdout(commandLineArguments, null);
+  public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    return getProcessStdout(commandLineArguments, null, haxeSdkData);
   }
 
-  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments) {
-    return getProcessStderr(commandLineArguments, null);
+  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    return getProcessStderr(commandLineArguments, null, haxeSdkData);
   }
 
 }

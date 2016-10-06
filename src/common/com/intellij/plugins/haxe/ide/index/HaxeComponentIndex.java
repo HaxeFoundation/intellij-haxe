@@ -43,7 +43,7 @@ import java.util.*;
  */
 public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClassInfo> {
   public static final ID<String, HaxeClassInfo> HAXE_COMPONENT_INDEX = ID.create("HaxeComponentIndex");
-  private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION + 5;
+  private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION + 6;
   private final DataIndexer<String, HaxeClassInfo, FileContent> myIndexer = new MyDataIndexer();
   private final DataExternalizer<HaxeClassInfo> myExternalizer = new HaxeClassInfoExternalizer();
 

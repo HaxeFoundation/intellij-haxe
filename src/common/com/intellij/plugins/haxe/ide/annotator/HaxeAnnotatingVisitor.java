@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeModifierType;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.util.PsiTreeUtil;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +93,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   public void visitFunctionDeclarationWithAttributes(@NotNull HaxeFunctionDeclarationWithAttributes functionDeclaration) {
     List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
     for (HaxeCustomMeta meta : metas) {
-      if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
+      if (isDeprecatedMeta(meta)) {
         handleDeprecatedFunctionDeclaration(functionDeclaration);
       }
     }
@@ -104,18 +103,20 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   @Override
   public void visitCallExpression(@NotNull HaxeCallExpression o) {
-    PsiElement child = o.getFirstChild();
+    final PsiElement child = o.getFirstChild();
     if (child instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression) child;
-      PsiElement reference = referenceExpression.resolve();
+      final PsiElement reference = referenceExpression.resolve();
+      final PsiElement lastChild = referenceExpression.getLastChild();
 
-      if (reference instanceof HaxeFunctionDeclarationWithAttributes) {
-        HaxeFunctionDeclarationWithAttributes functionDeclaration = (HaxeFunctionDeclarationWithAttributes)reference;
+      if (reference instanceof HaxeFunctionDeclarationWithAttributes &&
+          lastChild != null && lastChild instanceof HaxeReferenceExpression) {
 
-        List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
+        final HaxeFunctionDeclarationWithAttributes functionDeclaration = (HaxeFunctionDeclarationWithAttributes)reference;
+        final List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
         for (HaxeCustomMeta meta : metas) {
-          if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
-            handleDeprecatedCallExpression((HaxeReferenceExpression)referenceExpression.getLastChild());
+          if (isDeprecatedMeta(meta)) {
+            handleDeprecatedCallExpression((HaxeReferenceExpression)lastChild);
           }
         }
       }
@@ -128,7 +129,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   public void visitVarDeclaration(@NotNull HaxeVarDeclaration varDeclaration) {
     List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
     for (HaxeCustomMeta meta : metas) {
-      if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
+      if (isDeprecatedMeta(meta)) {
         handleDeprecatedVarDeclaration(varDeclaration);
       }
     }
@@ -155,10 +156,15 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
       List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
       for (HaxeCustomMeta meta : metas) {
-        if (HaxeModifierType.DEPRECATED.s.equals(meta.getText())) {
+        if (isDeprecatedMeta(meta)) {
           handleDeprecatedCallExpression((HaxeReferenceExpression)referenceExpression.getLastChild());
         }
       }
     }
+  }
+
+  private boolean isDeprecatedMeta(@NotNull HaxeCustomMeta meta) {
+    String metaText = meta.getText();
+    return metaText != null && metaText.startsWith(HaxeModifierType.DEPRECATED.s);
   }
 }

@@ -17,10 +17,12 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
+import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.build.ClassWrapper;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
@@ -40,7 +42,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     try {
       LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-      myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
+      myFixture.enableInspections(getAnnotatorBasedInspection());
       try {
         myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
       }

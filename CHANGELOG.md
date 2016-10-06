@@ -26,7 +26,6 @@
     <li>Navigate to symbols (issue #340)</li>
     <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
     <li>Fix method local variables and arguments completion. (issue #455)</li>
-    <li>Fix
   </ul>
   <p>0.9.9: (community release)</p>
   <ul>

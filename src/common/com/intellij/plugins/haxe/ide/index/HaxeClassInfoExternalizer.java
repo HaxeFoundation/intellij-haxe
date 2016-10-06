@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.index;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.IOUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -32,7 +33,7 @@ public class HaxeClassInfoExternalizer implements DataExternalizer<HaxeClassInfo
   private final byte[] buffer = IOUtil.allocReadWriteUTFBuffer();
 
   @Override
-  public void save(DataOutput out, HaxeClassInfo classInfo) throws IOException {
+  public void save(@NotNull DataOutput out, HaxeClassInfo classInfo) throws IOException {
     IOUtil.writeUTFFast(buffer, out, classInfo.getValue());
     final HaxeComponentType haxeComponentType = classInfo.getType();
     final int key = haxeComponentType == null ? -1 : haxeComponentType.getKey();
@@ -40,7 +41,7 @@ public class HaxeClassInfoExternalizer implements DataExternalizer<HaxeClassInfo
   }
 
   @Override
-  public HaxeClassInfo read(DataInput in) throws IOException {
+  public HaxeClassInfo read(@NotNull DataInput in) throws IOException {
     final String value = IOUtil.readUTFFast(buffer, in);
     final int key = in.readInt();
     return new HaxeClassInfo(value, HaxeComponentType.valueOf(key));
