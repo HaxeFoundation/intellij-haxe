@@ -80,6 +80,10 @@ public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx", "com/foo/IFoo.hx", "com/foo/Unused.hx");
   }
 
+  public void testReorderImportsIssue493() throws Throwable {
+    runOptimizeAction("js/Browser.hx", "js/Cookie.hx", "js/Lib.hx");
+  }
+
   private void runOptimizeAction(String... additionalFiles) throws Throwable {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(true) + ".hx"}, additionalFiles));
     OptimizeImportsAction.actionPerformedImpl(DataManager.getInstance().getDataContext(myFixture.getEditor().getContentComponent()));
