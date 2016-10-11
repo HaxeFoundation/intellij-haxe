@@ -1,9 +1,25 @@
 #Changelog
   <p>
-     Warning: The 14.1 version of this plugin will NOT work correctly using IDEA version 14.1.2.
-     It works well with versions 14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version
-     of the plugin is for IDEA versions 14.1.5 and 14.1.6.
+     Warning for IDEA v14.1.x users: The 14.1 version of this plugin will NOT
+     work correctly using IDEA version 14.1.2.  It works well with versions
+     14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version of the
+     plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
   </p>
+
+  <p>0.10.1: (community release)</p>
+  <ul>
+    <li>Stop using the classpath to auto-add external libraries to projects. (issues #477 #100)</li>
+    <li>Fix re-ordering imports in certain situations. (issue #494)</li>
+    <li>Fix 'never' setter. (issue #486)</li>
+    <li>Change class paths for external libraries on OSX.</li>
+    <li>Fixed creating classes in TEST source roots</li>
+    <li>Fixed debug Flash on Haxe-compiler target</li>
+    <li>Fixed crash on MACRO_CLASS_LIST assert</li>
+    <li>IDEA 2016 support</li>
+    <li>@:deprecated support (issue #459, #473)</li>
+    <li>Alias imports support (issue #466)</li>
+    <li>Imports optimization: reordering added (issue #471)</li>
+  </ul>
   <p>0.9.10: (community release)</p>
   <ul>
     <li>Better packages resolving</li>

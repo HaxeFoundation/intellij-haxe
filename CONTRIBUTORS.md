@@ -6,17 +6,15 @@ Recent contributors
  - EBatTiVo <ebishton@tivo.com>
  - Elias Ku <deadbabe@gmail.com>
  - Eric B <ebishton@tivo.com>
- - Gabor Csomak <csomakk@gmail.com>
- - giabao <giabao@sandinh.net>
+ - GitHub <noreply@github.com>
  - grosmar <zubak.balazs@gmail.com>
+ - Ilya Kuzmichev <deadbabe@gmail.com>
  - Ilya Kuzmichev <IlyaK@playtika.by>
  - Ilya Kuzmichev <ilyak@playtika.com>
  - isBatak <ivicabatinic123@gmail.com>
- - sganapavarapu1 <ganapavarapu@tivo.com>
  - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
  - Usievaład Čorny <anibyl@riseup.net>
- - Yannick Dominguez <yannick.dominguez@gmail.com>
- - yannick <yannnick.dominguez@gmail.com>
+ - Usievaład Kimajeŭ <usievalad@gmail.com>
 
 All contributors
 -----------------------------------
@@ -49,9 +47,11 @@ All contributors
 - fkorotkov <fkorotkov@twitter.com>
 - Gabor Csomak <csomakk@gmail.com>
 - giabao <giabao@sandinh.net>
+- GitHub <noreply@github.com>
 - Gregory.Shrago <gregory.shrago@jetbrains.com>
 - grosmar <zubak.balazs@gmail.com>
 - Hays Clark <hays@infinitedescent.com>
+- Ilya Kuzmichev <deadbabe@gmail.com>
 - Ilya Kuzmichev <IlyaK@playtika.by>
 - Ilya Kuzmichev <ilyak@playtika.com>
 - impaler <user123@server.fake>
@@ -73,6 +73,7 @@ All contributors
 - Tim Hepner <tim@hepners.net>
 - Todd Brannam <tbrannam@casualpenguin.com>
 - Usievaład Čorny <anibyl@riseup.net>
+- Usievaład Kimajeŭ <usievalad@gmail.com>
 - Vassiliy Kudryashov <Vassiliy.Kudryashov@jetbrains.com>
 - vaukalak <lahmataja.pa4vara@gmia>
 - vladimir.krivosheev <vladimir.krivosheev@jetbrains.com>

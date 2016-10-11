@@ -29,7 +29,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.10.0 for @plugin.compatibility.description@</version>
+  <version>0.10.1 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
@@ -37,6 +37,10 @@
       <p/>
       <p>0.10.1: (community release)</p>
       <ul>
+        <li>Stop using the classpath to auto-add external libraries to projects. (issues #477 #100)</li>
+        <li>Fix re-ordering imports in certain situations. (issue #494)</li>
+        <li>Fix 'never' setter. (issue #486)</li>
+        <li>Change class paths for external libraries on OSX.</li>
         <li>Fixed creating classes in TEST source roots</li>
         <li>Fixed debug Flash on Haxe-compiler target</li>
         <li>Fixed crash on MACRO_CLASS_LIST assert</li>
