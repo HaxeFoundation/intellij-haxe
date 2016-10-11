@@ -197,7 +197,7 @@ macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.la
 //','
 
 private functionMacroMember ::= finalMeta | macroMember | overloadMeta
-private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta
+private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta | nativeMeta
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
