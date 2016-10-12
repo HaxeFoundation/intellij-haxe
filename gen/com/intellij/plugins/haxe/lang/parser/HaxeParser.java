@@ -19,14 +19,15 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.parser;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
+
+import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class HaxeParser implements PsiParser {
@@ -4092,15 +4093,26 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // identifier ':' expression
+  // (identifier | OPEN_QUOTE REGULAR_STRING_PART CLOSING_QUOTE) ':' expression
   public static boolean objectLiteralElement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "objectLiteralElement")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, "<object literal element>");
-    r = identifier(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, OBJECT_LITERAL_ELEMENT, "<object literal element>");
+    r = objectLiteralElement_0(b, l + 1);
     r = r && consumeToken(b, OCOLON);
     r = r && expression(b, l + 1);
-    exit_section_(b, l, m, OBJECT_LITERAL_ELEMENT, r, false, object_literal_part_recover_parser_);
+    exit_section_(b, l, m, r, false, object_literal_part_recover_parser_);
+    return r;
+  }
+
+  // identifier | OPEN_QUOTE REGULAR_STRING_PART CLOSING_QUOTE
+  private static boolean objectLiteralElement_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "objectLiteralElement_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = identifier(b, l + 1);
+    if (!r) r = parseTokens(b, 0, OPEN_QUOTE, REGULAR_STRING_PART, CLOSING_QUOTE);
+    exit_section_(b, m, null, r);
     return r;
   }
 

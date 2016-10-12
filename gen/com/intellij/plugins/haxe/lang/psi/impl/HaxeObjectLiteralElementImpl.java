@@ -19,14 +19,14 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import java.util.List;
-import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
+import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteralElement;
+import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
 import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.util.PsiTreeUtil;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import com.intellij.plugins.haxe.lang.psi.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeObjectLiteralElementImpl extends HaxePsiCompositeElementImpl implements HaxeObjectLiteralElement {
 
@@ -46,9 +46,9 @@ public class HaxeObjectLiteralElementImpl extends HaxePsiCompositeElementImpl im
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeIdentifier getIdentifier() {
-    return findNotNullChildByClass(HaxeIdentifier.class);
+    return findChildByClass(HaxeIdentifier.class);
   }
 
 }
