@@ -129,6 +129,9 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
     if (prevType == HaxeTokenTypes.PLCURLY) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
+    if (isTypeBody(prevType)) {
+      return new ChildAttributes(Indent.getNormalIndent(), null);
+    }
     if (isEndsWithRPAREN(elementType, prevType)) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
@@ -164,5 +167,12 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
            (elementType == HaxeTokenTypes.IF_STATEMENT ||
             elementType == HaxeTokenTypes.FOR_STATEMENT ||
             elementType == HaxeTokenTypes.WHILE_STATEMENT);
+  }
+
+  private static boolean isTypeBody(IElementType elementType) {
+    return elementType == HaxeTokenTypes.CLASS_BODY ||
+           elementType == HaxeTokenTypes.INTERFACE_BODY ||
+           elementType == HaxeTokenTypes.ENUM_BODY ||
+           elementType == HaxeTokenTypes.EXTERN_CLASS_DECLARATION_BODY;
   }
 }
