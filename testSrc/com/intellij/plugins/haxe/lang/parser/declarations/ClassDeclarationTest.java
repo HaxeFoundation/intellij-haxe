@@ -57,4 +57,8 @@ public class ClassDeclarationTest extends DeclarationTestBase {
   public void testFullOfMacro() throws Throwable {
     doTest(true);
   }
+
+  public void testNativeAnnotationIssue490() throws Throwable {
+    doTest(true);
+  }
 }
