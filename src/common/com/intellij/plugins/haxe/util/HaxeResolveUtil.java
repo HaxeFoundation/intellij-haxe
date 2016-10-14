@@ -434,7 +434,11 @@ public class HaxeResolveUtil {
     }
     if (element instanceof HaxeForStatement) {
       final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
-      assert iterable != null;
+      if(iterable == null) {
+        // iterable is @Nullable
+        // (sometimes when you're typing for statement it becames null for short time)
+        return HaxeClassResolveResult.EMPTY;
+      }
       final HaxeExpression expression = iterable.getExpression();
       if (expression instanceof HaxeReference) {
         final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
