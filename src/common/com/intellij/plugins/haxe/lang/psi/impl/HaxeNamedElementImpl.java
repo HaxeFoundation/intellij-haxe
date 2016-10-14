@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeComponentType;
@@ -74,11 +75,11 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
     try {
       return getIdentifier().getText();
     }
-    catch (Throwable t) {
-      // log & swallow
-      LOG.error(t.getMessage());
-      return "";
+    catch(NullPointerException npe) {
+      LOG.debug(npe.getMessage());
+      LOG.debug("Coercing to empty string");
     }
+    return "";
   }
 
   @Override
