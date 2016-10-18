@@ -34,6 +34,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -67,15 +68,9 @@ public class HaxeColorAnnotator implements Annotator {
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
       }
     }
-    String elementText = null;
-    if (element != null) {
-      elementText = element.getText();
-    }
-    if (element instanceof HaxeIdentifier && (elementText.equals("from") || elementText.equals("to")) ) {
-      if (element.getParent() instanceof HaxeAbstractClassDeclaration) {
-        TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
-        holder.createInfoAnnotation(node, null).setTextAttributes(attributesKey);
-      }
+    if (isKeyword(element)) {
+      TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
+      holder.createInfoAnnotation(node, null).setTextAttributes(attributesKey);
     }
 
     final ASTNode astNode = node.getNode();
@@ -107,6 +102,24 @@ public class HaxeColorAnnotator implements Annotator {
   private static boolean isNewOperator(PsiElement element) {
     return HaxeTokenTypes.ONEW.toString().equals(element.getText()) &&
            element.getParent() instanceof HaxeNewExpression;
+  }
+
+  /** Checks for keywords that are NOT PsiStatements; those are handled by IDEA.
+   */
+  private static boolean isKeyword(PsiElement element) {
+    boolean isKeyword = false;
+    PsiElement parent = element != null ? element.getParent() : null;
+
+    if (element instanceof PsiJavaToken) {
+      isKeyword = parent instanceof HaxeForStatement && "in".equals(element.getText());
+    }
+    else if (element instanceof HaxeIdentifier) {
+      if (parent instanceof HaxeAbstractClassDeclaration) {
+        String elementText = element.getText();
+        isKeyword = "from".equals(elementText) || "to".equals(elementText);
+      }
+    }
+    return isKeyword;
   }
 
   private static void tryAnnotateQName(PsiElement node, AnnotationHolder holder) {
