@@ -2,7 +2,7 @@
  * Copyright (c) 2005 JetBrains s.r.o. All Rights Reserved.
  */
 //
-// This file is only for backward-compatibility with IDEA v14, v14.1.
+// Lifted this file from IDEA 2016.2 for backward-compatibility with IDEA v14, v14.1.
 //
 package com.intellij.codeInsight;
 
