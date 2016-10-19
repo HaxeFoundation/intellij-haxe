@@ -111,7 +111,12 @@ public class HaxeColorAnnotator implements Annotator {
     PsiElement parent = element != null ? element.getParent() : null;
 
     if (element instanceof PsiJavaToken) {
-      isKeyword = parent instanceof HaxeForStatement && "in".equals(element.getText());
+      if (parent instanceof HaxeForStatement) {
+        isKeyword = "in".equals(element.getText());
+      } else if (parent instanceof HaxeImportStatementWithInSupport) {
+        String elementText = element.getText();
+        isKeyword = "in".equals(elementText) || "as".equals(elementText);
+      }
     }
     else if (element instanceof HaxeIdentifier) {
       if (parent instanceof HaxeAbstractClassDeclaration) {
