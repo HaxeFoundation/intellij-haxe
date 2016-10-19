@@ -4097,11 +4097,11 @@ public class HaxeParser implements PsiParser {
   public static boolean objectLiteralElement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "objectLiteralElement")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, OBJECT_LITERAL_ELEMENT, "<object literal element>");
+    Marker m = enter_section_(b, l, _NONE_, "<object literal element>");
     r = objectLiteralElement_0(b, l + 1);
     r = r && consumeToken(b, OCOLON);
     r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, object_literal_part_recover_parser_);
+    exit_section_(b, l, m, OBJECT_LITERAL_ELEMENT, r, false, object_literal_part_recover_parser_);
     return r;
   }
 
