@@ -125,7 +125,6 @@ public class HaxeIndentProcessor {
     result = result || type == CLASS_BODY;
     result = result || (type == ARRAY_LITERAL && elementType != PLBRACK && elementType != PRBRACK);
     result = result || type == OBJECT_LITERAL;
-    result = result || type == CLASS_BODY;
     result = result || type == EXTERN_CLASS_DECLARATION_BODY;
     result = result || type == ENUM_BODY;
     result = result || type == INTERFACE_BODY;
