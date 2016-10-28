@@ -531,6 +531,11 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitTypePsiMixin(o);
   }
 
+  public void visitTypeCheckExpression(@NotNull HaxeTypeCheckExpression o) {
+    visitExpression(o);
+    // visitReference(o);
+  }
+
   public void visitTypeExtends(@NotNull HaxeTypeExtends o) {
     visitPsiCompositeElement(o);
   }

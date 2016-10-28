@@ -19,15 +19,14 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.parser;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
-import com.intellij.lang.PsiParser;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
-
-import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.tree.TokenSet;
+import com.intellij.lang.PsiParser;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class HaxeParser implements PsiParser {
@@ -413,6 +412,9 @@ public class HaxeParser implements PsiParser {
     else if (t == TYPE) {
       r = type(b, 0);
     }
+    else if (t == TYPE_CHECK_EXPRESSION) {
+      r = typeCheckExpression(b, 0);
+    }
     else if (t == TYPE_EXTENDS) {
       r = typeExtends(b, 0);
     }
@@ -477,7 +479,7 @@ public class HaxeParser implements PsiParser {
       NEW_EXPRESSION, OBJECT_LITERAL, PARENTHESIZED_EXPRESSION, PREFIX_EXPRESSION,
       REFERENCE_EXPRESSION, REGULAR_EXPRESSION_LITERAL, SHIFT_EXPRESSION, STRING_LITERAL_EXPRESSION,
       SUFFIX_EXPRESSION, SUPER_EXPRESSION, SWITCH_CASE_EXPRESSION, TERNARY_EXPRESSION,
-      THIS_EXPRESSION),
+      THIS_EXPRESSION, TYPE_CHECK_EXPRESSION),
   };
 
   /* ********************************************************** */
@@ -5488,6 +5490,23 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // '(' expression ':' type ')'
+  public static boolean typeCheckExpression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typeCheckExpression")) return false;
+    if (!nextTokenIs(b, PLPAREN)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = consumeToken(b, PLPAREN);
+    p = r; // pin = 1
+    r = r && report_error_(b, expression(b, l + 1));
+    r = p && report_error_(b, consumeToken(b, OCOLON)) && r;
+    r = p && report_error_(b, type(b, l + 1)) && r;
+    r = p && consumeToken(b, PRPAREN) && r;
+    exit_section_(b, l, m, TYPE_CHECK_EXPRESSION, r, p, null);
+    return r || p;
+  }
+
+  /* ********************************************************** */
   // '>' type
   public static boolean typeExtends(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "typeExtends")) return false;
@@ -5681,6 +5700,7 @@ public class HaxeParser implements PsiParser {
   //                                                    | (literalExpression qualifiedReferenceTail?)
   //                                                    | ifStatement
   //                                                    | castExpression qualifiedReferenceTail?
+  //                                                    | typeCheckExpression qualifiedReferenceTail?
   //                                                    | newExpressionOrCall
   //                                                    | parenthesizedExpressionOrCall
   //                                                    | callOrArrayAccess
@@ -5708,6 +5728,7 @@ public class HaxeParser implements PsiParser {
   //                                                    | (literalExpression qualifiedReferenceTail?)
   //                                                    | ifStatement
   //                                                    | castExpression qualifiedReferenceTail?
+  //                                                    | typeCheckExpression qualifiedReferenceTail?
   //                                                    | newExpressionOrCall
   //                                                    | parenthesizedExpressionOrCall
   //                                                    | callOrArrayAccess
@@ -5722,6 +5743,7 @@ public class HaxeParser implements PsiParser {
     if (!r) r = value_1_2(b, l + 1);
     if (!r) r = ifStatement(b, l + 1);
     if (!r) r = value_1_4(b, l + 1);
+    if (!r) r = value_1_5(b, l + 1);
     if (!r) r = newExpressionOrCall(b, l + 1);
     if (!r) r = parenthesizedExpressionOrCall(b, l + 1);
     if (!r) r = callOrArrayAccess(b, l + 1);
@@ -5785,6 +5807,24 @@ public class HaxeParser implements PsiParser {
   // qualifiedReferenceTail?
   private static boolean value_1_4_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "value_1_4_1")) return false;
+    qualifiedReferenceTail(b, l + 1);
+    return true;
+  }
+
+  // typeCheckExpression qualifiedReferenceTail?
+  private static boolean value_1_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "value_1_5")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = typeCheckExpression(b, l + 1);
+    r = r && value_1_5_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // qualifiedReferenceTail?
+  private static boolean value_1_5_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "value_1_5_1")) return false;
     qualifiedReferenceTail(b, l + 1);
     return true;
   }

@@ -500,6 +500,7 @@ private value ::= macroClassList? ('untyped' expression
                                                    | (literalExpression qualifiedReferenceTail?)
                                                    | ifStatement
                                                    | castExpression qualifiedReferenceTail?
+                                                   | typeCheckExpression qualifiedReferenceTail?
                                                    | newExpressionOrCall
                                                    | parenthesizedExpressionOrCall
                                                    | callOrArrayAccess
@@ -565,6 +566,9 @@ newExpression ::= 'new' type '(' (expression (',' expression)*)? ')'
 {pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+typeCheckExpression ::= '(' expression ':' type ')'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*

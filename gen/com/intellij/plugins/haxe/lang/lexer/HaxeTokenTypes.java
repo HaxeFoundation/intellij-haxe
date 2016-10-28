@@ -151,6 +151,7 @@ public interface HaxeTokenTypes {
   IElementType TRY_STATEMENT = new HaxeElementType("TRY_STATEMENT");
   IElementType TYPE = new HaxeElementType("TYPE");
   IElementType TYPEDEF_DECLARATION = new HaxeElementType("TYPEDEF_DECLARATION");
+  IElementType TYPE_CHECK_EXPRESSION = new HaxeElementType("TYPE_CHECK_EXPRESSION");
   IElementType TYPE_EXTENDS = new HaxeElementType("TYPE_EXTENDS");
   IElementType TYPE_LIST = new HaxeElementType("TYPE_LIST");
   IElementType TYPE_LIST_PART = new HaxeElementType("TYPE_LIST_PART");
@@ -673,6 +674,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == TYPEDEF_DECLARATION) {
         return new HaxeTypedefDeclarationImpl(node);
+      }
+      else if (type == TYPE_CHECK_EXPRESSION) {
+        return new HaxeTypeCheckExpressionImpl(node);
       }
       else if (type == TYPE_EXTENDS) {
         return new HaxeTypeExtendsImpl(node);
