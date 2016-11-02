@@ -193,7 +193,8 @@ unreflectiveMeta ::= '@:unreflective'
 simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta
 
 macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
-macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"}
+macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"
+elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeMacroClassListElementType"}
 //','
 
 private functionMacroMember ::= finalMeta | macroMember | overloadMeta

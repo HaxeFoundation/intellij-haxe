@@ -106,7 +106,7 @@ public interface HaxeTokenTypes {
   IElementType LOGIC_OR_EXPRESSION = new HaxeElementType("LOGIC_OR_EXPRESSION");
   IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
   IElementType MACRO_CLASS = new HaxeElementType("MACRO_CLASS");
-  IElementType MACRO_CLASS_LIST = new HaxeMacroClassListElementType();
+  IElementType MACRO_CLASS_LIST = new HaxeMacroClassListElementType("MACRO_CLASS_LIST");
   IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
   IElementType META_META = new HaxeElementType("META_META");
   IElementType MULTIPLICATIVE_EXPRESSION = new HaxeElementType("MULTIPLICATIVE_EXPRESSION");
