@@ -19,36 +19,42 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import java.util.List;
+import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeCheckExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypeCheckExpressionImpl extends HaxeClassReferenceImpl implements HaxeTypeCheckExpression {
+public class HaxeTypeCheckExprImpl extends HaxeClassReferenceImpl implements HaxeTypeCheckExpr {
 
-  public HaxeTypeCheckExpressionImpl(ASTNode node) {
+  public HaxeTypeCheckExprImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeCheckExpression(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeCheckExpr(this);
     else super.accept(visitor);
   }
 
   @Override
-  @Nullable
+  @NotNull
   public HaxeExpression getExpression() {
-    return findChildByClass(HaxeExpression.class);
+    return findNotNullChildByClass(HaxeExpression.class);
   }
 
   @Override
-  @Nullable
-  public HaxeType getType() {
-    return findChildByClass(HaxeType.class);
+  @NotNull
+  public List<HaxeFunctionType> getFunctionTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionType.class);
+  }
+
+  @Override
+  @NotNull
+  public List<HaxeTypeOrAnonymous> getTypeOrAnonymousList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeOrAnonymous.class);
   }
 
 }

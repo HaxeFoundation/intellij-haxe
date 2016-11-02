@@ -25,6 +25,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.plugins.haxe.util.HaxeCollectionUtil.firstOrNull;
+
 public class HaxeParameterModel extends HaxeMemberModel {
 
   private HaxeParameter parameter;
@@ -114,7 +116,7 @@ public class HaxeParameterModel extends HaxeMemberModel {
   @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = parameter.getTypeTag();
-    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    final HaxeTypeOrAnonymous type = typeTag != null ? firstOrNull(typeTag.getTypeOrAnonymousList()) : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
   }
 

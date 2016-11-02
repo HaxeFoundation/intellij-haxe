@@ -15,20 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.intellij.plugins.haxe.util;
 
-// This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.lang.psi;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
 
-public interface HaxeTypeTag extends HaxePsiCompositeElement {
-
-  @NotNull
-  List<HaxeFunctionType> getFunctionTypeList();
-
-  @NotNull
-  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
-
+/**
+ * @author winmain
+ */
+public class HaxeCollectionUtil {
+  @Nullable
+  public static <T> T firstOrNull(List<T> list) {
+    return list.isEmpty() ? null : list.get(0);
+  }
 }

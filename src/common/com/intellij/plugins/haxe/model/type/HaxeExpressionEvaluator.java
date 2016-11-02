@@ -43,6 +43,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.util.HaxeCollectionUtil.firstOrNull;
+
 public class HaxeExpressionEvaluator {
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context) {
@@ -183,7 +185,7 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeCastExpression) {
       handle(((HaxeCastExpression)element).getExpression(), context);
-      HaxeTypeOrAnonymous anonymous = ((HaxeCastExpression)element).getTypeOrAnonymous();
+      HaxeTypeOrAnonymous anonymous = firstOrNull(((HaxeCastExpression)element).getTypeOrAnonymousList());
       if (anonymous != null) {
         return HaxeTypeResolver.getTypeFromTypeOrAnonymous(anonymous);
       }

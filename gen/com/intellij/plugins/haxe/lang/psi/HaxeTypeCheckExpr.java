@@ -19,14 +19,19 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
-import org.jetbrains.annotations.Nullable;
+import java.util.List;
+import org.jetbrains.annotations.*;
+import com.intellij.psi.PsiElement;
 
-public interface HaxeTypeCheckExpression extends HaxeExpression, HaxeReference {
+public interface HaxeTypeCheckExpr extends HaxeReference {
 
-  @Nullable
+  @NotNull
   HaxeExpression getExpression();
 
-  @Nullable
-  HaxeType getType();
+  @NotNull
+  List<HaxeFunctionType> getFunctionTypeList();
+
+  @NotNull
+  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
 
 }

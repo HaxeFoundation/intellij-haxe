@@ -19,9 +19,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
 
 public interface HaxeTypedefDeclaration extends HaxeClass {
 
@@ -31,8 +32,8 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
   @Nullable
   HaxeExternKeyWord getExternKeyWord();
 
-  @Nullable
-  HaxeFunctionType getFunctionType();
+  @NotNull
+  List<HaxeFunctionType> getFunctionTypeList();
 
   @Nullable
   HaxeGenericParam getGenericParam();
@@ -43,7 +44,7 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
   @Nullable
   HaxePrivateKeyWord getPrivateKeyWord();
 
-  @Nullable
-  HaxeTypeOrAnonymous getTypeOrAnonymous();
+  @NotNull
+  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
 
 }

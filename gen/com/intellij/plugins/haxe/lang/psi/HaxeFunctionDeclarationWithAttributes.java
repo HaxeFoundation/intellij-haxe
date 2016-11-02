@@ -74,6 +74,9 @@ public interface HaxeFunctionDeclarationWithAttributes extends HaxeMethod {
   List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull
+  List<HaxeNativeMeta> getNativeMetaList();
+
+  @NotNull
   List<HaxeNoDebugMeta> getNoDebugMetaList();
 
   @NotNull

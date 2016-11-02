@@ -412,8 +412,8 @@ public class HaxeParser implements PsiParser {
     else if (t == TYPE) {
       r = type(b, 0);
     }
-    else if (t == TYPE_CHECK_EXPRESSION) {
-      r = typeCheckExpression(b, 0);
+    else if (t == TYPE_CHECK_EXPR) {
+      r = typeCheckExpr(b, 0);
     }
     else if (t == TYPE_EXTENDS) {
       r = typeExtends(b, 0);
@@ -479,7 +479,7 @@ public class HaxeParser implements PsiParser {
       NEW_EXPRESSION, OBJECT_LITERAL, PARENTHESIZED_EXPRESSION, PREFIX_EXPRESSION,
       REFERENCE_EXPRESSION, REGULAR_EXPRESSION_LITERAL, SHIFT_EXPRESSION, STRING_LITERAL_EXPRESSION,
       SUFFIX_EXPRESSION, SUPER_EXPRESSION, SWITCH_CASE_EXPRESSION, TERNARY_EXPRESSION,
-      THIS_EXPRESSION, TYPE_CHECK_EXPRESSION),
+      THIS_EXPRESSION),
   };
 
   /* ********************************************************** */
@@ -4324,7 +4324,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '(' (expression typeTag | expression | statement) ')'
+  // '(' (typeCheckExpr | expression | statement) ')'
   public static boolean parenthesizedExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parenthesizedExpression")) return false;
     if (!nextTokenIs(b, PLPAREN)) return false;
@@ -4338,25 +4338,14 @@ public class HaxeParser implements PsiParser {
     return r || p;
   }
 
-  // expression typeTag | expression | statement
+  // typeCheckExpr | expression | statement
   private static boolean parenthesizedExpression_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parenthesizedExpression_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = parenthesizedExpression_1_0(b, l + 1);
+    r = typeCheckExpr(b, l + 1);
     if (!r) r = expression(b, l + 1);
     if (!r) r = statement(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // expression typeTag
-  private static boolean parenthesizedExpression_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "parenthesizedExpression_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = expression(b, l + 1);
-    r = r && typeTag(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5490,20 +5479,16 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '(' expression ':' type ')'
-  public static boolean typeCheckExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "typeCheckExpression")) return false;
-    if (!nextTokenIs(b, PLPAREN)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
-    r = consumeToken(b, PLPAREN);
-    p = r; // pin = 1
-    r = r && report_error_(b, expression(b, l + 1));
-    r = p && report_error_(b, consumeToken(b, OCOLON)) && r;
-    r = p && report_error_(b, type(b, l + 1)) && r;
-    r = p && consumeToken(b, PRPAREN) && r;
-    exit_section_(b, l, m, TYPE_CHECK_EXPRESSION, r, p, null);
-    return r || p;
+  // expression ':' functionTypeWrapper
+  public static boolean typeCheckExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typeCheckExpr")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<type check expr>");
+    r = expression(b, l + 1);
+    r = r && consumeToken(b, OCOLON);
+    r = r && functionTypeWrapper(b, l + 1);
+    exit_section_(b, l, m, TYPE_CHECK_EXPR, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */
@@ -5700,7 +5685,6 @@ public class HaxeParser implements PsiParser {
   //                                                    | (literalExpression qualifiedReferenceTail?)
   //                                                    | ifStatement
   //                                                    | castExpression qualifiedReferenceTail?
-  //                                                    | typeCheckExpression qualifiedReferenceTail?
   //                                                    | newExpressionOrCall
   //                                                    | parenthesizedExpressionOrCall
   //                                                    | callOrArrayAccess
@@ -5728,7 +5712,6 @@ public class HaxeParser implements PsiParser {
   //                                                    | (literalExpression qualifiedReferenceTail?)
   //                                                    | ifStatement
   //                                                    | castExpression qualifiedReferenceTail?
-  //                                                    | typeCheckExpression qualifiedReferenceTail?
   //                                                    | newExpressionOrCall
   //                                                    | parenthesizedExpressionOrCall
   //                                                    | callOrArrayAccess
@@ -5743,7 +5726,6 @@ public class HaxeParser implements PsiParser {
     if (!r) r = value_1_2(b, l + 1);
     if (!r) r = ifStatement(b, l + 1);
     if (!r) r = value_1_4(b, l + 1);
-    if (!r) r = value_1_5(b, l + 1);
     if (!r) r = newExpressionOrCall(b, l + 1);
     if (!r) r = parenthesizedExpressionOrCall(b, l + 1);
     if (!r) r = callOrArrayAccess(b, l + 1);
@@ -5807,24 +5789,6 @@ public class HaxeParser implements PsiParser {
   // qualifiedReferenceTail?
   private static boolean value_1_4_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "value_1_4_1")) return false;
-    qualifiedReferenceTail(b, l + 1);
-    return true;
-  }
-
-  // typeCheckExpression qualifiedReferenceTail?
-  private static boolean value_1_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "value_1_5")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = typeCheckExpression(b, l + 1);
-    r = r && value_1_5_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // qualifiedReferenceTail?
-  private static boolean value_1_5_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "value_1_5_1")) return false;
     qualifiedReferenceTail(b, l + 1);
     return true;
   }

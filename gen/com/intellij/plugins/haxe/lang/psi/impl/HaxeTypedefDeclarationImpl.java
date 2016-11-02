@@ -52,9 +52,9 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
   }
 
   @Override
-  @Nullable
-  public HaxeFunctionType getFunctionType() {
-    return findChildByClass(HaxeFunctionType.class);
+  @NotNull
+  public List<HaxeFunctionType> getFunctionTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionType.class);
   }
 
   @Override
@@ -76,9 +76,9 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
   }
 
   @Override
-  @Nullable
-  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
-    return findChildByClass(HaxeTypeOrAnonymous.class);
+  @NotNull
+  public List<HaxeTypeOrAnonymous> getTypeOrAnonymousList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeOrAnonymous.class);
   }
 
 }

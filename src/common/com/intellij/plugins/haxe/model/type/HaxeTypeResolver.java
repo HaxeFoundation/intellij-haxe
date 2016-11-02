@@ -30,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.util.HaxeCollectionUtil.firstOrNull;
+
 public class HaxeTypeResolver {
   @NotNull
   static public ResultHolder getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp) {
@@ -138,8 +140,8 @@ public class HaxeTypeResolver {
   @NotNull
   static public ResultHolder getTypeFromTypeTag(@Nullable final HaxeTypeTag typeTag, @NotNull PsiElement context) {
     if (typeTag != null) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
-      final HaxeFunctionType functionType = typeTag.getFunctionType();
+      final HaxeTypeOrAnonymous typeOrAnonymous = firstOrNull(typeTag.getTypeOrAnonymousList());
+      final HaxeFunctionType functionType = firstOrNull(typeTag.getFunctionTypeList());
 
       if (typeOrAnonymous != null) {
         return getTypeFromTypeOrAnonymous(typeOrAnonymous);

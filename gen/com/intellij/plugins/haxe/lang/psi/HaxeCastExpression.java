@@ -28,10 +28,10 @@ public interface HaxeCastExpression extends HaxeExpression, HaxeReference {
   @Nullable
   HaxeExpression getExpression();
 
-  @Nullable
-  HaxeFunctionType getFunctionType();
+  @NotNull
+  List<HaxeFunctionType> getFunctionTypeList();
 
-  @Nullable
-  HaxeTypeOrAnonymous getTypeOrAnonymous();
+  @NotNull
+  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
 
 }

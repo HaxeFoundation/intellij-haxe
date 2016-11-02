@@ -128,10 +128,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     PsiFile psiFile = reference.getContainingFile();
 
     if (reference instanceof HaxeReferenceExpression) {
-      String text1 = reference.getText();
-      PsiElement element = null;
       if (reference.getParent() instanceof HaxeReferenceExpression) {
-        element = reference;
+        PsiElement element = reference;
         while (element.getParent() instanceof HaxeReferenceExpression) {
           element = element.getParent();
         }
