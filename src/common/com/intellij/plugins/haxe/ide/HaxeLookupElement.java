@@ -17,13 +17,17 @@
  */
 package com.intellij.plugins.haxe.ide;
 
+import com.intellij.codeInsight.completion.InsertionContext;
+import com.intellij.codeInsight.completion.JavaCompletionUtil;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodContext;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeModifierType;
 import org.jetbrains.annotations.NotNull;
 
@@ -104,6 +108,26 @@ public class HaxeLookupElement extends LookupElement {
     final String pkg = myComponentNamePresentation.getLocationString();
     if (StringUtil.isNotEmpty(pkg)) {
       presentation.setTailText(" " + pkg, true);
+    }
+  }
+
+  @Override
+  public void handleInsert(InsertionContext context) {
+    HaxeMemberModel memberModel = HaxeMemberModel.fromPsi(myComponentName);
+    boolean hasParams = false;
+    boolean isMethod = false;
+    if (memberModel != null) {
+      if (memberModel instanceof HaxeMethodModel) {
+        isMethod = true;
+        HaxeMethodModel methodModel = (HaxeMethodModel)memberModel;
+        hasParams = !methodModel.getParametersWithContext(this.context).isEmpty();
+      }
+    }
+
+    if (isMethod) {
+      final LookupElement[] allItems = context.getElements();
+      final boolean overloadsMatter = allItems.length == 1 && getUserData(JavaCompletionUtil.FORCE_SHOW_SIGNATURE_ATTR) == null;
+      JavaCompletionUtil.insertParentheses(context, this, overloadsMatter, hasParams);
     }
   }
 
