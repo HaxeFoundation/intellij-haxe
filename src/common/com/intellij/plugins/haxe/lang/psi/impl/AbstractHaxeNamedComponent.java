@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Set;
 
-import static com.intellij.plugins.haxe.util.HaxeCollectionUtil.firstOrNull;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * @author: Fedor.Korotkov
@@ -150,7 +150,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Override
   public HaxeNamedComponent getTypeComponent() {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? firstOrNull(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
     final PsiReference reference = type != null ? type.getReference() : null;
     if (reference != null) {

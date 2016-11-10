@@ -27,7 +27,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.plugins.haxe.util.HaxeCollectionUtil.firstOrNull;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * Created by as3boyan on 07.10.14.
@@ -57,7 +57,7 @@ public class SemicolonFixer implements Fixer {
     if (haxeFunctionDeclarationWithAttributes != null) {
       HaxeTypeTag typeTag = haxeFunctionDeclarationWithAttributes.getTypeTag();
       if (typeTag != null) {
-        HaxeTypeOrAnonymous typeOrAnonymous = firstOrNull(typeTag.getTypeOrAnonymousList());
+        HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(typeTag.getTypeOrAnonymousList());
         if (typeOrAnonymous != null) {
           if (typeOrAnonymous.getText().equals("Void")) {
             return false;

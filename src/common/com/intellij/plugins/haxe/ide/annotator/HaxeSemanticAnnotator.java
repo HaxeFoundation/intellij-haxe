@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.util.HaxeCollectionUtil.firstOrNull;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeSemanticAnnotator implements Annotator {
   @Override
@@ -341,7 +341,7 @@ class ClassChecker {
         return true;
       }
       if(haxeClass instanceof HaxeTypedefDeclaration) {
-        HaxeTypeOrAnonymous anonOrType = firstOrNull(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
+        HaxeTypeOrAnonymous anonOrType = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
         if(anonOrType != null) {
           return anonOrType.getAnonymousType() != null;
         }

@@ -41,7 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.intellij.plugins.haxe.util.HaxeCollectionUtil.firstOrNull;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * @author: Fedor.Korotkov
@@ -113,7 +113,7 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
       final Map<String, String> qNameCache = new THashMap<String, String>();
       for (AbstractHaxeTypeDefImpl haxeTypeDef : classes) {
         final HaxeClassInfo value = new HaxeClassInfo(haxeTypeDef.getQualifiedName(), HaxeComponentType.typeOf(haxeTypeDef));
-        final HaxeTypeOrAnonymous haxeTypeOrAnonymous = firstOrNull(haxeTypeDef.getTypeOrAnonymousList());
+        final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getFirstItem(haxeTypeDef.getTypeOrAnonymousList());
         final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
         final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
         if (anonymousType != null) {
