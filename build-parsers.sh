@@ -28,5 +28,5 @@ fi
 
 #Generate the haxe and hxml parsers
 java -jar grammar-kit.jar gen ./grammar/haxe.bnf
-java -jar grammar-kit.jar gen ./src/com/intellij/plugins/haxe/hxml/hxml.bnf
+java -jar grammar-kit.jar gen ./src/common/com/intellij/plugins/haxe/hxml/hxml.bnf
 

@@ -11,8 +11,6 @@
   elementTypeHolderClass="com.intellij.plugins.haxe.hxml.psi.HXMLTypes"
   elementTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLElementType"
   tokenTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLTokenType"
-
-  psiImplUtilClass="com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil"
 }
 
 simpleFile ::= item_*
