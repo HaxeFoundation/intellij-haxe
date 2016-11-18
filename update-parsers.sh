@@ -1,5 +1,7 @@
 #!/bin/bash
 
+command -v recode >/dev/null 2>&1 || { echo >&2 "The script update-parsers.sh requires 'recode' utility. Aborting."; exit 1; }
+
 # Read license from IDEA project settings
 LICENSE_FILE=.idea/copyright/apache_2_license.xml
 year=`date +%Y`
