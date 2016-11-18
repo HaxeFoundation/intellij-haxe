@@ -79,11 +79,11 @@ public class HaxeCompilerError {
     {
         Matcher m;
 
-        // Error: Library ([^\w]+) is not installed(.*)
+        // Library (\S+) (is not installed.*)
         if ((m = pLibraryNotInstalled.matcher(message)).matches()) {
-            return new HaxeCompilerError(CompilerMessageCategory.WARNING,
+            return new HaxeCompilerError(CompilerMessageCategory.ERROR,
                                          "Library " + m.group(1).trim() +
-                                         "is not installed " +
+                                         " " +
                                          m.group(2).trim(), "", -1, -1);
         }
 
@@ -196,7 +196,7 @@ public class HaxeCompilerError {
     }
 
     static Pattern pLibraryNotInstalled = Pattern.compile
-        ("Error: Library ([\\S]+) is not installed(.*)");
+        ("Library (\\S+) (is not installed.*)");
     static Pattern pBareError = Pattern.compile("([^:]*)Error:(.*)", Pattern.CASE_INSENSITIVE);
     static Pattern pColumnError =
         Pattern.compile("(.+?):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)");
@@ -212,7 +212,10 @@ public class HaxeCompilerError {
     // as errors.  Keeping this up to date will always be an arms race.
     static HashSet<String> mInformationalMessages = new HashSet<String>();
     static {
-      String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file", "Using default windows compiler" };
+      String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file", "Using default windows compiler",
+        // Hxcpp 3.3 message lines:
+        "- Compile", "-  - Link",
+      };
       mInformationalMessages.addAll(Arrays.asList(nonErrors));
     }
     static Pattern pGeneratingStatusMessage = Pattern.compile("Generating (.+)");
