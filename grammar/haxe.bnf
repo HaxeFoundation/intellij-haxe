@@ -170,6 +170,8 @@
     pin(".*Expression")=1
     pin(".*Statement")=1
     pin(".*Meta")=1
+
+    generate=[names="short"]
 }
 
 haxeFile ::= packageStatement? topLevelList
