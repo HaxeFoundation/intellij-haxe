@@ -1,0 +1,1 @@
+// No satisfactory golden file has been generated yet.

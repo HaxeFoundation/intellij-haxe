@@ -2621,7 +2621,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '->' '?'? typeOrAnonymous
+  // '->' '?'? functionTypeOrWrapper
   public static boolean functionType(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "functionType")) return false;
     if (!nextTokenIs(b, OARROW)) return false;
@@ -2629,7 +2629,7 @@ public class HaxeParser implements PsiParser {
     Marker m = enter_section_(b, l, _LEFT_, null);
     r = consumeToken(b, OARROW);
     r = r && functionType_1(b, l + 1);
-    r = r && typeOrAnonymous(b, l + 1);
+    r = r && functionTypeOrWrapper(b, l + 1);
     exit_section_(b, l, m, FUNCTION_TYPE, r, false, null);
     return r;
   }

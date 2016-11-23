@@ -363,7 +363,7 @@ arrayLiteral ::= '[' (expressionList ','?)? ']'
 
 private functionTypeWrapper ::= functionTypeOrWrapper functionType*
 private functionTypeOrWrapper ::= typeOrAnonymous | '(' functionTypeWrapper ')'
-left functionType ::= '->' '?'? typeOrAnonymous
+left functionType ::= '->' '?'? functionTypeOrWrapper
 
 /*
  * Haxe and Java have this backward from each other.
