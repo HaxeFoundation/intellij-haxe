@@ -2,7 +2,6 @@
 
 GrammarKitVersion="1.2.0"
 
-if [ ! -d ./GrammarKit/ ]; then
     # Get our GrammarKit dependency
     if [ -f ~/Tools/GrammarKit-${GrammarKitVersion}.zip ];
     then
@@ -24,5 +23,4 @@ if [ ! -d ./GrammarKit/ ]; then
     unzip GrammarKit-${GrammarKitVersion}.zip
     mv GrammarKit/lib/grammar-kit.jar .
     mv light-psi-all-${GrammarKitVersion}.jar light-psi-all.jar
-fi
 
