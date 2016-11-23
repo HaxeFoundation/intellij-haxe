@@ -31,8 +31,8 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
   @Nullable
   HaxeExternKeyWord getExternKeyWord();
 
-  @Nullable
-  HaxeFunctionType getFunctionType();
+  @NotNull
+  List<HaxeFunctionType> getFunctionTypeList();
 
   @Nullable
   HaxeGenericParam getGenericParam();
@@ -43,7 +43,7 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
   @Nullable
   HaxePrivateKeyWord getPrivateKeyWord();
 
-  @Nullable
-  HaxeTypeOrAnonymous getTypeOrAnonymous();
+  @NotNull
+  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
 
 }

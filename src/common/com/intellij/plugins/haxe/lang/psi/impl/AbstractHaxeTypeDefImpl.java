@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -37,7 +39,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   public HaxeClassResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
-    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
+    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getFirstItem(getTypeOrAnonymousList());
     if (haxeTypeOrAnonymous == null) {
       // cause parse error
       return HaxeClassResolveResult.create(null);

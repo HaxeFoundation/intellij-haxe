@@ -62,6 +62,14 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
       return;
     }
 
+    if (reference.getFirstChild() instanceof HaxeParenthesizedExpression) {
+      HaxeParenthesizedExpression parenthesizedExpression = (HaxeParenthesizedExpression)reference.getFirstChild();
+      if (PsiTreeUtil.getChildOfType(parenthesizedExpression, HaxeTypeCheckExpr.class) != null) {
+        super.visitReferenceExpression(reference);
+        return;
+      }
+    }
+
     if (!(reference.getParent() instanceof HaxeReference) && !(reference.getParent() instanceof HaxePackageStatement) && !(reference.getParent() instanceof HaxeImportStatementWithWildcard)) {
       // whole reference expression
       handleUnresolvedReference(reference);

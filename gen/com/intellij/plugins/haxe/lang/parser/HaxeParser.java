@@ -19,15 +19,14 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.parser;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
-import com.intellij.lang.PsiParser;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
-
-import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.tree.TokenSet;
+import com.intellij.lang.PsiParser;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class HaxeParser implements PsiParser {
@@ -412,6 +411,9 @@ public class HaxeParser implements PsiParser {
     }
     else if (t == TYPE) {
       r = type(b, 0);
+    }
+    else if (t == TYPE_CHECK_EXPR) {
+      r = typeCheckExpr(b, 0);
     }
     else if (t == TYPE_EXTENDS) {
       r = typeExtends(b, 0);
@@ -4322,7 +4324,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '(' (expression typeTag | expression | statement) ')'
+  // '(' (typeCheckExpr | expression | statement) ')'
   public static boolean parenthesizedExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parenthesizedExpression")) return false;
     if (!nextTokenIs(b, PLPAREN)) return false;
@@ -4336,25 +4338,14 @@ public class HaxeParser implements PsiParser {
     return r || p;
   }
 
-  // expression typeTag | expression | statement
+  // typeCheckExpr | expression | statement
   private static boolean parenthesizedExpression_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parenthesizedExpression_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = parenthesizedExpression_1_0(b, l + 1);
+    r = typeCheckExpr(b, l + 1);
     if (!r) r = expression(b, l + 1);
     if (!r) r = statement(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // expression typeTag
-  private static boolean parenthesizedExpression_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "parenthesizedExpression_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = expression(b, l + 1);
-    r = r && typeTag(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5485,6 +5476,19 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "type_2")) return false;
     typeParam(b, l + 1);
     return true;
+  }
+
+  /* ********************************************************** */
+  // expression ':' functionTypeWrapper
+  public static boolean typeCheckExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typeCheckExpr")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<type check expr>");
+    r = expression(b, l + 1);
+    r = r && consumeToken(b, OCOLON);
+    r = r && functionTypeWrapper(b, l + 1);
+    exit_section_(b, l, m, TYPE_CHECK_EXPR, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */

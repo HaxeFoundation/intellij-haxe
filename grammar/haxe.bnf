@@ -170,6 +170,8 @@
     pin(".*Expression")=1
     pin(".*Statement")=1
     pin(".*Meta")=1
+
+    generate=[names="short"]
 }
 
 haxeFile ::= packageStatement? topLevelList
@@ -193,7 +195,8 @@ unreflectiveMeta ::= '@:unreflective'
 simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta
 
 macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
-macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"}
+macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"
+elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeMacroClassListElementType"}
 //','
 
 private functionMacroMember ::= finalMeta | macroMember | overloadMeta
@@ -527,7 +530,10 @@ regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
-parenthesizedExpression ::= '(' (expression typeTag | expression | statement) ')'
+parenthesizedExpression ::= '(' (typeCheckExpr | expression | statement) ')'
+
+typeCheckExpr ::= expression ':' functionTypeWrapper
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*

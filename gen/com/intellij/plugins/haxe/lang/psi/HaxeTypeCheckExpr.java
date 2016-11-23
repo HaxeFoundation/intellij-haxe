@@ -17,12 +17,21 @@
  */
 
 // This is a generated file. Not intended for manual editing.
-package com.intellij.plugins.haxe.hxml.psi;
+package com.intellij.plugins.haxe.lang.psi;
 
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HXMLProperty extends PsiElement {
+public interface HaxeTypeCheckExpr extends HaxeReference {
+
+  @NotNull
+  HaxeExpression getExpression();
+
+  @NotNull
+  List<HaxeFunctionType> getFunctionTypeList();
+
+  @NotNull
+  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
 
 }

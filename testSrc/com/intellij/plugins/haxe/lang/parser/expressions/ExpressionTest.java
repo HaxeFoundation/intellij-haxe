@@ -78,4 +78,8 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testJsonStringLiteralsIssue498() throws Throwable {
     doTest(true);
   }
+
+  public void testTypeCheck() throws Throwable {
+    doTest(true);
+  }
 }

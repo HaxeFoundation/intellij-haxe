@@ -22,6 +22,8 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 public class HaxeLocalVarModel extends HaxeMemberModel {
 
   private HaxeLocalVarDeclaration element;
@@ -40,7 +42,7 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
   public ResultHolder getResultType() {
     final HaxeLocalVarDeclarationPart part = UsefulPsiTreeUtil.getChild(element, HaxeLocalVarDeclarationPart.class);
     final HaxeTypeTag typeTag = part != null ? part.getTypeTag() : null;
-    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
 
   }

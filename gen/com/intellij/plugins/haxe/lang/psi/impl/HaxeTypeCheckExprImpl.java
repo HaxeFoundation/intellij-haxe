@@ -28,51 +28,27 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implements HaxeTypedefDeclaration {
+public class HaxeTypeCheckExprImpl extends HaxeClassReferenceImpl implements HaxeTypeCheckExpr {
 
-  public HaxeTypedefDeclarationImpl(ASTNode node) {
+  public HaxeTypeCheckExprImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypedefDeclaration(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeCheckExpr(this);
     else super.accept(visitor);
   }
 
   @Override
   @NotNull
-  public HaxeComponentName getComponentName() {
-    return findNotNullChildByClass(HaxeComponentName.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeExternKeyWord getExternKeyWord() {
-    return findChildByClass(HaxeExternKeyWord.class);
+  public HaxeExpression getExpression() {
+    return findNotNullChildByClass(HaxeExpression.class);
   }
 
   @Override
   @NotNull
   public List<HaxeFunctionType> getFunctionTypeList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeFunctionType.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeGenericParam getGenericParam() {
-    return findChildByClass(HaxeGenericParam.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxeMacroClassList getMacroClassList() {
-    return findChildByClass(HaxeMacroClassList.class);
-  }
-
-  @Override
-  @Nullable
-  public HaxePrivateKeyWord getPrivateKeyWord() {
-    return findChildByClass(HaxePrivateKeyWord.class);
   }
 
   @Override

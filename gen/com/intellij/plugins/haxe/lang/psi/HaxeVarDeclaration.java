@@ -50,6 +50,9 @@ public interface HaxeVarDeclaration extends HaxePsiField {
   List<HaxeMetaMeta> getMetaMetaList();
 
   @NotNull
+  List<HaxeNativeMeta> getNativeMetaList();
+
+  @NotNull
   List<HaxeNoDebugMeta> getNoDebugMetaList();
 
   @NotNull

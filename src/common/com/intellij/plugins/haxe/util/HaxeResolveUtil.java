@@ -37,15 +37,13 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-
-import org.apache.xmlbeans.impl.common.ResolverUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * @author: Fedor.Korotkov
@@ -69,7 +67,7 @@ public class HaxeResolveUtil {
       }
 
       if (tmpExpression != null && tmpExpression instanceof HaxeParenthesizedExpression) {
-        tmpExpression = ((HaxeParenthesizedExpression) tmpExpression).getExpression();
+        tmpExpression = ((HaxeParenthesizedExpression) tmpExpression).getTypeCheckExpr();
       }
 
       HaxeReference theHaxeRef = null;
@@ -322,7 +320,7 @@ public class HaxeResolveUtil {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
     }
     else if (haxeClass instanceof HaxeTypedefDeclaration) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+      final HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
       if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
         HaxeAnonymousType anonymous = typeOrAnonymous.getAnonymousType();
         if(anonymous != null) {
@@ -403,7 +401,7 @@ public class HaxeResolveUtil {
       public HaxeType fun(HaxeParameter parameter) {
         final HaxeTypeTag typeTag = parameter.getTypeTag();
         if (null == typeTag) return null;
-        final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+        final HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(typeTag.getTypeOrAnonymousList());
         return (null == typeOrAnonymous) ? null : typeOrAnonymous.getType();
       }
     });
@@ -487,7 +485,7 @@ public class HaxeResolveUtil {
   public static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? typeTag.getTypeOrAnonymous() : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
     final HaxeType type = (typeOrAnonymous != null) ? typeOrAnonymous.getType() :
                             ((element instanceof HaxeType) ? (HaxeType)element : null);
 
@@ -509,7 +507,7 @@ public class HaxeResolveUtil {
     }
 
     if (typeTag != null) {
-      return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
+      return tryResolveFunctionType(getFirstItem(typeTag.getFunctionTypeList()), specialization);
     }
 
     return HaxeClassResolveResult.EMPTY;
@@ -569,7 +567,7 @@ public class HaxeResolveUtil {
       if (topmostParentOfType == null) {
         topmostParentOfType = (HaxeReferenceExpression)type;
       }
-      
+
       HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
       if (haxeClass != null) {
         return topmostParentOfType.getText();
@@ -832,7 +830,7 @@ public class HaxeResolveUtil {
             List<HaxeClass> classes = findComponentDeclarations(pf);
             for(HaxeClass cls : classes) {
               if(cls instanceof HaxeTypedefDeclaration) {
-                HaxeTypeOrAnonymous toa = ((HaxeTypedefDeclaration)cls).getTypeOrAnonymous();
+                HaxeTypeOrAnonymous toa = getFirstItem(((HaxeTypedefDeclaration)cls).getTypeOrAnonymousList());
                 if(toa != null) {
                   HaxeType t = toa.getType();
                   if(t != null) {

@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 public class HaxeSemanticAnnotator implements Annotator {
   @Override
   public void annotate(PsiElement element, AnnotationHolder holder) {
@@ -339,7 +341,7 @@ class ClassChecker {
         return true;
       }
       if(haxeClass instanceof HaxeTypedefDeclaration) {
-        HaxeTypeOrAnonymous anonOrType = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+        HaxeTypeOrAnonymous anonOrType = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
         if(anonOrType != null) {
           return anonOrType.getAnonymousType() != null;
         }

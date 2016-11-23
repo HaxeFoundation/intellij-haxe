@@ -107,6 +107,12 @@ public class HaxeFunctionPrototypeDeclarationWithAttributesImpl extends HaxeMeth
 
   @Override
   @NotNull
+  public List<HaxeNativeMeta> getNativeMetaList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNativeMeta.class);
+  }
+
+  @Override
+  @NotNull
   public List<HaxeNoDebugMeta> getNoDebugMetaList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeNoDebugMeta.class);
   }

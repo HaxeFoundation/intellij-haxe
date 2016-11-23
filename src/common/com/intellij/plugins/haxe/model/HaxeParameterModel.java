@@ -19,11 +19,15 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeParameterModel extends HaxeMemberModel {
 
@@ -114,7 +118,7 @@ public class HaxeParameterModel extends HaxeMemberModel {
   @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = parameter.getTypeTag();
-    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
+    final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
   }
 

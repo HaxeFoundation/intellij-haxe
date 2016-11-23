@@ -43,6 +43,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
+import com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
@@ -470,7 +471,7 @@ public class HaxelibProjectUpdater  {
             if (psiFile != null) {
               Collection<HXMLLib> hxmlLibs = PsiTreeUtil.findChildrenOfType(psiFile, HXMLLib.class);
               for (HXMLLib hxmlLib : hxmlLibs) {
-                String name = hxmlLib.getValue();
+                String name = HXMLPsiImplUtil.getValue(hxmlLib);
                 haxelibNewItemList = libManager.findHaxelibPath(name);
                 haxelibExternalItems.addAll(haxelibNewItemList);
               }

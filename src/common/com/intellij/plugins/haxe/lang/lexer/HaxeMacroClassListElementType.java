@@ -20,17 +20,15 @@ package com.intellij.plugins.haxe.lang.lexer;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl;
 import com.intellij.psi.PsiModifierList;
-import com.intellij.psi.impl.java.stubs.PsiModifierListStub;
-import com.intellij.psi.stubs.*;
-
+import com.intellij.psi.stubs.EmptyStub;
+import com.intellij.psi.stubs.EmptyStubElementType;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public class HaxeMacroClassListElementType extends EmptyStubElementType<PsiModifierList> {
 
-  public HaxeMacroClassListElementType() {
-    super("MACRO_CLASS_LIST", HaxeLanguage.INSTANCE);
+  public HaxeMacroClassListElementType(@NotNull @NonNls String debugName) {
+    super(debugName, HaxeLanguage.INSTANCE);
   }
 
   @Override
