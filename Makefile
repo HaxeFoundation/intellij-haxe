@@ -1,16 +1,11 @@
 #Default IDEA version to build against, can be overriden
 #by env variable
-IDEA_VERSION?=15.0.3
+IDEA_VERSION?=2016.2
 
 #build the intellij-haxe.jar file which can be
 #installed in Intellij
 default: protocol
 	./build.sh $(IDEA_VERSION)
-
-#Build the Haxe and HXML parsers with GrammarKit,
-#using their BNF
-parsers:
-	./build-parsers.sh
 
 #Build the JavaProtocol.hx class into a Java class.
 #This class is used to communicate with the CPP debbugger

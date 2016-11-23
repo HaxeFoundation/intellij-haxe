@@ -7,6 +7,7 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 ./fetchIdea.sh "$1"
+./fetchGrammarKit.sh "$1"
 
 #call the build script along with the path to a code package
 #specific to the intellij version which we build against
