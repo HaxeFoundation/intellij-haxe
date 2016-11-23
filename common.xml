@@ -226,13 +226,73 @@
     </copy>
   </target>
 
+  <!-- Generate language parsers -->
+
+  <property name="gen.basedir" value="gen"/>
+  <property name="gen.plugindir" value="${gen.basedir}/com/intellij/plugins/haxe" />
+  <property name="gen.haxepath" value="${gen.plugindir}/lang"/>
+  <property name="gen.hxmlpath" value="${gen.plugindir}/hxml"/>
+
+  <fileset id="gen.haxefiles" dir="." includes="${gen.haxepath}/**"/>
+  <fileset id="gen.hxmlfiles" dir="." includes="${gen.hxmlpath}/**"/>
+
+  <property name="grammar.haxe" value="./grammar/haxe.bnf"/>
+  <property name="grammar.hxml" value="./src/common/com/intellij/plugins/haxe/hxml/hxml.bnf"/>
+
+  <target name="checkHaxeRegenNeeded" >
+    <mkdir dir="${gen.haxepath}"/> <!-- need the path so srcfiles doesn't fail -->
+    <uptodate property="gen.haxe.uptodate" value="false">
+      <!-- We invert the logic for uptodate because it has a 'many-to-one' mapper, but not a
+           one-to-many version. -->
+      <srcfiles refid="gen.haxefiles"/>
+      <mapper type="merge" to="${grammar.haxe}"/>
+    </uptodate>
+    <property name="gen.haxe.uptodate" value="true"/>
+  </target>
+  <target name="checkHxmlRegenNeeded" >
+    <mkdir dir="${gen.hxmlpath}"/> <!-- need the path so srcfiles doesn't fail -->
+    <uptodate property="gen.hxml.uptodate" value="false">
+      <srcfiles refid="gen.hxmlfiles"/>
+      <mapper type="merge" to="${grammar.hxml}"/>
+    </uptodate>
+    <property name="gen.hxml.uptodate" value="true"/>
+  </target>
+
+  <target name="regenerateHaxeParser" unless="${gen.haxe.uptodate}" depends="checkHaxeRegenNeeded">
+    <echo>Generating Haxe language parser.</echo>
+    <java jar="grammar-kit.jar" fork="true">
+      <arg value="${gen.basedir}"/>
+      <arg value="${grammar.haxe}"/>
+    </java>
+  </target>
+  <target name="skipHaxeParser" if="${gen.haxe.uptodate}" depends="checkHaxeRegenNeeded">
+    <echo>Haxe parser is up to date with BNF. Skipping regen.</echo>
+  </target>
+  <target name="generateHaxeParser" depends="skipHaxeParser,regenerateHaxeParser"
+          description="Generate the Haxe language parser from BNF."/>
+
+  <target name="regenerateHxmlParser" unless="${gen.hxml.uptodate}" depends="checkHxmlRegenNeeded">
+    <echo>Generating HXML parser.</echo>
+    <java jar="grammar-kit.jar" fork="true">
+      <arg value="${gen.basedir}"/>
+      <arg value="${grammar.hxml}"/>
+    </java>
+  </target>
+  <target name="skipHxmlParser" if="${gen.hxml.uptodate}" depends="checkHxmlRegenNeeded">
+    <echo>HXML parser is up to date with BNF. Skipping regen.</echo>
+  </target>
+  <target name="generateHxmlParser" depends="skipHxmlParser,regenerateHxmlParser"
+          description="Generate the HXML parser from BNF."/>
+
+  <target name="generateParsers"
+          depends="generateHaxeParser, generateHxmlParser"
+          description="Generate HAXE and HXML parsers."/>
 
   <!-- Build all generated files -->
 
   <target name="generateTemplatedFiles"
-          depends="metainf, generateIdeaSdkIdentifer"
+          depends="metainf, generateIdeaSdkIdentifer, generateParsers"
           description="Generates files from templates in the source tree."/>
-
 
   <!-- Show pertinent build information -->
 
