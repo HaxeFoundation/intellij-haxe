@@ -412,6 +412,9 @@ public class HaxeParser implements PsiParser {
     else if (t == TYPE) {
       r = type(b, 0);
     }
+    else if (t == TYPE_CHECK_EXPR) {
+      r = typeCheckExpr(b, 0);
+    }
     else if (t == TYPE_EXTENDS) {
       r = typeExtends(b, 0);
     }
@@ -2074,9 +2077,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "externFunctionDeclaration")) return false;
     if (!nextTokenIs(b, "<extern function declaration>", KAUTOBUILD, KBUILD,
       KDEBUG, KFINAL, KGETTER, KKEEP, KMACRO, KMETA,
-      KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE, KSETTER,
-      KDYNAMIC, KFUNCTION, KINLINE, KMACRO2, KOVERRIDE, KPRIVATE,
-      KPUBLIC, KSTATIC, MACRO_ID)) return false;
+      KNATIVE, KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE,
+      KSETTER, KDYNAMIC, KFUNCTION, KINLINE, KMACRO2, KOVERRIDE,
+      KPRIVATE, KPUBLIC, KSTATIC, MACRO_ID)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<extern function declaration>");
     r = externFunctionDeclaration_0(b, l + 1);
@@ -2414,9 +2417,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "functionDeclarationWithAttributes")) return false;
     if (!nextTokenIs(b, "<function declaration with attributes>", KAUTOBUILD, KBUILD,
       KDEBUG, KFINAL, KGETTER, KKEEP, KMACRO, KMETA,
-      KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE, KSETTER,
-      KDYNAMIC, KFUNCTION, KINLINE, KMACRO2, KOVERRIDE, KPRIVATE,
-      KPUBLIC, KSTATIC, MACRO_ID)) return false;
+      KNATIVE, KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE,
+      KSETTER, KDYNAMIC, KFUNCTION, KINLINE, KMACRO2, KOVERRIDE,
+      KPRIVATE, KPUBLIC, KSTATIC, MACRO_ID)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<function declaration with attributes>");
     r = functionDeclarationWithAttributes_0(b, l + 1);
@@ -2528,7 +2531,7 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "functionMacroMember")) return false;
     if (!nextTokenIs(b, "", KAUTOBUILD, KBUILD,
       KDEBUG, KFINAL, KGETTER, KKEEP, KMACRO, KMETA,
-      KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE, KSETTER, MACRO_ID)) return false;
+      KNATIVE, KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE, KSETTER, MACRO_ID)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = finalMeta(b, l + 1);
@@ -2544,9 +2547,9 @@ public class HaxeParser implements PsiParser {
     if (!recursion_guard_(b, l, "functionPrototypeDeclarationWithAttributes")) return false;
     if (!nextTokenIs(b, "<function prototype declaration with attributes>", KAUTOBUILD, KBUILD,
       KDEBUG, KFINAL, KGETTER, KKEEP, KMACRO, KMETA,
-      KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE, KSETTER,
-      KDYNAMIC, KFUNCTION, KINLINE, KMACRO2, KOVERRIDE, KPRIVATE,
-      KPUBLIC, KSTATIC, MACRO_ID)) return false;
+      KNATIVE, KNODEBUG, KNS, KOVERLOAD, KPROTECTED, KREQUIRE,
+      KSETTER, KDYNAMIC, KFUNCTION, KINLINE, KMACRO2, KOVERRIDE,
+      KPRIVATE, KPUBLIC, KSTATIC, MACRO_ID)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<function prototype declaration with attributes>");
     r = functionPrototypeDeclarationWithAttributes_0(b, l + 1);
@@ -3646,13 +3649,13 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta
+  // macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta | nativeMeta
   //                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
   static boolean macroMember(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "macroMember")) return false;
     if (!nextTokenIs(b, "", KAUTOBUILD, KBUILD,
-      KDEBUG, KGETTER, KKEEP, KMACRO, KMETA, KNODEBUG,
-      KNS, KPROTECTED, KREQUIRE, KSETTER, MACRO_ID)) return false;
+      KDEBUG, KGETTER, KKEEP, KMACRO, KMETA, KNATIVE,
+      KNODEBUG, KNS, KPROTECTED, KREQUIRE, KSETTER, MACRO_ID)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = macroMeta(b, l + 1);
@@ -3660,6 +3663,7 @@ public class HaxeParser implements PsiParser {
     if (!r) r = debugMeta(b, l + 1);
     if (!r) r = noDebugMeta(b, l + 1);
     if (!r) r = keepMeta(b, l + 1);
+    if (!r) r = nativeMeta(b, l + 1);
     if (!r) r = requireMeta(b, l + 1);
     if (!r) r = nsMeta(b, l + 1);
     if (!r) r = getterMeta(b, l + 1);
@@ -4091,15 +4095,26 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // identifier ':' expression
+  // (identifier | OPEN_QUOTE REGULAR_STRING_PART CLOSING_QUOTE) ':' expression
   public static boolean objectLiteralElement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "objectLiteralElement")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, "<object literal element>");
-    r = identifier(b, l + 1);
+    r = objectLiteralElement_0(b, l + 1);
     r = r && consumeToken(b, OCOLON);
     r = r && expression(b, l + 1);
     exit_section_(b, l, m, OBJECT_LITERAL_ELEMENT, r, false, object_literal_part_recover_parser_);
+    return r;
+  }
+
+  // identifier | OPEN_QUOTE REGULAR_STRING_PART CLOSING_QUOTE
+  private static boolean objectLiteralElement_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "objectLiteralElement_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = identifier(b, l + 1);
+    if (!r) r = parseTokens(b, 0, OPEN_QUOTE, REGULAR_STRING_PART, CLOSING_QUOTE);
+    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -4309,7 +4324,7 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '(' (expression typeTag | expression | statement) ')'
+  // '(' (typeCheckExpr | expression | statement) ')'
   public static boolean parenthesizedExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parenthesizedExpression")) return false;
     if (!nextTokenIs(b, PLPAREN)) return false;
@@ -4323,25 +4338,14 @@ public class HaxeParser implements PsiParser {
     return r || p;
   }
 
-  // expression typeTag | expression | statement
+  // typeCheckExpr | expression | statement
   private static boolean parenthesizedExpression_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parenthesizedExpression_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = parenthesizedExpression_1_0(b, l + 1);
+    r = typeCheckExpr(b, l + 1);
     if (!r) r = expression(b, l + 1);
     if (!r) r = statement(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // expression typeTag
-  private static boolean parenthesizedExpression_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "parenthesizedExpression_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = expression(b, l + 1);
-    r = r && typeTag(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5475,6 +5479,19 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // expression ':' functionTypeWrapper
+  public static boolean typeCheckExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typeCheckExpr")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<type check expr>");
+    r = expression(b, l + 1);
+    r = r && consumeToken(b, OCOLON);
+    r = r && functionTypeWrapper(b, l + 1);
+    exit_section_(b, l, m, TYPE_CHECK_EXPR, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
   // '>' type
   public static boolean typeExtends(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "typeExtends")) return false;
@@ -5781,9 +5798,9 @@ public class HaxeParser implements PsiParser {
   public static boolean varDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "varDeclaration")) return false;
     if (!nextTokenIs(b, "<var declaration>", KAUTOBUILD, KBUILD,
-      KDEBUG, KGETTER, KKEEP, KMACRO, KMETA, KNODEBUG,
-      KNS, KPROTECTED, KREQUIRE, KSETTER, KDYNAMIC, KINLINE,
-      KMACRO2, KOVERRIDE, KPRIVATE, KPUBLIC, KSTATIC, KVAR, MACRO_ID)) return false;
+      KDEBUG, KGETTER, KKEEP, KMACRO, KMETA, KNATIVE,
+      KNODEBUG, KNS, KPROTECTED, KREQUIRE, KSETTER, KDYNAMIC,
+      KINLINE, KMACRO2, KOVERRIDE, KPRIVATE, KPUBLIC, KSTATIC, KVAR, MACRO_ID)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, "<var declaration>");
     r = varDeclaration_0(b, l + 1);

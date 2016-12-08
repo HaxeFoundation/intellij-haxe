@@ -74,11 +74,11 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
     try {
       return getIdentifier().getText();
     }
-    catch (Throwable t) {
-      // log & swallow
-      LOG.error(t.getMessage());
-      return "";
+    catch(NullPointerException npe) {
+      LOG.debug(npe.getMessage());
+      LOG.debug("Coercing to empty string");
     }
+    return "";
   }
 
   @Override

@@ -617,11 +617,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
       }
     }
+    boolean isThis = leftReference instanceof HaxeThisExpression;
     if (leftReference != null && getParent() instanceof HaxeReference && name != null &&
         HaxeResolveUtil.splitQName(leftReference.getText()).getSecond().equals(name)) {
 
       addClassStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
-                                    !(leftReference instanceof HaxeThisExpression));
+                                    !(isThis));
       addChildClassVariants(suggestedVariants, result.getHaxeClass());
     }
     else if (leftReference != null && getParent() instanceof HaxeReference && !result.isFunctionType()) {
@@ -629,8 +630,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         // TODO: fix haxeClass by type inference. Use compiler code assist?!
       }
       if (haxeClass != null) {
+        boolean isSuper = leftReference instanceof HaxeSuperExpression;
+
         addClassNonStaticMembersVariants(suggestedVariants, haxeClass,
-                                         !(leftReference instanceof HaxeThisExpression));
+                                         !(isThis || isSuper));
         addUsingVariants(suggestedVariants, suggestedVariantsExtensions, haxeClass,
                          HaxeResolveUtil.findUsingClasses(getContainingFile()));
       }

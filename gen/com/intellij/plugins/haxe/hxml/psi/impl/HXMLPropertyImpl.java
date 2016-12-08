@@ -40,12 +40,4 @@ public class HXMLPropertyImpl extends ASTWrapperPsiElement implements HXMLProper
     else super.accept(visitor);
   }
 
-  public String getKey() {
-    return HXMLPsiImplUtil.getKey(this);
-  }
-
-  public String getValue() {
-    return HXMLPsiImplUtil.getValue(this);
-  }
-
 }

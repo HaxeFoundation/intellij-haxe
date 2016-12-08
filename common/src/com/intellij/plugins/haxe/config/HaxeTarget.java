@@ -68,7 +68,6 @@ public enum HaxeTarget {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
-      String name = SystemProperties.getOsName();
       return fileName + ".exe";
     }
   }, PYTHON("python", HaxeCommonBundle.message("haxe.target.python")) {
@@ -76,6 +75,12 @@ public enum HaxeTarget {
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".py";
+    }
+  }, LUA("lua", HaxeCommonBundle.message("haxe.target.lua")) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".lua";
     }
   };
 

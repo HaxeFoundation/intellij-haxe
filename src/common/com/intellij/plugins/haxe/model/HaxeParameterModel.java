@@ -18,52 +18,29 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
-import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxeParameterModel {
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
+public class HaxeParameterModel extends HaxeMemberModel {
+
   private HaxeParameter parameter;
-  private HaxeMethodModel method;
+  private HaxeMethodModel methodModel;
   private boolean optional;
-  private String _name = null;
 
-  public HaxeParameterModel(HaxeParameter parameter, HaxeMethodModel method) {
+  public HaxeParameterModel(HaxeParameter parameter) {
+    super(parameter, parameter, parameter);
     this.parameter = parameter;
-    this.method = method;
+    final HaxeMethod method = (HaxeMethod) UsefulPsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
+    this.methodModel = method != null ? method.getModel() : null;
     this.optional = UsefulPsiTreeUtil.getToken(parameter, "?") != null;
-  }
-
-  private HaxeDocumentModel getDocument() {
-    return method.getDocument();
-  }
-
-  public String getName() {
-    if (_name == null) {
-      PsiElement nameElement = getNamePsi();
-      _name = (nameElement != null) ? nameElement.getText() : "";
-    }
-    return _name;
-  }
-
-  public PsiElement getPsi() {
-    return this.parameter;
-  }
-
-  public PsiElement getNamePsi() {
-    return UsefulPsiTreeUtil.getChild(parameter, HaxeComponentName.class);
-  }
-
-  public PsiElement getNameOrBasePsi() {
-    PsiElement result = getNamePsi();
-    if (result == null) result = this.parameter;
-    return result;
   }
 
   public PsiElement getContextElement() {
@@ -111,8 +88,8 @@ public class HaxeParameterModel {
     return parameter;
   }
 
-  public HaxeMethodModel getMethod() {
-    return method;
+  public HaxeMethodModel getMethodModel() {
+    return methodModel;
   }
 
   public String getPresentableText() {
@@ -121,6 +98,34 @@ public class HaxeParameterModel {
     out += ":";
     out += getType().toStringWithoutConstant();
     return out;
+  }
+
+  @Override
+  public PsiElement getNamePsi() {
+    return UsefulPsiTreeUtil.getChild(parameter, HaxeComponentName.class);
+  }
+
+  @Override
+  public HaxeDocumentModel getDocument() {
+    return methodModel.getDocument();
+  }
+
+  @Override
+  public HaxeClassModel getDeclaringClass() {
+    return methodModel.getDeclaringClass();
+  }
+
+  @Override
+  public ResultHolder getResultType() {
+    final HaxeTypeTag typeTag = parameter.getTypeTag();
+    final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
+  }
+
+  @Override
+  public String getPresentableText(HaxeMethodContext context) {
+    final ResultHolder type = getResultType();
+    return type == null ? this.getName() : this.getName() + ":" + type;
   }
 
   public void remove() {

@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
@@ -39,7 +38,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-    myFixture.enableInspections(new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection());
+    myFixture.enableInspections(getAnnotatorBasedInspection());
     myFixture.testHighlighting(true, false, false);
   }
 
@@ -191,5 +190,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   public void testVariableRedefinition() throws Exception {
     doTestNoFixWithWarnings();
+  }
+
+  public void testStaticsInExtended() throws Exception {
+    doTestNoFixWithoutWarnings();
   }
 }

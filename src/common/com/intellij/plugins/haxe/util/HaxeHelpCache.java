@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
@@ -58,11 +60,14 @@ public class HaxeHelpCache {
 
   private void load() {
     ArrayList<String> commandLineArguments = new ArrayList<String>();
-    String haxePath = HaxeHelpUtil.getHaxePath(HaxelibCache.getHaxeModule());
+    Module module = HaxelibCache.getHaxeModule();
+    String haxePath = HaxeHelpUtil.getHaxePath(module);
+    HaxeSdkAdditionalDataBase haxeSdkData = HaxeSdkUtilBase.getSdkData(module);
+
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-metas");
 
-    List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments);
+    List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
 
     metaTags = new ArrayList<HXMLCompletionItem>();
 
@@ -79,7 +84,7 @@ public class HaxeHelpCache {
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-defines");
 
-    strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments);
+    strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
 
     defines = new ArrayList<HXMLCompletionItem>();
 

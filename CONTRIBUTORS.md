@@ -1,23 +1,20 @@
 Recent contributors
 -----------------------------------
  - as3boyan <denis.flash.as3@gmail.com>
+ - bynuff <igor.bulankov@gmail.com>
  - Carlos Ballesteros Velasco <soywiz@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
  - Elias Ku <deadbabe@gmail.com>
  - Eric B <ebishton@tivo.com>
- - Gabor Csomak <csomakk@gmail.com>
- - giabao <giabao@sandinh.net>
+ - GitHub <noreply@github.com>
  - grosmar <zubak.balazs@gmail.com>
+ - Ilya Kuzmichev <deadbabe@gmail.com>
  - Ilya Kuzmichev <IlyaK@playtika.by>
  - Ilya Kuzmichev <ilyak@playtika.com>
  - isBatak <ivicabatinic123@gmail.com>
- - Jérémy Faivre <jeremy.faivre@gmail.com>
- - jeremyfa <jeremy.faivre@gmail.com>
- - sganapavarapu1 <ganapavarapu@tivo.com>
  - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
- - vaukalak <lahmataja.pa4vara@gmia>
- - Yannick Dominguez <yannick.dominguez@gmail.com>
- - yannick <yannnick.dominguez@gmail.com>
+ - Usievaład Čorny <anibyl@riseup.net>
+ - Usievaład Kimajeŭ <usievalad@gmail.com>
 
 All contributors
 -----------------------------------
@@ -29,6 +26,7 @@ All contributors
 - bjitivo <bji@tivo.com>
 - Bruno Garcia <b@aduros.com>
 - Bryan Ischo <bryan@ischo.com>
+- bynuff <igor.bulankov@gmail.com>
 - Carlos Ballesteros Velasco <soywiz@gmail.com>
 - Chris Decoster <impaler777@gmail.com>
 - Constantine Plotnikov <constantine.plotnikov@gmail.com>
@@ -49,9 +47,11 @@ All contributors
 - fkorotkov <fkorotkov@twitter.com>
 - Gabor Csomak <csomakk@gmail.com>
 - giabao <giabao@sandinh.net>
+- GitHub <noreply@github.com>
 - Gregory.Shrago <gregory.shrago@jetbrains.com>
 - grosmar <zubak.balazs@gmail.com>
 - Hays Clark <hays@infinitedescent.com>
+- Ilya Kuzmichev <deadbabe@gmail.com>
 - Ilya Kuzmichev <IlyaK@playtika.by>
 - Ilya Kuzmichev <ilyak@playtika.com>
 - impaler <user123@server.fake>
@@ -72,6 +72,8 @@ All contributors
 - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
 - Tim Hepner <tim@hepners.net>
 - Todd Brannam <tbrannam@casualpenguin.com>
+- Usievaład Čorny <anibyl@riseup.net>
+- Usievaład Kimajeŭ <usievalad@gmail.com>
 - Vassiliy Kudryashov <Vassiliy.Kudryashov@jetbrains.com>
 - vaukalak <lahmataja.pa4vara@gmia>
 - vladimir.krivosheev <vladimir.krivosheev@jetbrains.com>

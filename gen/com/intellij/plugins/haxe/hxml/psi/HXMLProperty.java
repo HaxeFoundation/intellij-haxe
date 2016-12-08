@@ -25,8 +25,4 @@ import com.intellij.psi.PsiElement;
 
 public interface HXMLProperty extends PsiElement {
 
-  String getKey();
-
-  String getValue();
-
 }

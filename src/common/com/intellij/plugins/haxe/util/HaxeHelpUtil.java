@@ -21,30 +21,45 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 
-/**
- * Created by as3boyan on 15.11.14.
- */
+import java.io.File;
+
 public class HaxeHelpUtil {
+
   public static String getHaxePath(Module myModule) {
-    String haxePath = "haxe";
+    String executable = "haxe";
+    if(SystemInfo.isWindows) {
+      executable += ".exe";
+    }
+
     if (myModule != null) {
       Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
       if (sdk != null) {
-        SdkAdditionalData data = sdk.getSdkAdditionalData();
+        String haxeToolkitHome = sdk.getHomePath();
+        if(haxeToolkitHome != null && !haxeToolkitHome.isEmpty()) {
+          File haxeBin = new File(haxeToolkitHome, executable);
+          if(haxeBin.exists()) {
+            return haxeBin.toString();
+          }
+        }
 
+        SdkAdditionalData data = sdk.getSdkAdditionalData();
         if (data instanceof HaxeSdkData) {
           HaxeSdkData sdkData;
           sdkData = (HaxeSdkData)data;
-          String path = sdkData.getHomePath();
-          if (!path.isEmpty()) {
-            haxePath = path;
+          haxeToolkitHome = sdkData.getHomePath();
+          if(haxeToolkitHome != null && !haxeToolkitHome.isEmpty()) {
+            File haxeBin = new File(haxeToolkitHome, executable);
+            if(haxeBin.exists()) {
+              return haxeBin.toString();
+            }
           }
         }
       }
     }
 
-    return haxePath;
+    return executable;
   }
 }

@@ -23,12 +23,18 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeTypeResolver {
   @NotNull
@@ -138,8 +144,8 @@ public class HaxeTypeResolver {
   @NotNull
   static public ResultHolder getTypeFromTypeTag(@Nullable final HaxeTypeTag typeTag, @NotNull PsiElement context) {
     if (typeTag != null) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
-      final HaxeFunctionType functionType = typeTag.getFunctionType();
+      final HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(typeTag.getTypeOrAnonymousList());
+      final HaxeFunctionType functionType = getFirstItem(typeTag.getFunctionTypeList());
 
       if (typeOrAnonymous != null) {
         return getTypeFromTypeOrAnonymous(typeOrAnonymous);

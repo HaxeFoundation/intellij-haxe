@@ -1,9 +1,48 @@
 #Changelog
   <p>
-     Warning: The 14.1 version of this plugin will NOT work correctly using IDEA version 14.1.2.
-     It works well with versions 14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version
-     of the plugin is for IDEA versions 14.1.5 and 14.1.6.
+     Warning for IDEA v14.1.x users: The 14.1 version of this plugin will NOT
+     work correctly using IDEA version 14.1.2.  It works well with versions
+     14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version of the
+     plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
   </p>
+
+  <p>0.10.1: (community release)</p>
+  <ul>
+    <li>Stop using the classpath to auto-add external libraries to projects. (issues #477 #100)</li>
+    <li>Fix re-ordering imports in certain situations. (issue #494)</li>
+    <li>Fix 'never' setter. (issue #486)</li>
+    <li>Change class paths for external libraries on OSX.</li>
+    <li>Fixed creating classes in TEST source roots</li>
+    <li>Fixed debug Flash on Haxe-compiler target</li>
+    <li>Fixed crash on MACRO_CLASS_LIST assert</li>
+    <li>IDEA 2016 support</li>
+    <li>@:deprecated support (issue #459, #473)</li>
+    <li>Alias imports support (issue #466)</li>
+    <li>Imports optimization: reordering added (issue #471)</li>
+  </ul>
+  <p>0.9.10: (community release)</p>
+  <ul>
+    <li>Better packages resolving</li>
+    <li>Fix catch parameter declaration (issue #419)</li>
+    <li>Fix inherited type in field initializer (issue #412)</li>
+    <li>Delete single-class file in one operation from Project View (issue #424)</li>
+    <li>Fix interface properties accessor check annotation (issue #411)</li>
+    <li>Error highlighting added for variable redefinition (issue #431)</li>
+    <li>Fix generic sub-type resolving when import just type-module (issue #435)</li>
+    <li>Extensions: using variants and resolving for children and implementations of base class or interface added (issue #433)</li>
+    <li>Fix typedef generic params resolving (issue #304)</li>
+    <li>General "@:enum abstract" support (issues #427, #428, #429)</li>
+    <li>Fix import / using statements class name completion (issue #286)</li>
+    <li>Incorrect “public” modifier when override methods fixed (issue #439)</li>
+    <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
+    <li>Fix use scope for var declarations (issue #235)</li>
+    <li>Find usages import filtering (issue #426)</li>
+    <li>Completion for word `super`: handle `super` word like `this` word (issue #87)</li>
+    <li>Fix forwarding abstract fields completion and resolving. (issue #447, #108)</li>
+    <li>Navigate to symbols (issue #340)</li>
+    <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
+    <li>Fix method local variables and arguments completion. (issue #455)</li>
+  </ul>
   <p>0.9.9: (community release)</p>
   <ul>
     <li>IDEA v15 compatibility.  (IDEA 13 compatiblity removed.)</li>

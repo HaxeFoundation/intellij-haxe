@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.lang.ImportOptimizer;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -27,8 +28,16 @@ import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithInSupport;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by fedorkorotkov.
@@ -56,7 +65,13 @@ public class HaxeImportOptimizer implements ImportOptimizer {
     };
   }
 
-  private static void optimizeImports(PsiFile file) {
+  private static void optimizeImports(final PsiFile file) {
+    removeUnusedImports(file);
+
+    reorderImports(file);
+  }
+
+  private static void removeUnusedImports(PsiFile file) {
     for (HaxeImportStatementRegular unusedImportStatement : HaxeImportUtil.findUnusedImports(file)) {
       unusedImportStatement.delete();
     }
@@ -69,6 +84,70 @@ public class HaxeImportOptimizer implements ImportOptimizer {
       unusedImportStatement.delete();
     }
 
-    // todo: rearrange
+    // TODO Optimize this method, it takes a lot of time.
+
+    // TODO Remove unused usings.
+  }
+
+  private static void reorderImports(final PsiFile file) {
+    List<HaxeImportStatementRegular> allImports = UsefulPsiTreeUtil.getAllImportStatements(file);
+
+    if (allImports.size() < 2) {
+      return;
+    }
+
+    final HaxeImportStatementRegular firstImport = allImports.get(0);
+    int startOffset = firstImport.getStartOffsetInParent();
+    final HaxeImportStatementRegular lastImport = allImports.get(allImports.size() - 1);
+    int endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
+
+    // We assume the common practice of placing all imports in a single "block" at the top of a file. If there is something else (comments,
+    // code, etc) there we just stop reordering to prevent data loss.
+    for (PsiElement child : file.getChildren()) {
+      int childOffset = child.getStartOffsetInParent();
+      if (childOffset >= startOffset && childOffset <= endOffset
+          && !(child instanceof HaxeImportStatementRegular)
+          && !(child instanceof PsiWhiteSpace)) {
+        return;
+      }
+    }
+
+    List<String> sortedImports = new ArrayList<String>();
+
+    for (HaxeImportStatementRegular currentImport : allImports) {
+      sortedImports.add(currentImport.getText());
+    }
+
+    Collections.sort(sortedImports);
+
+    final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(file.getProject());
+    final Document document = psiDocumentManager.getDocument(file);
+    if (document != null) {
+      final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(file.getProject());
+
+      /* This operation trims the document if necessary (e.g. it happens with "\n" at the very beginning).
+         Need to reevaluate offsets here.
+       */
+      documentManager.doPostponedOperationsAndUnblockDocument(document);
+
+      // Reevaluating offset values according to the previous comment.
+      startOffset = firstImport.getStartOffsetInParent();
+      endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
+
+      document.deleteString(startOffset, endOffset);
+
+      StringBuilder sortedImportsText = new StringBuilder();
+      for (String sortedImport : sortedImports) {
+        sortedImportsText.append(sortedImport);
+        sortedImportsText.append("\n");
+      }
+      // Removes last "\n".
+      CharSequence sortedImportsTextTrimmed = sortedImportsText.subSequence(0, sortedImportsText.length() - 1);
+
+      documentManager.doPostponedOperationsAndUnblockDocument(document);
+      document.insertString(startOffset, sortedImportsTextTrimmed);
+    }
+
+    // TODO Reorder usings.
   }
 }

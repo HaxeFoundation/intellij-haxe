@@ -28,7 +28,7 @@ public interface HaxeObjectLiteralElement extends HaxePsiCompositeElement {
   @NotNull
   HaxeExpression getExpression();
 
-  @NotNull
+  @Nullable
   HaxeIdentifier getIdentifier();
 
 }

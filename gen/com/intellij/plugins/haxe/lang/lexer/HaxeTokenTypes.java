@@ -106,7 +106,7 @@ public interface HaxeTokenTypes {
   IElementType LOGIC_OR_EXPRESSION = new HaxeElementType("LOGIC_OR_EXPRESSION");
   IElementType LONG_TEMPLATE_ENTRY = new HaxeElementType("LONG_TEMPLATE_ENTRY");
   IElementType MACRO_CLASS = new HaxeElementType("MACRO_CLASS");
-  IElementType MACRO_CLASS_LIST = new HaxeElementType("MACRO_CLASS_LIST");
+  IElementType MACRO_CLASS_LIST = new HaxeMacroClassListElementType("MACRO_CLASS_LIST");
   IElementType META_KEY_VALUE = new HaxeElementType("META_KEY_VALUE");
   IElementType META_META = new HaxeElementType("META_META");
   IElementType MULTIPLICATIVE_EXPRESSION = new HaxeElementType("MULTIPLICATIVE_EXPRESSION");
@@ -151,6 +151,7 @@ public interface HaxeTokenTypes {
   IElementType TRY_STATEMENT = new HaxeElementType("TRY_STATEMENT");
   IElementType TYPE = new HaxeElementType("TYPE");
   IElementType TYPEDEF_DECLARATION = new HaxeElementType("TYPEDEF_DECLARATION");
+  IElementType TYPE_CHECK_EXPR = new HaxeElementType("TYPE_CHECK_EXPR");
   IElementType TYPE_EXTENDS = new HaxeElementType("TYPE_EXTENDS");
   IElementType TYPE_LIST = new HaxeElementType("TYPE_LIST");
   IElementType TYPE_LIST_PART = new HaxeElementType("TYPE_LIST_PART");
@@ -673,6 +674,9 @@ public interface HaxeTokenTypes {
       }
       else if (type == TYPEDEF_DECLARATION) {
         return new HaxeTypedefDeclarationImpl(node);
+      }
+      else if (type == TYPE_CHECK_EXPR) {
+        return new HaxeTypeCheckExprImpl(node);
       }
       else if (type == TYPE_EXTENDS) {
         return new HaxeTypeExtendsImpl(node);

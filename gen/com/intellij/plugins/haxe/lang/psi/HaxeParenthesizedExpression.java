@@ -25,52 +25,52 @@ import com.intellij.psi.PsiElement;
 
 public interface HaxeParenthesizedExpression extends HaxeExpression {
 
-  @Nullable
-  HaxeBlockStatement getBlockStatement();
+  @NotNull
+  List<HaxeBlockStatement> getBlockStatementList();
 
-  @Nullable
-  HaxeBreakStatement getBreakStatement();
+  @NotNull
+  List<HaxeBreakStatement> getBreakStatementList();
 
-  @Nullable
-  HaxeContinueStatement getContinueStatement();
+  @NotNull
+  List<HaxeContinueStatement> getContinueStatementList();
 
-  @Nullable
-  HaxeDoWhileStatement getDoWhileStatement();
+  @NotNull
+  List<HaxeDoWhileStatement> getDoWhileStatementList();
 
   @Nullable
   HaxeExpression getExpression();
 
-  @Nullable
-  HaxeForStatement getForStatement();
+  @NotNull
+  List<HaxeForStatement> getForStatementList();
 
-  @Nullable
-  HaxeIfStatement getIfStatement();
+  @NotNull
+  List<HaxeIfStatement> getIfStatementList();
 
-  @Nullable
-  HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();
+  @NotNull
+  List<HaxeLocalFunctionDeclaration> getLocalFunctionDeclarationList();
 
-  @Nullable
-  HaxeLocalVarDeclaration getLocalVarDeclaration();
+  @NotNull
+  List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
   @NotNull
   List<HaxeMacroClassList> getMacroClassListList();
 
-  @Nullable
-  HaxeReturnStatement getReturnStatement();
+  @NotNull
+  List<HaxeReturnStatement> getReturnStatementList();
+
+  @NotNull
+  List<HaxeSwitchStatement> getSwitchStatementList();
+
+  @NotNull
+  List<HaxeThrowStatement> getThrowStatementList();
+
+  @NotNull
+  List<HaxeTryStatement> getTryStatementList();
 
   @Nullable
-  HaxeSwitchStatement getSwitchStatement();
+  HaxeTypeCheckExpr getTypeCheckExpr();
 
-  @Nullable
-  HaxeThrowStatement getThrowStatement();
-
-  @Nullable
-  HaxeTryStatement getTryStatement();
-
-  @Nullable
-  HaxeTypeTag getTypeTag();
-
-  @Nullable
-  HaxeWhileStatement getWhileStatement();
+  @NotNull
+  List<HaxeWhileStatement> getWhileStatementList();
 
 }

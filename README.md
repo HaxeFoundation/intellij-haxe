@@ -2,7 +2,7 @@ Haxe plugin for Intellij IDEA
 ======================================
 
 This plugin allows you to develop [Haxe](http://haxe.org/) programs with Intellij IDEA.
-It requires Intellij IDEA Ultimate or Community Edition, versions 14 or 15.
+It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, IDEA 2016.1 through 2016.3(RC).
 
 Install
 -------
@@ -102,14 +102,17 @@ Use the hxcpp debugger
 The hxcpp debugger functionality has been rewritten to conform to the
 Haxe v3.0 debugger.  In order to use this, you must:
 
-- Install the newest debugger haxelib from [https://github.com/TiVo/debugger](https://github.com/TiVo/debugger).
+- Install the *VERSION 1.1* debugger haxelib from [https://github.com/HaxeFoundation/hxcpp-debugger/tree/protocol_v1.1](https://github.com/HaxeFoundation/hxcpp-debugger/tree/protocol_v1.1).
   The haxecpp-debugger that is installed via 'haxelib install' is generally
   not the latest or best working version. (The Haxe Foundation maintainers
   do not release regular updates for it). Instead, get the current sources
   locally: Install git and clone the repository from
   [http://github.com/HaxeFoundation/hxcpp-debugger](http://github.com/HaxeFoundation/hxcpp-debugger)
   and install via
-  ```haxelib git <your_local_clone>```. Then, you'll have the version
+```
+  haxelib git hxcpp-debugger <your_local_clone> protocol_v1.1
+```
+  Then, you'll have the version
   that matches the plugin. Whenever you need to update the debugger to
   the latest sources, do a 'git pull' and then rebuild your app.
 - Re-build your project using this newest debugger haxelib.

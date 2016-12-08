@@ -94,16 +94,16 @@ particularly if you see ClassNotFound exceptions when attempting to run the plug
 
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
-by the plugin team.  At the time of this writing, that would be 14.0.4, 
-and 14.1.1, 14.1.5 (introduced a breaking change), and 15.0.3.
+by the plugin team.  At the time of this writing, that would be 14.0.5,
+and 14.1.1, 14.1.7 (introduced a breaking change), 15.0.6, and 2016.2.4.
 As new versions are released this will continue to be
 a moving target, as we attempt to keep up with the development community.
 
 We do NOT expect contributors to keep up to date with EAP releases, nor does 
 the team support them (though the plugin may work, and will usually install).
 
-*According to JetBrains, IDEA releases 16 EAP and later require JDK 8.  That
-build environment has not been successfully used for this plugin at this time.*
+*IDEA releases 2016 and later require JDK 8.  That build environment has
+been successfully used for this plugin, targeting Java6 for builds prior to 2016.x.*
 
 ####Ant Builds
 
@@ -276,17 +276,18 @@ IDEA output will be seen.
 OK. If you haven't changed anything, this most likely isn't an issue of code. 
 It's an issue of updating your project structure. Since all of the versions 
 of the plugin build from a single source base, the project must be set up correctly. 
-We decided to make the default settings be correct for IDEA v14.1. However, to 
+We decided to make the default settings be correct for IDEA v2016.x. However, to
 build other versions, you can either use the ant builds (see 
 ![Ant Builds][Ant Builds] above), or you can change 
 the project structure to match the environment you're trying to build.
 
-So, for 13.1.6, open "File->Project Structure->Module->intellij-haxe->Sources(tab)," and change this:  
+*Note: This same concept applies for current versions.*
+
+So, for 13.1.6, open "File->Project Structure->Module->intellij-haxe->Sources(tab)," and change this:
 ![Project Structure for IDEA 14](./doc/Idea_Project_Structure_for_v14.png)
 
 to this:  
 ![Project Structure for IDEA 13](./doc/Idea_Project_Structure_for_v13.png)
-
 
 Then try to rebuild.
 
@@ -403,7 +404,7 @@ repository.
    OS: Linux(Ubuntu14.04), OSX, Windows  
    JVM: Sun Java 1.6 target, using Sun Java 1.8 compilers (because the Java 1.6 and 1.7 
    maintenance windows have closed)  
-   IDEA versions: 14, 14.1, 14.1.6, and 15 (release versions)
+   IDEA versions: 14, 14.1, 14.1.7, 15, 2016.2 (latest release versions for each code line)
 
 ####Who will test:
 
@@ -462,8 +463,8 @@ basic functionality:
     - Run the project
 
 5. Run the unit tests on all versions:
-    - `IDEA_VERSION=13.1.6 make test`, etc.
-    - or `ant -Dintellij.ultimate.build=<path_to_intellij_13.1.6> -f build-test.xml`, etc.
+    - `IDEA_VERSION=2016.2.4 make test`, etc.
+    - or `ant -Dintellij.ultimate.build=<path_to_intellij_2016.2.4> -f build-test.xml`, etc.
     
 4. Tag the commit using the agreed upon release number: `git tag -a 0.9.5 -m "Release 0.9.5"`
 
@@ -478,7 +479,7 @@ basic functionality:
     - Submit
 
 7. Create a Pull Request to pull all of the current changes up to the JetBrains/intellij-haxe/master
-repository.  Add a shoutouts to @as3Boyan and @EBatTiVo to the pull request.
+repository.  Add shoutouts to @as3Boyan and @EBatTiVo to the pull request.
 
 8. Upload the jars to the IDEA plugin repository 
 [https://plugins.jetbrains.com/plugin/6873?pr=idea](https://plugins.jetbrains.com/plugin/6873?pr=idea)
@@ -493,22 +494,23 @@ Here’s how:
 1. Create a new (or use an existing) branch for any work that you do.  The critical thing here is not
  to do your work directly on the master branch.
 2. Make and test your changes.
-3. When your work is complete, merge current sources from master up to your branch, re-test locally, 
+3. Create unit tests for your changes.  (See the testSrc and testData directories for examples.)
+4. Update src/META-INF/plugin.xml with the change description in the top (Usually "Unreleased changes"
+section).
+5. When your work is complete, merge current sources from master up to your branch, re-test locally,
 then push your branch to TiVo/intellij-haxe.  Travis-ci will automatically start a build and test cycle
 applying your changes against the master branch.
-4. Create a pull request, and wait for comments.
-5. If you get comments that require changes, address those and return to step 2.
-6. When you get an “OK to merge,” or "approved," message from anyone on the team: Boyan, @as3boyan; 
-Eric, @EBatTiVo; Srikanth, @sganapavarapu; Yannick, @yahnick, others as they become regular 
-contributors), go ahead and merge your changes to master.  A clean merge requires no further testing,
+6. Create a pull request, and wait for comments.
+7. If you get comments that require changes, address those and return to step 2.
+8. When you get an “OK to merge,” or "approved," message from anyone on the team: Boyan, @as3boyan;
+Eric, @EBatTiVo; Srikanth, @sganapavarapu, (others as they become regular contributors,) go ahead
+and merge your changes to master.  A clean merge requires no further testing,
 as Travis-ci will do it for you.  However any build break must be addressed immediately.  A build 
 that has conflicts requires manual resolution and must be re-tested locally prior to push.  For regular
 team members, the original requester will be the person to merge since they are best suited to address
 conflicts.  Merges from occasional contributors will be merged by a team member as time and
 resource becomes available.
-8. Check the Travis-ci output (https://travis-ci.org/TiVo/intellij-haxe/builds) to ensure that 
+9. Check the Travis-ci output (https://travis-ci.org/TiVo/intellij-haxe/builds) to ensure that
 everything built correctly. 
 
-We’re also planning on setting up an automated “nightly” build that is posted somewhere so that 
-interested people can get the latest without us constantly posting it to the JetBrains IDEA repository.
 

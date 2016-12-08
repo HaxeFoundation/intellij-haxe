@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.annotator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeModifierType;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -27,6 +28,7 @@ import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -44,6 +46,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
     }
     final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
     if (childReferences != null && childReferences.length > 1) {
+      checkDeprecatedVarCall(reference);
       super.visitReferenceExpression(reference);
       return;
     }
@@ -57,6 +60,14 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
         reference.getParent() instanceof HaxeCallExpression &&
         !(reference.getParent().getParent() instanceof HaxeReference)) {
       return;
+    }
+
+    if (reference.getFirstChild() instanceof HaxeParenthesizedExpression) {
+      HaxeParenthesizedExpression parenthesizedExpression = (HaxeParenthesizedExpression)reference.getFirstChild();
+      if (PsiTreeUtil.getChildOfType(parenthesizedExpression, HaxeTypeCheckExpr.class) != null) {
+        super.visitReferenceExpression(reference);
+        return;
+      }
     }
 
     if (!(reference.getParent() instanceof HaxeReference) && !(reference.getParent() instanceof HaxePackageStatement) && !(reference.getParent() instanceof HaxeImportStatementWithWildcard)) {
@@ -87,10 +98,81 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   }
 
   @Override
+  public void visitFunctionDeclarationWithAttributes(@NotNull HaxeFunctionDeclarationWithAttributes functionDeclaration) {
+    List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
+    for (HaxeCustomMeta meta : metas) {
+      if (isDeprecatedMeta(meta)) {
+        handleDeprecatedFunctionDeclaration(functionDeclaration);
+      }
+    }
+
+    super.visitFunctionDeclarationWithAttributes(functionDeclaration);
+  }
+
+  @Override
+  public void visitCallExpression(@NotNull HaxeCallExpression o) {
+    final PsiElement child = o.getFirstChild();
+    if (child instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression) child;
+      final PsiElement reference = referenceExpression.resolve();
+      final PsiElement lastChild = referenceExpression.getLastChild();
+
+      if (reference instanceof HaxeFunctionDeclarationWithAttributes &&
+          lastChild != null && lastChild instanceof HaxeReferenceExpression) {
+
+        final HaxeFunctionDeclarationWithAttributes functionDeclaration = (HaxeFunctionDeclarationWithAttributes)reference;
+        final List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
+        for (HaxeCustomMeta meta : metas) {
+          if (isDeprecatedMeta(meta)) {
+            handleDeprecatedCallExpression((HaxeReferenceExpression)lastChild);
+          }
+        }
+      }
+    }
+
+    super.visitCallExpression(o);
+  }
+
+  @Override
+  public void visitVarDeclaration(@NotNull HaxeVarDeclaration varDeclaration) {
+    List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
+    for (HaxeCustomMeta meta : metas) {
+      if (isDeprecatedMeta(meta)) {
+        handleDeprecatedVarDeclaration(varDeclaration);
+      }
+    }
+
+    super.visitVarDeclaration(varDeclaration);
+  }
+
+  @Override
   public void visitElement(PsiElement element) {
     ProgressIndicatorProvider.checkCanceled();
     element.acceptChildren(this);
   }
 
-  abstract protected void handleUnresolvedReference(HaxeReferenceExpression reference);
+  protected void handleUnresolvedReference(HaxeReferenceExpression reference) {}
+  protected void handleDeprecatedFunctionDeclaration(HaxeFunctionDeclarationWithAttributes functionDeclaration) {}
+  protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {}
+  protected void handleDeprecatedVarDeclaration(HaxeVarDeclaration varDeclaration) {}
+
+  private void checkDeprecatedVarCall(HaxeReferenceExpression referenceExpression) {
+    PsiElement reference = referenceExpression.resolve();
+
+    if (reference instanceof HaxeVarDeclarationPart) {
+      HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration) reference.getParent();
+
+      List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
+      for (HaxeCustomMeta meta : metas) {
+        if (isDeprecatedMeta(meta)) {
+          handleDeprecatedCallExpression((HaxeReferenceExpression)referenceExpression.getLastChild());
+        }
+      }
+    }
+  }
+
+  private boolean isDeprecatedMeta(@NotNull HaxeCustomMeta meta) {
+    String metaText = meta.getText();
+    return metaText != null && metaText.startsWith(HaxeModifierType.DEPRECATED.s);
+  }
 }

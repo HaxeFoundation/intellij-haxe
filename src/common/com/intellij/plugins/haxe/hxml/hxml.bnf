@@ -12,7 +12,7 @@
   elementTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLElementType"
   tokenTypeClass="com.intellij.plugins.haxe.hxml.psi.HXMLTokenType"
 
-  psiImplUtilClass="com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil"
+  generate=[names="short"]
 }
 
 simpleFile ::= item_*

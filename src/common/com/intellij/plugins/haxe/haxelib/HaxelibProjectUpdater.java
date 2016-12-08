@@ -43,6 +43,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
+import com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
@@ -468,15 +469,9 @@ public class HaxelibProjectUpdater  {
           if (file != null && file.getFileType().equals(HXMLFileType.INSTANCE)) {
             PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
             if (psiFile != null) {
-              Collection<HXMLClasspath> hxmlClasspaths = PsiTreeUtil.findChildrenOfType(psiFile, HXMLClasspath.class);
-              for (HXMLClasspath hxmlClasspath : hxmlClasspaths) {
-                String classpath = hxmlClasspath.getValue();
-                haxelibExternalItems.add(new HaxelibItem(classpath, VfsUtil.pathToUrl(classpath)));
-              }
-
               Collection<HXMLLib> hxmlLibs = PsiTreeUtil.findChildrenOfType(psiFile, HXMLLib.class);
               for (HXMLLib hxmlLib : hxmlLibs) {
-                String name = hxmlLib.getValue();
+                String name = HXMLPsiImplUtil.getValue(hxmlLib);
                 haxelibNewItemList = libManager.findHaxelibPath(name);
                 haxelibExternalItems.addAll(haxelibNewItemList);
               }
@@ -488,14 +483,7 @@ public class HaxelibProjectUpdater  {
 
       case HaxeModuleSettings.USE_PROPERTIES:
         timeLog.stamp("Start loading classpaths from properties.");
-        String arguments = settings.getArguments();
-        if (!arguments.isEmpty()) {
-          List<String> classpaths = HaxelibClasspathUtils.getHXMLFileClasspaths(project, arguments);
 
-          for (String classpath : classpaths) {
-            haxelibExternalItems.add(new HaxelibItem(classpath, VfsUtil.pathToUrl(classpath)));
-          }
-        }
         timeLog.stamp("Finish loading classpaths from properties.");
         break;
     }

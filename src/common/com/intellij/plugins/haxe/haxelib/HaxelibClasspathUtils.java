@@ -36,7 +36,9 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
+import com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -387,7 +389,9 @@ public class HaxelibClasspathUtils {
       commandLineArguments.add("display");
       commandLineArguments.add("flash");
 
-      List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, dir);
+      List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
+                                                                  dir,
+                                                                  HaxeSdkUtilBase.getSdkData(sdk));
       String s = Joiner.on("\n").join(strings);
       strings1 = getHXMLFileClasspaths(project, s);
     }
@@ -415,7 +419,7 @@ public class HaxelibClasspathUtils {
 
     Collection<HXMLClasspath> hxmlClasspaths = PsiTreeUtil.findChildrenOfType(psiFile, HXMLClasspath.class);
     for (HXMLClasspath hxmlClasspath : hxmlClasspaths) {
-      strings1.add(hxmlClasspath.getValue());
+      strings1.add(HXMLPsiImplUtil.getValue(hxmlClasspath));
     }
     return strings1;
   }

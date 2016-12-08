@@ -170,6 +170,8 @@
     pin(".*Expression")=1
     pin(".*Statement")=1
     pin(".*Meta")=1
+
+    generate=[names="short"]
 }
 
 haxeFile ::= packageStatement? topLevelList
@@ -193,11 +195,12 @@ unreflectiveMeta ::= '@:unreflective'
 simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta
 
 macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
-macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"}
+macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"
+elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeMacroClassListElementType"}
 //','
 
 private functionMacroMember ::= finalMeta | macroMember | overloadMeta
-private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta
+private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta | nativeMeta
                        | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
@@ -527,7 +530,10 @@ regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
-parenthesizedExpression ::= '(' (expression typeTag | expression | statement) ')'
+parenthesizedExpression ::= '(' (typeCheckExpr | expression | statement) ')'
+
+typeCheckExpr ::= expression ':' functionTypeWrapper
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
@@ -598,5 +604,5 @@ objectLiteral ::= ('{' objectLiteralElementList+ '}') | emptyObjectLiteral
 private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* {recoverWhile="object_literal_list_recover"}
 private object_literal_list_recover ::= !('}')
 
-objectLiteralElement ::= identifier ':' expression {recoverWhile="object_literal_part_recover"}
+objectLiteralElement ::= (identifier | OPEN_QUOTE REGULAR_STRING_PART CLOSING_QUOTE) ':' expression {recoverWhile="object_literal_part_recover"}
 private object_literal_part_recover ::= !(',' | '}')

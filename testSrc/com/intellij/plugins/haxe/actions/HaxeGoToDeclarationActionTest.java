@@ -316,4 +316,8 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   public void testCastExpression1() {
     doTest(myFixture.configureByFiles("CastExpression1.hx"), 1);
   }
+
+  public void testTypeCheckExpression1() {
+    doTest(myFixture.configureByFiles("TypeCheckExpression1.hx"), 1);
+  }
 }

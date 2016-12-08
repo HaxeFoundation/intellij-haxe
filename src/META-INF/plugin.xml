@@ -29,13 +29,27 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.9.9 for @plugin.compatibility.description@</version>
+  <version>0.10.1 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This build is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
-      <p>Unreleased changes:</p>
+      <p>0.10.1: (community release)</p>
+      <ul>
+        <li>Stop using the classpath to auto-add external libraries to projects. (issues #477 #100)</li>
+        <li>Fix re-ordering imports in certain situations. (issue #494)</li>
+        <li>Fix 'never' setter. (issue #486)</li>
+        <li>Change class paths for external libraries on OSX.</li>
+        <li>Fixed creating classes in TEST source roots</li>
+        <li>Fixed debug Flash on Haxe-compiler target</li>
+        <li>Fixed crash on MACRO_CLASS_LIST assert</li>
+        <li>IDEA 2016 support</li>
+        <li>@:deprecated support (issue #459, #473)</li>
+        <li>Alias imports support (issue #466)</li>
+        <li>Imports optimization: reordering added (issue #471)</li>
+      </ul>
+      <p>0.9.10: (community release)</p>
       <ul>
         <li>Better packages resolving</li>
         <li>Fix catch parameter declaration (issue #419)</li>
@@ -52,8 +66,11 @@
         <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
         <li>Fix use scope for var declarations (issue #235)</li>
         <li>Find usages import filtering (issue #426)</li>
+        <li>Completion for word `super`: handle `super` word like `this` word (issue #87)</li>
         <li>Fix forwarding abstract fields completion and resolving. (issue #447, #108)</li>
         <li>Navigate to symbols (issue #340)</li>
+        <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
+        <li>Fix method local variables and arguments completion. (issue #455)</li>
       </ul>
       <p>0.9.9: (community release)</p>
       <ul>
@@ -715,6 +732,11 @@
                      key="haxe.inspection.unresolved.symbol"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeDeprecatedSymbol" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     key="haxe.inspection.deprecated.symbol"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeDeprecatedInspection"/>
 
     <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspection.preprocessor.symbol.name"

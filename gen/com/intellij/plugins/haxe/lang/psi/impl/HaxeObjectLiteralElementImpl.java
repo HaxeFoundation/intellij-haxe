@@ -46,9 +46,9 @@ public class HaxeObjectLiteralElementImpl extends HaxePsiCompositeElementImpl im
   }
 
   @Override
-  @NotNull
+  @Nullable
   public HaxeIdentifier getIdentifier() {
-    return findNotNullChildByClass(HaxeIdentifier.class);
+    return findChildByClass(HaxeIdentifier.class);
   }
 
 }
