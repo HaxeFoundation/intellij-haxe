@@ -52,8 +52,8 @@ public interface HaxeWhileStatement extends HaxeStatementPsiMixin {
   @NotNull
   List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
-  @NotNull
-  List<HaxeMacroClassList> getMacroClassListList();
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
   @NotNull
   List<HaxeReturnStatement> getReturnStatementList();

@@ -52,9 +52,9 @@ public class HaxeTypeCheckExprImpl extends HaxeClassReferenceImpl implements Hax
   }
 
   @Override
-  @NotNull
-  public List<HaxeTypeOrAnonymous> getTypeOrAnonymousList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeOrAnonymous.class);
+  @Nullable
+  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
+    return findChildByClass(HaxeTypeOrAnonymous.class);
   }
 
 }

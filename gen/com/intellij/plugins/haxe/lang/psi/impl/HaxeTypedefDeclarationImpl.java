@@ -76,9 +76,9 @@ public class HaxeTypedefDeclarationImpl extends AbstractHaxeTypeDefImpl implemen
   }
 
   @Override
-  @NotNull
-  public List<HaxeTypeOrAnonymous> getTypeOrAnonymousList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeTypeOrAnonymous.class);
+  @Nullable
+  public HaxeTypeOrAnonymous getTypeOrAnonymous() {
+    return findChildByClass(HaxeTypeOrAnonymous.class);
   }
 
 }

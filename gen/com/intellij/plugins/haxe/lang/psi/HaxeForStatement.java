@@ -58,8 +58,8 @@ public interface HaxeForStatement extends HaxeForStatementPsiMixin {
   @NotNull
   List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
-  @NotNull
-  List<HaxeMacroClassList> getMacroClassListList();
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
   @NotNull
   List<HaxeReturnStatement> getReturnStatementList();

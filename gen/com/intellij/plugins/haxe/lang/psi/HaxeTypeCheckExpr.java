@@ -31,7 +31,7 @@ public interface HaxeTypeCheckExpr extends HaxeReference {
   @NotNull
   List<HaxeFunctionType> getFunctionTypeList();
 
-  @NotNull
-  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
+  @Nullable
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

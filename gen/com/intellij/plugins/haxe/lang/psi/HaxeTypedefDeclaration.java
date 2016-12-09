@@ -43,7 +43,7 @@ public interface HaxeTypedefDeclaration extends HaxeClass {
   @Nullable
   HaxePrivateKeyWord getPrivateKeyWord();
 
-  @NotNull
-  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
+  @Nullable
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

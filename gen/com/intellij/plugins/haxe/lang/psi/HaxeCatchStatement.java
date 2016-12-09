@@ -52,8 +52,8 @@ public interface HaxeCatchStatement extends HaxeStatementPsiMixin {
   @NotNull
   List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
 
-  @NotNull
-  List<HaxeMacroClassList> getMacroClassListList();
+  @Nullable
+  HaxeMacroClassList getMacroClassList();
 
   @Nullable
   HaxeParameter getParameter();

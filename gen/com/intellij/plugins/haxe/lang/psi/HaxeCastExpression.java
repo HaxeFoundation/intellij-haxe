@@ -31,7 +31,7 @@ public interface HaxeCastExpression extends HaxeExpression, HaxeReference {
   @NotNull
   List<HaxeFunctionType> getFunctionTypeList();
 
-  @NotNull
-  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
+  @Nullable
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

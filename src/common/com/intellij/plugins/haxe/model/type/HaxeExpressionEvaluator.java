@@ -185,7 +185,7 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeCastExpression) {
       handle(((HaxeCastExpression)element).getExpression(), context);
-      HaxeTypeOrAnonymous anonymous = getFirstItem(((HaxeCastExpression)element).getTypeOrAnonymousList());
+      HaxeTypeOrAnonymous anonymous = ((HaxeCastExpression)element).getTypeOrAnonymous();
       if (anonymous != null) {
         return HaxeTypeResolver.getTypeFromTypeOrAnonymous(anonymous);
       }

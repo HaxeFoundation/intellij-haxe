@@ -320,7 +320,7 @@ public class HaxeResolveUtil {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
     }
     else if (haxeClass instanceof HaxeTypedefDeclaration) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
+      final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
       if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
         HaxeAnonymousType anonymous = typeOrAnonymous.getAnonymousType();
         if(anonymous != null) {
@@ -830,7 +830,7 @@ public class HaxeResolveUtil {
             List<HaxeClass> classes = findComponentDeclarations(pf);
             for(HaxeClass cls : classes) {
               if(cls instanceof HaxeTypedefDeclaration) {
-                HaxeTypeOrAnonymous toa = getFirstItem(((HaxeTypedefDeclaration)cls).getTypeOrAnonymousList());
+                HaxeTypeOrAnonymous toa = ((HaxeTypedefDeclaration)cls).getTypeOrAnonymous();
                 if(toa != null) {
                   HaxeType t = toa.getType();
                   if(t != null) {
