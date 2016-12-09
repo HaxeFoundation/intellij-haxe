@@ -51,7 +51,7 @@ public class HaxeAbstractUtil {
   @Nullable
   public static HaxeClass getAbstractUnderlyingClass(@Nullable PsiClass clazz) {
     if (clazz != null && clazz instanceof HaxeAbstractClassDeclaration) {
-      final HaxeType underlyingType = ((HaxeAbstractClassDeclaration)clazz).getTypeOrAnonymousList().get(0).getType();
+      final HaxeType underlyingType = ((HaxeAbstractClassDeclaration)clazz).getTypeOrAnonymous().getType();
       if (underlyingType != null) {
         final HaxeClassResolveResult result = underlyingType.getReferenceExpression().resolveHaxeClass();
         if (result != null) {

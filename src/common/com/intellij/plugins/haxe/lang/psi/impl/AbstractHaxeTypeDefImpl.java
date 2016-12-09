@@ -39,7 +39,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   public HaxeClassResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
-    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getFirstItem(getTypeOrAnonymousList());
+    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
     if (haxeTypeOrAnonymous == null) {
       // cause parse error
       return HaxeClassResolveResult.create(null);

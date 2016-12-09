@@ -100,9 +100,9 @@ public class HaxeTryStatementImpl extends HaxeStatementPsiMixinImpl implements H
   }
 
   @Override
-  @NotNull
-  public List<HaxeMacroClassList> getMacroClassListList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMacroClassList.class);
+  @Nullable
+  public HaxeMacroClassList getMacroClassList() {
+    return findChildByClass(HaxeMacroClassList.class);
   }
 
   @Override

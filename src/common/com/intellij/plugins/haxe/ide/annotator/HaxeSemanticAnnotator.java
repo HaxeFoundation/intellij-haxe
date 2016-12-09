@@ -341,7 +341,7 @@ class ClassChecker {
         return true;
       }
       if(haxeClass instanceof HaxeTypedefDeclaration) {
-        HaxeTypeOrAnonymous anonOrType = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
+        HaxeTypeOrAnonymous anonOrType = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
         if(anonOrType != null) {
           return anonOrType.getAnonymousType() != null;
         }

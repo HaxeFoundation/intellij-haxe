@@ -49,7 +49,7 @@ public interface HaxeAbstractClassDeclaration extends HaxeClass {
   @NotNull
   List<HaxeType> getTypeList();
 
-  @NotNull
-  List<HaxeTypeOrAnonymous> getTypeOrAnonymousList();
+  @Nullable
+  HaxeTypeOrAnonymous getTypeOrAnonymous();
 
 }

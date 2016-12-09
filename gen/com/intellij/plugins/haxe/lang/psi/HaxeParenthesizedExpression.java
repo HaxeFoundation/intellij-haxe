@@ -28,49 +28,49 @@ public interface HaxeParenthesizedExpression extends HaxeExpression {
   @NotNull
   List<HaxeBlockStatement> getBlockStatementList();
 
-  @NotNull
-  List<HaxeBreakStatement> getBreakStatementList();
+  @Nullable
+  HaxeBreakStatement getBreakStatement();
 
-  @NotNull
-  List<HaxeContinueStatement> getContinueStatementList();
+  @Nullable
+  HaxeContinueStatement getContinueStatement();
 
-  @NotNull
-  List<HaxeDoWhileStatement> getDoWhileStatementList();
+  @Nullable
+  HaxeDoWhileStatement getDoWhileStatement();
 
   @Nullable
   HaxeExpression getExpression();
 
-  @NotNull
-  List<HaxeForStatement> getForStatementList();
+  @Nullable
+  HaxeForStatement getForStatement();
 
-  @NotNull
-  List<HaxeIfStatement> getIfStatementList();
+  @Nullable
+  HaxeIfStatement getIfStatement();
 
-  @NotNull
-  List<HaxeLocalFunctionDeclaration> getLocalFunctionDeclarationList();
+  @Nullable
+  HaxeLocalFunctionDeclaration getLocalFunctionDeclaration();
 
-  @NotNull
-  List<HaxeLocalVarDeclaration> getLocalVarDeclarationList();
+  @Nullable
+  HaxeLocalVarDeclaration getLocalVarDeclaration();
 
   @NotNull
   List<HaxeMacroClassList> getMacroClassListList();
 
-  @NotNull
-  List<HaxeReturnStatement> getReturnStatementList();
+  @Nullable
+  HaxeReturnStatement getReturnStatement();
 
-  @NotNull
-  List<HaxeSwitchStatement> getSwitchStatementList();
+  @Nullable
+  HaxeSwitchStatement getSwitchStatement();
 
-  @NotNull
-  List<HaxeThrowStatement> getThrowStatementList();
+  @Nullable
+  HaxeThrowStatement getThrowStatement();
 
-  @NotNull
-  List<HaxeTryStatement> getTryStatementList();
+  @Nullable
+  HaxeTryStatement getTryStatement();
 
   @Nullable
   HaxeTypeCheckExpr getTypeCheckExpr();
 
-  @NotNull
-  List<HaxeWhileStatement> getWhileStatementList();
+  @Nullable
+  HaxeWhileStatement getWhileStatement();
 
 }
