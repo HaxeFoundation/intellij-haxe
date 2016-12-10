@@ -589,7 +589,7 @@ anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | inte
 private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (',' interfaceBody)?
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBody)?
 
-typeExtendsList ::= '>' type (',' '>' type)
+typeExtendsList ::= '>' type (',' '>' type)*
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 
