@@ -9,7 +9,6 @@ idea-IU
 /build_test/
 local-build-overrides.xml
 intellij-haxe*.jar
-/gen/META-INF/**
-/gen/com/intellij/plugins/haxe/build/**
+/gen/
 
 
