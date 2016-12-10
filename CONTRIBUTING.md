@@ -35,12 +35,12 @@ Install the following plugins [from Intellij IDEA plugin manager](https://www.je
 - Plugin DevKit
 - UI Designer
 - Ant Support
+- Grammar-Kit (for bnf compilation) version 1.2.0. (Later versions have not been tested.)
 
 ####Testing
 - JUnit
 
 ####Optional, install if you want to modify lexer/parser:
-- Grammar-Kit (for bnf compilation) version 1.2.0.1 or later.
 - JFlex (for lexer compilation)
 - PsiViewer (for testing grammar)
 
@@ -251,7 +251,8 @@ build that they use for their other work.  That is, casual developers shouldn't
 be using the command line at all and generally shouldn't use the ant targets
 either.  They should use the normal Build menu commands (or their shortcuts).
 
-That said, builds from within IDEA use ant as well: always for preparation of the META-INF files;
+That said, builds from within IDEA use ant as well: always for preparation of the META-INF files
+and generating the parser classes;
 sometimes for building, depending upon how you launch the build.  In all cases,
 before compilation, the "metainf" ant task runs and fills in the blanks (well... the areas 
 between @...@ signs) in plugin.xml with values appropriate to the version of IDEA 
@@ -265,7 +266,7 @@ window shows the ant task output as each dependent task is run.  If you were
 to expand all tasks, you will see that the output is identical to the command line.
 
 However, if you run from the build menu, only the plugin.xml is updated (or
-whatever "metainf" and all of it's dependent tasks do now).  After that, the
+whatever "generateTemplatedFiles" and all of it's dependent tasks do now).  After that, the
 normal IDEA make, build, or what-have-you from the Build menu runs and does
 its thing.  You will see a few ant messages scroll by, and then the normal
 IDEA output will be seen.
@@ -305,6 +306,23 @@ You can either restore the ant defaults inside of idea, (unset ANT_HOME before y
 start IDEA?)  or, the best option, add a property entry to local-build-overrides.  
 See the above discussion regarding [local-build-overrides.xml].
 
+##Debugging
+-------
+
+When debugging, a secondary instance of IDEA starts up and loads the plugin.  At that
+point, the original instance of IDEA is in debug mode and has all of the normal java
+debugging functionality.  You will find yourself swapping back and forth between the
+two instances quite a lot.  Note that it's very easy to think that IDEA has hung in 
+the second instance, when, in reality, you have hit a breakpoint in the first instance.
+
+It is also annoying that focus isn't necessarily changed correctly when swapping
+between two instances.  It is helpful to reset focus by minimizing the second 
+instance (using the mouse :/ ) and restoring it.
+
+If, while debugging, you find that you are missing source files for 
+the /gen tree, then you need to quit and do a local build to get those generated sources
+available for your tree.  (On the other hand, since the files are auto-generated, they
+likely won't be much more help than the decompiled class files.)
 
 ##Testing
 _______
@@ -330,35 +348,28 @@ and debugging sessions running tests with the native support.
 ##Updating Grammar Files
 ______________________
 
-If you change the haxe.bnf or hxml.bnf files, you must (re)generate the parsing files.
+If you change the haxe.bnf or hxml.bnf files, you no longer have to (re)generate
+the parsing files; that is now done through the 'generateTemplatedFiles' ant target,
+which is run before every build, incremental or full.  (It will only rebuild the
+files if they are out of date.)
 
-The grammar-kit plugin is used to generate the parser files.  *Versions 1.1.x 
-work well for this project.  Versions 2.x work intermittently (a bug has been filed).
-You will see a bug appear where APISs that expect discrete elements all-of-a-sudden change to
-requiring list type return values.  If you see this type of error and find yourself
+The grammar-kit plugin is used to generate the parser files.  *Version 1.2.0 
+works well for this project and creates identical code for IDEA versions 14.0 through 2016.2.
+Versions 2.x work intermittently (a bug has been filed).
+Using 1.1.x versions, we saw a bug appear where APISs that expect discrete elements all-of-a-sudden change to
+requiring list type return values, or vice versa.  If you see this type of error and find yourself
 fixing non-generated code to match the generated code, don't do it.  You will find
 yourself changing it back and forth.  The quickest workaround for the bug
 is to restart IDEA.  That usually fixes it.  Since the bug is intermittent,
 it may work one or a hundred times just to start failing.  (We've never seen it
-recover.)  But all of that can be avoided by running the older versions.*
+recover.)  That said, version 1.2.0 and later appear stable.  However, they use
+the list-based APIs, so we have converted the code to that style, however incorrect it may be.*
 
-To regenerate, make your local changes and then press Ctrl+G.  You can compile
-and test with them.  Do NOT check those files in until you have updated the
-comments.  (Otherwise, *every* file will appear updated.)
-
-*(NOTE: To work around a bug in IDEA, it is necessary to change focus to another
-application and then back to IDEA before updating the comments.  Otherwise,
-the process doesn’t do anything.)*
-
-To fix the comments:
-- Open the project window within intellij, select and 
- the right-click on the gen/ tree.  
-- Click on the ‘Update Copyright’ item.  (Should be the third from the bottom.  Sometimes you have to re-open the
- context menu.)  
-- In the ‘Update copyright scope’ dialog, select the “Directory ‘intellij-haxe...’” item and press OK.  
- In a moment, all of the copyrights will have been updated.  A code comparison (or ‘git status’) will
- then show only those files that really changed.
-
+To regenerate, make your changes to the .bnf files and build the project, either via IDEA or
+the command line.  That simple. 
+Parser files will be generated to the project's /gen tree.  Since the /gen tree is no longer
+checked into the source tree, you don't have to worry about copyrights, etc.  Just don't try
+and add them back into the git repository.
 
 ##Contributing your changes
 _________________________
@@ -448,6 +459,7 @@ can test and tag it.
     - `IDEA_VERSION=14.1.4 make`
     - `IDEA_VERSION=14.1.6 make`
     - `IDEA_VERSION=15.0.3 make`
+    - `IDEA_VERSION=2016.2.5 make`
 
 5. Smoke test *each* of the releases.  A smoke test includes loading the releases in a primary instance of IDEA and verifying 
 basic functionality:  
@@ -463,8 +475,8 @@ basic functionality:
     - Run the project
 
 5. Run the unit tests on all versions:
-    - `IDEA_VERSION=2016.2.4 make test`, etc.
-    - or `ant -Dintellij.ultimate.build=<path_to_intellij_2016.2.4> -f build-test.xml`, etc.
+    - `IDEA_VERSION=2016.2.5 make test`, etc.
+    - or `ant -Dintellij.ultimate.build=<path_to_intellij_2016.2.5> -f build-test.xml`, etc.
     
 4. Tag the commit using the agreed upon release number: `git tag -a 0.9.5 -m "Release 0.9.5"`
 
