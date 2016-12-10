@@ -21,7 +21,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeExtends;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeExtendsList;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -117,13 +117,16 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
         final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
         final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
         if (anonymousType != null) {
-          final HaxeTypeExtends typeExtends = anonymousType.getAnonymousTypeBody().getTypeExtends();
-          if (typeExtends != null) {
-            final String classNameCandidate = typeExtends.getType().getText();
-            final String key = classNameCandidate.indexOf('.') != -1 ?
-                               classNameCandidate :
-                               getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
-            put(result, key, value);
+          final HaxeTypeExtendsList typeExtendsList = anonymousType.getAnonymousTypeBody().getTypeExtendsList();
+          if (typeExtendsList != null) {
+            final List<HaxeType> typeList = typeExtendsList.getTypeList();
+            for (HaxeType haxeType : typeList) {
+              final String classNameCandidate = haxeType.getText();
+              final String key = classNameCandidate.indexOf('.') != -1 ?
+                                 classNameCandidate :
+                                 getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
+              put(result, key, value);
+            }
           }
         }
         else if (type != null) {
