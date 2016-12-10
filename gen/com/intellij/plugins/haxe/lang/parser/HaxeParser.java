@@ -415,8 +415,8 @@ public class HaxeParser implements PsiParser {
     else if (t == TYPE_CHECK_EXPR) {
       r = typeCheckExpr(b, 0);
     }
-    else if (t == TYPE_EXTENDS) {
-      r = typeExtends(b, 0);
+    else if (t == TYPE_EXTENDS_LIST) {
+      r = typeExtendsList(b, 0);
     }
     else if (t == TYPE_LIST) {
       r = typeList(b, 0);
@@ -1872,13 +1872,13 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // typeExtends (',' anonymousTypeFieldList)? (',' interfaceBody)?
+  // typeExtendsList (',' anonymousTypeFieldList)? (',' interfaceBody)?
   static boolean extendedAnonymousTypeBody(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "extendedAnonymousTypeBody")) return false;
     if (!nextTokenIs(b, OGREATER)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = typeExtends(b, l + 1);
+    r = typeExtendsList(b, l + 1);
     r = r && extendedAnonymousTypeBody_1(b, l + 1);
     r = r && extendedAnonymousTypeBody_2(b, l + 1);
     exit_section_(b, m, null, r);
@@ -5492,15 +5492,40 @@ public class HaxeParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '>' type
-  public static boolean typeExtends(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "typeExtends")) return false;
+  // '>' type (',' '>' type)*
+  public static boolean typeExtendsList(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typeExtendsList")) return false;
     if (!nextTokenIs(b, OGREATER)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OGREATER);
     r = r && type(b, l + 1);
-    exit_section_(b, m, TYPE_EXTENDS, r);
+    r = r && typeExtendsList_2(b, l + 1);
+    exit_section_(b, m, TYPE_EXTENDS_LIST, r);
+    return r;
+  }
+
+  // (',' '>' type)*
+  private static boolean typeExtendsList_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typeExtendsList_2")) return false;
+    int c = current_position_(b);
+    while (true) {
+      if (!typeExtendsList_2_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "typeExtendsList_2", c)) break;
+      c = current_position_(b);
+    }
+    return true;
+  }
+
+  // ',' '>' type
+  private static boolean typeExtendsList_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "typeExtendsList_2_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, OCOMMA);
+    r = r && consumeToken(b, OGREATER);
+    r = r && type(b, l + 1);
+    exit_section_(b, m, null, r);
     return r;
   }
 

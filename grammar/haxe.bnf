@@ -586,10 +586,10 @@ anonymousType ::= '{' anonymousTypeBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBody
-private extendedAnonymousTypeBody ::= typeExtends (',' anonymousTypeFieldList)? (',' interfaceBody)?
+private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (',' interfaceBody)?
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBody)?
 
-typeExtends ::= '>' type
+typeExtendsList ::= '>' type (',' '>' type)
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
 

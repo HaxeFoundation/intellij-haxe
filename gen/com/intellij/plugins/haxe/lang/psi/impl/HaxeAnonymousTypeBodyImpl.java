@@ -53,8 +53,8 @@ public class HaxeAnonymousTypeBodyImpl extends HaxePsiCompositeElementImpl imple
 
   @Override
   @Nullable
-  public HaxeTypeExtends getTypeExtends() {
-    return findChildByClass(HaxeTypeExtends.class);
+  public HaxeTypeExtendsList getTypeExtendsList() {
+    return findChildByClass(HaxeTypeExtendsList.class);
   }
 
 }

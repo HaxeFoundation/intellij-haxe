@@ -152,7 +152,7 @@ public interface HaxeTokenTypes {
   IElementType TYPE = new HaxeElementType("TYPE");
   IElementType TYPEDEF_DECLARATION = new HaxeElementType("TYPEDEF_DECLARATION");
   IElementType TYPE_CHECK_EXPR = new HaxeElementType("TYPE_CHECK_EXPR");
-  IElementType TYPE_EXTENDS = new HaxeElementType("TYPE_EXTENDS");
+  IElementType TYPE_EXTENDS_LIST = new HaxeElementType("TYPE_EXTENDS_LIST");
   IElementType TYPE_LIST = new HaxeElementType("TYPE_LIST");
   IElementType TYPE_LIST_PART = new HaxeElementType("TYPE_LIST_PART");
   IElementType TYPE_OR_ANONYMOUS = new HaxeElementType("TYPE_OR_ANONYMOUS");
@@ -678,8 +678,8 @@ public interface HaxeTokenTypes {
       else if (type == TYPE_CHECK_EXPR) {
         return new HaxeTypeCheckExprImpl(node);
       }
-      else if (type == TYPE_EXTENDS) {
-        return new HaxeTypeExtendsImpl(node);
+      else if (type == TYPE_EXTENDS_LIST) {
+        return new HaxeTypeExtendsListImpl(node);
       }
       else if (type == TYPE_LIST) {
         return new HaxeTypeListImpl(node);

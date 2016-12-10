@@ -535,7 +535,7 @@ public class HaxeVisitor extends PsiElementVisitor {
     visitReference(o);
   }
 
-  public void visitTypeExtends(@NotNull HaxeTypeExtends o) {
+  public void visitTypeExtendsList(@NotNull HaxeTypeExtendsList o) {
     visitPsiCompositeElement(o);
   }
 

@@ -23,15 +23,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface HaxeAnonymousTypeBody extends HaxePsiCompositeElement {
+public interface HaxeTypeExtendsList extends HaxePsiCompositeElement {
 
-  @Nullable
-  HaxeAnonymousTypeFieldList getAnonymousTypeFieldList();
-
-  @Nullable
-  HaxeInterfaceBody getInterfaceBody();
-
-  @Nullable
-  HaxeTypeExtendsList getTypeExtendsList();
+  @NotNull
+  List<HaxeType> getTypeList();
 
 }

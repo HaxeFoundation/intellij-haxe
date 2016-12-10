@@ -28,21 +28,21 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 
-public class HaxeTypeExtendsImpl extends HaxePsiCompositeElementImpl implements HaxeTypeExtends {
+public class HaxeTypeExtendsListImpl extends HaxePsiCompositeElementImpl implements HaxeTypeExtendsList {
 
-  public HaxeTypeExtendsImpl(ASTNode node) {
+  public HaxeTypeExtendsListImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeExtends(this);
+    if (visitor instanceof HaxeVisitor) ((HaxeVisitor)visitor).visitTypeExtendsList(this);
     else super.accept(visitor);
   }
 
   @Override
   @NotNull
-  public HaxeType getType() {
-    return findNotNullChildByClass(HaxeType.class);
+  public List<HaxeType> getTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeType.class);
   }
 
 }
