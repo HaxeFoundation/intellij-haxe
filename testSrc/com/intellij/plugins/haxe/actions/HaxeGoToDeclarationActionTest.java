@@ -277,6 +277,8 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     doTest(myFixture.configureByFiles("TypeDef5.hx", "com/bar/Foo.hx"), 1);
   }
 
+  public void testTypeDef6() { doTest(myFixture.configureByFiles("TypeDef6.hx"), 1); }
+
   public void testArrayAccess1() {
     doTest(myFixture.configureByFiles("ArrayAccess1.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
   }
