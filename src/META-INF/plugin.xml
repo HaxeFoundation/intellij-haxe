@@ -49,6 +49,7 @@
         <li>Alias imports support (issue #466)</li>
         <li>Imports optimization: reordering added (issue #471)</li>
         <li>Fixed typedef multiple extensions highlighting</li>
+        <li>No completion for for-loop variable (issue #511)</li>
       </ul>
       <p>0.9.10: (community release)</p>
       <ul>
