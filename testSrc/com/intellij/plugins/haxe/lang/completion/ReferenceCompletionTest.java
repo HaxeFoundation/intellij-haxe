@@ -320,4 +320,20 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     myFixture.configureByFiles("Extensions5.hx", "extensions/Stuff.hx");
     doTestVariantsInner("Extensions5.txt");
   }
+
+  public void testForLoopVariable1() throws Throwable {
+    doTest();
+  }
+
+  public void testForLoopVariable2() throws Throwable {
+    doTest();
+  }
+
+  public void testForLoopVariable3() throws Throwable {
+    doTest();
+  }
+
+  public void testForLoopVariable4() throws Throwable {
+    doTest();
+  }
 }
