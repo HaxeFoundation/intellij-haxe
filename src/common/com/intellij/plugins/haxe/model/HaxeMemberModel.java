@@ -97,6 +97,7 @@ abstract public class HaxeMemberModel {
     if (element instanceof HaxeVarDeclaration) return new HaxeFieldModel((HaxeVarDeclaration)element);
     if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);
     if (element instanceof HaxeParameter) return new HaxeParameterModel((HaxeParameter)element);
+    if (element instanceof HaxeForStatement) return null;
     final PsiElement parent = element.getParent();
     return (parent != null) ? fromPsi(parent) : null;
   }
