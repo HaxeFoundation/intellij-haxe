@@ -1,4 +1,4 @@
-class ForLoopVariable1 {
+class ForLoopVariable2 {
   public static function main() {
     var items = [1, 2, 3, 4, 5];
     for (item in items) {
