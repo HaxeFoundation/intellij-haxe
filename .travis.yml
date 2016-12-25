@@ -19,5 +19,7 @@ env:
     - IDEA_VERSION=2016.1.4 ANT_TARGET=compile_test
     - IDEA_VERSION=2016.2.5 ANT_TARGET=test
     - IDEA_VERSION=2016.3 ANT_TARGET=test
+    - IDEA_VERSION=2016.3.1 ANT_TARGET=test
+    - IDEA_VERSION=2016.3.2 ANT_TARGET=test
 notifications:
   email: false
