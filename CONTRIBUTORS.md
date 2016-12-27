@@ -11,10 +11,11 @@ Recent contributors
  - Ilya Kuzmichev <deadbabe@gmail.com>
  - Ilya Kuzmichev <IlyaK@playtika.by>
  - Ilya Kuzmichev <ilyak@playtika.com>
- - isBatak <ivicabatinic123@gmail.com>
+ - slavara <ratdg@ya.ru>
  - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
  - Usievaład Čorny <anibyl@riseup.net>
  - Usievaład Kimajeŭ <usievalad@gmail.com>
+ - winmain <d.winmain@gmail.com>
 
 All contributors
 -----------------------------------
@@ -69,6 +70,7 @@ All contributors
 - Roman Shevchenko <roman.shevchenko@jetbrains.com>
 - Rustam Vishnyakov <rustam.vishnyakov@jetbrains.com>
 - sganapavarapu1 <ganapavarapu@tivo.com>
+- slavara <ratdg@ya.ru>
 - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
 - Tim Hepner <tim@hepners.net>
 - Todd Brannam <tbrannam@casualpenguin.com>
@@ -78,5 +80,6 @@ All contributors
 - vaukalak <lahmataja.pa4vara@gmia>
 - vladimir.krivosheev <vladimir.krivosheev@jetbrains.com>
 - Vladimir Krivosheev <vladimir.krivosheev@jetbrains.com>
+- winmain <d.winmain@gmail.com>
 - Yannick Dominguez <yannick.dominguez@gmail.com>
 - yannick <yannnick.dominguez@gmail.com>
