@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,7 +88,7 @@ public class HaxePresentableUtil {
                                      @Nullable HaxeTypeListPart typeTag,
                                      HaxeGenericSpecialization specializations) {
     final List<HaxeTypeOrAnonymous> haxeTypeOrAnonymousList = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
-    final HaxeTypeOrAnonymous typeOrAnonymous = haxeTypeOrAnonymousList.get(0);
+    final HaxeTypeOrAnonymous typeOrAnonymous = ContainerUtil.getFirstItem(haxeTypeOrAnonymousList);
     if (typeOrAnonymous == null) {
       return "";
     }
