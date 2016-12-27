@@ -8,6 +8,17 @@
 
   <p>0.10.1: (community release)</p>
   <ul>
+    <li>Use Java's file library for detecting symlinks instead of IDEA's.</li>
+    <li>Formatting: Prevent excess linefeed between doctyp and function.</li>
+    <li>Fix completion for for loop variables. (issue #511)</li>
+    <li>Support for IDEA up through 2016.3.</li>
+    <li>Updated parsing for hxcpp 3.3 compiler error output.</li>
+    <li>Add support for type check syntax (expr : type).  (issue #510)</li>
+    <li>Fixed cursor not indented in class body after var or function declaration. (issue #492, case 1)</li>
+    <li>Highlight "in" and "as" as keywords when they appear in import statements.</li>
+    <li>Highlight "in" as a keyword when it appears in a for statement. (issue #501)</li>
+    <li>Add support for string literals as the keys in structures. (issue #498)</li>
+    <li>Support @:native annotation for functions and variables. (issue #490)</li>
     <li>Stop using the classpath to auto-add external libraries to projects. (issues #477 #100)</li>
     <li>Fix re-ordering imports in certain situations. (issue #494)</li>
     <li>Fix 'never' setter. (issue #486)</li>
@@ -15,10 +26,10 @@
     <li>Fixed creating classes in TEST source roots</li>
     <li>Fixed debug Flash on Haxe-compiler target</li>
     <li>Fixed crash on MACRO_CLASS_LIST assert</li>
-    <li>IDEA 2016 support</li>
     <li>@:deprecated support (issue #459, #473)</li>
     <li>Alias imports support (issue #466)</li>
     <li>Imports optimization: reordering added (issue #471)</li>
+    <li>Fixed typedef multiple extensions highlighting</li>
   </ul>
   <p>0.9.10: (community release)</p>
   <ul>
