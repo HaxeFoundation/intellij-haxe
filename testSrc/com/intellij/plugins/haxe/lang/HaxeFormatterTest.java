@@ -238,4 +238,8 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = true;
     doTest();
   }
+
+  public void testLineFeedsWithComments() throws Exception {
+    doTest();
+  }
 }

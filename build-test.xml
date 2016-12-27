@@ -39,6 +39,7 @@
 
     <target name="clean" description="Clean Up: Remove test artifacts (build_test directory).">
         <delete dir="build_test" />
+        <delete dir="${gen.basedir}"/>
     </target>
 
     <target name="init" depends="showIdeaBuild">
@@ -46,7 +47,7 @@
         <mkdir dir="build_test"/>
     </target>
 
-    <target name="compile_test" depends="clean,init,generateTemplatedFiles" description="Compile tests">
+    <target name="compile_test" depends="clean,init,generateTemplatedFiles,generateParsers" description="Compile tests">
 
         <!-- javac2 is an intellij ant task to wrap the java compiler and add
              support to .form files and @NotNull annotations, among others -->

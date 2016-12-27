@@ -69,7 +69,7 @@ Haxe File
                   ANONYMOUS_TYPE
                     PsiJavaToken:{('{')
                     ANONYMOUS_TYPE_BODY
-                      TYPE_EXTENDS
+                      TYPE_EXTENDS_LIST
                         PsiJavaToken:>('>')
                         TYPE
                           REFERENCE_EXPRESSION

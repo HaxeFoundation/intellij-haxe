@@ -10,6 +10,7 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 ./fetchIdea.sh "$1"
+./fetchGrammarKit.sh
 
 # Run the tests
 ant -f build-test.xml -Dversion="$1" $2
