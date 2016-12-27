@@ -41,6 +41,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VFileProperty;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
@@ -826,8 +827,20 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
         // Now, work around the fact that IDEA treats symlinks as separate files.
         // XXX: This should be controlled via an UI option.
-        if (null != file && file.is(VFileProperty.SYMLINK)) {
-          file = file.getCanonicalFile();
+        if (null != file) { // && file.is(VFileProperty.SYMLINK)) {
+          // file.getnCanonicalFile() only works if the file is a symlink.  It ignores symlinks
+          // in the path.
+          // file = file.getCanonicalFile();
+          java.io.File f = new java.io.File(file.getPath());
+          java.io.File absolute = null == f ? null : f.getAbsoluteFile();
+          if ( null != absolute ) {
+            // Of course, IDEA's notion of a URI requires "://" after the protocol separator
+            // (as opposed to Java's ":").  So we can't just use the Java URI.
+            VirtualFileManager vfm = VirtualFileManager.getInstance();
+            String canonicalUri = absolute.toURI().toString();
+            String ideaUri = vfm.constructUrl(absolute.toURI().getScheme(), absolute.getPath());
+            file = VirtualFileManager.getInstance().findFileByUrl(ideaUri);
+          }
         }
 
         mSourcePosition =
