@@ -4,6 +4,11 @@ Haxe plugin for Intellij IDEA
 This plugin allows you to develop [Haxe](http://haxe.org/) programs with Intellij IDEA.
 It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, IDEA 2016.1 through 2016.3.
 
+#### We have moved!
+The primary maintained branch of this plugin has moved to the HaxeFoundation.  Please update your 
+links and git clones to point to [http://github.com/HaxeFoundation/intellij-haxe](http://github.com/HaxeFoundation/intellij-haxe)
+
+
 Install
 -------
 
@@ -31,7 +36,7 @@ If you already have a project open in IDEA:
 
 ###To manually install the latest or a previous Github release
 
-Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/TiVo/intellij-haxe/releases).
+Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/HaxeFoundation/intellij-haxe/releases).
 More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-14.1.1.jar`)
 Make sure that you pick the proper one for your release.  A message should pop up and warn you if a release is incompatible.
 
