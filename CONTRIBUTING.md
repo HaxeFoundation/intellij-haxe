@@ -1,8 +1,9 @@
 Contributing
 ============
 
-*NOTE: TiVo and the Haxe Foundation are moving our development focus to IDEA version 14 and later.
-Support for version 13.1 been removed as of release 0.9.8.*
+NOTE: The development team is currently supporting IDEA versions 14 and later.
+Support for version 13.1 been removed as of release 0.9.8.* &nbsp; Support for versions 14
+will likely be dropped sometime during the year 2017.
 
 ##Reporting errors  
 ------------------
@@ -18,7 +19,7 @@ can reproduce the issue.
     - OS and OS version
     - JDK version
 
-- Check if the bug already exists at the [TiVo repository](https://github.com/tivo/intellij-haxe/issues).
+- Check if the bug already exists at the [HaxeFoundation repository](https://github.com/HaxeFoundation/intellij-haxe/issues).
  If it does, add your example to the discussion.
 
 ##Development Environment
@@ -384,12 +385,12 @@ Goals:
 
 ####Where we are working:
 
-- Future work will take place on the tivo/intellij-haxe/master branch (really, using short-lived 
+- Future work will take place on the HaxeFoundation/intellij-haxe/master branch (really, using short-lived 
 local branches off of that).
 
 ####Where we will release:
 
-- Releases will (usually, simultaneously) occur on the tivo/intellij-haxe repo, 
+- Releases will (usually, simultaneously) occur on the HaxeFoundation/intellij-haxe repo, 
 jetbrains/intellij-haxe repo, and the IDEA plugin repository.  Releases will be made 
 through the github release mechanism.  Binary output (e.g. intellij-haxe.jar) is no longer
 kept in the source tree in the repository.
@@ -400,35 +401,32 @@ kept in the source tree in the repository.
 release notes, commit, tag the build, and create a pull request to JetBrains.  Updating
 the release notes primarily means adding release notes to src/META-INF/plugin.xml, and
 echoing them to CHANGELOG.md.
-- A github "release" will be created on the tivo/intellij-haxe repository.  Binary (.jar) files 
+- A github "release" will be created on the HaxeFoundation/intellij-haxe repository.  Binary (.jar) files 
 for all currently built Idea target versions of the plugin will be added to the release.
 - The released plugin (.jar files)  will be uploaded to the JetBrains IntelliJ IDEA plugin 
 repository.
 
 ####Release environments:
 
-- TiVo releases will be built and tested for the following environments:  
-   OS: Linux(Ubuntu14.04 and Centos6.5), OSX  
-   JVM: Sun Java 1.6  
-   IDEA versions: 14, 14.1, 14.1.6, and 15 (release versions  EAP will not be tracked).
-- JetBrains releases will be built and smoke tested for the following environments:  
+- Haxe Foundation releases will be built and smoke tested for the following environments:  
    OS: Linux(Ubuntu14.04), OSX, Windows  
    JVM: Sun Java 1.6 target, using Sun Java 1.8 compilers (because the Java 1.6 and 1.7 
    maintenance windows have closed)  
    IDEA versions: 14, 14.1, 14.1.7, 15, 2016.2 (latest release versions for each code line)
+- JetBrains releases will be copies of the Haxe Foundation releases.  
 
 ####Who will test:
 
-- TiVo and Haxe Foundation members will test the TiVo release environment.
-- Interested Community members will test the JetBrains release environments.  TiVo 
-  and Haxe Foundation members will ensure that the product can be loaded into the various 
-  environments prior to release.
+- Interested Community members will test the HaxeFoundation release environments.  
+  Community members will ensure that the product can be loaded into the various 
+  environments prior to release.  Lack of interest from the community may delay releases.
 
 ####Unit tests:
 
 - Unit tests will be run and must pass with every commit.  We are using Travis-ci to 
   automate this process.  No merge will be considered or approved unless it passes 
-  unit tests cleanly.
+  unit tests cleanly.  (Note: There are no automated Windows continuous integration builds.  We
+  would like to add this functionality.  Any volunteers?)
 
 ####Release Timing
 
@@ -483,7 +481,7 @@ basic functionality:
 5. Push the release back up to master: `git push origin master; git push --tags origin master`
 
 6. Create a release on github, using the tag you just created:
-    - [https://github.com/tivo/intellij-haxe/releases](https://github.com/tivo/intellij-haxe/releases)
+    - [https://github.com/HaxeFoundation/intellij-haxe/releases](https://github.com/HaxeFoundation/intellij-haxe/releases)
     - Sign in and draft a new release, using the tag you just added. 
     - Upload all of the release jars to the release.
     - Add the change notes for the most recent changes (between this release and the last).
@@ -510,19 +508,19 @@ Here’s how:
 4. Update src/META-INF/plugin.xml with the change description in the top (Usually "Unreleased changes"
 section).
 5. When your work is complete, merge current sources from master up to your branch, re-test locally,
-then push your branch to TiVo/intellij-haxe.  Travis-ci will automatically start a build and test cycle
+then push your branch to HaxeFoundation/intellij-haxe.  Travis-ci will automatically start a build and test cycle
 applying your changes against the master branch.
 6. Create a pull request, and wait for comments.
 7. If you get comments that require changes, address those and return to step 2.
 8. When you get an “OK to merge,” or "approved," message from anyone on the team: Boyan, @as3boyan;
-Eric, @EBatTiVo; Srikanth, @sganapavarapu, (others as they become regular contributors,) go ahead
+Eric, @EBatTiVo; Ilya, @EliasKu (others as they become regular contributors,) go ahead
 and merge your changes to master.  A clean merge requires no further testing,
 as Travis-ci will do it for you.  However any build break must be addressed immediately.  A build 
 that has conflicts requires manual resolution and must be re-tested locally prior to push.  For regular
 team members, the original requester will be the person to merge since they are best suited to address
 conflicts.  Merges from occasional contributors will be merged by a team member as time and
 resource becomes available.
-9. Check the Travis-ci output (https://travis-ci.org/TiVo/intellij-haxe/builds) to ensure that
+9. Check the Travis-ci output (https://travis-ci.org/HaxeFoundation/intellij-haxe/builds) to ensure that
 everything built correctly. 
 
 
