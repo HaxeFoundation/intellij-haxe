@@ -23,6 +23,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeStyle.CodeStyleFacade;
 import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
@@ -49,6 +50,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.LineSeparator;
 import com.intellij.util.ProcessingContext;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.io.LocalFileFinder;
 
@@ -61,6 +63,11 @@ import java.util.List;
  * Created by as3boyan on 25.11.14.
  */
 public class HaxeCompilerCompletionContributor extends CompletionContributor {
+  static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor");
+  static {
+    LOG.setLevel(Level.DEBUG);
+  }
+
   static HashMap<String, List<String>> openFLDisplayArguments = new HashMap<String, List<String>>();
 
   // Because FileDocumentManager.getLineSeparator() can assert and force the failure
@@ -328,5 +335,14 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
       }
     }
     return new HaxeCompilerCompletionItem(parameters, retType);
+  }
+
+  public static void clearOpenFLDisplayArguments(Module module, String targetFlag) {
+    String key = module.getModuleFilePath() + targetFlag;
+    if (openFLDisplayArguments.containsKey(key)) {
+      openFLDisplayArguments.remove(key);
+      LOG.debug("Open FL Display Arguments were cleared");
+    }
+    LOG.debug("Open FL Display Arguments for key {0} not found", key);
   }
 }
