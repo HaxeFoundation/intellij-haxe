@@ -28,6 +28,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,6 +40,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiElement;
@@ -54,14 +56,66 @@ import org.jetbrains.io.LocalFileFinder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by as3boyan on 25.11.14.
  */
 public class HaxeCompilerCompletionContributor extends CompletionContributor {
-  static HashMap<String, List<String>> openFLDisplayArguments = new HashMap<String, List<String>>();
+
+  // Cache to keep the openFL display args (read from the project.xml).  We only keep a single
+  // file so that we don't get into cache coherency issues.  The worst we will get is if somebody
+  // edits the project file outside of IDEA between edits of a file inside of IDEA.
+  static final List<String> EMPTY_LIST = new ArrayList<String>(0);
+  private static class cache {
+    private class cacheEntry {
+
+      public String myFilename; // module file name.
+      public String myTarget;
+      public List<String> myArguments;
+      // Could cache file date/time here...
+
+      public cacheEntry(Module module, String target, List<String> args) {
+        init(module, target, args);
+      }
+
+      public void init(Module module, String target, List<String> args) {
+        String fname = module.getModuleFilePath();
+        myFilename = null != module ? fname : "";
+        myTarget = null != target ? target : "";
+        myArguments = null != args ? args : EMPTY_LIST;
+      }
+    }
+
+    private cacheEntry myCacheEntry = null;
+
+    public cache() {}
+
+    public void put(Module module, String target, List<String> args) {
+      // Put always kicks out the previous value, so just re-use the object.
+      if (null == myCacheEntry) {
+        myCacheEntry = new cacheEntry(module, target, args);
+      } else {
+        myCacheEntry.init(module, target, args);
+      }
+    }
+
+    public List<String> get(Module module, String target) {
+      String moduleFile = null != module ? module.getModuleFilePath() : "";
+      if (null != myCacheEntry
+      &&  myCacheEntry.myFilename.equals(moduleFile)
+      &&  myCacheEntry.myTarget.equals(target)) {
+        return myCacheEntry.myArguments;
+      }
+      return null;
+    }
+
+  }
+  static cache openFLDisplayArguments = new cache();
+  static final Pattern EMPTY_LINE_REGEX = Pattern.compile( "^\\s+$" );
+
 
   // Because FileDocumentManager.getLineSeparator() can assert and force the failure
   // of completion, we make sure that there is *always* a line separator available
@@ -149,8 +203,10 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                      case HaxeModuleSettingsBaseImpl.USE_OPENFL:
                        String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
 
-                       List<String> stdout = openFLDisplayArguments.get(moduleForFile.getModuleFilePath() + targetFlag);
-                       if (stdout == null) {
+                       // Load the project defines, etc, from the project.xml file.  Cache them.
+                       List<String> compilerArgsFromProjectFile = openFLDisplayArguments.get(moduleForFile, targetFlag);
+                       if (compilerArgsFromProjectFile == null) {
+
                          commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(moduleForFile));
                          commandLineArguments.add("run");
                          commandLineArguments.add("lime");
@@ -159,18 +215,27 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
                          commandLineArguments.add(targetFlag);
 
-                         stdout = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
+                         List<String> stdout = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
                                                                        BuildProperties.getProjectBaseDir(project),
                                                                        HaxeSdkUtilBase.getSdkData(moduleForFile));
 
-                         openFLDisplayArguments.put(moduleForFile.getModuleFilePath() + targetFlag, stdout);
+                         // Need to filter out empty/blank lines.  They cause an empty argument to
+                         // haxelib, which errors out and breaks completion.
+                         compilerArgsFromProjectFile = new ArrayList<String>(stdout.size());
+                         for (String l : stdout) {
+                           if ( ! (l.isEmpty() || EMPTY_LINE_REGEX.matcher(l).matches())) {
+                             compilerArgsFromProjectFile.add(l);
+                           }
+                         }
+
+                         openFLDisplayArguments.put(moduleForFile, targetFlag, compilerArgsFromProjectFile);
                        }
 
                        commandLineArguments.clear();
 
                        commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
 
-                       formatAndAddCompilerArguments(commandLineArguments, stdout);
+                       formatAndAddCompilerArguments(commandLineArguments, compilerArgsFromProjectFile);
 
                        commandLineArguments.add("--display");
                        commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
@@ -179,8 +244,12 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                          HaxelibCommandUtils.getProcessStderr(commandLineArguments,
                                                               BuildProperties.getProjectBaseDir(project),
                                                               HaxeSdkUtilBase.getSdkData(moduleForFile));
-
-                       getCompletionFromXml(result, project, stderr);
+                       try {
+                         getCompletionFromXml(result, project, stderr);
+                       } catch (ProcessCanceledException e) {
+                         HaxeDebugLogger.getInstance(this.getClass()).debug("Haxe compiler completion canceled.", e);
+                         throw e;
+                       }
                        break;
                      case HaxeModuleSettingsBaseImpl.USE_PROPERTIES:
                        String arguments = moduleSettings.getArguments();
