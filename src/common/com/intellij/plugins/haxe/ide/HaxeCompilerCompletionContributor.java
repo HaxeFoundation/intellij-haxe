@@ -401,9 +401,17 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
       parameters = new ArrayList<String>();
 
       for (int j = 0; j < startPositions.size(); j++) {
-        String param = type.substring(startPositions.get(j), endPositions.get(j));
+        String param = type.substring(startPositions.get(j), endPositions.get(j)).trim();
         if (j < startPositions.size() - 1)
         {
+          int pos = param.indexOf(" : ", 0);
+          if (pos > -1) {
+            StringBuilder unspaced = new StringBuilder();
+            unspaced.append(param.substring(0, pos));
+            unspaced.append(":");
+            unspaced.append(param.substring(pos+3));
+            param = unspaced.toString();
+          }
           parameters.add(param);
         }
         else
