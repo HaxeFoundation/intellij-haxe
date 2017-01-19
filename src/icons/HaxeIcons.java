@@ -30,10 +30,13 @@ public class HaxeIcons {
     return IconLoader.getIcon(path, HaxeIcons.class);
   }
 
-  public static final Icon C_Haxe = load("/icons/C_haXe.png"); // 16x16
-  public static final Icon E_Haxe = load("/icons/E_haXe.png"); // 16x16
-  public static final Icon Haxe_16 = load("/icons/haXe_16.png"); // 16x16
-  public static final Icon Haxe_24 = load("/icons/haXe_24.png"); // 24x24
-  public static final Icon I_Haxe = load("/icons/I_haXe.png"); // 16x16
+  public static final Icon C_Haxe = load("/icons/C_Logo.png"); // 16x16
+  public static final Icon E_Haxe = load("/icons/E_Logo.png"); // 16x16
+  public static final Icon Haxe_16 = load("/icons/HaxeLogo_16.png"); // 16x16
+  public static final Icon Haxe_24 = load("/icons/HaxeLogo_24.png"); // 24x24
+  public static final Icon I_Haxe = load("/icons/I_Logo.png"); // 16x16
   public static final Icon Nmml_16 = load("/icons/nmml_16.png"); // 16x16
+
+  public static final Icon Method_Haxe = load("/icons/method-logo.png"); //16x16
+  public static final Icon Field_Haxe = load("/icons/field-logo.png"); //16x16
 }
