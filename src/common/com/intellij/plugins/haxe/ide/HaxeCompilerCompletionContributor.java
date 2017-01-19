@@ -51,6 +51,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.LineSeparator;
 import com.intellij.util.ProcessingContext;
+import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.io.LocalFileFinder;
 
@@ -64,6 +65,13 @@ import java.util.regex.Pattern;
  * Created by as3boyan on 25.11.14.
  */
 public class HaxeCompilerCompletionContributor extends CompletionContributor {
+
+  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeCompilerCompletionContributor");
+
+  // Take this out when finished debugging.
+  static {
+    LOG.setLevel(org.apache.log4j.Level.DEBUG);
+  }
 
   // Cache to keep the openFL display args (read from the project.xml).  We only keep a single
   // file so that we don't get into cache coherency issues.  The worst we will get is if somebody
@@ -237,7 +245,11 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
                        formatAndAddCompilerArguments(commandLineArguments, compilerArgsFromProjectFile);
 
+                       // Tell the compiler we want field completion, adding the type (var or method)
+                       commandLineArguments.add("-D");
+                       commandLineArguments.add("display-details");
                        commandLineArguments.add("--display");
+
                        commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
                        List<String> stderr =
@@ -247,7 +259,8 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        try {
                          getCompletionFromXml(result, project, stderr);
                        } catch (ProcessCanceledException e) {
-                         HaxeDebugLogger.getInstance(this.getClass()).debug("Haxe compiler completion canceled.", e);
+                         LOG.debug("Haxe compiler completion canceled.", e);
+                         result.addLookupAdvertisement("Haxe compiler completion canceled.");
                          throw e;
                        }
                        break;
@@ -297,10 +310,15 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
           XmlTag[] xmlTags = rootTag.findSubTags("i");
           for (XmlTag xmlTag : xmlTags) {
             String n = xmlTag.getAttribute("n").getValue();
+            String k = xmlTag.getAttribute("k").getValue();
             XmlTag t = xmlTag.findFirstSubTag("t");
             XmlTag d = xmlTag.findFirstSubTag("d");
 
             LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(n);
+            if (k != null) {
+              lookupElementBuilder = lookupElementBuilder.withIcon(
+                k.equals("var") ? HaxeIcons.Field_Haxe : HaxeIcons.Method_Haxe);
+            }
 
             String formattedType = "";
             String formattedDescription = "";
@@ -331,6 +349,8 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
           }
         }
       }
+    } else {
+      result.addLookupAdvertisement("Compiler completion error: " + stderr.get(0));
     }
   }
 
