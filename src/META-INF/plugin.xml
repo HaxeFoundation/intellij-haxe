@@ -37,6 +37,10 @@
       <p>Documentation: http://github.com/HaxeFoundation/intellij-haxe/README.md.</p>
       <p>Support: http://github.com/HaxeFoundation/intellij-haxe/issues.</p>
       <p/>
+      <p>Unreleased:</p>
+      <ul>
+        <li>Reworked code completion using the compiler.</li>
+      </ul>
       <p>0.10.1.1: (community release)</p)
       <ul>
         <li>Update compatibility for 2016.3.2</li>
@@ -690,11 +694,14 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeMetaTagsCompletionContributor"/>
-    <completion.contributor language="Haxe" order="LAST" implementationClass="com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLDefineCompletionContributor"/>
     <completion.contributor language="XML" implementationClass="com.intellij.plugins.haxe.ide.XmlHaxelibCompletionContributor"/>
+    <!-- Keep the compiler contributor last because it is slow compared to the internal stuff.
+         Don't use order="LAST" because that puts it after the default contributor, which puts up the "No Suggestions"
+         box, and we want compiler error messages to be displayed instead. -->
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 
