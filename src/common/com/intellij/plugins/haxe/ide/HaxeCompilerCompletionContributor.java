@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerProjectCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -87,55 +88,8 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
   String myErrorMessage = null;
   Project myProject;
 
-  // Cache to keep the openFL display args (read from the project.xml).  We only keep a single
-  // file so that we don't get into cache coherency issues.  The worst we will get is if somebody
-  // edits the project file outside of IDEA between edits of a file inside of IDEA.
-  static final List<String> EMPTY_LIST = new ArrayList<String>(0);
-  private static class cache {
-    private class cacheEntry {
-
-      public String myFilename; // module file name.
-      public String myTarget;
-      public List<String> myArguments;
-      // Could cache file date/time here...
-
-      public cacheEntry(Module module, String target, List<String> args) {
-        init(module, target, args);
-      }
-
-      public void init(Module module, String target, List<String> args) {
-        String fname = module.getModuleFilePath();
-        myFilename = null != module ? fname : "";
-        myTarget = null != target ? target : "";
-        myArguments = null != args ? args : EMPTY_LIST;
-      }
-    }
-
-    private cacheEntry myCacheEntry = null;
-
-    public cache() {}
-
-    public void put(Module module, String target, List<String> args) {
-      // Put always kicks out the previous value, so just re-use the object.
-      if (null == myCacheEntry) {
-        myCacheEntry = new cacheEntry(module, target, args);
-      } else {
-        myCacheEntry.init(module, target, args);
-      }
-    }
-
-    public List<String> get(Module module, String target) {
-      String moduleFile = null != module ? module.getModuleFilePath() : "";
-      if (null != myCacheEntry
-      &&  myCacheEntry.myFilename.equals(moduleFile)
-      &&  myCacheEntry.myTarget.equals(target)) {
-        return myCacheEntry.myArguments;
-      }
-      return null;
-    }
-
-  }
-  static cache openFLDisplayArguments = new cache();
+  // Cache to keep the openFL display args (read from the project.xml).
+  static HaxeCompilerProjectCache openFLDisplayArguments = new HaxeCompilerProjectCache();
   static final Pattern EMPTY_LINE_REGEX = Pattern.compile( "^\\s+$" );
 
 
@@ -197,7 +151,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
                        String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
                        // Load the project defines, etc, from the project.xml file.  Cache them.
-                       List<String> compilerArgsFromProjectFile = null; //openFLDisplayArguments.get(moduleForFile, targetFlag);
+                       List<String> compilerArgsFromProjectFile = openFLDisplayArguments.get(moduleForFile, projectFile.getUrl(), targetFlag);
                        if (compilerArgsFromProjectFile == null) {
                          ArrayList<String> limeArguments = new ArrayList<String>();
 
@@ -220,7 +174,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                          // Need to filter out empty/blank lines.  They cause an empty argument to
                          // haxelib, which errors out and breaks completion.
                          compilerArgsFromProjectFile = filterEmptyLines(stdout);
-                         openFLDisplayArguments.put(moduleForFile, targetFlag, compilerArgsFromProjectFile);
+                         openFLDisplayArguments.put(moduleForFile, projectFile.getUrl(), targetFlag, compilerArgsFromProjectFile);
                        }
 
                        commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
