@@ -33,12 +33,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerProjectCache;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -63,7 +63,6 @@ import com.intellij.util.text.StringTokenizer;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -72,6 +71,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static com.intellij.plugins.haxe.compilation.HaxeCompilerUtil.verifyProjectFile;
 
 /**
  * Created by as3boyan on 25.11.14.
@@ -94,6 +95,15 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
 
   public HaxeCompilerCompletionContributor() {
+
+    final HaxeCompilerUtil.ErrorNotifier errorNotifier = new HaxeCompilerUtil.ErrorNotifier() {
+      @Override
+      public void notifyError(String message) {
+        advertiseError(message);
+        // No super call.
+      }
+    };
+
     //Trigger completion only on HaxeReferenceExpressions
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.ID)
              .withParent(HaxeIdentifier.class)
@@ -125,7 +135,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                    VirtualFile projectFile = null;
                    switch (buildConfig) {
                      case HaxeModuleSettings.USE_HXML:
-                       projectFile = verifyProjectFile(moduleForFile, "HXML", moduleSettings.getHxmlPath());
+                       projectFile = verifyProjectFile(moduleForFile, "HXML", moduleSettings.getHxmlPath(), errorNotifier);
                        if (null == projectFile) {
                          break;
                        }
@@ -136,7 +146,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        collectCompletionsFromCompiler(parameters, result, commandLineArguments, timeLog);
                        break;
                      case HaxeModuleSettings.USE_NMML:
-                       projectFile = verifyProjectFile(moduleForFile, "NMML", moduleSettings.getNmmlPath());
+                       projectFile = verifyProjectFile(moduleForFile, "NMML", moduleSettings.getNmmlPath(), errorNotifier);
                        if (null == projectFile) {
                          break;
                        }
@@ -144,7 +154,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                        collectCompletionsFromNME(parameters, result, commandLineArguments, timeLog);
                        break;
                      case HaxeModuleSettingsBaseImpl.USE_OPENFL:
-                       projectFile = verifyProjectFile(moduleForFile, "OpenFL", moduleSettings.getOpenFLPath());
+                       projectFile = verifyProjectFile(moduleForFile, "OpenFL", moduleSettings.getOpenFLPath(), errorNotifier);
                        if (null == projectFile) {
                          break;
                        }
@@ -230,52 +240,6 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     StatusBarUtil.setStatusBarInfo(myProject, message);
   }
 
-  /**
-   * Verify that the Haxe project file (.xml, .nmml, etc.; NOT an IDEA project file)
-   * specified in the build settings is available.  Put up an error message if it's not.
-   */
-  private VirtualFile verifyProjectFile(@NotNull Module module, @NotNull String type, @NotNull String path) {
-    if (path.isEmpty()) {
-      advertiseError("Completion error: No " + type + " project type is specified in project settings.");  // TODO: Externalize string.
-      return null;
-    }
-
-    // Look up the project file.
-    // XXX Might want to use CoreLocalFileSystem instead?
-    VirtualFile file = LocalFileFinder.findFile(path);
-
-    // If we didn't find it, check the module content roots for it.
-    if (null == file) {
-      ModuleRootManager mgr = ModuleRootManager.getInstance(module);
-      for (VirtualFile contentRoot : mgr.getContentRoots()) {
-        file = contentRoot.findFileByRelativePath(path);
-        if (null != file) {
-          break;
-        }
-      }
-    }
-
-    // If that didn't work, then try the directory the module file (.iml) is in.
-    if (null == file) {
-      VirtualFile moduleFile = module.getModuleFile();
-      VirtualFile moduleDir = null != moduleFile ? moduleFile.getParent() : null;
-      file = null != moduleDir ? moduleDir.findFileByRelativePath(path) : null;
-    }
-
-
-    // Still no luck? Try the project root (actually, the directory where the .prj file is).
-    if (null == file) {
-      VirtualFile projectDirectory = myProject.getBaseDir();
-      file = projectDirectory != null ? projectDirectory.findFileByRelativePath(path) : null;
-    }
-
-    if (null == file) {
-      String message = "Completion error: " + type + " project file does not exist: " + path;  // TODO: Externalize string.
-      advertiseError(message);
-    }
-    return file;
-
-  }
 
   private void formatAndAddCompilerArguments(ArrayList<String> commandLineArguments, List<String> stdout) {
     for (int i = 0; i < stdout.size(); i++) {
