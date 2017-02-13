@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2013 Eric Bishton
+ * Copyright 20157 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,13 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created by ebishton on 2/11/17.
@@ -37,6 +34,8 @@ import java.util.regex.Pattern;
  * to the cache are acted upon.
  */
 public class HaxeCompilerProjectCache {
+
+  // TODO: Invalidate the cache if the project settings changes.
 
   static final List<String> EMPTY_LIST = new ArrayList<String>(0);
 
