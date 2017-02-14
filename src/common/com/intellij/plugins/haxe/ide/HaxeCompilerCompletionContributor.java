@@ -18,61 +18,29 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.google.common.base.Joiner;
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.compiler.ant.BuildProperties;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
-import com.intellij.plugins.haxe.compilation.HaxeCompilerProjectCache;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerServices;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
-import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
-import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
-import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
-import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
-import com.intellij.plugins.haxe.util.HaxeHelpUtil;
-import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlDocument;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.LineSeparator;
 import com.intellij.util.ProcessingContext;
-import com.intellij.util.text.StringTokenizer;
-import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
-
-import static com.intellij.plugins.haxe.compilation.HaxeCompilerUtil.verifyProjectFile;
 
 /**
  * Created by as3boyan on 25.11.14.
@@ -86,23 +54,19 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     LOG.setLevel(org.apache.log4j.Level.DEBUG);
   }
 
-  String myErrorMessage = null;
-  Project myProject;
-
-  // Cache to keep the openFL display args (read from the project.xml).
-  static HaxeCompilerProjectCache openFLDisplayArguments = new HaxeCompilerProjectCache();
-  static final Pattern EMPTY_LINE_REGEX = Pattern.compile( "^\\s+$" );
+  private String myErrorMessage = null;
+  private Project myProject;
 
 
   public HaxeCompilerCompletionContributor() {
 
-    final HaxeCompilerUtil.ErrorNotifier errorNotifier = new HaxeCompilerUtil.ErrorNotifier() {
+    final HaxeCompilerServices compilerServices = new HaxeCompilerServices(new HaxeCompilerUtil.ErrorNotifier() {
       @Override
       public void notifyError(String message) {
         advertiseError(message);
         // No super call.
       }
-    };
+    });
 
     //Trigger completion only on HaxeReferenceExpressions
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.ID)
@@ -114,96 +78,21 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-               HaxeDebugTimeLog timeLog = HaxeDebugTimeLog.startNew("HaxeCompilerCompletionContributor",
-                                                                    HaxeDebugTimeLog.Since.StartAndPrevious);
+               PsiFile    file    = parameters.getOriginalFile();
+               PsiElement element = parameters.getPosition();
+               Editor     editor  = parameters.getEditor();
+               myProject          = file.getProject();
 
-               try {
-                 myErrorMessage = null;
-                 PsiFile file = parameters.getOriginalFile();
-                 myProject = file.getProject();
-                 Module moduleForFile = ModuleUtil.findModuleForFile(file.getVirtualFile(), myProject);
-
-                 ArrayList<String> commandLineArguments = new ArrayList<String>();
-
-
-                 //Make sure module is Haxe Module
-                 if (moduleForFile != null
-                     && ModuleUtil.getModuleType(moduleForFile).equals(HaxeModuleType.getInstance())) {
-                   //Get module settings
-                   HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(moduleForFile);
-                   int buildConfig = moduleSettings.getBuildConfig();
-                   VirtualFile projectFile = null;
-                   switch (buildConfig) {
-                     case HaxeModuleSettings.USE_HXML:
-                       projectFile = verifyProjectFile(moduleForFile, "HXML", moduleSettings.getHxmlPath(), errorNotifier);
-                       if (null == projectFile) {
-                         break;
-                       }
-
-                       commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
-                       commandLineArguments.add(projectFile.getPath());
-
-                       collectCompletionsFromCompiler(parameters, result, commandLineArguments, timeLog);
-                       break;
-                     case HaxeModuleSettings.USE_NMML:
-                       projectFile = verifyProjectFile(moduleForFile, "NMML", moduleSettings.getNmmlPath(), errorNotifier);
-                       if (null == projectFile) {
-                         break;
-                       }
-                       formatAndAddCompilerArguments(commandLineArguments, moduleSettings.getNmeFlags());
-                       collectCompletionsFromNME(parameters, result, commandLineArguments, timeLog);
-                       break;
-                     case HaxeModuleSettingsBaseImpl.USE_OPENFL:
-                       projectFile = verifyProjectFile(moduleForFile, "OpenFL", moduleSettings.getOpenFLPath(), errorNotifier);
-                       if (null == projectFile) {
-                         break;
-                       }
-
-                       String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
-                       // Load the project defines, etc, from the project.xml file.  Cache them.
-                       List<String> compilerArgsFromProjectFile = openFLDisplayArguments.get(moduleForFile, projectFile.getUrl(), targetFlag);
-                       if (compilerArgsFromProjectFile == null) {
-                         ArrayList<String> limeArguments = new ArrayList<String>();
-
-                         limeArguments.add(HaxelibCommandUtils.getHaxelibPath(moduleForFile));
-                         limeArguments.add("run");
-                         limeArguments.add("lime");
-                         limeArguments.add("display");
-                         //flash, html5, linux, etc
-                         limeArguments.add(targetFlag);
-
-                         // Add arguments from the settings panel.  They get echoed out via display,
-                         // if appropriate.
-                         formatAndAddCompilerArguments(limeArguments, moduleSettings.getOpenFLFlags());
-
-                         timeLog.stamp("Get display vars from lime.");
-                         List<String> stdout = HaxelibCommandUtils.getProcessStdout(limeArguments,
-                                                                                    BuildProperties.getProjectBaseDir(myProject),
-                                                                                    HaxeSdkUtilBase.getSdkData(moduleForFile));
-
-                         // Need to filter out empty/blank lines.  They cause an empty argument to
-                         // haxelib, which errors out and breaks completion.
-                         compilerArgsFromProjectFile = filterEmptyLines(stdout);
-                         openFLDisplayArguments.put(moduleForFile, projectFile.getUrl(), targetFlag, compilerArgsFromProjectFile);
-                       }
-
-                       commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
-                       formatAndAddCompilerArguments(commandLineArguments, compilerArgsFromProjectFile);
-
-                       collectCompletionsFromCompiler(parameters, result, commandLineArguments, timeLog);
-
-                       break;
-                     case HaxeModuleSettingsBaseImpl.USE_PROPERTIES:
-                       commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
-                       formatAndAddCompilerArguments(commandLineArguments, moduleSettings.getArguments());
-                       collectCompletionsFromCompiler(parameters, result, commandLineArguments, timeLog);
-                       break;
-                   }
-                 }
+               List<HaxeCompilerCompletionItem> completions =
+                   compilerServices.getPossibleCompletions(file, element, editor);
+               for (HaxeCompilerCompletionItem completion : completions) {
+                 result.addElement(completion.toLookupElement());
                }
-               finally {
-                 timeLog.stamp("Finished");
-                 timeLog.print();
+
+               // Add the error message to the result advertisement (the help line at
+               // the bottom of the selection dropdown).
+               if (null != myErrorMessage && ! myErrorMessage.isEmpty()) {
+                 result.addLookupAdvertisement(myErrorMessage);
                }
              }
            });
@@ -211,6 +100,10 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
   @Override
   public void beforeCompletion(@NotNull CompletionInitializationContext context) {
+    // Clear any old error messages
+    myErrorMessage = null;
+
+    // TODO: Check here for whether to auto-save the file before doing completions.
     saveEditsToDisk(context.getFile().getVirtualFile());
     super.beforeCompletion(context);
   }
@@ -224,59 +117,14 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     return super.handleEmptyLookup(parameters, editor);
   }
 
-  private List<String> filterEmptyLines(List<String> lines) {
-    List<String> filtered = new ArrayList<String>(lines.size());
-    for (String l : lines) {
-      if ( ! (l.isEmpty() || EMPTY_LINE_REGEX.matcher(l).matches())) {
-        filtered.add(l);
-      }
-    }
-    return filtered;
-  }
-
   private void advertiseError(String message) {
-    myErrorMessage = message;
+    if (null == myErrorMessage || myErrorMessage.isEmpty()) {
+      // Stash only the first error message, and we'll add it to the result set when we're finished.
+      myErrorMessage = message;
+    }
+
     LOG.info(message);  // XXX - May happen to often.
     StatusBarUtil.setStatusBarInfo(myProject, message);
-  }
-
-
-  private void formatAndAddCompilerArguments(ArrayList<String> commandLineArguments, List<String> stdout) {
-    for (int i = 0; i < stdout.size(); i++) {
-      String s = stdout.get(i).trim();
-      if (!s.startsWith("#")) {
-        commandLineArguments.addAll(Arrays.asList(s.split(" ")));
-      }
-    }
-  }
-
-  private void formatAndAddCompilerArguments(ArrayList<String> commandLineArguments, String flags) {
-    if (null != flags && !flags.isEmpty()) {
-      final StringTokenizer flagsTokenizer = new StringTokenizer(flags);
-      while (flagsTokenizer.hasMoreTokens()) {
-        String nextToken = flagsTokenizer.nextToken();
-        if (!nextToken.isEmpty()) {
-          commandLineArguments.add(nextToken);
-        }
-      }
-    }
-  }
-
-  private int recalculateFileOffset(@NotNull CompletionParameters parameters) {
-    PsiElement position = parameters.getPosition();
-    int offset = position.getTextOffset();;
-
-    // Get the separator, checking the file if we don't know yet.  May still return null.
-    String separator = LoadTextUtil.detectLineSeparator(parameters.getOriginalFile().getVirtualFile(), true);
-
-    // IntelliJ IDEA normalizes file line endings, so if file line endings is
-    // CRLF - then we have to shift an offset so Haxe compiler could get proper offset
-    if (LineSeparator.CRLF.getSeparatorString().equals(separator)) {
-      int lineNumber =
-        com.intellij.openapi.util.text.StringUtil.offsetToLineNumber(parameters.getEditor().getDocument().getText(), offset);
-      offset += lineNumber;
-    }
-    return offset;
   }
 
   /**
@@ -297,261 +145,4 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     }
   }
 
-  private void collectCompletionsFromCompiler(@NotNull CompletionParameters parameters,
-                                              @NotNull CompletionResultSet result,
-                                              ArrayList<String> commandLineArguments,
-                                              HaxeDebugTimeLog timeLog) {
-    // There is a problem here in that the current buffer may not have been saved.
-    // If that is the case, then the position is also incorrect, and the compiler
-    // doesn't have access to the correct sources.  If the haxe compiler is version 3.4 or
-    // later, then it has the -D display-stdin parameter available and we can pump the
-    // unsaved buffer through to the compiler. (Though that does nothing for completion
-    // from related but also unsaved buffers.)  Doing so will also require the compiler
-    // server (if used) to be started with the "--wait stdin" parameter.
-
-    PsiFile file = parameters.getOriginalFile();
-    Project project = file.getProject();
-    Module moduleForFile = ModuleUtil.findModuleForFile(file.getVirtualFile(), project);
-    int offset = recalculateFileOffset(parameters);
-
-    // Tell the compiler we want field completion, adding the type (var or method)
-    commandLineArguments.add("-D");
-    commandLineArguments.add("display-details");
-    commandLineArguments.add("--display");
-
-    commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
-
-    timeLog.stamp("Calling compiler");
-    List<String> stderr =
-    HaxelibCommandUtils.getProcessStderr(commandLineArguments,
-                                         BuildProperties.getProjectBaseDir(project),
-                                         HaxeSdkUtilBase.getSdkData(moduleForFile));
-    timeLog.stamp("Compiler finished");
-    parseCompletionFromXml(result, project, stderr);
-  }
-
-  private void collectCompletionsFromNME(@NotNull CompletionParameters parameters,
-                                         @NotNull CompletionResultSet result,
-                                         ArrayList<String> commandLineArguments,
-                                         HaxeDebugTimeLog timeLog) {
-    // See note on collectCompletionsFromCompiler.
-
-    PsiFile file = parameters.getOriginalFile();
-    Project project = file.getProject();
-    Module moduleForFile = ModuleUtil.findModuleForFile(file.getVirtualFile(), project);
-    int offset = recalculateFileOffset(parameters);
-
-    HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(moduleForFile);
-    String nmmlPath = moduleSettings.getNmmlPath();
-    String nmeTarget = moduleSettings.getNmeTarget().getTargetFlag();
-
-    // To get completions out of the haxe compiler when NME calls it, we have to
-    // add <haxeflag /> nodes to the project.nmml.  We'll do that by creating a
-    // temporary NMML file and including the real project file.
-    StringBuilder xml = new StringBuilder();
-    xml.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-    xml.append("<project>");
-
-    xml.append("<include path=\"");
-    xml.append(nmmlPath);
-    xml.append("\" />");
-
-    xml.append("<haxeflag name=\"--display\" value=\"");
-    xml.append(file.getVirtualFile().getPath());
-    xml.append("@");
-    xml.append(Integer.toString(offset));
-    xml.append("\" />");
-
-    xml.append("<haxeflag name=\"-D\" value=\"display-details\" />");
-    xml.append("</project>");
-
-    File tempFile = null;
-    try {
-      tempFile = File.createTempFile("HaxeProjectWrapper", ".nmml");
-      FileWriter writer = new FileWriter(tempFile);
-      writer.write(xml.toString());
-      writer.close();
-
-      commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(moduleForFile));
-      commandLineArguments.add("run");
-      commandLineArguments.add("nme");
-      commandLineArguments.add("build");
-      commandLineArguments.add(tempFile.getPath());
-      commandLineArguments.add(nmeTarget);
-
-      timeLog.stamp("Calling NME");
-      List<String> stderr =
-        HaxelibCommandUtils.getProcessStderr(commandLineArguments,
-                                             BuildProperties.getProjectBaseDir(project),
-                                             HaxeSdkUtilBase.getSdkData(moduleForFile));
-      timeLog.stamp("NME finished");
-      parseCompletionFromXml(result, project, stderr);
-    } catch (IOException e) {
-      advertiseError("Completion failed: Could not create temporary file."); // TODO: Externalize string.
-    } finally {
-      if (tempFile != null) {
-        tempFile.delete();
-      }
-    }
-
-
-  }
-
-  private void parseCompletionFromXml(CompletionResultSet result, Project project, List<String> stderr) {
-    try {
-      if (!stderr.isEmpty() && stderr.get(0).contains("<list>") && stderr.size() > 1) {
-        String s = Joiner.on("").join(stderr);
-        PsiFile fileFromText = PsiFileFactory.getInstance(project).createFileFromText("data.xml", XmlFileType.INSTANCE, s);
-
-        XmlFile xmlFile = (XmlFile)fileFromText;
-        XmlDocument document = xmlFile.getDocument();
-
-        if (document != null) {
-          XmlTag rootTag = document.getRootTag();
-          if (rootTag != null) {
-            XmlTag[] xmlTags = rootTag.findSubTags("i");
-            for (XmlTag xmlTag : xmlTags) {
-              XmlAttribute nAttr = xmlTag.getAttribute("n");
-              XmlAttribute kAttr = xmlTag.getAttribute("k");
-              String n = null == nAttr ? null : nAttr.getValue();
-              String k = null == kAttr ? null : kAttr.getValue();
-              XmlTag t = xmlTag.findFirstSubTag("t");
-              XmlTag d = xmlTag.findFirstSubTag("d");
-
-              LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(n);
-              if (k != null) {
-                lookupElementBuilder = lookupElementBuilder.withIcon(
-                  k.equals("var") ? HaxeIcons.Field_Haxe : HaxeIcons.Method_Haxe);
-              }
-
-              String formattedType = "";
-              String formattedDescription = "";
-
-              if (t != null) {
-                formattedType = getFormattedText(t.getValue().getText());
-                HaxeCompilerCompletionItem item = parseFunctionParams(formattedType);
-                String text = "";
-
-                if (item.parameters != null) {
-                  String presentableText = n + "(" + Joiner.on(", ").join(item.parameters) + "):" + item.retType;
-                  lookupElementBuilder = lookupElementBuilder.withPresentableText(presentableText);
-                }
-                else {
-                  text = formattedType;
-                }
-
-                if (d != null) {
-                  String text1 = d.getValue().getText();
-                  text1 = getFormattedText(text1);
-                  formattedDescription = text1;
-                  text += " " + formattedDescription;
-                }
-
-                lookupElementBuilder = lookupElementBuilder.withTailText(" " + text, true);
-              }
-              result.addElement(lookupElementBuilder);
-            }
-          }
-        }
-      }
-      else {
-        if (!stderr.isEmpty()) {
-          LOG.debug(stderr.toString());
-          // Could be a syntax warning.
-          HaxeCompilerError compilerError = HaxeCompilerError.create(
-            project.getBaseDir().getPath(),
-            stderr.get(0));
-          StringBuilder msg = new StringBuilder();
-          msg.append("Compiler completion");        // TODO: Externalize string.
-          if (compilerError.isErrorMessage()) {
-            msg.append(" error");                   // TODO: Externalize and don't build the string.
-          }
-          msg.append(": ");
-          msg.append(compilerError.getErrorMessage());
-
-          String smsg = msg.toString();
-          result.addLookupAdvertisement(smsg);
-          advertiseError(smsg);
-        }
-      }
-    }
-    catch (ProcessCanceledException e) {
-      advertiseError("Haxe compiler completion canceled.");  // TODO: Externalize string.
-      LOG.debug("Haxe compiler completion canceled.", e);
-      throw e;
-    }
-  }
-
-  private String getFormattedText(String text1) {
-    text1 = text1.replaceAll("\t", "");
-    text1 = text1.replaceAll("\n", "");
-    text1 = text1.replaceAll("&lt;", "<");
-    text1 = text1.replaceAll("&gt;", ">");
-    text1 = text1.trim();
-    return text1;
-  }
-
-  //Ported from HIDE
-  //https://github.com/HaxeIDE/HIDE/blob/master/src/core/FunctionParametersHelper.hx#L193
-  public HaxeCompilerCompletionItem parseFunctionParams(String type)
-  {
-    List<String> parameters = null;
-    String retType = null;
-    if (type != null && type.indexOf("->") != -1)
-    {
-      int openBracketsCount = 0;
-      List<Integer> startPositions = new ArrayList<Integer>();
-      List<Integer> endPositions = new ArrayList<Integer>();
-      int i = 0;
-      int lastPos = 0;
-      while (i < type.length())
-      {
-        switch (type.charAt(i))
-        {
-          case '-':
-            if (openBracketsCount == 0 && type.charAt(i + 1) == '>') {
-              startPositions.add(lastPos);
-              endPositions.add(i - 1);
-              i++;
-              i++;
-              lastPos = i;
-            }
-          case '(':
-            openBracketsCount++;
-          case ')':
-            openBracketsCount--;
-          default:
-        }
-        i++;
-      }
-      startPositions.add(lastPos);
-      endPositions.add(type.length());
-      parameters = new ArrayList<String>();
-
-      for (int j = 0; j < startPositions.size(); j++) {
-        String param = type.substring(startPositions.get(j), endPositions.get(j)).trim();
-        if (j < startPositions.size() - 1)
-        {
-          int pos = param.indexOf(" : ", 0);
-          if (pos > -1) {
-            StringBuilder unspaced = new StringBuilder();
-            unspaced.append(param.substring(0, pos));
-            unspaced.append(":");
-            unspaced.append(param.substring(pos+3));
-            param = unspaced.toString();
-          }
-          parameters.add(param);
-        }
-        else
-        {
-          retType = param;
-        }
-      }
-      if (parameters.size() == 1 && parameters.get(0) == "Void")
-      {
-        parameters.clear();
-      }
-    }
-    return new HaxeCompilerCompletionItem(parameters, retType);
-  }
 }

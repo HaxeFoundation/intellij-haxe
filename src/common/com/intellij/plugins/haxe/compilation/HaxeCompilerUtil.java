@@ -122,11 +122,12 @@ public class HaxeCompilerUtil
     }
 
     /**
-     * Send errors off to the appropriate handler.
+     * Send errors off to the given handler, or a default hander if notifier is null.
+     *
      * @param message - Error message
-     * @param notifier - Error handler
+     * @param notifier - Error handler or null to use default.
      */
-    private static void advertiseError(String message, @Nullable ErrorNotifier notifier) {
+    public static void advertiseError(String message, @Nullable ErrorNotifier notifier) {
         if (null == notifier) {
             defaultNotifier.notifyError(message);
         }
