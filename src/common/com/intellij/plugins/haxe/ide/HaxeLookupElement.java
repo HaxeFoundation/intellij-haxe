@@ -24,6 +24,8 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.build.FieldWrapper;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
@@ -131,8 +133,11 @@ public class HaxeLookupElement extends LookupElement {
       JavaCompletionUtil.insertParentheses(context, this, overloadsMatter, hasParams);
     }
   }
-  // Workaround for IDEA 14. There must be JavaCompletionUtil.FORCE_SHOW_SIGNATURE_ATTR
-  private static final Key<Boolean> FORCE_SHOW_SIGNATURE_ATTR = Key.create("forceShowSignature");
+
+  private static final Key<Boolean> FORCE_SHOW_SIGNATURE_ATTR =
+    IdeaTarget.IS_VERSION_15_COMPATIBLE ? new FieldWrapper<Key<Boolean>>(JavaCompletionUtil.class,
+                                                                         "FORCE_SHOW_SIGNATURE_ATTR").get(null)
+                                        : Key.<Boolean>create("forceShowSignature");
 
   @NotNull
   @Override
