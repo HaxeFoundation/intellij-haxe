@@ -22,6 +22,7 @@ import com.intellij.codeInsight.completion.JavaCompletionUtil;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
@@ -126,10 +127,12 @@ public class HaxeLookupElement extends LookupElement {
 
     if (isMethod) {
       final LookupElement[] allItems = context.getElements();
-      final boolean overloadsMatter = allItems.length == 1 && getUserData(JavaCompletionUtil.FORCE_SHOW_SIGNATURE_ATTR) == null;
+      final boolean overloadsMatter = allItems.length == 1 && getUserData(FORCE_SHOW_SIGNATURE_ATTR) == null;
       JavaCompletionUtil.insertParentheses(context, this, overloadsMatter, hasParams);
     }
   }
+  // Workaround for IDEA 14. There must be JavaCompletionUtil.FORCE_SHOW_SIGNATURE_ATTR
+  private static final Key<Boolean> FORCE_SHOW_SIGNATURE_ATTR = Key.create("forceShowSignature");
 
   @NotNull
   @Override
