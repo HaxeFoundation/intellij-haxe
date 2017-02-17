@@ -19,7 +19,6 @@
 package com.intellij.plugins.haxe.compilation;
 
 import com.google.common.base.Joiner;
-import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
@@ -98,10 +97,16 @@ public class HaxeCompilerServices {
 
         try {
             Project project = file.getProject();
-            Module moduleForFile = ModuleUtil.findModuleForFile(file.getVirtualFile(), project);
+            VirtualFile vfile = file.getVirtualFile();
+            VirtualFile compileRoot = HaxeCompilerUtil.findCompileRoot(file);
+            if (null == vfile || null == compileRoot) {
+                // Can't run a completion on an in-memory file (at least for now).
+                // TODO: Allow completion on in-memory files for 3.4 compilers.
+                return completions;
+            }
+            Module moduleForFile = ModuleUtil.findModuleForFile(vfile, project);
 
             ArrayList<String> commandLineArguments = new ArrayList<String>();
-
 
             //Make sure module is Haxe Module
             if (moduleForFile != null
@@ -154,9 +159,10 @@ public class HaxeCompilerServices {
                             formatAndAddCompilerArguments(limeArguments, moduleSettings.getOpenFLFlags());
 
                             timeLog.stamp("Get display vars from lime.");
-                            List<String> stdout = HaxelibCommandUtils.getProcessStdout(limeArguments,
-                                                                                       BuildProperties.getProjectBaseDir(project),
-                                                                                       HaxeSdkUtilBase.getSdkData(moduleForFile));
+                            List<String> stdout = new ArrayList<String>();
+                            HaxeCompilerUtil.runInterruptibleCompileProcess(limeArguments, false,
+                                                                            compileRoot, HaxeSdkUtilBase.getSdkData(moduleForFile),
+                                                                            stdout, null, timeLog);
 
                             // Need to filter out empty/blank lines.  They cause an empty argument to
                             // haxelib, which errors out and breaks completion.
@@ -184,7 +190,6 @@ public class HaxeCompilerServices {
         }
         return completions;
     }
-
 
     protected void advertiseError(String message) {
         HaxeCompilerUtil.advertiseError(message, myErrorNotifier);
@@ -275,10 +280,12 @@ public class HaxeCompilerServices {
         commandLineArguments.add(file.getVirtualFile().getPath() + "@" + Integer.toString(offset));
 
         timeLog.stamp("Calling compiler");
-        List<String> stderr =
-            HaxelibCommandUtils.getProcessStderr(commandLineArguments,
-                                                 BuildProperties.getProjectBaseDir(project),
-                                                 HaxeSdkUtilBase.getSdkData(moduleForFile));
+        List<String> stderr = new ArrayList<String>();
+        int status = HaxeCompilerUtil.runInterruptibleCompileProcess(commandLineArguments, false,
+                                                                     HaxeCompilerUtil.findCompileRoot(file),
+                                                                     HaxeSdkUtilBase.getSdkData(moduleForFile),
+                                                                     null, stderr, timeLog);
+
         timeLog.stamp("Compiler finished");
         return parseCompletionFromXml(project, stderr);
     }
@@ -333,10 +340,11 @@ public class HaxeCompilerServices {
             commandLineArguments.add(nmeTarget);
 
             timeLog.stamp("Calling NME");
-            List<String> stderr =
-                HaxelibCommandUtils.getProcessStderr(commandLineArguments,
-                                                     BuildProperties.getProjectBaseDir(project),
-                                                     HaxeSdkUtilBase.getSdkData(moduleForFile));
+            List<String> stderr = new ArrayList<String>();
+            int status = HaxeCompilerUtil.runInterruptibleCompileProcess(commandLineArguments, false,
+                                                                         HaxeCompilerUtil.findCompileRoot(file),
+                                                                         HaxeSdkUtilBase.getSdkData(moduleForFile),
+                                                                         null, stderr, timeLog);
             timeLog.stamp("NME finished");
             return parseCompletionFromXml(project, stderr);
         } catch (IOException e) {

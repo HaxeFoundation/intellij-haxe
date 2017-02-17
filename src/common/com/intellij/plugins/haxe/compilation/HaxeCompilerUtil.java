@@ -22,16 +22,29 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
+import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.psi.PsiFile;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -39,7 +52,7 @@ import org.jetbrains.io.LocalFileFinder;
 public class HaxeCompilerUtil
 {
     static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompilerUtil");
-    {
+    static {
         LOG.setLevel(Level.DEBUG);
     }
 
@@ -195,5 +208,145 @@ public class HaxeCompilerUtil
                 }
             });
         }
+    }
+
+    /**
+     * Find the source root containing the given file.
+     *
+     * @param file
+     * @return
+     */
+    @Nullable
+    public static VirtualFile findSourceRoot(@NotNull PsiFile file) {
+        VirtualFile vfile = file.getVirtualFile();
+        if (null == vfile) {
+            return null;
+        }
+        VirtualFile vsrcroot = ProjectRootManager.getInstance(file.getProject()).getFileIndex().getSourceRootForFile(vfile);
+        return vsrcroot;
+    }
+
+    @Nullable
+    public static VirtualFile findCompileRoot(@NotNull PsiFile file) {
+        // This will work for most people.  For those whose project files are in different trees from their sources,
+        // this has to be changed.
+        // TODO: Add a "compile directory" to the Haxe module settings.
+        return file.getProject().getBaseDir();
+    }
+
+    /**
+     * Run an interruptible process with the Haxe SDK compiler environment.  Checks
+     * whether the process/thread has been canceled (from within IDEA).
+     *
+     * @param command - Command and parameters.
+     * @param mixedOutput - include stderr in stdout output.
+     * @param dir - directory to run the command in.
+     * @param sdkData - sdk to use to set the command environment.
+     * @param stdout - List to append output to.  Will not be cleared on start.
+     * @param stderr - List to append error output to. Will not be cleared on start.
+     *
+     * @return The exit status of the command.
+     */
+    public static int runInterruptibleCompileProcess(List<String> command,
+                                                     boolean mixedOutput,
+                                                     VirtualFile dir,
+                                                     HaxeSdkAdditionalDataBase sdkData,
+                                        /*modifies*/ List<String> stdout,
+                                        /*modifies*/ List<String> stderr,
+                                                     HaxeDebugTimeLog timeLog) {
+        int ret = 255;
+        Process process = null;
+
+        try {
+            ProgressManager.checkCanceled();
+
+            File fdir = null != dir ? new File(dir.getPath()) : null;
+            LOG.debug("dir is " + dir.getPath());
+            ProcessBuilder builder = HaxeSdkUtilBase.createProcessBuilder(command, fdir, sdkData);
+            if (mixedOutput)
+                builder.redirectErrorStream(true);
+
+            if (null != timeLog) {
+                timeLog.stamp("Executing " + command.get(0));
+            }
+            process = builder.start();
+
+            InputStreamReader stdoutReader = new InputStreamReader(process.getInputStream());
+            BufferedReader bufferedStdout = new BufferedReader(stdoutReader);
+
+            InputStreamReader stderrReader = mixedOutput ? null : new InputStreamReader(process.getErrorStream());
+            BufferedReader bufferedStderr = mixedOutput ? null : new BufferedReader(stderrReader);
+
+            do {
+                ProgressManager.checkCanceled();
+
+                while (bufferedStdout.ready()) {
+                    if (null != stdout) {
+                        stdout.add(bufferedStdout.readLine());
+                    }
+                    else {
+                        // Goes to the bit bucket.
+                        bufferedStdout.readLine();
+                    }
+                }
+                if (!mixedOutput) {
+                    while (bufferedStderr.ready()) {
+                        if (null != stderr) {
+                            stderr.add(bufferedStderr.readLine());
+                        }
+                        else {
+                            // bit bucket.
+                            bufferedStderr.readLine();
+                        }
+                    }
+                }
+                try {
+                    // Let our forked process get a little work done.
+                    Thread.sleep(2);
+                } catch (InterruptedException e) {
+                    ; // Swallow it.
+                }
+            }
+            while (processIsAlive(process));
+            ret = process.exitValue();
+            if (null != timeLog) {
+                timeLog.stamp("Process exited cleanly: Return value = " + Integer.toString(ret));
+            }
+        }
+        catch (IOException e) {
+            String message = "I/O exception running command " + command.get(0);
+            LOG.info(message);
+            ret = 255;
+            if (null != timeLog) {
+                timeLog.stamp(message);
+            }
+        } catch (ProcessCanceledException e) {
+            String message = "Copmpletion canceled.";
+            LOG.debug(message);
+            ret = 255;
+            if (null!= timeLog) {
+                timeLog.stamp(message);
+            }
+        }finally {
+            if (null != process && processIsAlive(process)) {
+                process.destroy();
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Check whether the process is still alive the hard way,
+     * Java8 gives us process.isAlive(), but Java6 doesn't.
+     * @param process
+     */
+    private static boolean processIsAlive(Process process) {
+        try {
+            int exitStatus = process.exitValue();
+            return false;
+        } catch (IllegalThreadStateException e) {
+            ; // swallow it.  The thread hasn't exited yet.
+        }
+        return true;
     }
 }
