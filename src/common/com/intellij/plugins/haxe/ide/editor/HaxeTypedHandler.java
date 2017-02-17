@@ -17,20 +17,27 @@
  */
 package com.intellij.plugins.haxe.ide.editor;
 
+import com.intellij.codeInsight.CodeInsightSettings;
+import com.intellij.codeInsight.editorActions.JavaTypedHandler;
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeTypedHandler extends TypedHandlerDelegate {
+  private static final TokenSet INVALID_INSIDE_REFERENCE =
+    TokenSet.create(HaxeTokenTypes.OSEMI, HaxeTokenTypes.PLCURLY, HaxeTokenTypes.PRCURLY);
+
   private boolean myAfterTypeOrComponentName = false;
   private boolean myAfterDollar = false;
 
@@ -45,6 +52,12 @@ public class HaxeTypedHandler extends TypedHandlerDelegate {
     }
     if (c == '{') {
       myAfterDollar = checkAfterDollarInString(file, editor.getCaretModel().getOffset());
+    }
+    if (c == '>') {
+      if (CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET &&
+          JavaTypedHandler.handleJavaGT(editor, HaxeTokenTypes.OLESS, HaxeTokenTypes.OGREATER, INVALID_INSIDE_REFERENCE)) {
+        return Result.STOP;
+      }
     }
     return super.beforeCharTyped(c, project, editor, file, fileType);
   }
