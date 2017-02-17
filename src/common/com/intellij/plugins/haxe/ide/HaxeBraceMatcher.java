@@ -19,6 +19,8 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.lang.BracePair;
 import com.intellij.lang.PairedBraceMatcher;
+import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
@@ -43,7 +45,20 @@ public class HaxeBraceMatcher implements PairedBraceMatcher {
 
   @Override
   public boolean isPairedBracesAllowedBeforeType(@NotNull IElementType lbraceType, @Nullable IElementType contextType) {
+    if (contextType instanceof HaxeElementType) return isPairedBracesAllowedBeforeTypeInHaxe(contextType);
     return true;
+  }
+
+  private static boolean isPairedBracesAllowedBeforeTypeInHaxe(final IElementType tokenType) {
+    return HaxeTokenTypeSets.COMMENTS.contains(tokenType)
+           || HaxeTokenTypeSets.WHITESPACES.contains(tokenType)
+           || tokenType == HaxeTokenTypes.OSEMI
+           || tokenType == HaxeTokenTypes.OCOMMA
+           || tokenType == HaxeTokenTypes.PRPAREN
+           || tokenType == HaxeTokenTypes.PRBRACK
+           || tokenType == HaxeTokenTypes.PRCURLY
+           || tokenType == HaxeTokenTypes.PLCURLY
+           || tokenType == HaxeTokenTypes.ODOT;
   }
 
   @Override
