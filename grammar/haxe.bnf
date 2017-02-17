@@ -498,14 +498,16 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
+// Be careful when changing the ordering of the 'or' clauses here.  It matters!!
+// In particular, callOrArrayAccess must come before (literalExpression qualifiedReferenceTail?).
 private value ::= macroClassList? ('untyped' expression
                                                    | 'macro' expression
+                                                   | callOrArrayAccess
                                                    | (literalExpression qualifiedReferenceTail?)
                                                    | ifStatement
                                                    | castExpression qualifiedReferenceTail?
                                                    | newExpressionOrCall
                                                    | parenthesizedExpressionOrCall
-                                                   | callOrArrayAccess
                                                    | tryStatement
                                                    | switchStatement)
 {pin=2}
@@ -538,7 +540,7 @@ typeCheckExpr ::= expression ':' functionTypeWrapper
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
-private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
+private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression | functionLiteral) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 left callExpression ::= '(' expressionList? ')'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
