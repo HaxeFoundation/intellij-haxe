@@ -498,8 +498,11 @@ prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixEx
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
+// Be careful when changing the ordering of the 'or' clauses here.  It matters!!
+// In particular, calllFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
 private value ::= macroClassList? ('untyped' expression
                                                    | 'macro' expression
+                                                   | callFunctionLiteral
                                                    | (literalExpression qualifiedReferenceTail?)
                                                    | ifStatement
                                                    | castExpression qualifiedReferenceTail?
@@ -538,6 +541,7 @@ typeCheckExpr ::= expression ':' functionTypeWrapper
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
+private callFunctionLiteral ::= functionLiteral callExpression
 private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 left callExpression ::= '(' expressionList? ')'
