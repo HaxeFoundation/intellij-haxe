@@ -29,7 +29,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.10.1.1 for @plugin.compatibility.description@</version>
+  <version>0.10.1.Test.CompilerCompletion for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
@@ -37,9 +37,12 @@
       <p>Documentation: http://github.com/HaxeFoundation/intellij-haxe/README.md.</p>
       <p>Support: http://github.com/HaxeFoundation/intellij-haxe/issues.</p>
       <p/>
-      <p>Unreleased:</p>
+      <p>Unreleased (Feature test):</p>
       <ul>
-        <li>Reworked code completion using the compiler.</li>
+        <li>Reworked code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
+        <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>
+        <li>Fix parsing when an anonymous function call is defined and immediately executed. (Issue #544)</li>
+        <li>Updated Haxe logo bitmaps.</li>
       </ul>
       <p>0.10.1.1: (community release)</p)
       <ul>
