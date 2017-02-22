@@ -149,10 +149,11 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     if (null == myErrorMessage || myErrorMessage.isEmpty()) {
       // Stash only the first error message, and we'll add it to the result set when we're finished.
       myErrorMessage = message;
+      StatusBarUtil.setStatusBarInfo(myProject, message);
     }
 
     LOG.info(message);  // XXX - May happen to often.
-    StatusBarUtil.setStatusBarInfo(myProject, message);
+    // TODO: Mark the error in the source window.
   }
 
   /**

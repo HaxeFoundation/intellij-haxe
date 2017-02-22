@@ -287,6 +287,10 @@ public class HaxeCompilerServices {
                                                                      null, stderr, timeLog);
 
         timeLog.stamp("Compiler finished");
+        if (0 != status) {
+            reportErrors(project, stderr);
+            return HaxeCompilerCompletionItem.EMPTY_LIST;
+        }
         return parseCompletionFromXml(project, stderr);
     }
 
@@ -346,6 +350,10 @@ public class HaxeCompilerServices {
                                                                          HaxeSdkUtilBase.getSdkData(moduleForFile),
                                                                          null, stderr, timeLog);
             timeLog.stamp("NME finished");
+            if (0 != status) {
+                reportErrors(project, stderr);
+                return null;
+            }
             return parseCompletionFromXml(project, stderr);
         } catch (IOException e) {
             advertiseError("Completion failed: Could not create temporary file."); // TODO: Externalize string.
@@ -357,67 +365,86 @@ public class HaxeCompilerServices {
         return HaxeCompilerCompletionItem.EMPTY_LIST;
     }
 
+    private void reportErrors(Project project, List<String> errors) {
+        for (String error : errors) {
+
+            StringBuilder msg = new StringBuilder();
+            msg.append("Compiler completion");        // TODO: Externalize string.
+
+            // Could be a syntax warning.
+            HaxeCompilerError compilerError = HaxeCompilerError.create(
+              project.getBaseDir().getPath(),
+              error);
+            if (null != compilerError) {
+                if (compilerError.isErrorMessage()) {
+                    msg.append(" error");                   // TODO: Externalize and don't build the string.
+                }
+                msg.append(": ");
+                msg.append(compilerError.getErrorMessage());
+            }
+            else {
+                msg.append(": ");
+                msg.append(error);
+            }
+            advertiseError(msg.toString());
+        }
+    }
+
     private List<HaxeCompilerCompletionItem> parseCompletionFromXml(Project project, List<String> stderr) {
         List<HaxeCompilerCompletionItem> completions = new ArrayList<HaxeCompilerCompletionItem>();
         try {
             LOG.debug(stderr.toString());
-            if (!stderr.isEmpty() && stderr.get(0).contains("<list>") && stderr.size() > 1) {
-                String s = Joiner.on("").join(stderr);
-                PsiFile fileFromText = PsiFileFactory.getInstance(project).createFileFromText("data.xml", XmlFileType.INSTANCE, s);
+            String s = Joiner.on("").join(stderr);
 
-                XmlFile xmlFile = (XmlFile)fileFromText;
-                XmlDocument document = xmlFile.getDocument();
+            if (s.isEmpty()) {
+                LOG.warn("Empty compiler output from completion query.");
+                return completions;
+            }
 
-                if (document != null) {
-                    XmlTag rootTag = document.getRootTag();
-                    if (rootTag != null) {
-                        XmlTag[] xmlTags = rootTag.findSubTags("i");
-                        for (XmlTag xmlTag : xmlTags) {
-                            XmlAttribute nAttr = xmlTag.getAttribute("n");
-                            XmlAttribute kAttr = xmlTag.getAttribute("k");
-                            String name = null == nAttr ? null : nAttr.getValue();
-                            String memberType = null == kAttr ? null : kAttr.getValue();
-                            XmlTag typeTag = xmlTag.findFirstSubTag("t");
-                            XmlTag docTag = xmlTag.findFirstSubTag("d");
+            PsiFile fileFromText = PsiFileFactory.getInstance(project).createFileFromText("data.xml", XmlFileType.INSTANCE, s);
+
+            XmlFile xmlFile = (XmlFile)fileFromText;
+            XmlDocument document = xmlFile.getDocument();
+            XmlTag rootTag = null != document ? document.getRootTag() : null;
+
+            if (null == rootTag) {
+                LOG.warn("Failure to parse XML: " + s);
+                return completions;
+            }
+
+            if ("list".equals(rootTag.getName())) {
+                XmlTag[] xmlTags = rootTag.findSubTags("i");
+                for (XmlTag xmlTag : xmlTags) {
+                    XmlAttribute nAttr = xmlTag.getAttribute("n");
+                    XmlAttribute kAttr = xmlTag.getAttribute("k");
+                    String name = null == nAttr ? null : nAttr.getValue();
+                    String memberType = null == kAttr ? null : kAttr.getValue();
+                    XmlTag typeTag = xmlTag.findFirstSubTag("t");
+                    XmlTag docTag = xmlTag.findFirstSubTag("d");
 
 
-                            HaxeCompilerCompletionItem item = new HaxeCompilerCompletionItem(name);
-                            item.setMemberType(memberType);
-                            if (typeTag != null) {
-                                String formattedType = getFormattedText(typeTag.getValue().getText());
-                                parseFunctionParams(formattedType, /*modifies*/ item);
-                            }
-                            if (docTag != null) {
-                                String text1 = getFormattedText(docTag.getValue().getText());
-                                item.setDocumentation(text1);
-                            }
-                            completions.add(item);
-                        }
+                    HaxeCompilerCompletionItem item = new HaxeCompilerCompletionItem(name);
+                    item.setMemberType(memberType);
+                    if (typeTag != null) {
+                        String formattedType = getFormattedText(typeTag.getValue().getText());
+                        parseFunctionParams(formattedType, /*modifies*/ item);
                     }
+                    if (docTag != null) {
+                        String text1 = getFormattedText(docTag.getValue().getText());
+                        item.setDocumentation(text1);
+                    }
+                    completions.add(item);
                 }
+            } else if ("type".equals(rootTag.getName())) {
+                String type = getFormattedText(rootTag.getValue().getTrimmedText());
+                HaxeCompilerCompletionItem item = new HaxeCompilerCompletionItem("Type");
+                parseFunctionParams(type, item);
+                completions.add(item);
             }
             // TODO: Add other completion types here. (e.g. Call argument completion "type").
             else {
-                if (!stderr.isEmpty()) {
-                    StringBuilder msg = new StringBuilder();
-                    msg.append("Compiler completion");        // TODO: Externalize string.
-
-                    // Could be a syntax warning.
-                    HaxeCompilerError compilerError = HaxeCompilerError.create(
-                        project.getBaseDir().getPath(),
-                        stderr.get(0));
-                    if (null != compilerError) {
-                        if (compilerError.isErrorMessage()) {
-                            msg.append(" error");                   // TODO: Externalize and don't build the string.
-                        }
-                        msg.append(": ");
-                        msg.append(compilerError.getErrorMessage());
-                    } else {
-                        msg.append(": ");
-                        msg.append(stderr.toString());
-                    }
-                    advertiseError(msg.toString());
-                }
+                LOG.warn("Failure to parse XML: " + s );
+                return completions;
             }
         }
         catch (ProcessCanceledException e) {
@@ -429,6 +456,8 @@ public class HaxeCompilerServices {
     }
 
     private String getFormattedText(String text1) {
+        if (null == text1)
+            return null;
         text1 = text1.replaceAll("\t", "");
         text1 = text1.replaceAll("\n", "");
         text1 = text1.replaceAll("&lt;", "<");
