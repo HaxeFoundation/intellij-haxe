@@ -30,6 +30,8 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
 
   private String haxelibPath = "";
 
+  private boolean useCompilerCompletionFlag = false;
+
   public HaxeSdkAdditionalDataBaseImpl() {
   }
 
@@ -60,5 +62,13 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
 
   public void setHaxelibPath(String haxelibPath) {
     this.haxelibPath = null == haxelibPath ? "" : haxelibPath;
+  }
+
+  public boolean getUseCompilerCompletionFlag() {
+    return useCompilerCompletionFlag;
+  }
+
+  public void setUseCompilerCompletionFlag(boolean newState) {
+    useCompilerCompletionFlag = newState;
   }
 }

@@ -54,7 +54,8 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     final HaxeSdkData haxeSdkData = getHaxeSdkData();
     return haxeSdkData == null ||
            !myHaxeAdditionalConfigurablePanel.getNekoBinPath().equals(haxeSdkData.getNekoBinPath()) ||
-           !myHaxeAdditionalConfigurablePanel.getHaxelibPath().equals(haxeSdkData.getHaxelibPath());
+           !myHaxeAdditionalConfigurablePanel.getHaxelibPath().equals(haxeSdkData.getHaxelibPath()) ||
+           myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag() ^ haxeSdkData.getUseCompilerCompletionFlag();
   }
 
   @Override
@@ -67,6 +68,7 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     final HaxeSdkData newData = new HaxeSdkData(haxeSdkData.getHomePath(), haxeSdkData.getVersion());
     newData.setNekoBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNekoBinPath()));
     newData.setHaxelibPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHaxelibPath()));
+    newData.setUseCompilerCompletionFlag(myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag());
 
     final SdkModificator modificator = mySdk.getSdkModificator();
     modificator.setSdkAdditionalData(newData);
@@ -90,6 +92,8 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
       myHaxeAdditionalConfigurablePanel.setNekoBinPath(FileUtil.toSystemDependentName(nekoBinPath == null ? "" : nekoBinPath));
       final String haxelibPath = haxeSdkData.getHaxelibPath();
       myHaxeAdditionalConfigurablePanel.setHaxelibPath(FileUtil.toSystemDependentName(haxelibPath == null ? "" : haxelibPath));
+      final boolean bUseCompilerCompletion = haxeSdkData.getUseCompilerCompletionFlag();
+      myHaxeAdditionalConfigurablePanel.setUseCompilerCompletionFlag(bUseCompilerCompletion);
     }
     myHaxeAdditionalConfigurablePanel.getPanel().repaint();
   }

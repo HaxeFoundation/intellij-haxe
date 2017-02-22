@@ -24,6 +24,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -36,6 +37,10 @@ public class HaxeAdditionalConfigurablePanel {
   private JLabel myNekoLabel;
   private TextFieldWithBrowseButton myHaxelibTextField;
   private JLabel myHaxelibLabel;
+  private JCheckBox myUseCompilerCheckBox;
+  private JLabel myCompletionLabel;
+  private JTextArea myNoteWhenUsingCompilerTextArea;
+  private JPanel myCompletionPanel;
 
   public HaxeAdditionalConfigurablePanel() {
     myNekoTextField.getButton().addActionListener(new ActionListener() {
@@ -60,6 +65,13 @@ public class HaxeAdditionalConfigurablePanel {
       }
     });
     myHaxelibLabel.setLabelFor(myHaxelibTextField.getTextField());
+    myCompletionLabel.setLabelFor(myUseCompilerCheckBox);
+
+    // Text area for the note.
+    myNoteWhenUsingCompilerTextArea.setFocusable(false);
+    myNoteWhenUsingCompilerTextArea.setOpaque(true);
+    myNoteWhenUsingCompilerTextArea.setBorder(BorderFactory.createEmptyBorder());
+    myNoteWhenUsingCompilerTextArea.setBackground(new Color(UIManager.getColor("control").getRGB()));
   }
 
   public JComponent getPanel() {
@@ -81,4 +93,13 @@ public class HaxeAdditionalConfigurablePanel {
   public String getHaxelibPath() {
     return FileUtil.toSystemIndependentName(myHaxelibTextField.getText());
   }
+
+  public void setUseCompilerCompletionFlag(boolean state) {
+    myUseCompilerCheckBox.setSelected(state);
+  }
+
+  public boolean getUseCompilerCompletionFlag() {
+    return myUseCompilerCheckBox.isSelected();
+  }
+
 }

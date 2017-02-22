@@ -24,12 +24,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerServices;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
@@ -50,9 +54,9 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
   static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeCompilerCompletionContributor");
 
   // Take this out when finished debugging.
-  static {
-    LOG.setLevel(org.apache.log4j.Level.DEBUG);
-  }
+  //static {
+  //  LOG.setLevel(org.apache.log4j.Level.DEBUG);
+  //}
 
   private String myErrorMessage = null;
   private Project myProject;
@@ -79,6 +83,14 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
                PsiFile    file    = parameters.getOriginalFile();
+
+               // Shortcut if we aren't using compiler completions.  Do this here instead
+               // of before the extend call. Otherwise, we'd have to restart if the state changes.
+               if (!useCompilerCompletion(file)) {
+                 LOG.debug("Skipping compiler completion.");
+                 return;
+               }
+
                PsiElement element = parameters.getPosition();
                Editor     editor  = parameters.getEditor();
                myProject          = file.getProject();
@@ -98,13 +110,29 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
            });
   }
 
+  private boolean useCompilerCompletion(PsiFile file) {
+    VirtualFile vFile = file.getVirtualFile();
+    if (null != vFile) { // Can't use in-memory file. TODO: Allow in-memory file for compiler completion.
+      Module module = ModuleUtil.findModuleForFile(vFile, file.getProject());
+
+      HaxeSdkAdditionalDataBase sdkData = HaxeSdkUtil.getSdkData(module);
+      if (null != sdkData) {
+        return sdkData.getUseCompilerCompletionFlag();
+      }
+    }
+    return false;
+  }
+
+
   @Override
   public void beforeCompletion(@NotNull CompletionInitializationContext context) {
     // Clear any old error messages
     myErrorMessage = null;
 
-    // TODO: Check here for whether to auto-save the file before doing completions.
-    saveEditsToDisk(context.getFile().getVirtualFile());
+    if (useCompilerCompletion(context.getFile())) {
+      // TODO: Don't save if we can use the compiler stdin.  (Haxe version 3.4)
+      saveEditsToDisk(context.getFile().getVirtualFile());
+    }
     super.beforeCompletion(context);
   }
 
@@ -131,8 +159,6 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
    * Save the file contents to disk so that the compiler has the correct data to work with.
    */
   private void saveEditsToDisk(VirtualFile file) {
-    // TODO: Don't save if we can use the compiler stdin or compiler completion isn't turned off.
-    // TODO: Add checkbox/setting to turn off compiler completion.
     final Document doc = FileDocumentManager.getInstance().getDocument(file);
     if (FileDocumentManager.getInstance().isDocumentUnsaved(doc)) {
       final Application application = ApplicationManager.getApplication();

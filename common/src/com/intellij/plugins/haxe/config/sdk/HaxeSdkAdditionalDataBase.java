@@ -32,4 +32,9 @@ public interface HaxeSdkAdditionalDataBase {
   String getHaxelibPath();
 
   void setHaxelibPath(String haxelibPath);
+
+  boolean getUseCompilerCompletionFlag();
+
+  void setUseCompilerCompletionFlag(boolean newState);
+
 }
