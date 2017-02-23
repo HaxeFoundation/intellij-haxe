@@ -71,7 +71,9 @@ public class HaxeAdditionalConfigurablePanel {
     myNoteWhenUsingCompilerTextArea.setFocusable(false);
     myNoteWhenUsingCompilerTextArea.setOpaque(true);
     myNoteWhenUsingCompilerTextArea.setBorder(BorderFactory.createEmptyBorder());
-    myNoteWhenUsingCompilerTextArea.setBackground(new Color(UIManager.getColor("control").getRGB()));
+    myNoteWhenUsingCompilerTextArea.setBackground(new Color(myCompletionLabel.getBackground().getRGB()));
+    Font labelFont = myCompletionLabel.getFont();
+    myNoteWhenUsingCompilerTextArea.setFont(new Font(labelFont.getName(), labelFont.getStyle(), labelFont.getSize()));
   }
 
   public JComponent getPanel() {
