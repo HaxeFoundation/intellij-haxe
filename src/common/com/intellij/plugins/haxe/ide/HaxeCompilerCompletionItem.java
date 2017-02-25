@@ -76,7 +76,7 @@ public class HaxeCompilerCompletionItem {
 
     Icon icon = "var".equals(this.memberType) ? HaxeIcons.Field_Haxe : HaxeIcons.Method_Haxe;
 
-    LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(this.name)
+    LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(this)
         .withIcon(icon)
         .withPresentableText(presentableText.toString())
         .withTailText(" " + this.documentation);
@@ -84,4 +84,31 @@ public class HaxeCompilerCompletionItem {
     return lookupElementBuilder;
   }
 
+  public String toString() {
+    return this.name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HaxeCompilerCompletionItem item = (HaxeCompilerCompletionItem)o;
+
+    if (name != null ? !name.equals(item.name) : item.name != null) return false;
+    if (parameters != null ? !parameters.equals(item.parameters) : item.parameters != null) return false;
+    if (retType != null ? !retType.equals(item.retType) : item.retType != null) return false;
+    if (memberType != null ? !memberType.equals(item.memberType) : item.memberType != null) return false;
+    return documentation != null ? documentation.equals(item.documentation) : item.documentation == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
+    result = 31 * result + (retType != null ? retType.hashCode() : 0);
+    result = 31 * result + (memberType != null ? memberType.hashCode() : 0);
+    result = 31 * result + (documentation != null ? documentation.hashCode() : 0);
+    return result;
+  }
 }
