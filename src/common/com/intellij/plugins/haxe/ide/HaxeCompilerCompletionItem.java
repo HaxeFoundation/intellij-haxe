@@ -76,10 +76,12 @@ public class HaxeCompilerCompletionItem {
 
     Icon icon = "var".equals(this.memberType) ? HaxeIcons.Field_Haxe : HaxeIcons.Method_Haxe;
 
-    LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(this)
+    LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(this, this.name)
         .withIcon(icon)
         .withPresentableText(presentableText.toString())
-        .withTailText(" " + this.documentation);
+        .withTailText(" " + this.memberType, true)
+        .withBoldness(true)
+        .withTypeText(this.documentation, true);
 
     return lookupElementBuilder;
   }

@@ -281,12 +281,14 @@ public class HaxeCompilerServices {
 
         timeLog.stamp("Calling compiler");
         List<String> stderr = new ArrayList<String>();
+        List<String> stdout = new ArrayList<String>();
         int status = HaxeCompilerUtil.runInterruptibleCompileProcess(commandLineArguments, false,
                                                                      HaxeCompilerUtil.findCompileRoot(file),
                                                                      HaxeSdkUtilBase.getSdkData(moduleForFile),
-                                                                     null, stderr, timeLog);
+                                                                     stdout, stderr, timeLog);
 
-        timeLog.stamp("Compiler finished");
+        timeLog.stamp("Compiler finished. Output found on " + (stdout.isEmpty() ? "" : "stdout ") + (stderr.isEmpty() ? "" : "stderr"));
+        // LOG.debug("Compiler finished. Output found on " + (stdout.isEmpty() ? "" : "stdout ") + (stderr.isEmpty() ? "" : "stderr"));
         if (0 != status) {
             reportErrors(project, stderr);
             return HaxeCompilerCompletionItem.EMPTY_LIST;

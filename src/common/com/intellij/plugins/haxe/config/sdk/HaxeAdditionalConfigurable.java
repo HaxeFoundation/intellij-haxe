@@ -55,7 +55,8 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     return haxeSdkData == null ||
            !myHaxeAdditionalConfigurablePanel.getNekoBinPath().equals(haxeSdkData.getNekoBinPath()) ||
            !myHaxeAdditionalConfigurablePanel.getHaxelibPath().equals(haxeSdkData.getHaxelibPath()) ||
-           myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag() ^ haxeSdkData.getUseCompilerCompletionFlag();
+           myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag() ^ haxeSdkData.getUseCompilerCompletionFlag() ||
+           myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag() ^ haxeSdkData.getRemoveCompletionDuplicatesFlag();
   }
 
   @Override
@@ -69,6 +70,7 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     newData.setNekoBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNekoBinPath()));
     newData.setHaxelibPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHaxelibPath()));
     newData.setUseCompilerCompletionFlag(myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag());
+    newData.setRemoveCompletionDuplicatesFlag(myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag());
 
     final SdkModificator modificator = mySdk.getSdkModificator();
     modificator.setSdkAdditionalData(newData);
@@ -94,6 +96,8 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
       myHaxeAdditionalConfigurablePanel.setHaxelibPath(FileUtil.toSystemDependentName(haxelibPath == null ? "" : haxelibPath));
       final boolean bUseCompilerCompletion = haxeSdkData.getUseCompilerCompletionFlag();
       myHaxeAdditionalConfigurablePanel.setUseCompilerCompletionFlag(bUseCompilerCompletion);
+      final boolean bRemoveDuplicates = haxeSdkData.getRemoveCompletionDuplicatesFlag();
+      myHaxeAdditionalConfigurablePanel.setRemoveCompletionDuplicatesFlag(bRemoveDuplicates);
     }
     myHaxeAdditionalConfigurablePanel.getPanel().repaint();
   }

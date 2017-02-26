@@ -37,10 +37,12 @@ public class HaxeAdditionalConfigurablePanel {
   private JLabel myNekoLabel;
   private TextFieldWithBrowseButton myHaxelibTextField;
   private JLabel myHaxelibLabel;
-  private JCheckBox myUseCompilerCheckBox;
-  private JLabel myCompletionLabel;
-  private JTextArea myNoteWhenUsingCompilerTextArea;
+
   private JPanel myCompletionPanel;
+  private JLabel myCompletionLabel;
+  private JCheckBox myUseCompilerCheckBox;
+  private JCheckBox myRemoveDuplicatesCheckbox;
+  private JTextArea myNoteWhenUsingCompilerTextArea;
 
   public HaxeAdditionalConfigurablePanel() {
     myNekoTextField.getButton().addActionListener(new ActionListener() {
@@ -102,6 +104,14 @@ public class HaxeAdditionalConfigurablePanel {
 
   public boolean getUseCompilerCompletionFlag() {
     return myUseCompilerCheckBox.isSelected();
+  }
+
+  public void setRemoveCompletionDuplicatesFlag(boolean state) {
+    myRemoveDuplicatesCheckbox.setSelected(state);
+  }
+
+  public boolean getRemoveCompletionDuplicatesFlag() {
+    return myRemoveDuplicatesCheckbox.isSelected();
   }
 
 }

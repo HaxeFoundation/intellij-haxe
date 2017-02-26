@@ -31,6 +31,7 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
   private String haxelibPath = "";
 
   private boolean useCompilerCompletionFlag = false;
+  private boolean removeCompletionDuplicatesFlag = true;
 
   public HaxeSdkAdditionalDataBaseImpl() {
   }
@@ -70,5 +71,13 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
 
   public void setUseCompilerCompletionFlag(boolean newState) {
     useCompilerCompletionFlag = newState;
+  }
+
+  public boolean getRemoveCompletionDuplicatesFlag() {
+    return removeCompletionDuplicatesFlag;
+  }
+
+  public void setRemoveCompletionDuplicatesFlag(boolean newState) {
+    removeCompletionDuplicatesFlag = newState;
   }
 }

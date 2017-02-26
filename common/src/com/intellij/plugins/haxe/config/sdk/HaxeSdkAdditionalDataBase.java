@@ -37,4 +37,8 @@ public interface HaxeSdkAdditionalDataBase {
 
   void setUseCompilerCompletionFlag(boolean newState);
 
+  boolean getRemoveCompletionDuplicatesFlag();
+
+  void setRemoveCompletionDuplicatesFlag(boolean newState);
+
 }

@@ -19,17 +19,20 @@ package com.intellij.plugins.haxe.ide;
 
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.completion.scope.CompletionElement;
-import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.plugins.haxe.build.MethodWrapper;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.ProcessingContext;
-import com.intellij.util.containers.ArrayListSet;
-import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -58,7 +61,7 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
                // Run all of the providers so that we can capture all of their results.
                LinkedHashSet<CompletionResult> unfilteredCompletions = result.runRemainingContributors(parameters, false);
                // Now filter out duplicates, etc.
-               Set<CompletionResult> filteredCompletions = filter(unfilteredCompletions);
+               Set<CompletionResult> filteredCompletions = filter(parameters, unfilteredCompletions);
                // Add everything we want to keep to the result set.
                for (CompletionResult keeper : filteredCompletions) {
                  result.passResult(keeper);
@@ -69,17 +72,47 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
            });
   }
 
-  private static Set<CompletionResult> filter(Set<CompletionResult> unfilteredCompletions) {
+  private static Set<CompletionResult> filter(@NotNull CompletionParameters parameters,
+                                              Set<CompletionResult> unfilteredCompletions) {
 
-    if (unfilteredCompletions.size() <= 1) {
-      // Nothing to sort.
+    if (null == unfilteredCompletions || unfilteredCompletions.size() <= 1) {
+      // Nothing to filter.
       return unfilteredCompletions;
     }
 
+    Set<CompletionResult> filtered = unfilteredCompletions;
+
+    if (shouldRemoveDuplicateCompletions(parameters.getOriginalFile())) {
+      filtered = removeDuplicateCompletions(unfilteredCompletions);
+    }
+
+    return filtered;
+  }
+
+  private static String getFunctionName(CompletionResult candidate) {
+    LookupElement el = candidate.getLookupElement();
+    String name = null != el ? el.getLookupString() : null;
+    return name;
+  }
+
+  private static boolean shouldRemoveDuplicateCompletions(PsiFile file) {
+    VirtualFile vFile = file.getVirtualFile();
+    if (null != vFile) { // Can't use in-memory file. TODO: Allow in-memory file for compiler completion.
+      Module module = ModuleUtil.findModuleForFile(vFile, file.getProject());
+
+      HaxeSdkAdditionalDataBase sdkData = HaxeSdkUtil.getSdkData(module);
+      if (null != sdkData) {
+        return sdkData.getRemoveCompletionDuplicatesFlag();
+      }
+    }
+    return true;
+  }
+
+  private static Set<CompletionResult> removeDuplicateCompletions(Set<CompletionResult> unfilteredCompletions) {
     // We sort the elements according to name, giving preference to compiler-provided results
     // if the two names are identical.
     ArrayList<CompletionResult> sorted = new ArrayList<CompletionResult>(unfilteredCompletions);
-    sorted.sort(new Comparator<CompletionResult>() {
+    Arrays.sort(sorted.toArray(new CompletionResult[]{}), new Comparator<CompletionResult>() {
       @Override
       public int compare(CompletionResult o1, CompletionResult o2) {
         LookupElement el1 = o1.getLookupElement();
@@ -97,14 +130,14 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
           Object obj2 = el2.getObject();
 
           comp = obj1 instanceof HaxeCompilerCompletionItem
-               ? (obj2 instanceof HaxeCompilerCompletionItem ? 0 : -1)
-               : (obj2 instanceof HaxeCompilerCompletionItem ? 1 : 0);
+                 ? (obj2 instanceof HaxeCompilerCompletionItem ? 0 : -1)
+                 : (obj2 instanceof HaxeCompilerCompletionItem ? 1 : 0);
         }
         return comp;
       }
     });
 
-    // Now remove duplicates
+    // Now remove duplicates by looping over the list, dropping any that match the entry prior.
     CompletionResult last = null;
     String lastName = null;
     Iterator<CompletionResult> it = sorted.iterator();
@@ -122,11 +155,4 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
 
     return Sets.newCopyOnWriteArraySet(sorted);
   }
-
-  private static String getFunctionName(CompletionResult candidate) {
-    LookupElement el = candidate.getLookupElement();
-    String name = null != el ? el.getLookupString() : null;
-    return name;
-  }
-
 }
