@@ -94,4 +94,8 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testNestedTypedClassesAssignment() throws Throwable {
     doTest(true);
   }
+
+  public void testUnsignedShiftRightAssign() throws Throwable {
+    doTest(true);
+  }
 }
