@@ -365,8 +365,13 @@ arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionTypeWrapper ::= functionTypeOrWrapper functionType*
-private functionTypeOrWrapper ::= typeOrAnonymous | '(' functionTypeWrapper ')'
+private functionTypeOrWrapper ::= '?'? typeOrAnonymous | '(' functionTypeWrapper ')'
 left functionType ::= '->' '?'? typeOrAnonymous
+
+// EMB: I think this would make a more sensible parse tree, but it's a lot of work.
+//private functionArg ::= '?'? (typeOrAnonymous | ('(' functionType ')'))
+//private functionTail ::= typeOrAnonymous | functionType
+//left functionType ::= functionArg '->' (functionArg '->')* functionTail {recoverWhile="functionTypeRecovery" pin=2}
 
 /*
  * Haxe and Java have this backward from each other.

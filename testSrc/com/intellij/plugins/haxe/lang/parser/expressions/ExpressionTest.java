@@ -86,4 +86,7 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testIssue544() throws Throwable {
     doTest(true);
   }
+  public void testOptionalVarOnFunctionType() throws Throwable {
+    doTest(true);
+  }
 }
