@@ -267,7 +267,7 @@ private externAndMaybePrivate1 ::= privateKeyWord? externKeyWord
 private externAndMaybePrivate2 ::= externKeyWord privateKeyWord?
 private externAndMaybePrivate ::= externAndMaybePrivate2 | externAndMaybePrivate1
 
-typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
+typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' typeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= macroClassList? externAndMaybePrivate 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
@@ -283,7 +283,7 @@ classDeclaration ::= macroClassList? privateKeyWord? 'class' componentName gener
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 //'from' | 'to'
-abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' functionTypeWrapper ')')? ((identifier) type)* '{' classBody '}'
+abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' typeWrapper ')')? ((identifier) type)* '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 classBody ::= classBodyPart*
@@ -368,11 +368,16 @@ private functionTypeWrapper ::= functionTypeOrWrapper functionType*
 private functionTypeOrWrapper ::= '?'? typeOrAnonymous | '(' functionTypeWrapper ')'
 left functionType ::= '->' '?'? typeOrAnonymous
 
-// EMB: I think this would make a more sensible parse tree, but it's a lot of work.
-//private functionArg ::= '?'? (typeOrAnonymous | ('(' functionType ')'))
-//private functionTail ::= typeOrAnonymous | functionType
-//left functionType ::= functionArg '->' (functionArg '->')* functionTail {recoverWhile="functionTypeRecovery" pin=2}
+private typeWrapper::= functionTypeWrapper
 
+// EMB: To replace the above four lines.  See issue #575. //////////////////////////////////
+//functionArgument ::=  (typeOrAnonymous | ('(' functionType ')'))
+//private functionOptionalArgument ::= '?'? functionArgument
+//functionType ::= functionOptionalArgument '->' (functionOptionalArgument '->')* functionArgument {pin=2 recoverWhile="functionTypeRecovery"}
+//functionTypeRecovery ::= !('}' | ';' | '>' | '=')
+//
+//private typeWrapper ::= functionType | typeOrAnonymous
+// /////////////////////////////////////////////////////////////////////////////////////////
 /*
  * Haxe and Java have this backward from each other.
  *
@@ -387,13 +392,13 @@ left functionType ::= '->' '?'? typeOrAnonymous
  *
  */
 
-typeTag ::= ':' functionTypeWrapper
+typeTag ::= ':' typeWrapper
 typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
 genericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-typeListPart ::= functionTypeWrapper
+typeListPart ::= typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
@@ -540,7 +545,7 @@ regularExpressionLiteral ::= REG_EXP
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
 parenthesizedExpression ::= '(' (typeCheckExpr | expression | statement) ')'
 
-typeCheckExpr ::= expression ':' functionTypeWrapper
+typeCheckExpr ::= expression ':' typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
@@ -579,7 +584,7 @@ superExpression ::= 'super'
 newExpression ::= 'new' type '(' (expression (',' expression)*)? ')'
 {pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
+castExpression ::= 'cast' (('(' expression ',' typeWrapper ')')  | expression)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*
