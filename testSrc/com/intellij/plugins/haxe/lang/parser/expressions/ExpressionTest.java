@@ -86,4 +86,16 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testIssue544() throws Throwable {
     doTest(true);
   }
+
+  public void testShiftRightAssign() throws Throwable {
+    doTest(true);
+  }
+
+  public void testNestedTypedClassesAssignment() throws Throwable {
+    doTest(true);
+  }
+
+  public void testUnsignedShiftRightAssign() throws Throwable {
+    doTest(true);
+  }
 }

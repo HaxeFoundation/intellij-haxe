@@ -225,13 +225,22 @@ private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro'
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 private ppToken ::= '#if' | "#else" | "#elseif" | "#end" | "#error" | ppConditionalStatement
 
-assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | ('>' '>' '=') | ('>' '>' '>' '=')
+
+/*
+ * Operators.  Priority is ascending; that is: the stuff lower down in the file
+ * is matched before things closer to the top.  Thus, unsignedShiftRight must come
+ * after shiftRight so that it has priority.
+ */
+shiftLeftOperator ::= '<<'
+shiftRightOperator ::= '>' '>' {pin=2}
+unsignedShiftRightOperator ::= '>' '>' '>' {pin=3}
+shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
+shiftAssignOperator ::= shiftOperator '=' {pin=2}
+
+assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | shiftAssignOperator
 compareOperation ::= '==' | '!=' | '<=' | '<' | ('>' '=') | '>'
 bitOperation ::= '|' | '&' | '^'
-shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | '<<'
 
-shiftRightOperator ::= '>' '>'
-unsignedShiftRightOperator ::= '>' '>' '>'
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
@@ -460,11 +469,8 @@ private expression_list_recover ::= !(')' | ']')
 expression ::= fatArrowExpressionWrapper {recoverWhile="expression_recover"}
 private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
-private fatArrowExpressionWrapper ::= assignExpressionWrapper fatArrowExpression*
-left fatArrowExpression ::= '=>' assignExpressionWrapper {pin=1 extends="expression"}
-
-private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression*
-left assignExpression ::= assignOperation iteratorExpressionWrapper
+private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression*
+left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=1 extends="expression"}
 
 private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
 left iteratorExpression ::= '...' ternaryExpressionWrapper
@@ -490,8 +496,16 @@ left shiftExpression ::= shiftOperator additiveExpressionWrapper
 private additiveExpressionWrapper ::= multiplicativeExpressionWrapper additiveExpression*
 left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper
 
-private multiplicativeExpressionWrapper ::= prefixExpression multiplicativeExpression*
-left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper)
+private multiplicativeExpressionWrapper ::= assignExpressionWrapper multiplicativeExpression*
+left multiplicativeExpression ::= ('*' | '/' | '%') assignExpressionWrapper
+
+/* Technically, assignExpressions don't have higher priority than everything else.
+ * But for parsing, this makes sense; otherwise, assignment operators that comprise
+ * multiple lexemes (e.g. '>' '=') have their primary token(s) taken as an operator
+ * while the leftover '=' causes a syntax error because it's not the expected expression.
+ */
+private assignExpressionWrapper ::= prefixExpression assignExpression*
+left assignExpression ::= assignOperation (prefixExpression | suffixExpressionWrapper)
 
 prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
 
