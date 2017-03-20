@@ -77,4 +77,24 @@ public class JpsHaxeSdkAdditionalDataImpl extends JpsElementBase<JpsHaxeSdkAddit
   public void applyChanges(@NotNull JpsHaxeSdkAdditionalDataImpl modified) {
     myAdditionalData = modified.myAdditionalData;
   }
+
+  @Override
+  public boolean getUseCompilerCompletionFlag() {
+    return myAdditionalData.getUseCompilerCompletionFlag();
+  }
+
+  @Override
+  public void setUseCompilerCompletionFlag(boolean newState) {
+    myAdditionalData.setUseCompilerCompletionFlag(newState);
+  }
+
+  @Override
+  public boolean getRemoveCompletionDuplicatesFlag() {
+    return myAdditionalData.getRemoveCompletionDuplicatesFlag();
+  }
+
+  @Override
+  public void setRemoveCompletionDuplicatesFlag(boolean newState) {
+    myAdditionalData.setRemoveCompletionDuplicatesFlag(newState);
+  }
 }

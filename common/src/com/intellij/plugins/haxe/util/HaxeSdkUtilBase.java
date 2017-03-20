@@ -137,6 +137,8 @@ public class HaxeSdkUtilBase {
       processBuilder.directory(workingDirectory);
     }
 
+    // TODO: Add Haxe/haxelib environment variables.  Needed for Mac.
+
     if (haxeSdkData != null && SystemInfo.isMac) {
       final Map<String, String> env = processBuilder.environment();
       final String path = env.get("PATH") + getEnvironmentPathPatch(haxeSdkData);
