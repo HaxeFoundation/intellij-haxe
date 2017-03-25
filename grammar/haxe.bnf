@@ -225,13 +225,22 @@ private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro'
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 private ppToken ::= '#if' | "#else" | "#elseif" | "#end" | "#error" | ppConditionalStatement
 
-assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | ('>' '>' '=') | ('>' '>' '>' '=')
+
+/*
+ * Operators.  Priority is ascending; that is: the stuff lower down in the file
+ * is matched before things closer to the top.  Thus, unsignedShiftRight must come
+ * after shiftRight so that it has priority.
+ */
+shiftLeftOperator ::= '<<'
+shiftRightOperator ::= '>' '>' {pin=2}
+unsignedShiftRightOperator ::= '>' '>' '>' {pin=3}
+shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
+shiftAssignOperator ::= shiftOperator '=' {pin=2}
+
+assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | shiftAssignOperator
 compareOperation ::= '==' | '!=' | '<=' | '<' | ('>' '=') | '>'
 bitOperation ::= '|' | '&' | '^'
-shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | '<<'
 
-shiftRightOperator ::= '>' '>'
-unsignedShiftRightOperator ::= '>' '>' '>'
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
@@ -267,7 +276,7 @@ private externAndMaybePrivate1 ::= privateKeyWord? externKeyWord
 private externAndMaybePrivate2 ::= externKeyWord privateKeyWord?
 private externAndMaybePrivate ::= externAndMaybePrivate2 | externAndMaybePrivate1
 
-typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' functionTypeWrapper ';'?
+typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName genericParam? '=' typeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= macroClassList? externAndMaybePrivate 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
@@ -283,7 +292,7 @@ classDeclaration ::= macroClassList? privateKeyWord? 'class' componentName gener
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 //'from' | 'to'
-abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' functionTypeWrapper ')')? ((identifier) type)* '{' classBody '}'
+abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' typeWrapper ')')? ((identifier) type)* '{' classBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 classBody ::= classBodyPart*
@@ -365,9 +374,19 @@ arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionTypeWrapper ::= functionTypeOrWrapper functionType*
-private functionTypeOrWrapper ::= typeOrAnonymous | '(' functionTypeWrapper ')'
+private functionTypeOrWrapper ::= '?'? typeOrAnonymous | '(' functionTypeWrapper ')'
 left functionType ::= '->' '?'? typeOrAnonymous
 
+private typeWrapper::= functionTypeWrapper
+
+// EMB: To replace the above four lines.  See issue #575. //////////////////////////////////
+//functionArgument ::=  (typeOrAnonymous | ('(' functionType ')'))
+//private functionOptionalArgument ::= '?'? functionArgument
+//functionType ::= functionOptionalArgument '->' (functionOptionalArgument '->')* functionArgument {pin=2 recoverWhile="functionTypeRecovery"}
+//functionTypeRecovery ::= !('}' | ';' | '>' | '=')
+//
+//private typeWrapper ::= functionType | typeOrAnonymous
+// /////////////////////////////////////////////////////////////////////////////////////////
 /*
  * Haxe and Java have this backward from each other.
  *
@@ -382,13 +401,13 @@ left functionType ::= '->' '?'? typeOrAnonymous
  *
  */
 
-typeTag ::= ':' functionTypeWrapper
+typeTag ::= ':' typeWrapper
 typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
 genericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-typeListPart ::= functionTypeWrapper
+typeListPart ::= typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
@@ -460,11 +479,8 @@ private expression_list_recover ::= !(')' | ']')
 expression ::= fatArrowExpressionWrapper {recoverWhile="expression_recover"}
 private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
-private fatArrowExpressionWrapper ::= assignExpressionWrapper fatArrowExpression*
-left fatArrowExpression ::= '=>' assignExpressionWrapper {pin=1 extends="expression"}
-
-private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression*
-left assignExpression ::= assignOperation iteratorExpressionWrapper
+private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression*
+left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=1 extends="expression"}
 
 private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
 left iteratorExpression ::= '...' ternaryExpressionWrapper
@@ -490,16 +506,27 @@ left shiftExpression ::= shiftOperator additiveExpressionWrapper
 private additiveExpressionWrapper ::= multiplicativeExpressionWrapper additiveExpression*
 left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper
 
-private multiplicativeExpressionWrapper ::= prefixExpression multiplicativeExpression*
-left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper)
+private multiplicativeExpressionWrapper ::= assignExpressionWrapper multiplicativeExpression*
+left multiplicativeExpression ::= ('*' | '/' | '%') assignExpressionWrapper
+
+/* Technically, assignExpressions don't have higher priority than everything else.
+ * But for parsing, this makes sense; otherwise, assignment operators that comprise
+ * multiple lexemes (e.g. '>' '=') have their primary token(s) taken as an operator
+ * while the leftover '=' causes a syntax error because it's not the expected expression.
+ */
+private assignExpressionWrapper ::= prefixExpression assignExpression*
+left assignExpression ::= assignOperation (prefixExpression | suffixExpressionWrapper)
 
 prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
 
 private suffixExpressionWrapper ::= value suffixExpression*
 left suffixExpression ::= ('--' | '++')
 
+// Be careful when changing the ordering of the 'or' clauses here.  It matters!!
+// In particular, calllFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
 private value ::= macroClassList? ('untyped' expression
                                                    | 'macro' expression
+                                                   | callFunctionLiteral
                                                    | (literalExpression qualifiedReferenceTail?)
                                                    | ifStatement
                                                    | castExpression qualifiedReferenceTail?
@@ -532,12 +559,13 @@ regularExpressionLiteral ::= REG_EXP
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
 parenthesizedExpression ::= '(' (typeCheckExpr | expression | statement) ')'
 
-typeCheckExpr ::= expression ':' functionTypeWrapper
+typeCheckExpr ::= expression ':' typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
+private callFunctionLiteral ::= functionLiteral callExpression
 private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 left callExpression ::= '(' expressionList? ')'
@@ -570,7 +598,7 @@ superExpression ::= 'super'
 newExpression ::= 'new' type '(' (expression (',' expression)*)? ')'
 {pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-castExpression ::= 'cast' (('(' expression ',' functionTypeWrapper ')')  | expression)
+castExpression ::= 'cast' (('(' expression ',' typeWrapper ')')  | expression)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*

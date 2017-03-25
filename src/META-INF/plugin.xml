@@ -29,7 +29,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.10.1.1 for @plugin.compatibility.description@</version>
+  <version>0.10.1.Test.CompilerCompletion for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
@@ -37,6 +37,13 @@
       <p>Documentation: http://github.com/HaxeFoundation/intellij-haxe/README.md.</p>
       <p>Support: http://github.com/HaxeFoundation/intellij-haxe/issues.</p>
       <p/>
+      <p>Unreleased (Feature test):</p>
+      <ul>
+        <li>Reworked code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
+        <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>
+        <li>Fix parsing when an anonymous function call is defined and immediately executed. (Issue #544)</li>
+        <li>Updated Haxe logo bitmaps.</li>
+      </ul>
       <p>0.10.1.1: (community release)</p)
       <ul>
         <li>Update compatibility for 2016.3.2</li>
@@ -686,15 +693,19 @@
 
     <quoteHandler fileType="Haxe" className="com.intellij.plugins.haxe.ide.HaxeQuoteHandler"/>
 
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeControllingCompletionContributor" order="FIRST"/>
     <completion.contributor language="any" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeMetaTagsCompletionContributor"/>
-    <completion.contributor language="Haxe" order="LAST" implementationClass="com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLDefineCompletionContributor"/>
     <completion.contributor language="XML" implementationClass="com.intellij.plugins.haxe.ide.XmlHaxelibCompletionContributor"/>
+    <!-- Keep the compiler contributor last because it is slow compared to the internal stuff.
+         Don't use order="LAST" because that puts it after the default contributor, which puts up the "No Suggestions"
+         box, and we want compiler error messages to be displayed instead. -->
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 

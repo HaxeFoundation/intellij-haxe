@@ -67,6 +67,18 @@ public class HaxeCompilerError {
     return column;
   }
 
+  public boolean isInformationalMessage() {
+    return CompilerMessageCategory.INFORMATION.equals(category);
+  }
+
+  public boolean isErrorMessage() {
+    return CompilerMessageCategory.ERROR.equals(category);
+  }
+
+  public boolean isWarningMessage() {
+    return CompilerMessageCategory.WARNING.equals(category);
+  }
+
   @Nullable
   public static HaxeCompilerError create(@NotNull String rootPath, final String message) {
     return create(rootPath, message, true);
@@ -116,7 +128,7 @@ public class HaxeCompilerError {
         // match the pattern.
         else if ((m = pGenericError.matcher(message)).matches()) {
           String error = m.group(1).trim();
-          if (isInformationalMessage(error)) {
+          if (matchesInformationalPattern(error)) {
             return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
                                          message.trim(), "", -1, -1);
           }
@@ -188,7 +200,7 @@ public class HaxeCompilerError {
       return msg.toString();
     }
 
-    private static boolean isInformationalMessage(String message) {
+    private static boolean matchesInformationalPattern(String message) {
       Boolean isStatusMessage = pGeneratingStatusMessage.matcher(message).matches();
       Boolean isInfoMessages =  mInformationalMessages.contains(message);
       Boolean isCompilingStatusMessage = pCompilingStatusMessage.matcher(message).matches();
