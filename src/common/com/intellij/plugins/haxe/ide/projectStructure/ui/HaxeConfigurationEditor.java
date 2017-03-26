@@ -19,9 +19,6 @@ package com.intellij.plugins.haxe.ide.projectStructure.ui;
 
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.ide.util.ClassFilter;
-import com.intellij.ide.util.TreeFileChooser;
-import com.intellij.ide.util.TreeFileChooserFactory;
-import com.intellij.ide.util.TreeJavaClassChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -39,16 +36,15 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.config.*;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
+import com.intellij.plugins.haxe.ide.projectStructure.TreeHaxeClassChooserDialog;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -145,7 +141,7 @@ public class HaxeConfigurationEditor {
           }
         }
 
-        TreeJavaClassChooserDialog dialog = new TreeJavaClassChooserDialog(HaxeBundle.message("choose.haxe.main.class"), project, myModule.getModuleScope(), filter, haxeClass);
+        TreeHaxeClassChooserDialog dialog = new TreeHaxeClassChooserDialog(HaxeBundle.message("choose.haxe.main.class"), project, myModule.getModuleScope(), filter, haxeClass);
         dialog.showDialog();
 
         PsiClass selected = dialog.getSelected();
