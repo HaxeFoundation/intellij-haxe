@@ -154,26 +154,6 @@ public class HaxeConfigurationEditor {
         if (selectedFile != null) {
           setChosenFile(selectedFile.getVirtualFile());
         }
-
-
-        //TreeFileChooser fileChooser = TreeFileChooserFactory.getInstance(myModule.getProject()).createFileChooser(
-        //  HaxeBundle.message("choose.haxe.main.class"),
-        //  null,
-        //  HaxeFileType.HAXE_FILE_TYPE,
-        //  new TreeFileChooser.PsiFileFilter() {
-        //    public boolean accept(PsiFile file) {
-        //      return true;
-        //    }
-        //  });
-        //
-        //fileChooser.showDialog();
-        //
-        //PsiFile selectedFile = fileChooser.getSelectedFile();
-        //if (selectedFile != null) {
-        //  setChosenFile(selectedFile.getVirtualFile());
-        //}
-
-        //TreeJavaClassChooserDialog.withInnerClasses("", myModule.getProject(), GlobalSearchScope.moduleScope(myModule), ClassFilter.ALL, null).show();
       }
     });
 
