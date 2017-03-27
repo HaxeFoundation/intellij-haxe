@@ -1,0 +1,5 @@
+package ${PACKAGE_NAME};
+class ${NAME} {
+    public static function main() {
+    }
+}

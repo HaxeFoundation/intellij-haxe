@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
@@ -39,28 +40,28 @@ import java.util.Properties;
 public class HaxeFileTemplateUtil {
   private final static String HAXE_TEMPLATE_PREFIX = "Haxe";
 
-  public static List<FileTemplate> getApplicableTemplates() {
+  public static List<FileTemplate> getApplicableTemplates(Project project) {
     return getApplicableTemplates(new Condition<FileTemplate>() {
       @Override
       public boolean value(FileTemplate fileTemplate) {
         return HaxeFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension());
       }
-    });
+    }, project);
   }
 
-  public static List<FileTemplate> getNMMLTemplates() {
+  public static List<FileTemplate> getNMMLTemplates(Project project) {
     return getApplicableTemplates(new Condition<FileTemplate>() {
       @Override
       public boolean value(FileTemplate fileTemplate) {
         return NMMLFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension());
       }
-    });
+    }, project);
   }
 
-  public static List<FileTemplate> getApplicableTemplates(Condition<FileTemplate> filter) {
+  public static List<FileTemplate> getApplicableTemplates(Condition<FileTemplate> filter, Project project) {
     List<FileTemplate> applicableTemplates = new SmartList<FileTemplate>();
-    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance().getInternalTemplates(), filter));
-    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance().getAllTemplates(), filter));
+    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance(project).getInternalTemplates(), filter));
+    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance(project).getAllTemplates(), filter));
     return applicableTemplates;
   }
 
@@ -88,11 +89,12 @@ public class HaxeFileTemplateUtil {
 
   public static PsiElement createClass(String className, String packageName, PsiDirectory directory, String templateName, @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader)
     throws Exception {
-    final Properties props = new Properties(FileTemplateManager.getInstance().getDefaultProperties(directory.getProject()));
+    Project project = directory.getProject();
+    final Properties props = new Properties(FileTemplateManager.getInstance(project).getDefaultProperties());
     props.setProperty(FileTemplate.ATTRIBUTE_NAME, className);
     props.setProperty(FileTemplate.ATTRIBUTE_PACKAGE_NAME, packageName);
 
-    final FileTemplate template = FileTemplateManager.getInstance().getInternalTemplate(templateName);
+    final FileTemplate template = FileTemplateManager.getInstance(project).getInternalTemplate(templateName);
 
     return FileTemplateUtil.createFromTemplate(template, className, props, directory, classLoader);
   }

@@ -29,6 +29,8 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectType;
+import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -41,6 +43,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
@@ -573,13 +576,20 @@ public class HaxelibProjectUpdater  {
   @NotNull
   private void syncProjectClasspath(@NotNull ProjectTracker tracker) {
     HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("syncProjectClasspath");
-    timeLog.stamp("Start synchronizing project " + tracker.getProject().getName());
+    Project project = tracker.getProject();
+    timeLog.stamp("Start synchronizing project " + project.getName());
 
-    Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
+    Sdk sdk = HaxelibSdkUtils.lookupSdk(project);
+    boolean isHaxeSDK = sdk.getSdkType().equals(HaxeSdkType.getInstance());
+
+    if (!isHaxeSDK) {
+      return;
+    }
+
     HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
     HaxeClasspath currentProjectClasspath = HaxelibClasspathUtils.getProjectLibraryClasspath(
-      tracker.getProject());
-    List<String> currentLibraryNames = HaxelibClasspathUtils.getProjectLibraryNames(tracker.getProject(), true);
+      project);
+    List<String> currentLibraryNames = HaxelibClasspathUtils.getProjectLibraryNames(project, true);
     HaxeClasspath haxelibClasspaths = libCache.getClasspathForHaxelibs(currentLibraryNames);
 
     // Libraries that we want to remove are those specified as 'haxelib' entries and are
