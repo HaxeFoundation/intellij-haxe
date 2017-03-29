@@ -205,7 +205,9 @@ private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | ke
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
 autoBuildMacro ::= '@:autoBuild' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
-requireMeta ::=  '@:require' '(' identifier (',' identifier)* ')'
+private haxeVerExpr ::= 'haxe_ver' compareOperation LITFLOAT
+private identifierList ::= identifier (',' identifier)*
+requireMeta ::=  '@:require' '(' (haxeVerExpr | identifierList) ')'
 fakeEnumMeta ::=  '@:fakeEnum' '(' type ')'
 nativeMeta ::=  '@:native' '(' stringLiteralExpression ')'
 bitmapMeta ::= '@:bitmap' '(' stringLiteralExpression ')'

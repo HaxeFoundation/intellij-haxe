@@ -7,6 +7,8 @@ Haxe File
 @:meta(Event(name="test",type="Foo"))
 @:bitmap("myfile.png")
 @:build(MacroGenerator.build())
+@:require(dep1, dep2, dep3)
+@:require(haxe_ver >= 3.2)
 @superClass("user name", {name:"user"})
       MACRO_CLASS
         SIMPLE_META
@@ -85,6 +87,29 @@ Haxe File
                   PsiJavaToken:ID('build')
             PsiJavaToken:(('(')
             PsiJavaToken:)(')')
+          PsiJavaToken:)(')')
+      MACRO_CLASS
+        REQUIRE_META
+          PsiJavaToken:@:require('@:require')
+          PsiJavaToken:(('(')
+          IDENTIFIER
+            PsiJavaToken:ID('dep1')
+          PsiJavaToken:,(',')
+          IDENTIFIER
+            PsiJavaToken:ID('dep2')
+          PsiJavaToken:,(',')
+          IDENTIFIER
+            PsiJavaToken:ID('dep3')
+          PsiJavaToken:)(')')
+      MACRO_CLASS
+        REQUIRE_META
+          PsiJavaToken:@:require('@:require')
+          PsiJavaToken:(('(')
+          PsiJavaToken:ID('haxe_ver')
+          COMPARE_OPERATION
+            PsiJavaToken:>('>')
+            PsiJavaToken:=('=')
+          PsiJavaToken:LITFLOAT('3.2')
           PsiJavaToken:)(')')
       MACRO_CLASS
         CUSTOM_META

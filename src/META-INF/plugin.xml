@@ -39,6 +39,8 @@
       <p/>
       <p>Unreleased (Feature test):</p>
       <ul>
+        <li>Support for `@:require` haxe_ver comparing (issue #418)</li>
+        <li>Support for `@:require` and `@:jsRequire` with multiple arguments</li>
         <li>Reworked code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
         <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>
         <li>Fix parsing when an anonymous function call is defined and immediately executed. (Issue #544)</li>

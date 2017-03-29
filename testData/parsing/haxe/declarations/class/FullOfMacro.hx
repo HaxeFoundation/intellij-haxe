@@ -5,6 +5,8 @@
 @:meta(Event(name="test",type="Foo"))
 @:bitmap("myfile.png")
 @:build(MacroGenerator.build())
+@:require(dep1, dep2, dep3)
+@:require(haxe_ver >= 3.2)
 @superClass("user name", {name:"user"})
 class FullOfMacro {
   @customUser
