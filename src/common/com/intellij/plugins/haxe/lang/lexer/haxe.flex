@@ -90,8 +90,8 @@ DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?
 COMMENT_TAIL=([^"*"]*("*"+[^"*""/"])?)*("*"+"/")?
 END_OF_LINE_COMMENT="/""/"[^\r\n]*
 
-CONDITIONAL_IF = "#if" [\t\ ]+ "!"? (("(" [^\r\n]+ ")") | ([^\r\n\t\ ]+))
-CONDITIONAL_ELSEIF = "#elseif" [\t\ ]+ "!"? [^\r\n\t\ ]+
+CONDITIONAL_IF = "#if" [\t\ ]+ "!"? (("(" [^\r\n\#]+ ")") | [^\r\n\t\# ]+)
+CONDITIONAL_ELSEIF = "#elseif" [\t\ ]+ "!"? [^\r\n\t\# ]+
 //CONDITIONAL_END = "#end"
 
 //(("!"?[a-zA-Z]+) | ()?
