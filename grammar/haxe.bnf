@@ -83,6 +83,7 @@
     ppELSEIF="#elseif"
     ppEND="#end"
     ppERROR="#error"
+    ppLINE="#line"
 
     kBREAK="break"
     kDEFAULT="default"
@@ -175,6 +176,8 @@
 }
 
 haxeFile ::= packageStatement? topLevelList
+
+private unusedRuleToForceSomeTokenTypesToBeGenerated ::= "Add new tokens here -->" ">=" "<-- Add new tokens here"
 
 /*
   http://haxe.org/manual/metadata
