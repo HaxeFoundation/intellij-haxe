@@ -226,7 +226,7 @@ jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression ')'
 private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire'
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
-private ppToken ::= '#if' | "#else" | "#elseif" | "#end" | "#error" | ppConditionalStatement
+private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
 
 
 /*

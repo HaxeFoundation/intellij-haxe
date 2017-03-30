@@ -50,7 +50,7 @@ public class HaxeConditionalCompilationLexerSupport {
       ROOT
     }
     public static Type deriveBlockType(@Nullable IElementType el) {
-      if (null == el) {
+      if (null == el || el == TokenType.DUMMY_HOLDER) {
         return Type.ROOT;
       }
       if (el == HaxeTokenTypes.PPIF)          { return Type.IF; }
@@ -213,7 +213,8 @@ public class HaxeConditionalCompilationLexerSupport {
     private Block rootBlock;
     public RootSection() {
       super(null, null);
-      rootBlock = new Block(this, TokenType.DUMMY_HOLDER);
+      rootBlock = this.currentBlock();
+      rootBlock.setActive(Block.ActiveState.ACTIVE);
     }
 
     @Override
@@ -280,10 +281,8 @@ public class HaxeConditionalCompilationLexerSupport {
 
   /**
    * Starts _condition_ processing
-   * @param chars
-   * @param type
    */
-  public void conditionStart(CharSequence chars, IElementType type) {
+  public void conditionStart() {
     // Anything to do here??
   }
 
@@ -291,7 +290,10 @@ public class HaxeConditionalCompilationLexerSupport {
    * Ends _condition_ processing.
    */
   public void conditionEnd() {
-    // Anything to do here??
+    HaxeConditionalCompilationCondition condition = getCurrentBlock().getCondition();
+    if (null != condition && !condition.isComplete()) {
+       LOG.debug("Ending condition before it is complete: '" + condition.toString() + "'");
+    }
   }
 
   /**
@@ -302,18 +304,17 @@ public class HaxeConditionalCompilationLexerSupport {
    * @return true if it is OK to continue appending (condition is incomplete);
    *         false if there should be no further appending..
    */
-  public boolean conditionAppend(CharSequence chars, IElementType type) {
+  public void conditionAppend(CharSequence chars, IElementType type) {
     HaxeConditionalCompilationCondition condition = getCurrentBlock().getCondition();
     if (null == condition) {
       LOG.warn("Lexer is adding tokens to a conditional compilation block that has no condition.");
-      return false;
+      return;
     }
     if (condition.isComplete()) {
       LOG.warn("Lexer is adding tokens to a conditional compilation block with an already completed condition.");
-      return false;
+      return;
     }
     condition.extend(chars.toString(), type);
-    return condition.isComplete();
   }
 
   /**
@@ -325,14 +326,23 @@ public class HaxeConditionalCompilationLexerSupport {
     if (null == condition) {
       return false;
     }
-    return condition.isComplete();
+    boolean complete = condition.isComplete();
+    return complete;
   }
 
   /**
    * Map tokens to comments, as appropriate.
    */
   public IElementType mapToken(IElementType type) {
-    // TODO!!  Map the elements to a comment type if the current state is inactive.
+
+    // Special things that we don't map.
+    if (HaxeTokenTypeSets.WHITESPACES.contains(type)) {
+      return type;
+    }
+
+    if (!currentContextIsActive()) {
+      return HaxeTokenTypeSets.PPBODY;
+    }
     return type;
   }
 

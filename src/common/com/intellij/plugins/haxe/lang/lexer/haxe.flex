@@ -6,9 +6,16 @@ import java.util.*;
 import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import com.intellij.plugins.haxe.lang.lexer.HaxeConditionalCompilationLexerSupport;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 
 %%
 %{
+    static final String classname = new Object(){}.getClass().getEnclosingClass().getName();
+    static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + classname);
+    static {      // Take this out when finished debugging.
+      LOG.setLevel(org.apache.log4j.Level.DEBUG);
+    }
+
     private static final class State {
         final int lBraceCount;
         final int state;
@@ -83,12 +90,14 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeConditionalCompilationLexerSuppo
 
     // These deal with the state of lexing the *condition* for compiler conditionals
     private void conditionStart() { pushState(COMPILER_CONDITIONAL); ccsupport.conditionStart(); }
-    private void conditionEnd() { ccsupport.conditionEnd(); }
+    private void conditionEnd() { ccsupport.conditionEnd(); popState(); }
     private boolean conditionIsComplete() { return ccsupport.conditionIsComplete(); }
-    private void conditionAppend(IElementType type) {
-        if (!ccsupport.conditionAppend(yytext(),type)) {
-            popState();
+    private IElementType conditionAppend(IElementType type) {
+        ccsupport.conditionAppend(yytext(),type);
+        if (ccsupport.conditionIsComplete()) {
+            conditionEnd();
         }
+        return PPEXPRESSION;
     }
 
     public _HaxeLexer() {
@@ -112,7 +121,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeConditionalCompilationLexerSuppo
 %xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL
 
 WHITE_SPACE_CHAR=[\ \n\r\t\f]
-WHITE_SPACE={WHITE_SPACE_CHAR}+
+//WHITE_SPACE={WHITE_SPACE_CHAR}+
 
 mLETTER = [:letter:] | "_"
 mDIGIT = [:digit:]
@@ -139,9 +148,6 @@ mREG_EXP = "~/" ([^"/"] | {ESCAPE_SEQUENCE})* "/" [igmsu]*
 mFLOAT_EXPONENT = [eE] [+-]? {mDIGIT}+
 mNUM_FLOAT = ( (({mDIGIT}* "." {mDIGIT}+) | ({mDIGIT}+ "." {mDIGIT}*)) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
 
-mCONST_TRUE = "true"
-mCONST_FALSE = "false"
-
 /*
     Strings with templates
 */
@@ -164,12 +170,12 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
     "macro", "this", and "null" are all identifiers as far as CC is concerned.
  */
 CONDITIONAL_IDENTIFIER={IDENTIFIER_NO_DOLLAR}
-CONDITIONAL_NUMBER_PREFIX=("-"|"+")
-CONDITIONAL_NUMBER={CONDITIONAL_NUMBER_PREFIX}? ({mNUM_FLOAT}|{mNUM_HEX}|{mNUM_INT}|{mNUM_OCT})
-CONDITIONAL_NEGATION="!"
-CONDITIONAL_COMPARISON_OPERATOR=("=="|"!="|">"|">="|"<"|"<=")
-CONDITIONAL_OPERATOR=("||" | "&&" | {CONDITIONAL_COMPARISON_OPERATOR})
-CONDITIONAL_CONSTANT=({CONDITIONAL_IDENTIFIER}|{CONDITIONAL_NUMBER}|{mCONST_FALSE}|{mCONST_TRUE})
+//CONDITIONAL_NUMBER_PREFIX=("-"|"+")
+//CONDITIONAL_NUMBER={CONDITIONAL_NUMBER_PREFIX}? ({mNUM_FLOAT}|{mNUM_HEX}|{mNUM_INT}|{mNUM_OCT})
+//CONDITIONAL_NEGATION="!"
+//CONDITIONAL_COMPARISON_OPERATOR=("=="|"!="|">"|">="|"<"|"<=")
+//CONDITIONAL_OPERATOR=("||" | "&&" | {CONDITIONAL_COMPARISON_OPERATOR})
+//CONDITIONAL_CONSTANT=({CONDITIONAL_IDENTIFIER}|{CONDITIONAL_NUMBER}|{mCONST_FALSE}|{mCONST_TRUE})
 //CONDITIONAL_EXPRESSION_PART={CONDITIONAL_NEGATION}? {WHITE_SPACE}* ({CONDITIONAL_CONSTANT}|{CONDITIONAL_PARENTHESIZED_EXPRESSION})
 //CONDITIONAL_SIMPLE_EXPRESSION={CONDITIONAL_EXPRESSION_PART} {WHITE_SPACE}* {CONDITIONAL_OPERATOR} {WHITE_SPACE}* {CONDITIONAL_EXPRESSION_PART}
 //CONDITIONAL_PARENTHESIZED_EXPRESSION="(" ({CONDITIONAL_EXPRESSION_PART}|({CONDITIONAL_SIMPLE_EXPRESSION}+)) ")"
@@ -364,10 +370,10 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 ">"                                       { return emitToken( OGREATER); }
 
 //{CONDITIONAL_IF} | {CONDITIONAL_ELSEIF}                          { return emitToken( CONDITIONAL_STATEMENT_ID); }
-"#if"                                     { return processConditional(PPIF); }
 "#end"                                    { return processConditional(PPEND); }
 "#elseif"                                 { return processConditional(PPELSEIF); }
 "#else"                                   { return processConditional(PPELSE); }
+"#if"                                     { return processConditional(PPIF); }
 } // <YYINITIAL, LONG_TEMPLATE_ENTRY>
 
 // "
@@ -386,7 +392,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 <QUO_STRING> {LONELY_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
 <QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return emitToken( LONG_TEMPLATE_ENTRY_START); }
 
-// '
+// Support single quote strings: "'"
 
 <YYINITIAL, LONG_TEMPLATE_ENTRY> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
 <APOS_STRING> \'                 { popState(); return emitToken( CLOSING_QUOTE); }
@@ -409,45 +415,42 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 <SHORT_TEMPLATE_ENTRY> "this"          { popState(); return emitToken( KTHIS); }
 <SHORT_TEMPLATE_ENTRY> {IDENTIFIER_NO_DOLLAR}    { popState(); return emitToken( ID); }
 
-
+// Parses the *condition* in a compiler conditional construct (e.g. #if <condition> ...)
 <COMPILER_CONDITIONAL> {
 
-{CONDITIONAL_IDENTIFIER}                  { conditionAppend(); emitToken( ID); }
+{WHITE_SPACE_CHAR}+                       { return com.intellij.psi.TokenType.WHITE_SPACE;}
 
-{mNUM_FLOAT} / [^"."]                     { conditionAppend(); emitToken( LITFLOAT); }
-{mNUM_OCT}                                { conditionAppend(); emitToken( LITOCT); }
-{mNUM_HEX}                                { conditionAppend(); emitToken( LITHEX); }
-{mNUM_INT}                                { conditionAppend(); emitToken( LITINT); }
+"true"                                    { return conditionAppend( KTRUE ); }
+"false"                                   { return conditionAppend( KFALSE ); }
 
-"("                                       { conditionAppend(); emitToken( PLPAREN); }
-")"                                       { conditionAppend(); emitToken( PRPAREN); }
+{CONDITIONAL_IDENTIFIER}                  { return conditionAppend( ID ); }
 
-"!="                                      { conditionAppend(); emitToken( ONOT_EQ); }
-"!"                                       { conditionAppend(); emitToken( ONOT); }
+{mNUM_FLOAT} / [^"."]                     { return conditionAppend( LITFLOAT ); }
+{mNUM_OCT}                                { return conditionAppend( LITOCT ); }
+{mNUM_HEX}                                { return conditionAppend( LITHEX ); }
+{mNUM_INT}                                { return conditionAppend( LITINT ); }
 
-">="                                      { conditionAppend(); emitToken( OGREATER_OR_EQUAL); }
-">"                                       { conditionAppend(); emitToken( OGREATER); }
+"("                                       { return conditionAppend( PLPAREN ); }
+")"                                       { return conditionAppend( PRPAREN ); }
 
-"<="                                      { conditionAppend(); emitToken( OLESS_OR_EQUAL); }
-"<"                                       { conditionAppend(); emitToken( OLESS); }
+"!="                                      { return conditionAppend( ONOT_EQ ); }
+"!"                                       { return conditionAppend( ONOT ); }
 
-"&&"                                      { conditionAppend(); emitToken( OCOND_AND); }
-"||"                                      { conditionAppend(); emitToken( OCOND_OR); }
+">="                                      { return conditionAppend( OGREATER_OR_EQUAL); }
+">"                                       { return conditionAppend( OGREATER); }
 
-"true"                                    { conditionAppend(); emitToken( KTRUE );  }
-"false"                                   { conditionAppend(); emitToken( KFALSE );  }
+"<="                                      { return conditionAppend( OLESS_OR_EQUAL); }
+"<"                                       { return conditionAppend( OLESS); }
 
-// Maybe use these if they pop up in the middle of a conditional test.
-//"#end"                                    { conditional_end();    emitToken( PPEND); }
-//"#elseif"                                 { conditional_elseif(); emitToken( PPELSEIF); }
-//"#else"                                   { conditional_else();   emitToken( PPELSE); }
-//"#if"                                     { conditional_start();  emitToken( PPIF); }
+"&&"                                      { return conditionAppend( OCOND_AND); }
+"||"                                      { return conditionAppend( OCOND_OR); }
 
 // Any other token is an error which needs to kill this state and be processed normally.
 .                                         {
+                                            LOG.debug("Bad termination of PP condition: \"" + yytext() + "\"");
+                                            yypushback(1);
                                             conditionEnd();
-                                            yypushback(yylength() - 1);
-                                            return COMPILER_CONDITIONAL_END;
+                                            return PPBODY;
                                           }
 }
 

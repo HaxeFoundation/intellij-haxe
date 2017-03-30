@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by ebishton on 2/19/15.
@@ -64,28 +65,48 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
   @Nullable
   @Override
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull final InspectionManager manager, final boolean isOnTheFly) {
+
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
+    final ProblemReporter reporter = new ProblemReporter() {
+      @Override
+      public void reportProblem(ASTNode node, String message) {
+        result.add( manager.createProblemDescriptor( node.getPsi(),
+                                                     message,
+                                                     (LocalQuickFix)null,
+                                                     ProblemHighlightType.ERROR,
+                                                     isOnTheFly));
+      }
+    };
 
     FileASTNode node1 = file.getNode();
     LeafElement firstLeaf = TreeUtil.findFirstLeaf(node1);
 
     int conditionalCount = 0;
 
+    Stack<List<ASTNode>> levels = new Stack<List<ASTNode>>();
     List<ASTNode> nodes = new ArrayList<ASTNode>();
+    // Push the root node, just in case there is no #if to start it off.
+    levels.push(nodes);
 
     ASTNode leaf = firstLeaf;
     while (leaf != null) {
       IElementType leafElementType = leaf.getElementType();
 
-      if (leafElementType.equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
-        if (leaf.getText().startsWith(HaxeTokenTypes.PPIF.toString())) {
-          conditionalCount++;
-        }
+      if (leafElementType.equals(HaxeTokenTypes.PPIF)) {
+        conditionalCount++;
+        nodes = new ArrayList<ASTNode>();
+        levels.push(nodes);
         nodes.add(leaf);
       }
       else if (leafElementType.equals(HaxeTokenTypes.PPEND)) {
         conditionalCount--;
         nodes.add(leaf);
+        // Leave the base level in place, even if there are extra ends.
+        if (levels.size() > 1) {
+          validateLevel(nodes, reporter);
+          levels.pop();
+          nodes = levels.peek();
+        }
       }
       else if (leafElementType.equals(HaxeTokenTypes.PPELSE) || leafElementType.equals(HaxeTokenTypes.PPELSEIF)) {
         nodes.add(leaf);
@@ -93,35 +114,63 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
       leaf = TreeUtil.nextLeaf(leaf);
     }
 
-    if (conditionalCount != 0) {
-      int currentLevel = 0;
-      for (int i = 0, size = nodes.size(); i < size; i++) {
-        ASTNode astNode = nodes.get(i);
-        IElementType nodeType = astNode.getElementType();
-
-        if (nodeType.equals(HaxeTokenTypes.CONDITIONAL_STATEMENT_ID)) {
-          currentLevel++;
-        }
-
-        if (currentLevel <= conditionalCount || currentLevel <= 0) {
-          result.add( manager.createProblemDescriptor( astNode.getPsi(),
-                                                       "Unbalanced Preprocessing Directive",
-                                                       (LocalQuickFix)null,
-                                                       ProblemHighlightType.ERROR,
-                                                       isOnTheFly));
-        }
-
-        if (nodeType.equals(HaxeTokenTypes.PPEND)) {
-          currentLevel--;
-        }
-        //else { // (astNode.getElementType().equals(HaxeTokenTypes.PPELSEIF) || astNode.getElementType().equals(HaxeTokenTypes.PPELSE))
-        //}
-
-
-      }
+    // Any levels that are still left need to be validated.
+    for (List<ASTNode> level : levels) {
+      validateLevel(level, reporter);
     }
 
     return ArrayUtil.toObjectArray(result, ProblemDescriptor.class);
+  }
+
+  private void validateLevel(List<ASTNode> nodes, @NotNull ProblemReporter reporter) {
+
+    if (nodes.isEmpty()) {
+      return;
+    }
+
+    // #if better be first.  #end better be last.
+    ASTNode node = nodes.get(0);
+    if (node.getElementType() != HaxeTokenTypes.PPIF) {
+      markAllNodes(nodes, "Missing #\bif for this conditional compiler directive.", reporter);
+    }
+    node = nodes.get(nodes.size()-1);
+    if (node.getElementType() != HaxeTokenTypes.PPEND) {
+      markAllNodes(nodes, "Missing #\bend for this conditional compiler directive.", reporter);
+    }
+
+    node = null;
+    boolean sawElse = false;
+    boolean sawEnd = false;
+    for (ASTNode current : nodes) {
+      if (current.getElementType() == HaxeTokenTypes.PPELSEIF) {
+        if (sawElse) {
+          reporter.reportProblem(current, "#\belseif follows #\belse.  This conditional section cannot be reached.");
+        }
+        // Could also detect multiple elseif blocks with the same or similar conditions.
+      } else if (current.getElementType() == HaxeTokenTypes.PPELSE) {
+        if (sawElse) {
+          reporter.reportProblem(current, "Multiple #\belse sections for this compiler conditional.  This section cannot be reached.");
+        }
+        sawElse = true;
+      } else if (current.getElementType() == HaxeTokenTypes.PPEND) {
+        if (sawEnd) {
+          reporter.reportProblem(current, "Duplicate #\bend. Missing #\bif for this conditional compiler directive?");
+        }
+        sawEnd = true;
+      }
+      node = current;
+    }
+  }
+
+  private void markAllNodes(@NotNull List<ASTNode> nodes, @NotNull String message, @NotNull ProblemReporter reporter) {
+    for (ASTNode node : nodes) {
+      reporter.reportProblem(node, message);
+    }
+  }
+
+
+  private abstract static class ProblemReporter {
+    public abstract void reportProblem(ASTNode node, String message);
   }
 
 }

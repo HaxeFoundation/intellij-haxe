@@ -79,21 +79,6 @@ public class HaxeConditionalCompilationCondition {
   private boolean evaluated = false;
   private boolean evalResult = false;
 
-  // Might be better to use predefined token types instead of redefining them here...
-  static final String TRUE = "true";
-  static final String FALSE = "false";
-  static final String LPAREN = "(";
-  static final String RPAREN = ")";
-  static final String NEGATION = "!";
-  static final String OR = "||";
-  static final String AND = "&&";
-  static final String EQ = "==";
-  static final String LT = "<";
-  static final String LE = "<=";
-  static final String GE = ">=";
-  static final String GT = ">";
-  static final String NE = "!=";
-
   public HaxeConditionalCompilationCondition(@Nullable ArrayList<Token> startTokens) {
     if (startTokens != null) {
       tokens.addAll(startTokens);
@@ -178,8 +163,8 @@ public class HaxeConditionalCompilationCondition {
   }
 
   private boolean isIdentifier(Token t) {
-    String text = t != null ? t.getText() : null;
-    return !(isOperator(t) || isNegation(t) || isParen(t) || isNumber(t) || isParen(t));
+    // return !(isOperator(t) || isNegation(t) || isParen(t) || isNumber(t) || isTrueKeyword(t) || isFalseKeyword(t));
+    return t.getTokenType().equals(HaxeTokenTypes.ID);
   }
 
   public boolean isTrue() {
@@ -205,6 +190,10 @@ public class HaxeConditionalCompilationCondition {
     return parenCount == 0;
   }
 
+  private boolean tokenCanStandAlone(Token t) {
+    return isIdentifier(t) || isTrueKeyword(t) || isFalseKeyword(t) || isNumber(t);
+  }
+
   public boolean isComplete() {
     if (tokens.isEmpty()) {
       return false;
@@ -212,11 +201,12 @@ public class HaxeConditionalCompilationCondition {
 
     Token first = tokens.get(0);
     if (tokens.size() == 1) {
-      return isIdentifier(first);
+      return tokenCanStandAlone(first);
     }
     if (tokens.size() == 2) {
       Token second = tokens.get(1);
-      return isNegation(first) && isIdentifier(second);
+      boolean secondIsStandalone = tokenCanStandAlone(second);
+      return isNegation(first) && secondIsStandalone;
     }
     return areParensBalanced();
   }
