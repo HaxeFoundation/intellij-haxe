@@ -36,6 +36,26 @@ import java.util.regex.Pattern;
  */
 public class HaxeConditionalCompilationCondition {
 
+  // Here is a set of rules to parse conditions, if we ever want to run them
+  // through a parser:
+  //    ppIdentifier ::= identifier
+  //    private ppNumberPrefix ::= "-"
+  //    ppNumber ::= ppNumberPrefix? (LITINT | LITHEX | LITOCT | LITFLOAT)
+  //    private ppNegation ::= "!"
+  //    private ppComparisonOperator ::= ("=="|"!="|">"|">="|"<"|"<=")
+  //    left ppOperator ::= ("||" | "&&" | ppComparisonOperator)
+  //    ppLiteral ::= ppIdentifier | ppNumber | KTRUE | KFALSE
+  //    private ppSimpleExpression ::= ppNegation? (ppParenthesizedExpression | ppLiteral)
+  //    left ppExpression ::=  ppSimpleExpression (ppOperator ppSimpleExpression)*
+  //    private ppParenthesizedExpression ::= '(' ppExpression ')'
+  //
+  //    private pp_statement_recover ::= !(ppStatement | ';' | '[' | ']' | '{' | '}' | assignOperation | bitOperation)
+  //    private ppStatementWithCondition ::= ("#if" | "#elseif") ppExpression {pin=1 recoverWhile="pp_statement_recover"}
+  //    private ppStatementWithoutCondition ::= "#else" | "#end"  {recoverWhile="pp_statement_recover"}
+  //    private ppStatementWithComment ::= "#line" | "#error"  {pin=1 recoverWhile="!\n"}
+  //    ppStatement ::= ppStatementWithCondition | ppStatementWithoutCondition | ppStatementWithComment {extends="com.intellij.psi.PsiComment"}
+
+
   private final ArrayList<ASTNode> tokens = new ArrayList<ASTNode>();
   private boolean evaluated = false;
   private boolean evalResult = false;
