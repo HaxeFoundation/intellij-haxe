@@ -17,6 +17,9 @@
  */
 package com.intellij.plugins.haxe.lang.lexer;
 
+import com.intellij.lang.ASTFactory;
+import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
@@ -33,61 +36,19 @@ import java.util.regex.Pattern;
  */
 public class HaxeConditionalCompilationCondition {
 
-  /**
-   * Small class to manage the String,Type tuple.
-   * XXX: This can be replaced by an ASTNode or similar, except that's got a lot of unnecessary functionality.
-   *      See HaxeASTFactory.createLeaf() for something usable.
-   */
-  public static final class Token {
-    private String text;
-
-    private IElementType tokenType;
-
-    public Token(@NotNull String s, @NotNull IElementType type) {
-      text = s;
-      tokenType = type;
-    }
-
-    public String getText() {
-      return text;
-    }
-
-    public IElementType getTokenType() {
-      return tokenType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      Token token = (Token)o;
-
-      if (!text.equals(token.text)) return false;
-      return tokenType.equals(token.tokenType);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = text.hashCode();
-      result = 31 * result + tokenType.hashCode();
-      return result;
-    }
-  }
-
-  private final ArrayList<Token> tokens = new ArrayList<Token>();
+  private final ArrayList<ASTNode> tokens = new ArrayList<ASTNode>();
   private boolean evaluated = false;
   private boolean evalResult = false;
 
-  public HaxeConditionalCompilationCondition(@Nullable ArrayList<Token> startTokens) {
+  public HaxeConditionalCompilationCondition(@Nullable ArrayList<ASTNode> startTokens) {
     if (startTokens != null) {
       tokens.addAll(startTokens);
     }
   }
 
-  private boolean isOperator(Token t) {
+  private boolean isOperator(ASTNode t) {
     if (null != t) {
-      IElementType type = t.getTokenType();
+      IElementType type = t.getElementType();
       if (t.equals(HaxeTokenTypes.OCOND_OR)
           || t.equals(HaxeTokenTypes.OCOND_AND)
           || t.equals(HaxeTokenTypes.OEQ)
@@ -102,13 +63,13 @@ public class HaxeConditionalCompilationCondition {
     return false;
   }
 
-  private boolean isNegation(Token t) {
-    return (t != null) ? t.getTokenType().equals(HaxeTokenTypes.ONOT) : false;
+  private boolean isNegation(ASTNode t) {
+    return (t != null) ? t.getElementType().equals(HaxeTokenTypes.ONOT) : false;
   }
 
-  private boolean isParen(Token t) {
+  private boolean isParen(ASTNode t) {
     if (t != null) {
-      IElementType type = t.getTokenType();
+      IElementType type = t.getElementType();
       return type.equals(HaxeTokenTypes.PRPAREN) || type.equals(HaxeTokenTypes.PLPAREN);
     }
     return false;
@@ -146,7 +107,7 @@ public class HaxeConditionalCompilationCondition {
     return decInteger.matcher(s).matches() || hexInteger.matcher(s).matches() || octInteger.matcher(s).matches();
   }
 
-  private boolean isNumber(Token t) {
+  private boolean isNumber(ASTNode t) {
     if (t != null) {
       String text = t.getText();
       return isInteger(text) || isFloat(text);
@@ -154,32 +115,32 @@ public class HaxeConditionalCompilationCondition {
     return false;
   }
 
-  private boolean isTrueKeyword(Token t) {
-    return null == t ? false : t.getTokenType().equals(HaxeTokenTypes.KTRUE);
+  private boolean isTrueKeyword(ASTNode t) {
+    return null == t ? false : t.getElementType().equals(HaxeTokenTypes.KTRUE);
   }
 
-  private boolean isFalseKeyword(Token t) {
-    return null == t ? false : t.getTokenType().equals(HaxeTokenTypes.KFALSE);
+  private boolean isFalseKeyword(ASTNode t) {
+    return null == t ? false : t.getElementType().equals(HaxeTokenTypes.KFALSE);
   }
 
-  private boolean isIdentifier(Token t) {
+  private boolean isIdentifier(ASTNode t) {
     // return !(isOperator(t) || isNegation(t) || isParen(t) || isNumber(t) || isTrueKeyword(t) || isFalseKeyword(t));
-    return t.getTokenType().equals(HaxeTokenTypes.ID);
+    return t.getElementType().equals(HaxeTokenTypes.ID);
   }
 
   public boolean isTrue() {
     return tokens.isEmpty() ? false : evaluate();
   }
 
-  public void extend(@NotNull String s, @NotNull IElementType tokenType) {
-    tokens.add(new Token(s, tokenType));
+  public void extend(@NotNull CharSequence chars, @NotNull IElementType tokenType) {
+    tokens.add(HaxeAstFactory.leaf(tokenType, chars));
     evaluated = false;
   }
 
   private boolean areParensBalanced() {
     int parenCount = 0;
-    for (Token t : tokens) {
-      IElementType type = t.getTokenType();
+    for (ASTNode t : tokens) {
+      IElementType type = t.getElementType();
       if (type.equals(HaxeTokenTypes.PLPAREN)) {
         parenCount++;
       }
@@ -190,7 +151,7 @@ public class HaxeConditionalCompilationCondition {
     return parenCount == 0;
   }
 
-  private boolean tokenCanStandAlone(Token t) {
+  private boolean tokenCanStandAlone(ASTNode t) {
     return isIdentifier(t) || isTrueKeyword(t) || isFalseKeyword(t) || isNumber(t);
   }
 
@@ -199,12 +160,12 @@ public class HaxeConditionalCompilationCondition {
       return false;
     }
 
-    Token first = tokens.get(0);
+    ASTNode first = tokens.get(0);
     if (tokens.size() == 1) {
       return tokenCanStandAlone(first);
     }
     if (tokens.size() == 2) {
-      Token second = tokens.get(1);
+      ASTNode second = tokens.get(1);
       boolean secondIsStandalone = tokenCanStandAlone(second);
       return isNegation(first) && secondIsStandalone;
     }
@@ -230,7 +191,7 @@ public class HaxeConditionalCompilationCondition {
 
   public String toString() {
     StringBuilder s = new StringBuilder();
-    for (Token t : tokens) {
+    for (ASTNode t : tokens) {
       s.append(t.getText());
     }
     return s.toString();

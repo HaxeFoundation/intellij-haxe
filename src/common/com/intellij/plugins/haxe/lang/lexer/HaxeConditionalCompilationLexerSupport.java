@@ -314,7 +314,7 @@ public class HaxeConditionalCompilationLexerSupport {
       LOG.warn("Lexer is adding tokens to a conditional compilation block with an already completed condition.");
       return;
     }
-    condition.extend(chars.toString(), type);
+    condition.extend(chars, type);
   }
 
   /**
