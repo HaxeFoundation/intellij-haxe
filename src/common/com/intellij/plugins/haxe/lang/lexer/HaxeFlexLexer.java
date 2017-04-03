@@ -18,11 +18,12 @@
 package com.intellij.plugins.haxe.lang.lexer;
 
 import com.intellij.lexer.FlexAdapter;
+import com.intellij.openapi.project.Project;
 
 import java.io.Reader;
 
 public class HaxeFlexLexer extends FlexAdapter {
-  public HaxeFlexLexer() {
-    super(new _HaxeLexer((Reader)null));
+  public HaxeFlexLexer(Project context) {
+    super(new _HaxeLexer(context));
   }
 }

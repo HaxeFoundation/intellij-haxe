@@ -1,7 +1,5 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2017 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +16,29 @@
 package com.intellij.plugins.haxe.lang.util;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
+import gnu.trove.THashSet;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import static com.intellij.plugins.haxe.lang.util.HaxeAstUtil.*;
 
 /**
- * Condition that controls #if and #elseif segments
+ * Condition that controls #if and #elseif conditional compilation (pre-processing) expressions.
  *
  * Created by ebishton on 3/23/17.
  */
@@ -66,6 +70,7 @@ public class HaxeConditionalExpression {
   private final ArrayList<ASTNode> tokens = new ArrayList<ASTNode>();
   private boolean evaluated = false;    // Cleared when dirty.
   private boolean evalResult = false;   // Cleared when dirty.
+  private StringBuilder builder = null;
 
   public HaxeConditionalExpression(@Nullable ArrayList<ASTNode> startTokens) {
     if (startTokens != null) {
@@ -73,13 +78,33 @@ public class HaxeConditionalExpression {
     }
   }
 
-  public boolean isTrue() {
-    return tokens.isEmpty() ? false : evaluate();
+  public boolean isTrue(Project context) {
+    return tokens.isEmpty() ? false : evaluate(context);
+  }
+
+  private void createToken(@NotNull CharSequence chars, @NotNull IElementType tokenType) {
+    tokens.add(HaxeAstFactory.leaf(tokenType, chars));
+    evaluated = false;
   }
 
   public void extend(@NotNull CharSequence chars, @NotNull IElementType tokenType) {
-    tokens.add(HaxeAstFactory.leaf(tokenType, chars));
-    evaluated = false;
+    // The parser will break strings up based upon their content.  This is more of an aspect of dealing
+    // with escape characters than
+    if (OPEN_QUOTE == tokenType) {
+      LOG.assertLog(null == builder, "String builder is already allocated, but a string open quote token has been detected.");
+      builder = new StringBuilder();
+    } else if (REGULAR_STRING_PART == tokenType) {
+      LOG.assertLog(null != builder, "String token is parsed, but no StringBuilder has been allocated.");
+      // XXX: Should we translate escape sequences to base tokens here?
+      builder.append(chars);
+    } else if (CLOSING_QUOTE == tokenType) {
+      LOG.assertLog(null != builder, "String close quote was parsed, but no StringBuilder has been allocated.");
+      createToken(builder, REGULAR_STRING_PART);
+      builder = null;
+    } else {
+      LOG.assertLog(null == builder, "String builder exists, but a non-string token was encountered.");
+      createToken(chars, tokenType);
+    }
   }
 
   private boolean areTokensBalanced(IElementType leftToken, IElementType rightToken) {
@@ -116,27 +141,63 @@ public class HaxeConditionalExpression {
     }
     if (tokens.size() == 2) {
       ASTNode second = tokens.get(1);
+      if (isLeftParen(first) && isRightParen(second)) {
+        return true;
+      }
       boolean secondIsStandalone = isLiteral(second);
       return isNegation(first) && secondIsStandalone;
     }
     return areParensBalanced() && areStringQuotesBalanced();
   }
 
-  public boolean evaluate() {
+  public boolean evaluate(Project project) {
     // Evaluation can be expensive, so we cache the result in order to speed parsing.
     if (!evaluated) {
-      evalResult = reevaluate();
+      evalResult = reevaluate(project);
       evaluated = true;
     }
     return evalResult;
   }
 
-  private boolean reevaluate() {
+  public String tokensToString(List<ASTNode> nodes) {
+    StringBuilder s = new StringBuilder();
+    boolean first = true;
+    for (ASTNode t : nodes) {
+      if (!first) s.append(" ");
+      s.append(t.getText());
+      first = false;
+    }
+    return s.toString();
+  }
+
+  public String toString() {
+    return tokensToString(tokens);
+  }
+
+  /* =================================================================================================
+   * Beyond this point are members and methods for evaluation.  At some point, they should become a
+   * HaxeConditionalExpressionEvaluator class.
+   * =================================================================================================
+   */
+
+  /** Defines that we want in place if there is no Project context. */
+  private final static Set<String> SDK_DEFINES = new THashSet<String>(Arrays.asList(
+    "macro"
+  ));
+  /** Used for setting defines in the test bed. */
+  public static Key<Object> DEFINES_KEY = Key.create("haxe.test.defines");
+
+  /** Evaluation Context */
+  @Nullable
+  private Project context;
+
+  private boolean reevaluate(Project context) {
+    this.context = context;
     boolean ret = false;
     if (isComplete()) {
       try {
         Stack<ASTNode> rpn = infixToRPN();
-        LOG.debug(toString() + "-->" + rpn.toString());
+        LOG.debug(toString() + " --> " + tokensToString(rpn));
         ret = objectIsTrue(calculateRPN(rpn));
         if (!rpn.isEmpty()) {
           throw new CalculationException("Invalid Expression: Tokens left after calculating: " + rpn.toString());
@@ -169,11 +230,8 @@ public class HaxeConditionalExpression {
 
     try {
       for (ASTNode token : tokens) {
-        if (isLiteral(token)) {
+        if (isLiteral(token) || isStringQuote(token) || isString(token)) {
           rpnOutput.push(token);
-        }
-        else if (isStringQuote(token)) {
-          // Ignore it for calculations.  The REGULAR_STRING_PART is the part we keep.
         }
         else if (isLeftParen(token)) {
           operatorStack.push(token);
@@ -198,7 +256,8 @@ public class HaxeConditionalExpression {
         }
         else if (isCCOperator(token)) {
           while (!operatorStack.isEmpty()
-                 && HaxeOperatorPrecedenceTable.shuntingCompare(token.getElementType(), operatorStack.peek().getElementType())) {
+                 && !isLeftParen(operatorStack.peek())  // Parens have the highest priority, but should not be considered for comparison.
+                 && HaxeOperatorPrecedenceTable.shuntingYardCompare(token.getElementType(), operatorStack.peek().getElementType())) {
             rpnOutput.push(operatorStack.pop());
           }
           operatorStack.push(token);
@@ -243,15 +302,16 @@ public class HaxeConditionalExpression {
             return applyBinary(node, lhs, rhs);
           }
         }
-      } else if (isLiteral(node)) {
-        return literalValue(node);
+      } else if (isConstant(node)) {
+        return constantValue(node);
       } else if (isIdentifier(node)) {
         return lookupIdentifier(node);
       } else {
-        throw new CalculationException("Unexpected AST Node type " + node.getElementType().toString());
+        String typename = node.getElementType() != null ? node.getElementType().toString() : "<null>";
+        throw new CalculationException("Unexpected AST Node type " + typename);
       }
     }
-    return false; // TODO: Return the actual value.
+    return false;
   }
 
   @NotNull
@@ -275,10 +335,10 @@ public class HaxeConditionalExpression {
   }
 
   @NotNull
-  private Object literalValue(ASTNode node) throws CalculationException {
+  private Object constantValue(ASTNode node) throws CalculationException {
     if (isTrueKeyword(node))        { return new Boolean(true); }
     if (isFalseKeyword(node))       { return new Boolean(false); }
-    if (isRegularString(node))      { return new String(node.getText()); }
+    if (isString(node))             { return new String(node.getText()); }
     if (isNumber(node))             { return new Float(node.getText()); }
 
     throw new CalculationException("Unrecognized value token: " + node.toString());
@@ -298,29 +358,39 @@ public class HaxeConditionalExpression {
   }
 
   @NotNull
-  private Object lookupIdentifier(ASTNode identifier) {
+  private Object lookupIdentifier(ASTNode identifier) throws CalculationException {
     if (identifier == null) {
       return new Boolean(false);
     }
-    if (myProject == null) {
-      return SDK_DEFINES.contains(name);
+    if (context == null) {
+      return SDK_DEFINES.contains(identifier);
     }
     String[] definitions = null;
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      final Object userData = myProject.getUserData(DEFINES_KEY);
+      final Object userData = context.getUserData(DEFINES_KEY);
       if (userData instanceof String) {
         definitions = ((String)userData).split(",");
       }
     }
     else {
-      definitions = HaxeProjectSettings.getInstance(myProject).getUserCompilerDefinitions();
+      definitions = HaxeProjectSettings.getInstance(context).getUserCompilerDefinitions();
     }
-    return definitions != null && Arrays.asList(definitions).contains(name);
-
-
-
-    // TODO: Implement
-    return identifierValue(definition);
+    String name = identifier.getText();
+    if (definitions != null) {
+      for (String possible : definitions) {
+        // Dashes are subtraction operators, so definitions (on the command line) that
+        // contain dashes are mapped to an equivalent using underscores (when looking up definitions).
+        possible.replaceAll("-", "_");
+        if (possible.startsWith(name)) {
+          if (possible.length() == name.length()) {
+            return new Boolean(true);
+          } else if (possible.charAt(name.length()) == '=') {
+            return identifierValue(possible.substring(name.length()+1));
+          }
+        }
+      }
+    }
+    return new Boolean(false);
   }
 
 
@@ -336,7 +406,7 @@ public class HaxeConditionalExpression {
 
   // Parodies Haxe parser cmp function
   // https://github.com/HaxeFoundation/haxe/blob/development/src/syntax/parser.mly#L1600
-  private int objectCompare(Object lhs, Object rhs) throws CalculationException {
+  private int objectCompare(Object lhs, Object rhs) throws CompareException {
     if (lhs == null && rhs == null) { return 0; }
     if (lhs instanceof Boolean && rhs instanceof Boolean) { return ((Boolean)lhs).compareTo((Boolean)rhs); }
     if (lhs instanceof String && rhs instanceof String)   { return ((String)lhs).compareTo((String)rhs); }
@@ -354,8 +424,7 @@ public class HaxeConditionalExpression {
       return result;
     }
 
-    // No other combinations are allowed.
-    throw new CalculationException("Invalid value comparison between '"
+    throw new CompareException("Invalid value comparison between '"
                                    + lhs.toString() + "' and '" + rhs.toString() + "'.");
   }
 
@@ -373,33 +442,34 @@ public class HaxeConditionalExpression {
   @NotNull
   private Object applyBinary(ASTNode op, Object lhs, Object rhs) throws CalculationException {
     IElementType optype = op.getElementType();
-    if (optype.equals(LOGIC_AND_EXPRESSION)) { return objectIsTrue(lhs) && objectIsTrue(rhs); }
-    if (optype.equals(LOGIC_OR_EXPRESSION))  { return objectIsTrue(lhs) || objectIsTrue(rhs); }
-    if (optype.equals(OEQ))                  { return objectCompare(lhs, rhs) == 0; }
-    if (optype.equals(ONOT_EQ))              { return objectCompare(lhs, rhs) != 0; }
-    if (optype.equals(OGREATER))             { return objectCompare(lhs, rhs) >  0; }
-    if (optype.equals(OGREATER_OR_EQUAL))    { return objectCompare(lhs, rhs) >= 0; }
-    if (optype.equals(OLESS_OR_EQUAL))       { return objectCompare(lhs, rhs) <= 0; }
-    if (optype.equals(OLESS))                { return objectCompare(lhs, rhs) <  0; }
-    throw new CalculationException("Unexpected operator when comparing '"
-                                   + lhs.toString() + " " + optype.toString() + " " + rhs.toString() + "'.");
+    try {
+      if (optype.equals(OCOND_AND))            { return objectIsTrue(lhs) && objectIsTrue(rhs); }
+      if (optype.equals(OCOND_OR))             { return objectIsTrue(lhs) || objectIsTrue(rhs); }
+      if (optype.equals(OEQ))                  { return objectCompare(lhs, rhs) == 0; }
+      if (optype.equals(ONOT_EQ))              { return objectCompare(lhs, rhs) != 0; }
+      if (optype.equals(OGREATER))             { return objectCompare(lhs, rhs) >  0; }
+      if (optype.equals(OGREATER_OR_EQUAL))    { return objectCompare(lhs, rhs) >= 0; }
+      if (optype.equals(OLESS_OR_EQUAL))       { return objectCompare(lhs, rhs) <= 0; }
+      if (optype.equals(OLESS))                { return objectCompare(lhs, rhs) <  0; }
+      throw new CalculationException("Unexpected operator when comparing '"
+                                     + lhs.toString() + " " + optype.toString() + " " + rhs.toString() + "'.");
+    } catch (CompareException e) {
+      // parser eval#1625 maps any calculation failures to false.
+      return new Boolean(false);
+    }
   }
 
-  public String toString() {
-    StringBuilder s = new StringBuilder();
-    boolean first = true;
-    for (ASTNode t : tokens) {
-      if (!first) s.append(" ");
-      s.append(t.getText());
-    }
-    return s.toString();
-  }
 
   public static class CalculationException extends Exception {
-    private CalculationException(String message) {
+    public CalculationException(String message) {
       super(message);
     }
   }
 
+  public static class CompareException extends Exception {
+    public CompareException(String message) {
+      super(message);
+    }
+  }
 
 }

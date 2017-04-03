@@ -17,13 +17,17 @@
  */
 package com.intellij.plugins.haxe.lang.lexer;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 
 /**
  * Support Conditional Compilation for the Haxe language.
@@ -53,10 +57,10 @@ public class HaxeConditionalCompilationLexerSupport {
       if (null == el || el == TokenType.DUMMY_HOLDER) {
         return Type.ROOT;
       }
-      if (el == HaxeTokenTypes.PPIF)          { return Type.IF; }
-      else if (el == HaxeTokenTypes.PPELSEIF) { return Type.ELSEIF; }
-      else if (el == HaxeTokenTypes.PPELSE)   { return Type.ELSE; }
-      else if (el == HaxeTokenTypes.PPEND)    { return Type.END; }
+      if (el == PPIF)          { return Type.IF; }
+      else if (el == PPELSEIF) { return Type.ELSEIF; }
+      else if (el == PPELSE)   { return Type.ELSE; }
+      else if (el == PPEND)    { return Type.END; }
       else {
         LOG.debug("Unrecognized compiler conditional is being used.");
       }
@@ -70,7 +74,7 @@ public class HaxeConditionalCompilationLexerSupport {
     }
 
     private IElementType myElementType;
-    private HaxeConditionalCompilationCondition myCondition;
+    private HaxeConditionalExpression myCondition;
     private Type myBlockType;
     private ActiveState myActive;
     private Section mySection;
@@ -82,7 +86,7 @@ public class HaxeConditionalCompilationLexerSupport {
       switch (myBlockType) {
         case IF:
         case ELSEIF:
-          myCondition = new HaxeConditionalCompilationCondition(null);
+          myCondition = new HaxeConditionalExpression(null);
           break;
         default:
           break;
@@ -91,7 +95,7 @@ public class HaxeConditionalCompilationLexerSupport {
     }
 
     @Nullable
-    public HaxeConditionalCompilationCondition getCondition() {
+    public HaxeConditionalExpression getCondition() {
       return myCondition;
     }
 
@@ -117,7 +121,7 @@ public class HaxeConditionalCompilationLexerSupport {
   /**
    * Master controller for a conceptual set of conditionals, starting with an #if and ending with #end.
    */
-  private static class Section {
+  private class Section {
     private ArrayList<Block> myBlocks;
     private Section myParent;
 
@@ -167,7 +171,7 @@ public class HaxeConditionalCompilationLexerSupport {
     /* Note: previousActiveBlock and setActiveBlockState are recursive with regard to one another.  */
     private void setBlockActiveState(Block block) {
       if (block != null && block.getActive() == Block.ActiveState.UNKNOWN) {
-        HaxeConditionalCompilationCondition condition = block.getCondition();
+        HaxeConditionalExpression condition = block.getCondition();
         boolean priorBlockIsActive = null != previousActiveBlock(block);
         if (priorBlockIsActive) {
           // Another block ahead of this one is already myActive, so this one can't be.
@@ -175,7 +179,7 @@ public class HaxeConditionalCompilationLexerSupport {
         } else if (condition != null) {  // IF or ELSEIF
           // No blocks ahead of this one are myActive, so calculate the condition
           // If the condition is incomplete, then the block is inactive.
-          block.setActive(condition.evaluate() ? Block.ActiveState.ACTIVE : Block.ActiveState.INACTIVE);
+          block.setActive(condition.evaluate(projectContext) ? Block.ActiveState.ACTIVE : Block.ActiveState.INACTIVE);
         } else {
           if (block.getType() == Block.Type.END) {
             block.setActive(Block.ActiveState.INACTIVE);
@@ -219,7 +223,7 @@ public class HaxeConditionalCompilationLexerSupport {
 
     @Override
     public Block startBlock(IElementType type) {
-      if (type == HaxeTokenTypes.PPIF) {
+      if (type == PPIF) {
         LOG.debug("Root Section requested to start an invalid block type:" + type.toString());
       }
       return super.startBlock(null);
@@ -230,10 +234,12 @@ public class HaxeConditionalCompilationLexerSupport {
 
   private RootSection rootSection;
   private Section currentContext;
+  private Project projectContext;
 
-  public HaxeConditionalCompilationLexerSupport() {
+  public HaxeConditionalCompilationLexerSupport(Project context) {
     rootSection = new RootSection();
     currentContext =  rootSection;
+    projectContext = context;
   }
 
   /**
@@ -262,15 +268,15 @@ public class HaxeConditionalCompilationLexerSupport {
    * @param type Detected token type.
    */
   public void processConditional(CharSequence chars, IElementType type) {
-    if (HaxeTokenTypes.PPIF.equals(type)) {
+    if (PPIF.equals(type)) {
       // Start a new section...
       Section newSection = new Section(currentContext, type);
       currentContext = newSection;
-    } else if (HaxeTokenTypes.PPELSE.equals(type)) {
+    } else if (PPELSE.equals(type)) {
       currentContext.startBlock(type);
-    } else if (HaxeTokenTypes.PPELSEIF.equals(type)) {
+    } else if (PPELSEIF.equals(type)) {
       currentContext.startBlock(type);
-    } else if (HaxeTokenTypes.PPEND.equals(type)) {
+    } else if (PPEND.equals(type)) {
       currentContext.endBlock(getCurrentBlock());
       Section parent = currentContext.getParent();
       if (null != parent) {
@@ -290,7 +296,7 @@ public class HaxeConditionalCompilationLexerSupport {
    * Ends _condition_ processing.
    */
   public void conditionEnd() {
-    HaxeConditionalCompilationCondition condition = getCurrentBlock().getCondition();
+    HaxeConditionalExpression condition = getCurrentBlock().getCondition();
     if (null != condition && !condition.isComplete()) {
        LOG.debug("Ending condition before it is complete: '" + condition.toString() + "'");
     }
@@ -305,7 +311,7 @@ public class HaxeConditionalCompilationLexerSupport {
    *         false if there should be no further appending..
    */
   public void conditionAppend(CharSequence chars, IElementType type) {
-    HaxeConditionalCompilationCondition condition = getCurrentBlock().getCondition();
+    HaxeConditionalExpression condition = getCurrentBlock().getCondition();
     if (null == condition) {
       LOG.warn("Lexer is adding tokens to a conditional compilation block that has no condition.");
       return;
@@ -322,7 +328,7 @@ public class HaxeConditionalCompilationLexerSupport {
    * @return
    */
   public boolean conditionIsComplete() {
-    HaxeConditionalCompilationCondition condition = getCurrentBlock().getCondition();
+    HaxeConditionalExpression condition = getCurrentBlock().getCondition();
     if (null == condition) {
       return false;
     }
@@ -336,12 +342,12 @@ public class HaxeConditionalCompilationLexerSupport {
   public IElementType mapToken(IElementType type) {
 
     // Special things that we don't map.
-    if (HaxeTokenTypeSets.WHITESPACES.contains(type)) {
+    if (WHITESPACES.contains(type)) {
       return type;
     }
 
     if (!currentContextIsActive()) {
-      return HaxeTokenTypeSets.PPBODY;
+      return PPBODY;
     }
     return type;
   }

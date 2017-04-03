@@ -7,11 +7,11 @@ import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import com.intellij.plugins.haxe.lang.lexer.HaxeConditionalCompilationLexerSupport;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.openapi.project.Project;
 
 %%
 %{
-    static final String classname = new Object(){}.getClass().getEnclosingClass().getName();
-    static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + classname);
+    static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
     static {      // Take this out when finished debugging.
       LOG.setLevel(org.apache.log4j.Level.DEBUG);
     }
@@ -37,7 +37,8 @@ import com.intellij.plugins.haxe.util.HaxeDebugLogger;
     private int commentStart;
     private int commentDepth;
 
-    public HaxeConditionalCompilationLexerSupport ccsupport = new HaxeConditionalCompilationLexerSupport();
+    Project context; // Required for conditional compilation support.
+    public HaxeConditionalCompilationLexerSupport ccsupport;
 
     private void pushState(int state) {
         states.push(new State(yystate(), lBraceCount));
@@ -61,6 +62,15 @@ import com.intellij.plugins.haxe.util.HaxeDebugLogger;
         if(state == COMPILER_CONDITIONAL) {
           return "COMPILER_CONDITIONAL";
         }
+        if(state == CC_STRING) {
+          return "CC_STRING";
+        }
+        if(state == CC_APOS_STRING) {
+          return "CC_APOS_STRING";
+        }
+        if(state == CC_BLOCK) {
+          return "CC_BLOCK";
+        }
         return null;
     }
 
@@ -82,6 +92,18 @@ import com.intellij.plugins.haxe.util.HaxeDebugLogger;
     /** Deal with compiler conditional block constructs (e.g. #if...#end). */
     private IElementType processConditional(IElementType type) {
         ccsupport.processConditional(yytext(), type);
+
+        if (PPIF.equals(type)) {
+            ccStart();
+        } else if (PPEND.equals(type)) {
+            ccEnd();
+        } else if (zzLexicalState != CC_BLOCK) {
+            // Maybe the #if is missing, but if we're not at the end, we want to be sure that we're
+            // in the conditional state.
+            LOG.debug("Unexpected lexical state. Missing starting #if?");
+            ccStart();
+        }
+
         if (PPIF.equals(type) || PPELSEIF.equals(type)) {
             conditionStart();
         }
@@ -90,7 +112,6 @@ import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 
     // These deal with the state of lexing the *condition* for compiler conditionals
     private void conditionStart() { pushState(COMPILER_CONDITIONAL); ccsupport.conditionStart(); }
-    private void conditionEnd() { ccsupport.conditionEnd(); popState(); }
     private boolean conditionIsComplete() { return ccsupport.conditionIsComplete(); }
     private IElementType conditionAppend(IElementType type) {
         ccsupport.conditionAppend(yytext(),type);
@@ -99,9 +120,28 @@ import com.intellij.plugins.haxe.util.HaxeDebugLogger;
         }
         return PPEXPRESSION;
     }
+    private void conditionEnd() {
+        ccsupport.conditionEnd();
+        popState();
+    }
 
-    public _HaxeLexer() {
+    // We use the CC_BLOCK state to tell the highlighters, etc. that their context
+    // has to go back to the start of the conditional (even though that may be a ways).  Basically,
+    // we need to keep the state as something other than YYINITIAL.
+    private void ccStart() { pushState(CC_BLOCK); } // Until we know better
+    private void ccEnd() {
+        // When there is no #if, but there is an end, popping the state produces an EmptyStackException
+        // and messes up further processing.
+        if (zzLexicalState == CC_BLOCK) {
+            popState();
+        }
+    }
+
+    // There are two other constructors generated for us.  This is the only one that is actually used.
+    public _HaxeLexer(Project context) {
       this((java.io.Reader)null);
+      this.context = context;
+      ccsupport = new HaxeConditionalCompilationLexerSupport(context);
     }
 
 %}
@@ -118,7 +158,7 @@ import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 %eof{
 %eof}
 
-%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL
+%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL CC_STRING CC_APOS_STRING CC_BLOCK
 
 WHITE_SPACE_CHAR=[\ \n\r\t\f]
 //WHITE_SPACE={WHITE_SPACE_CHAR}+
@@ -170,23 +210,6 @@ IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
     "macro", "this", and "null" are all identifiers as far as CC is concerned.
  */
 CONDITIONAL_IDENTIFIER={IDENTIFIER_NO_DOLLAR}
-//CONDITIONAL_NUMBER_PREFIX=("-"|"+")
-//CONDITIONAL_NUMBER={CONDITIONAL_NUMBER_PREFIX}? ({mNUM_FLOAT}|{mNUM_HEX}|{mNUM_INT}|{mNUM_OCT})
-//CONDITIONAL_NEGATION="!"
-//CONDITIONAL_COMPARISON_OPERATOR=("=="|"!="|">"|">="|"<"|"<=")
-//CONDITIONAL_OPERATOR=("||" | "&&" | {CONDITIONAL_COMPARISON_OPERATOR})
-//CONDITIONAL_CONSTANT=({CONDITIONAL_IDENTIFIER}|{CONDITIONAL_NUMBER}|{mCONST_FALSE}|{mCONST_TRUE})
-//CONDITIONAL_EXPRESSION_PART={CONDITIONAL_NEGATION}? {WHITE_SPACE}* ({CONDITIONAL_CONSTANT}|{CONDITIONAL_PARENTHESIZED_EXPRESSION})
-//CONDITIONAL_SIMPLE_EXPRESSION={CONDITIONAL_EXPRESSION_PART} {WHITE_SPACE}* {CONDITIONAL_OPERATOR} {WHITE_SPACE}* {CONDITIONAL_EXPRESSION_PART}
-//CONDITIONAL_PARENTHESIZED_EXPRESSION="(" ({CONDITIONAL_EXPRESSION_PART}|({CONDITIONAL_SIMPLE_EXPRESSION}+)) ")"
-//CONDITIONAL_EXPRESSION={CONDITIONAL_NEGATION}? {WHITE_SPACE}* ({CONDITIONAL_PARENTHESIZED_EXPRESSION}|({CONDITIONAL_CONSTANT}))
-//
-//CONDITIONAL_IF="#if" {WHITE_SPACE} {CONDITIONAL_EXPRESSION}
-//CONDITIONAL_ELSEIF="#elseif" {WHITE_SPACE} {CONDITIONAL_EXPRESSION}
-/*
-CONDITIONAL_IF = "#if" [\t\ ]+ "!"? (("(" [^\r\n]+ ")") | ([^\r\n\t\ ]+))
-CONDITIONAL_ELSEIF = "#elseif" [\t\ ]+ "!"? [^\r\n\t\ ]+
-*/
 
 // Treat #line and #error as end of line comments
 CONDITIONAL_LINE="#line"[^\r\n]*
@@ -194,8 +217,8 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 %%
 
-<YYINITIAL> "{"                           { return emitToken( PLCURLY); }
-<YYINITIAL> "}"                           { return emitToken( PRCURLY); }
+<YYINITIAL, CC_BLOCK> "{"                 { return emitToken( PLCURLY); }
+<YYINITIAL, CC_BLOCK> "}"                 { return emitToken( PRCURLY); }
 <LONG_TEMPLATE_ENTRY> "{"                 { lBraceCount++; return emitToken( PLCURLY); }
 <LONG_TEMPLATE_ENTRY> "}"                 {
                                               if (lBraceCount == 0) {
@@ -206,7 +229,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
                                               return emitToken( PRCURLY);
                                           }
 
-<YYINITIAL, LONG_TEMPLATE_ENTRY> {
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> {
 
 {WHITE_SPACE_CHAR}+                       { return emitToken( com.intellij.psi.TokenType.WHITE_SPACE);}
 
@@ -374,11 +397,11 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "#elseif"                                 { return processConditional(PPELSEIF); }
 "#else"                                   { return processConditional(PPELSE); }
 "#if"                                     { return processConditional(PPIF); }
-} // <YYINITIAL, LONG_TEMPLATE_ENTRY>
+} // <YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY>
 
 // "
 
-<YYINITIAL, LONG_TEMPLATE_ENTRY> \"       { pushState(QUO_STRING); return emitToken( OPEN_QUOTE); }
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> \"   { pushState(QUO_STRING); return emitToken( OPEN_QUOTE); }
 <QUO_STRING> \"                 { popState(); return emitToken( CLOSING_QUOTE); }
 <QUO_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
 
@@ -394,7 +417,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 // Support single quote strings: "'"
 
-<YYINITIAL, LONG_TEMPLATE_ENTRY> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
 <APOS_STRING> \'                 { popState(); return emitToken( CLOSING_QUOTE); }
 <APOS_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
 
@@ -433,17 +456,20 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "("                                       { return conditionAppend( PLPAREN ); }
 ")"                                       { return conditionAppend( PRPAREN ); }
 
+"=="                                      { return conditionAppend( OEQ ); }
 "!="                                      { return conditionAppend( ONOT_EQ ); }
 "!"                                       { return conditionAppend( ONOT ); }
 
-">="                                      { return conditionAppend( OGREATER_OR_EQUAL); }
-">"                                       { return conditionAppend( OGREATER); }
+">="                                      { return conditionAppend( OGREATER_OR_EQUAL ); }
+">"                                       { return conditionAppend( OGREATER ); }
 
-"<="                                      { return conditionAppend( OLESS_OR_EQUAL); }
-"<"                                       { return conditionAppend( OLESS); }
+"<="                                      { return conditionAppend( OLESS_OR_EQUAL ); }
+"<"                                       { return conditionAppend( OLESS ); }
 
-"&&"                                      { return conditionAppend( OCOND_AND); }
-"||"                                      { return conditionAppend( OCOND_OR); }
+"&&"                                      { return conditionAppend( OCOND_AND ); }
+"||"                                      { return conditionAppend( OCOND_OR ); }
+
+\"                                        { pushState(CC_STRING); return conditionAppend( OPEN_QUOTE ); }
 
 // Any other token is an error which needs to kill this state and be processed normally.
 .                                         {
@@ -454,7 +480,15 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
                                           }
 }
 
-<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
+// Strings inside of compiler conditionals.  They can't use string interpolation/templates (e.g. $var).
+<CC_STRING> \"                            { popState(); return conditionAppend( CLOSING_QUOTE ); }
+<CC_APOS_STRING> \'                       { popState(); return conditionAppend( CLOSING_QUOTE ); }
+<CC_STRING, CC_APOS_STRING>  {
+{ESCAPE_SEQUENCE}                         { return conditionAppend( REGULAR_STRING_PART ); }
+{REGULAR_QUO_STRING_PART}                 { return conditionAppend( REGULAR_STRING_PART ); }
+}
+
+<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY, CC_BLOCK> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
 .                                                                       {
                                                                           yybegin(YYINITIAL);
                                                                           return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER );

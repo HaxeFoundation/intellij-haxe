@@ -185,9 +185,9 @@ public interface HaxeTokenTypeSets {
     OMUL_ASSIGN, OQUOTIENT_ASSIGN, OREMAINDER_ASSIGN,
     OSHIFT_LEFT_ASSIGN,
     OBIT_AND_ASSIGN,
+    OSHIFT_RIGHT_ASSIGN,
     ASSIGN_OPERATION
   );
-  //OSHIFT_RIGHT_ASSIGN
 
   TokenSet LOGIC_OPERATORS = TokenSet.create(
     OCOND_OR, OCOND_AND
@@ -198,9 +198,8 @@ public interface HaxeTokenTypeSets {
   );
 
   TokenSet RELATIONAL_OPERATORS = TokenSet.create(
-    OLESS, OLESS_OR_EQUAL, OGREATER
+    OLESS, OLESS_OR_EQUAL, OGREATER, OGREATER_OR_EQUAL
   );
-  //OGREATER_OR_EQUAL
 
   TokenSet ADDITIVE_OPERATORS = TokenSet.create(
     OPLUS, OMINUS
@@ -256,8 +255,8 @@ public interface HaxeTokenTypeSets {
     OQUOTIENT,
     OREMAINDER_ASSIGN,
     OREMAINDER,
-    //OSHIFT_RIGHT_ASSIGN,
-    //OGREATER_OR_EQUAL,
+    OSHIFT_RIGHT_ASSIGN,
+    OGREATER_OR_EQUAL,
     OGREATER
   );
 }

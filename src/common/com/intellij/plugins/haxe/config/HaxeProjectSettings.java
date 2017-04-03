@@ -52,6 +52,7 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element> {
   }
 
   public String[] getUserCompilerDefinitions() {
+    // TODO: Bug here, if there are definitions that contain commas (e.g. mylib_version="2,4,3")
     return userCompilerDefinitions.split(",");
   }
 

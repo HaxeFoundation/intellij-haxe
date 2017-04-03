@@ -81,8 +81,6 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
     FileASTNode node1 = file.getNode();
     LeafElement firstLeaf = TreeUtil.findFirstLeaf(node1);
 
-    int conditionalCount = 0;
-
     Stack<List<ASTNode>> levels = new Stack<List<ASTNode>>();
     List<ASTNode> nodes = new ArrayList<ASTNode>();
     // Push the root node, just in case there is no #if to start it off.
@@ -93,13 +91,11 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
       IElementType leafElementType = leaf.getElementType();
 
       if (leafElementType.equals(HaxeTokenTypes.PPIF)) {
-        conditionalCount++;
         nodes = new ArrayList<ASTNode>();
         levels.push(nodes);
         nodes.add(leaf);
       }
       else if (leafElementType.equals(HaxeTokenTypes.PPEND)) {
-        conditionalCount--;
         nodes.add(leaf);
         // Leave the base level in place, even if there are extra ends.
         if (levels.size() > 1) {
@@ -108,7 +104,10 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
           nodes = levels.peek();
         }
       }
-      else if (leafElementType.equals(HaxeTokenTypes.PPELSE) || leafElementType.equals(HaxeTokenTypes.PPELSEIF)) {
+      else if (leafElementType.equals(HaxeTokenTypes.PPELSEIF)) {
+        nodes.add(leaf);
+      }
+      else if (leafElementType.equals(HaxeTokenTypes.PPELSE)) {
         nodes.add(leaf);
       }
       leaf = TreeUtil.nextLeaf(leaf);
