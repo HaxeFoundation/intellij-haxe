@@ -177,7 +177,7 @@
 
 haxeFile ::= packageStatement? topLevelList
 
-private unusedRuleToForceSomeTokenTypesToBeGenerated ::= "Add new tokens here -->" ">=" "<-- Add new tokens here"
+private unusedRuleToForceSomeTokenTypesToBeGenerated ::= "Add new tokens here -->" ">=" ">>=" ">>>=" "<-- Add new tokens here"
 
 /*
   http://haxe.org/manual/metadata
