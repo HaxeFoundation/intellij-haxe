@@ -32,6 +32,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
@@ -51,10 +52,10 @@ import java.util.List;
  */
 public class HaxeCompilerUtil
 {
-    static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompilerUtil");
-    static {
-        LOG.setLevel(Level.DEBUG);
-    }
+    static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+    //static {  // Remove when finished debugging.
+    //    LOG.setLevel(Level.DEBUG);
+    //}
 
     public static final String ERROR = "Error: ";
 
@@ -232,6 +233,7 @@ public class HaxeCompilerUtil
         // this has to be changed.
         // TODO: Add a "compile directory" to the Haxe module settings.
         return file.getProject().getBaseDir();
+        //return findSourceRoot(file);
     }
 
     /**
@@ -258,6 +260,7 @@ public class HaxeCompilerUtil
         Process process = null;
 
         try {
+            LOG.debug("Starting runInterruptibleCompileProcess for " + command.toString());
             ProgressManager.checkCanceled();
 
             File fdir = null != dir ? new File(dir.getPath()) : null;
@@ -270,7 +273,7 @@ public class HaxeCompilerUtil
                 timeLog.stamp("Executing " + command.get(0));
             }
             process = builder.start();
-
+            LOG.debug("Compiler process has started.");
             InputStreamReader stdoutReader = new InputStreamReader(process.getInputStream());
             BufferedReader bufferedStdout = new BufferedReader(stdoutReader);
 
@@ -278,39 +281,24 @@ public class HaxeCompilerUtil
             BufferedReader bufferedStderr = mixedOutput ? null : new BufferedReader(stderrReader);
 
             do {
-                ProgressManager.checkCanceled();
-
-                while (bufferedStdout.ready()) {
-                    if (null != stdout) {
-                        stdout.add(bufferedStdout.readLine());
-                    }
-                    else {
-                        // Goes to the bit bucket.
-                        bufferedStdout.readLine();
-                    }
-                }
-                if (!mixedOutput) {
-                    while (bufferedStderr.ready()) {
-                        if (null != stderr) {
-                            stderr.add(bufferedStderr.readLine());
-                        }
-                        else {
-                            // bit bucket.
-                            bufferedStderr.readLine();
-                        }
-                    }
-                }
                 try {
                     // Let our forked process get a little work done.
                     Thread.sleep(2);
                 } catch (InterruptedException e) {
                     ; // Swallow it.
                 }
+                GatherOutput(mixedOutput, stdout, stderr, bufferedStdout, bufferedStderr);
             }
             while (processIsAlive(process));
             ret = process.exitValue();
+
+            // Pick up any uncollected output.
+            GatherOutput(mixedOutput, stdout, stderr, bufferedStdout, bufferedStderr);
+
+            String message = "Process exited cleanly: Return value = " + Integer.toString(ret);
+            LOG.debug(message);
             if (null != timeLog) {
-                timeLog.stamp("Process exited cleanly: Return value = " + Integer.toString(ret));
+                timeLog.stamp(message);
             }
         }
         catch (IOException e) {
@@ -333,6 +321,35 @@ public class HaxeCompilerUtil
             }
         }
         return ret;
+    }
+
+    private static void GatherOutput(boolean mixedOutput,
+                                     List<String> stdout,
+                                     List<String> stderr,
+                                     BufferedReader bufferedStdout,
+                                     BufferedReader bufferedStderr) throws IOException {
+        ProgressManager.checkCanceled();
+
+        while (bufferedStdout.ready()) {
+            if (null != stdout) {
+                stdout.add(bufferedStdout.readLine());
+            }
+            else {
+                // Goes to the bit bucket.
+                bufferedStdout.readLine();
+            }
+        }
+        if (!mixedOutput) {
+            while (bufferedStderr.ready()) {
+                if (null != stderr) {
+                    stderr.add(bufferedStderr.readLine());
+                }
+                else {
+                    // bit bucket.
+                    bufferedStderr.readLine();
+                }
+            }
+        }
     }
 
     /**
