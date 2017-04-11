@@ -354,7 +354,7 @@ public class HaxeCompilerServices {
             timeLog.stamp("NME finished");
             if (0 != status) {
                 reportErrors(project, stderr);
-                return null;
+                return HaxeCompilerCompletionItem.EMPTY_LIST;
             }
             return parseCompletionFromXml(project, stderr);
         } catch (IOException e) {
