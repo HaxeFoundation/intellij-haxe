@@ -112,7 +112,7 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     // We sort the elements according to name, giving preference to compiler-provided results
     // if the two names are identical.
     ArrayList<CompletionResult> sorted = new ArrayList<CompletionResult>(unfilteredCompletions);
-    Arrays.sort(sorted.toArray(new CompletionResult[]{}), new Comparator<CompletionResult>() {
+    sorted.sort( new Comparator<CompletionResult>() {
       @Override
       public int compare(CompletionResult o1, CompletionResult o2) {
         LookupElement el1 = o1.getLookupElement();
