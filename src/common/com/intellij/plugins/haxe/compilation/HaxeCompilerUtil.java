@@ -93,7 +93,7 @@ public class HaxeCompilerUtil
     public static VirtualFile verifyProjectFile(@NotNull Module module, @NotNull String type, @NotNull String path, @Nullable ErrorNotifier notifier) {
 
         if (path.isEmpty()) {
-            String message = "Completion error: No " + type + " project type is specified in project settings.";  // TODO: Externalize string.
+            String message = "Completion error: No " + type + " project file is specified in project settings.";  // TODO: Externalize string.
             advertiseError(message, notifier);
             return null;
         }
