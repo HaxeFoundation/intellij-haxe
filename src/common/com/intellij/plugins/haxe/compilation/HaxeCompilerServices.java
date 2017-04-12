@@ -414,9 +414,9 @@ public class HaxeCompilerServices {
                     foundStart = true;
                     endTag = "</list>";
                     xml.add(s);
-                } else if (s.equals("type")) {
+                } else if (s.equals("<type>")) {
                     foundStart = true;
-                    endTag = "</tag>";
+                    endTag = "</type>";
                     xml.add(s);
                 }
                 // Otherwise, ignored.
