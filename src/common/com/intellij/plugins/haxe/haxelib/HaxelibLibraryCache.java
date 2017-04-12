@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import com.intellij.util.PathUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,13 +79,27 @@ public final class HaxelibLibraryCache {
       for (final String s : pathCmdOutput) {
         if (s.startsWith("-")) continue; // skip lines that don't contain haxelib path
         try {
-          final int tmpSeparator = s.lastIndexOf('/');
-          final int endSeparator = s.lastIndexOf('/', tmpSeparator-1);
-          final int beginSeparator = s.lastIndexOf(File.separatorChar, endSeparator - 1);
-          final String haxelibName = s.substring(beginSeparator+1, endSeparator);
-          final HaxeClasspath classpath = new HaxeClasspath();
-          classpath.add(new HaxelibItem(haxelibName, s));
-          myCache.add(new HaxelibLibraryEntry(haxelibName, classpath));
+          //final int tmpSeparator = s.lastIndexOf('/');
+          //final int endSeparator = s.lastIndexOf('/', tmpSeparator-1);
+          //final int beginSeparator = s.lastIndexOf(File.separatorChar, endSeparator - 1);
+          //final String haxelibName = s.substring(beginSeparator+1, endSeparator);
+          String s2 = PathUtil.toSystemIndependentName(s);
+          String[] strings = s2.split("/");
+
+          String haxelibName = null;
+
+          for (int i = strings.length - 1; i >= 0; i--) {
+            if (installedHaxelibs.contains(strings[i])) {
+              haxelibName = strings[i];
+              break;
+            }
+          }
+
+          if (haxelibName != null) {
+            final HaxeClasspath classpath = new HaxeClasspath();
+            classpath.add(new HaxelibItem(haxelibName, s));
+            myCache.add(new HaxelibLibraryEntry(haxelibName, classpath));
+          }
         }
         catch (IndexOutOfBoundsException e) {
           // defensive try-catch block to handle possible exceptions when 'haxelib path'
