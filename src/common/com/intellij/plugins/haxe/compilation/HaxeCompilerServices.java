@@ -290,8 +290,7 @@ public class HaxeCompilerServices {
         timeLog.stamp("Compiler finished. Output found on " + (stdout.isEmpty() ? "" : "stdout ") + (stderr.isEmpty() ? "" : "stderr"));
         // LOG.debug("Compiler finished. Output found on " + (stdout.isEmpty() ? "" : "stdout ") + (stderr.isEmpty() ? "" : "stderr"));
         if (0 != status) {
-            reportErrors(project, stderr);
-            return HaxeCompilerCompletionItem.EMPTY_LIST;
+            return handleCompilerError(project, stderr);
         }
         return parseCompletionFromXml(project, stderr);
     }
@@ -353,8 +352,7 @@ public class HaxeCompilerServices {
                                                                          null, stderr, timeLog);
             timeLog.stamp("NME finished");
             if (0 != status) {
-                reportErrors(project, stderr);
-                return null;
+                return handleCompilerError(project, stderr);
             }
             return parseCompletionFromXml(project, stderr);
         } catch (IOException e) {
@@ -364,6 +362,16 @@ public class HaxeCompilerServices {
                 tempFile.delete();
             }
         }
+        return HaxeCompilerCompletionItem.EMPTY_LIST;
+    }
+
+    @NotNull
+    private List<HaxeCompilerCompletionItem> handleCompilerError(Project project, List<String> stderr) {
+        List<String> completionList = new ArrayList<String>();
+        if (findCompletionXmlInErrorOutput(stderr, completionList)) {
+            return parseCompletionFromXml(project, completionList);
+        }
+        reportErrors(project, stderr);
         return HaxeCompilerCompletionItem.EMPTY_LIST;
     }
 
@@ -390,6 +398,38 @@ public class HaxeCompilerServices {
             }
             advertiseError(msg.toString());
         }
+    }
+
+    private boolean findCompletionXmlInErrorOutput(List<String> compilerOutput, List<String> xml) {
+        if (null == compilerOutput || compilerOutput.isEmpty()) {
+            return false;
+        }
+
+        boolean foundStart = false;
+        boolean foundEnd = false;
+        String endTag = null;
+        for (String s : compilerOutput) {
+            if (!foundStart) {
+                if (s.equals("<list>")) {
+                    foundStart = true;
+                    endTag = "</list>";
+                    xml.add(s);
+                } else if (s.equals("<type>")) {
+                    foundStart = true;
+                    endTag = "</type>";
+                    xml.add(s);
+                }
+                // Otherwise, ignored.
+            } else {
+                xml.add(s);
+                if (s.equals(endTag)) {
+                    foundEnd = true;
+                    break;
+                }
+            }
+        }
+
+        return foundStart && foundEnd;
     }
 
     private List<HaxeCompilerCompletionItem> parseCompletionFromXml(Project project, List<String> stderr) {

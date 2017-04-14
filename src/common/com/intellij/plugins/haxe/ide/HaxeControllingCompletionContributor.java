@@ -111,8 +111,8 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
   private static Set<CompletionResult> removeDuplicateCompletions(Set<CompletionResult> unfilteredCompletions) {
     // We sort the elements according to name, giving preference to compiler-provided results
     // if the two names are identical.
-    ArrayList<CompletionResult> sorted = new ArrayList<CompletionResult>(unfilteredCompletions);
-    Arrays.sort(sorted.toArray(new CompletionResult[]{}), new Comparator<CompletionResult>() {
+    CompletionResult sorted[] = unfilteredCompletions.toArray(new CompletionResult[]{});
+    Arrays.sort(sorted, new Comparator<CompletionResult>() {
       @Override
       public int compare(CompletionResult o1, CompletionResult o2) {
         LookupElement el1 = o1.getLookupElement();
@@ -138,21 +138,17 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     });
 
     // Now remove duplicates by looping over the list, dropping any that match the entry prior.
-    CompletionResult last = null;
+    ArrayList<CompletionResult> deduped = new ArrayList<CompletionResult>();
     String lastName = null;
-    Iterator<CompletionResult> it = sorted.iterator();
-    while (it.hasNext()) {
-      CompletionResult next = it.next();
+    for (CompletionResult next: sorted) {
       String nextName = getFunctionName(next);
       // In the long run, it's probably not good enough just to check the name.  Multiple argument types may
-      // be present, and we may be able to filter based on the local variables avalable.
-      if (null != lastName && lastName.equals(nextName)) {
-        it.remove();
-      } else {
-        lastName = nextName;
+      // be present, and we may be able to filter based on the local variables available.
+      if (null == lastName || !lastName.equals(nextName)) {
+        deduped.add(next);
       }
+      lastName = nextName;
     }
-
-    return Sets.newCopyOnWriteArraySet(sorted);
+    return Sets.newCopyOnWriteArraySet(deduped);
   }
 }
