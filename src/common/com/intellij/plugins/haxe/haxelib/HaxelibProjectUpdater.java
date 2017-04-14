@@ -37,9 +37,11 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
@@ -364,8 +366,13 @@ public class HaxelibProjectUpdater  {
               if (libraryByName == null) {
                 libraryByName = libraryTable.createLibrary(entry.getName());
                 Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
-                libraryModifiableModel.addRoot(entry.getUrl(), OrderRootType.CLASSES);
-                libraryModifiableModel.addRoot(entry.getUrl(), OrderRootType.SOURCES);
+
+                String entryUrl = entry.getUrl();
+                String pathUrl = VirtualFileManager.constructUrl(LocalFileSystem.PROTOCOL, entryUrl);
+                VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(pathUrl);
+
+                libraryModifiableModel.addRoot(directory, OrderRootType.CLASSES);
+                libraryModifiableModel.addRoot(directory, OrderRootType.SOURCES);
                 libraryModifiableModel.commit();
 
                 timeLog.stamp("Added library " + libraryByName.getName());
@@ -570,6 +577,12 @@ public class HaxelibProjectUpdater  {
     timeLog.stamp("Start synchronizing project " + tracker.getProject().getName());
 
     Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
+    boolean isHaxeSDK = sdk.getSdkType().equals(HaxeSdkType.getInstance());
+
+    if (!isHaxeSDK) {
+      return;
+    }
+
     HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
     HaxeClasspath currentProjectClasspath = HaxelibClasspathUtils.getProjectLibraryClasspath(
       tracker.getProject());

@@ -47,4 +47,6 @@ class ConditionalCompilation {
     trace("Debug infos for all debug compiles");
     #end
   }
+
+  #if neko inline #elseif cpp private #else public #end function foo2() {}
 }

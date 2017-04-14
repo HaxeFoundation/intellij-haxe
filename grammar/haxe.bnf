@@ -208,7 +208,9 @@ private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | ke
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
 autoBuildMacro ::= '@:autoBuild' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
-requireMeta ::=  '@:require' '(' identifier ')'
+private haxeVerExpr ::= 'haxe_ver' compareOperation LITFLOAT
+private identifierList ::= identifier (',' identifier)*
+requireMeta ::=  '@:require' '(' (haxeVerExpr | identifierList) ')'
 fakeEnumMeta ::=  '@:fakeEnum' '(' type ')'
 nativeMeta ::=  '@:native' '(' stringLiteralExpression ')'
 bitmapMeta ::= '@:bitmap' '(' stringLiteralExpression ')'
@@ -221,7 +223,7 @@ metaMeta ::= '@:meta' '(' ID '(' metaPartList? ')' ')'
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
 metaKeyValue ::= ID '=' stringLiteralExpression
 
-jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression ')'
+jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression (',' stringLiteralExpression)* ')'
 
 private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire'
 
