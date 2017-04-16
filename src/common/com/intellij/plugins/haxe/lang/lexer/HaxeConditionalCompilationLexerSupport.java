@@ -237,6 +237,18 @@ public class HaxeConditionalCompilationLexerSupport {
   private Project projectContext;
 
   public HaxeConditionalCompilationLexerSupport(Project context) {
+    reset(context);
+  }
+
+  /**
+   * Reset conditional compilation support to a pristine state.
+   * Called on initialization and when the HaxeGeneratedLexerWrapper receives a
+   * reset(), which should always (and only!) occur when the lexer is at
+   * YYINITIAL state.
+   *
+   * @param context  Project to use for looking up Conditional Compilation variables.
+   */
+  public void reset(Project context) {
     rootSection = new RootSection();
     currentContext =  rootSection;
     projectContext = context;
@@ -256,10 +268,11 @@ public class HaxeConditionalCompilationLexerSupport {
 
   public boolean currentContextIsActive() {
     Section context = getCurrentContext();
-    while (context != null && context.currentBlock() == context.activeBlock()) {
-      context = context.getParent();
-    }
-    return context == null;
+    boolean active;
+    do {
+      active = context.currentBlock() == context.activeBlock();
+    } while (active && null != (context = context.getParent()));
+    return active;
   }
 
   /**
@@ -341,10 +354,7 @@ public class HaxeConditionalCompilationLexerSupport {
    */
   public IElementType mapToken(IElementType type) {
 
-    // Special things that we don't map.
-    if (WHITESPACES.contains(type)) {
-      return type;
-    }
+    // Special things that we don't map go here...
 
     if (!currentContextIsActive()) {
       return PPBODY;

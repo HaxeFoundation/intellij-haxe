@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.lang.util;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.Nullable;
@@ -150,6 +151,10 @@ public class HaxeAstUtil {
 
   public static boolean isLiteral(@Nullable ASTNode t) {
     return isIdentifier(t) || isConstant(t);
+  }
+
+  public static boolean isWhitespace(@Nullable ASTNode t) {
+    return null != t && HaxeTokenTypeSets.WHITESPACES.contains(t.getElementType());
   }
 
   public static boolean isOfType(@Nullable ASTNode t, IElementType... types) {

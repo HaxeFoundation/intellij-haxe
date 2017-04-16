@@ -441,7 +441,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 // Parses the *condition* in a compiler conditional construct (e.g. #if <condition> ...)
 <COMPILER_CONDITIONAL> {
 
-{WHITE_SPACE_CHAR}+                       { return com.intellij.psi.TokenType.WHITE_SPACE;}
+{WHITE_SPACE_CHAR}+                       { return conditionAppend(com.intellij.psi.TokenType.WHITE_SPACE);}
 
 "true"                                    { return conditionAppend( KTRUE ); }
 "false"                                   { return conditionAppend( KFALSE ); }

@@ -135,12 +135,23 @@ public class HaxeConditionalExpression {
       return false;
     }
 
-    ASTNode first = tokens.get(0);
-    if (tokens.size() == 1) {
+    // Ignore whitespace for completion testing.
+    ArrayList<ASTNode> nonWhitespaceTokens = new ArrayList<ASTNode>(tokens.size());
+    for (ASTNode token : tokens) {
+      if (!isWhitespace(token)) {
+        nonWhitespaceTokens.add(token);
+      }
+    }
+    if (nonWhitespaceTokens.isEmpty()) {
+      return false;
+    }
+
+    ASTNode first = nonWhitespaceTokens.get(0);
+    if (nonWhitespaceTokens.size() == 1) {
       return isLiteral(first);
     }
-    if (tokens.size() == 2) {
-      ASTNode second = tokens.get(1);
+    if (nonWhitespaceTokens.size() == 2) {
+      ASTNode second = nonWhitespaceTokens.get(1);
       if (isLeftParen(first) && isRightParen(second)) {
         return true;
       }
@@ -171,7 +182,11 @@ public class HaxeConditionalExpression {
   }
 
   public String toString() {
-    return tokensToString(tokens);
+    StringBuilder s = new StringBuilder();
+    for (ASTNode token : tokens) {
+      s.append(token.getChars());
+    }
+    return s.toString();
   }
 
   /* =================================================================================================
@@ -197,8 +212,9 @@ public class HaxeConditionalExpression {
     if (isComplete()) {
       try {
         Stack<ASTNode> rpn = infixToRPN();
-        LOG.debug(toString() + " --> " + tokensToString(rpn));
+        String rpnString = tokensToString(rpn);
         ret = objectIsTrue(calculateRPN(rpn));
+        LOG.debug(toString() + " --> " + rpnString + " ==> " + (ret ? "true" : "false"));
         if (!rpn.isEmpty()) {
           throw new CalculationException("Invalid Expression: Tokens left after calculating: " + rpn.toString());
         }
@@ -230,6 +246,9 @@ public class HaxeConditionalExpression {
 
     try {
       for (ASTNode token : tokens) {
+        if (isWhitespace(token)) {
+          continue;
+        }
         if (isLiteral(token) || isStringQuote(token) || isString(token)) {
           rpnOutput.push(token);
         }
