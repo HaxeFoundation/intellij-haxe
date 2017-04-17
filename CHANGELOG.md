@@ -6,6 +6,19 @@
      plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
   </p>
 
+  <p>0.11.0.RC-1 (community release):</p>
+  <ul>
+    <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
+    <li>Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)</li>
+    <li>Fix parsing of one-liner conditional complation style (issue #417, #121, partly #115)</li>
+    <li>Support for `@:require` haxe_ver comparing (issue #418)</li>
+    <li>Support for `@:require` and `@:jsRequire` with multiple arguments</li>
+    <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>
+    <li>Fix parsing when an anonymous function call is defined and immediately executed. (Issue #544)</li>
+    <li>Fix library name parsing issues for haxelibs using non-standard paths.</li>
+    <li>Resolve URLs properly when adding haxelibs.</li>
+    <li>Updated Haxe logo bitmaps.</li>
+  </ul>
   <p>0.10.1: (community release)</p>
   <ul>
     <li>Use Java's file library for detecting symlinks instead of IDEA's.</li>

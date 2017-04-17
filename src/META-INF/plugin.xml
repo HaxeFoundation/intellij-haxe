@@ -29,7 +29,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.10.1.Test.CompilerCompletion for @plugin.compatibility.description@</version>
+  <version>0.11.0.RC-1 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
@@ -37,14 +37,17 @@
       <p>Documentation: http://github.com/HaxeFoundation/intellij-haxe/README.md.</p>
       <p>Support: http://github.com/HaxeFoundation/intellij-haxe/issues.</p>
       <p/>
-      <p>Unreleased (Feature test):</p>
+      <p>0.11.0.RC-1:</p>
       <ul>
+        <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
+        <li>Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)</li>
         <li>Fix parsing of one-liner conditional complation style (issue #417, #121, partly #115)</li>
         <li>Support for `@:require` haxe_ver comparing (issue #418)</li>
         <li>Support for `@:require` and `@:jsRequire` with multiple arguments</li>
-        <li>Reworked code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
         <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>
         <li>Fix parsing when an anonymous function call is defined and immediately executed. (Issue #544)</li>
+        <li>Fix library name parsing issues for haxelibs using non-standard paths.</li>
+        <li>Resolve URLs properly when adding haxelibs.</li>
         <li>Updated Haxe logo bitmaps.</li>
       </ul>
       <p>0.10.1.1: (community release)</p)
