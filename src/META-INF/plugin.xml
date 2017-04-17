@@ -37,7 +37,7 @@
       <p>Documentation: http://github.com/HaxeFoundation/intellij-haxe/README.md.</p>
       <p>Support: http://github.com/HaxeFoundation/intellij-haxe/issues.</p>
       <p/>
-      <p>0.11.0.RC-1:</p>
+      <p>0.11.0.RC-1: (community release)</p>
       <ul>
         <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
         <li>Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)</li>
