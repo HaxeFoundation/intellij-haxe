@@ -2,17 +2,13 @@ Recent contributors
 -----------------------------------
  - as3boyan <denis.flash.as3@gmail.com>
  - bynuff <igor.bulankov@gmail.com>
- - Carlos Ballesteros Velasco <soywiz@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
- - Elias Ku <deadbabe@gmail.com>
  - Eric B <ebishton@tivo.com>
+ - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
+ - Eric Bishton <ebishton@ix.netcom.com>
  - GitHub <noreply@github.com>
- - grosmar <zubak.balazs@gmail.com>
  - Ilya Kuzmichev <deadbabe@gmail.com>
- - Ilya Kuzmichev <IlyaK@playtika.by>
- - Ilya Kuzmichev <ilyak@playtika.com>
  - slavara <ratdg@ya.ru>
- - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
  - Usievaład Čorny <anibyl@riseup.net>
  - Usievaład Kimajeŭ <usievalad@gmail.com>
  - winmain <d.winmain@gmail.com>
@@ -39,6 +35,8 @@ All contributors
 - eliasku <deadbabe@gmail.com>
 - Elias Ku <deadbabe@gmail.com>
 - Eric B <ebishton@tivo.com>
+- Eric Bishton <ebishton@Erics-MacBook-Pro.local>
+- Eric Bishton <ebishton@ix.netcom.com>
 - Eugene Zhuravlev <jeka@intellij.com>
 - Evgeny Pasynkov <Evgeny.Pasynkov@jetbrains.com>
 - Evgeny Zakrevsky <evgeny.zakrevsky@jetbrains.com>
