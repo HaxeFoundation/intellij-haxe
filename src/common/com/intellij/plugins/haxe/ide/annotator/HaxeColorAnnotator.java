@@ -78,7 +78,12 @@ public class HaxeColorAnnotator implements Annotator {
       IElementType tt = astNode.getElementType();
 
       if (tt == HaxeTokenTypeSets.PPEXPRESSION) {
-        annotateCompilationExpression(node, holder);
+//        annotateCompilationExpression(node, holder);
+// Temporary override:
+        holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR);
+      }
+      if (tt == HaxeTokenTypeSets.PPBODY) {
+        holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
       }
     }
   }

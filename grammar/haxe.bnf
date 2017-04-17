@@ -83,6 +83,7 @@
     ppELSEIF="#elseif"
     ppEND="#end"
     ppERROR="#error"
+    ppLINE="#line"
 
     kBREAK="break"
     kDEFAULT="default"
@@ -176,6 +177,8 @@
 
 haxeFile ::= packageStatement? topLevelList
 
+private unusedRuleToForceSomeTokenTypesToBeGenerated ::= "Add new tokens here -->" ">=" ">>=" ">>>=" "<-- Add new tokens here"
+
 /*
   http://haxe.org/manual/metadata
   http://haxe.org/manual/tips_and_tricks
@@ -225,7 +228,7 @@ jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression (',' stringLiteralEx
 private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire'
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
-private ppToken ::= '#if' | "#else" | "#elseif" | "#end" | "#error" | ppConditionalStatement
+private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
 
 
 /*

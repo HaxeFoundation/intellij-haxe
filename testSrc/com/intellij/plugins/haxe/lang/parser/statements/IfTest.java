@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.parser.statements;
 
 import com.intellij.plugins.haxe.lang.lexer.HaxeLexer;
+import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
 
 public class IfTest extends StatementTestBase {
   public IfTest() {
@@ -46,7 +47,7 @@ public class IfTest extends StatementTestBase {
     // trying to parse all paths, we get errors when the unbalanced curly
     // brackets appear in the test file.
     if (false ) {
-      myProject.putUserData(HaxeLexer.DEFINES_KEY, "neko,mydebug");
+      myProject.putUserData(HaxeConditionalExpression.DEFINES_KEY, "neko,mydebug");
       doTest(true);
     }
   }

@@ -5,9 +5,17 @@ import com.intellij.psi.tree.IElementType;
 import java.util.*;
 import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.plugins.haxe.lang.lexer.HaxeConditionalCompilationLexerSupport;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.openapi.project.Project;
 
 %%
 %{
+    static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+    static {      // Take this out when finished debugging.
+      LOG.setLevel(org.apache.log4j.Level.DEBUG);
+    }
+
     private static final class State {
         final int lBraceCount;
         final int state;
@@ -29,6 +37,9 @@ import org.jetbrains.annotations.NotNull;
     private int commentStart;
     private int commentDepth;
 
+    Project context; // Required for conditional compilation support.
+    public HaxeConditionalCompilationLexerSupport ccsupport;
+
     private void pushState(int state) {
         states.push(new State(yystate(), lBraceCount));
         lBraceCount = 0;
@@ -48,6 +59,18 @@ import org.jetbrains.annotations.NotNull;
         if(state == APOS_STRING) {
           return "APOS_STRING";
         }
+        if(state == COMPILER_CONDITIONAL) {
+          return "COMPILER_CONDITIONAL";
+        }
+        if(state == CC_STRING) {
+          return "CC_STRING";
+        }
+        if(state == CC_APOS_STRING) {
+          return "CC_APOS_STRING";
+        }
+        if(state == CC_BLOCK) {
+          return "CC_BLOCK";
+        }
         return null;
     }
 
@@ -57,9 +80,70 @@ import org.jetbrains.annotations.NotNull;
         yybegin(state.state);
     }
 
-    public _HaxeLexer() {
-      this((java.io.Reader)null);
+    /** Map output within conditional blocks to comments if the condition is false. */
+    private IElementType emitToken(IElementType tokenType) {
+        if (ccsupport.currentContextIsActive()) {
+           return tokenType;
+        } else {
+            return ccsupport.mapToken(tokenType);
+        }
     }
+
+    /** Deal with compiler conditional block constructs (e.g. #if...#end). */
+    private IElementType processConditional(IElementType type) {
+        ccsupport.processConditional(yytext(), type);
+
+        if (PPIF.equals(type)) {
+            ccStart();
+        } else if (PPEND.equals(type)) {
+            ccEnd();
+        } else if (zzLexicalState != CC_BLOCK) {
+            // Maybe the #if is missing, but if we're not at the end, we want to be sure that we're
+            // in the conditional state.
+            LOG.debug("Unexpected lexical state. Missing starting #if?");
+            ccStart();
+        }
+
+        if (PPIF.equals(type) || PPELSEIF.equals(type)) {
+            conditionStart();
+        }
+        return type;
+    }
+
+    // These deal with the state of lexing the *condition* for compiler conditionals
+    private void conditionStart() { pushState(COMPILER_CONDITIONAL); ccsupport.conditionStart(); }
+    private boolean conditionIsComplete() { return ccsupport.conditionIsComplete(); }
+    private IElementType conditionAppend(IElementType type) {
+        ccsupport.conditionAppend(yytext(),type);
+        if (ccsupport.conditionIsComplete()) {
+            conditionEnd();
+        }
+        return PPEXPRESSION;
+    }
+    private void conditionEnd() {
+        ccsupport.conditionEnd();
+        popState();
+    }
+
+    // We use the CC_BLOCK state to tell the highlighters, etc. that their context
+    // has to go back to the start of the conditional (even though that may be a ways).  Basically,
+    // we need to keep the state as something other than YYINITIAL.
+    private void ccStart() { pushState(CC_BLOCK); } // Until we know better
+    private void ccEnd() {
+        // When there is no #if, but there is an end, popping the state produces an EmptyStackException
+        // and messes up further processing.
+        if (zzLexicalState == CC_BLOCK) {
+            popState();
+        }
+    }
+
+    // There are two other constructors generated for us.  This is the only one that is actually used.
+    public _HaxeLexer(Project context) {
+      this((java.io.Reader)null);
+      this.context = context;
+      ccsupport = new HaxeConditionalCompilationLexerSupport(context);
+    }
+
 %}
 
 %unicode
@@ -74,9 +158,10 @@ import org.jetbrains.annotations.NotNull;
 %eof{
 %eof}
 
-%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY
+%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL CC_STRING CC_APOS_STRING CC_BLOCK
 
 WHITE_SPACE_CHAR=[\ \n\r\t\f]
+//WHITE_SPACE={WHITE_SPACE_CHAR}+
 
 mLETTER = [:letter:] | "_"
 mDIGIT = [:digit:]
@@ -89,14 +174,6 @@ C_STYLE_COMMENT=("/*"[^"*"]{COMMENT_TAIL})|"/*"
 DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?
 COMMENT_TAIL=([^"*"]*("*"+[^"*""/"])?)*("*"+"/")?
 END_OF_LINE_COMMENT="/""/"[^\r\n]*
-
-CONDITIONAL_IF = "#if" [\t\ ]+ "!"? (("(" [^\r\n\#]+ ")") | [^\r\n\t\# ]+)
-CONDITIONAL_ELSEIF = "#elseif" [\t\ ]+ "!"? [^\r\n\t\# ]+
-//CONDITIONAL_END = "#end"
-
-//(("!"?[a-zA-Z]+) | ()?
-//CONDITIONAL_IDENTIFIER = [^\r\n]+
-//COMPILE_TIME_CONDITIONAL="#"{CONDITIONAL_IDENTIFIER}
 
 mHEX_DIGIT = [0-9A-Fa-f]
 mINT_DIGIT = [0-9]
@@ -128,227 +205,291 @@ IDENTIFIER_PART={IDENTIFIER_START}|{mDIGIT}
 IDENTIFIER={IDENTIFIER_START}{IDENTIFIER_PART}*
 IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
 
+/*
+    Compiler conditionals: e.g. "#if (js)...#else...#endif"
+    "macro", "this", and "null" are all identifiers as far as CC is concerned.
+ */
+CONDITIONAL_IDENTIFIER={IDENTIFIER_NO_DOLLAR}
+
+// Treat #line and #error as end of line comments
+CONDITIONAL_LINE="#line"[^\r\n]*
+CONDITIONAL_ERROR="#error"[^\r\n]*
+
 %%
 
-<YYINITIAL> "{"                           { return PLCURLY; }
-<YYINITIAL> "}"                           { return PRCURLY; }
-<LONG_TEMPLATE_ENTRY> "{"                 { lBraceCount++; return PLCURLY; }
+<YYINITIAL, CC_BLOCK> "{"                 { return emitToken( PLCURLY); }
+<YYINITIAL, CC_BLOCK> "}"                 { return emitToken( PRCURLY); }
+<LONG_TEMPLATE_ENTRY> "{"                 { lBraceCount++; return emitToken( PLCURLY); }
 <LONG_TEMPLATE_ENTRY> "}"                 {
                                               if (lBraceCount == 0) {
                                                 popState();
-                                                return LONG_TEMPLATE_ENTRY_END;
+                                                return emitToken( LONG_TEMPLATE_ENTRY_END);
                                               }
                                               lBraceCount--;
-                                              return PRCURLY;
+                                              return emitToken( PRCURLY);
                                           }
 
-<YYINITIAL, LONG_TEMPLATE_ENTRY> {
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> {
 
-{WHITE_SPACE_CHAR}+                       { return com.intellij.psi.TokenType.WHITE_SPACE;}
+{WHITE_SPACE_CHAR}+                       { return emitToken( com.intellij.psi.TokenType.WHITE_SPACE);}
 
-{END_OF_LINE_COMMENT}                     { return MSL_COMMENT; }
-{C_STYLE_COMMENT}                         { return MML_COMMENT; }
-{DOC_COMMENT}                             { return DOC_COMMENT; }
+{CONDITIONAL_LINE}                        { return emitToken( MSL_COMMENT); }
+{CONDITIONAL_ERROR}                       { return emitToken( MSL_COMMENT); }
+{END_OF_LINE_COMMENT}                     { return emitToken( MSL_COMMENT); }
+{C_STYLE_COMMENT}                         { return emitToken( MML_COMMENT); }
+{DOC_COMMENT}                             { return emitToken( DOC_COMMENT); }
 
-"..."                                     { return OTRIPLE_DOT; }
+"..."                                     { return emitToken( OTRIPLE_DOT); }
 
-{mNUM_FLOAT} / [^"."]                     {  return LITFLOAT; }
-{mNUM_OCT}                                {  return LITOCT; }
-{mNUM_HEX}                                {  return LITHEX; }
-{mNUM_INT}                                {  return LITINT; }
-{mREG_EXP}                                {  return REG_EXP; }
+{mNUM_FLOAT} / [^"."]                     {  return emitToken( LITFLOAT); }
+{mNUM_OCT}                                {  return emitToken( LITOCT); }
+{mNUM_HEX}                                {  return emitToken( LITHEX); }
+{mNUM_INT}                                {  return emitToken( LITINT); }
+{mREG_EXP}                                {  return emitToken( REG_EXP); }
 
-"new"                                     { return ONEW; }
-"in"                                      { return OIN; }
+"new"                                     { return emitToken( ONEW); }
+"in"                                      { return emitToken( OIN); }
 
-"break"                                   { return( KBREAK );  }
-"default"                                 { return( KDEFAULT );  }
-"package"                                 { return( KPACKAGE );  }
-"function"                                { return( KFUNCTION );  }
+"break"                                   { return emitToken( KBREAK);  }
+"default"                                 { return emitToken( KDEFAULT);  }
+"package"                                 { return emitToken( KPACKAGE);  }
+"function"                                { return emitToken( KFUNCTION);  }
 
-"case"                                    { return( KCASE );  }
-"cast"                                    { return( KCAST );  }
+"case"                                    { return emitToken( KCASE);  }
+"cast"                                    { return emitToken( KCAST);  }
 
-"abstract"                                {  return( KABSTRACT );  }
-//"from"                                    {  return( KFROM);  }
-//"to"                                      {  return( KTO );  }
+"abstract"                                {  return emitToken( KABSTRACT);  }
+//"from"                                    {  return emitToken( KFROM);  }
+//"to"                                      {  return emitToken( KTO );  }
 
-"class"                                   {  return( KCLASS );  }
-"enum"                                    {  return( KENUM );  }
-"interface"                               {  return( KINTERFACE );  }
+"class"                                   {  return emitToken( KCLASS);  }
+"enum"                                    {  return emitToken( KENUM);  }
+"interface"                               {  return emitToken( KINTERFACE);  }
 
-"implements"                              {  return( KIMPLEMENTS );  }
-"extends"                                 {  return( KEXTENDS );  }
+"implements"                              {  return emitToken( KIMPLEMENTS);  }
+"extends"                                 {  return emitToken( KEXTENDS);  }
 
-"if"                                      {  return KIF ;  }
-"null"                                    {  return KNULL ;  }
-"true"                                    {  return KTRUE ;  }
-"false"                                   {  return KFALSE ;  }
-"this"                                    {  return KTHIS ;  }
-"super"                                   {  return KSUPER ;  }
+"if"                                      {  return emitToken( KIF );  }
+"null"                                    {  return emitToken( KNULL );  }
+"true"                                    {  return emitToken( KTRUE );  }
+"false"                                   {  return emitToken( KFALSE );  }
+"this"                                    {  return emitToken( KTHIS );  }
+"super"                                   {  return emitToken( KSUPER );  }
 
-"for"                                     {  return KFOR ;  }
-"do"                                      {  return KDO ;  }
-"while"                                   {  return KWHILE ;  }
-"return"                                  {  return KRETURN ;  }
-"import"                                  {  return KIMPORT ;  }
-"using"                                   {  return KUSING ;  }
-"continue"                                {  return KCONTINUE ;  }
-"else"                                    {  return KELSE ;  }
-"switch"                                  {  return KSWITCH ;  }
-"throw"                                   {  return KTHROW ;  }
+"for"                                     {  return emitToken( KFOR );  }
+"do"                                      {  return emitToken( KDO );  }
+"while"                                   {  return emitToken( KWHILE );  }
+"return"                                  {  return emitToken( KRETURN );  }
+"import"                                  {  return emitToken( KIMPORT );  }
+"using"                                   {  return emitToken( KUSING );  }
+"continue"                                {  return emitToken( KCONTINUE );  }
+"else"                                    {  return emitToken( KELSE );  }
+"switch"                                  {  return emitToken( KSWITCH );  }
+"throw"                                   {  return emitToken( KTHROW );  }
 
-"var"                                     {  return KVAR;  }
-"public"                                  {  return KPUBLIC;  }
-"private"                                 {  return KPRIVATE;  }
-"static"                                  {  return KSTATIC;  }
-"dynamic"                                 {  return KDYNAMIC;  }
-"never"                                   {  return KNEVER;  }
-"override"                                {  return KOVERRIDE;  }
-"inline"                                  {  return KINLINE;  }
-"macro" [\ ]+                                   {  return KMACRO2; }
+"var"                                     {  return emitToken( KVAR);  }
+"public"                                  {  return emitToken( KPUBLIC);  }
+"private"                                 {  return emitToken( KPRIVATE);  }
+"static"                                  {  return emitToken( KSTATIC);  }
+"dynamic"                                 {  return emitToken( KDYNAMIC);  }
+"never"                                   {  return emitToken( KNEVER);  }
+"override"                                {  return emitToken( KOVERRIDE);  }
+"inline"                                  {  return emitToken( KINLINE);  }
+"macro" [\ ]+                                   {  return emitToken( KMACRO2); }
 
-"untyped"                                 {  return KUNTYPED;  }
-"typedef"                                 {  return KTYPEDEF;  }
+"untyped"                                 {  return emitToken( KUNTYPED);  }
+"typedef"                                 {  return emitToken( KTYPEDEF);  }
 
-"extern" [\ ]+                                  {  return KEXTERN;  }
+"extern" [\ ]+                                  {  return emitToken( KEXTERN);  }
 
-"@:final"                                 {  return KFINAL;  }
-"@:hack"                                  {  return KHACK;  }
-"@:native"                                {  return KNATIVE;  }
-"@:macro"                                 {  return KMACRO;  }
-"@:build"                                 {  return KBUILD;  }
-"@:autoBuild"                             {  return KAUTOBUILD;  }
-"@:keep"                                  {  return KKEEP;  }
-"@:require"                               {  return KREQUIRE;  }
-"@:fakeEnum"                              {  return KFAKEENUM;  }
-"@:core_api"                              {  return KCOREAPI;  }
+"@:final"                                 {  return emitToken( KFINAL);  }
+"@:hack"                                  {  return emitToken( KHACK);  }
+"@:native"                                {  return emitToken( KNATIVE);  }
+"@:macro"                                 {  return emitToken( KMACRO);  }
+"@:build"                                 {  return emitToken( KBUILD);  }
+"@:autoBuild"                             {  return emitToken( KAUTOBUILD);  }
+"@:keep"                                  {  return emitToken( KKEEP);  }
+"@:require"                               {  return emitToken( KREQUIRE);  }
+"@:fakeEnum"                              {  return emitToken( KFAKEENUM);  }
+"@:core_api"                              {  return emitToken( KCOREAPI);  }
 
-"@:bind"                                  {  return KBIND;  }
-"@:bitmap"                                {  return KBITMAP;  }
-"@:ns"                                    {  return KNS;  }
-"@:protected"                             {  return KPROTECTED;  }
-"@:getter"                                {  return KGETTER;  }
-"@:setter"                                {  return KSETTER;  }
-"@:debug"                                 {  return KDEBUG;  }
-"@:nodebug"                               {  return KNODEBUG;  }
-"@:meta"                                  {  return KMETA;  }
-"@:overload"                              {  return KOVERLOAD;  }
+"@:bind"                                  {  return emitToken( KBIND);  }
+"@:bitmap"                                {  return emitToken( KBITMAP);  }
+"@:ns"                                    {  return emitToken( KNS);  }
+"@:protected"                             {  return emitToken( KPROTECTED);  }
+"@:getter"                                {  return emitToken( KGETTER);  }
+"@:setter"                                {  return emitToken( KSETTER);  }
+"@:debug"                                 {  return emitToken( KDEBUG);  }
+"@:nodebug"                               {  return emitToken( KNODEBUG);  }
+"@:meta"                                  {  return emitToken( KMETA);  }
+"@:overload"                              {  return emitToken( KOVERLOAD);  }
 
-"try"                                     {  return KTRY;  }
-"catch"                                   {  return KCATCH;  }
+"try"                                     {  return emitToken( KTRY);  }
+"catch"                                   {  return emitToken( KCATCH);  }
 
 
-{MACRO_IDENTIFIER}                        {  return MACRO_ID; }
-{IDENTIFIER}                              {  return ID; }
+{MACRO_IDENTIFIER}                        {  return emitToken( MACRO_ID); }
+{IDENTIFIER}                              {  return emitToken( ID); }
 
-"."                                       { return ODOT; }
+"."                                       { return emitToken( ODOT); }
 
-"["                                       { return PLBRACK; }
-"]"                                       { return PRBRACK; }
+"["                                       { return emitToken( PLBRACK); }
+"]"                                       { return emitToken( PRBRACK); }
 
-"("                                       { return PLPAREN; }
-")"                                       { return PRPAREN; }
+"("                                       { return emitToken( PLPAREN); }
+")"                                       { return emitToken( PRPAREN); }
 
-":"                                       { return OCOLON; }
-";"                                       { return OSEMI; }
-","                                       { return OCOMMA; }
+":"                                       { return emitToken( OCOLON); }
+";"                                       { return emitToken( OSEMI); }
+","                                       { return emitToken( OCOMMA); }
 
-"->"                                      { return OARROW; }
+"->"                                      { return emitToken( OARROW); }
 
-"=="                                      { return OEQ; }
-"="                                       { return OASSIGN; }
+"=="                                      { return emitToken( OEQ); }
+"="                                       { return emitToken( OASSIGN); }
 
-"!="                                      { return ONOT_EQ; }
-"!"                                       { return ONOT; }
-"~" / [^"/"]                              { return OCOMPLEMENT; }
+"!="                                      { return emitToken( ONOT_EQ); }
+"!"                                       { return emitToken( ONOT); }
+"~" / [^"/"]                              { return emitToken( OCOMPLEMENT); }
 
-"?"                                       { return OQUEST;}
+"?"                                       { return emitToken( OQUEST);}
 
-"++"                                      { return OPLUS_PLUS; }
-"+="                                      { return OPLUS_ASSIGN; }
-"+"                                       { return OPLUS; }
+"++"                                      { return emitToken( OPLUS_PLUS); }
+"+="                                      { return emitToken( OPLUS_ASSIGN); }
+"+"                                       { return emitToken( OPLUS); }
 
-"--"                                      { return OMINUS_MINUS; }
-"-="                                      { return OMINUS_ASSIGN; }
-"-"                                       { return OMINUS; }
+"--"                                      { return emitToken( OMINUS_MINUS); }
+"-="                                      { return emitToken( OMINUS_ASSIGN); }
+"-"                                       { return emitToken( OMINUS); }
 
-"||"                                      { return OCOND_OR; }
-"|="                                      { return OBIT_OR_ASSIGN; }
-"|"                                       { return OBIT_OR; }
+"||"                                      { return emitToken( OCOND_OR); }
+"|="                                      { return emitToken( OBIT_OR_ASSIGN); }
+"|"                                       { return emitToken( OBIT_OR); }
 
-"&&"                                      { return OCOND_AND; }
-"&="                                      { return OBIT_AND_ASSIGN; }
-"&"                                       { return OBIT_AND; }
+"&&"                                      { return emitToken( OCOND_AND); }
+"&="                                      { return emitToken( OBIT_AND_ASSIGN); }
+"&"                                       { return emitToken( OBIT_AND); }
 
-"<<="                                     { return OSHIFT_LEFT_ASSIGN; }
-"<<"                                      { return OSHIFT_LEFT; }
-"<="                                      { return OLESS_OR_EQUAL; }
-"<"                                       { return OLESS; }
+"<<="                                     { return emitToken( OSHIFT_LEFT_ASSIGN); }
+"<<"                                      { return emitToken( OSHIFT_LEFT); }
+"<="                                      { return emitToken( OLESS_OR_EQUAL); }
+"<"                                       { return emitToken( OLESS); }
 
-"^="                                      { return OBIT_XOR_ASSIGN; }
-"^"                                       { return OBIT_XOR; }
+"^="                                      { return emitToken( OBIT_XOR_ASSIGN); }
+"^"                                       { return emitToken( OBIT_XOR); }
 
-"*="                                      { return OMUL_ASSIGN; }
-"*"                                       { return OMUL; }
+"*="                                      { return emitToken( OMUL_ASSIGN); }
+"*"                                       { return emitToken( OMUL); }
 
-"/="                                      { return OQUOTIENT_ASSIGN; }
-"/"                                       { return OQUOTIENT; }
+"/="                                      { return emitToken( OQUOTIENT_ASSIGN); }
+"/"                                       { return emitToken( OQUOTIENT); }
 
-"%="                                      { return OREMAINDER_ASSIGN; }
-"%"                                       { return OREMAINDER; }
+"%="                                      { return emitToken( OREMAINDER_ASSIGN); }
+"%"                                       { return emitToken( OREMAINDER); }
 
-//">>="                                     { return OSHIFT_RIGHT_ASSIGN; }
-//">="                                      { return OGREATER_OR_EQUAL; }
-"=>"                                      { return OFAT_ARROW; }
-">"                                       { return OGREATER; }
+//">>="                                     { return emitToken( OSHIFT_RIGHT_ASSIGN); }
+//">="                                      { return emitToken( OGREATER_OR_EQUAL); }
+"=>"                                      { return emitToken( OFAT_ARROW); }
+">"                                       { return emitToken( OGREATER); }
 
-{CONDITIONAL_IF} | {CONDITIONAL_ELSEIF}                          { return CONDITIONAL_STATEMENT_ID; }
-//"#if"                                     { return PPIF; }
-"#end"                                    { return PPEND; }
-"#error"                                  { return PPERROR; }
-//"#elseif"                                 { return PPELSEIF; }
-"#else"                                   { return PPELSE; }
-} // <YYINITIAL, LONG_TEMPLATE_ENTRY>
+//{CONDITIONAL_IF} | {CONDITIONAL_ELSEIF}                          { return emitToken( CONDITIONAL_STATEMENT_ID); }
+"#end"                                    { return processConditional(PPEND); }
+"#elseif"                                 { return processConditional(PPELSEIF); }
+"#else"                                   { return processConditional(PPELSE); }
+"#if"                                     { return processConditional(PPIF); }
+} // <YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY>
 
 // "
 
-<YYINITIAL, LONG_TEMPLATE_ENTRY> \"       { pushState(QUO_STRING); return OPEN_QUOTE; }
-<QUO_STRING> \"                 { popState(); return CLOSING_QUOTE; }
-<QUO_STRING> {ESCAPE_SEQUENCE}  { return REGULAR_STRING_PART; }
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> \"   { pushState(QUO_STRING); return emitToken( OPEN_QUOTE); }
+<QUO_STRING> \"                 { popState(); return emitToken( CLOSING_QUOTE); }
+<QUO_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
 
-<QUO_STRING> {REGULAR_QUO_STRING_PART}     { return REGULAR_STRING_PART; }
+<QUO_STRING> {REGULAR_QUO_STRING_PART}     { return emitToken( REGULAR_STRING_PART); }
 <QUO_STRING> {SHORT_TEMPLATE_ENTRY}        {
                                                                   pushState(SHORT_TEMPLATE_ENTRY);
                                                                   yypushback(yylength() - 1);
-                                                                  return SHORT_TEMPLATE_ENTRY_START;
+                                                                  return emitToken( SHORT_TEMPLATE_ENTRY_START);
                                                              }
 
-<QUO_STRING> {LONELY_DOLLAR}               { return REGULAR_STRING_PART; }
-<QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return LONG_TEMPLATE_ENTRY_START; }
+<QUO_STRING> {LONELY_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
+<QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return emitToken( LONG_TEMPLATE_ENTRY_START); }
 
-// '
+// Support single quote strings: "'"
 
-<YYINITIAL, LONG_TEMPLATE_ENTRY> \'     { pushState(APOS_STRING); return OPEN_QUOTE; }
-<APOS_STRING> \'                 { popState(); return CLOSING_QUOTE; }
-<APOS_STRING> {ESCAPE_SEQUENCE}  { return REGULAR_STRING_PART; }
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
+<APOS_STRING> \'                 { popState(); return emitToken( CLOSING_QUOTE); }
+<APOS_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
 
-<APOS_STRING> {REGULAR_APOS_STRING_PART}    { return REGULAR_STRING_PART; }
+<APOS_STRING> {REGULAR_APOS_STRING_PART}    { return emitToken( REGULAR_STRING_PART); }
 <APOS_STRING> {SHORT_TEMPLATE_ENTRY}        {
                                                                   pushState(SHORT_TEMPLATE_ENTRY);
                                                                   yypushback(yylength() - 1);
-                                                                  return SHORT_TEMPLATE_ENTRY_START;
+                                                                  return emitToken( SHORT_TEMPLATE_ENTRY_START);
                                                              }
 
-<APOS_STRING> {LONELY_DOLLAR}               { return REGULAR_STRING_PART; }
-<APOS_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return LONG_TEMPLATE_ENTRY_START; }
+<APOS_STRING> {LONELY_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
+<APOS_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return emitToken( LONG_TEMPLATE_ENTRY_START); }
 
 
 // Only *this* keyword is itself an expression valid in this position
 // *null*, *true* and *false* are also keywords and expression, but it does not make sense to put them
 // in a string template for it'd be easier to just type them in without a dollar
-<SHORT_TEMPLATE_ENTRY> "this"          { popState(); return KTHIS; }
-<SHORT_TEMPLATE_ENTRY> {IDENTIFIER_NO_DOLLAR}    { popState(); return ID; }
+<SHORT_TEMPLATE_ENTRY> "this"          { popState(); return emitToken( KTHIS); }
+<SHORT_TEMPLATE_ENTRY> {IDENTIFIER_NO_DOLLAR}    { popState(); return emitToken( ID); }
 
-<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY> .  { return com.intellij.psi.TokenType.BAD_CHARACTER; }
-.                                                                       {  yybegin(YYINITIAL); return com.intellij.psi.TokenType.BAD_CHARACTER; }
+// Parses the *condition* in a compiler conditional construct (e.g. #if <condition> ...)
+<COMPILER_CONDITIONAL> {
+
+{WHITE_SPACE_CHAR}+                       { return conditionAppend(com.intellij.psi.TokenType.WHITE_SPACE);}
+
+"true"                                    { return conditionAppend( KTRUE ); }
+"false"                                   { return conditionAppend( KFALSE ); }
+
+{CONDITIONAL_IDENTIFIER}                  { return conditionAppend( ID ); }
+
+{mNUM_FLOAT} / [^"."]                     { return conditionAppend( LITFLOAT ); }
+{mNUM_OCT}                                { return conditionAppend( LITOCT ); }
+{mNUM_HEX}                                { return conditionAppend( LITHEX ); }
+{mNUM_INT}                                { return conditionAppend( LITINT ); }
+
+"("                                       { return conditionAppend( PLPAREN ); }
+")"                                       { return conditionAppend( PRPAREN ); }
+
+"=="                                      { return conditionAppend( OEQ ); }
+"!="                                      { return conditionAppend( ONOT_EQ ); }
+"!"                                       { return conditionAppend( ONOT ); }
+
+">="                                      { return conditionAppend( OGREATER_OR_EQUAL ); }
+">"                                       { return conditionAppend( OGREATER ); }
+
+"<="                                      { return conditionAppend( OLESS_OR_EQUAL ); }
+"<"                                       { return conditionAppend( OLESS ); }
+
+"&&"                                      { return conditionAppend( OCOND_AND ); }
+"||"                                      { return conditionAppend( OCOND_OR ); }
+
+\"                                        { pushState(CC_STRING); return conditionAppend( OPEN_QUOTE ); }
+
+// Any other token is an error which needs to kill this state and be processed normally.
+.                                         {
+                                            LOG.debug("Bad termination of PP condition: \"" + yytext() + "\"");
+                                            yypushback(1);
+                                            conditionEnd();
+                                            return PPBODY;
+                                          }
+}
+
+// Strings inside of compiler conditionals.  They can't use string interpolation/templates (e.g. $var).
+<CC_STRING> \"                            { popState(); return conditionAppend( CLOSING_QUOTE ); }
+<CC_APOS_STRING> \'                       { popState(); return conditionAppend( CLOSING_QUOTE ); }
+<CC_STRING, CC_APOS_STRING>  {
+{ESCAPE_SEQUENCE}                         { return conditionAppend( REGULAR_STRING_PART ); }
+{REGULAR_QUO_STRING_PART}                 { return conditionAppend( REGULAR_STRING_PART ); }
+}
+
+<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY, CC_BLOCK> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
+.                                                                       {
+                                                                          yybegin(YYINITIAL);
+                                                                          return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER );
+                                                                        }
