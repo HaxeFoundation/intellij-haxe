@@ -19,6 +19,11 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.ex.VirtualFileManagerEx;
+import com.intellij.util.LocalFileUrl;
+import com.intellij.util.Url;
+import com.intellij.util.Urls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,6 +70,19 @@ public class HaxeCompilerError {
 
   public int getColumn() {
     return column;
+  }
+
+  public String getUrl() {
+
+    VirtualFileSystem vfs = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL);
+    VirtualFile file = vfs.findFileByPath(getPath());
+
+    StringBuilder msg = new StringBuilder(file.getUrl());
+    msg.append('#');
+    msg.append(getLine());
+    msg.append(':');
+    msg.append(getColumn());
+    return msg.toString();
   }
 
   public boolean isInformationalMessage() {
