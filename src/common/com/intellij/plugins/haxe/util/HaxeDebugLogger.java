@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.thoughtworks.xstream.converters.extended.StackTraceElementFactory;
 import org.apache.log4j.*;
 import org.apache.log4j.spi.LoggerFactory;
 import org.apache.log4j.spi.LoggerRepository;
@@ -37,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HaxeDebugLogger extends org.apache.log4j.Logger {
 
   private static final HaxeDebugLoggerManager manager = new HaxeDebugLoggerManager();
+  private static final String FQCN = HaxeDebugLogger.class.getName();
 
   public static interface Factory extends LoggerFactory {
     public HaxeDebugLogger makeNewRootLoggerInstance();
@@ -74,28 +76,36 @@ public class HaxeDebugLogger extends org.apache.log4j.Logger {
   }
 
   private static String getCallingClassName() {
+    return getCallingStackFrame().getClassName();
+  }
+
+  private static StackTraceElement getCallingStackFrame() {
     // Get the current call stack.  Then walk it until we find the first
     // entry that isn't *this* class.
-    String className = "<Unknown class>";
     StackTraceElement[] stack = new Exception().getStackTrace();
     for (StackTraceElement frame : stack) {
       String frameClassName = frame.getClassName();
-      if (!frameClassName.equals(HaxeDebugLogger.class.getName())) {
-        className = frameClassName;
-        break;
+      if (!frameClassName.equals(FQCN)) {
+        return frame;
       }
     }
-    return className;
+
+    // If we couldn't find a caller, then something is very wrong.
+    String msg = "Internal failure: Ran through the stack looking for our caller.";
+    getLogger().assertLog(false, msg);
+    throw new RuntimeException(msg);
   }
 
   // These deprecated versions remain here to override the default deprecated methods.
-  @Deprecated
+  @Deprecated @SuppressWarnings("deprecated")
   public static HaxeDebugLogger getInstance() {
     return getLogger(getCallingClassName(), manager.getFactory());
   }
+  @Deprecated @SuppressWarnings("deprecated")
   public static HaxeDebugLogger getInstance(String name) {
     return getLogger(name, manager.getFactory());
   }
+  @Deprecated @SuppressWarnings("deprecated")
   public static HaxeDebugLogger getInstance(Class clazz) {
     return getLogger(clazz.getName(), manager.getFactory());
   }
@@ -143,6 +153,31 @@ public class HaxeDebugLogger extends org.apache.log4j.Logger {
 
   public static void configure(String name, Level lvl) {
     manager.getLogConfiguration().addConfiguration(name, lvl);
+  }
+
+  @Override
+  public void trace(Object message) {
+    trace(message, null);
+  }
+
+  @Override
+  public void trace(Object message, Throwable t) {StackTraceElement frame = getCallingStackFrame();
+    String msg = "Line " + frame.getLineNumber() + ":" + (null != message ? message.toString() : "<no message>");
+
+    if(!this.repository.isDisabled(Level.TRACE.toInt())) {
+      if(Level.TRACE.isGreaterOrEqual(this.getEffectiveLevel())) {
+        this.forcedLog(FQCN, Level.TRACE, msg, t);
+      }
+    }
+  }
+
+  public void trace() {
+    trace(null, null);
+  }
+
+  @Override
+  public boolean isTraceEnabled() {
+    return super.isTraceEnabled();
   }
 }
 
