@@ -64,9 +64,10 @@ public class HaxeConditionalExpression {
   //    ppStatement ::= ppStatementWithCondition | ppStatementWithoutCondition | ppStatementWithComment {extends="com.intellij.psi.PsiComment"}
 
   static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static {      // Take this out when finished debugging.
-    LOG.setLevel(org.apache.log4j.Level.DEBUG);
-  }
+  //static {      // Take this out when finished debugging.
+  //  LOG.setLevel(org.apache.log4j.Level.DEBUG);
+  //}
+
   private final ArrayList<ASTNode> tokens = new ArrayList<ASTNode>();
   private boolean evaluated = false;    // Cleared when dirty.
   private boolean evalResult = false;   // Cleared when dirty.
@@ -212,20 +213,18 @@ public class HaxeConditionalExpression {
     if (isComplete()) {
       try {
         Stack<ASTNode> rpn = infixToRPN();
-        String rpnString = tokensToString(rpn);
+        String rpnString = LOG.isDebugEnabled() ? tokensToString(rpn) : null;
         ret = objectIsTrue(calculateRPN(rpn));
-        LOG.debug(toString() + " --> " + rpnString + " ==> " + (ret ? "true" : "false"));
+        if (LOG.isDebugEnabled()) {  // Don't create the strings unless we are debugging them...
+          LOG.debug(toString() + " --> " + rpnString + " ==> " + (ret ? "true" : "false"));
+        }
         if (!rpn.isEmpty()) {
           throw new CalculationException("Invalid Expression: Tokens left after calculating: " + rpn.toString());
         }
       } catch (CalculationException e) {
         String msg = "Error calculating conditional compiler expression '" + toString() + "'";
-        if (LOG.getEffectiveLevel() == Level.DEBUG) {
-          // Add stack info if in debug mode.
-          LOG.info(msg, e);
-        } else {
-          LOG.info(msg);
-        }
+        // Add stack info if in debug mode.
+        LOG.info( msg, LOG.isDebugEnabled() ? e : null );
       }
     }
     return ret;
