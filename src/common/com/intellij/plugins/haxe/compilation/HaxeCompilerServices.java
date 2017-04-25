@@ -382,15 +382,36 @@ public class HaxeCompilerServices {
             msg.append("Compiler completion");        // TODO: Externalize string.
 
             // Could be a syntax warning.
-            HaxeCompilerError compilerError = HaxeCompilerError.create(
-              project.getBaseDir().getPath(),
-              error);
+            String projectPath = project.getBaseDir().getPath();
+            HaxeCompilerError compilerError = HaxeCompilerError.create(projectPath, error);
             if (null != compilerError) {
                 if (compilerError.isErrorMessage()) {
                     msg.append(" error");                   // TODO: Externalize and don't build the string.
                 }
                 msg.append(": ");
+
                 msg.append(compilerError.getErrorMessage());
+                msg.append(" @ ");
+
+                // XXX: We can make a link show up in the tooltip by enabling this, but
+                //      clicking on it does nothing.
+                //msg.append("<a href=\"");
+                //msg.append(compilerError.getUrl());
+                //msg.append("\">");
+
+                String path = compilerError.getPath();
+                if (path.startsWith(projectPath)) {
+                    msg.append(path.subSequence(projectPath.length(), path.length()));
+                } else {
+                    msg.append(path);
+                }
+                msg.append(" (");
+                msg.append(compilerError.getLine());
+                msg.append(":");
+                msg.append(compilerError.getColumn());
+                msg.append(")");
+
+                //msg.append("</a>");
             }
             else {
                 msg.append(": ");
