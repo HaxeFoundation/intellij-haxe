@@ -23,6 +23,7 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
@@ -203,29 +204,23 @@ class FieldChecker {
 
     if (field.getGetterType() == HaxeAccessorType.GET) {
       final String methodName = "get_" + field.getName();
+
       HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
-      if (method == null) {
-        Annotation annotation = holder.createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(methodName);
-          }
-        });
+      if (method == null && field.getGetterPsi() != null) {
+        holder
+          .createErrorAnnotation(field.getGetterPsi(), "Can't find method " + methodName)
+          .registerFix(new CreateGetterSetterQuickfix(field.getDeclaringClass(), field, true));
       }
     }
 
     if (field.getSetterType() == HaxeAccessorType.SET) {
       final String methodName = "set_" + field.getName();
+
       HaxeMethodModel method = field.getDeclaringClass().getMethod(methodName);
-      if (method == null) {
-        Annotation annotation = holder.createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName);
-        annotation.registerFix(new HaxeFixer("Add method") {
-          @Override
-          public void run() {
-            field.getDeclaringClass().addMethod(methodName);
-          }
-        });
+      if (method == null && field.getSetterPsi() != null) {
+        holder
+          .createErrorAnnotation(field.getSetterPsi(), "Can't find method " + methodName)
+          .registerFix(new CreateGetterSetterQuickfix(field.getDeclaringClass(), field, false));
       }
     }
   }

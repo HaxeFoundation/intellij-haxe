@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide.generation;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -62,16 +63,17 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     if (!(namedComponent instanceof HaxeVarDeclarationPart)) {
       return "";
     }
-    final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclarationPart)namedComponent).getTypeTag());
+
+    HaxeFieldModel field = new HaxeFieldModel((HaxeVarDeclaration)namedComponent.getParent());
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
-      if (null == myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(namedComponent.getName()))) {
-        buildGetter(result, namedComponent, typeText);
+      if (field.getGetterMethod() == null) {
+        GetterSetterMethodBuilder.buildGetter(result, field);
       }
     }
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
-      if (null == myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(namedComponent.getName()))) {
-        buildSetter(result, namedComponent, typeText);
+      if (field.getSetterMethod() == null) {
+        GetterSetterMethodBuilder.buildSetter(result, field);
       }
     }
     return result.toString();
@@ -133,52 +135,5 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
     result.append(";");
     return result.toString();
-  }
-
-  private static void buildGetter(StringBuilder result, HaxeNamedComponent namedComponent, String typeText) {
-    build(result, namedComponent, typeText, true);
-  }
-
-  private static void buildSetter(StringBuilder result, HaxeNamedComponent namedComponent, String typeText) {
-    build(result, namedComponent, typeText, false);
-  }
-
-  private static void build(StringBuilder result, HaxeNamedComponent namedComponent, String typeText, boolean isGetter) {
-    Boolean isStatic = namedComponent.isStatic();
-    String name = namedComponent.getName();
-    if (isStatic) {
-      result.append("static ");
-    }
-    result.append("function ");
-    result.append(isGetter ? HaxePresentableUtil.getterName(name) : HaxePresentableUtil.setterName(name));
-    result.append("(");
-    if (!isGetter) {
-      result.append("value");
-
-      if (!typeText.isEmpty()) {
-        result.append(":");
-        result.append(typeText);
-      }
-    }
-    result.append(")");
-    if (isGetter && !typeText.isEmpty()) {
-      result.append(":");
-      result.append(typeText);
-    }
-    result.append("{\n");
-    if (isGetter) {
-      result.append("return ");
-      result.append(name);
-      result.append(";");
-    }
-    else {
-      result.append("return ");
-      if (!isStatic) {
-        result.append("this.");
-      }
-      result.append(name);
-      result.append("= value;");
-    }
-    result.append("\n}");
   }
 }
