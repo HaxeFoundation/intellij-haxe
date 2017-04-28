@@ -60,7 +60,7 @@ public class CreateGetterSetterQuickfix extends BaseIntentionAction {
         public void run() {
           if (classModel.getBodyPsi() == null) return;
 
-          StringBuilder builder = new StringBuilder();
+          final StringBuilder builder = new StringBuilder();
           GetterSetterMethodBuilder.build(builder, field, generateGetter);
 
           new WriteCommandAction.Simple(project) {
