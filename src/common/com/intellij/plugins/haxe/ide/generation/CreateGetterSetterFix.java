@@ -67,12 +67,14 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     HaxeFieldModel field = new HaxeFieldModel((HaxeVarDeclaration)namedComponent.getParent());
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
-      if (field.getGetterMethod() == null) {
+      HaxeNamedComponent getterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()));
+      if (getterMethod == null) {
         GetterSetterMethodBuilder.buildGetter(result, field);
       }
     }
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
-      if (field.getSetterMethod() == null) {
+      HaxeNamedComponent setterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(field.getName()));
+      if (setterMethod == null) {
         GetterSetterMethodBuilder.buildSetter(result, field);
       }
     }
