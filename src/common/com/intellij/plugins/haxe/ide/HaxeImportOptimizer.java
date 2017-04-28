@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -118,7 +119,12 @@ public class HaxeImportOptimizer implements ImportOptimizer {
       sortedImports.add(currentImport.getText());
     }
 
-    Collections.sort(sortedImports);
+    Collections.sort(sortedImports, new Comparator<String>() {
+      @Override
+      public int compare(String s1, String s2) {
+        return s1.compareToIgnoreCase(s2);
+      }
+    });
 
     final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(file.getProject());
     final Document document = psiDocumentManager.getDocument(file);
