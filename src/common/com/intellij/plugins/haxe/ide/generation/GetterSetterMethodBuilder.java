@@ -2,6 +2,8 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2017 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright Fedor Korotkov
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +22,6 @@ package com.intellij.plugins.haxe.ide.generation;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 
-/**
- * @author: Fedor.Korotkov
- * @author: Ilya Malanin
- */
 public class GetterSetterMethodBuilder {
   public static void buildGetter(StringBuilder result, HaxeFieldModel field) {
     build(result, field, true);
