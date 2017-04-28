@@ -53,7 +53,7 @@ public class CreateGetterSetterQuickfix extends BaseIntentionAction {
   }
 
   @Override
-  public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+  public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
     ApplicationManager.getApplication().invokeLater(
       new Runnable() {
         @Override
