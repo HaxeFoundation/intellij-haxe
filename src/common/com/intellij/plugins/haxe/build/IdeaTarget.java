@@ -38,6 +38,12 @@ public class IdeaTarget {
   // of the compatibility strings possible.
   //
 
+
+  public static final boolean IS_VERSION_17_2_COMPATIBLE = (SDK_CODELINE >= 172); // EAP
+  public static final boolean IS_VERSION_17_1_COMPATIBLE = (SDK_CODELINE >= 171);
+  // No 2017.0 release.
+  public static final boolean IS_VERSION_17_COMPATIBILE= (IS_VERSION_17_1_COMPATIBLE || IS_VERSION_17_2_COMPATIBLE);
+
   public static final boolean IS_VERSION_16_3_COMPATIBLE = (SDK_CODELINE >= 163);
   public static final boolean IS_VERSION_16_2_COMPATIBLE = (SDK_CODELINE >= 162);
   public static final boolean IS_VERSION_16_1_COMPATIBLE = (SDK_CODELINE >= 145);
