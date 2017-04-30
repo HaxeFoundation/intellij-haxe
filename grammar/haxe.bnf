@@ -374,7 +374,8 @@ private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' functionCo
  */
 
 varInit ::= '=' expression {pin=1}
-parameter ::= '?'? componentName typeTag? varInit?
+isOptional ::= '?'
+parameter ::= isOptional? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 
 openParameterList ::= parameter {extends=parameterList}
