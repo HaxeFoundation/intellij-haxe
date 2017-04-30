@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,66 +18,67 @@
  */
 package com.intellij.plugins.haxe.ide.info;
 
-import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
-import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @author: Fedor.Korotkov
- */
 public class HaxeParameterDescription {
-  private final String name;
-  private final String typeText;
-  private final String varInitValue;
+  private final boolean isOptional;
+  private final boolean isDefinedAsNullable;
 
-  public HaxeParameterDescription(String name, String text, String varInitText) {
-    this.name = name;
-    typeText = text;
-    varInitValue = varInitText;
-  }
+  private final String text;
 
+  HaxeParameterDescription(String name, String type, String initialValue, boolean isOptional, boolean isDefinedAsNullable, int textOffset) {
+    this.isOptional = isOptional;
+    this.isDefinedAsNullable = isDefinedAsNullable;
 
-  public static HaxeParameterDescription[] getParameters(HaxeNamedComponent element, HaxeGenericSpecialization specialization, boolean isExtension) {
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterList.class);
-    if (parameterList == null) {
-      return new HaxeParameterDescription[0];
-    }
-    List<HaxeParameter> list = parameterList.getParameterList();
-    if (isExtension) {
-      list = new ArrayList<HaxeParameter>(list);
-      list.remove(0);
-    }
-    final HaxeParameterDescription[] result = new HaxeParameterDescription[list.size()];
-    for (int i = 0, size = list.size(); i < size; i++) {
-      HaxeParameter parameter = list.get(i);
-      String typeText = "";
-      if (parameter.getTypeTag() != null) {
-        typeText = HaxePresentableUtil.buildTypeText(element, parameter.getTypeTag(), specialization);
-      }
-      String varInitText = "";
-      HaxeVarInit varInit = parameter.getVarInit();
-      if (varInit != null) {
-        final HaxeExpression varInitExpression = varInit.getExpression();
-        varInitText = varInitExpression == null ? "" : varInitExpression.getText();
-      }
-      result[i] = new HaxeParameterDescription(parameter.getName(), typeText, varInitText);
-    }
-    return result;
+    this.text = compileDescription(name, type, initialValue);
   }
 
   @Override
   public String toString() {
+    return text;
+  }
+
+  public boolean getIsOptional() {
+    return isOptional;
+  }
+
+  public boolean getIsDefinedAsNullable() {
+    return isDefinedAsNullable;
+  }
+
+  private String compileDescription(String name, @Nullable String type, @Nullable String initialValue) {
+    final boolean hasInitialValue = initialValue != null && !initialValue.isEmpty();
+    final boolean hasType = type != null && !type.isEmpty();
+    final boolean isValuePredefined = isOptional || hasInitialValue;
+
     final StringBuilder result = new StringBuilder();
+    if (isValuePredefined) {
+      result.append("[");
+    }
     result.append(name);
-    if (!typeText.isEmpty()) {
-      result.append(":").append(typeText);
+    if (hasType) {
+      result.append(":");
+      if (isOptional && !isDefinedAsNullable) {
+        result.append(HaxePresentableUtil.asNullable(type));
+      }
+      else {
+        result.append(type);
+      }
     }
-    if (!varInitValue.isEmpty()) {
-      result.append(" = ").append(varInitValue);
+    else {
+      result.append(":").append(HaxePresentableUtil.unknownType());
     }
+    if (hasInitialValue) {
+      result.append(" = ").append(initialValue);
+    }
+    else if (isOptional) {
+      result.append(" = null");
+    }
+    if (isValuePredefined) {
+      result.append("]");
+    }
+
     return result.toString();
   }
 }
