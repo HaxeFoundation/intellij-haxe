@@ -49,7 +49,7 @@ public class GetterSetterMethodBuilder {
       }
     }
     result.append(")");
-    if (isGetter && !type.isEmpty()) {
+    if (!type.isEmpty()) {
       result.append(":");
       result.append(type);
     }
