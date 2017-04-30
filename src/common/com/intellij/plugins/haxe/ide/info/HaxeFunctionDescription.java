@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,30 +19,36 @@
 package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
-import com.intellij.plugins.haxe.util.HaxePresentableUtil;
-import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * @author: Fedor.Korotkov
- */
+import java.util.logging.Logger;
+
 public class HaxeFunctionDescription {
+  private static final TextRange ZERO_TEXT_RANGE = new TextRange(0, 0);
+  private static final String PARAMETERS_DELIMITER = ", ";
+
   private final String name;
   private final String returnType;
   private final HaxeParameterDescription[] parameters;
 
-  public HaxeFunctionDescription(String name, String type, HaxeParameterDescription[] parameters) {
+  private final String description;
+  private final TextRange[] parametersTextRange;
+
+  HaxeFunctionDescription(String name, @Nullable String returnType, HaxeParameterDescription[] parameters) {
     this.name = name;
-    returnType = type;
+    this.returnType = returnType;
+
     this.parameters = parameters;
+    this.parametersTextRange = new TextRange[parameters.length];
+
+    this.description = compileDescription();
   }
 
   public String getName() {
     return name;
   }
 
+  @Nullable
   public String getReturnType() {
     return returnType;
   }
@@ -50,47 +57,40 @@ public class HaxeFunctionDescription {
     return parameters;
   }
 
-  public String getParametersListPresentableText() {
+  private String compileDescription() {
     final StringBuilder result = new StringBuilder();
-    for (HaxeParameterDescription parameterDescription : parameters) {
-      if (result.length() > 0) {
-        result.append(", ");
+
+    int currentOffset = 0;
+
+    for (int i = 0; i < parameters.length; i++) {
+      HaxeParameterDescription parameter = parameters[i];
+      String description = parameter.toString();
+      int descriptionLength = description.length();
+
+      parametersTextRange[i] = new TextRange(currentOffset, currentOffset + descriptionLength);
+
+      if (currentOffset > 0) {
+        result.append(PARAMETERS_DELIMITER);
       }
-      result.append(parameterDescription.toString());
+      result.append(description);
+
+      currentOffset += descriptionLength + PARAMETERS_DELIMITER.length();
     }
+
     return result.toString();
   }
 
-  public TextRange getParameterRange(int index) {
-    if (index == -1) {
-      return new TextRange(0, 0);
+  TextRange getParameterRange(int index) {
+    if (index == -1 || index >= parameters.length) {
+      return ZERO_TEXT_RANGE;
     }
-    int startOffset = 0;
-    for (int i = 0, length = parameters.length; i < length; i++) {
-      if (i == index) {
-        int shift = i == 0 ? 0 : ", ".length();
-        return new TextRange(startOffset + shift, startOffset + shift + parameters[i].toString().length());
-      }
-      if (i > 0) {
-        startOffset += ", ".length();
-      }
-      startOffset += parameters[i].toString().length();
-    }
-    return new TextRange(0, 0);
+
+    return parametersTextRange[index];
   }
 
-  public static HaxeFunctionDescription createDescription(HaxeNamedComponent namedComponent,
-                                                          HaxeClassResolveResult resolveResult,
-                                                          boolean isExtension) {
-    String typeText = "";
-    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(namedComponent, HaxeTypeTag.class);
-    if (typeTag != null) {
-      typeText = HaxePresentableUtil.buildTypeText(namedComponent, typeTag, resolveResult.getSpecialization());
-    }
-    return new HaxeFunctionDescription(
-      namedComponent.getName(),
-      typeText,
-      HaxeParameterDescription.getParameters(namedComponent, resolveResult.getSpecialization(), isExtension)
-    );
+  @Override
+  public String toString() {
+    Logger.getGlobal().info(description);
+    return description;
   }
 }
