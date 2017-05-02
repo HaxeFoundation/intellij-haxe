@@ -157,11 +157,23 @@ public class HaxeDebugLogger extends org.apache.log4j.Logger {
 
   @Override
   public void trace(Object message) {
-    trace(message, null);
+    traceAs(getCallingStackFrame(), message, null);
   }
 
   @Override
-  public void trace(Object message, Throwable t) {StackTraceElement frame = getCallingStackFrame();
+  public void trace(Object message, Throwable t) {
+    traceAs(getCallingStackFrame(), message, t);
+  }
+
+  public void trace() {
+    traceAs(getCallingStackFrame(), null, null);
+  }
+
+  public void traceAs(StackTraceElement frame, Object message) {
+    traceAs(frame, message, null);
+  }
+
+  public void traceAs(StackTraceElement frame, Object message, Throwable t) {
     String msg = "Line " + frame.getLineNumber() + ":" + (null != message ? message.toString() : "<no message>");
 
     if(!this.repository.isDisabled(Level.TRACE.toInt())) {
@@ -169,10 +181,6 @@ public class HaxeDebugLogger extends org.apache.log4j.Logger {
         this.forcedLog(FQCN, Level.TRACE, msg, t);
       }
     }
-  }
-
-  public void trace() {
-    trace(null, null);
   }
 
   @Override
