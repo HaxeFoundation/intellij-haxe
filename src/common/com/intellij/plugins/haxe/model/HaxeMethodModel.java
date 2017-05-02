@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,17 +54,19 @@ public class HaxeMethodModel extends HaxeMemberModel {
 
   //private List<HaxeParameterModel> _parameters;
   public List<HaxeParameterModel> getParameters() {
-    List<HaxeParameterModel> _parameters = null;
-//    if (_parameters == null) {
-      HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
-      _parameters = new ArrayList<HaxeParameterModel>();
-      if (parameterList != null) {
-        for (HaxeParameter parameter : parameterList.getParameterList()) {
-          _parameters.add(new HaxeParameterModel(parameter));
-        }
+    List<HaxeParameterModel> _parameters = new ArrayList<HaxeParameterModel>();
+    HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
+    if (parameterList != null) {
+      for (HaxeParameter parameter : parameterList.getParameterList()) {
+        _parameters.add(new HaxeParameterModel(parameter));
       }
-  //  }
+    }
     return _parameters;
+  }
+
+  public int getParameterCount() {
+    HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
+    return null == parameterList ? 0 : parameterList.getParametersCount();
   }
 
   public List<HaxeParameterModel> getParametersWithContext(HaxeMethodContext context) {
@@ -103,6 +106,17 @@ public class HaxeMethodModel extends HaxeMemberModel {
 
   public boolean isStaticInit() {
     return this.getName().equals("__init__");
+  }
+
+  public boolean isArrayAccessor() {
+    // Would be nice if this worked, but it won't until the lexer and/or parser stops using MACRO_ID:
+    //   return null != UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeArrayAccessMeta.class);
+    for (HaxeCustomMeta meta : UsefulPsiTreeUtil.getChildren(this.getMethodPsi(), HaxeCustomMeta.class)) {
+      if ("@:arrayAccess".equals(meta.getText())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
