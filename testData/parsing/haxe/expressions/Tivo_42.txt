@@ -1,26 +1,26 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Test')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('abc')
+              HaxePsiToken:ID('abc')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             COMPARE_EXPRESSION
               LITERAL_EXPRESSION
-                PsiJavaToken:LITINT('1')
+                HaxePsiToken:LITINT('1')
               COMPARE_OPERATION
-                PsiJavaToken:>('>')
-                PsiJavaToken:=('=')
+                HaxePsiToken:>('>')
+                HaxePsiToken:=('=')
               LITERAL_EXPRESSION
-                PsiJavaToken:LITINT('1')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                HaxePsiToken:LITINT('1')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

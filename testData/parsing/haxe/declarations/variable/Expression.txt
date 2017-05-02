@@ -1,47 +1,47 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Expression')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Expression')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('foo')
+              HaxePsiToken:ID('foo')
           TYPE_TAG
-            PsiJavaToken::(':')
+            HaxePsiToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('int')
+                    HaxePsiToken:ID('int')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             MULTIPLICATIVE_EXPRESSION
               MULTIPLICATIVE_EXPRESSION
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITINT('2')
-                PsiJavaToken:*('*')
+                  HaxePsiToken:LITINT('2')
+                HaxePsiToken:*('*')
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('Math')
-                  PsiJavaToken:.('.')
+                      HaxePsiToken:ID('Math')
+                  HaxePsiToken:.('.')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('PI')
-              PsiJavaToken:*('*')
+                      HaxePsiToken:ID('PI')
+              HaxePsiToken:*('*')
               ARRAY_ACCESS_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('radius')
-                PsiJavaToken:[('[')
+                    HaxePsiToken:ID('radius')
+                HaxePsiToken:[('[')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITINT('0')
-                PsiJavaToken:](']')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                  HaxePsiToken:LITINT('0')
+                HaxePsiToken:](']')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

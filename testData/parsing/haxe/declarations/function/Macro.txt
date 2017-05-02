@@ -1,86 +1,86 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Macro')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Macro')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiJavaToken:@:macro('@:macro')
+        HaxePsiToken:@:macro('@:macro')
         KEEP_META
-          PsiJavaToken:@:keep('@:keep')
+          HaxePsiToken:@:keep('@:keep')
         DECLARATION_ATTRIBUTE
-          PsiJavaToken:static('static')
-        PsiJavaToken:function('function')
+          HaxePsiToken:static('static')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('fib')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('fib')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiJavaToken:ID('n')
+                HaxePsiToken:ID('n')
             TYPE_TAG
-              PsiJavaToken::(':')
+              HaxePsiToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('Int')
-        PsiJavaToken:)(')')
+                      HaxePsiToken:ID('Int')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           IF_STATEMENT
-            PsiJavaToken:if('if')
-            PsiJavaToken:(('(')
+            HaxePsiToken:if('if')
+            HaxePsiToken:(('(')
             COMPARE_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('n')
+                  HaxePsiToken:ID('n')
               COMPARE_OPERATION
-                PsiJavaToken:<('<')
+                HaxePsiToken:<('<')
               LITERAL_EXPRESSION
-                PsiJavaToken:LITINT('2')
-            PsiJavaToken:)(')')
+                HaxePsiToken:LITINT('2')
+            HaxePsiToken:)(')')
             RETURN_STATEMENT
-              PsiJavaToken:return('return')
+              HaxePsiToken:return('return')
               LITERAL_EXPRESSION
-                PsiJavaToken:LITINT('1')
-              PsiJavaToken:;(';')
+                HaxePsiToken:LITINT('1')
+              HaxePsiToken:;(';')
           RETURN_STATEMENT
-            PsiJavaToken:return('return')
+            HaxePsiToken:return('return')
             ADDITIVE_EXPRESSION
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('fib')
-                PsiJavaToken:(('(')
+                    HaxePsiToken:ID('fib')
+                HaxePsiToken:(('(')
                 EXPRESSION_LIST
                   ADDITIVE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('n')
-                    PsiJavaToken:-('-')
+                        HaxePsiToken:ID('n')
+                    HaxePsiToken:-('-')
                     LITERAL_EXPRESSION
-                      PsiJavaToken:LITINT('2')
-                PsiJavaToken:)(')')
-              PsiJavaToken:+('+')
+                      HaxePsiToken:LITINT('2')
+                HaxePsiToken:)(')')
+              HaxePsiToken:+('+')
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('fib')
-                PsiJavaToken:(('(')
+                    HaxePsiToken:ID('fib')
+                HaxePsiToken:(('(')
                 EXPRESSION_LIST
                   ADDITIVE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('n')
-                    PsiJavaToken:-('-')
+                        HaxePsiToken:ID('n')
+                    HaxePsiToken:-('-')
                     LITERAL_EXPRESSION
-                      PsiJavaToken:LITINT('1')
-                PsiJavaToken:)(')')
-            PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                      HaxePsiToken:LITINT('1')
+                HaxePsiToken:)(')')
+            HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

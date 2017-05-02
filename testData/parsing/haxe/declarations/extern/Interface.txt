@@ -1,12 +1,12 @@
 Haxe File
   EXTERN_INTERFACE_DECLARATION
     EXTERN_KEY_WORD
-      PsiJavaToken:extern('extern ')
-    PsiJavaToken:interface('interface')
+      HaxePsiToken:extern('extern ')
+    HaxePsiToken:interface('interface')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Simple')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Simple')
+    HaxePsiToken:{('{')
     INTERFACE_BODY
       <empty list>
-    PsiJavaToken:}('}')
+    HaxePsiToken:}('}')

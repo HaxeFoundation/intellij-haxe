@@ -1,123 +1,123 @@
 Haxe File
   TYPEDEF_DECLARATION
-    PsiJavaToken:typedef('typedef')
+    HaxePsiToken:typedef('typedef')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Point')
-    PsiJavaToken:=('=')
+        HaxePsiToken:ID('Point')
+    HaxePsiToken:=('=')
     TYPE_OR_ANONYMOUS
       ANONYMOUS_TYPE
-        PsiJavaToken:{('{')
+        HaxePsiToken:{('{')
         ANONYMOUS_TYPE_BODY
           INTERFACE_BODY
             VAR_DECLARATION
-              PsiJavaToken:var('var')
+              HaxePsiToken:var('var')
               VAR_DECLARATION_PART
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiJavaToken:ID('x')
+                    HaxePsiToken:ID('x')
                 TYPE_TAG
-                  PsiJavaToken::(':')
+                  HaxePsiToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('Int')
-              PsiJavaToken:;(';')
+                          HaxePsiToken:ID('Int')
+              HaxePsiToken:;(';')
             VAR_DECLARATION
-              PsiJavaToken:var('var')
+              HaxePsiToken:var('var')
               VAR_DECLARATION_PART
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiJavaToken:ID('y')
+                    HaxePsiToken:ID('y')
                 TYPE_TAG
-                  PsiJavaToken::(':')
+                  HaxePsiToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('Int')
-              PsiJavaToken:;(';')
-        PsiJavaToken:}('}')
+                          HaxePsiToken:ID('Int')
+              HaxePsiToken:;(';')
+        HaxePsiToken:}('}')
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Points')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Points')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiJavaToken:function('function')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('foo')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('foo')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiJavaToken:var('var')
+            HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('p')
+                  HaxePsiToken:ID('p')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   ANONYMOUS_TYPE
-                    PsiJavaToken:{('{')
+                    HaxePsiToken:{('{')
                     ANONYMOUS_TYPE_BODY
                       TYPE_EXTENDS_LIST
-                        PsiJavaToken:>('>')
+                        HaxePsiToken:>('>')
                         TYPE
                           REFERENCE_EXPRESSION
                             IDENTIFIER
-                              PsiJavaToken:ID('Point')
-                      PsiJavaToken:,(',')
+                              HaxePsiToken:ID('Point')
+                      HaxePsiToken:,(',')
                       ANONYMOUS_TYPE_FIELD_LIST
                         ANONYMOUS_TYPE_FIELD
                           COMPONENT_NAME
                             IDENTIFIER
-                              PsiJavaToken:ID('z')
+                              HaxePsiToken:ID('z')
                           TYPE_TAG
-                            PsiJavaToken::(':')
+                            HaxePsiToken::(':')
                             TYPE_OR_ANONYMOUS
                               TYPE
                                 REFERENCE_EXPRESSION
                                   IDENTIFIER
-                                    PsiJavaToken:ID('Int')
-                    PsiJavaToken:}('}')
+                                    HaxePsiToken:ID('Int')
+                    HaxePsiToken:}('}')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiJavaToken:ID('p')
+                HaxePsiToken:ID('p')
             ASSIGN_OPERATION
-              PsiJavaToken:=('=')
+              HaxePsiToken:=('=')
             OBJECT_LITERAL
-              PsiJavaToken:{('{')
+              HaxePsiToken:{('{')
               OBJECT_LITERAL_ELEMENT
                 IDENTIFIER
-                  PsiJavaToken:ID('x')
-                PsiJavaToken::(':')
+                  HaxePsiToken:ID('x')
+                HaxePsiToken::(':')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITINT('0')
-              PsiJavaToken:,(',')
+                  HaxePsiToken:LITINT('0')
+              HaxePsiToken:,(',')
               OBJECT_LITERAL_ELEMENT
                 IDENTIFIER
-                  PsiJavaToken:ID('y')
-                PsiJavaToken::(':')
+                  HaxePsiToken:ID('y')
+                HaxePsiToken::(':')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITINT('0')
-              PsiJavaToken:,(',')
+                  HaxePsiToken:LITINT('0')
+              HaxePsiToken:,(',')
               OBJECT_LITERAL_ELEMENT
                 IDENTIFIER
-                  PsiJavaToken:ID('z')
-                PsiJavaToken::(':')
+                  HaxePsiToken:ID('z')
+                HaxePsiToken::(':')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITINT('0')
-              PsiJavaToken:}('}')
-          PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                  HaxePsiToken:LITINT('0')
+              HaxePsiToken:}('}')
+          HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

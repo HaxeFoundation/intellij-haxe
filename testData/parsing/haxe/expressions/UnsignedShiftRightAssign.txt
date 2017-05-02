@@ -1,56 +1,56 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Test')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
-          PsiJavaToken:static('static')
-        PsiJavaToken:function('function')
+          HaxePsiToken:static('static')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('Main')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('Main')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiJavaToken:var('var')
+            HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('i')
+                  HaxePsiToken:ID('i')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Int')
+                        HaxePsiToken:ID('Int')
               VAR_INIT
-                PsiJavaToken:=('=')
+                HaxePsiToken:=('=')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITINT('2')
-            PsiJavaToken:;(';')
+                  HaxePsiToken:LITINT('2')
+            HaxePsiToken:;(';')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiJavaToken:ID('i')
+                HaxePsiToken:ID('i')
             ASSIGN_OPERATION
               SHIFT_ASSIGN_OPERATOR
                 SHIFT_OPERATOR
                   UNSIGNED_SHIFT_RIGHT_OPERATOR
-                    PsiJavaToken:>('>')
-                    PsiJavaToken:>('>')
-                    PsiJavaToken:>('>')
-                PsiJavaToken:=('=')
+                    HaxePsiToken:>('>')
+                    HaxePsiToken:>('>')
+                    HaxePsiToken:>('>')
+                HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:LITINT('1')
-          PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+              HaxePsiToken:LITINT('1')
+          HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

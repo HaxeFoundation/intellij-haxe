@@ -1,22 +1,22 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Constructor')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Constructor')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
-        PsiJavaToken:function('function')
-        PsiJavaToken:new('new')
-        PsiJavaToken:(('(')
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
+        HaxePsiToken:new('new')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

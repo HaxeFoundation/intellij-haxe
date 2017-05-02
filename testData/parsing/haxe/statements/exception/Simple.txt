@@ -1,36 +1,36 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Simple')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Simple')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiJavaToken:function('function')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('foo')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('foo')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           THROW_STATEMENT
-            PsiJavaToken:throw('throw')
+            HaxePsiToken:throw('throw')
             NEW_EXPRESSION
-              PsiJavaToken:new('new')
+              HaxePsiToken:new('new')
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('Error')
-              PsiJavaToken:(('(')
+                    HaxePsiToken:ID('Error')
+              HaxePsiToken:(('(')
               STRING_LITERAL_EXPRESSION
-                PsiJavaToken:OPEN_QUOTE('"')
-                PsiJavaToken:REGULAR_STRING_PART('invalid foo')
-                PsiJavaToken:CLOSING_QUOTE('"')
-              PsiJavaToken:)(')')
-            PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                HaxePsiToken:OPEN_QUOTE('"')
+                HaxePsiToken:REGULAR_STRING_PART('invalid foo')
+                HaxePsiToken:CLOSING_QUOTE('"')
+              HaxePsiToken:)(')')
+            HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

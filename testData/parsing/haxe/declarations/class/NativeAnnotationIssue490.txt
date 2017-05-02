@@ -3,66 +3,66 @@ Haxe File
     PsiModifierList:@:native("Test")
       MACRO_CLASS
         NATIVE_META
-          PsiJavaToken:@:native('@:native')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:native('@:native')
+          HaxePsiToken:(('(')
           STRING_LITERAL_EXPRESSION
-            PsiJavaToken:OPEN_QUOTE('"')
-            PsiJavaToken:REGULAR_STRING_PART('Test')
-            PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:)(')')
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('Test')
+            HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:)(')')
     EXTERN_KEY_WORD
-      PsiJavaToken:extern('extern ')
-    PsiJavaToken:class('class')
+      HaxePsiToken:extern('extern ')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('NativeAnnotationIssue490')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('NativeAnnotationIssue490')
+    HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
       EXTERN_FUNCTION_DECLARATION
         NATIVE_META
-          PsiJavaToken:@:native('@:native')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:native('@:native')
+          HaxePsiToken:(('(')
           STRING_LITERAL_EXPRESSION
-            PsiJavaToken:OPEN_QUOTE('"')
-            PsiJavaToken:REGULAR_STRING_PART('foo')
-            PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:)(')')
-        PsiJavaToken:function('function')
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('foo')
+            HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:)(')')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('bar')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('bar')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         TYPE_TAG
-          PsiJavaToken::(':')
+          HaxePsiToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('Void')
-        PsiJavaToken:;(';')
+                  HaxePsiToken:ID('Void')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
         NATIVE_META
-          PsiJavaToken:@:native('@:native')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:native('@:native')
+          HaxePsiToken:(('(')
           STRING_LITERAL_EXPRESSION
-            PsiJavaToken:OPEN_QUOTE('"')
-            PsiJavaToken:REGULAR_STRING_PART('a')
-            PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:)(')')
-        PsiJavaToken:var('var')
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('a')
+            HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:)(')')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('b')
+              HaxePsiToken:ID('b')
           TYPE_TAG
-            PsiJavaToken::(':')
+            HaxePsiToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('Int')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                    HaxePsiToken:ID('Int')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

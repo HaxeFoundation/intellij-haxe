@@ -13,308 +13,308 @@ Haxe File
       MACRO_CLASS
         SIMPLE_META
           KEEP_META
-            PsiJavaToken:@:keep('@:keep')
+            HaxePsiToken:@:keep('@:keep')
       MACRO_CLASS
         SIMPLE_META
           FINAL_META
-            PsiJavaToken:@:final('@:final')
+            HaxePsiToken:@:final('@:final')
       MACRO_CLASS
         SIMPLE_META
           HACK_META
-            PsiJavaToken:@:hack('@:hack')
+            HaxePsiToken:@:hack('@:hack')
       MACRO_CLASS
         NATIVE_META
-          PsiJavaToken:@:native('@:native')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:native('@:native')
+          HaxePsiToken:(('(')
           STRING_LITERAL_EXPRESSION
-            PsiJavaToken:OPEN_QUOTE('"')
-            PsiJavaToken:REGULAR_STRING_PART('my.real.Path')
-            PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:)(')')
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('my.real.Path')
+            HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:)(')')
       MACRO_CLASS
         NS_META
-          PsiJavaToken:@:ns('@:ns')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:ns('@:ns')
+          HaxePsiToken:(('(')
           STRING_LITERAL_EXPRESSION
-            PsiJavaToken:OPEN_QUOTE('"')
-            PsiJavaToken:REGULAR_STRING_PART('namespace')
-            PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:)(')')
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('namespace')
+            HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:)(')')
       MACRO_CLASS
         META_META
-          PsiJavaToken:@:meta('@:meta')
-          PsiJavaToken:(('(')
-          PsiJavaToken:ID('Event')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:meta('@:meta')
+          HaxePsiToken:(('(')
+          HaxePsiToken:ID('Event')
+          HaxePsiToken:(('(')
           META_KEY_VALUE
-            PsiJavaToken:ID('name')
-            PsiJavaToken:=('=')
+            HaxePsiToken:ID('name')
+            HaxePsiToken:=('=')
             STRING_LITERAL_EXPRESSION
-              PsiJavaToken:OPEN_QUOTE('"')
-              PsiJavaToken:REGULAR_STRING_PART('test')
-              PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:,(',')
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('test')
+              HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:,(',')
           META_KEY_VALUE
-            PsiJavaToken:ID('type')
-            PsiJavaToken:=('=')
+            HaxePsiToken:ID('type')
+            HaxePsiToken:=('=')
             STRING_LITERAL_EXPRESSION
-              PsiJavaToken:OPEN_QUOTE('"')
-              PsiJavaToken:REGULAR_STRING_PART('Foo')
-              PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:)(')')
-          PsiJavaToken:)(')')
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('Foo')
+              HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:)(')')
+          HaxePsiToken:)(')')
       MACRO_CLASS
         BITMAP_META
-          PsiJavaToken:@:bitmap('@:bitmap')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:bitmap('@:bitmap')
+          HaxePsiToken:(('(')
           STRING_LITERAL_EXPRESSION
-            PsiJavaToken:OPEN_QUOTE('"')
-            PsiJavaToken:REGULAR_STRING_PART('myfile.png')
-            PsiJavaToken:CLOSING_QUOTE('"')
-          PsiJavaToken:)(')')
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('myfile.png')
+            HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:)(')')
       MACRO_CLASS
         BUILD_MACRO
-          PsiJavaToken:@:build('@:build')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:build('@:build')
+          HaxePsiToken:(('(')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('MacroGenerator')
-              PsiJavaToken:.('.')
+                  HaxePsiToken:ID('MacroGenerator')
+              HaxePsiToken:.('.')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('build')
-            PsiJavaToken:(('(')
-            PsiJavaToken:)(')')
-          PsiJavaToken:)(')')
+                  HaxePsiToken:ID('build')
+            HaxePsiToken:(('(')
+            HaxePsiToken:)(')')
+          HaxePsiToken:)(')')
       MACRO_CLASS
         REQUIRE_META
-          PsiJavaToken:@:require('@:require')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:require('@:require')
+          HaxePsiToken:(('(')
           IDENTIFIER
-            PsiJavaToken:ID('dep1')
-          PsiJavaToken:,(',')
+            HaxePsiToken:ID('dep1')
+          HaxePsiToken:,(',')
           IDENTIFIER
-            PsiJavaToken:ID('dep2')
-          PsiJavaToken:,(',')
+            HaxePsiToken:ID('dep2')
+          HaxePsiToken:,(',')
           IDENTIFIER
-            PsiJavaToken:ID('dep3')
-          PsiJavaToken:)(')')
+            HaxePsiToken:ID('dep3')
+          HaxePsiToken:)(')')
       MACRO_CLASS
         REQUIRE_META
-          PsiJavaToken:@:require('@:require')
-          PsiJavaToken:(('(')
-          PsiJavaToken:ID('haxe_ver')
+          HaxePsiToken:@:require('@:require')
+          HaxePsiToken:(('(')
+          HaxePsiToken:ID('haxe_ver')
           COMPARE_OPERATION
-            PsiJavaToken:>('>')
-            PsiJavaToken:=('=')
-          PsiJavaToken:LITFLOAT('3.2')
-          PsiJavaToken:)(')')
+            HaxePsiToken:>('>')
+            HaxePsiToken:=('=')
+          HaxePsiToken:LITFLOAT('3.2')
+          HaxePsiToken:)(')')
       MACRO_CLASS
         CUSTOM_META
-          PsiJavaToken:MACRO_ID('@superClass')
-          PsiJavaToken:(('(')
+          HaxePsiToken:MACRO_ID('@superClass')
+          HaxePsiToken:(('(')
           EXPRESSION_LIST
             STRING_LITERAL_EXPRESSION
-              PsiJavaToken:OPEN_QUOTE('"')
-              PsiJavaToken:REGULAR_STRING_PART('user name')
-              PsiJavaToken:CLOSING_QUOTE('"')
-            PsiJavaToken:,(',')
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('user name')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:,(',')
             OBJECT_LITERAL
-              PsiJavaToken:{('{')
+              HaxePsiToken:{('{')
               OBJECT_LITERAL_ELEMENT
                 IDENTIFIER
-                  PsiJavaToken:ID('name')
-                PsiJavaToken::(':')
+                  HaxePsiToken:ID('name')
+                HaxePsiToken::(':')
                 STRING_LITERAL_EXPRESSION
-                  PsiJavaToken:OPEN_QUOTE('"')
-                  PsiJavaToken:REGULAR_STRING_PART('user')
-                  PsiJavaToken:CLOSING_QUOTE('"')
-              PsiJavaToken:}('}')
-          PsiJavaToken:)(')')
-    PsiJavaToken:class('class')
+                  HaxePsiToken:OPEN_QUOTE('"')
+                  HaxePsiToken:REGULAR_STRING_PART('user')
+                  HaxePsiToken:CLOSING_QUOTE('"')
+              HaxePsiToken:}('}')
+          HaxePsiToken:)(')')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('FullOfMacro')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('FullOfMacro')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
         CUSTOM_META
-          PsiJavaToken:MACRO_ID('@customUser')
-        PsiJavaToken:var('var')
+          HaxePsiToken:MACRO_ID('@customUser')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('_value')
-        PsiJavaToken:;(';')
+              HaxePsiToken:ID('_value')
+        HaxePsiToken:;(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         GETTER_META
-          PsiJavaToken:@:getter('@:getter')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:getter('@:getter')
+          HaxePsiToken:(('(')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('_value')
-          PsiJavaToken:)(')')
-        PsiJavaToken:function('function')
+              HaxePsiToken:ID('_value')
+          HaxePsiToken:)(')')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('getValue')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('getValue')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           RETURN_STATEMENT
-            PsiJavaToken:return('return')
+            HaxePsiToken:return('return')
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiJavaToken:ID('_value')
-            PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
+                HaxePsiToken:ID('_value')
+            HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         SETTER_META
-          PsiJavaToken:@:setter('@:setter')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:setter('@:setter')
+          HaxePsiToken:(('(')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('_value')
-          PsiJavaToken:)(')')
-        PsiJavaToken:function('function')
+              HaxePsiToken:ID('_value')
+          HaxePsiToken:)(')')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('setValue')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('setValue')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiJavaToken:ID('value')
-        PsiJavaToken:)(')')
+                HaxePsiToken:ID('value')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiJavaToken:ID('_value')
+                HaxePsiToken:ID('_value')
             ASSIGN_OPERATION
-              PsiJavaToken:=('=')
+              HaxePsiToken:=('=')
             REFERENCE_EXPRESSION
               IDENTIFIER
-                PsiJavaToken:ID('value')
-          PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
+                HaxePsiToken:ID('value')
+          HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         OVERLOAD_META
-          PsiJavaToken:@:overload('@:overload')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:overload('@:overload')
+          HaxePsiToken:(('(')
           ANONYMOUS_FUNCTION_DECLARATION
-            PsiJavaToken:function('function')
-            PsiJavaToken:(('(')
+            HaxePsiToken:function('function')
+            HaxePsiToken:(('(')
             PARAMETER_LIST
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiJavaToken:ID('name')
+                    HaxePsiToken:ID('name')
                 TYPE_TAG
-                  PsiJavaToken::(':')
+                  HaxePsiToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('String')
-              PsiJavaToken:,(',')
+                          HaxePsiToken:ID('String')
+              HaxePsiToken:,(',')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiJavaToken:ID('value')
+                    HaxePsiToken:ID('value')
                 TYPE_TAG
-                  PsiJavaToken::(':')
+                  HaxePsiToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('String')
-            PsiJavaToken:)(')')
+                          HaxePsiToken:ID('String')
+            HaxePsiToken:)(')')
             TYPE_TAG
-              PsiJavaToken::(':')
+              HaxePsiToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('js')
-                    PsiJavaToken:.('.')
+                        HaxePsiToken:ID('js')
+                    HaxePsiToken:.('.')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('JQuery')
-            PsiJavaToken:{('{')
-            PsiJavaToken:}('}')
-          PsiJavaToken:)(')')
-        PsiJavaToken:function('function')
+                        HaxePsiToken:ID('JQuery')
+            HaxePsiToken:{('{')
+            HaxePsiToken:}('}')
+          HaxePsiToken:)(')')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('attr')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('attr')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiJavaToken:ID('name')
+                HaxePsiToken:ID('name')
             TYPE_TAG
-              PsiJavaToken::(':')
+              HaxePsiToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('String')
-        PsiJavaToken:)(')')
+                      HaxePsiToken:ID('String')
+        HaxePsiToken:)(')')
         TYPE_TAG
-          PsiJavaToken::(':')
+          HaxePsiToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('String')
+                  HaxePsiToken:ID('String')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')
   EXTERN_CLASS_DECLARATION
     PsiModifierList:@:build(MacroGenerator.build([], true))
       MACRO_CLASS
         BUILD_MACRO
-          PsiJavaToken:@:build('@:build')
-          PsiJavaToken:(('(')
+          HaxePsiToken:@:build('@:build')
+          HaxePsiToken:(('(')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('MacroGenerator')
-              PsiJavaToken:.('.')
+                  HaxePsiToken:ID('MacroGenerator')
+              HaxePsiToken:.('.')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('build')
-            PsiJavaToken:(('(')
+                  HaxePsiToken:ID('build')
+            HaxePsiToken:(('(')
             EXPRESSION_LIST
               ARRAY_LITERAL
-                PsiJavaToken:[('[')
-                PsiJavaToken:](']')
-              PsiJavaToken:,(',')
+                HaxePsiToken:[('[')
+                HaxePsiToken:](']')
+              HaxePsiToken:,(',')
               LITERAL_EXPRESSION
-                PsiJavaToken:true('true')
-            PsiJavaToken:)(')')
-          PsiJavaToken:)(')')
+                HaxePsiToken:true('true')
+            HaxePsiToken:)(')')
+          HaxePsiToken:)(')')
     EXTERN_KEY_WORD
-      PsiJavaToken:extern('extern ')
+      HaxePsiToken:extern('extern ')
     PRIVATE_KEY_WORD
-      PsiJavaToken:private('private')
-    PsiJavaToken:class('class')
+      HaxePsiToken:private('private')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Test')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
       <empty list>
-    PsiJavaToken:}('}')
+    HaxePsiToken:}('}')

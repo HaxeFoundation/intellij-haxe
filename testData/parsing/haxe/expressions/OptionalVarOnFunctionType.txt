@@ -1,74 +1,74 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Test')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
-          PsiJavaToken:static('static')
-        PsiJavaToken:function('function')
+          HaxePsiToken:static('static')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('main')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('main')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiJavaToken:var('var')
+            HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('a')
+                  HaxePsiToken:ID('a')
               TYPE_TAG
-                PsiJavaToken::(':')
-                PsiJavaToken:?('?')
+                HaxePsiToken::(':')
+                HaxePsiToken:?('?')
                 FUNCTION_TYPE
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('Int')
-                  PsiJavaToken:->('->')
+                          HaxePsiToken:ID('Int')
+                  HaxePsiToken:->('->')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('Void')
-            PsiJavaToken:;(';')
+                          HaxePsiToken:ID('Void')
+            HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION
-            PsiJavaToken:var('var')
+            HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('b')
+                  HaxePsiToken:ID('b')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 FUNCTION_TYPE
                   FUNCTION_TYPE
                     TYPE_OR_ANONYMOUS
                       TYPE
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            PsiJavaToken:ID('Int')
-                    PsiJavaToken:->('->')
-                    PsiJavaToken:?('?')
+                            HaxePsiToken:ID('Int')
+                    HaxePsiToken:->('->')
+                    HaxePsiToken:?('?')
                     TYPE_OR_ANONYMOUS
                       TYPE
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            PsiJavaToken:ID('Float')
-                  PsiJavaToken:->('->')
+                            HaxePsiToken:ID('Float')
+                  HaxePsiToken:->('->')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('Void')
-            PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                          HaxePsiToken:ID('Void')
+            HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

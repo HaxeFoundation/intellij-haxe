@@ -1,10 +1,10 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Simple')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Simple')
+    HaxePsiToken:{('{')
     CLASS_BODY
       <empty list>
-    PsiJavaToken:}('}')
+    HaxePsiToken:}('}')

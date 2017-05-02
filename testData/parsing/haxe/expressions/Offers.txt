@@ -1,75 +1,75 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Offers')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Offers')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
-        PsiJavaToken:function('function')
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('toString')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('toString')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           RETURN_STATEMENT
-            PsiJavaToken:return('return')
+            HaxePsiToken:return('return')
             STRING_LITERAL_EXPRESSION
-              PsiJavaToken:OPEN_QUOTE(''')
-              PsiJavaToken:REGULAR_STRING_PART('{Offers: num:')
+              HaxePsiToken:OPEN_QUOTE(''')
+              HaxePsiToken:REGULAR_STRING_PART('{Offers: num:')
               SHORT_TEMPLATE_ENTRY
-                PsiJavaToken:SHORT_TEMPLATE_ENTRY_START('$')
+                HaxePsiToken:SHORT_TEMPLATE_ENTRY_START('$')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('offersNum')
-              PsiJavaToken:REGULAR_STRING_PART(',')
-              PsiJavaToken:REGULAR_STRING_PART('\n')
+                    HaxePsiToken:ID('offersNum')
+              HaxePsiToken:REGULAR_STRING_PART(',')
+              HaxePsiToken:REGULAR_STRING_PART('\n')
               LONG_TEMPLATE_ENTRY
-                PsiJavaToken:LONG_TEMPLATE_ENTRY_START('${')
+                HaxePsiToken:LONG_TEMPLATE_ENTRY_START('${')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('l')
-                    PsiJavaToken:.('.')
+                        HaxePsiToken:ID('l')
+                    HaxePsiToken:.('.')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('toString')
-                  PsiJavaToken:(('(')
-                  PsiJavaToken:)(')')
+                        HaxePsiToken:ID('toString')
+                  HaxePsiToken:(('(')
+                  HaxePsiToken:)(')')
                   PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign expression>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
                     PsiElement(BAD_CHARACTER)('\')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('n')
+              HaxePsiToken:ID('n')
           PsiErrorElement:';', <local function declaration>, <macro class>, <prefix expression>, break, continue, do, for, if, macro, return, switch, throw, try, untyped, var, while or '{' expected, got '}'
-            PsiJavaToken:LONG_TEMPLATE_ENTRY_END('}')
-          PsiJavaToken:REGULAR_STRING_PART('\n')
-          PsiJavaToken:REGULAR_STRING_PART('}')
-          PsiJavaToken:CLOSING_QUOTE(''')
-          PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
+            HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
+          HaxePsiToken:REGULAR_STRING_PART('\n')
+          HaxePsiToken:REGULAR_STRING_PART('}')
+          HaxePsiToken:CLOSING_QUOTE(''')
+          HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
-        PsiJavaToken:function('function')
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('foo')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('foo')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

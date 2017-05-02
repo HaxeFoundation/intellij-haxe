@@ -1,155 +1,155 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Constants')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Constants')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a1')
+              HaxePsiToken:ID('a1')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:LITINT('0')
-        PsiJavaToken:;(';')
+              HaxePsiToken:LITINT('0')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a2')
+              HaxePsiToken:ID('a2')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             PREFIX_EXPRESSION
-              PsiJavaToken:-('-')
+              HaxePsiToken:-('-')
               LITERAL_EXPRESSION
-                PsiJavaToken:LITINT('134')
-        PsiJavaToken:;(';')
+                HaxePsiToken:LITINT('134')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a3')
+              HaxePsiToken:ID('a3')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:LITHEX('0xFF00')
-        PsiJavaToken:;(';')
+              HaxePsiToken:LITHEX('0xFF00')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a4')
+              HaxePsiToken:ID('a4')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:LITFLOAT('123.0')
-        PsiJavaToken:;(';')
+              HaxePsiToken:LITFLOAT('123.0')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a5')
+              HaxePsiToken:ID('a5')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:null('null')
-        PsiJavaToken:;(';')
+              HaxePsiToken:null('null')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a6')
+              HaxePsiToken:ID('a6')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:LITFLOAT('13e50')
-        PsiJavaToken:;(';')
+              HaxePsiToken:LITFLOAT('13e50')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a7')
+              HaxePsiToken:ID('a7')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             PREFIX_EXPRESSION
-              PsiJavaToken:-('-')
+              HaxePsiToken:-('-')
               LITERAL_EXPRESSION
-                PsiJavaToken:LITFLOAT('1e-99')
-        PsiJavaToken:;(';')
+                HaxePsiToken:LITFLOAT('1e-99')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a8')
+              HaxePsiToken:ID('a8')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             STRING_LITERAL_EXPRESSION
-              PsiJavaToken:OPEN_QUOTE('"')
-              PsiJavaToken:REGULAR_STRING_PART('hello')
-              PsiJavaToken:CLOSING_QUOTE('"')
-        PsiJavaToken:;(';')
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('hello')
+              HaxePsiToken:CLOSING_QUOTE('"')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a9')
+              HaxePsiToken:ID('a9')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             STRING_LITERAL_EXPRESSION
-              PsiJavaToken:OPEN_QUOTE('"')
-              PsiJavaToken:REGULAR_STRING_PART('hello ')
-              PsiJavaToken:REGULAR_STRING_PART('\"')
-              PsiJavaToken:REGULAR_STRING_PART('world')
-              PsiJavaToken:REGULAR_STRING_PART('\"')
-              PsiJavaToken:REGULAR_STRING_PART(' !')
-              PsiJavaToken:CLOSING_QUOTE('"')
-        PsiJavaToken:;(';')
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('hello ')
+              HaxePsiToken:REGULAR_STRING_PART('\"')
+              HaxePsiToken:REGULAR_STRING_PART('world')
+              HaxePsiToken:REGULAR_STRING_PART('\"')
+              HaxePsiToken:REGULAR_STRING_PART(' !')
+              HaxePsiToken:CLOSING_QUOTE('"')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a10')
+              HaxePsiToken:ID('a10')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             STRING_LITERAL_EXPRESSION
-              PsiJavaToken:OPEN_QUOTE(''')
-              PsiJavaToken:REGULAR_STRING_PART('hello "world" !')
-              PsiJavaToken:CLOSING_QUOTE(''')
-        PsiJavaToken:;(';')
+              HaxePsiToken:OPEN_QUOTE(''')
+              HaxePsiToken:REGULAR_STRING_PART('hello "world" !')
+              HaxePsiToken:CLOSING_QUOTE(''')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a11')
+              HaxePsiToken:ID('a11')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:true('true')
-        PsiJavaToken:;(';')
+              HaxePsiToken:true('true')
+        HaxePsiToken:;(';')
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('a12')
+              HaxePsiToken:ID('a12')
           VAR_INIT
-            PsiJavaToken:=('=')
+            HaxePsiToken:=('=')
             LITERAL_EXPRESSION
-              PsiJavaToken:false('false')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+              HaxePsiToken:false('false')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

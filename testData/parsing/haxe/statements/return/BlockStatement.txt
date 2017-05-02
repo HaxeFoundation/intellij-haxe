@@ -1,43 +1,43 @@
 Haxe File
   PACKAGE_STATEMENT
-    PsiJavaToken:package('package')
-    PsiJavaToken:;(';')
+    HaxePsiToken:package('package')
+    HaxePsiToken:;(';')
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('TestBlockStatement')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('TestBlockStatement')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
-        PsiJavaToken:function('function')
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('Test')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('Test')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           RETURN_STATEMENT
-            PsiJavaToken:return('return')
+            HaxePsiToken:return('return')
             BLOCK_STATEMENT
-              PsiJavaToken:{('{')
+              HaxePsiToken:{('{')
               LOCAL_VAR_DECLARATION
-                PsiJavaToken:var('var')
+                HaxePsiToken:var('var')
                 LOCAL_VAR_DECLARATION_PART
                   COMPONENT_NAME
                     IDENTIFIER
-                      PsiJavaToken:ID('a')
+                      HaxePsiToken:ID('a')
                   VAR_INIT
-                    PsiJavaToken:=('=')
+                    HaxePsiToken:=('=')
                     LITERAL_EXPRESSION
-                      PsiJavaToken:LITINT('1')
-                PsiJavaToken:;(';')
-              PsiJavaToken:}('}')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                      HaxePsiToken:LITINT('1')
+                HaxePsiToken:;(';')
+              HaxePsiToken:}('}')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')
