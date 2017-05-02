@@ -59,10 +59,22 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
 
   public String getDebugName() {
     String name = getName();
+    String text = getText();
+    StringBuilder sb = new StringBuilder();
     if (null != name) {
-      return "'" + getName() + "'";
+      sb.append('\'');
+      sb.append(name);
+      sb.append('\'');
     }
-    return "";
+    if (null != text) {
+      if (null != name) {
+        sb.append(' ');
+      }
+      sb.append('"');
+      sb.append(text);
+      sb.append('"');
+    }
+    return sb.toString();
   }
 
   public String toString() {
