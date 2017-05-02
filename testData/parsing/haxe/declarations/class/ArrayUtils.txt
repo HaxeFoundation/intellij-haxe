@@ -1,89 +1,89 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('ArrayUtils')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('ArrayUtils')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
+            HaxePsiToken:public('public')
         DECLARATION_ATTRIBUTE
-          PsiJavaToken:static('static')
-        PsiJavaToken:function('function')
+          HaxePsiToken:static('static')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('delete_if')
+            HaxePsiToken:ID('delete_if')
         GENERIC_PARAM
-          PsiJavaToken:<('<')
+          HaxePsiToken:<('<')
           GENERIC_LIST_PART
             COMPONENT_NAME
               IDENTIFIER
-                PsiJavaToken:ID('T')
-          PsiJavaToken:>('>')
-        PsiJavaToken:(('(')
+                HaxePsiToken:ID('T')
+          HaxePsiToken:>('>')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiJavaToken:ID('array')
+                HaxePsiToken:ID('array')
             TYPE_TAG
-              PsiJavaToken::(':')
+              HaxePsiToken::(':')
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('Array')
+                      HaxePsiToken:ID('Array')
                   TYPE_PARAM
-                    PsiJavaToken:<('<')
+                    HaxePsiToken:<('<')
                     TYPE_LIST
                       TYPE_LIST_PART
                         TYPE_OR_ANONYMOUS
                           TYPE
                             REFERENCE_EXPRESSION
                               IDENTIFIER
-                                PsiJavaToken:ID('T')
-                    PsiJavaToken:>('>')
-          PsiJavaToken:,(',')
+                                HaxePsiToken:ID('T')
+                    HaxePsiToken:>('>')
+          HaxePsiToken:,(',')
           PARAMETER
             COMPONENT_NAME
               IDENTIFIER
-                PsiJavaToken:ID('processor')
+                HaxePsiToken:ID('processor')
             TYPE_TAG
-              PsiJavaToken::(':')
+              HaxePsiToken::(':')
               FUNCTION_TYPE
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('T')
-                PsiJavaToken:->('->')
+                        HaxePsiToken:ID('T')
+                HaxePsiToken:->('->')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Bool')
-        PsiJavaToken:)(')')
+                        HaxePsiToken:ID('Bool')
+        HaxePsiToken:)(')')
         TYPE_TAG
-          PsiJavaToken::(':')
+          HaxePsiToken::(':')
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('Array')
+                  HaxePsiToken:ID('Array')
               TYPE_PARAM
-                PsiJavaToken:<('<')
+                HaxePsiToken:<('<')
                 TYPE_LIST
                   TYPE_LIST_PART
                     TYPE_OR_ANONYMOUS
                       TYPE
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            PsiJavaToken:ID('T')
-                PsiJavaToken:>('>')
+                            HaxePsiToken:ID('T')
+                HaxePsiToken:>('>')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

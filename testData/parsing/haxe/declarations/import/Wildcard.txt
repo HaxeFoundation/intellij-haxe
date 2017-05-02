@@ -1,33 +1,33 @@
 Haxe File
   IMPORT_STATEMENT_WITH_WILDCARD
-    PsiJavaToken:import('import')
+    HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       WILDCARD
         REFERENCE_EXPRESSION
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('flash')
-          PsiJavaToken:.('.')
+              HaxePsiToken:ID('flash')
+          HaxePsiToken:.('.')
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('display')
-        PsiJavaToken:.('.')
-        PsiJavaToken:*('*')
-    PsiJavaToken:;(';')
+              HaxePsiToken:ID('display')
+        HaxePsiToken:.('.')
+        HaxePsiToken:*('*')
+    HaxePsiToken:;(';')
   IMPORT_STATEMENT_REGULAR
-    PsiJavaToken:import('import')
+    HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiJavaToken:ID('flash')
-        PsiJavaToken:.('.')
+            HaxePsiToken:ID('flash')
+        HaxePsiToken:.('.')
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiJavaToken:ID('display')
-      PsiJavaToken:.('.')
-  PsiJavaToken:*('*')
+            HaxePsiToken:ID('display')
+      HaxePsiToken:.('.')
+  HaxePsiToken:*('*')
   PsiErrorElement:';' expected, got 'in'
-    PsiJavaToken:in('in')
-  PsiJavaToken:ID('FDSprite')
-  PsiJavaToken:;(';')
+    HaxePsiToken:in('in')
+  HaxePsiToken:ID('FDSprite')
+  HaxePsiToken:;(';')

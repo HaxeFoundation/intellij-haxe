@@ -1,112 +1,112 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Constraint')
+        HaxePsiToken:ID('Constraint')
     GENERIC_PARAM
-      PsiJavaToken:<('<')
+      HaxePsiToken:<('<')
       GENERIC_LIST_PART
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('T')
-        PsiJavaToken::(':')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('T')
+        HaxePsiToken::(':')
+        HaxePsiToken:(('(')
         TYPE_LIST
           TYPE_LIST_PART
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('Event')
-          PsiJavaToken:,(',')
+                    HaxePsiToken:ID('Event')
+          HaxePsiToken:,(',')
           TYPE_LIST_PART
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('EventDispatcher')
-        PsiJavaToken:)(')')
-      PsiJavaToken:>('>')
-    PsiJavaToken:{('{')
+                    HaxePsiToken:ID('EventDispatcher')
+        HaxePsiToken:)(')')
+      HaxePsiToken:>('>')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('evt')
+              HaxePsiToken:ID('evt')
           TYPE_TAG
-            PsiJavaToken::(':')
+            HaxePsiToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('T')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                    HaxePsiToken:ID('T')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Constraint')
+        HaxePsiToken:ID('Constraint')
     GENERIC_PARAM
-      PsiJavaToken:<('<')
+      HaxePsiToken:<('<')
       GENERIC_LIST_PART
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('T')
-        PsiJavaToken::(':')
+            HaxePsiToken:ID('T')
+        HaxePsiToken::(':')
         TYPE_LIST_PART
           TYPE_OR_ANONYMOUS
             TYPE
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('EventDispatcher')
-      PsiJavaToken:>('>')
-    PsiJavaToken:{('{')
+                  HaxePsiToken:ID('EventDispatcher')
+      HaxePsiToken:>('>')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('evt')
+              HaxePsiToken:ID('evt')
           TYPE_TAG
-            PsiJavaToken::(':')
+            HaxePsiToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('T')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                    HaxePsiToken:ID('T')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Constraint')
+        HaxePsiToken:ID('Constraint')
     GENERIC_PARAM
-      PsiJavaToken:<('<')
+      HaxePsiToken:<('<')
       GENERIC_LIST_PART
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('T')
-      PsiJavaToken:>('>')
-    PsiJavaToken:{('{')
+            HaxePsiToken:ID('T')
+      HaxePsiToken:>('>')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('evt')
+              HaxePsiToken:ID('evt')
           TYPE_TAG
-            PsiJavaToken::(':')
+            HaxePsiToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('T')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                    HaxePsiToken:ID('T')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

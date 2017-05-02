@@ -1,33 +1,33 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Template')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Template')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
-        PsiJavaToken:var('var')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('foo')
+              HaxePsiToken:ID('foo')
           TYPE_TAG
-            PsiJavaToken::(':')
+            HaxePsiToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('Bar')
+                    HaxePsiToken:ID('Bar')
                 TYPE_PARAM
-                  PsiJavaToken:<('<')
+                  HaxePsiToken:<('<')
                   TYPE_LIST
                     TYPE_LIST_PART
                       TYPE_OR_ANONYMOUS
                         TYPE
                           REFERENCE_EXPRESSION
                             IDENTIFIER
-                              PsiJavaToken:ID('int')
-                  PsiJavaToken:>('>')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                              HaxePsiToken:ID('int')
+                  HaxePsiToken:>('>')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

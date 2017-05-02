@@ -1,24 +1,24 @@
 Haxe File
   ENUM_DECLARATION
-    PsiJavaToken:enum('enum')
+    HaxePsiToken:enum('enum')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Axis')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Axis')
+    HaxePsiToken:{('{')
     ENUM_BODY
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('x')
-        PsiJavaToken:;(';')
+            HaxePsiToken:ID('x')
+        HaxePsiToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('y')
-        PsiJavaToken:;(';')
+            HaxePsiToken:ID('y')
+        HaxePsiToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('z')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+            HaxePsiToken:ID('z')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

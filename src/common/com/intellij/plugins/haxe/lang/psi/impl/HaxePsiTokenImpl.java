@@ -15,6 +15,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiToken;
 import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.tree.IElementType;
@@ -36,12 +39,14 @@ public class HaxePsiTokenImpl extends PsiJavaTokenImpl implements HaxePsiToken {
   public String toString() {
     StringBuilder sb = new StringBuilder("HaxePsiToken:");
     sb.append(getElementType().toString());
-    sb.append(' ');
-    sb.append('"');
-    CharSequence text = this.getChars();
-    int len = Math.min(100, text.length());
-    sb.append(text.subSequence(0, len));
-    sb.append('"');
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      sb.append(' ');
+      sb.append('"');
+      CharSequence text = this.getChars();
+      int len = Math.min(100, text.length());
+      sb.append(text.subSequence(0, len));
+      sb.append('"');
+    }
     return sb.toString();
   }
 }

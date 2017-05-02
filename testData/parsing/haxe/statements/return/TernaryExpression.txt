@@ -1,62 +1,62 @@
 Haxe File
   PACKAGE_STATEMENT
-    PsiJavaToken:package('package')
-    PsiJavaToken:;(';')
+    HaxePsiToken:package('package')
+    HaxePsiToken:;(';')
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('TestTernaryExpression')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('TestTernaryExpression')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
-        PsiJavaToken:function('function')
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('Test')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('Test')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiJavaToken:var('var')
+            HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('b')
+                  HaxePsiToken:ID('b')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Bool')
+                        HaxePsiToken:ID('Bool')
               VAR_INIT
-                PsiJavaToken:=('=')
+                HaxePsiToken:=('=')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:true('true')
-            PsiJavaToken:;(';')
+                  HaxePsiToken:true('true')
+            HaxePsiToken:;(';')
           RETURN_STATEMENT
-            PsiJavaToken:return('return')
+            HaxePsiToken:return('return')
             TERNARY_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('b')
-              PsiJavaToken:?('?')
+                  HaxePsiToken:ID('b')
+              HaxePsiToken:?('?')
               STRING_LITERAL_EXPRESSION
-                PsiJavaToken:OPEN_QUOTE('"')
-                PsiJavaToken:REGULAR_STRING_PART('true')
-                PsiJavaToken:CLOSING_QUOTE('"')
-              PsiJavaToken::(':')
+                HaxePsiToken:OPEN_QUOTE('"')
+                HaxePsiToken:REGULAR_STRING_PART('true')
+                HaxePsiToken:CLOSING_QUOTE('"')
+              HaxePsiToken::(':')
               STRING_LITERAL_EXPRESSION
-                PsiJavaToken:OPEN_QUOTE('"')
-                PsiJavaToken:REGULAR_STRING_PART('false')
-                PsiJavaToken:CLOSING_QUOTE('"')
-            PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                HaxePsiToken:OPEN_QUOTE('"')
+                HaxePsiToken:REGULAR_STRING_PART('false')
+                HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

@@ -1,4 +1,4 @@
 Haxe File
   PACKAGE_STATEMENT
-    PsiJavaToken:package('package')
-    PsiJavaToken:;(';')
+    HaxePsiToken:package('package')
+    HaxePsiToken:;(';')
