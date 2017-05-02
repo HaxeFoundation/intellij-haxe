@@ -18,8 +18,7 @@
 package com.intellij.plugins.haxe.ide.projectStructure.ui;
 
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
-import com.intellij.ide.util.TreeFileChooser;
-import com.intellij.ide.util.TreeFileChooserFactory;
+import com.intellij.ide.util.ClassFilter;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -37,11 +36,19 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.config.*;
+import com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor;
+import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
+import com.intellij.plugins.haxe.ide.projectStructure.TreeHaxeClassChooserDialog;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
+import com.intellij.plugins.haxe.openfl.ProjectFileListener;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.
+  GlobalSearchScope;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -119,19 +126,36 @@ public class HaxeConfigurationEditor {
   private void addActionListeners() {
     myMainClassFieldWithButton.getButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        TreeFileChooser fileChooser = TreeFileChooserFactory.getInstance(myModule.getProject()).createFileChooser(
-          HaxeBundle.message("choose.haxe.main.class"),
-          null,
-          HaxeFileType.HAXE_FILE_TYPE,
-          new TreeFileChooser.PsiFileFilter() {
-            public boolean accept(PsiFile file) {
-              return true;
+
+        ClassFilter filter = new ClassFilter() {
+          @Override
+          public boolean isAccepted(PsiClass aClass) {
+            return aClass instanceof HaxeClass;
+          }
+        };
+
+        Project project = myModule.getProject();
+
+        String mainClass = HaxeModuleSettings.getInstance(myModule).getMainClass();
+        HaxeClass haxeClass = null;
+        if (!mainClass.isEmpty()) {
+          for (HaxeComponent component : HaxeComponentIndex.getItemsByName(mainClass, project, myModule.getModuleScope())) {
+            if (component instanceof HaxeClass) {
+              haxeClass = (HaxeClass)component;
             }
-          });
+          }
+        }
 
-        fileChooser.showDialog();
+        TreeHaxeClassChooserDialog dialog = new TreeHaxeClassChooserDialog(HaxeBundle.message("choose.haxe.main.class"), project, myModule.getModuleScope(), filter, haxeClass);
+        dialog.showDialog();
 
-        PsiFile selectedFile = fileChooser.getSelectedFile();
+        PsiClass selected = dialog.getSelected();
+
+        PsiFile selectedFile = null;
+        if (selected instanceof HaxeClass) {
+          selectedFile = selected.getContainingFile();
+        }
+
         if (selectedFile != null) {
           setChosenFile(selectedFile.getVirtualFile());
         }
@@ -450,7 +474,17 @@ public class HaxeConfigurationEditor {
     settings.setOutputFolder(myFolderTextField.getText());
 
     settings.setHxmlPath(FileUtil.toSystemIndependentName(myHxmlFileChooserTextField.getText()));
-    settings.setOpenFLPath(FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText()));
+
+    String openFLPath = settings.getOpenFLPath();
+    String openFLPathNew = FileUtil.toSystemIndependentName(myOpenFLFileChooserTextField.getText());
+
+    if (!openFLPath.equals(openFLPathNew)) {
+      settings.setOpenFLPath(openFLPathNew);
+      HaxeCompilerCompletionContributor.clearOpenFLDisplayArguments();
+      ProjectFileListener projectFileListener = myModule.getComponent(ProjectFileListener.class);
+      projectFileListener.setOpenFLPath(openFLPathNew);
+    }
+
     settings.setNmmlPath(FileUtil.toSystemIndependentName(myNMEFileChooserTextField.getText()));
 
     settings.setBuildConfig(getCurrentBuildConfig());
