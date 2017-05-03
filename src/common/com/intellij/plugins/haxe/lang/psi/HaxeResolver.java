@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +23,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.model.HaxeAccessorType;
+import com.intellij.plugins.haxe.model.HaxeFieldModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
 import com.intellij.plugins.haxe.util.HaxeAbstractUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -36,11 +40,7 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -106,6 +106,28 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return toCandidateInfoArray(resolvePackage(reference));
     }
 
+    if (reference instanceof HaxePropertyAccessor) {
+      final HaxeAccessorType accessorType = HaxeAccessorType.fromPsi(reference);
+      if (accessorType == HaxeAccessorType.GET || accessorType == HaxeAccessorType.SET) {
+        final HaxeVarDeclaration varDeclaration = PsiTreeUtil.getParentOfType(reference, HaxeVarDeclaration.class);
+        if (varDeclaration != null) {
+          final HaxeFieldModel fieldModel = new HaxeFieldModel(varDeclaration);
+          final HaxeMethodModel method;
+          if (accessorType == HaxeAccessorType.GET) {
+            method = fieldModel.getGetterMethod();
+          }
+          else {
+            method = fieldModel.getSetterMethod();
+          }
+
+          if (method != null) {
+            return toCandidateInfoArray(method.getPsi());
+          }
+        }
+
+        return ContainerUtil.emptyList();
+      }
+    }
     if (reference instanceof HaxeSuperExpression) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
       assert haxeClass != null;
