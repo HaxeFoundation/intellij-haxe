@@ -2,6 +2,7 @@
   ~ Copyright 2000-2013 JetBrains s.r.o.
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
+  ~ Copyright 2017 Eric Bishton
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,19 +30,31 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.11.0.RC-1 for @plugin.compatibility.description@</version>
+  <version>0.11.0.RC-2 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
-      <p>Documentation: http://github.com/HaxeFoundation/intellij-haxe/README.md.</p>
-      <p>Support: http://github.com/HaxeFoundation/intellij-haxe/issues.</p>
+      <p>Documentation: <a href="https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md">https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md</a></p>
+      <p>Support: <a href="https://github.com/HaxeFoundation/intellij-haxe/issues">https://github.com/HaxeFoundation/intellij-haxe/issues</a></p>
+      <p>Professionally maintained by Bishton Software Solutions: <a href="http://BishtonSoftwareSolutions.com">http://BishtonSoftwareSolutions.com</a></p>
       <p/>
+      <p>0.11.0.RC-2: (community release)</p>
+      <ul>
+        <li>Properly parse and evaluate compiler conditionals (#if...#else...#end)</li>
+        <li>Resolve array access with types other than "Array."</li>
+        <li>Better 'Main class' chooser for the 'Project Settings->Haxe Compiler' dialog.</li>
+        <li>Fix property getter/setter quick-fixes.</li>
+        <li>Add location data, if known, to compiler completion error messages.</li>
+        <li>Display available completions even when the compiler reports an error.</li>
+        <li>Fixed incomplete results from a compiler run.</li>
+        <li>Better logic for removing duplicate entries from completion lists.</li>
+      </ul>
       <p>0.11.0.RC-1: (community release)</p>
       <ul>
         <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
         <li>Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)</li>
-        <li>Fix parsing of one-liner conditional complation style (issue #417, #121, partly #115)</li>
+        <li>Fix parsing of one-liner conditional compilation style (issue #417, #121, partly #115)</li>
         <li>Support for `@:require` haxe_ver comparing (issue #418)</li>
         <li>Support for `@:require` and `@:jsRequire` with multiple arguments</li>
         <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>

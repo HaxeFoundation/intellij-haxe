@@ -36,7 +36,7 @@ Install the following plugins [from Intellij IDEA plugin manager](https://www.je
 - Plugin DevKit
 - UI Designer
 - Ant Support
-- Grammar-Kit (for bnf compilation) version 1.2.0. (Later versions have not been tested.)
+- Grammar-Kit (for bnf compilation) version 1.2.0. (Later versions are not backward compatible with IDEA 14.)
 
 ####Testing
 - JUnit
@@ -65,6 +65,21 @@ add the following lines to the end of the
     #-----------------------------------------------------------------------
     idea.is.internal=true
 
+
+Sometimes, when testing, the secondary instance of IDEA (running the plugin you're debugging) won't turn
+on the PSI viewer when that property is actually set.  You can always enable it by adding
+  `-Didea.is.internal=true`
+to the "VM Options" field in the 'Run->Edit Configurations...' dialog.
+
+####Disable ProcessCanceledExceptions
+
+Eventually, you may run into the frustrating situation where your stepping takes longer than
+IDEA's timeout and will try to cancel the process you're debugging.  This can be disabled by adding
+  `-Didea.ProcessCanceledException=disabled`
+to the same "VM Options" field.
+
+See [JetBrains' documentation for the 'idea.properties' file.](https://www.jetbrains.com/help/idea/2017.1/file-idea-properties.html) for
+other goodies and their suggested methods for modifying properties.
 
 ####Incompatibilities
 Do NOT install the haxe support plugin if you want to hack on it.  The installed plugin will be loaded and
@@ -169,10 +184,12 @@ Pick the first instance of idea.ultimate.build that is set from the following lo
 exists in the grandparent directory.  
 - `./idea-IU/` relative to the project root directory.
 
-Once the `${idea.ultimate.build}` property is set, the existence of `build.txt` is checked. 
-If `build.txt` cannot be found, then the error message you see above is displayed.
+Once the `${idea.ultimate.build}` property is set, the existence of `build.txt` is checked.
+If `build.txt` cannot be found, then the error message you see above is displayed.  (On MacOS,
+the build file is located in a slightly different place within IDEA's app directory.  The
+ant build knows how to find it.)
 
-In any case, `build.txt` MUST exist in your installation directory.  If it does not, 
+In any case, `build.txt` MUST exist in your installation directory.  If it does not,
 then your installation is corrupt.  You should consider re-installing IDEA.  Failing that,
 you can create one. It is a single line file with the following format:
 
@@ -208,7 +225,7 @@ Here is a minimalist example:
       <property name="idea.ultimate.build" location="/home/username/intellij_idea/idea-IU-135.1286/" />
     </project>
 
-Here is one from one of our team members:
+Here is a version from one of our team members:
 
     <project name="local-overrides">
       <echo>
@@ -513,9 +530,9 @@ applying your changes against the master branch.
 6. Create a pull request, and wait for comments.
 7. If you get comments that require changes, address those and return to step 2.
 8. When you get an “OK to merge,” or "approved," message from anyone on the team: Boyan, @as3boyan;
-Eric, @EBatTiVo; Ilya, @EliasKu (others as they become regular contributors,) go ahead
+Eric, @EricBishton; Ilya, @EliasKu (others as they become regular contributors,) go ahead
 and merge your changes to master.  A clean merge requires no further testing,
-as Travis-ci will do it for you.  However any build break must be addressed immediately.  A build 
+as Travis-ci will do it for you.  However any build break must be addressed immediately.  A build
 that has conflicts requires manual resolution and must be re-tested locally prior to push.  For regular
 team members, the original requester will be the person to merge since they are best suited to address
 conflicts.  Merges from occasional contributors will be merged by a team member as time and

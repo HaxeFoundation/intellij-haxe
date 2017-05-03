@@ -5,8 +5,13 @@ This plugin allows you to develop [Haxe](http://haxe.org/) programs with Intelli
 It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, IDEA 2016.1 through 2016.3.
 
 #### We have moved!
-The primary maintained branch of this plugin has moved to the HaxeFoundation.  Please update your 
+The primary maintained branch of this plugin has moved to the Haxe Foundation's github repository.  Please update your
 links and git clones to point to [http://github.com/HaxeFoundation/intellij-haxe](http://github.com/HaxeFoundation/intellij-haxe)
+
+#### Professional Support
+The Haxe plugin for IDEA is professionally maintained and supported by [Bishton Software Solutions](http://BishtonSoftwareSolutions.com).
+When you or your business have needs that the plugin does not meet, they offer short- and  long-term technical support
+and custom development services.  They can also help with your other tooling or development needs.
 
 
 Install
@@ -55,6 +60,8 @@ If you already have a project open IDEA:
 
 Build
 -----
+Note that installation as described above installs a fully built version of the plugin (the .jar file).  Most users do not have to
+build the product for themselves.  This section is for those who like to dig a little deeper.
 
 This describes the command line build on a Linux platform. To build from within Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
 your development environment.  Much more detail is provided there for command line build options as well.

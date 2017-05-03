@@ -2,12 +2,14 @@ Recent contributors
 -----------------------------------
  - as3boyan <denis.flash.as3@gmail.com>
  - bynuff <igor.bulankov@gmail.com>
+ - David Nemcok <nemcok.david@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
  - Eric B <ebishton@tivo.com>
  - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
  - Eric Bishton <ebishton@ix.netcom.com>
  - GitHub <noreply@github.com>
  - Ilya Kuzmichev <deadbabe@gmail.com>
+ - mayakwd <loremipsum.inside@gmail.com>
  - slavara <ratdg@ya.ru>
  - Usievaład Čorny <anibyl@riseup.net>
  - Usievaład Kimajeŭ <usievalad@gmail.com>
@@ -27,6 +29,7 @@ All contributors
 - Carlos Ballesteros Velasco <soywiz@gmail.com>
 - Chris Decoster <impaler777@gmail.com>
 - Constantine Plotnikov <constantine.plotnikov@gmail.com>
+- David Nemcok <nemcok.david@gmail.com>
 - Denis.Zhdanov <denzhdanov@gmail.com>
 - Dmitry Avdeev <Dmitry.Avdeev@jetbrains.com>
 - Dmitry Jemerov <yole@jetbrains.com>
@@ -61,6 +64,7 @@ All contributors
 - Kirill Safonov <kirill.safonov@jetbrains.com>
 - Maxim.Mossienko <Maxim.Mossienko@jetbrains.com>
 - Maxim Shafirov <max@jetbrains.com>
+- mayakwd <loremipsum.inside@gmail.com>
 - nik <Nikolay.Chashnikov@jetbrains.com>
 - Oleg Sukhodolsky <oleg.sukhodolsky@jetbrains.com>
 - peter <peter@jetbrains.com>
