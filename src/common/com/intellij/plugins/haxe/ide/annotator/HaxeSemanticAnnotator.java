@@ -24,7 +24,6 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -668,7 +667,7 @@ class StringChecker {
   public static void check(HaxeStringLiteralExpression psi, AnnotationHolder holder) {
     if (isSingleQuotesRequired(psi)) {
       holder
-        .createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single-quotes");
+        .createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
     }
   }
 
