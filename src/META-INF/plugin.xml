@@ -806,6 +806,10 @@
       <className>com.intellij.plugins.haxe.ide.intention.SplitIntoDeclarationAndAssignment</className>
     </intentionAction>
 
+    <intentionAction>
+      <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
+    </intentionAction>
+
   </extensions>
 
   <module-components>
