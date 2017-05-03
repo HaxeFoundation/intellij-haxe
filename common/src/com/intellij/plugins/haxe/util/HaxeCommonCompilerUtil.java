@@ -189,13 +189,15 @@ public class HaxeCommonCompilerUtil {
 
     // Show the command line in the output window.
     // TODO: Make a checkbox in the SDK configuration window.
+    String commandLineString = "";
+
     if (!commandLine.isEmpty()) {
-      StringBuilder cl = new StringBuilder("Executing: ");
+      StringBuilder cl = new StringBuilder();
       for (String commandPart : commandLine) {
         cl.append(commandPart);
         cl.append(" ");
       }
-      context.infoHandler(cl.toString());
+      commandLineString = cl.toString();
     }
 
     final BooleanValueHolder hasErrors = new BooleanValueHolder(false);
@@ -207,7 +209,7 @@ public class HaxeCommonCompilerUtil {
       }
       final BaseOSProcessHandler handler = new ColoredProcessHandler(
         HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData()).start(),
-        null,
+        commandLineString,
         Charset.defaultCharset()
       );
 
