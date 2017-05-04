@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +31,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
 
   public static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  //static { LOG.setLevel(Level.DEBUG); }  // Remove when finished debugging.
 
   public HaxeClassReferenceImpl(ASTNode node) {
     super(node);
@@ -99,6 +102,7 @@ public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
   @NotNull
   @Override
   public HaxeClassResolveResult resolveHaxeClass() {
+    LOG.trace("Resolving " + getText());
     final HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(this, HaxeFunctionType.class);
     HaxeTypeOrAnonymous typeOrAnonymous = PsiTreeUtil.getChildOfType(this, HaxeTypeOrAnonymous.class);
     if (functionType != null && !functionType.getTypeOrAnonymousList().isEmpty()) {
