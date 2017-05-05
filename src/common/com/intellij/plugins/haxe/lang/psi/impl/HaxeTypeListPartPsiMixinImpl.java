@@ -103,7 +103,8 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
 
         } else if (HaxeTokenTypes.FUNCTION_TYPE.equals(type)) {
           // TODO: Fix this.  Temporary hack in place so I can test.
-          myChildClass = (HaxeAnonymousType) child;
+          //myChildClass = (HaxeAnonymousType) child;
+          myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
         } else {
           myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
         }
