@@ -22,6 +22,7 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
@@ -40,6 +41,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -372,13 +374,43 @@ class ClassChecker {
     if (intReference.getHaxeClass() != null) {
       for (HaxeMethodModel intMethod : intReference.getHaxeClass().getMethods()) {
         if (!intMethod.isStatic()) {
-          HaxeMethodModel selfMethod = clazz.getMethodSelf(intMethod.getName());
-          if (selfMethod == null) {
+          // Implemented method not necessarily located in current class
+          final PsiMethod[] methods = clazz.haxeClass.findMethodsByName(intMethod.getName(), true);
+          final PsiMethod psiMethod = ContainerUtil.find(methods, new Condition<PsiMethod>() {
+            @Override
+            public boolean value(PsiMethod method) {
+              return !(method instanceof HaxeFunctionPrototypeDeclarationWithAttributes);
+            }
+          });
+
+          if (psiMethod == null) {
             missingMethods.add(intMethod);
             missingMethodsNames.add(intMethod.getName());
           }
           else {
-            MethodChecker.checkMethodsSignatureCompatibility(selfMethod, intMethod, holder);
+            final HaxeMethod method = (HaxeMethod)psiMethod;
+            final HaxeMethodModel methodModel = method.getModel();
+
+            // We should check if signature in inherited method differs from method provided by interface
+            if (methodModel.getDeclaringClass() != clazz) {
+              if (MethodChecker.checkIfMethodSignatureDiffers(methodModel, intMethod)) {
+                final HaxeClass parentClass = methodModel.getDeclaringClass().haxeClass;
+
+                final String errorMessage = HaxeBundle.message(
+                  "haxe.semantic.implemented.super.method.signature.differs",
+                  method.getName(),
+                  parentClass.getQualifiedName(),
+                  intMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
+                  methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION
+                  )
+                );
+
+                holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
+              }
+            }
+            else {
+              MethodChecker.checkMethodsSignatureCompatibility(methodModel, intMethod, holder);
+            }
           }
         }
       }
@@ -594,8 +626,46 @@ class MethodChecker {
                 document.replaceElementText(currentParam.getTypeTagPsi(), parentParam.getTypeTagPsi().getText());
               }
             }
-          )
-        ;
+          );
+      }
+
+      if (currentParam.hasOptionalPsi() != parentParam.hasOptionalPsi()) {
+        final boolean removeOptional = currentParam.hasOptionalPsi();
+
+        String errorMessage;
+        if (parentMethod.getDeclaringClass().isInterface()) {
+          errorMessage = removeOptional ?
+                         "haxe.semantic.implemented.method.parameter.required" :
+                         "haxe.semantic.implemented.method.parameter.optional";
+        }
+        else {
+          errorMessage = removeOptional ?
+                         "haxe.semantic.overwritten.method.parameter.required" :
+                         "haxe.semantic.overwritten.method.parameter.optional";
+        }
+
+        errorMessage = HaxeBundle.message(errorMessage, parentParam.getPresentableText(),
+                                          parentMethod.getDeclaringClass().getName() + "." + parentMethod.getName());
+
+        final Annotation annotation = holder.createErrorAnnotation(currentParam.getPsi(), errorMessage);
+        final String localFixName = HaxeBundle.message(removeOptional ?
+                                                       "haxe.semantic.method.parameter.optional.remove" :
+                                                       "haxe.semantic.method.parameter.optional.add");
+
+        annotation.registerFix(
+          new HaxeFixer(localFixName) {
+            @Override
+            public void run() {
+              if (removeOptional) {
+                currentParam.getOptionalPsi().delete();
+              }
+              else {
+                PsiElement element = currentParam.getPsi();
+                document.addTextBeforeElement(element.getFirstChild(), "?");
+              }
+            }
+          }
+        );
       }
     }
 
@@ -605,6 +675,32 @@ class MethodChecker {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       holder.createErrorAnnotation(psi, "Not compatible return type " + currentResult + " != " + parentResult);
     }
+  }
+
+  // Fast check without annotations
+  static public boolean checkIfMethodSignatureDiffers(HaxeMethodModel source, HaxeMethodModel prototype) {
+    final List<HaxeParameterModel> sourceParameters = source.getParameters();
+    final List<HaxeParameterModel> prototypeParameters = prototype.getParameters();
+
+    if (sourceParameters.size() != prototypeParameters.size()) {
+      return true;
+    }
+
+    final int parametersCount = sourceParameters.size();
+
+    for (int n = 0; n < parametersCount; n++) {
+      final HaxeParameterModel sourceParam = sourceParameters.get(n);
+      final HaxeParameterModel prototypeParam = prototypeParameters.get(n);
+      if (!HaxeTypeCompatible.canAssignToFrom(sourceParam.getType(), prototypeParam.getType()) ||
+          sourceParam.isOptional() != prototypeParam.isOptional()) {
+        return true;
+      }
+    }
+
+    ResultHolder currentResult = source.getResultType();
+    ResultHolder prototypeResult = prototype.getResultType();
+
+    return !currentResult.canAssign(prototypeResult);
   }
 }
 
