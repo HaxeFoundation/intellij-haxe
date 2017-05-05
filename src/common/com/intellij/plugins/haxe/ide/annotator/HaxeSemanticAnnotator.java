@@ -68,6 +68,8 @@ public class HaxeSemanticAnnotator implements Annotator {
     }
     else if (element instanceof HaxeVarDeclaration) {
       FieldChecker.check((HaxeVarDeclaration)element, holder);
+    } else if (element instanceof HaxeStringLiteralExpression) {
+      StringChecker.check((HaxeStringLiteralExpression)element, holder);
     }
   }
 }
@@ -658,5 +660,19 @@ class MethodBodyChecker {
   public static void check(HaxeMethod psi, AnnotationHolder holder) {
     final HaxeMethodModel method = psi.getModel();
     HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder);
+  }
+}
+
+class StringChecker {
+  public static void check(HaxeStringLiteralExpression psi, AnnotationHolder holder) {
+    if (isSingleQuotesRequired(psi)) {
+      holder
+        .createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
+    }
+  }
+
+  private static boolean isSingleQuotesRequired(HaxeStringLiteralExpression psi) {
+    return (psi.getLongTemplateEntryList().size() > 0 || psi.getShortTemplateEntryList().size() > 0) &&
+           psi.getFirstChild().textContains('"');
   }
 }
