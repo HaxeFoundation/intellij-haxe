@@ -401,8 +401,7 @@ class ClassChecker {
                   method.getName(),
                   parentClass.getQualifiedName(),
                   intMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
-                  methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION
-                  )
+                  methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION)
                 );
 
                 holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
@@ -634,23 +633,20 @@ class MethodChecker {
 
         String errorMessage;
         if (parentMethod.getDeclaringClass().isInterface()) {
-          errorMessage = removeOptional ?
-                         "haxe.semantic.implemented.method.parameter.required" :
-                         "haxe.semantic.implemented.method.parameter.optional";
+          errorMessage = removeOptional ? "haxe.semantic.implemented.method.parameter.required"
+                                        : "haxe.semantic.implemented.method.parameter.optional";
         }
         else {
-          errorMessage = removeOptional ?
-                         "haxe.semantic.overwritten.method.parameter.required" :
-                         "haxe.semantic.overwritten.method.parameter.optional";
+          errorMessage = removeOptional ? "haxe.semantic.overwritten.method.parameter.required"
+                                        : "haxe.semantic.overwritten.method.parameter.optional";
         }
 
         errorMessage = HaxeBundle.message(errorMessage, parentParam.getPresentableText(),
                                           parentMethod.getDeclaringClass().getName() + "." + parentMethod.getName());
 
         final Annotation annotation = holder.createErrorAnnotation(currentParam.getPsi(), errorMessage);
-        final String localFixName = HaxeBundle.message(removeOptional ?
-                                                       "haxe.semantic.method.parameter.optional.remove" :
-                                                       "haxe.semantic.method.parameter.optional.add");
+        final String localFixName = HaxeBundle.message(removeOptional ? "haxe.semantic.method.parameter.optional.remove"
+                                                                      : "haxe.semantic.method.parameter.optional.add");
 
         annotation.registerFix(
           new HaxeFixer(localFixName) {
