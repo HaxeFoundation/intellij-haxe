@@ -51,11 +51,11 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeSemanticAnnotator implements Annotator {
   @Override
-  public void annotate(PsiElement element, AnnotationHolder holder) {
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     analyzeSingle(element, holder);
   }
 
-  static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
+  private static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
     if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element, holder);
     }
@@ -110,7 +110,7 @@ class TypeTagChecker {
   }
 
   @NotNull
-  static ResultHolder getTypeFromVarInit(HaxeVarInit init) {
+  private static ResultHolder getTypeFromVarInit(HaxeVarInit init) {
     final ResultHolder abstractEnumFieldInitType = HaxeAbstractEnumUtil.getStaticMemberExpression(init.getExpression());
     if(abstractEnumFieldInitType != null) {
       return abstractEnumFieldInitType;
@@ -158,7 +158,7 @@ class FieldChecker {
     }
   }
 
-  public static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
+  private static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
     final HaxeDocumentModel document = field.getDocument();
 
     if (field.getGetterPsi() != null && !field.getGetterType().isValidGetter()) {
@@ -200,7 +200,7 @@ class FieldChecker {
     }
   }
 
-  static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
+  private static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
     if (field.getDeclaringClass().isInterface()) {
       return;
     }
@@ -300,7 +300,7 @@ class ClassChecker {
     TypeChecker.check(clazz.getNamePsi(), holder);
   }
 
-  static public void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  private static void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
     HaxeClassReferenceModel reference = clazz.getParentClassReference();
     if (reference != null) {
       HaxeClassModel aClass1 = reference.getHaxeClass();
@@ -348,7 +348,7 @@ class ClassChecker {
     return false;
   }
 
-  static public void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  private static void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {
     for (HaxeClassReferenceModel interfaze : clazz.getImplementingInterfaces()) {
       if (interfaze.getHaxeClass() == null || !interfaze.getHaxeClass().isInterface()) {
         // @TODO: Move to bundle
@@ -357,13 +357,13 @@ class ClassChecker {
     }
   }
 
-  static public void checkInterfacesMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  private static void checkInterfacesMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
     for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
       checkInterfaceMethods(clazz, reference, holder);
     }
   }
 
-  static public void checkInterfaceMethods(
+  private static void checkInterfaceMethods(
     final HaxeClassModel clazz,
     final HaxeClassReferenceModel intReference,
     final AnnotationHolder holder
@@ -443,7 +443,7 @@ class MethodChecker {
     //currentMethod.getBodyPsi()
   }
 
-  static public void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
+  private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     if (currentClass.isExtern() || currentClass.isInterface()) {
       if (currentMethod.getReturnTypeTagPsi() == null) {
@@ -457,7 +457,7 @@ class MethodChecker {
     }
   }
 
-  static public void checkMethodArguments(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
+  private static void checkMethodArguments(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     boolean hasOptional = false;
     HashMap<String, PsiElement> argumentNames = new HashMap<String, PsiElement>();
     for (final HaxeParameterModel param : currentMethod.getParameters()) {
@@ -495,7 +495,7 @@ class MethodChecker {
     }
   }
 
-  static public void checkOverride(final HaxeMethod methodPsi, final AnnotationHolder holder) {
+  private static void checkOverride(final HaxeMethod methodPsi, final AnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
@@ -578,7 +578,7 @@ class MethodChecker {
     }
   }
 
-  static public void checkMethodsSignatureCompatibility(
+  static void checkMethodsSignatureCompatibility(
     @NotNull final HaxeMethodModel currentMethod,
     @NotNull final HaxeMethodModel parentMethod,
     final AnnotationHolder holder
@@ -674,7 +674,7 @@ class MethodChecker {
   }
 
   // Fast check without annotations
-  static public boolean checkIfMethodSignatureDiffers(HaxeMethodModel source, HaxeMethodModel prototype) {
+  static boolean checkIfMethodSignatureDiffers(HaxeMethodModel source, HaxeMethodModel prototype) {
     final List<HaxeParameterModel> sourceParameters = source.getParameters();
     final List<HaxeParameterModel> prototypeParameters = prototype.getParameters();
 
