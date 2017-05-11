@@ -93,7 +93,7 @@ public class HaxeParameterModel extends HaxeMemberModel {
   }
 
   public String getPresentableText() {
-    String out = "";
+    String out = hasOptionalPsi() ? "?" : "";
     out += getName();
     out += ":";
     out += getType().toStringWithoutConstant();

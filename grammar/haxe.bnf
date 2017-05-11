@@ -348,6 +348,7 @@ private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | referenceExpression
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionCommonBody ::= blockStatement | returnStatement | (expression ';'?) | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
 
