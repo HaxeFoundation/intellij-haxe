@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import gnu.trove.THashMap;
+import gnu.trove.TObjectObjectProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +57,16 @@ public class HaxeGenericSpecialization implements Cloneable {
 
   public boolean containsKey(@Nullable PsiElement element, String genericName) {
     return map.containsKey(getGenericKey(element, genericName));
+  }
+
+  public HaxeGenericSpecialization filterInnerKeys() {
+    HaxeGenericSpecialization filtered = new HaxeGenericSpecialization();
+    for (String key : map.keySet()) {
+      if (key.contains("-")) {
+        filtered.map.put(key, map.get(key));
+      }
+    }
+    return filtered;
   }
 
   public HaxeClassResolveResult get(@Nullable PsiElement element, String genericName) {

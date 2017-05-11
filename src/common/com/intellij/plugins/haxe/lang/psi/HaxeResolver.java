@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +27,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.model.HaxeAccessorType;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
-import com.intellij.plugins.haxe.util.HaxeAbstractUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PackageReferenceSet;
@@ -37,6 +35,7 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.PsiPackageR
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +45,12 @@ import java.util.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
+  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  //static {  // Remove when finished debugging.
+  //  LOG.setLevel(Level.TRACE);
+  //  LOG.debug(" ========= Starting up debug logger for HaxeResolver. ==========");
+  //}
+
   public static final HaxeResolver INSTANCE = new HaxeResolver();
   public static final String IMPORT_EXTENSION = ".hx";
 
@@ -53,23 +58,28 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
+    LOG.trace(traceMsg(reference.getText()));
+
     isExtension.set(false);
 
     final HaxeType type = PsiTreeUtil.getParentOfType(reference, HaxeType.class);
     final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
     if (type != null && haxeClassInType != null) {
+      LogResolution(reference, "via parent type name.");
       return toCandidateInfoArray(haxeClassInType.getComponentName());
     }
 
     // Maybe this is class name
     final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(reference);
     if (resultClass != null) {
+      LogResolution(reference, "via class qualified name.");
       return toCandidateInfoArray(resultClass.getComponentName());
     }
 
     // See if it's a source file we're importing... (most likely a convenience library, such as haxe.macro.Tools)
     final PsiFile importFile = resolveImportFile(reference);
     if (null != importFile) {
+      LogResolution(reference, "via import file.");
       return toCandidateInfoArray(importFile);
     }
 
@@ -81,6 +91,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                                    HaxeImportStatementWithInSupport.class,
                                    HaxeImportStatementWithWildcard.class,
                                    HaxeUsingStatement.class) != null) {
+      LogResolution(reference, "via parent/package import.");
       return toCandidateInfoArray(resolvePackage(reference));
     }
 
@@ -90,8 +101,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (leftReference != null && reference.getParent() instanceof HaxeReference) {
       List<? extends PsiElement> result = resolveChain(leftReference, reference);
       if(result != null && !result.isEmpty()) {
+        LogResolution(reference, "via simple chain using leftReference.");
         return result;
       }
+      LogResolution(reference, "via simple chain against package.");
       return toCandidateInfoArray(resolvePackage(reference));
     }
 
@@ -101,8 +114,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (childReferences != null && childReferences.length == 2) {
       List<? extends PsiElement> result = resolveChain(childReferences[0], childReferences[1]);
       if(result != null && !result.isEmpty()) {
+        LogResolution(reference, "via chain using children.");
         return result;
       }
+      LogResolution(reference, "via chain against package.");
       return toCandidateInfoArray(resolvePackage(reference));
     }
 
@@ -137,6 +152,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                                      ? ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass()
                                      : null;
         final HaxeNamedComponent constructor = ((superClass == null) ? null : superClass.findHaxeMethodByName(HaxeTokenTypes.ONEW.toString()));
+        LogResolution(reference, "because it's a super expression.");
         return toCandidateInfoArray(((constructor != null) ? constructor : superClass));
       }
     }
@@ -144,6 +160,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final List<PsiElement> result = new ArrayList<PsiElement>();
     PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result, reference.getCanonicalText()), reference, null, new ResolveState());
     if (!result.isEmpty()) {
+      LogResolution(reference, "via tree walk.");
       return result;
     }
 
@@ -167,6 +184,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
                 if (namedSubComponent != null) {
                   result.add(namedSubComponent.getComponentName().getIdentifier());
+                  LogResolution(reference, "via parent reference expression walk."); // XXX: Maybe there's a better description?
                   return result;
                 }
               }
@@ -178,6 +196,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // try super field
     List<? extends PsiElement> superElements = resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
     if (!superElements.isEmpty()) {
+      LogResolution(reference, "via super field.");
       return superElements;
     }
 
@@ -185,6 +204,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       PsiPackageReference packageReference = new PackageReferenceSet(reference.getText(), reference, 0).getLastReference();
       PsiElement packageTarget = packageReference != null ? packageReference.resolve() : null;
       if (packageTarget != null) {
+        LogResolution(reference, "via project qualified name.");
         return Arrays.asList(packageTarget);
       }
     }
@@ -211,6 +231,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
         if (namedSubComponent != null && namedSubComponent.isStatic()) {
           result.add(namedSubComponent.getComponentName().getIdentifier());
+          LogResolution(reference, "via import statement with wildcard.");
           return result;
         }
       }
@@ -237,11 +258,22 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       importStatementWithInSupport = (HaxeImportStatementWithInSupport)importStatementWithInSupportList.get(i);
       if (reference.getText().equals(importStatementWithInSupport.getIdentifier().getText())) {
         result.add(importStatementWithInSupport.getReferenceExpression().resolve());
+        LogResolution(reference, "via import statement with 'in'");
         return result;
       }
     }
 
+    LogResolution(reference, "failed after exhausting all options.");
     return ContainerUtil.emptyList();
+  }
+
+  private void LogResolution(HaxeReference ref, String tailmsg) {
+    String message = "Resolved " + ref.getText() + " " + tailmsg;
+    if (LOG.isTraceEnabled()) {
+      LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), message);
+    } else {
+      LOG.debug(message);
+    }
   }
 
   /**
@@ -253,10 +285,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    */
   @Nullable
   private List<? extends PsiElement> resolveChain(HaxeReference lefthandExpression, HaxeReference reference) {
+    LOG.trace(traceMsg(null));
     final HaxeComponentName componentName = tryResolveHelperClass(lefthandExpression, reference.getText());
     if (componentName != null) {
+      LOG.trace("Found component " + componentName.getText());
       return Arrays.asList(componentName);
     }
+    LOG.trace(traceMsg("trying keywords (super, new) arrays, literals, etc."));
     // Try resolving keywords (super, new), arrays, literals, etc.
     List<? extends PsiElement> resolvedList = resolveByClassAndSymbol(lefthandExpression.resolveHaxeClass(), reference);
     return resolvedList;
@@ -320,9 +355,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    */
   @Nullable
   private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
+    LOG.trace(traceMsg("leftReference=" + leftReference + " helperName=" + helperName));
     HaxeComponentName componentName = null;
     HaxeClass leftResultClass = HaxeResolveUtil.tryResolveClassByQName(leftReference);
     if (leftResultClass != null) {
+      LOG.trace(traceMsg("Found a left result via QName: " + (leftResultClass.getText() != null ? leftResultClass : "<no text>")));
       // helper reference via class com.bar.FooClass.HelperClass
       final HaxeClass componentDeclaration =
         HaxeResolveUtil.findComponentDeclaration(leftResultClass.getContainingFile(), helperName);
@@ -330,6 +367,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     } else {
       // try to find component at abstract forwarding underlying class
       leftResultClass = leftReference.resolveHaxeClass().getHaxeClass();
+      if (LOG.isTraceEnabled()) {
+        String resultClassName = leftResultClass != null ? leftResultClass.getText() : null;
+        LOG.trace(traceMsg("Found abstract left result:" + resultClassName != null ? resultClassName : "<no text>" ));
+      }
       final Boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftResultClass);
       if (isAbstractForward) {
         final List<HaxeNamedComponent> forwardingHaxeNamedComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass);
@@ -344,15 +385,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
+    if (LOG.isTraceEnabled()) {
+      String ctext = componentName != null ? componentName.getText() : null;
+      LOG.trace(traceMsg("Found component name " + (ctext != null ? ctext : "<no text>")));
+    }
     return componentName;
   }
 
   private static List<? extends PsiElement> toCandidateInfoArray(@Nullable PsiElement element) {
+    LOG.debug("Resolved as " + (element == null ? "empty result list." : element.toString() ));
     return element == null ? Collections.<PsiElement>emptyList() : Arrays.asList(element);
   }
 
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClassResolveResult resolveResult,
                                                                     @NotNull HaxeReference reference) {
+    if (resolveResult == null) {
+      LOG.debug("Resolved as empty result list. (resolveByClassAndSymbol)");
+    }
     return resolveResult == null ? Collections.<PsiElement>emptyList() : resolveByClassAndSymbol(resolveResult.getHaxeClass(), reference);
   }
 
@@ -393,7 +442,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
+    LOG.debug("Resolved as empty result list. (resolveByClassAndSymbol(2))");
     return Collections.emptyList();
+  }
+
+  private String traceMsg(String msg) {
+    return HaxeDebugUtil.traceMessage(msg, 120);
   }
 
   private class ResolveScopeProcessor implements PsiScopeProcessor {
