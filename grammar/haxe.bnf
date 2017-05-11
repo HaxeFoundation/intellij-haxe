@@ -197,9 +197,8 @@ debugMeta ::= '@:debug'
 noDebugMeta ::= '@:nodebug'
 unreflectiveMeta ::= '@:unreflective'
 arrayAccessMeta ::= '@:arrayAccess'
-constMeta ::= '@:const'
 
-simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta | arrayAccessMeta | constMeta
+simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta | arrayAccessMeta
 
 macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"
@@ -229,7 +228,7 @@ metaKeyValue ::= ID '=' stringLiteralExpression
 
 jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression (',' stringLiteralExpression)* ')'
 
-private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire' | '@:arrayAccess' | '@:const'
+private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire' | '@:arrayAccess'
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
