@@ -82,7 +82,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   private void configureLoggerForDebugging() {
     HaxeDebugLogger.configure(HaxeResolveUtil.class, Level.DEBUG);
     HaxeDebugLogger.configure(HaxeReferenceImpl.class, Level.DEBUG);
-    HaxeDebugLogger.configure(HaxeClassResolveResult.class, Level.DEBUG);
+    HaxeDebugLogger.configure(HaxeClassResolveResult.class, Level.TRACE);
   }
 
 
@@ -110,15 +110,17 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
     doTest("x:Int, y:Int = 239", 1);
   }
 
-  /*
-  ** This unit test resolves chains of generic types which do not currently work.
   public void testParamInfo7() throws Throwable {
     configureLoggerForDebugging();
     doTest("t:Node", 0);
   }
-  */
 
   public void testParamInfo8() throws Throwable {
     doTest("t:Node", 0);
   }
+
+  // Disabled - Tests issue #615.
+  //public void testLocalShadowingChainedGenerics() throws Throwable {
+  //  doTest("t:Node", 0);
+  //}
 }
