@@ -119,15 +119,15 @@ The hxcpp debugger functionality has been rewritten to conform to the
 Haxe v3.0 debugger.  In order to use this, you must:
 
 - Install the *VERSION 1.1* debugger haxelib from [https://github.com/HaxeFoundation/hxcpp-debugger/tree/protocol_v1.1](https://github.com/HaxeFoundation/hxcpp-debugger/tree/protocol_v1.1).
-  The haxecpp-debugger that is installed via 'haxelib install' is generally
+  The hxcpp-debugger that is installed via 'haxelib install' is generally
   not the latest or best working version. (The Haxe Foundation maintainers
   do not release regular updates for it). Instead, get the current sources
   locally: Install git and clone the repository from
   [http://github.com/HaxeFoundation/hxcpp-debugger](http://github.com/HaxeFoundation/hxcpp-debugger)
   and install via
-```
+  ```
   haxelib git hxcpp-debugger <your_local_clone> protocol_v1.1
-```
+  ```
   Then, you'll have the version
   that matches the plugin. Whenever you need to update the debugger to
   the latest sources, do a 'git pull' and then rebuild your app.
@@ -135,36 +135,36 @@ Haxe v3.0 debugger.  In order to use this, you must:
 - Configure your haxe program to start the debugger when the following
   command line option is provided:
 
-```
-    -start_debugger
-```
+  ```
+  -start_debugger
+  ```
   If you expect to do remote debugging, you'll also have to support:
 
-```
-    -debugger_host=[host]:[port]
-```
+  ```
+  -debugger_host=[host]:[port]
+  ```
 
   Most likely you'll just want to add the following in your main() when
   `-start_debugger` is set:
     
-```
-    new debugger.HaxeRemote(true, host, port);
-```
+  ```haxe
+  new debugger.HaxeRemote(true, host, port);
+  ```
 
   Generally speaking, the build/debug configuration (Run->Edit Configurations)
    is set up to use port 6972, so you can probably cheat and use:
 
-```
-    new debugger.HaxeRemote(true, "localhost", 6972);
-```
+  ```haxe
+  new debugger.HaxeRemote(true, "localhost", 6972);
+  ```
 
   However, the line has to match your debug settings. Fortunately, they are
   passed to your program on the command line. Notice the
   "-start_debugger -debugger_host=localhost:6972" passed to haxelib:
-```
-    C:/HaxeToolkit/haxe/haxelib.exe run lime run C:/temp/issue349/openfl_cpp_debug/openfl_cpp_debug/project.xml
-      windows -verbose -Ddebug -debug -args  -start_debugger -debugger_host=localhost:6972
-```
+  ```
+  C:/HaxeToolkit/haxe/haxelib.exe run lime run C:/temp/issue349/openfl_cpp_debug/openfl_cpp_debug/project.xml
+    windows -verbose -Ddebug -debug -args  -start_debugger -debugger_host=localhost:6972
+  ```
 Your program should now:
 1) Look for the '-start_debugger' parameter before doing anything. It won't
  be there if the program is being started via the "Run" command from IDEA.
@@ -172,12 +172,12 @@ Your program should now:
  then a remote controller (e.g. IDEA) will be trying to connect on that port.
  If it doesn't exist, then the user (you) probably want to start the command
  line debugger:
-```
-    new debugger.Local(true);
-```
+  ```haxe
+  new debugger.Local(true);
+  ```
 
 Here's a snippet you can use: (Thanks to @isBatak)
-```
+  ```haxe
   #if (debug && cpp)
     var startDebugger:Bool = false;
     var debuggerHost:String = "";
@@ -203,7 +203,7 @@ Here's a snippet you can use: (Thanks to @isBatak)
       }
     }
   #end
-```
+  ```
 
 Contribute
 ----------
