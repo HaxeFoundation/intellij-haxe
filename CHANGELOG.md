@@ -1,4 +1,4 @@
-#Changelog
+# Changelog
   <p>
      Warning for IDEA v14.1.x users: The 14.1 version of this plugin will NOT
      work correctly using IDEA version 14.1.2.  It works well with versions

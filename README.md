@@ -20,7 +20,7 @@ Install
 *JetBrains' official plugin installation documentation is at [https://www.jetbrains.com/idea/plugins/](https://www.jetbrains.com/idea/plugins/).
 The Haxe plugin page is [https://plugins.jetbrains.com/plugin/6873?pr=idea](https://plugins.jetbrains.com/plugin/6873?pr=idea).*
 
-###To install using IDEA (from Intellij plugin repository):
+### To install using IDEA (from Intellij plugin repository):
 
 Install and start IDEA.  It is found at [https://www.jetbrains.com/idea](https://www.jetbrains.com/idea)
 
@@ -39,7 +39,7 @@ If you already have a project open in IDEA:
 - Select 'Install' to install it.
 - Allow IDEA to restart and initialize the plugin.
 
-###To manually install the latest or a previous Github release
+### To manually install the latest or a previous Github release
 
 Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/HaxeFoundation/intellij-haxe/releases).
 More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-14.1.1.jar`)
@@ -66,13 +66,13 @@ build the product for themselves.  This section is for those who like to dig a l
 This describes the command line build on a Linux platform. To build from within Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
 your development environment.  Much more detail is provided there for command line build options as well.
 
-###Dependencies
+### Dependencies
 - Ant
 - Oracle JDK 8 or OpenJDK 8 (Versions 7 may be used with IDEA versions prior to 2016.x)
 - Make
 - A bash compatible shell
 
-###Build command
+### Build command
 ```
 make
 ```
@@ -92,10 +92,10 @@ we recommended that you set up your machine as described in the [contributing do
 Test
 ----
 
-###Dependencies
+### Dependencies
 Same as for build.
 
-###Test command
+### Test command
 ```
 make test
 ```
