@@ -5,7 +5,7 @@ NOTE: The development team is currently supporting IDEA versions 14 and later.
 Support for version 13.1 been removed as of release 0.9.8.* &nbsp; Support for versions 14
 will likely be dropped sometime during the year 2017.
 
-##Reporting errors  
+## Reporting errors  
 ------------------
 
 Things that will help us fix your bug:
@@ -22,26 +22,26 @@ can reproduce the issue.
 - Check if the bug already exists at the [HaxeFoundation repository](https://github.com/HaxeFoundation/intellij-haxe/issues).
  If it does, add your example to the discussion.
 
-##Development Environment
+## Development Environment
 -------------------------
 
 You will need the release version of Intellij IDEA Ultimate 14.x, 15.x, or later to develop the plugin.
 *There are reports that you can develop with IDEA Community Edition, though extended functionality such as
 diagrams and hierarchy panels will not be available and you wont be able to test their Haxe equivalents.*
 
-###Plugins
+### Plugins
 Install the following plugins [from Intellij IDEA plugin manager](https://www.jetbrains.com/idea/plugins/).
 
-####Required
+#### Required
 - Plugin DevKit
 - UI Designer
 - Ant Support
 - Grammar-Kit (for bnf compilation) version 1.2.0. (Later versions are not backward compatible with IDEA 14.)
 
-####Testing
+#### Testing
 - JUnit
 
-####Optional, install if you want to modify lexer/parser:
+#### Optional, install if you want to modify lexer/parser:
 - JFlex (for lexer compilation)
 - PsiViewer (for testing grammar)
 
@@ -71,7 +71,7 @@ on the PSI viewer when that property is actually set.  You can always enable it 
   `-Didea.is.internal=true`
 to the "VM Options" field in the 'Run->Edit Configurations...' dialog.
 
-####Disable ProcessCanceledExceptions
+#### Disable ProcessCanceledExceptions
 
 Eventually, you may run into the frustrating situation where your stepping takes longer than
 IDEA's timeout and will try to cancel the process you're debugging.  This can be disabled by adding
@@ -81,13 +81,13 @@ to the same "VM Options" field.
 See [JetBrains' documentation for the 'idea.properties' file.](https://www.jetbrains.com/help/idea/2017.1/file-idea-properties.html) for
 other goodies and their suggested methods for modifying properties.
 
-####Incompatibilities
+#### Incompatibilities
 Do NOT install the haxe support plugin if you want to hack on it.  The installed plugin will be loaded and
 override your newly built one.  Running the "Haxe" plugin can only use the version you've built if there
 isn't one already in place.  (Don't worry, when you are running or debugging, the plugin support is
 enabled in the test instance of Idea that is launched.)
 
-###Steps to configure a IntelliJ Platform Plugin SDK:
+### Steps to configure a IntelliJ Platform Plugin SDK:
 - Open Module Settings
 - SDKs -> + button -> IntelliJ Platform Plugin SDK -> Choose a folder with IntelliJ Ultimate(!) or *.App on Mac
 - Go to the SDK’s settings page -> Classpath tab -> + button(upper right corner or bottom left corner in IntelliJ 14) -> add plugins: flex
@@ -95,7 +95,7 @@ enabled in the test instance of Idea that is launched.)
 - Add *all* libraries from <your_IDEA_install_directory>/lib directory.  Do this after each upgrade, too,
 particularly if you see ClassNotFound exceptions when attempting to run the plugin.
 
-###Video tutorials from [as3Boyan](https://github.com/as3boyan)
+### Video tutorials from [as3Boyan](https://github.com/as3boyan)
 
 *Installation*  
 - [Setup IntellliJ IDEA for Haxe Plugin development](http://youtu.be/MwrzdBFaZkc)
@@ -105,7 +105,7 @@ particularly if you see ClassNotFound exceptions when attempting to run the plug
 - [How to extend HXML completion using haxelib.](https://www.youtube.com/watch?v=B8zOSEEK7As)  
 - [How to build a completion contributor for HXML.](https://www.youtube.com/watch?v=UBxuj2ToizY)  
 
-##Building
+## Building
 ----------
 
 Contributors are expected to have and build against each of the latest 
@@ -121,7 +121,7 @@ the team support them (though the plugin may work, and will usually install).
 *IDEA releases 2016 and later require JDK 8.  That build environment has
 been successfully used for this plugin, targeting Java6 for builds prior to 2016.x.*
 
-####Ant Builds
+#### Ant Builds
 
 As we noted in the [README](./README.md) file, you can build and test the 
 plugin without ever installing IDEA Ultimate.  The ```make``` command does
@@ -211,7 +211,7 @@ or
 IC-141.1117.8
 ```
 
-#####local-build-overrides.xml
+##### local-build-overrides.xml
 
 The ant file `./local-build-overrides.xml` is intended to contain your IDEA paths
 and any other modifications and tasks that you want to include in your builds.  The 
@@ -249,7 +249,7 @@ Here is a version from one of our team members:
 Using this latter file, when started using the command `ant -Dversion=13`, the 
 plugin is built using the IDEA SDK found at `/home/user/intellij_idea/idea-IU-135.1286`.
  
-#####Generation of META-INF files
+##### Generation of META-INF files
 
 Since each version of IDEA has it's own requirements, should not be built
 using code that is specific to another version, and should not be able
@@ -262,7 +262,7 @@ files to gen/META-INF as part of this process, and the project uses the
 copied files. The properties are defined in properties files in the 
 project root directory (e.g. idea_v13.properties).
 
-####IDEA builds
+#### IDEA builds
 
 The preferred way for casual developers to build the plugin is using the
 build that they use for their other work.  That is, casual developers shouldn't
@@ -289,9 +289,9 @@ normal IDEA make, build, or what-have-you from the Build menu runs and does
 its thing.  You will see a few ant messages scroll by, and then the normal
 IDEA output will be seen.
 
-#####Yes, Build Errors Are Expected
+##### Yes, Build Errors Are Expected
 
-######Syntax Errors
+###### Syntax Errors
 OK. If you haven't changed anything, this most likely isn't an issue of code. 
 It's an issue of updating your project structure. Since all of the versions 
 of the plugin build from a single source base, the project must be set up correctly. 
@@ -313,7 +313,7 @@ Then try to rebuild.
 Unfortunately, IDEA will not allow multiple modules (.iml files) with the same
 source root, so we can't have a configuration for each build type.
 
-######IDEA Installation Not Found
+###### IDEA Installation Not Found
 In order to get the above message while running inside of IDEA, your `build.txt` 
 file must be missing, or you must have overridden IDEA's default ant installation.
 (Have you set `ANT_HOME` in your environment?)  Idea ships with an ant installation 
@@ -324,7 +324,7 @@ You can either restore the ant defaults inside of idea, (unset ANT_HOME before y
 start IDEA?)  or, the best option, add a property entry to local-build-overrides.  
 See the above discussion regarding [local-build-overrides.xml].
 
-##Debugging
+## Debugging
 -------
 
 When debugging, a secondary instance of IDEA starts up and loads the plugin.  At that
@@ -342,7 +342,7 @@ the /gen tree, then you need to quit and do a local build to get those generated
 available for your tree.  (On the other hand, since the files are auto-generated, they
 likely won't be much more help than the decompiled class files.)
 
-##Testing
+## Testing
 _______
 
 Testing can be performed on the command line via ant, or within the IDE itself.  To
@@ -363,7 +363,7 @@ called to generate needed files prior to compiling the tests, so ant needs
 to be set up correctly.  You will have a much nicer and more productive testing 
 and debugging sessions running tests with the native support.
 
-##Updating Grammar Files
+## Updating Grammar Files
 ______________________
 
 If you change the haxe.bnf or hxml.bnf files, you no longer have to (re)generate
@@ -389,10 +389,10 @@ Parser files will be generated to the project's /gen tree.  Since the /gen tree 
 checked into the source tree, you don't have to worry about copyrights, etc.  Just don't try
 and add them back into the git repository.
 
-##Contributing your changes
+## Contributing your changes
 _________________________
 
-###Workflow
+### Workflow
 
 Goals:
 
@@ -400,19 +400,19 @@ Goals:
 - Define the process concretely, so that we can agree on how to work together.
 - Document this so that the community can easily help.
 
-####Where we are working:
+#### Where we are working:
 
 - Future work will take place on the HaxeFoundation/intellij-haxe/master branch (really, using short-lived 
 local branches off of that).
 
-####Where we will release:
+#### Where we will release:
 
 - Releases will (usually, simultaneously) occur on the HaxeFoundation/intellij-haxe repo, 
 jetbrains/intellij-haxe repo, and the IDEA plugin repository.  Releases will be made 
 through the github release mechanism.  Binary output (e.g. intellij-haxe.jar) is no longer
 kept in the source tree in the repository.
 
-####How we will release:
+#### How we will release:
 
 - When appropriate (there are changes that merit a new version), we will update the 
 release notes, commit, tag the build, and create a pull request to JetBrains.  Updating
@@ -423,7 +423,7 @@ for all currently built Idea target versions of the plugin will be added to the 
 - The released plugin (.jar files)  will be uploaded to the JetBrains IntelliJ IDEA plugin 
 repository.
 
-####Release environments:
+#### Release environments:
 
 - Haxe Foundation releases will be built and smoke tested for the following environments:  
    OS: Linux(Ubuntu14.04), OSX, Windows  
@@ -432,25 +432,25 @@ repository.
    IDEA versions: 14, 14.1, 14.1.7, 15, 2016.2 (latest release versions for each code line)
 - JetBrains releases will be copies of the Haxe Foundation releases.  
 
-####Who will test:
+#### Who will test:
 
 - Interested Community members will test the HaxeFoundation release environments.  
   Community members will ensure that the product can be loaded into the various 
   environments prior to release.  Lack of interest from the community may delay releases.
 
-####Unit tests:
+#### Unit tests:
 
 - Unit tests will be run and must pass with every commit.  We are using Travis-ci to 
   automate this process.  No merge will be considered or approved unless it passes 
   unit tests cleanly.  (Note: There are no automated Windows continuous integration builds.  We
   would like to add this functionality.  Any volunteers?)
 
-####Release Timing
+#### Release Timing
 
 As far as updates the IDEA repository go, the team will agree on releases as necessary and as critical
 errors are fixed.  Optimally, we should create a release about every month to six weeks.
   
-####Release Process
+#### Release Process
 
 Once we have a stable code base and would like to create a release, you should get consensus from
 the current primary developers.  Once you have agreement on the release number, this is the process:
@@ -511,7 +511,7 @@ repository.  Add shoutouts to @as3Boyan and @EBatTiVo to the pull request.
 8. Upload the jars to the IDEA plugin repository 
 [https://plugins.jetbrains.com/plugin/6873?pr=idea](https://plugins.jetbrains.com/plugin/6873?pr=idea)
 
-###Code Review and Commit Process
+### Code Review and Commit Process
 
 We, as a team, are reviewing each other’s code publicly on github.  To do so we’re using the common 
 git practice of creating short-lived work branches, and then creating pull requests.
