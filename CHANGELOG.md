@@ -6,6 +6,18 @@
      plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
   </p>
 
+  <p>0.11.0.RC-3: (community release)</p>
+  <ul>
+    <li>Now correctly resolves variables declared in 'for' statements when the iterated type is parameterized. (Issue #528)</li>
+    <li>Resolve chained classes with type parameters (generics). </li>
+    <li>Correct completion with EitherType<>. (Issue#512). </li>
+    <li>Parse @:const type paramters without error.  Also allow constants as type parameters.</li>
+    <li>Added navigation to getter/setter methods from property accessors.</li>
+    <li>Annotate strings with incorrect quotes and add quick-fix intention to convert them.</li>
+    <li>Note optional arguments with a ? when displaying methods.</li>
+    <li>Improved method signature check.</li>
+    <li>Added searching of implementation declared by superclasses.</li>
+  </ul>
   <p>0.11.0.RC-2: (community release)</p>
   <ul>
     <li>Properly parse and evaluate compiler conditionals (#if...#else...#end)</li>
