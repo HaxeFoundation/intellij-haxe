@@ -8,11 +8,9 @@ It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, IDEA 2
 The primary maintained branch of this plugin has moved to the Haxe Foundation's github repository.  Please update your
 links and git clones to point to [http://github.com/HaxeFoundation/intellij-haxe](http://github.com/HaxeFoundation/intellij-haxe)
 
-#### Professional Support
-The Haxe plugin for IDEA is professionally maintained and supported by [Bishton Software Solutions](http://BishtonSoftwareSolutions.com).
-When you or your business have needs that the plugin does not meet, they offer short- and  long-term technical support
-and custom development services.  They can also help with your other tooling or development needs.
-
+#### Support
+Support for this plugin is available through the project's home page: [http://intellij-haxe.org](http://intellij-haxe.org), or
+the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](http://github.com/HaxeFoundation/intellij-haxe/issues).
 
 Install
 -------
