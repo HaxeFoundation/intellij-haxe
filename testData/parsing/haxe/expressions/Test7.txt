@@ -1,86 +1,86 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Test7')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Test7')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiJavaToken:function('function')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('foo')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('foo')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           RETURN_STATEMENT
-            PsiJavaToken:return('return')
+            HaxePsiToken:return('return')
             PREFIX_EXPRESSION
               SWITCH_STATEMENT
-                PsiJavaToken:switch('switch')
+                HaxePsiToken:switch('switch')
                 PARENTHESIZED_EXPRESSION
-                  PsiJavaToken:(('(')
+                  HaxePsiToken:(('(')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('obj')
-                  PsiJavaToken:)(')')
+                      HaxePsiToken:ID('obj')
+                  HaxePsiToken:)(')')
                 SWITCH_BLOCK
-                  PsiJavaToken:{('{')
+                  HaxePsiToken:{('{')
                   SWITCH_CASE
-                    PsiJavaToken:case('case')
+                    HaxePsiToken:case('case')
                     LITERAL_EXPRESSION
-                      PsiJavaToken:LITINT('0')
-                    PsiJavaToken::(':')
+                      HaxePsiToken:LITINT('0')
+                    HaxePsiToken::(':')
                     SWITCH_CASE_BLOCK
                       CAST_EXPRESSION
-                        PsiJavaToken:cast('cast')
-                        PsiJavaToken:(('(')
+                        HaxePsiToken:cast('cast')
+                        HaxePsiToken:(('(')
                         OBJECT_LITERAL
-                          PsiJavaToken:{('{')
-                          PsiJavaToken:}('}')
-                        PsiJavaToken:,(',')
+                          HaxePsiToken:{('{')
+                          HaxePsiToken:}('}')
+                        HaxePsiToken:,(',')
                         TYPE_OR_ANONYMOUS
                           TYPE
                             REFERENCE_EXPRESSION
                               IDENTIFIER
-                                PsiJavaToken:ID('Test7')
-                        PsiJavaToken:)(')')
-                      PsiJavaToken:;(';')
+                                HaxePsiToken:ID('Test7')
+                        HaxePsiToken:)(')')
+                      HaxePsiToken:;(';')
                   DEFAULT_CASE
-                    PsiJavaToken:default('default')
-                    PsiJavaToken::(':')
+                    HaxePsiToken:default('default')
+                    HaxePsiToken::(':')
                     SWITCH_CASE_BLOCK
                       STRING_LITERAL_EXPRESSION
-                        PsiJavaToken:OPEN_QUOTE('"')
-                        PsiJavaToken:REGULAR_STRING_PART('NotZero')
-                        PsiJavaToken:CLOSING_QUOTE('"')
-                      PsiJavaToken:;(';')
-                  PsiJavaToken:}('}')
-            PsiJavaToken:;(';')
+                        HaxePsiToken:OPEN_QUOTE('"')
+                        HaxePsiToken:REGULAR_STRING_PART('NotZero')
+                        HaxePsiToken:CLOSING_QUOTE('"')
+                      HaxePsiToken:;(';')
+                  HaxePsiToken:}('}')
+            HaxePsiToken:;(';')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION
               CAST_EXPRESSION
-                PsiJavaToken:cast('cast')
-                PsiJavaToken:(('(')
+                HaxePsiToken:cast('cast')
+                HaxePsiToken:(('(')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITFLOAT('0.')
-                PsiJavaToken:,(',')
+                  HaxePsiToken:LITFLOAT('0.')
+                HaxePsiToken:,(',')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('ITest')
-                PsiJavaToken:)(')')
-              PsiJavaToken:.('.')
+                        HaxePsiToken:ID('ITest')
+                HaxePsiToken:)(')')
+              HaxePsiToken:.('.')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('test')
-            PsiJavaToken:(('(')
-            PsiJavaToken:)(')')
-          PsiJavaToken:;(';')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                  HaxePsiToken:ID('test')
+            HaxePsiToken:(('(')
+            HaxePsiToken:)(')')
+          HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

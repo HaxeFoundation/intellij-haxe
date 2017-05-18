@@ -1,120 +1,120 @@
 Haxe File
   ENUM_DECLARATION
-    PsiJavaToken:enum('enum')
+    HaxePsiToken:enum('enum')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Color3')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Color3')
+    HaxePsiToken:{('{')
     ENUM_BODY
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('red')
-        PsiJavaToken:;(';')
+            HaxePsiToken:ID('red')
+        HaxePsiToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('green')
-        PsiJavaToken:;(';')
+            HaxePsiToken:ID('green')
+        HaxePsiToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('blue')
-        PsiJavaToken:;(';')
+            HaxePsiToken:ID('blue')
+        HaxePsiToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('grey')
+            HaxePsiToken:ID('grey')
         ENUM_CONSTRUCTOR_PARAMETERS
-          PsiJavaToken:(('(')
+          HaxePsiToken:(('(')
           PARAMETER_LIST
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('v')
+                  HaxePsiToken:ID('v')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Int')
-          PsiJavaToken:)(')')
-        PsiJavaToken:;(';')
+                        HaxePsiToken:ID('Int')
+          HaxePsiToken:)(')')
+        HaxePsiToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('rgb')
+            HaxePsiToken:ID('rgb')
         ENUM_CONSTRUCTOR_PARAMETERS
-          PsiJavaToken:(('(')
+          HaxePsiToken:(('(')
           PARAMETER_LIST
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('r')
+                  HaxePsiToken:ID('r')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Int')
-            PsiJavaToken:,(',')
+                        HaxePsiToken:ID('Int')
+            HaxePsiToken:,(',')
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('g')
+                  HaxePsiToken:ID('g')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Int')
-            PsiJavaToken:,(',')
+                        HaxePsiToken:ID('Int')
+            HaxePsiToken:,(',')
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('b')
+                  HaxePsiToken:ID('b')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Int')
-          PsiJavaToken:)(')')
-        PsiJavaToken:;(';')
+                        HaxePsiToken:ID('Int')
+          HaxePsiToken:)(')')
+        HaxePsiToken:;(';')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('alpha')
+            HaxePsiToken:ID('alpha')
         ENUM_CONSTRUCTOR_PARAMETERS
-          PsiJavaToken:(('(')
+          HaxePsiToken:(('(')
           PARAMETER_LIST
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('a')
+                  HaxePsiToken:ID('a')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Int')
-            PsiJavaToken:,(',')
+                        HaxePsiToken:ID('Int')
+            HaxePsiToken:,(',')
             PARAMETER
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('col')
+                  HaxePsiToken:ID('col')
               TYPE_TAG
-                PsiJavaToken::(':')
+                HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   TYPE
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        PsiJavaToken:ID('Color3')
-          PsiJavaToken:)(')')
-        PsiJavaToken:;(';')
-    PsiJavaToken:}('}')
+                        HaxePsiToken:ID('Color3')
+          HaxePsiToken:)(')')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

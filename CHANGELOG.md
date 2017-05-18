@@ -1,4 +1,4 @@
-#Changelog
+# Changelog
   <p>
      Warning for IDEA v14.1.x users: The 14.1 version of this plugin will NOT
      work correctly using IDEA version 14.1.2.  It works well with versions
@@ -6,11 +6,34 @@
      plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
   </p>
 
+  <p>0.11.0.RC-3: (community release)</p>
+  <ul>
+    <li>Now correctly resolves variables declared in 'for' statements when the iterated type is parameterized. (Issue #528)</li>
+    <li>Resolve chained classes with type parameters (generics). </li>
+    <li>Correct completion with EitherType<>. (Issue#512). </li>
+    <li>Parse @:const type paramters without error.  Also allow constants as type parameters.</li>
+    <li>Added navigation to getter/setter methods from property accessors.</li>
+    <li>Annotate strings with incorrect quotes and add quick-fix intention to convert them.</li>
+    <li>Note optional arguments with a ? when displaying methods.</li>
+    <li>Improved method signature check.</li>
+    <li>Added searching of implementation declared by superclasses.</li>
+  </ul>
+  <p>0.11.0.RC-2: (community release)</p>
+  <ul>
+    <li>Properly parse and evaluate compiler conditionals (#if...#else...#end)</li>
+    <li>Resolve array access with types other than "Array."</li>
+    <li>Better 'Main class' chooser for the 'Project Settings->Haxe Compiler' dialog.</li>
+    <li>Fix property getter/setter quick-fixes.</li>
+    <li>Add location data, if known, to compiler completion error messages.</li>
+    <li>Display available completions even when the compiler reports an error.</li>
+    <li>Fixed incomplete results from a compiler run.</li>
+    <li>Better logic for removing duplicate entries from completion lists.</li>
+  </ul>
   <p>0.11.0.RC-1: (community release)</p>
   <ul>
     <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
     <li>Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)</li>
-    <li>Fix parsing of one-liner conditional complation style (issue #417, #121, partly #115)</li>
+    <li>Fix parsing of one-liner conditional compilation style (issue #417, #121, partly #115)</li>
     <li>Support for `@:require` haxe_ver comparing (issue #418)</li>
     <li>Support for `@:require` and `@:jsRequire` with multiple arguments</li>
     <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>

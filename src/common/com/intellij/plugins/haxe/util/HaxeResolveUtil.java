@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -449,11 +450,14 @@ public class HaxeResolveUtil {
           return result;
         }
         // try iterator
-        result = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator"),
-                                           resolveResult.getSpecialization());
-        return result.getSpecialization().containsKey(null, "T")
-               ? result.getSpecialization().get(null, "T")
-               : HaxeClassResolveResult.EMPTY;
+        HaxeClassResolveResult iteratorResult = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator"),
+                                           resolveResult.getSpecialization().getInnerSpecialization(resolveResultHaxeClass));
+        HaxeClass iteratorResultHaxeClass = iteratorResult.getHaxeClass();
+        // Now, look for iterator's next
+        result = getHaxeClassResolveResult(iteratorResultHaxeClass == null ? null : iteratorResultHaxeClass.findHaxeMethodByName("next"),
+                                           iteratorResult.getSpecialization());
+
+        return result != null ? result : HaxeClassResolveResult.EMPTY;
       }
       return HaxeClassResolveResult.EMPTY;
     }

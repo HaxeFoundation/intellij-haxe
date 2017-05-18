@@ -1,51 +1,51 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Main')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Main')
+    HaxePsiToken:{('{')
     CLASS_BODY
       VAR_DECLARATION
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
-        PsiJavaToken:var('var')
+            HaxePsiToken:public('public')
+        HaxePsiToken:var('var')
         VAR_DECLARATION_PART
           COMPONENT_NAME
             IDENTIFIER
-              PsiJavaToken:ID('x')
+              HaxePsiToken:ID('x')
           PROPERTY_DECLARATION
-            PsiJavaToken:(('(')
+            HaxePsiToken:(('(')
             PROPERTY_ACCESSOR
-              PsiJavaToken:default('default')
-            PsiJavaToken:,(',')
+              HaxePsiToken:default('default')
+            HaxePsiToken:,(',')
             PROPERTY_ACCESSOR
-              PsiJavaToken:null('null')
-            PsiJavaToken:)(')')
+              HaxePsiToken:null('null')
+            HaxePsiToken:)(')')
           TYPE_TAG
-            PsiJavaToken::(':')
+            HaxePsiToken::(':')
             TYPE_OR_ANONYMOUS
               TYPE
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('Int')
-        PsiJavaToken:;(';')
+                    HaxePsiToken:ID('Int')
+        HaxePsiToken:;(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
-          PsiJavaToken:static('static')
+          HaxePsiToken:static('static')
         DECLARATION_ATTRIBUTE
           ACCESS
-            PsiJavaToken:public('public')
-        PsiJavaToken:function('function')
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('main')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('main')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

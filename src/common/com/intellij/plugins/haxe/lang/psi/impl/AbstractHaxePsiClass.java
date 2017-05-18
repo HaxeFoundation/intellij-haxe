@@ -3,6 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +28,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.InheritanceImplUtil;
@@ -188,6 +190,26 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
         return name.equals(component.getName());
       }
     });
+  }
+
+  @Nullable
+  @Override
+  public HaxeNamedComponent findArrayAccessGetter() {
+    HaxeNamedComponent accessor = ContainerUtil.find(getHaxeMethods(), new Condition<HaxeNamedComponent>() {
+      @Override
+      public boolean value(HaxeNamedComponent component) {
+        if (component instanceof HaxeMethod) {
+          HaxeMethodModel model = ((HaxeMethod)component).getModel();
+          return model != null && model.isArrayAccessor() && model.getParameterCount() == 1;
+        }
+        return false;
+      }
+    });
+    // Maybe old style getter?
+    if (null == accessor) {
+      accessor = findHaxeMethodByName("__get");
+    }
+    return accessor;
   }
 
   @Override

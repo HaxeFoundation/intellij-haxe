@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListImpl;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.JavaResolveResult;
@@ -75,16 +77,17 @@ public class HaxeClassResolveResult implements Cloneable {
       resolveResult = new HaxeClassResolveResult(aClass);
       HaxeClassResolveCache.getInstance(aClass.getProject()).put(aClass, resolveResult);
 
+      // This block of code loads the specialization with the type _constraint_, not the target types.
+      // The constraints are used by the completion engine to create suggestions for parameterized types.
+      // Most everything else uses the specialization to figure out the real types for generics.
+      // FIXME: Constraints should be a separate value in the specialization tuple.
       final HaxeGenericParam genericParam = aClass.getGenericParam();
       List<HaxeGenericListPart> genericListPartList = genericParam != null ?
                                                       genericParam.getGenericListPartList() :
                                                       Collections.<HaxeGenericListPart>emptyList();
       for (HaxeGenericListPart genericListPart : genericListPartList) {
         final HaxeComponentName componentName = genericListPart.getComponentName();
-        final HaxeTypeListPart typeListPart = genericListPart.getTypeListPart();
-        final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
-        final HaxeTypeOrAnonymous typeOrAnonymous = ((typeOrAnonymousList != null) ? typeOrAnonymousList.get(0) : null);
-        final HaxeType specializedType = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
+        final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
         if (specializedType != null) {
           HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
           LOG.debug(debugNestCountForCreate + "  Adding specialization for " + aClass.getName() + "<" + componentName.getName() + "> -> " + specializedTypeResult.debugDump("    "));
@@ -95,17 +98,28 @@ public class HaxeClassResolveResult implements Cloneable {
           LOG.debug(debugNestCountForCreate + "  Not adding specialization for " + aClass.getName() + "<" + componentName.getName() + ">. No specialized type found.");
         }
       }
+      // END constraint block.
 
-      for (HaxeType haxeType : aClass.getHaxeExtendsList()) {
-        final HaxeClassResolveResult result = create(HaxeResolveUtil.tryResolveClassByQName(haxeType));
-        result.specializeByParameters(haxeType.getTypeParam());
-        LOG.debug(debugNestCountForCreate + "  Adding (extends) specialization for " + aClass.getName() + "<" + haxeType.getName() + "> -> " + result.getSpecialization().debugDump("    "));
-        resolveResult.merge(result.getSpecialization());
-      }
-      for (HaxeType haxeType : aClass.getHaxeImplementsList()) {
-        final HaxeClassResolveResult result = create(HaxeResolveUtil.tryResolveClassByQName(haxeType));
-        result.specializeByParameters(haxeType.getTypeParam());
-        LOG.debug(debugNestCountForCreate + "  Adding (implements) specialization for " + aClass.getName() + "<" + haxeType.getName() + "> -> " + result.getSpecialization().debugDump("    "));
+      // Load the specialization with sub-class parameters.
+      List<HaxeType> superclasses = new ArrayList<HaxeType>(aClass.getHaxeExtendsList());
+      superclasses.addAll(aClass.getHaxeImplementsList());
+
+      final HaxeGenericSpecialization innerSpecialization = specialization.getInnerSpecialization(aClass);
+      for (HaxeType haxeType : superclasses) {
+        // For each of our superclasses, resolve the specialization *WITHOUT* resolving all of their superclasses.
+        // The purpose here is to create a specialization with the mapping of names to real types before going down
+        // the superclass chain.  (e.g. turn 'extends<T>' into 'extends<String>')
+        final HaxeClass superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
+        final HaxeClassResolveResult superResult = new HaxeClassResolveResult(superclass, innerSpecialization);
+        superResult.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
+
+        // Now keep only the specializations that weren't inner.
+        HaxeGenericSpecialization filteredSpecialization = superResult.specialization.filterInnerKeys();
+
+        // Now that we have a specialization with real types, we can let the superclass be resolved.
+        final HaxeClassResolveResult result = create(superclass, filteredSpecialization);
+        result.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
+        LOG.debug(debugNestCountForCreate + "  Adding superclass specialization for " + aClass.getName() + "<" + haxeType.getName() + "> -> " + result.getSpecialization().debugDump("    "));
         resolveResult.merge(result.getSpecialization());
       }
     }
@@ -114,6 +128,23 @@ public class HaxeClassResolveResult implements Cloneable {
     clone.softMerge(specialization);
     debugNestCountForCreate -= 1;
     return clone;
+  }
+
+  @Nullable
+  private static HaxeType getTypeOfGenericListPart(HaxeGenericListPart genericListPart) {
+    final HaxeTypeListPart typeListPart = genericListPart.getTypeListPart();
+    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
+    final HaxeTypeOrAnonymous typeOrAnonymous = ((typeOrAnonymousList != null) ? typeOrAnonymousList.get(0) : null);
+    return ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
+  }
+
+  @Nullable
+  private static HaxeType getTypeOfTypeListPart(HaxeTypeListPart typeListPart) {
+    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
+    final HaxeTypeOrAnonymous typeOrAnonymous =
+      (((typeOrAnonymousList != null) && (typeOrAnonymousList.size() > 0)) ? typeOrAnonymousList.get(0) : null);
+    final HaxeType type = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
+    return type;
   }
 
   public List<HaxeClassResolveResult> getFunctionTypes() {
@@ -152,23 +183,66 @@ public class HaxeClassResolveResult implements Cloneable {
     }
   }
 
+  /**
+   * Creates a resolved parameter list that can be used with specializedByParameters() when resolving
+   * subclasses.
+   *
+   * @param targetParam - the haxe class that is being resolved
+   * @param innerSpecialization - the specializationlist
+   * @return
+   */
+  @Nullable
+  private static List<PsiElement> generateParameterList(HaxeTypeParam targetParam, HaxeGenericSpecialization innerSpecialization) {
+    HaxeTypeList typeList = targetParam == null ? null : targetParam.getTypeList();
+    if (null == typeList) {
+      return null;
+    }
+    List<PsiElement> instantiationParams = new ArrayList<PsiElement>();
+    for (HaxeTypeListPart part : typeList.getTypeListPartList()) {
+      HaxeType type = getTypeOfTypeListPart(part);
+      final String name = type != null ? type.getText() : null;
+
+      HaxeClassResolveResult resolvedParam = innerSpecialization.get(null, name);
+      HaxeClass resolvedClass = null != resolvedParam ? resolvedParam.getHaxeClass() : null;
+      if (null == resolvedClass) {
+        resolvedParam = HaxeResolveUtil.getHaxeClassResolveResult(type); // No specialization??
+        resolvedClass = null != resolvedParam ? resolvedParam.getHaxeClass() : null;
+      }
+      instantiationParams.add(resolvedClass);
+    }
+    return instantiationParams;
+  }
+
   public void specializeByParameters(@Nullable HaxeTypeParam param) {
     if (param == null || haxeClass == null || !haxeClass.isGeneric()) {
       return;
     }
+    List<PsiElement> specializedTypes = new ArrayList<PsiElement>();
+    final HaxeTypeList typeList = param.getTypeList();
+    for (int i = 0; i < typeList.getTypeListPartList().size(); i++) {
+      final HaxeType specializedType = getTypeOfTypeListPart(typeList.getTypeListPartList().get(i));
+      specializedTypes.add(specializedType);  // OK to be null
+    }
+    specializeByParameters(specializedTypes);
+  }
+
+  public void specializeByParameters(@Nullable List<PsiElement> typeList) {
+    if (typeList == null || haxeClass == null || !haxeClass.isGeneric()) {
+      return;
+    }
     final HaxeGenericParam genericParam = haxeClass.getGenericParam();
     assert genericParam != null;
-    final HaxeTypeList typeList = param.getTypeList();
-    int size = Math.min(genericParam.getGenericListPartList().size(), typeList.getTypeListPartList().size());
+    int size = Math.min(genericParam.getGenericListPartList().size(), typeList.size());
     for (int i = 0; i < size; i++) {
       final HaxeGenericListPart genericListPart = genericParam.getGenericListPartList().get(i);
-      final HaxeTypeListPart typeListPart = typeList.getTypeListPartList().get(i);
-      final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
-      final HaxeTypeOrAnonymous typeOrAnonymous = (((typeOrAnonymousList != null) && (typeOrAnonymousList.size() > 0)) ? typeOrAnonymousList.get(0) : null);
-      final HaxeType specializedType = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
-      if (genericListPart.getText() == null || specializedType == null) continue;
+      final HaxeComponentName genericComponentName = genericListPart != null ? genericListPart.getComponentName() : null;
+      final String genericParamName = genericComponentName != null ? genericComponentName.getText() : null;
+
+      final PsiElement specializedType = typeList.get(i);
+
+      if (genericParamName == null || specializedType == null) continue;
       final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
-      specialization.put(haxeClass, genericListPart.getText(), specializedTypeResult);
+      specialization.put(haxeClass, genericParamName, specializedTypeResult);
     }
     LOG.debug(specialization.debugDump());
   }
@@ -199,6 +273,9 @@ public class HaxeClassResolveResult implements Cloneable {
     return builder.toString();
   }
 
+  public String toString() {
+    return null == haxeClass ? "<null haxeClass>" : haxeClass.getName();
+  }
 
   public JavaResolveResult toJavaResolveResult() {
     return new JavaResult(this);

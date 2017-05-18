@@ -1,17 +1,17 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Extends')
+        HaxePsiToken:ID('Extends')
     INHERIT_LIST
       EXTENDS_DECLARATION
-        PsiJavaToken:extends('extends')
+        HaxePsiToken:extends('extends')
         TYPE
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('Bar')
-    PsiJavaToken:{('{')
+              HaxePsiToken:ID('Bar')
+    HaxePsiToken:{('{')
     CLASS_BODY
       <empty list>
-    PsiJavaToken:}('}')
+    HaxePsiToken:}('}')

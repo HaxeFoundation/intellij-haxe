@@ -2,11 +2,11 @@ class Setter1 {
   @:isVar public static var bar(null, set):Int;
     @:isVar public var foo(null, set):Int;
 
-    static function set_bar(value:Int) {
+    static function set_bar(value:Int):Int {
         return bar = value;
     }
 
-    function set_foo(value:Int) {
+    function set_foo(value:Int):Int {
         return this.foo = value;
     }
 

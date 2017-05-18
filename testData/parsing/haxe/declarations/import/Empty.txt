@@ -1,5 +1,5 @@
 Haxe File
   IMPORT_STATEMENT_REGULAR
-    PsiJavaToken:import('import')
+    HaxePsiToken:import('import')
     PsiErrorElement:ID expected, unexpected end of file
       <empty list>

@@ -1,123 +1,123 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('TryCatch')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('TryCatch')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiJavaToken:function('function')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('foo')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('foo')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           TRY_STATEMENT
-            PsiJavaToken:try('try')
+            HaxePsiToken:try('try')
             BLOCK_STATEMENT
-              PsiJavaToken:{('{')
+              HaxePsiToken:{('{')
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('bar')
-                PsiJavaToken:(('(')
-                PsiJavaToken:)(')')
-              PsiJavaToken:;(';')
-              PsiJavaToken:}('}')
+                    HaxePsiToken:ID('bar')
+                HaxePsiToken:(('(')
+                HaxePsiToken:)(')')
+              HaxePsiToken:;(';')
+              HaxePsiToken:}('}')
             CATCH_STATEMENT
-              PsiJavaToken:catch('catch')
-              PsiJavaToken:(('(')
+              HaxePsiToken:catch('catch')
+              HaxePsiToken:(('(')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiJavaToken:ID('e')
+                    HaxePsiToken:ID('e')
                 TYPE_TAG
-                  PsiJavaToken::(':')
+                  HaxePsiToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('String')
-              PsiJavaToken:)(')')
+                          HaxePsiToken:ID('String')
+              HaxePsiToken:)(')')
               BLOCK_STATEMENT
-                PsiJavaToken:{('{')
+                HaxePsiToken:{('{')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('trace')
-                  PsiJavaToken:(('(')
+                      HaxePsiToken:ID('trace')
+                  HaxePsiToken:(('(')
                   EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
-                      PsiJavaToken:OPEN_QUOTE('"')
-                      PsiJavaToken:REGULAR_STRING_PART('String')
-                      PsiJavaToken:CLOSING_QUOTE('"')
-                  PsiJavaToken:)(')')
-                PsiJavaToken:;(';')
-                PsiJavaToken:}('}')
+                      HaxePsiToken:OPEN_QUOTE('"')
+                      HaxePsiToken:REGULAR_STRING_PART('String')
+                      HaxePsiToken:CLOSING_QUOTE('"')
+                  HaxePsiToken:)(')')
+                HaxePsiToken:;(';')
+                HaxePsiToken:}('}')
             CATCH_STATEMENT
-              PsiJavaToken:catch('catch')
-              PsiJavaToken:(('(')
+              HaxePsiToken:catch('catch')
+              HaxePsiToken:(('(')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiJavaToken:ID('e')
+                    HaxePsiToken:ID('e')
                 TYPE_TAG
-                  PsiJavaToken::(':')
+                  HaxePsiToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('Error')
-              PsiJavaToken:)(')')
+                          HaxePsiToken:ID('Error')
+              HaxePsiToken:)(')')
               BLOCK_STATEMENT
-                PsiJavaToken:{('{')
+                HaxePsiToken:{('{')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('trace')
-                  PsiJavaToken:(('(')
+                      HaxePsiToken:ID('trace')
+                  HaxePsiToken:(('(')
                   EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
-                      PsiJavaToken:OPEN_QUOTE('"')
-                      PsiJavaToken:REGULAR_STRING_PART('Error')
-                      PsiJavaToken:CLOSING_QUOTE('"')
-                  PsiJavaToken:)(')')
-                PsiJavaToken:;(';')
-                PsiJavaToken:}('}')
+                      HaxePsiToken:OPEN_QUOTE('"')
+                      HaxePsiToken:REGULAR_STRING_PART('Error')
+                      HaxePsiToken:CLOSING_QUOTE('"')
+                  HaxePsiToken:)(')')
+                HaxePsiToken:;(';')
+                HaxePsiToken:}('}')
             CATCH_STATEMENT
-              PsiJavaToken:catch('catch')
-              PsiJavaToken:(('(')
+              HaxePsiToken:catch('catch')
+              HaxePsiToken:(('(')
               PARAMETER
                 COMPONENT_NAME
                   IDENTIFIER
-                    PsiJavaToken:ID('e')
+                    HaxePsiToken:ID('e')
                 TYPE_TAG
-                  PsiJavaToken::(':')
+                  HaxePsiToken::(':')
                   TYPE_OR_ANONYMOUS
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          PsiJavaToken:ID('Dynamic')
-              PsiJavaToken:)(')')
+                          HaxePsiToken:ID('Dynamic')
+              HaxePsiToken:)(')')
               BLOCK_STATEMENT
-                PsiJavaToken:{('{')
+                HaxePsiToken:{('{')
                 CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('trace')
-                  PsiJavaToken:(('(')
+                      HaxePsiToken:ID('trace')
+                  HaxePsiToken:(('(')
                   EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
-                      PsiJavaToken:OPEN_QUOTE('"')
-                      PsiJavaToken:REGULAR_STRING_PART('Dynamic')
-                      PsiJavaToken:CLOSING_QUOTE('"')
-                  PsiJavaToken:)(')')
-                PsiJavaToken:;(';')
-                PsiJavaToken:}('}')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                      HaxePsiToken:OPEN_QUOTE('"')
+                      HaxePsiToken:REGULAR_STRING_PART('Dynamic')
+                      HaxePsiToken:CLOSING_QUOTE('"')
+                  HaxePsiToken:)(')')
+                HaxePsiToken:;(';')
+                HaxePsiToken:}('}')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

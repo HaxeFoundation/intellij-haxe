@@ -1,32 +1,32 @@
 Haxe File
   TYPEDEF_DECLARATION
-    PsiJavaToken:typedef('typedef')
+    HaxePsiToken:typedef('typedef')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('vi')
-    PsiJavaToken:=('=')
+        HaxePsiToken:ID('vi')
+    HaxePsiToken:=('=')
     TYPE_OR_ANONYMOUS
       TYPE
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiJavaToken:ID('Array')
+            HaxePsiToken:ID('Array')
         TYPE_PARAM
-          PsiJavaToken:<('<')
+          HaxePsiToken:<('<')
           TYPE_LIST
             TYPE_LIST_PART
               TYPE_OR_ANONYMOUS
                 TYPE
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('Int')
-          PsiJavaToken:>('>')
-    PsiJavaToken:;(';')
+                      HaxePsiToken:ID('Int')
+          HaxePsiToken:>('>')
+    HaxePsiToken:;(';')
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Simple')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Simple')
+    HaxePsiToken:{('{')
     CLASS_BODY
       <empty list>
-    PsiJavaToken:}('}')
+    HaxePsiToken:}('}')

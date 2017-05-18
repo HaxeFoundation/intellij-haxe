@@ -1,68 +1,68 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('Simple')
-    PsiJavaToken:{('{')
+        HaxePsiToken:ID('Simple')
+    HaxePsiToken:{('{')
     CLASS_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        PsiJavaToken:function('function')
+        HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
-            PsiJavaToken:ID('foo')
-        PsiJavaToken:(('(')
+            HaxePsiToken:ID('foo')
+        HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
-        PsiJavaToken:)(')')
+        HaxePsiToken:)(')')
         BLOCK_STATEMENT
-          PsiJavaToken:{('{')
+          HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION
-            PsiJavaToken:var('var')
+            HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  PsiJavaToken:ID('i')
+                  HaxePsiToken:ID('i')
               VAR_INIT
-                PsiJavaToken:=('=')
+                HaxePsiToken:=('=')
                 LITERAL_EXPRESSION
-                  PsiJavaToken:LITINT('0')
-            PsiJavaToken:;(';')
+                  HaxePsiToken:LITINT('0')
+            HaxePsiToken:;(';')
           WHILE_STATEMENT
-            PsiJavaToken:while('while')
-            PsiJavaToken:(('(')
+            HaxePsiToken:while('while')
+            HaxePsiToken:(('(')
             COMPARE_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  PsiJavaToken:ID('i')
+                  HaxePsiToken:ID('i')
               COMPARE_OPERATION
-                PsiJavaToken:<('<')
+                HaxePsiToken:<('<')
               LITERAL_EXPRESSION
-                PsiJavaToken:LITINT('10')
-            PsiJavaToken:)(')')
+                HaxePsiToken:LITINT('10')
+            HaxePsiToken:)(')')
             BLOCK_STATEMENT
-              PsiJavaToken:{('{')
+              HaxePsiToken:{('{')
               IF_STATEMENT
-                PsiJavaToken:if('if')
-                PsiJavaToken:(('(')
+                HaxePsiToken:if('if')
+                HaxePsiToken:(('(')
                 COMPARE_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      PsiJavaToken:ID('i')
+                      HaxePsiToken:ID('i')
                   COMPARE_OPERATION
-                    PsiJavaToken:==('==')
+                    HaxePsiToken:==('==')
                   LITERAL_EXPRESSION
-                    PsiJavaToken:LITINT('5')
-                PsiJavaToken:)(')')
+                    HaxePsiToken:LITINT('5')
+                HaxePsiToken:)(')')
                 BREAK_STATEMENT
-                  PsiJavaToken:break('break')
-                  PsiJavaToken:;(';')
+                  HaxePsiToken:break('break')
+                  HaxePsiToken:;(';')
               PREFIX_EXPRESSION
-                PsiJavaToken:++('++')
+                HaxePsiToken:++('++')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    PsiJavaToken:ID('i')
-              PsiJavaToken:;(';')
-              PsiJavaToken:}('}')
-          PsiJavaToken:}('}')
-    PsiJavaToken:}('}')
+                    HaxePsiToken:ID('i')
+              HaxePsiToken:;(';')
+              HaxePsiToken:}('}')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

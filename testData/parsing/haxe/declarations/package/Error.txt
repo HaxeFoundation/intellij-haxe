@@ -1,8 +1,8 @@
 Haxe File
   PACKAGE_STATEMENT
-    PsiJavaToken:package('package')
+    HaxePsiToken:package('package')
     REFERENCE_EXPRESSION
       IDENTIFIER
-        PsiJavaToken:ID('error')
+        HaxePsiToken:ID('error')
   PsiErrorElement:'.' or ';' expected, unexpected end of file
     <empty list>

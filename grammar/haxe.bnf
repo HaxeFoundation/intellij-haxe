@@ -184,6 +184,8 @@ private unusedRuleToForceSomeTokenTypesToBeGenerated ::= "Add new tokens here --
   http://haxe.org/manual/tips_and_tricks
 */
 
+// Eventually, these should all probably be defined below customMeta, so that they can take precedence.
+// Right now, customMeta is taking precedence because the MACRO_ID value is being returned from the lexer.
 finalMeta ::= '@:final'
 keepMeta ::= '@:keep'
 coreApiMeta ::= '@:coreApi'
@@ -194,8 +196,9 @@ protectedMeta ::= '@:protected'
 debugMeta ::= '@:debug'
 noDebugMeta ::= '@:nodebug'
 unreflectiveMeta ::= '@:unreflective'
+arrayAccessMeta ::= '@:arrayAccess'
 
-simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta
+simpleMeta ::= unreflectiveMeta | finalMeta | keepMeta | coreApiMeta | bindMeta | macroMeta | hackMeta | arrayAccessMeta
 
 macroClass ::= simpleMeta | requireMeta | fakeEnumMeta | nativeMeta | jsRequireMeta | bitmapMeta | nsMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
 macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModifierListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeModifierList"
@@ -225,7 +228,7 @@ metaKeyValue ::= ID '=' stringLiteralExpression
 
 jsRequireMeta ::= "@:jsRequire" '(' stringLiteralExpression (',' stringLiteralExpression)* ')'
 
-private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire'
+private metaKeyWord ::= MACRO_ID | '@:final' | '@:hack' | '@:native' | '@:macro' | '@:build' | '@:autoBuild' | '@:keep' | '@:require' | '@:fakeEnum' | '@:core_api' | '@:bind' | '@:bitmap' | '@:ns' | '@:protected' | '@:getter' | '@:setter' | '@:debug' | '@:nodebug' | '@:meta' | '@:overload' | '@:jsRequire' | '@:arrayAccess'
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
@@ -326,7 +329,7 @@ enumValueDeclaration ::= componentName enumConstructorParameters? ';'
 
 private enum_value_declaration_recovery ::= !(ID | '}')
 
-enumConstructorParameters ::= '(' parameterList ')' {pin=1}
+enumConstructorParameters ::= parenthesizedParameterList
 
 varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
@@ -345,6 +348,7 @@ private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
 propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | referenceExpression
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private functionCommonBody ::= blockStatement | returnStatement | (expression ';'?) | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
 
@@ -352,16 +356,18 @@ private constructorName ::= 'new'
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? (functionCommonBody | ';')
+externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? functionCommonBody
+functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? '(' parameterList ')' typeTag? 'untyped'? ';'
+functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? '(' parameterList? ')' typeTag? 'untyped'? functionCommonBody
+localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-anonymousFunctionDeclaration ::= 'function' '(' parameterList ')' typeTag? 'untyped'? '{' '}' {pin=2}
+anonymousFunctionDeclaration ::= 'function' parenthesizedParameterList typeTag? 'untyped'? '{' '}' {pin=2}
 /* TODO: Should anonymousFunctionDeclaration extend and implement HaxeMethod as well?? */
+private arrowFunctionParameterList ::= openParameterList | parenthesizedParameterList
+private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' functionCommonBody
 
 /*
  *
@@ -371,10 +377,14 @@ varInit ::= '=' expression {pin=1}
 parameter ::= '?'? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 
-parameterList ::= parameter? (',' parameter)* {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
-private parameterListRecovery ::= !')' // after parameterList always ')'
+openParameterList ::= parameter {extends=parameterList}
+private parenthesizedParameterList ::= '(' parameterList ')' //{pin=1} // pin=1 to force matching the parens.
+parameterList ::= parameter? (',' parameter)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
 
-functionLiteral ::= 'function' '(' parameterList ')' typeTag? 'untyped'? functionCommonBody {pin=2}
+private arrowFunctionLiteral ::= arrowFunctionDeclaration
+private keywordFunctionLiteral ::= 'function' parenthesizedParameterList typeTag? 'untyped'? functionCommonBody {pin=2}
+functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
+
 arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
@@ -410,9 +420,14 @@ typeTag ::= ':' typeWrapper
 typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
-genericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))?
+genericListPart ::= regularGenericListPart | constGenericListPart
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-typeListPart ::= typeWrapper
+private regularGenericListPart ::= macroMember* componentName (':' ('(' typeList ')' | typeListPart))? {pin=2}
+// constGenericListPart is only available when the macroMember is '@:const' (constMeta).  It's only useful in macros.
+// We can't use constMeta here until the lexer returns a string for macros instead of MACRO_ID.
+private constGenericListPart ::= macroMember+ constantExpression (':' ('(' typeList ')' | typeListPart))? {pin=2}
+
+typeListPart ::= typeWrapper | constantExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
@@ -529,12 +544,12 @@ left suffixExpression ::= ('--' | '++')
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
 // In particular, calllFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
-private value ::= macroClassList? ('untyped' expression
+private value ::= macroClassList? (('untyped' expression)
                                                    | 'macro' expression
                                                    | callFunctionLiteral
                                                    | (literalExpression qualifiedReferenceTail?)
                                                    | ifStatement
-                                                   | castExpression qualifiedReferenceTail?
+                                                   | (castExpression qualifiedReferenceTail?)
                                                    | newExpressionOrCall
                                                    | parenthesizedExpressionOrCall
                                                    | callOrArrayAccess
@@ -551,6 +566,12 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | stringLiteralExpression
                     //| blockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
+                             | regularExpressionLiteral
+                             | 'null' | 'true' | 'false'
+                             |stringLiteralExpression
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
 
 stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry | longTemplateEntry)* CLOSING_QUOTE
 {pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}

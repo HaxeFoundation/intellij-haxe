@@ -13,11 +13,11 @@ class GetterSetter2 {
     return foo;
   }
 
-    static function set_sfoo(value:Int) {
+    static function set_sfoo(value:Int):Int {
         return sfoo = value;
     }
 
-    function set_foo(value:Int) {
+    function set_foo(value:Int):Int {
         return this.foo = value;
     }
 
@@ -25,7 +25,7 @@ class GetterSetter2 {
         return bar;
     }
 
-    function set_bar(value:String) {
+    function set_bar(value:String):String {
         return this.bar = value;
     }
 

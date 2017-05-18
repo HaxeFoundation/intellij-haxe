@@ -1,17 +1,17 @@
 Haxe File
   IMPORT_STATEMENT_REGULAR
-    PsiJavaToken:import('import')
+    HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiJavaToken:ID('com')
-        PsiJavaToken:.('.')
+            HaxePsiToken:ID('com')
+        HaxePsiToken:.('.')
         REFERENCE_EXPRESSION
           IDENTIFIER
-            PsiJavaToken:ID('fedor')
-      PsiJavaToken:.('.')
+            HaxePsiToken:ID('fedor')
+      HaxePsiToken:.('.')
       REFERENCE_EXPRESSION
         IDENTIFIER
-          PsiJavaToken:ID('test')
-    PsiJavaToken:;(';')
+          HaxePsiToken:ID('test')
+    HaxePsiToken:;(';')

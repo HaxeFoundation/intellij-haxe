@@ -1,47 +1,47 @@
 Haxe File
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('ExtendsImplements')
+        HaxePsiToken:ID('ExtendsImplements')
     INHERIT_LIST
       EXTENDS_DECLARATION
-        PsiJavaToken:extends('extends')
+        HaxePsiToken:extends('extends')
         TYPE
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('Bar')
-      PsiJavaToken:,(',')
+              HaxePsiToken:ID('Bar')
+      HaxePsiToken:,(',')
       IMPLEMENTS_DECLARATION
-        PsiJavaToken:implements('implements')
+        HaxePsiToken:implements('implements')
         TYPE
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('Test')
-    PsiJavaToken:{('{')
+              HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
     CLASS_BODY
       <empty list>
-    PsiJavaToken:}('}')
+    HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('//haxe 3')
   CLASS_DECLARATION
-    PsiJavaToken:class('class')
+    HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
-        PsiJavaToken:ID('ExtendsImplements')
+        HaxePsiToken:ID('ExtendsImplements')
     INHERIT_LIST
       EXTENDS_DECLARATION
-        PsiJavaToken:extends('extends')
+        HaxePsiToken:extends('extends')
         TYPE
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('Bar')
+              HaxePsiToken:ID('Bar')
       IMPLEMENTS_DECLARATION
-        PsiJavaToken:implements('implements')
+        HaxePsiToken:implements('implements')
         TYPE
           REFERENCE_EXPRESSION
             IDENTIFIER
-              PsiJavaToken:ID('Test')
-    PsiJavaToken:{('{')
+              HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
     CLASS_BODY
       <empty list>
-    PsiJavaToken:}('}')
+    HaxePsiToken:}('}')
