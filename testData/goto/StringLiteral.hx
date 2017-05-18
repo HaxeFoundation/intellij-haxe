@@ -1,5 +1,5 @@
 class StringLiteral {
-  public function void main(){
+  public function main(){
     "foo".charC<caret>odeAt(1);
   }
 }
