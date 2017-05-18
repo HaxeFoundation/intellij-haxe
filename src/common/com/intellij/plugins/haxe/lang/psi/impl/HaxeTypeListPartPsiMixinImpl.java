@@ -22,6 +22,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterImpl;
@@ -100,11 +101,15 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
             LOG.assertTrue(false, "Unexpected token type for child of TYPE_OR_ANONYMOUS");
             myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
           }
-
         } else if (HaxeTokenTypes.FUNCTION_TYPE.equals(type)) {
-          // TODO: Fix this.  Temporary hack in place so I can test.
-          //myChildClass = (HaxeAnonymousType) child;
-          myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
+          // FIXME: Temporary Hack to get around an unexpected PSI state #627.
+          try {
+            myChildClass = (HaxeAnonymousType) child;
+          }
+          catch(ClassCastException e) {
+            HaxeDebugLogger.getLogger().warn("Unexpected PSI state.  See issue #627");
+            myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
+          }
         } else {
           myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
         }
