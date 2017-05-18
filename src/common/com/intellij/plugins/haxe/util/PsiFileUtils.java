@@ -28,6 +28,8 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFileSystemItem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -53,7 +55,8 @@ public class PsiFileUtils {
     return items;
   }
 
-  static public PsiFileSystemItem findRoot(PsiFileSystemItem file) {
+  @Nullable
+  static public PsiFileSystemItem findRoot(@NotNull PsiFileSystemItem file) {
     //HaxelibModuleManager
     Project project = file.getProject();
     Module[] modules = ModuleManager.getInstance(project).getModules();
@@ -73,9 +76,12 @@ public class PsiFileUtils {
     PsiFileSystemItem current = file;
     while (current != null) {
       for (VirtualFile root : roots) {
-        //System.out.println(root.getCanonicalPath());
-        //System.out.println(current.getVirtualFile().getCanonicalPath());
-        if (root.getCanonicalPath().equals(current.getVirtualFile().getCanonicalPath())) return current;
+        String rootCanonicalPath = root.getCanonicalPath();
+        String currentCanonicalPath = current.getVirtualFile().getCanonicalPath();
+
+        if (rootCanonicalPath != null && currentCanonicalPath != null && currentCanonicalPath.equals(rootCanonicalPath)) {
+          return current;
+        }
       }
       current = current.getParent();
     }
