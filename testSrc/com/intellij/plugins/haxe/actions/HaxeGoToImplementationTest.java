@@ -19,7 +19,12 @@ package com.intellij.plugins.haxe.actions;
 
 import com.intellij.codeInsight.navigation.GotoImplementationHandler;
 import com.intellij.codeInsight.navigation.GotoTargetHandler;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.build.IdeaTarget;
+import com.intellij.plugins.haxe.build.MethodWrapper;
+import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil;
 
 /**
  * @author: Fedor.Korotkov
@@ -32,9 +37,19 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(int expectedLength) throws Throwable {
     myFixture.configureByFile(getTestName(false) + ".hx");
-    GotoImplementationHandler gtiHandler = new GotoImplementationHandler();
-    final GotoTargetHandler.GotoData data =
-      gtiHandler.getSourceAndTargetElements(myFixture.getEditor(), myFixture.getFile());
+
+    GotoTargetHandler.GotoData data;
+    if (IdeaTarget.IS_VERSION_17_COMPATIBILE) {
+      // Version 17 changed the way that gotoImplementation runs on a background thread.
+      MethodWrapper<GotoTargetHandler.GotoData> gti =
+        new MethodWrapper(CodeInsightTestUtil.class, "gotoImplementation", Editor.class, PsiFile.class);
+      data = gti.invoke(null, myFixture.getEditor(), myFixture.getFile());
+    } else {
+      GotoImplementationHandler gtiHandler = new GotoImplementationHandler();
+      data = gtiHandler.getSourceAndTargetElements(myFixture.getEditor(), myFixture.getFile());
+    }
+
+
     assertNotNull(myFixture.getFile().toString(), data);
     // TODO: listen updater task?
     assertEquals(expectedLength, data.targets.length);
