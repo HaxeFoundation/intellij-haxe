@@ -21,6 +21,7 @@ import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
 
 import java.util.Collection;
 
@@ -44,7 +45,9 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     final TargetElementUtilBase util = TargetElementUtilBase.getInstance();
     assertNotNull(util);
 
-    final Collection<PsiElement> elements = util.getTargetCandidates(myFile.findReferenceAt(myFixture.getCaretOffset()));
+    final PsiReference found = myFile.findReferenceAt(myFixture.getCaretOffset());
+    assertNotNull(found);
+    final Collection<PsiElement> elements = util.getTargetCandidates(found);
     assertNotNull(elements);
     assertEquals(expectedSize, elements.size());
   }
