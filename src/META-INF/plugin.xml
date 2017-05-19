@@ -814,9 +814,10 @@
       <className>com.intellij.plugins.haxe.ide.intention.ReplaceImportStatementWithWildcardWithSingleClassImports</className>
     </intentionAction>
 
-    <intentionAction>
+    <!--<intentionAction>
       <className>com.intellij.plugins.haxe.ide.intention.SplitIntoDeclarationAndAssignment</className>
     </intentionAction>
+	-->
 
     <intentionAction>
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
