@@ -378,8 +378,9 @@ parameter ::= '?'? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 
 openParameterList ::= parameter {extends=parameterList}
-private parenthesizedParameterList ::= '(' parameterList ')' //{pin=1} // pin=1 to force matching the parens.
-parameterList ::= parameter? (',' parameter)* {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
+private parenthesizedParameterList ::= '(' parameterList ')'
+parameterList ::= (parameter (',' parameter)*)? {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
+private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
 private keywordFunctionLiteral ::= 'function' parenthesizedParameterList typeTag? 'untyped'? functionCommonBody {pin=2}

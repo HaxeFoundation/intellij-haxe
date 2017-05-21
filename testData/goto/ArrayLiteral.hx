@@ -1,5 +1,5 @@
 class ArrayLiteral {
-  public function void main(){
+  public function main(){
     ["foo"].len<caret>gth;
   }
 }

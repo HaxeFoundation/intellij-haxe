@@ -26,6 +26,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -64,17 +65,17 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(String... files) throws Exception {
     myFixture.configureByFiles(files);
-      //CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
-      //    @Override
-      //    public void run() {
-      //        expandTemplate(myFixture.getEditor());
-      //        CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
-      //    }
-      //}, null, null);
+    if (IdeaTarget.IS_VERSION_17_COMPATIBILE) {
+      // The implementation of finishLookup in IDEA 2017 requires that it run OUTSIDE of a write command,
+      // while previous versions require that is run inside of one.
+      expandTemplate(myFixture.getEditor());
+    }
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
-        expandTemplate(myFixture.getEditor());
+        if (!IdeaTarget.IS_VERSION_17_COMPATIBILE) {
+          expandTemplate(myFixture.getEditor());
+        }
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
       }
     });
