@@ -235,7 +235,11 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Nullable
   public ASTNode findChildByRole(int role) {
     // assert ChildRole.isUnique(role);
-    for (ASTNode child = getFirstChild().getNode(); child != null; child = child.getTreeNext()) {
+    PsiElement firstChild = getFirstChild();
+
+    if (firstChild == null) return null;
+
+    for (ASTNode child = firstChild.getNode(); child != null; child = child.getTreeNext()) {
       if (getChildRole(child) == role) return child;
     }
     return null;
