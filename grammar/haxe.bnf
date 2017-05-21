@@ -352,15 +352,16 @@ propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | 
 
 private functionCommonBody ::= blockStatement | returnStatement | (expression ';'?) | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
 
-private constructorName ::= 'new'
+constructorName ::= 'new' {elementType=identifier}
+constructorComponentName ::= constructorName {elementType=componentName}
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? (functionCommonBody | ';')
+externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorComponentName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? (functionCommonBody | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
+functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorComponentName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ';'
+functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorComponentName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ';'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
