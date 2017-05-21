@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.*;
@@ -101,7 +102,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
   }
 
   public boolean isConstructor() {
-    return this.getName().equals("new");
+    return this.getName().equals(HaxeTokenTypes.ONEW.toString());
   }
 
   public boolean isStaticInit() {
