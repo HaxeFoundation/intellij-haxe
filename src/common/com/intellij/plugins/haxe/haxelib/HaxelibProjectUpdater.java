@@ -37,6 +37,7 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -329,66 +330,90 @@ public class HaxelibProjectUpdater  {
         timeLog.stamp("<-- Time elapsed waiting for write access on the AWT thread.");
         timeLog.stamp("Begin: Updating module libraries for " + module.getName());
 
-        ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-        ModifiableRootModel modifiableModel = rootManager.getModifiableModel();
-        final LibraryTable libraryTable = modifiableModel.getModuleLibraryTable();
+        ModifiableRootModel modifiableModel = null;
+        try {
+          ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+          modifiableModel = rootManager.getModifiableModel();
+          final LibraryTable libraryTable = modifiableModel.getModuleLibraryTable();
 
-        // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
-        if (null != toRemove) {
-          timeLog.stamp("Removing libraries.");
-          toRemove.iterate(new HaxeClasspath.Lambda(){
-            @Override
-            public boolean processEntry(HaxeClasspathEntry entry) {
-              Library library = libraryTable.getLibraryByName(entry.getName());
-              if (null != library) {
-                // Why use this?: ModuleHelper.removeDependency(rootManager, library);
-                libraryTable.removeLibrary(library);
-                timeLog.stamp("Removed library " + library.getName());
+          // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
+          if (null != toRemove) {
+            timeLog.stamp("Removing libraries.");
+            toRemove.iterate(new HaxeClasspath.Lambda() {
+              @Override
+              public boolean processEntry(HaxeClasspathEntry entry) {
+                Library library = libraryTable.getLibraryByName(entry.getName());
+                if (null != library) {
+                  // Why use this?: ModuleHelper.removeDependency(rootManager, library);
+                  libraryTable.removeLibrary(library);
+                  timeLog.stamp("Removed library " + library.getName());
+                }
+                else {
+                  LOG.warn(
+                    "Internal inconsistency: library to remove was not found: " +
+                    entry.getName());
+                }
+                return true;
               }
-              else {
-                LOG.warn(
-                  "Internal inconsistency: library to remove was not found: " +
+            });
+          }
+
+          // Add new dependencies to modules.
+          if (null != toAdd) {
+            timeLog.stamp("Locating libraries and adding dependencies.");
+            toAdd.iterate(new HaxeClasspath.Lambda() {
+              @Override
+              public boolean processEntry(HaxeClasspathEntry entry) {
+                Library libraryByName = libraryTable.getLibraryByName(
                   entry.getName());
+                if (libraryByName == null) {
+                  libraryByName = libraryTable.createLibrary(entry.getName());
+                  String entryUrl = entry.getUrl();
+                  String pathUrl = entryUrl.startsWith(LocalFileSystem.PROTOCOL)
+                                   ? entryUrl
+                                   : VirtualFileManager.constructUrl(LocalFileSystem.PROTOCOL, entryUrl);
+                  VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(pathUrl);
+                  if (null == directory) {
+                    timeLog.stamp("Skipping library " + libraryByName.getName() + ", no directory entry for " + pathUrl);
+                  }
+                  else {
+
+                    Library.ModifiableModel libraryModifiableModel = null;
+                    try {
+                      libraryModifiableModel = libraryByName.getModifiableModel();
+                      libraryModifiableModel.addRoot(directory, OrderRootType.CLASSES);
+                      libraryModifiableModel.addRoot(directory, OrderRootType.SOURCES);
+                      libraryModifiableModel.commit();
+                      libraryModifiableModel = null;
+                      timeLog.stamp("Added library " + libraryByName.getName());
+                    }
+                    finally {
+                      if (null != libraryModifiableModel) {
+                        timeLog.stamp("Failure to add library " + libraryByName.getName());
+                        Disposer.dispose(libraryModifiableModel);
+                      }
+                    }
+                  }
+                }
+                else {
+                  LOG.warn("Internal inconsistency: library to add was already in the module's library table.");
+                }
+                return true;
               }
-              return true;
-            }
-          });
+            });
+          }
+
+          timeLog.stamp("Committing changes to module libraries");
+          modifiableModel.commit();
+          modifiableModel = null;
         }
-
-        // Add new dependencies to modules.
-        if (null != toAdd) {
-          timeLog.stamp("Locating libraries and adding dependencies.");
-          toAdd.iterate(new HaxeClasspath.Lambda() {
-            @Override
-            public boolean processEntry(HaxeClasspathEntry entry) {
-              Library libraryByName = libraryTable.getLibraryByName(
-                entry.getName());
-              if (libraryByName == null) {
-                libraryByName = libraryTable.createLibrary(entry.getName());
-                Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
-
-                String entryUrl = entry.getUrl();
-                String pathUrl = VirtualFileManager.constructUrl(LocalFileSystem.PROTOCOL, entryUrl);
-                VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(pathUrl);
-
-                libraryModifiableModel.addRoot(directory, OrderRootType.CLASSES);
-                libraryModifiableModel.addRoot(directory, OrderRootType.SOURCES);
-                libraryModifiableModel.commit();
-
-                timeLog.stamp("Added library " + libraryByName.getName());
-              }
-              else {
-                LOG.warn("Internal inconsistency: library to add was already in the module's library table.");
-              }
-              return true;
-            }
-          });
+        finally {
+          if (null != modifiableModel) {
+            modifiableModel.dispose();
+            timeLog.stamp("Failure to update module libraries");
+          }
         }
-
-        timeLog.stamp("Committing changes to module libraries");
-        modifiableModel.commit();
-
-        timeLog.stamp("Finished: Updating module Libraries");
+        timeLog.stamp("Finished: Updating module libraries");
       }
     });
 
