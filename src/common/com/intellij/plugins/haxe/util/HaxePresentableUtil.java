@@ -183,6 +183,6 @@ public class HaxePresentableUtil {
   }
 
   public static String unknownType() {
-    return asNullable("Dynamic");
+    return asNullable("Unknown");
   }
 }
