@@ -31,8 +31,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.impl.source.tree.JavaSourceUtil;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
@@ -41,7 +41,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,6 +84,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeExpression expression = this;
     if (this instanceof HaxeCallExpression) {
       expression = ((HaxeCallExpression)this).getExpression();
+    }
+    else if (this instanceof HaxeNewExpression) {
+      HaxeNewExpression newExpression = (HaxeNewExpression)this;
+      HaxeClass haxeClass = (HaxeClass)newExpression.getType().getReferenceExpression().resolve();
+      final HaxeClassResolveResult result = HaxeClassResolveResult.create(haxeClass);
+      result.specializeByParameters(newExpression.getType().getTypeParam());
+      return result.getSpecialization();
     }
 
     // The specialization for a reference comes from either the type of the left-hand side of the
