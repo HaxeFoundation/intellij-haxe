@@ -58,7 +58,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    LOG.trace(traceMsg(reference.getText()));
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg(reference.getText()));
 
     isExtension.set(false);
 
@@ -268,11 +268,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private void LogResolution(HaxeReference ref, String tailmsg) {
-    String message = "Resolved " + ref.getText() + " " + tailmsg;
-    if (LOG.isTraceEnabled()) {
-      LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), message);
-    } else {
-      LOG.debug(message);
+    // Debug is always enabled if trace is enabled.
+    if (LOG.isDebugEnabled()) {
+      String message = "Resolved " + ref.getText() + " " + tailmsg;
+      if (LOG.isTraceEnabled()) {
+        LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), message);
+      }
+      else {
+        LOG.debug(message);
+      }
     }
   }
 
@@ -285,13 +289,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    */
   @Nullable
   private List<? extends PsiElement> resolveChain(HaxeReference lefthandExpression, HaxeReference reference) {
-    LOG.trace(traceMsg(null));
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg(null));
     final HaxeComponentName componentName = tryResolveHelperClass(lefthandExpression, reference.getText());
     if (componentName != null) {
-      LOG.trace("Found component " + componentName.getText());
+      if (LOG.isTraceEnabled()) LOG.trace("Found component " + componentName.getText());
       return Arrays.asList(componentName);
     }
-    LOG.trace(traceMsg("trying keywords (super, new) arrays, literals, etc."));
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("trying keywords (super, new) arrays, literals, etc."));
     // Try resolving keywords (super, new), arrays, literals, etc.
     List<? extends PsiElement> resolvedList = resolveByClassAndSymbol(lefthandExpression.resolveHaxeClass(), reference);
     return resolvedList;
@@ -355,11 +359,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    */
   @Nullable
   private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
-    LOG.trace(traceMsg("leftReference=" + leftReference + " helperName=" + helperName));
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("leftReference=" + leftReference + " helperName=" + helperName));
     HaxeComponentName componentName = null;
     HaxeClass leftResultClass = HaxeResolveUtil.tryResolveClassByQName(leftReference);
     if (leftResultClass != null) {
-      LOG.trace(traceMsg("Found a left result via QName: " + (leftResultClass.getText() != null ? leftResultClass : "<no text>")));
+      if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Found a left result via QName: " + (leftResultClass.getText() != null ? leftResultClass : "<no text>")));
       // helper reference via class com.bar.FooClass.HelperClass
       final HaxeClass componentDeclaration =
         HaxeResolveUtil.findComponentDeclaration(leftResultClass.getContainingFile(), helperName);
@@ -369,7 +373,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       leftResultClass = leftReference.resolveHaxeClass().getHaxeClass();
       if (LOG.isTraceEnabled()) {
         String resultClassName = leftResultClass != null ? leftResultClass.getText() : null;
-        LOG.trace(traceMsg("Found abstract left result:" + resultClassName != null ? resultClassName : "<no text>" ));
+        if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Found abstract left result:" + resultClassName != null ? resultClassName : "<no text>" ));
       }
       final Boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftResultClass);
       if (isAbstractForward) {
@@ -387,20 +391,20 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     if (LOG.isTraceEnabled()) {
       String ctext = componentName != null ? componentName.getText() : null;
-      LOG.trace(traceMsg("Found component name " + (ctext != null ? ctext : "<no text>")));
+      if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Found component name " + (ctext != null ? ctext : "<no text>")));
     }
     return componentName;
   }
 
   private static List<? extends PsiElement> toCandidateInfoArray(@Nullable PsiElement element) {
-    LOG.debug("Resolved as " + (element == null ? "empty result list." : element.toString() ));
+    if (LOG.isDebugEnabled()) LOG.debug("Resolved as " + (element == null ? "empty result list." : element.toString() ));
     return element == null ? Collections.<PsiElement>emptyList() : Arrays.asList(element);
   }
 
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClassResolveResult resolveResult,
                                                                     @NotNull HaxeReference reference) {
     if (resolveResult == null) {
-      LOG.debug("Resolved as empty result list. (resolveByClassAndSymbol)");
+      if (LOG.isDebugEnabled()) LOG.debug("Resolved as empty result list. (resolveByClassAndSymbol)");
     }
     return resolveResult == null ? Collections.<PsiElement>emptyList() : resolveByClassAndSymbol(resolveResult.getHaxeClass(), reference);
   }
@@ -442,7 +446,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
-    LOG.debug("Resolved as empty result list. (resolveByClassAndSymbol(2))");
+    if (LOG.isDebugEnabled()) LOG.debug("Resolved as empty result list. (resolveByClassAndSymbol(2))");
     return Collections.emptyList();
   }
 
