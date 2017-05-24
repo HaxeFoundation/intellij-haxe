@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeBundle;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.logging.Logger;
@@ -27,30 +28,16 @@ public class HaxeFunctionDescription {
   private static final TextRange ZERO_TEXT_RANGE = new TextRange(0, 0);
   private static final String PARAMETERS_DELIMITER = ", ";
 
-  private final String name;
-  private final String returnType;
   private final HaxeParameterDescription[] parameters;
 
   private final String description;
   private final TextRange[] parametersTextRange;
 
-  HaxeFunctionDescription(String name, @Nullable String returnType, HaxeParameterDescription[] parameters) {
-    this.name = name;
-    this.returnType = returnType;
-
+  HaxeFunctionDescription(HaxeParameterDescription[] parameters) {
     this.parameters = parameters;
     this.parametersTextRange = new TextRange[parameters.length];
 
     this.description = compileDescription();
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  @Nullable
-  public String getReturnType() {
-    return returnType;
   }
 
   public HaxeParameterDescription[] getParameters() {
@@ -61,6 +48,10 @@ public class HaxeFunctionDescription {
     final StringBuilder result = new StringBuilder();
 
     int currentOffset = 0;
+
+    if (parameters.length == 0) {
+      return HaxeBundle.message("haxe.parameter.info.helper.no.parameters");
+    }
 
     for (int i = 0; i < parameters.length; i++) {
       HaxeParameterDescription parameter = parameters[i];
@@ -90,7 +81,6 @@ public class HaxeFunctionDescription {
 
   @Override
   public String toString() {
-    Logger.getGlobal().info(description);
     return description;
   }
 }

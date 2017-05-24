@@ -16,12 +16,15 @@
 package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 public class HaxeParameterDescriptionBuilder {
 
@@ -29,15 +32,11 @@ public class HaxeParameterDescriptionBuilder {
   static HaxeParameterDescription[] buildFromList(@Nullable List<HaxeParameter> parameters, HaxeGenericSpecialization specialization) {
     if (parameters == null || parameters.size() == 0) return new HaxeParameterDescription[0];
 
-    int currentOffset = 0;
-
     HaxeParameterDescription[] result = new HaxeParameterDescription[parameters.size()];
 
     for (int i = 0; i < parameters.size(); i++) {
       HaxeParameter parameter = parameters.get(i);
-      HaxeParameterDescription parameterDescription = build(parameter, specialization, currentOffset);
-
-      currentOffset += parameterDescription.toString().length();
+      HaxeParameterDescription parameterDescription = build(parameter, specialization);
 
       result[i] = parameterDescription;
     }
@@ -46,21 +45,22 @@ public class HaxeParameterDescriptionBuilder {
   }
 
   @NotNull
-  private static HaxeParameterDescription build(HaxeParameter parameter, HaxeGenericSpecialization specialization, int textStartOffset) {
-    String name = parameter.getName();
-    String type = null;
+  private static HaxeParameterDescription build(HaxeParameter parameter, HaxeGenericSpecialization specialization) {
+    final HaxeParameterModel model = new HaxeParameterModel(parameter);
+
+    String name = model.getName();
+    String type;
     String initialValue = null;
 
-    //FIXME: Check if type defined as nullable
-    boolean definedAsNullable = false;
-    boolean optional = parameter.getIsOptional() != null;
+    boolean optional = model.hasOptionalPsi();
 
-    HaxeTypeTag typeTag = parameter.getTypeTag();
-    HaxeVarInit varInit = parameter.getVarInit();
+    HaxeTypeTag typeTag = model.getTypeTagPsi();
+    HaxeVarInit varInit = model.getVarInitPsi();
 
     if (typeTag != null) {
       type = HaxePresentableUtil.buildTypeText(parameter, parameter.getTypeTag(), specialization);
-      Logger.getGlobal().info(typeTag.toString());
+    } else {
+      type = HaxePresentableUtil.unknownType();
     }
 
     if (varInit != null) {
@@ -70,6 +70,8 @@ public class HaxeParameterDescriptionBuilder {
       }
     }
 
-    return new HaxeParameterDescription(name, type, initialValue, optional, definedAsNullable, textStartOffset);
+    ResultHolder resultHolder = HaxeTypeResolver.getTypeFromTypeTag(typeTag, parameter);
+
+    return new HaxeParameterDescription(name, type, initialValue, optional, resultHolder);
   }
 }
