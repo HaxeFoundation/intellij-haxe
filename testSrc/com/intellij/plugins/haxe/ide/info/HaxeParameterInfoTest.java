@@ -75,6 +75,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
     MockUpdateParameterInfoContext updateContext = new MockUpdateParameterInfoContext(myEditor, myFile);
     final PsiElement element = parameterInfoHandler.findElementForUpdatingParameterInfo(updateContext);
     assertNotNull(element);
+    updateContext.setParameterOwner(elt);
     parameterInfoHandler.updateParameterInfo(element, updateContext);
     assertEquals(highlightedParameterIndex, updateContext.getCurrentParameter());
   }
@@ -87,11 +88,11 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
 
 
   public void testParamInfo1() throws Throwable {
-    doTest("p1:Int, p2, p3:Node", 0);
+    doTest("p1:Int, p2:Null<Unknown>, p3:Node", 0);
   }
 
   public void testParamInfo2() throws Throwable {
-    doTest("p1:Int, p2, p3:Node", 2);
+    doTest("p1:Int, p2:Null<Unknown>, p3:Node", 2);
   }
 
   public void testParamInfo3() throws Throwable {
@@ -99,7 +100,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   }
 
   public void testParamInfo4() throws Throwable {
-    doTest("x:Int, y:Int", 0);
+    doTest("x:Int, y:Int", 1);
   }
 
   public void testParamInfo5() throws Throwable {
@@ -107,7 +108,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   }
 
   public void testParamInfo6() throws Throwable {
-    doTest("x:Int, y:Int = 239", 1);
+    doTest("x:Int, [y:Int = 239]", 1);
   }
 
   public void testParamInfo7() throws Throwable {
@@ -117,6 +118,15 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
 
   public void testParamInfo8() throws Throwable {
     doTest("t:Node", 0);
+  }
+
+  public void testParamInfo9() throws Throwable {
+    doTest("a:Int, [b:Bool = false], [c:Float = null], [d:Null<Unknown> = null]", 2);
+  }
+
+  public void testParamInfo10() throws Throwable {
+    // FIXME Test failing because generic specialization not properly resolving by HaxeTypeResolver (should be fixed) see #632
+    // doTest("a:Int, [b:Bool = false], [c:Float = null], [d:Node = null]", 3);
   }
 
   // Disabled - Tests issue #615.
