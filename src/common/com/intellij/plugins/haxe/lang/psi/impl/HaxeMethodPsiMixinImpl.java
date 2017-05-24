@@ -63,6 +63,17 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NonNls
   public String getName() {
     final String name = super.getName();
+
+    if (name == null) {
+      PsiElement child = this.getFirstChild();
+      while (child != null) {
+        if (child instanceof HaxePsiToken && child.getText().equals(HaxeTokenTypes.ONEW.toString())) {
+          return child.getText();
+        }
+        child = child.getNextSibling();
+      }
+    }
+
     return (name != null) ? name : "<unnamed>";
   }
 
@@ -155,7 +166,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Override
   public boolean isConstructor() {
     String name = getName();
-
     return name != null && name.equals(HaxeTokenTypes.ONEW.toString());
   }
 
