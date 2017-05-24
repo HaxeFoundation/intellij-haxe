@@ -44,12 +44,12 @@ class HaxeFunctionDescriptionBuilder {
   @Nullable
   static HaxeFunctionDescription buildForConstructor(final HaxeNewExpression expression) {
     final HaxeGenericSpecialization specialization = expression.getSpecialization();
-    final HaxeClass haxeClass = (HaxeClassDeclaration)expression.getType().getReferenceExpression().resolve();
+    final HaxeClass haxeClass = (HaxeClass)expression.getType().getReferenceExpression().resolve();
 
     if (haxeClass != null) {
       final PsiMethod[] constructors = haxeClass.getConstructors();
       if (constructors.length > 0) {
-        final HaxeFunctionDeclarationWithAttributes constructor = (HaxeFunctionDeclarationWithAttributes)constructors[0];
+        final HaxeMethod constructor = (HaxeMethod)constructors[0];
         final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(haxeClass, specialization);
 
         return build(constructor, resolveResult, specialization, false);
@@ -60,13 +60,7 @@ class HaxeFunctionDescriptionBuilder {
   }
 
   private static HaxeFunctionDescription build(HaxeMethod method, HaxeClassResolveResult resolveResult, HaxeGenericSpecialization specialization, boolean isExtension) {
-    String returnType = null;
     HaxeParameterDescription[] parameterDescriptions;
-
-    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(method, HaxeTypeTag.class);
-    if (typeTag != null) {
-      returnType = HaxePresentableUtil.buildTypeText(method, typeTag, resolveResult.getSpecialization());
-    }
 
     final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(method, HaxeParameterList.class);
     if (parameterList != null) {
@@ -80,10 +74,6 @@ class HaxeFunctionDescriptionBuilder {
       parameterDescriptions = new HaxeParameterDescription[0];
     }
 
-    return new HaxeFunctionDescription(
-      method.getName(),
-      returnType,
-      parameterDescriptions
-    );
+    return new HaxeFunctionDescription(parameterDescriptions);
   }
 }

@@ -18,20 +18,32 @@
  */
 package com.intellij.plugins.haxe.ide.info;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.transform.Result;
+
 public class HaxeParameterDescription {
   private final boolean isOptional;
-  private final boolean isDefinedAsNullable;
+  private final boolean hasInitialValue;
 
   private final String text;
 
-  HaxeParameterDescription(String name, String type, String initialValue, boolean isOptional, boolean isDefinedAsNullable, int textOffset) {
+  private final ResultHolder resultHolder;
+
+  HaxeParameterDescription(String name,
+                           String type,
+                           String initialValue,
+                           boolean isOptional,
+                           ResultHolder resultHolder) {
+
     this.isOptional = isOptional;
-    this.isDefinedAsNullable = isDefinedAsNullable;
+    this.hasInitialValue = initialValue != null;
 
     this.text = compileDescription(name, type, initialValue);
+    this.resultHolder = resultHolder;
   }
 
   @Override
@@ -39,12 +51,16 @@ public class HaxeParameterDescription {
     return text;
   }
 
-  public boolean getIsOptional() {
+  public boolean isOptional() {
     return isOptional;
   }
 
-  public boolean getIsDefinedAsNullable() {
-    return isDefinedAsNullable;
+  public boolean hasInitialValue() {
+    return hasInitialValue;
+  }
+
+  public boolean isPredefined() {
+    return isOptional || hasInitialValue;
   }
 
   private String compileDescription(String name, @Nullable String type, @Nullable String initialValue) {
@@ -57,28 +73,25 @@ public class HaxeParameterDescription {
       result.append("[");
     }
     result.append(name);
+    result.append(":");
     if (hasType) {
-      result.append(":");
-      if (isOptional && !isDefinedAsNullable) {
-        result.append(HaxePresentableUtil.asNullable(type));
-      }
-      else {
-        result.append(type);
-      }
+      result.append(type);
     }
     else {
-      result.append(":").append(HaxePresentableUtil.unknownType());
+      result.append(HaxePresentableUtil.unknownType());
     }
-    if (hasInitialValue) {
-      result.append(" = ").append(initialValue);
-    }
-    else if (isOptional) {
-      result.append(" = null");
-    }
+
     if (isValuePredefined) {
-      result.append("]");
+      result
+        .append(" = ")
+        .append(isOptional ? "null" : initialValue)
+        .append("]");
     }
 
     return result.toString();
+  }
+
+  public ResultHolder getResultHolder() {
+    return resultHolder;
   }
 }

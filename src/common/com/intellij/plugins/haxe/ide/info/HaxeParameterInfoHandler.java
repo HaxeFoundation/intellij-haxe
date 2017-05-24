@@ -20,11 +20,12 @@ package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.parameterInfo.*;
+import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeExpressionList;
-import com.intellij.plugins.haxe.lang.psi.HaxeNewExpression;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -39,6 +40,7 @@ import java.util.List;
  */
 public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement, HaxeFunctionDescription> {
   private int currentParameterIndex = -1;
+  String myParametersListPresentableText = "";
 
   @Override
   public boolean couldShowInLookup() {
@@ -46,7 +48,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   }
 
   @Override
-  public Object[] getParametersForLookup(LookupElement item, ParameterInfoContext context) {
+  public Object[] getParametersForLookup(@NotNull LookupElement item, ParameterInfoContext context) {
     final Object object = item.getObject();
 
     if (object instanceof PsiElement) {
@@ -62,14 +64,13 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   @Nullable
   @Override
-  public Object[] getParametersForDocumentation(HaxeFunctionDescription description, ParameterInfoContext context) {
+  public Object[] getParametersForDocumentation(@NotNull HaxeFunctionDescription description, ParameterInfoContext context) {
     return description.getParameters();
   }
 
   @Override
   public PsiElement findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
-    final PsiElement place = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
-    return PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class);
+    return findCallOrNewExpressionUnderCaret(context);
   }
 
   @Override
@@ -77,11 +78,18 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
     return context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
   }
 
+  @Nullable
+  private PsiElement findCallOrNewExpressionUnderCaret(@NotNull ParameterInfoContext context) {
+    final PsiElement place = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+
+    return PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class);
+  }
+
   @Override
   public void showParameterInfo(@NotNull PsiElement element, @NotNull CreateParameterInfoContext context) {
     final HaxeFunctionDescription functionDescription = getParametersDescriptions(element);
 
-    if (functionDescription != null && functionDescription.getParameters().length > 0) {
+    if (functionDescription != null) {
       context.setItemsToShow(new Object[]{functionDescription});
       context.showHint(element, element.getTextRange().getStartOffset(), this);
     }
@@ -101,7 +109,9 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   @Override
   public void updateParameterInfo(@NotNull PsiElement place, @NotNull UpdateParameterInfoContext context) {
-    if (context.getParameterOwner() != PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class)) {
+    PsiElement owner = context.getParameterOwner();
+
+    if (owner != PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class)) {
       context.removeHint();
       return;
     }
@@ -112,52 +122,142 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       context.setUIComponentEnabled(i, true);
     }
 
-    currentParameterIndex = getParameterIndex(context.getParameterOwner(), place);
+    currentParameterIndex = getArgumentIndex(context.getParameterOwner(), place);
     context.setCurrentParameter(currentParameterIndex);
   }
 
-  private int getParameterIndex(@NotNull PsiElement owner, @NotNull PsiElement place) {
-    int parameterIndex = -1;
+  private int getArgumentIndex(@NotNull PsiElement owner, @NotNull PsiElement place) {
+    int argumentIndex = -1;
 
-    final List<HaxeExpression> expressionList = getExpressionList(owner);
     final HaxeFunctionDescription functionDescription = getParametersDescriptions(owner);
 
-    if (functionDescription == null) return parameterIndex;
+    if (functionDescription == null || functionDescription.getParameters().length == 0) return argumentIndex;
 
+    final List<HaxeExpression> argumentsList = getArgumentsList(owner);
     final HaxeParameterDescription[] functionParameters = functionDescription.getParameters();
-
     final int functionParametersCount = functionParameters == null ? 0 : functionParameters.length;
 
-    if (expressionList != null) {
-      HaxeExpression expression = (HaxeExpression)UsefulPsiTreeUtil.getParentOfType(place, HaxeExpression.class);
+    if (argumentsList != null) {
+      final int listSize = argumentsList.size();
 
-      if (expression != null) {
-        int expressionIndex = expressionList.indexOf(expression);
-        if (expressionIndex >= 0) {
-          parameterIndex = expressionIndex;
-        }
-        else if (expression == owner) {
-          if (place == owner.getLastChild()) {
-            parameterIndex = expressionList.size() - 1;
-          }
-          else {
-            expression = (HaxeExpression)UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(place);
+      if (listSize == 0) return listSize;
 
-            if (expression == owner.getLastChild()) {
-              parameterIndex = expressionList.size() - 1;
-            }
-            else if (expression != null) {
-              parameterIndex = expressionList.indexOf(expression);
-            }
-          }
-        }
+      argumentIndex = getArgumentIndexUnderCaret(place, argumentsList);
+    }
+
+    if (argumentIndex > functionParametersCount) return -1;
+
+    return interpolateArgumentIndexToParameterIndex(argumentsList, functionParameters, argumentIndex);
+  }
+
+  private int getArgumentIndexUnderCaret(@NotNull PsiElement place, List<HaxeExpression> expressionList) {
+    HaxeExpression expression = getExpressionAtPlace(place, expressionList);
+
+    if (expression != null) {
+      int expressionIndex = expressionList.indexOf(expression);
+      if (expressionIndex >= 0) {
+        return expressionIndex;
+      }
+    }
+    else {
+      final String tokenText = place.getText();
+
+      if (tokenText.equals(HaxeTokenTypes.PRPAREN.toString())) {
+        return getExpressionIndexBeforeRightParen(expressionList);
+      }
+      else {
+        return getExpressionIndexAtPlace(place, expressionList);
       }
     }
 
-    return parameterIndex > functionParametersCount ? -1 : parameterIndex;
+    return -1;
   }
 
-  private List<HaxeExpression> getExpressionList(@NotNull PsiElement element) {
+  private HaxeExpression getExpressionAtPlace(@NotNull PsiElement place, final List<HaxeExpression> expressionList) {
+    return (HaxeExpression)PsiTreeUtil.findFirstParent(place, new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return element instanceof HaxeExpression && expressionList.indexOf(element) >= 0;
+      }
+    });
+  }
+
+  private int getExpressionIndexAtPlace(PsiElement place, List<HaxeExpression> list) {
+    final int listSize = list.size();
+
+    if (list.get(listSize - 1).getTextOffset() < place.getTextOffset()) {
+      return listSize;
+    }
+
+    final int placeTextOffset = place.getTextOffset();
+
+    int expressionIndex = 0;
+    for (HaxeExpression expression : list) {
+      if (expression.getTextOffset() > placeTextOffset) {
+        return expressionIndex;
+      }
+      expressionIndex++;
+    }
+
+    return -1;
+  }
+
+  private int getExpressionIndexBeforeRightParen(List<HaxeExpression> list) {
+    final int listSize = list.size();
+    final PsiElement commaExpression = (UsefulPsiTreeUtil.getNextSiblingSkippingCondition(list.get(listSize-1), new Condition<PsiElement>() {
+      @Override
+      public boolean value(PsiElement element) {
+        return !(element instanceof HaxePsiToken && element.getText().equals(HaxeTokenTypes.OCOMMA.toString()));
+      }
+    }, false));
+
+    if (commaExpression != null) {
+      return listSize;
+    }
+    else {
+      return listSize - 1;
+    }
+  }
+
+  private int interpolateArgumentIndexToParameterIndex(List<HaxeExpression> arguments,
+                                                       HaxeParameterDescription[] parameters,
+                                                       int currentArgumentIndex) {
+
+    int argumentIndex = 0;
+
+    if (arguments == null || arguments.size() == 0) return argumentIndex;
+
+    final int parameterCount = parameters.length;
+    final int argumentsCount = arguments.size();
+
+    for (int parameterIndex = 0; parameterIndex < parameterCount; parameterIndex++) {
+      if (argumentIndex >= argumentsCount) return parameterIndex;
+
+      final HaxeParameterDescription parameter = parameters[parameterIndex];
+
+      if (!parameters[parameterIndex].isPredefined()) {
+        if (argumentIndex == currentArgumentIndex) return parameterIndex;
+
+        argumentIndex++;
+        continue;
+      }
+
+      final HaxeExpression argument = arguments.get(argumentIndex);
+
+      final ResultHolder parameterType = parameter.getResultHolder();
+      final ResultHolder argumentType = HaxeTypeResolver.getPsiElementType(argument);
+
+      if (parameterType.canAssign(argumentType)) {
+        if (argumentIndex == currentArgumentIndex) return parameterIndex;
+
+        argumentIndex++;
+      }
+    }
+
+    return -1;
+  }
+
+  private List<HaxeExpression> getArgumentsList(@NotNull PsiElement element) {
     if (element instanceof HaxeNewExpression) {
       return ((HaxeNewExpression)element).getExpressionList();
     }
@@ -182,14 +282,15 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   }
 
   @Override
-  public void updateUI(HaxeFunctionDescription description, @NotNull ParameterInfoUIContext context) {
+  public void updateUI(@Nullable HaxeFunctionDescription description, @NotNull ParameterInfoUIContext context) {
     if (description == null) {
       context.setUIComponentEnabled(false);
       return;
     }
 
+    myParametersListPresentableText = description.toString();
     context.setupUIComponentPresentation(
-      description.toString(),
+      myParametersListPresentableText,
 
       description.getParameterRange(currentParameterIndex).getStartOffset(),
       description.getParameterRange(currentParameterIndex).getEndOffset(),
