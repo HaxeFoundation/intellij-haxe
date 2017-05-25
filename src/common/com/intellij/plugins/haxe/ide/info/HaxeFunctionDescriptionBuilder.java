@@ -16,7 +16,6 @@
 package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -30,12 +29,11 @@ class HaxeFunctionDescriptionBuilder {
     final HaxeGenericSpecialization specialization = expression.getSpecialization();
     final boolean isStaticExtension = expression.resolveIsStaticExtension();
 
-    final PsiElement target = ((HaxeReference)expression.getExpression()).resolve();
+    final HaxeReference reference = (HaxeReference)expression.getExpression();
+    final PsiElement target = reference.resolve();
 
     if (target instanceof HaxeMethod) {
-      final HaxeClass targetParent = (HaxeClass)((HaxeMethod)target).getContainingClass();
-      final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(targetParent, specialization);
-
+      final HaxeClassResolveResult resolveResult = reference.resolveHaxeClass();
       return build((HaxeMethod)target, resolveResult, specialization, isStaticExtension);
     }
     return null;
@@ -60,7 +58,7 @@ class HaxeFunctionDescriptionBuilder {
   }
 
   private static HaxeFunctionDescription build(HaxeMethod method, HaxeClassResolveResult resolveResult, HaxeGenericSpecialization specialization, boolean isExtension) {
-    HaxeParameterDescription[] parameterDescriptions;
+    HaxeParameterDescription[] parameterDescriptions = null;
 
     final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(method, HaxeParameterList.class);
     if (parameterList != null) {
@@ -70,8 +68,6 @@ class HaxeFunctionDescriptionBuilder {
       }
 
       parameterDescriptions = HaxeParameterDescriptionBuilder.buildFromList(list, specialization);
-    } else {
-      parameterDescriptions = new HaxeParameterDescription[0];
     }
 
     return new HaxeFunctionDescription(parameterDescriptions);
