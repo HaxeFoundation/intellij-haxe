@@ -17,9 +17,10 @@
  */
 package com.intellij.plugins.haxe.ide.index;
 
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiFile;
@@ -92,6 +93,13 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
   public static boolean getFileNames(@NotNull String qName,
                                      @NotNull Processor<VirtualFile> processor,
                                      @NotNull final GlobalSearchScope filter) {
+    Project project = filter.getProject();
+    if (project != null) {
+      if (DumbService.isDumb(project)) {
+        return false;
+      }
+    }
+
     return FileBasedIndex.getInstance()
       .getFilesWithKey(HAXE_COMPONENT_FILE_NAME_INDEX, Collections.<String>singleton(qName), processor, filter);
   }
