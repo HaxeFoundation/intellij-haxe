@@ -70,9 +70,10 @@ public class HaxeParameterDescription {
     final boolean isValuePredefined = isOptional || hasInitialValue;
 
     final StringBuilder result = new StringBuilder();
-    if (isValuePredefined) {
-      result.append("[");
+    if (isOptional) {
+      result.append("?");
     }
+    
     result.append(name);
     result.append(":");
     if (hasType) {
@@ -85,8 +86,7 @@ public class HaxeParameterDescription {
     if (isValuePredefined) {
       result
         .append(" = ")
-        .append(isOptional ? "null" : initialValue)
-        .append("]");
+        .append(isOptional ? "null" : initialValue);
     }
 
     return result.toString();

@@ -108,7 +108,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   }
 
   public void testParamInfo6() throws Throwable {
-    doTest("x:Int, [y:Int = 239]", 1);
+    doTest("x:Int, y:Int = 239", 1);
   }
 
   public void testParamInfo7() throws Throwable {
@@ -121,12 +121,11 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
   }
 
   public void testParamInfo9() throws Throwable {
-    doTest("a:Int, [b:Bool = false], [c:Float = null], [d:Null<Unknown> = null]", 2);
+    doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:Null<Unknown> = null", 2);
   }
 
   public void testParamInfo10() throws Throwable {
-    // FIXME Test failing because generic specialization not properly resolving by HaxeTypeResolver (should be fixed) see #632
-    // doTest("a:Int, [b:Bool = false], [c:Float = null], [d:Node = null]", 3);
+    doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:Node = null", 3);
   }
 
   // Disabled - Tests issue #615.
