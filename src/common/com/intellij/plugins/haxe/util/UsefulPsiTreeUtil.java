@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +54,7 @@ public class UsefulPsiTreeUtil {
 
   @Nullable
   public static PsiElement getPrevSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement sibling, boolean strictly) {
-    return getPrevSiblingSkipingCondition(sibling, new Condition<PsiElement>() {
+    return getPrevSiblingSkippingCondition(sibling, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
         return isWhitespaceOrComment(element);
@@ -63,7 +64,7 @@ public class UsefulPsiTreeUtil {
 
   @Nullable
   public static PsiElement getPrevSiblingSkipWhiteSpaces(@Nullable PsiElement sibling, boolean strictly) {
-    return getPrevSiblingSkipingCondition(sibling, new Condition<PsiElement>() {
+    return getPrevSiblingSkippingCondition(sibling, new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
         return element instanceof PsiWhiteSpace;
@@ -72,11 +73,21 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static PsiElement getPrevSiblingSkipingCondition(@Nullable PsiElement sibling, Condition<PsiElement> condition, boolean strictly) {
+  public static PsiElement getPrevSiblingSkippingCondition(@Nullable PsiElement sibling, Condition<PsiElement> condition, boolean strictly) {
     if (sibling == null) return null;
     PsiElement result = strictly ? sibling.getPrevSibling() : sibling;
     while (result != null && condition.value(result)) {
       result = result.getPrevSibling();
+    }
+    return result;
+  }
+
+  @Nullable
+  public static PsiElement getNextSiblingSkippingCondition(@Nullable PsiElement sibling, Condition<PsiElement> condition, boolean strictly) {
+    if (sibling == null) return null;
+    PsiElement result = strictly ? sibling.getNextSibling() : sibling;
+    while (result != null && condition.value(result)) {
+      result = result.getNextSibling();
     }
     return result;
   }
@@ -468,4 +479,15 @@ public class UsefulPsiTreeUtil {
     }
     return sibling;
   }
+
+  @Nullable
+  public static PsiElement getNextSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement element) {
+    if (element == null) return null;
+    PsiElement sibling = element.getNextSibling();
+    while (sibling != null && isWhitespaceOrComment(sibling)) {
+      sibling = sibling.getNextSibling();
+    }
+    return sibling;
+  }
+
 }

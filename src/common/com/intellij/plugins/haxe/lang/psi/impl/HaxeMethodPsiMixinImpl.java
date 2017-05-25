@@ -59,18 +59,18 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   }
 
   @Override
-  @Nullable @NonNls
+  @NotNull
+  @NonNls
   public String getName() {
-    String name = super.getName();
-    if (null == name) {
-      if (getText().contains(" function new(")) {
-        return HaxeTokenTypes.ONEW.toString();
-      }
-      else {
-        final PsiIdentifier nameIdentifier = getNameIdentifier();
-        if (nameIdentifier != null) {
-          name = nameIdentifier.getText();
+    final String name = super.getName();
+
+    if (name == null) {
+      PsiElement child = this.getFirstChild();
+      while (child != null) {
+        if (child instanceof HaxePsiToken && child.getText().equals(HaxeTokenTypes.ONEW.toString())) {
+          return child.getText();
         }
+        child = child.getNextSibling();
       }
     }
 
@@ -165,14 +165,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   @Override
   public boolean isConstructor() {
-    if (super.getName()==null &&
-        getComponentName()==null &&
-        getText().contains("function new(") &&
-        !isStatic() &&
-        !isOverride()) {
-      return true;
-    }
-    return false;
+    String name = getName();
+    return name != null && name.equals(HaxeTokenTypes.ONEW.toString());
   }
 
   @Nullable

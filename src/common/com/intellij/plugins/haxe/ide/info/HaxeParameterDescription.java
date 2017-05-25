@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,66 +18,81 @@
  */
 package com.intellij.plugins.haxe.ide.info;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
-import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @author: Fedor.Korotkov
- */
 public class HaxeParameterDescription {
-  private final String name;
-  private final String typeText;
-  private final String varInitValue;
+  private final boolean isOptional;
+  private final boolean hasInitialValue;
 
-  public HaxeParameterDescription(String name, String text, String varInitText) {
-    this.name = name;
-    typeText = text;
-    varInitValue = varInitText;
-  }
+  private final String description;
 
+  private final ResultHolder resultHolder;
 
-  public static HaxeParameterDescription[] getParameters(HaxeNamedComponent element, HaxeGenericSpecialization specialization, boolean isExtension) {
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterList.class);
-    if (parameterList == null) {
-      return new HaxeParameterDescription[0];
-    }
-    List<HaxeParameter> list = parameterList.getParameterList();
-    if (isExtension) {
-      list = new ArrayList<HaxeParameter>(list);
-      list.remove(0);
-    }
-    final HaxeParameterDescription[] result = new HaxeParameterDescription[list.size()];
-    for (int i = 0, size = list.size(); i < size; i++) {
-      HaxeParameter parameter = list.get(i);
-      String typeText = "";
-      if (parameter.getTypeTag() != null) {
-        typeText = HaxePresentableUtil.buildTypeText(element, parameter.getTypeTag(), specialization);
-      }
-      String varInitText = "";
-      HaxeVarInit varInit = parameter.getVarInit();
-      if (varInit != null) {
-        final HaxeExpression varInitExpression = varInit.getExpression();
-        varInitText = varInitExpression == null ? "" : varInitExpression.getText();
-      }
-      result[i] = new HaxeParameterDescription(parameter.getName(), typeText, varInitText);
-    }
-    return result;
+  HaxeParameterDescription(String name,
+                           String type,
+                           String initialValue,
+                           boolean isOptional,
+                           ResultHolder resultHolder) {
+
+    this.isOptional = isOptional;
+    this.hasInitialValue = initialValue != null;
+
+    this.description = compilePresentableDescription(name, type, initialValue);
+    this.resultHolder = resultHolder;
   }
 
   @Override
   public String toString() {
+    return getPresentableText();
+  }
+
+  public String getPresentableText() {
+    return description;
+  }
+
+  public boolean isOptional() {
+    return isOptional;
+  }
+
+  public boolean hasInitialValue() {
+    return hasInitialValue;
+  }
+
+  public boolean isPredefined() {
+    return isOptional || hasInitialValue;
+  }
+
+  private String compilePresentableDescription(String name, @Nullable String type, @Nullable String initialValue) {
+    final boolean hasInitialValue = initialValue != null && !initialValue.isEmpty();
+    final boolean hasType = type != null && !type.isEmpty();
+    final boolean isValuePredefined = isOptional || hasInitialValue;
+
     final StringBuilder result = new StringBuilder();
+    if (isOptional) {
+      result.append("?");
+    }
+    
     result.append(name);
-    if (!typeText.isEmpty()) {
-      result.append(":").append(typeText);
+    result.append(":");
+    if (hasType) {
+      result.append(type);
     }
-    if (!varInitValue.isEmpty()) {
-      result.append(" = ").append(varInitValue);
+    else {
+      result.append(HaxePresentableUtil.unknownType());
     }
+
+    if (isValuePredefined) {
+      result
+        .append(" = ")
+        .append(isOptional ? "null" : initialValue);
+    }
+
     return result.toString();
+  }
+
+  public ResultHolder getResultHolder() {
+    return resultHolder;
   }
 }
