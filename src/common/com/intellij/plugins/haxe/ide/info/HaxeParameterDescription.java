@@ -18,18 +18,15 @@
  */
 package com.intellij.plugins.haxe.ide.info;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import org.jetbrains.annotations.Nullable;
-
-import javax.xml.transform.Result;
 
 public class HaxeParameterDescription {
   private final boolean isOptional;
   private final boolean hasInitialValue;
 
-  private final String text;
+  private final String description;
 
   private final ResultHolder resultHolder;
 
@@ -42,13 +39,17 @@ public class HaxeParameterDescription {
     this.isOptional = isOptional;
     this.hasInitialValue = initialValue != null;
 
-    this.text = compileDescription(name, type, initialValue);
+    this.description = compilePresentableDescription(name, type, initialValue);
     this.resultHolder = resultHolder;
   }
 
   @Override
   public String toString() {
-    return text;
+    return getPresentableText();
+  }
+
+  public String getPresentableText() {
+    return description;
   }
 
   public boolean isOptional() {
@@ -63,7 +64,7 @@ public class HaxeParameterDescription {
     return isOptional || hasInitialValue;
   }
 
-  private String compileDescription(String name, @Nullable String type, @Nullable String initialValue) {
+  private String compilePresentableDescription(String name, @Nullable String type, @Nullable String initialValue) {
     final boolean hasInitialValue = initialValue != null && !initialValue.isEmpty();
     final boolean hasType = type != null && !type.isEmpty();
     final boolean isValuePredefined = isOptional || hasInitialValue;

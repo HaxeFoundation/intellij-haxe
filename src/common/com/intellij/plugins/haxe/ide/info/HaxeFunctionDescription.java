@@ -22,8 +22,6 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.logging.Logger;
-
 public class HaxeFunctionDescription {
   private static final TextRange ZERO_TEXT_RANGE = new TextRange(0, 0);
   private static final String PARAMETERS_DELIMITER = ", ";
@@ -33,18 +31,18 @@ public class HaxeFunctionDescription {
   private final String description;
   private final TextRange[] parametersTextRange;
 
-  HaxeFunctionDescription(HaxeParameterDescription[] parameters) {
+  HaxeFunctionDescription(@Nullable HaxeParameterDescription[] parameters) {
     this.parameters = parameters;
-    this.parametersTextRange = new TextRange[parameters.length];
+    this.parametersTextRange = parameters == null ? null : new TextRange[parameters.length];
 
-    this.description = compileDescription();
+    this.description = compilePresentableDescription();
   }
-
+  
   public HaxeParameterDescription[] getParameters() {
     return parameters;
   }
 
-  private String compileDescription() {
+  private String compilePresentableDescription() {
     final StringBuilder result = new StringBuilder();
 
     int currentOffset = 0;
@@ -55,7 +53,7 @@ public class HaxeFunctionDescription {
 
     for (int i = 0; i < parameters.length; i++) {
       HaxeParameterDescription parameter = parameters[i];
-      String description = parameter.toString();
+      String description = parameter.getPresentableText();
       int descriptionLength = description.length();
 
       parametersTextRange[i] = new TextRange(currentOffset, currentOffset + descriptionLength);
@@ -81,6 +79,10 @@ public class HaxeFunctionDescription {
 
   @Override
   public String toString() {
+    return getPresentableText();
+  }
+
+  public String getPresentableText() {
     return description;
   }
 }
