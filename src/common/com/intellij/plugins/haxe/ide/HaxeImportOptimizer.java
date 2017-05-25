@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +28,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithInSupport;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
+import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiDocumentManager;
@@ -67,9 +69,15 @@ public class HaxeImportOptimizer implements ImportOptimizer {
   }
 
   private static void optimizeImports(final PsiFile file) {
+    HaxeDebugTimeLog timeLog = HaxeDebugTimeLog.startNew("optimizeImports for file " + file.getName(),
+                                                         HaxeDebugTimeLog.Since.StartAndPrevious);
+
     removeUnusedImports(file);
 
     reorderImports(file);
+
+    timeLog.stamp("Finished reordering imports.");
+    timeLog.print();
   }
 
   private static void removeUnusedImports(PsiFile file) {
