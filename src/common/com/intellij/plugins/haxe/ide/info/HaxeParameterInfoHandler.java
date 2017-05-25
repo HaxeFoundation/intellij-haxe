@@ -81,7 +81,6 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   @Nullable
   private PsiElement findCallOrNewExpressionUnderCaret(@NotNull ParameterInfoContext context) {
     final PsiElement place = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
-
     return PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class);
   }
 
@@ -224,6 +223,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
                                                        int currentArgumentIndex) {
 
     int argumentIndex = 0;
+    int recoverParameterIndex = 0;
 
     if (arguments == null || arguments.size() == 0) return argumentIndex;
 
@@ -238,6 +238,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       if (!parameters[parameterIndex].isPredefined()) {
         if (argumentIndex == currentArgumentIndex) return parameterIndex;
 
+        recoverParameterIndex = parameterIndex + 1;
         argumentIndex++;
         continue;
       }
@@ -250,11 +251,12 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       if (parameterType.canAssign(argumentType)) {
         if (argumentIndex == currentArgumentIndex) return parameterIndex;
 
+        recoverParameterIndex = parameterIndex + 1;
         argumentIndex++;
       }
     }
 
-    return -1;
+    return recoverParameterIndex;
   }
 
   private List<HaxeExpression> getArgumentsList(@NotNull PsiElement element) {

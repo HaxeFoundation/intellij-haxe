@@ -33,8 +33,9 @@ class HaxeFunctionDescriptionBuilder {
     final PsiElement target = reference.resolve();
 
     if (target instanceof HaxeMethod) {
-      final HaxeClassResolveResult resolveResult = reference.resolveHaxeClass();
-      return build((HaxeMethod)target, resolveResult, specialization, isStaticExtension);
+      final HaxeClass haxeClass = (HaxeClass)((HaxeMethod)target).getContainingClass();
+      final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(haxeClass, specialization);
+      return build((HaxeMethod)target, resolveResult, isStaticExtension);
     }
     return null;
   }
@@ -47,17 +48,20 @@ class HaxeFunctionDescriptionBuilder {
     if (haxeClass != null) {
       final PsiMethod[] constructors = haxeClass.getConstructors();
       if (constructors.length > 0) {
-        final HaxeMethod constructor = (HaxeMethod)constructors[0];
         final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(haxeClass, specialization);
 
-        return build(constructor, resolveResult, specialization, false);
+        final HaxeMethod constructor = (HaxeMethod)constructors[0];
+        return build(constructor, resolveResult, false);
       }
     }
 
     return null;
   }
 
-  private static HaxeFunctionDescription build(HaxeMethod method, HaxeClassResolveResult resolveResult, HaxeGenericSpecialization specialization, boolean isExtension) {
+  private static HaxeFunctionDescription build(HaxeMethod method,
+                                               HaxeClassResolveResult resolveResult,
+                                               boolean isExtension) {
+
     HaxeParameterDescription[] parameterDescriptions = null;
 
     final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(method, HaxeParameterList.class);
@@ -66,8 +70,7 @@ class HaxeFunctionDescriptionBuilder {
       if (isExtension) {
         list.remove(0);
       }
-
-      parameterDescriptions = HaxeParameterDescriptionBuilder.buildFromList(list, specialization);
+      parameterDescriptions = HaxeParameterDescriptionBuilder.buildFromList(list, resolveResult);
     }
 
     return new HaxeFunctionDescription(parameterDescriptions);
