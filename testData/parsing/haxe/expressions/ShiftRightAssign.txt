@@ -43,11 +43,8 @@ Haxe File
                 HaxePsiToken:ID('s')
             ASSIGN_OPERATION
               SHIFT_ASSIGN_OPERATOR
-                SHIFT_OPERATOR
-                  SHIFT_RIGHT_OPERATOR
-                    HaxePsiToken:>('>')
-                    HaxePsiToken:>('>')
-                HaxePsiToken:=('=')
+                SHIFT_RIGHT_ASSIGN_OPERATOR
+                  HaxePsiToken:>>=('>>=')
             LITERAL_EXPRESSION
               HaxePsiToken:LITINT('2')
           HaxePsiToken:;(';')

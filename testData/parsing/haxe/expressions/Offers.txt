@@ -45,7 +45,7 @@ Haxe File
                         HaxePsiToken:ID('toString')
                   HaxePsiToken:(('(')
                   HaxePsiToken:)(')')
-                  PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign expression>, <bitwise expression>, <compare expression>, <multiplicative expression>, <shift expression>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
+                  PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign operation>, <bitwise expression>, <compare operation>, <multiplicative expression>, <shift operator>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
                     PsiElement(BAD_CHARACTER)('\')
           REFERENCE_EXPRESSION
             IDENTIFIER
