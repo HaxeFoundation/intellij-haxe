@@ -1,6 +1,6 @@
 {
     parserClass="com.intellij.plugins.haxe.lang.parser.HaxeParser"
-    parserUtilClass="com.intellij.lang.parser.GeneratedParserUtilBase"
+    parserUtilClass="com.intellij.plugins.haxe.lang.parser.HaxeGeneratedParserUtilBase"
 
     implements="com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement"
     extends="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl"
@@ -16,153 +16,158 @@
 
     generateFirstCheck=100
 
-    pLCURLY="{"
-    pRCURLY="}"
-    pLBRACK="["
-    pRBRACK="]"
-    pLPAREN="("
-    pRPAREN=")"
-    oCOLON=":"
-    oSEMI=";"
-    oCOMMA=","
-    oDOT="."
-    oEQ="=="
-    oASSIGN="="
-    oNOT_EQ="!="
-    oNOT="!"
-    oCOMPLEMENT="~"
-    oPLUS_PLUS="++"
-    oPLUS_ASSIGN="+="
-    oPLUS="+"
-    oMINUS_MINUS="--"
-    oMINUS_ASSIGN="-="
-    oMINUS="-"
+    tokens = [
+      pLCURLY="{"
+      pRCURLY="}"
+      pLBRACK="["
+      pRBRACK="]"
+      pLPAREN="("
+      pRPAREN=")"
+      oCOLON=":"
+      oSEMI=";"
+      oCOMMA=","
+      oDOT="."
+      oEQ="=="
+      oASSIGN="="
+      oNOT_EQ="!="
+      oNOT="!"
+      oCOMPLEMENT="~"
+      oPLUS_PLUS="++"
+      oPLUS_ASSIGN="+="
+      oPLUS="+"
+      oMINUS_MINUS="--"
+      oMINUS_ASSIGN="-="
+      oMINUS="-"
 
-    oQUEST="?"
+      oQUEST="?"
 
-    oCOND_OR="||"
-    oBIT_OR="|"
-    oBIT_OR_ASSIGN="|="
+      oCOND_OR="||"
+      oBIT_OR="|"
+      oBIT_OR_ASSIGN="|="
 
-    oCOND_AND="&&"
+      oCOND_AND="&&"
 
-    oBIT_AND_ASSIGN="&="
-    oBIT_AND="&"
+      oBIT_AND_ASSIGN="&="
+      oBIT_AND="&"
 
-    oSHIFT_LEFT_ASSIGN="<<="
-    oSHIFT_LEFT="<<"
-    oLESS_OR_EQUAL="<="
-    oLESS="<"
+      oSHIFT_LEFT_ASSIGN="<<="
+      oSHIFT_LEFT="<<"
+      oLESS_OR_EQUAL="<="
+      oLESS="<"
 
-    oBIT_XOR_ASSIGN="^="
-    oBIT_XOR="^"
+      oBIT_XOR_ASSIGN="^="
+      oBIT_XOR="^"
 
-    oMUL_ASSIGN="*="
-    oMUL="*"
+      oMUL_ASSIGN="*="
+      oMUL="*"
 
-    oQUOTIENT_ASSIGN="/="
-    oQUOTIENT="/"
+      oQUOTIENT_ASSIGN="/="
+      oQUOTIENT="/"
 
-    oREMAINDER_ASSIGN="%="
-    oREMAINDER="%"
+      oREMAINDER_ASSIGN="%="
+      oREMAINDER="%"
 
-    oSHIFT_RIGHT_ASSIGN=">>="
-    oGREATER_OR_EQUAL=">="
-    oGREATER=">"
+      oUNSIGNED_SHIFT_RIGHT_ASSIGN=">>>="
+      oSHIFT_RIGHT_ASSIGN=">>="
+      oSHIFT_RIGHT=">>"
+      oUNSIGNED_SHIFT_RIGHT=">>>"
 
-    oTRIPLE_DOT="..."
-    OIN='in'
-    OARROW='->'
+      oGREATER_OR_EQUAL=">="
+      oGREATER=">"
 
-    OFAT_ARROW="=>"
+      oTRIPLE_DOT="..."
+      OIN='in'
+      OARROW='->'
 
-    oNEW="new"
+      OFAT_ARROW="=>"
 
-    ppIF="#if"
-    ppELSE="#else"
-    ppELSEIF="#elseif"
-    ppEND="#end"
-    ppERROR="#error"
-    ppLINE="#line"
+      oNEW="new"
 
-    kBREAK="break"
-    kDEFAULT="default"
-    kPACKAGE="package"
-    kFUNCTION="function"
+      ppIF="#if"
+      ppELSE="#else"
+      ppELSEIF="#elseif"
+      ppEND="#end"
+      ppERROR="#error"
+      ppLINE="#line"
 
-    kCASE="case"
-    kCAST="cast"
+      kBREAK="break"
+      kDEFAULT="default"
+      kPACKAGE="package"
+      kFUNCTION="function"
 
-    kABSTRACT="abstract"
-    kFROM="from"
-    kTO="to"
+      kCASE="case"
+      kCAST="cast"
 
-    kCLASS="class"
-    kENUM="enum"
-    kINTERFACE="interface"
+      kABSTRACT="abstract"
+      kFROM="from"
+      kTO="to"
 
-    kIMPLEMENTS="implements"
-    kEXTENDS="extends"
+      kCLASS="class"
+      kENUM="enum"
+      kINTERFACE="interface"
 
-    kNULL ="null"
-    kTRUE ="true"
-    kFALSE ="false"
-    kTHIS ="this"
-    kSUPER ="super"
+      kIMPLEMENTS="implements"
+      kEXTENDS="extends"
 
-    kIF ="if"
-    kFOR ="for"
-    kDO ="do"
-    kWHILE ="while"
-    kRETURN="return"
-    kIMPORT ="import"
-    kUSING ="using"
-    kCONTINUE ="continue"
-    kELSE ="else"
-    kSWITCH ="switch"
-    kTHROW ="throw"
+      kNULL ="null"
+      kTRUE ="true"
+      kFALSE ="false"
+      kTHIS ="this"
+      kSUPER ="super"
 
-    kVAR="var"
-    kSTATIC="static"
-    kPUBLIC="public"
-    kPRIVATE="private"
-    kDYNAMIC="dynamic"
-    kNEVER="never"
-    kOVERRIDE="override"
-    kINLINE="inline"
-    kMACRO2="macro"
+      kIF ="if"
+      kFOR ="for"
+      kDO ="do"
+      kWHILE ="while"
+      kRETURN="return"
+      kIMPORT ="import"
+      kUSING ="using"
+      kCONTINUE ="continue"
+      kELSE ="else"
+      kSWITCH ="switch"
+      kTHROW ="throw"
 
-    kUNTYPED="untyped"
-    kTYPEDEF="typedef"
+      kVAR="var"
+      kSTATIC="static"
+      kPUBLIC="public"
+      kPRIVATE="private"
+      kDYNAMIC="dynamic"
+      kNEVER="never"
+      kOVERRIDE="override"
+      kINLINE="inline"
+      kMACRO2="macro"
 
-    kEXTERN="extern"
-    kFINAL="@:final"
-    kHACK="@:hack"
-    kNATIVE="@:native"
-    kMACRO="@:macro"
-    kBUILD="@:build"
-    kAUTOBUILD="@:autoBuild"
-    kKEEP="@:keep"
-    kREQUIRE="@:require"
-    kFAKEENUM="@:fakeEnum"
-    kCOREAPI="@:core_api"
+      kUNTYPED="untyped"
+      kTYPEDEF="typedef"
 
-    kJSREQUIRE="@:jsRequire"
+      kEXTERN="extern"
+      kFINAL="@:final"
+      kHACK="@:hack"
+      kNATIVE="@:native"
+      kMACRO="@:macro"
+      kBUILD="@:build"
+      kAUTOBUILD="@:autoBuild"
+      kKEEP="@:keep"
+      kREQUIRE="@:require"
+      kFAKEENUM="@:fakeEnum"
+      kCOREAPI="@:core_api"
 
-    kBIND="@:bind"
-    kBITMAP="@:bitmap"
-    kNS="@:ns"
-    kPROTECTED="@:protected"
-    kGETTER="@:getter"
-    kSETTER="@:setter"
-    kDEBUG="@:debug"
-    kNODEBUG="@:nodebug"
-    kMETA="@:meta"
-    kOVERLOAD="@:overload"
+      kJSREQUIRE="@:jsRequire"
 
-    kTRY="try"
-    kCATCH="catch"
+      kBIND="@:bind"
+      kBITMAP="@:bitmap"
+      kNS="@:ns"
+      kPROTECTED="@:protected"
+      kGETTER="@:getter"
+      kSETTER="@:setter"
+      kDEBUG="@:debug"
+      kNODEBUG="@:nodebug"
+      kMETA="@:meta"
+      kOVERLOAD="@:overload"
 
+      kTRY="try"
+      kCATCH="catch"
+    ]
     extends(".*(Expression|Literal)")="expression"
     /* extends(".*Statement")="statement"
      */
@@ -176,8 +181,6 @@
 }
 
 haxeFile ::= packageStatement? topLevelList
-
-private unusedRuleToForceSomeTokenTypesToBeGenerated ::= "Add new tokens here -->" ">=" ">>=" ">>>=" "<-- Add new tokens here"
 
 /*
   http://haxe.org/manual/metadata
@@ -240,15 +243,19 @@ private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | 
  * after shiftRight so that it has priority.
  */
 shiftLeftOperator ::= '<<'
-shiftRightOperator ::= '>' '>' {pin=2}
-unsignedShiftRightOperator ::= '>' '>' '>' {pin=3}
+shiftRightOperator ::= <<shiftRight>>
+unsignedShiftRightOperator ::= <<unsignedShiftRight>>
+
+shiftLeftAssignOperator ::= '<<='
+shiftRightAssignOperator ::= <<shiftRightAssign>>
+unsignedShiftRightAssignOperator ::= <<unsignedShiftRightAssign>>
+
 shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
-shiftAssignOperator ::= shiftOperator '=' {pin=2}
+shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAssignOperator | shiftLeftAssignOperator
 
 assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | shiftAssignOperator
-compareOperation ::= '==' | '!=' | '<=' | '<' | ('>' '=') | '>'
+compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | '>'
 bitOperation ::= '|' | '&' | '^'
-
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
