@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,93 +17,56 @@
 package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.WhitespaceSkippedCallback;
 import com.intellij.lang.parser.GeneratedParserUtilBase;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.psi.tree.IElementType;
+
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
-  public static boolean shiftRight(PsiBuilder builder_, int level_) {
+  private static boolean whiteSpaceSkipped = false;
+
+  private static boolean parseOperator(PsiBuilder builder_, IElementType operator, IElementType... tokens) {
     final PsiBuilder.Marker marker_ = builder_.mark();
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
+
+    whiteSpaceSkipped = false;
+
+    builder_.setWhitespaceSkippedCallback(new WhitespaceSkippedCallback() {
+      @Override
+      public void onSkip(IElementType type, int i, int i1) {
+        whiteSpaceSkipped = true;
+      }
+    });
+
+    for (IElementType token : tokens) {
+      if (!consumeTokenFast(builder_, token) || whiteSpaceSkipped) {
+        marker_.rollbackTo();
+        builder_.setWhitespaceSkippedCallback(null);
+        return false;
+      }
     }
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    marker_.collapse(HaxeTokenTypes.OSHIFT_RIGHT);
+
+    marker_.collapse(operator);
     return true;
+  }
+
+  public static boolean shiftRight(PsiBuilder builder_, int level_) {
+    return parseOperator(builder_, OSHIFT_RIGHT, OGREATER, OGREATER);
   }
 
   public static boolean shiftRightAssign(PsiBuilder builder_, int level_) {
-    final PsiBuilder.Marker marker_ = builder_.mark();
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OASSIGN)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    marker_.collapse(HaxeTokenTypes.OSHIFT_RIGHT_ASSIGN);
-    return true;
+    return parseOperator(builder_, OSHIFT_RIGHT_ASSIGN, OGREATER, OGREATER, OASSIGN);
   }
 
   public static boolean unsignedShiftRight(PsiBuilder builder_, int level_) {
-    final PsiBuilder.Marker marker_ = builder_.mark();
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    marker_.collapse(HaxeTokenTypes.OUNSIGNED_SHIFT_RIGHT);
-    return true;
+    return parseOperator(builder_, OUNSIGNED_SHIFT_RIGHT, OGREATER, OGREATER, OGREATER);
   }
 
   public static boolean unsignedShiftRightAssign(PsiBuilder builder_, int level_) {
-    final PsiBuilder.Marker marker_ = builder_.mark();
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OASSIGN)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    marker_.collapse(HaxeTokenTypes.OUNSIGNED_SHIFT_RIGHT_ASSIGN);
-    return true;
+    return parseOperator(builder_, OUNSIGNED_SHIFT_RIGHT_ASSIGN, OGREATER, OGREATER, OGREATER, OASSIGN);
   }
 
   public static boolean gtEq(PsiBuilder builder_, int level_) {
-    final PsiBuilder.Marker marker_ = builder_.mark();
-    if (!consumeToken(builder_, HaxeTokenTypes.OGREATER)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    if (!consumeToken(builder_, HaxeTokenTypes.OASSIGN)) {
-      marker_.rollbackTo();
-      return false;
-    }
-    marker_.collapse(HaxeTokenTypes.OGREATER_OR_EQUAL);
-    return true;
+    return parseOperator(builder_, OGREATER_OR_EQUAL, OGREATER, OASSIGN);
   }
 }
