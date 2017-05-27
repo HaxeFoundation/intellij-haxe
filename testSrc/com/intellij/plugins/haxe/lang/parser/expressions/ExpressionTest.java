@@ -86,7 +86,12 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testIssue544() throws Throwable {
     doTest(true);
   }
+
   public void testOptionalVarOnFunctionType() throws Throwable {
+    doTest(true);
+  }
+
+  public void testShiftLeftAssign() throws Throwable {
     doTest(true);
   }
 
@@ -99,6 +104,10 @@ public class ExpressionTest extends HaxeParsingTestBase {
   }
 
   public void testUnsignedShiftRightAssign() throws Throwable {
+    doTest(true);
+  }
+
+  public void testComplexExpression() throws Throwable {
     doTest(true);
   }
 }

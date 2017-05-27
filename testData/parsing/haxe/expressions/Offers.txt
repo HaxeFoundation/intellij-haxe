@@ -45,12 +45,12 @@ Haxe File
                         HaxePsiToken:ID('toString')
                   HaxePsiToken:(('(')
                   HaxePsiToken:)(')')
-                  PsiErrorElement:'&&', '(', '.', '...', <additive expression>, <assign operation>, <bitwise expression>, <compare operation>, <multiplicative expression>, <shift operator>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
+                  PsiErrorElement:'&&', '(', '.', '...', <<, <additive expression>, <assign operation>, <bitwise expression>, <compare operation>, <multiplicative expression>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
                     PsiElement(BAD_CHARACTER)('\')
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('n')
-          PsiErrorElement:';', <local function declaration>, <macro class>, <prefix expression>, break, continue, do, for, if, macro, return, switch, throw, try, untyped, var, while or '{' expected, got '}'
+          PsiErrorElement:';', <expression>, <local function declaration>, <macro class>, break, continue, do, for, if, macro, return, switch, throw, try, untyped, var, while or '{' expected, got '}'
             HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
           HaxePsiToken:REGULAR_STRING_PART('\n')
           HaxePsiToken:REGULAR_STRING_PART('}')

@@ -45,6 +45,8 @@ Haxe File
                           IDENTIFIER
                             HaxePsiToken:ID('c')
                         HaxePsiToken:[('[')
+                        LITERAL_EXPRESSION
+                          HaxePsiToken:LITINT('0')
                         HaxePsiToken:](']')
                       HaxePsiToken:.('.')
                       REFERENCE_EXPRESSION
