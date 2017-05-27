@@ -46,6 +46,7 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
       }
     }
 
+    builder_.setWhitespaceSkippedCallback(null);
     marker_.collapse(operator);
     return true;
   }
