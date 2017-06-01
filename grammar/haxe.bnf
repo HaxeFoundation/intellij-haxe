@@ -504,10 +504,10 @@ catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
-expression ::= assignExpressionWrapper | fatArrowExpressionWrapper {recoverWhile="expression_recover"}
+expression ::= assignExpressionWrapper {recoverWhile="expression_recover"}
 private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
-private assignExpressionWrapper ::= value assignExpression
+private assignExpressionWrapper ::= fatArrowExpressionWrapper assignExpression?
 left assignExpression ::= assignOperation fatArrowExpressionWrapper { pin=1 }
 
 private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression?
@@ -540,14 +540,13 @@ left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper
 private multiplicativeExpressionWrapper ::= prefixExpression multiplicativeExpression*
 left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper)
 
+prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
+
 /* Technically, assignExpressions don't have higher priority than everything else.
  * But for parsing, this makes sense; otherwise, assignment operators that comprise
  * multiple lexemes (e.g. '>' '=') have their primary token(s) taken as an operator
  * while the leftover '=' causes a syntax error because it's not the expected expression.
  */
-
-prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper { pin('.*')=1 }
-
 private suffixExpressionWrapper ::= value (assignExpression | suffixExpression)*
 left suffixExpression ::= ('--' | '++')
 
