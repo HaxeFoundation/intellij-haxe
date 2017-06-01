@@ -387,6 +387,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "%="                                      { return emitToken( OREMAINDER_ASSIGN); }
 "%"                                       { return emitToken( OREMAINDER); }
 
+//">>>="                                    { return emitToken( OUNSIGNED_SHIFT_RIGHT_ASSIGN); }
 //">>="                                     { return emitToken( OSHIFT_RIGHT_ASSIGN); }
 //">="                                      { return emitToken( OGREATER_OR_EQUAL); }
 "=>"                                      { return emitToken( OFAT_ARROW); }

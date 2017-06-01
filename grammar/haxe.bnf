@@ -1,6 +1,6 @@
 {
     parserClass="com.intellij.plugins.haxe.lang.parser.HaxeParser"
-    parserUtilClass="com.intellij.lang.parser.GeneratedParserUtilBase"
+    parserUtilClass="com.intellij.plugins.haxe.lang.parser.HaxeGeneratedParserUtilBase"
 
     implements="com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement"
     extends="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl"
@@ -16,153 +16,158 @@
 
     generateFirstCheck=100
 
-    pLCURLY="{"
-    pRCURLY="}"
-    pLBRACK="["
-    pRBRACK="]"
-    pLPAREN="("
-    pRPAREN=")"
-    oCOLON=":"
-    oSEMI=";"
-    oCOMMA=","
-    oDOT="."
-    oEQ="=="
-    oASSIGN="="
-    oNOT_EQ="!="
-    oNOT="!"
-    oCOMPLEMENT="~"
-    oPLUS_PLUS="++"
-    oPLUS_ASSIGN="+="
-    oPLUS="+"
-    oMINUS_MINUS="--"
-    oMINUS_ASSIGN="-="
-    oMINUS="-"
+    tokens = [
+      pLCURLY="{"
+      pRCURLY="}"
+      pLBRACK="["
+      pRBRACK="]"
+      pLPAREN="("
+      pRPAREN=")"
+      oCOLON=":"
+      oSEMI=";"
+      oCOMMA=","
+      oDOT="."
+      oEQ="=="
+      oASSIGN="="
+      oNOT_EQ="!="
+      oNOT="!"
+      oCOMPLEMENT="~"
+      oPLUS_PLUS="++"
+      oPLUS_ASSIGN="+="
+      oPLUS="+"
+      oMINUS_MINUS="--"
+      oMINUS_ASSIGN="-="
+      oMINUS="-"
 
-    oQUEST="?"
+      oQUEST="?"
 
-    oCOND_OR="||"
-    oBIT_OR="|"
-    oBIT_OR_ASSIGN="|="
+      oCOND_OR="||"
+      oBIT_OR="|"
+      oBIT_OR_ASSIGN="|="
 
-    oCOND_AND="&&"
+      oCOND_AND="&&"
 
-    oBIT_AND_ASSIGN="&="
-    oBIT_AND="&"
+      oBIT_AND_ASSIGN="&="
+      oBIT_AND="&"
 
-    oSHIFT_LEFT_ASSIGN="<<="
-    oSHIFT_LEFT="<<"
-    oLESS_OR_EQUAL="<="
-    oLESS="<"
+      oSHIFT_LEFT_ASSIGN="<<="
+      oSHIFT_LEFT="<<"
+      oLESS_OR_EQUAL="<="
+      oLESS="<"
 
-    oBIT_XOR_ASSIGN="^="
-    oBIT_XOR="^"
+      oBIT_XOR_ASSIGN="^="
+      oBIT_XOR="^"
 
-    oMUL_ASSIGN="*="
-    oMUL="*"
+      oMUL_ASSIGN="*="
+      oMUL="*"
 
-    oQUOTIENT_ASSIGN="/="
-    oQUOTIENT="/"
+      oQUOTIENT_ASSIGN="/="
+      oQUOTIENT="/"
 
-    oREMAINDER_ASSIGN="%="
-    oREMAINDER="%"
+      oREMAINDER_ASSIGN="%="
+      oREMAINDER="%"
 
-    oSHIFT_RIGHT_ASSIGN=">>="
-    oGREATER_OR_EQUAL=">="
-    oGREATER=">"
+      oUNSIGNED_SHIFT_RIGHT_ASSIGN=">>>="
+      oSHIFT_RIGHT_ASSIGN=">>="
+      oSHIFT_RIGHT=">>"
+      oUNSIGNED_SHIFT_RIGHT=">>>"
 
-    oTRIPLE_DOT="..."
-    OIN='in'
-    OARROW='->'
+      oGREATER_OR_EQUAL=">="
+      oGREATER=">"
 
-    OFAT_ARROW="=>"
+      oTRIPLE_DOT="..."
+      OIN='in'
+      OARROW='->'
 
-    oNEW="new"
+      OFAT_ARROW="=>"
 
-    ppIF="#if"
-    ppELSE="#else"
-    ppELSEIF="#elseif"
-    ppEND="#end"
-    ppERROR="#error"
-    ppLINE="#line"
+      oNEW="new"
 
-    kBREAK="break"
-    kDEFAULT="default"
-    kPACKAGE="package"
-    kFUNCTION="function"
+      ppIF="#if"
+      ppELSE="#else"
+      ppELSEIF="#elseif"
+      ppEND="#end"
+      ppERROR="#error"
+      ppLINE="#line"
 
-    kCASE="case"
-    kCAST="cast"
+      kBREAK="break"
+      kDEFAULT="default"
+      kPACKAGE="package"
+      kFUNCTION="function"
 
-    kABSTRACT="abstract"
-    kFROM="from"
-    kTO="to"
+      kCASE="case"
+      kCAST="cast"
 
-    kCLASS="class"
-    kENUM="enum"
-    kINTERFACE="interface"
+      kABSTRACT="abstract"
+      kFROM="from"
+      kTO="to"
 
-    kIMPLEMENTS="implements"
-    kEXTENDS="extends"
+      kCLASS="class"
+      kENUM="enum"
+      kINTERFACE="interface"
 
-    kNULL ="null"
-    kTRUE ="true"
-    kFALSE ="false"
-    kTHIS ="this"
-    kSUPER ="super"
+      kIMPLEMENTS="implements"
+      kEXTENDS="extends"
 
-    kIF ="if"
-    kFOR ="for"
-    kDO ="do"
-    kWHILE ="while"
-    kRETURN="return"
-    kIMPORT ="import"
-    kUSING ="using"
-    kCONTINUE ="continue"
-    kELSE ="else"
-    kSWITCH ="switch"
-    kTHROW ="throw"
+      kNULL ="null"
+      kTRUE ="true"
+      kFALSE ="false"
+      kTHIS ="this"
+      kSUPER ="super"
 
-    kVAR="var"
-    kSTATIC="static"
-    kPUBLIC="public"
-    kPRIVATE="private"
-    kDYNAMIC="dynamic"
-    kNEVER="never"
-    kOVERRIDE="override"
-    kINLINE="inline"
-    kMACRO2="macro"
+      kIF ="if"
+      kFOR ="for"
+      kDO ="do"
+      kWHILE ="while"
+      kRETURN="return"
+      kIMPORT ="import"
+      kUSING ="using"
+      kCONTINUE ="continue"
+      kELSE ="else"
+      kSWITCH ="switch"
+      kTHROW ="throw"
 
-    kUNTYPED="untyped"
-    kTYPEDEF="typedef"
+      kVAR="var"
+      kSTATIC="static"
+      kPUBLIC="public"
+      kPRIVATE="private"
+      kDYNAMIC="dynamic"
+      kNEVER="never"
+      kOVERRIDE="override"
+      kINLINE="inline"
+      kMACRO2="macro"
 
-    kEXTERN="extern"
-    kFINAL="@:final"
-    kHACK="@:hack"
-    kNATIVE="@:native"
-    kMACRO="@:macro"
-    kBUILD="@:build"
-    kAUTOBUILD="@:autoBuild"
-    kKEEP="@:keep"
-    kREQUIRE="@:require"
-    kFAKEENUM="@:fakeEnum"
-    kCOREAPI="@:core_api"
+      kUNTYPED="untyped"
+      kTYPEDEF="typedef"
 
-    kJSREQUIRE="@:jsRequire"
+      kEXTERN="extern"
+      kFINAL="@:final"
+      kHACK="@:hack"
+      kNATIVE="@:native"
+      kMACRO="@:macro"
+      kBUILD="@:build"
+      kAUTOBUILD="@:autoBuild"
+      kKEEP="@:keep"
+      kREQUIRE="@:require"
+      kFAKEENUM="@:fakeEnum"
+      kCOREAPI="@:core_api"
 
-    kBIND="@:bind"
-    kBITMAP="@:bitmap"
-    kNS="@:ns"
-    kPROTECTED="@:protected"
-    kGETTER="@:getter"
-    kSETTER="@:setter"
-    kDEBUG="@:debug"
-    kNODEBUG="@:nodebug"
-    kMETA="@:meta"
-    kOVERLOAD="@:overload"
+      kJSREQUIRE="@:jsRequire"
 
-    kTRY="try"
-    kCATCH="catch"
+      kBIND="@:bind"
+      kBITMAP="@:bitmap"
+      kNS="@:ns"
+      kPROTECTED="@:protected"
+      kGETTER="@:getter"
+      kSETTER="@:setter"
+      kDEBUG="@:debug"
+      kNODEBUG="@:nodebug"
+      kMETA="@:meta"
+      kOVERLOAD="@:overload"
 
+      kTRY="try"
+      kCATCH="catch"
+    ]
     extends(".*(Expression|Literal)")="expression"
     /* extends(".*Statement")="statement"
      */
@@ -176,8 +181,6 @@
 }
 
 haxeFile ::= packageStatement? topLevelList
-
-private unusedRuleToForceSomeTokenTypesToBeGenerated ::= "Add new tokens here -->" ">=" ">>=" ">>>=" "<-- Add new tokens here"
 
 /*
   http://haxe.org/manual/metadata
@@ -240,15 +243,19 @@ private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | 
  * after shiftRight so that it has priority.
  */
 shiftLeftOperator ::= '<<'
-shiftRightOperator ::= '>' '>' {pin=2}
-unsignedShiftRightOperator ::= '>' '>' '>' {pin=3}
+shiftRightOperator ::= <<shiftRight>>
+unsignedShiftRightOperator ::= <<unsignedShiftRight>>
+
+shiftLeftAssignOperator ::= '<<='
+shiftRightAssignOperator ::= <<shiftRightAssign>>
+unsignedShiftRightAssignOperator ::= <<unsignedShiftRightAssign>>
+
 shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
-shiftAssignOperator ::= shiftOperator '=' {pin=2}
+shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAssignOperator | shiftLeftAssignOperator
 
 assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | shiftAssignOperator
-compareOperation ::= '==' | '!=' | '<=' | '<' | ('>' '=') | '>'
+compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | '>'
 bitOperation ::= '|' | '&' | '^'
-
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
@@ -497,11 +504,14 @@ catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
-expression ::= fatArrowExpressionWrapper {recoverWhile="expression_recover"}
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
+expression ::= assignExpressionWrapper {recoverWhile="expression_recover"}
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
-private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression*
-left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=1 extends="expression"}
+private assignExpressionWrapper ::= fatArrowExpressionWrapper assignExpression?
+left assignExpression ::= assignOperation fatArrowExpressionWrapper { pin=1 }
+
+private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression?
+left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=1}
 
 private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
 left iteratorExpression ::= '...' ternaryExpressionWrapper
@@ -527,20 +537,17 @@ left shiftExpression ::= shiftOperator additiveExpressionWrapper
 private additiveExpressionWrapper ::= multiplicativeExpressionWrapper additiveExpression*
 left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper
 
-private multiplicativeExpressionWrapper ::= assignExpressionWrapper multiplicativeExpression*
-left multiplicativeExpression ::= ('*' | '/' | '%') assignExpressionWrapper
+private multiplicativeExpressionWrapper ::= prefixExpression multiplicativeExpression*
+left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper)
+
+prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
 
 /* Technically, assignExpressions don't have higher priority than everything else.
  * But for parsing, this makes sense; otherwise, assignment operators that comprise
  * multiple lexemes (e.g. '>' '=') have their primary token(s) taken as an operator
  * while the leftover '=' causes a syntax error because it's not the expected expression.
  */
-private assignExpressionWrapper ::= prefixExpression assignExpression*
-left assignExpression ::= assignOperation (prefixExpression | suffixExpressionWrapper)
-
-prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
-
-private suffixExpressionWrapper ::= value suffixExpression*
+private suffixExpressionWrapper ::= value (assignExpression | suffixExpression)*
 left suffixExpression ::= ('--' | '++')
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
@@ -597,7 +604,7 @@ private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpre
 
 left callExpression ::= '(' expressionList? ')'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
-left arrayAccessExpression ::= '[' expression? ']'
+left arrayAccessExpression ::= '[' expression ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 referenceExpression ::= identifier

@@ -18,8 +18,7 @@ Haxe File
               LITERAL_EXPRESSION
                 HaxePsiToken:LITINT('1')
               COMPARE_OPERATION
-                HaxePsiToken:>('>')
-                HaxePsiToken:=('=')
+                HaxePsiToken:>=('>=')
               LITERAL_EXPRESSION
                 HaxePsiToken:LITINT('1')
         HaxePsiToken:;(';')

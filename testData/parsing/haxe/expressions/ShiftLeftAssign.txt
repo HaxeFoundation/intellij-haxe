@@ -24,7 +24,7 @@ Haxe File
             LOCAL_VAR_DECLARATION_PART
               COMPONENT_NAME
                 IDENTIFIER
-                  HaxePsiToken:ID('s')
+                  HaxePsiToken:ID('i')
               TYPE_TAG
                 HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
@@ -40,14 +40,13 @@ Haxe File
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
-                HaxePsiToken:ID('s')
+                HaxePsiToken:ID('i')
             ASSIGN_OPERATION
               SHIFT_ASSIGN_OPERATOR
-                SHIFT_RIGHT_ASSIGN_OPERATOR
-                  HaxePsiToken:>>=('>>=')
+                SHIFT_LEFT_ASSIGN_OPERATOR
+                  HaxePsiToken:<<=('<<=')
             LITERAL_EXPRESSION
-              HaxePsiToken:LITINT('2')
+              HaxePsiToken:LITINT('1')
           HaxePsiToken:;(';')
-          PsiComment(MSL_COMMENT)('// <---- '>>=' wasn't parsed correctly.')
           HaxePsiToken:}('}')
     HaxePsiToken:}('}')

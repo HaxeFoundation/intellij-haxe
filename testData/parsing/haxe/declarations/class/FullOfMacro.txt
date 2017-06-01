@@ -107,8 +107,7 @@ Haxe File
           HaxePsiToken:(('(')
           HaxePsiToken:ID('haxe_ver')
           COMPARE_OPERATION
-            HaxePsiToken:>('>')
-            HaxePsiToken:=('=')
+            HaxePsiToken:>=('>=')
           HaxePsiToken:LITFLOAT('3.2')
           HaxePsiToken:)(')')
       MACRO_CLASS
