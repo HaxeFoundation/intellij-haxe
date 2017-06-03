@@ -1,0 +1,227 @@
+Haxe File
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('flash8')
+  PsiComment(PPBODY)('\n')
+  PsiComment(PPBODY)('// Haxe code specific for flash player 8')
+  PsiComment(PPBODY)('\n')
+  PsiComment(#elseif)('#elseif')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('flash')
+  PsiComment(PPBODY)('\n')
+  PsiComment(PPBODY)('// Haxe code specific for flash platform (any version)')
+  PsiComment(PPBODY)('\n')
+  PsiComment(#elseif)('#elseif')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('js')
+  PsiComment(PPBODY)('\n')
+  PsiComment(PPBODY)('// Haxe code specific for javascript plaform')
+  PsiComment(PPBODY)('\n')
+  PsiComment(#else)('#else')
+  PsiComment(MSL_COMMENT)('// do something else')
+  PsiComment(MSL_COMMENT)('#error // will display an error "Not implemented on this platform"')
+  PsiComment(MSL_COMMENT)('#error "Custom error message" // will display an error "Custom error message"')
+  PsiComment(#end)('#end')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('mydebug')
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('Crazy')
+    HaxePsiToken:{('{')
+    PsiComment(#else)('#else')
+    PsiComment(PPBODY)('\n  ')
+    PsiComment(PPBODY)('interface')
+    PsiComment(PPBODY)(' ')
+    PsiComment(PPBODY)('Crazy')
+    PsiComment(PPBODY)(' ')
+    PsiComment(PPBODY)('{')
+    PsiComment(PPBODY)('\n  ')
+    PsiComment(#end)('#end')
+    PsiComment(MSL_COMMENT)('// yep')
+    CLASS_BODY
+      <empty list>
+    HaxePsiToken:}('}')
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('ConditionalCompilation')
+    HaxePsiToken:{('{')
+    PsiComment(#if)('#if')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('!')
+    PsiComment(PPEXPRESSION)('debug')
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        DECLARATION_ATTRIBUTE
+          HaxePsiToken:inline('inline')
+        PsiComment(#end)('#end')
+        DECLARATION_ATTRIBUTE
+          ACCESS
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('abc')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        HaxePsiToken:)(')')
+        BLOCK_STATEMENT
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('(')
+  PsiComment(PPEXPRESSION)('neko')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('&&')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('mydebug')
+  PsiComment(PPEXPRESSION)(')')
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('FooNeko')
+    HaxePsiToken:{('{')
+    CLASS_BODY
+      <empty list>
+    HaxePsiToken:}('}')
+  PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
+  PsiComment(#end)('#end')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('(')
+  PsiComment(PPEXPRESSION)('flash')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('||')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('php')
+  PsiComment(PPEXPRESSION)(')')
+  PsiComment(PPBODY)('\n')
+  PsiComment(PPBODY)('// Code that works for either flash or PHP')
+  PsiComment(PPBODY)('\n')
+  PsiComment(PPBODY)('class')
+  PsiComment(PPBODY)(' ')
+  PsiComment(PPBODY)('FooFlash')
+  PsiComment(PPBODY)(' ')
+  PsiComment(PPBODY)('{')
+  PsiComment(PPBODY)('\n\n')
+  PsiComment(PPBODY)('}')
+  PsiComment(PPBODY)('\n')
+  PsiComment(#end)('#end')
+  PsiComment(#if)('#if')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('(')
+  PsiComment(PPEXPRESSION)('neko')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('&&')
+  PsiComment(PPEXPRESSION)(' ')
+  PsiComment(PPEXPRESSION)('mydebug')
+  PsiComment(PPEXPRESSION)(')')
+  TYPEDEF_DECLARATION
+    HaxePsiToken:typedef('typedef')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('Vector')
+    HaxePsiToken:=('=')
+    TYPE_OR_ANONYMOUS
+      TYPE
+        REFERENCE_EXPRESSION
+          REFERENCE_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('com')
+            HaxePsiToken:.('.')
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('foo')
+          HaxePsiToken:.('.')
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('SuperArray')
+    HaxePsiToken:;(';')
+  PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
+  PsiComment(#end)('#end')
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('ConditionalCompilation')
+    HaxePsiToken:{('{')
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        HaxePsiToken:function('function')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('foo')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        HaxePsiToken:)(')')
+        BLOCK_STATEMENT
+          HaxePsiToken:{('{')
+          PsiComment(#if)('#if')
+          PsiComment(PPEXPRESSION)(' ')
+          PsiComment(PPEXPRESSION)('(')
+          PsiComment(PPEXPRESSION)('neko')
+          PsiComment(PPEXPRESSION)(' ')
+          PsiComment(PPEXPRESSION)('&&')
+          PsiComment(PPEXPRESSION)(' ')
+          PsiComment(PPEXPRESSION)('php')
+          PsiComment(PPEXPRESSION)(')')
+          PsiComment(PPBODY)(' ')
+          PsiComment(PPBODY)('||')
+          PsiComment(PPBODY)(' ')
+          PsiComment(PPBODY)('(')
+          PsiComment(PPBODY)('neko')
+          PsiComment(PPBODY)(' ')
+          PsiComment(PPBODY)('&&')
+          PsiComment(PPBODY)(' ')
+          PsiComment(PPBODY)('mydebug')
+          PsiComment(PPBODY)(')')
+          PsiComment(PPBODY)('\n    ')
+          PsiComment(PPBODY)('trace')
+          PsiComment(PPBODY)('(')
+          PsiComment(PPBODY)('"')
+          PsiComment(PPBODY)('Debug infos for all debug compiles')
+          PsiComment(PPBODY)('"')
+          PsiComment(PPBODY)(')')
+          PsiComment(PPBODY)(';')
+          PsiComment(PPBODY)('\n    ')
+          PsiComment(#end)('#end')
+          HaxePsiToken:}('}')
+      PsiComment(#if)('#if')
+      PsiComment(PPEXPRESSION)(' ')
+      PsiComment(PPEXPRESSION)('neko')
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        DECLARATION_ATTRIBUTE
+          HaxePsiToken:inline('inline')
+        PsiComment(#elseif)('#elseif')
+        PsiComment(PPEXPRESSION)(' ')
+        PsiComment(PPEXPRESSION)('cpp')
+        PsiComment(PPBODY)(' ')
+        PsiComment(PPBODY)('private')
+        PsiComment(PPBODY)(' ')
+        PsiComment(#else)('#else')
+        PsiComment(PPBODY)(' ')
+        PsiComment(PPBODY)('public')
+        PsiComment(PPBODY)(' ')
+        PsiComment(#end)('#end')
+        HaxePsiToken:function('function')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('foo2')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        HaxePsiToken:)(')')
+        BLOCK_STATEMENT
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')

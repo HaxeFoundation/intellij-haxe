@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2017 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,24 +17,19 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-public class IfTest extends StatementTestBase {
-  public IfTest() {
-    super("if");
+import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
+
+/**
+ * Created by ebishton on 6/2/17.
+ */
+public class ConditionalCompilationTest extends StatementTestBase {
+  public ConditionalCompilationTest() {
+    super("conditionalcompilation");
   }
 
-  public void testSimple() throws Throwable {
+  public void testConditionalCompilation() throws Throwable {
+    myProject.putUserData(HaxeConditionalExpression.DEFINES_KEY, "neko,mydebug");
     doTest(true);
   }
 
-  public void testIfElse() throws Throwable {
-    doTest(true);
-  }
-
-  public void testMultipleIfElse() throws Throwable {
-    doTest(true);
-  }
-
-  public void testCondition() throws Throwable {
-    doTest(true);
-  }
 }
