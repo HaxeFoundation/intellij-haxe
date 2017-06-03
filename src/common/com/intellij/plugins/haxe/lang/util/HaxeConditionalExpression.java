@@ -367,10 +367,17 @@ public class HaxeConditionalExpression {
     if (KTRUE.toString().equals(s))   { return new Boolean(true); }
     if (KFALSE.toString().equals(s))  { return new Boolean(false); }
 
-    Float result = new Float(0);
-    if (isFloat(s,result))            { return result; }
+    FloatResult result = new FloatResult();
+    if (isFloat(s,result))            { return result.result; }
 
-    // XXX: Need to de-quote strings? (and recurse?)
+    // De-quote strings and recurse...
+    if ((s.startsWith("\"") && s.endsWith("\"")) || (s.startsWith("'") && s.endsWith("'"))) {
+      if (s.length() <= 2) {
+        return new String();
+      } else {
+        return identifierValue(s.substring(1, s.length() - 1));
+      }
+    }
 
     return s;
   }
@@ -395,15 +402,19 @@ public class HaxeConditionalExpression {
     }
     String name = identifier.getText();
     if (definitions != null) {
-      for (String possible : definitions) {
+      for (String def : definitions) {
+        String[] split = def.split("=", 2);
+
         // Dashes are subtraction operators, so definitions (on the command line) that
         // contain dashes are mapped to an equivalent using underscores (when looking up definitions).
-        possible.replaceAll("-", "_");
-        if (possible.startsWith(name)) {
-          if (possible.length() == name.length()) {
+        String possible = split.length > 0 ? split[0].replaceAll("-","_") : null;
+        String value = split.length > 1 ? split[1] : null;
+
+        if (possible.equals(name)) {
+          if (null == value) {
             return new Boolean(true);
-          } else if (possible.charAt(name.length()) == '=') {
-            return identifierValue(possible.substring(name.length()+1));
+          } else {
+            return identifierValue(value);
           }
         }
       }
@@ -424,14 +435,14 @@ public class HaxeConditionalExpression {
 
   // Parodies Haxe parser cmp function
   // https://github.com/HaxeFoundation/haxe/blob/development/src/syntax/parser.mly#L1600
-  private int objectCompare(Object lhs, Object rhs) throws CompareException {
+  private int objectCompare(Object lhs, Object rhs) throws CompareException, CalculationException {
     if (lhs == null && rhs == null) { return 0; }
     if (lhs instanceof Boolean && rhs instanceof Boolean) { return ((Boolean)lhs).compareTo((Boolean)rhs); }
     if (lhs instanceof String && rhs instanceof String)   { return ((String)lhs).compareTo((String)rhs); }
 
     // For String vs Float, convert the strings to floats.  Errors converting are thrown past this function.
-    if (lhs instanceof String  && rhs instanceof Float)  { lhs = Float.valueOf((String)lhs); }
-    if (lhs instanceof Float   && rhs instanceof String) { rhs = Float.valueOf((String)rhs); }
+    if (lhs instanceof String  && rhs instanceof Float)  { lhs = identifierValue((String)lhs); }
+    if (lhs instanceof Float   && rhs instanceof String) { rhs = identifierValue((String)rhs); }
 
     if (lhs instanceof Float && rhs instanceof Float) {
       // To get the same behavior as OCaml, NaN needs to be treated as less than all other numbers,

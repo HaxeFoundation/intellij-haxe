@@ -92,16 +92,17 @@ public class HaxeAstUtil {
   public static boolean isFloat(@Nullable String s) {
     return isFloat(s, null);
   }
-  public static boolean isFloat(@Nullable String s, @Nullable Float result) {
+  public static boolean isFloat(@Nullable String s, @Nullable FloatResult result) {
     try {
       Float f = Float.valueOf(s);
       if (null != result) {
-        result = f;
+        result.result = f;
       }
       return true;
     }
     catch (NumberFormatException e) {
-      result = Float.NaN;
+      if (null != result)
+        result.result = Float.NaN;
     }
     return false;
   }
@@ -167,5 +168,9 @@ public class HaxeAstUtil {
       }
     }
     return false;
+  }
+
+  public static class FloatResult {
+    public Float result = Float.NaN;
   }
 }

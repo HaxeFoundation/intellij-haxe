@@ -470,7 +470,9 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "&&"                                      { return conditionAppend( OCOND_AND ); }
 "||"                                      { return conditionAppend( OCOND_OR ); }
 
+\'                                        { pushState(CC_APOS_STRING); return conditionAppend( OPEN_QUOTE ); }
 \"                                        { pushState(CC_STRING); return conditionAppend( OPEN_QUOTE ); }
+
 
 // Any other token is an error which needs to kill this state and be processed normally.
 .                                         {
@@ -482,11 +484,15 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 }
 
 // Strings inside of compiler conditionals.  They can't use string interpolation/templates (e.g. $var).
-<CC_STRING> \"                            { popState(); return conditionAppend( CLOSING_QUOTE ); }
-<CC_APOS_STRING> \'                       { popState(); return conditionAppend( CLOSING_QUOTE ); }
-<CC_STRING, CC_APOS_STRING>  {
+<CC_STRING> {
+\"                                        { popState(); return conditionAppend( CLOSING_QUOTE ); }
 {ESCAPE_SEQUENCE}                         { return conditionAppend( REGULAR_STRING_PART ); }
 {REGULAR_QUO_STRING_PART}                 { return conditionAppend( REGULAR_STRING_PART ); }
+}
+<CC_APOS_STRING> {
+\'                                        { popState(); return conditionAppend( CLOSING_QUOTE ); }
+{ESCAPE_SEQUENCE}                         { return conditionAppend( REGULAR_STRING_PART ); }
+{REGULAR_APOS_STRING_PART}                { return conditionAppend( REGULAR_STRING_PART ); }
 }
 
 <QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY, CC_BLOCK> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
