@@ -17,9 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
-import com.intellij.plugins.haxe.lang.lexer.HaxeLexer;
-import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
-
 public class IfTest extends StatementTestBase {
   public IfTest() {
     super("if");
@@ -39,16 +36,5 @@ public class IfTest extends StatementTestBase {
 
   public void testCondition() throws Throwable {
     doTest(true);
-  }
-
-  public void testConditionalCompilation() throws Throwable {
-    // Disabling this test because we no longer treat conditional compilation
-    // tokens (and unused code between them) as comments.  Since we are
-    // trying to parse all paths, we get errors when the unbalanced curly
-    // brackets appear in the test file.
-    if (false ) {
-      myProject.putUserData(HaxeConditionalExpression.DEFINES_KEY, "neko,mydebug");
-      doTest(true);
-    }
   }
 }

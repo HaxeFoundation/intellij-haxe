@@ -1,0 +1,28 @@
+Haxe File
+  PACKAGE_STATEMENT
+    HaxePsiToken:package('package')
+    HaxePsiToken:;(';')
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
+    PsiComment(#if)('#if')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('true')
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        HaxePsiToken:function('function')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('bar')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        HaxePsiToken:)(')')
+        BLOCK_STATEMENT
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    PsiComment(#end)('#end')
+    HaxePsiToken:}('}')

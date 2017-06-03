@@ -1,0 +1,35 @@
+Haxe File
+  PACKAGE_STATEMENT
+    HaxePsiToken:package('package')
+    HaxePsiToken:;(';')
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
+    PsiComment(MML_COMMENT)('/* Multi-line expressions are allowed. */')
+    PsiComment(#if)('#if')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('(')
+    PsiComment(PPEXPRESSION)('cpp')
+    PsiComment(PPEXPRESSION)('\n     ')
+    PsiComment(PPEXPRESSION)('||')
+    PsiComment(PPEXPRESSION)('\n     ')
+    PsiComment(PPEXPRESSION)('js')
+    PsiComment(PPEXPRESSION)(')')
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        HaxePsiToken:function('function')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('bar')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        HaxePsiToken:)(')')
+        BLOCK_STATEMENT
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    PsiComment(#end)('#end')
+    HaxePsiToken:}('}')
