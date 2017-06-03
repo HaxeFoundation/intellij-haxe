@@ -1,8 +1,8 @@
 Haxe plugin for Intellij IDEA
 ======================================
 
-This plugin allows you to develop [Haxe](http://haxe.org/) programs with Intellij IDEA.
-It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, IDEA 2016.1 through 2016.3.
+This plugin allows you to develop [Haxe](http://haxe.org/) programs with [Intellij IDEA](http://www.jetbrains.com/idea).
+It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, 2016.1 through 2016.3, and 2017.1.
 
 #### We have moved!
 The primary maintained branch of this plugin has moved to the Haxe Foundation's github repository.  Please update your

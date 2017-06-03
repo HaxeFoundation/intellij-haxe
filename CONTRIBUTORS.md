@@ -4,11 +4,13 @@ Recent contributors
  - bynuff <igor.bulankov@gmail.com>
  - David Nemcok <nemcok.david@gmail.com>
  - EBatTiVo <ebishton@tivo.com>
- - Eric B <ebishton@tivo.com>
  - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
  - Eric Bishton <ebishton@ix.netcom.com>
+ - EricBishton <ebishton.ix.netcom.com>
+ - Eric Bishton <EricBishton@users.noreply.github.com>
  - GitHub <noreply@github.com>
  - Ilya Kuzmichev <deadbabe@gmail.com>
+ - Jens Fischer <jensfischer95@gmail.com>
  - mayakwd <loremipsum.inside@gmail.com>
  - slavara <ratdg@ya.ru>
  - Usievaład Čorny <anibyl@riseup.net>
@@ -40,6 +42,8 @@ All contributors
 - Eric B <ebishton@tivo.com>
 - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
 - Eric Bishton <ebishton@ix.netcom.com>
+- EricBishton <ebishton.ix.netcom.com>
+- Eric Bishton <EricBishton@users.noreply.github.com>
 - Eugene Zhuravlev <jeka@intellij.com>
 - Evgeny Pasynkov <Evgeny.Pasynkov@jetbrains.com>
 - Evgeny Zakrevsky <evgeny.zakrevsky@jetbrains.com>
@@ -58,6 +62,7 @@ All contributors
 - Ilya Kuzmichev <ilyak@playtika.com>
 - impaler <user123@server.fake>
 - isBatak <ivicabatinic123@gmail.com>
+- Jens Fischer <jensfischer95@gmail.com>
 - Jérémy Faivre <jeremy.faivre@gmail.com>
 - jeremyfa <jeremy.faivre@gmail.com>
 - kirill.safonov <kirill.safonov@jetbrains.com>

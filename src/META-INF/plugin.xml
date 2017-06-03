@@ -30,41 +30,44 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.11.0.RC-3 for @plugin.compatibility.description@</version>
+  <version>0.11.0 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p>Documentation: <a href="https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md">https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md</a></p>
-      <p>Support: <a href="https://github.com/HaxeFoundation/intellij-haxe/issues">https://github.com/HaxeFoundation/intellij-haxe/issues</a></p>
-      <p>Professionally maintained by Bishton Software Solutions: <a href="http://BishtonSoftwareSolutions.com">http://BishtonSoftwareSolutions.com</a></p>
+      <p>Support: <a href="http://intellij-haxe.org">http://intellij-haxe.org</a></p>
+      <p>Donate: <a href="https://www.patreon.com/EricBishton">https://www.patreon.com/EricBishton</a></p>
+      <p>Professionally supported and maintained by Bishton Software Solutions: <a href="http://BishtonSoftwareSolutions.com">http://BishtonSoftwareSolutions.com</a></p>
       <p/>
-      <p>0.11.0.RC-3: (community release)</p>
+      <p>0.11.0: (community release)</p>
       <ul>
+        <li>Support IDEA 2017.1</li>
+        <li>Add parsing support for "Arrow Functions."</li>
+        <li>Better recovery of parsing errors in function parameter lists.</li>
+        <li>Fixed exceptions occurring when adding libraries, so auto-adding will work again.</li>
+        <li>Delay using project indexes until scanning is complete.</li>
+        <li>Proper resolution of constructors ('new').</li>
+        <li>Display parameter tip text when creating new object instantiations.</li>
+        <li>Better parsing of shift-and-assign operators. <Issue #637)</li>
         <li>Now correctly resolves variables declared in 'for' statements when the iterated type is parameterized. (Issue #528)</li>
         <li>Resolve chained classes with type parameters (generics). </li>
-        <li>Correct completion with EitherType<>. (Issue#512). </li>
-        <li>Parse @:const type paramters without error.  Also allow constants as type parameters.</li>
+        <li>Correct completion with EitherType&lt;&gt;. (Issue#512). </li>
+        <li>Parse @:const type parameters without error.  Also allow constants as type parameters.</li>
         <li>Added navigation to getter/setter methods from property accessors.</li>
         <li>Annotate strings with incorrect quotes and add quick-fix intention to convert them.</li>
         <li>Note optional arguments with a ? when displaying methods.</li>
         <li>Improved method signature check.</li>
         <li>Added searching of implementation declared by superclasses.</li>
-      </ul>
-      <p>0.11.0.RC-2: (community release)</p>
-      <ul>
         <li>Properly parse and evaluate compiler conditionals (#if...#else...#end)</li>
         <li>Resolve array access with types other than "Array."</li>
-        <li>Better 'Main class' chooser for the 'Project Settings->Haxe Compiler' dialog.</li>
+        <li>Better 'Main class' chooser for the 'Project Settings-&gt;Haxe Compiler' dialog.</li>
         <li>Fix property getter/setter quick-fixes.</li>
         <li>Add location data, if known, to compiler completion error messages.</li>
         <li>Display available completions even when the compiler reports an error.</li>
         <li>Fixed incomplete results from a compiler run.</li>
         <li>Better logic for removing duplicate entries from completion lists.</li>
-      </ul>
-      <p>0.11.0.RC-1: (community release)</p>
-      <ul>
-        <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File->Project Structure...</li>
+        <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File-&gt;Project Structure...</li>
         <li>Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)</li>
         <li>Fix parsing of one-liner conditional compilation style (issue #417, #121, partly #115)</li>
         <li>Support for `@:require` haxe_ver comparing (issue #418)</li>
