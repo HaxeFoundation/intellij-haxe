@@ -161,4 +161,8 @@ public class ConditionalCompilationTest extends StatementTestBase {
     doTest(true);
   }
 
+  public void testActuateLibExampleFromManual() throws Throwable {
+    setDefines("actuate=1.8.7");
+    doTest(true);
+  }
 }
