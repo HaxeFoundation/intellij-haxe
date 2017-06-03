@@ -1,0 +1,62 @@
+Haxe File
+  PACKAGE_STATEMENT
+    HaxePsiToken:package('package')
+    HaxePsiToken:;(';')
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
+    PsiComment(#if)('#if')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('(')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)('this')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('<')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)('that')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)(')')
+    PsiComment(PPBODY)('\n ')
+    PsiComment(PPBODY)('function')
+    PsiComment(PPBODY)(' ')
+    PsiComment(PPBODY)('bar')
+    PsiComment(PPBODY)('(')
+    PsiComment(PPBODY)(')')
+    PsiComment(PPBODY)(' ')
+    PsiComment(PPBODY)('{')
+    PsiComment(PPBODY)('}')
+    PsiComment(PPBODY)('\n ')
+    PsiComment(#end)('#end')
+    PsiComment(#if)('#if')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('(')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)('that')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('<')
+    PsiComment(PPEXPRESSION)(' ')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)('this')
+    PsiComment(PPEXPRESSION)('"')
+    PsiComment(PPEXPRESSION)(')')
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        HaxePsiToken:function('function')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('baz')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        HaxePsiToken:)(')')
+        BLOCK_STATEMENT
+          HaxePsiToken:{('{')
+          HaxePsiToken:}('}')
+    PsiComment(#end)('#end')
+    HaxePsiToken:}('}')

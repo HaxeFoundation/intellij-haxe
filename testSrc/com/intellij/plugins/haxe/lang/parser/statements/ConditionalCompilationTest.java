@@ -85,5 +85,80 @@ public class ConditionalCompilationTest extends StatementTestBase {
     // #if(!cpp)
     doTest(true);
   }
+  public void testConstantSetFalse() throws Throwable {
+    setDefines("cpp=false");
+    doTest(true);
+  }
+  public void testConstantSetTrue() throws Throwable {
+    setDefines("cpp=true");
+    doTest(true);
+  }
+  public void testConstantSetToZeroString() throws Throwable {
+    setDefines("cpp=\"0\"");
+    doTest(true);
+  }
+  public void testConstantSetToNonZeroString() throws Throwable {
+    setDefines("cpp=\"2.1\"");
+    doTest(true);
+  }
+  public void testConstantSetToZeroValue() throws Throwable {
+    setDefines("cpp=0");
+    doTest(true);
+  }
+  public void testConstantSetToNonZeroValue() throws Throwable {
+    setDefines("cpp=1.2");
+    doTest(true);
+  }
+
+  public void testStringEqualsString() throws Throwable {
+    // #if ("string" =="string")
+    doTest(true);
+  }
+  public void testStringNotEqualString() throws Throwable {
+    // #if ("string" != "other")
+    doTest(true);
+  }
+  public void testStringLessThanString() throws Throwable {
+    //  #if ("this" < "that")
+    doTest(true);
+  }
+  public void testStringGreaterThanValue() throws Throwable {
+    //  #if ("this" > 1)  -- False!
+    doTest(true);
+  }
+  public void testValueEqualBoolean() throws Throwable {
+    //  #if ( 1 == true )
+    doTest(true);
+  }
+  public void testConstantOrConstant() throws Throwable {
+    // When either one or both are set, we should have the same result.
+    setDefines("cpp"); // And not js
+    doTest(true);
+    setDefines("js"); // And not cpp
+    doTest(true);
+    setDefines("js,cpp");
+    doTest(true);
+    setDefines("js=1,cpp=2.3");
+    doTest(true);
+    setDefines("js=\"foo\"");
+  }
+  public void testConstantAndConstant() throws Throwable {
+    setDefines("cpp,js=false");
+    doTest(true);
+    setDefines("cpp=false,js");
+    doTest(true);
+    setDefines("cpp");
+    doTest(true);
+    setDefines("js");
+    doTest(true);
+  }
+  public void testComplexMultiExpressionWithParens() throws Throwable {
+    // #if !( (((!cpp) && js) && haxe_ver < 3.5 ) || (haxe_ver >= 3.2 && !cpp && "foo" != "bar"))
+    setDefines("cpp=false,js=true,haxe-ver=\"3.2\"");
+    doTest(true);
+  }
+  public void testComparisonOperators() throws Throwable {
+    doTest(true);
+  }
 
 }
