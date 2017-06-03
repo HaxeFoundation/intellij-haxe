@@ -27,8 +27,62 @@ public class ConditionalCompilationTest extends StatementTestBase {
     super("conditionalcompilation");
   }
 
+  private void setDefines(String defines) {
+    myProject.putUserData(HaxeConditionalExpression.DEFINES_KEY, defines);
+  }
+
   public void testConditionalCompilation() throws Throwable {
-    myProject.putUserData(HaxeConditionalExpression.DEFINES_KEY, "neko,mydebug");
+    setDefines("neko,mydebug");
+    doTest(true);
+  }
+
+  public void testConstantNotDefined() throws Throwable {
+    doTest(true);
+  }
+
+  public void testConstantDefined() throws Throwable {
+    setDefines("cpp");
+    doTest(true);
+  }
+
+  public void testTrue() throws Throwable {
+    // #if true
+    doTest(true);
+  }
+  public void testNotTrue() throws Throwable {
+    // #if !true
+    doTest(true);
+  }
+  public void testTrueInParens() throws Throwable {
+    // #if (true)
+    doTest(true);
+  }
+  public void testFalse() throws Throwable {
+    // #if false
+    doTest(true);
+  }
+  public void testNotFalse() throws Throwable {
+    // #if !false
+    doTest(true);
+  }
+
+  public void testConstantInParens() throws Throwable {
+    // #if (cpp)
+    setDefines("cpp");
+    doTest(true);
+  }
+  public void testNotConstantInParens() throws Throwable {
+    // #if !(cpp)
+    setDefines("cpp");
+    doTest(true);
+  }
+  public void testNotConstantInsideParens() throws Throwable {
+    // #if (!cpp)
+    setDefines("cpp");
+    doTest(true);
+  }
+  public void testNotConstantWhenNotDefined() throws Throwable {
+    // #if(!cpp)
     doTest(true);
   }
 
