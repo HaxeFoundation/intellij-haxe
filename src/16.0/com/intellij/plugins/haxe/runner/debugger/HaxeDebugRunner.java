@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.runner.debugger;
 
+import com.intellij.compiler.ProblemsView;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
@@ -43,6 +45,7 @@ import com.intellij.openapi.vfs.VFileProperty;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
@@ -60,6 +63,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.concurrency.QueueProcessor;
+import com.intellij.util.ui.MessageCategory;
 import com.intellij.xdebugger.*;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
@@ -78,6 +82,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1331,7 +1336,18 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
+            if (false /* TODO: Get display behavior from the plugin configuration. */) {
+              // Put up a modal dialog.  Folks don't like this much, so this should not be the default.
               Messages.showInfoMessage(project, message, title);
+            } else {
+              // Show the error on the status bar.
+              StatusBarUtil.setStatusBarInfo(project, message);
+              // XXX: Should we log this, too??
+            }
+            // Add the output to the "Problems" pane.
+            ProblemsView.SERVICE.getInstance(project).addMessage(MessageCategory.INFORMATION, new String[]{message},
+                                                                 null, null, null,
+                                                                 null, UUID.randomUUID());
           }
       });
   }
