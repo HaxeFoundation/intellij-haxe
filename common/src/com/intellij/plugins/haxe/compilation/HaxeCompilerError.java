@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,8 +110,11 @@ public class HaxeCompilerError {
     {
         Matcher m;
 
+        // Trim the trailing newline, if any.
+        String trimmed = message.trim();
+
         // Library (\S+) (is not installed.*)
-        if ((m = pLibraryNotInstalled.matcher(message)).matches()) {
+        if ((m = pLibraryNotInstalled.matcher(trimmed)).matches()) {
             return new HaxeCompilerError(CompilerMessageCategory.ERROR,
                                          "Library " + m.group(1).trim() +
                                          " " +
@@ -120,21 +124,21 @@ public class HaxeCompilerError {
         String rawPath = null, rawLine, rawColumn, text;
 
         // ([^:]+):([\\d]+): characters ([\\d]+)-[\\d]+ :(.*)
-        if ((m = pColumnError.matcher(message)).matches()) {
+        if ((m = pColumnError.matcher(trimmed)).matches()) {
             rawPath = m.group(1);
             rawLine = m.group(2);
             rawColumn = m.group(3);
             text = m.group(4).trim();
         }
         // ([^:]+):([\\d]+): lines [\\d]+-[\\d]+ :(.*)
-        else if ((m = pLineError.matcher(message)).matches()) {
+        else if ((m = pLineError.matcher(trimmed)).matches()) {
             rawPath = m.group(1);
             rawLine = m.group(2);
             rawColumn = "-1";
             text = m.group(3).trim();
         }
         // ([^:]*)Error:(.*)
-        else if ((m = pBareError.matcher(message)).matches()) {
+        else if ((m = pBareError.matcher(trimmed)).matches()) {
           String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
           return new HaxeCompilerError(CompilerMessageCategory.ERROR,
                                        msg, "", -1, -1);
@@ -144,11 +148,12 @@ public class HaxeCompilerError {
         // match the expression that are not errors.  Those we try to ignore.
         // Windows file paths don't have spaces around the colon, so should not
         // match the pattern.
-        else if ((m = pGenericError.matcher(message)).matches()) {
+        else if ((m = pGenericError.matcher(trimmed)).matches()) {
           String error = m.group(1).trim();
           if (matchesInformationalPattern(error)) {
+            // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
             return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
-                                         message.trim(), "", -1, -1);
+                                         message, "", -1, -1);
           }
 
           String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
@@ -158,8 +163,9 @@ public class HaxeCompilerError {
 
         // Anything that doesn't match error patterns is purely informational
         else {
-            return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
-                                         message.trim(), "", -1, -1);
+          // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
+          return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
+                                         message, "", -1, -1);
         }
 
         // Got a real file error, so handle it
@@ -219,10 +225,9 @@ public class HaxeCompilerError {
     }
 
     private static boolean matchesInformationalPattern(String message) {
-      Boolean isStatusMessage = pGeneratingStatusMessage.matcher(message).matches();
-      Boolean isInfoMessages =  mInformationalMessages.contains(message);
-      Boolean isCompilingStatusMessage = pCompilingStatusMessage.matcher(message).matches();
-      return  isStatusMessage || isInfoMessages || isCompilingStatusMessage;
+      return pGeneratingStatusMessage.matcher(message).matches()
+          || mInformationalMessages.contains(message)
+          || pCompilingStatusMessage.matcher(message).matches();
     }
 
     static Pattern pLibraryNotInstalled = Pattern.compile
@@ -244,7 +249,7 @@ public class HaxeCompilerError {
     static {
       String[] nonErrors = { "Defines", "Classpath", "Classes found", "Display file", "Using default windows compiler",
         // Hxcpp 3.3 message lines:
-        "- Compile", "-  - Link",
+        "- Compile", "-  - Link", "- Link"
       };
       mInformationalMessages.addAll(Arrays.asList(nonErrors));
     }

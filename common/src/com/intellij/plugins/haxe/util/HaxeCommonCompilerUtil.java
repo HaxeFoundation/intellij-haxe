@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerProcessHandler;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
@@ -207,29 +209,14 @@ public class HaxeCommonCompilerUtil {
       if (!workingDirectory.exists()) {
         if (!workingDirectory.mkdirs()) throw new IOException("Cannot create directory " + workingPath);
       }
-      final BaseOSProcessHandler handler = new ColoredProcessHandler(
+      final BaseOSProcessHandler handler = new HaxeCompilerProcessHandler(
+        context,
         HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData()).start(),
         commandLineString,
         Charset.defaultCharset()
       );
 
       handler.addProcessListener(new ProcessAdapter() {
-        @Override
-        public void onTextAvailable(ProcessEvent event, Key outputType) {
-          String[] lines = event.getText().split("\\n");
-          if (lines.length > 0) {
-            if (lines[0].matches("Error: : unknown option `-python'.")) {
-              handler.detachProcess();
-              handler.removeProcessListener(this);
-              context.errorHandler("Currently active Haxe toolkit doesn't supports Python target. Please install latest version of Haxe toolkit");
-              Notifications.Bus.notify(
-                new Notification("", "Current version of Haxe toolkit doesn't supports Python target", "You can download latest version of Haxe toolkit at <a href='http://haxe.org/download'>haxe.org/download</a> ", NotificationType.WARNING, NotificationListener.URL_OPENING_LISTENER));
-              return;
-            }
-          }
-          context.handleOutput(lines);
-        }
-
         @Override
         public void processTerminated(ProcessEvent event) {
           hasErrors.setValue(event.getExitCode() != 0);
