@@ -1,5 +1,5 @@
 /*
- * Written by Eric Bishton.  No copyright is asserted for this file.
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class HaxeCompilerErrorTest extends UsefulTestCase {
   }
 
   private void doInfoTest(String compilerOutput) throws Throwable {
-    doTest(compilerOutput, CompilerMessageCategory.INFORMATION, compilerOutput.trim(), "", -1, -1);
+    doTest(compilerOutput, CompilerMessageCategory.INFORMATION, compilerOutput, "", -1, -1);
   }
 
   private void doWarningTest(String compilerOutput) throws Throwable {
@@ -48,6 +48,10 @@ public class HaxeCompilerErrorTest extends UsefulTestCase {
   // hxcpp 3.3 link message
   public void testLinkMessage() throws Throwable {
     doInfoTest(" -  - Link : ApplicationMain: xcrun");
+  }
+
+  public void testLinkMessage2() throws Throwable {
+    doInfoTest( " - Link : ApplicationMain: xcrun\n");
   }
 
   // hxcpp 3.3 compile message.
