@@ -221,7 +221,7 @@
   <target name="metainf" description="Copy and update META-INF files with version-specific information">
     <!-- Need to overwrite always.  Otherwise, copied files are newer and
          won't be updated between build types (versions). -->
-    <copy todir="gen/META-INF" overwrite="true" verbose="true">
+    <copy todir="gen${file.separator}META-INF" overwrite="true" verbose="true">
       <fileset dir="${intellij-haxe.metainf.directory}"/>
       <filterset>
         <filtersfile file="${plugin.properties.file}"/>
@@ -242,8 +242,8 @@
   <fileset id="gen.haxefiles" dir="." includes="${gen.haxepath}/**"/>
   <fileset id="gen.hxmlfiles" dir="." includes="${gen.hxmlpath}/**"/>
 
-  <property name="grammar.haxe" value="./grammar/haxe.bnf"/>
-  <property name="grammar.hxml" value="./src/common/com/intellij/plugins/haxe/hxml/hxml.bnf"/>
+  <property name="grammar.haxe" value=".${file.separator}grammar${file.separator}haxe.bnf"/>
+  <property name="grammar.hxml" value=".${file.separator}src${file.separator}common${file.separator}com${file.separator}intellij${file.separator}plugins${file.separator}haxe${file.separator}hxml${file.separator}hxml.bnf"/>
 
   <target name="checkHaxeRegenNeeded" >
     <mkdir dir="${gen.haxepath}"/> <!-- need the path so srcfiles doesn't fail -->
