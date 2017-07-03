@@ -19,14 +19,8 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.execution.process.BaseOSProcessHandler;
-import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
@@ -74,6 +68,8 @@ public class HaxeCommonCompilerUtil {
 
     public String getHaxelibPath();
 
+    public String getNekoBinPath();
+
     boolean isDebug();
 
     String getSdkName();
@@ -96,7 +92,7 @@ public class HaxeCommonCompilerUtil {
   public static boolean compile(final CompilationContext context) {
     HaxeModuleSettingsBase settings = context.getModuleSettings();
     if (settings.isExcludeFromCompilation()) {
-      context.log("Module " + context.getModuleName() + " is excluded from compilation.");
+      context.log(HaxeCommonBundle.message("module.0.is.excluded.from.compilation", context.getModuleName()));
       return true;
     }
     final String mainClass = context.getCompilationClass();
@@ -141,6 +137,13 @@ public class HaxeCommonCompilerUtil {
       context.errorHandler(HaxeCommonBundle.message("invalid.haxe.sdk.for.module", context.getModuleName()));
       return false;
     }
+
+    final String nekoPath = context.getNekoBinPath();
+    if ((settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) && (nekoPath == null || nekoPath.isEmpty())) {
+      context.warningHandler(HaxeCommonBundle.message("no.nekopath.for.sdk", context.getSdkName()));
+      return false;
+    }
+
 
     final String haxelibPath = context.getHaxelibPath();
     if ((settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) && (haxelibPath == null || haxelibPath.isEmpty())) {
@@ -219,7 +222,12 @@ public class HaxeCommonCompilerUtil {
       handler.addProcessListener(new ProcessAdapter() {
         @Override
         public void processTerminated(ProcessEvent event) {
-          hasErrors.setValue(event.getExitCode() != 0);
+          int exitcode = event.getExitCode();
+          hasErrors.setValue(exitcode != 0);
+          if (exitcode < 0) {
+            context.infoHandler(HaxeCommonBundle.message("negative.error.code.message"));
+          }
+
           super.processTerminated(event);
         }
       });
@@ -228,7 +236,7 @@ public class HaxeCommonCompilerUtil {
       handler.waitFor();
     }
     catch (IOException e) {
-      context.errorHandler("process throw exception: " + e.getMessage());
+      context.errorHandler(HaxeCommonBundle.message("process.threw.exception", e.getMessage()));
       return false;
     }
 
