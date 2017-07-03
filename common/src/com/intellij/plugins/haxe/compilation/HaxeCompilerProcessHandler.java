@@ -15,18 +15,19 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.process.AnsiEscapeDecoder;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Runs the compiler and handles its output.
@@ -35,11 +36,45 @@ import java.util.List;
  */
 public class HaxeCompilerProcessHandler extends ColoredProcessHandler implements AnsiEscapeDecoder.ColoredChunksAcceptor {
 
+  static final String STDERR_PREFIX = "(stderr) ";
+
   final HaxeCommonCompilerUtil.CompilationContext context;
 
   public HaxeCompilerProcessHandler(@NotNull HaxeCommonCompilerUtil.CompilationContext context, @NotNull Process process, /*@NotNull*/ String commandLine, @NotNull Charset charset) {
     super(process, commandLine, charset);
     this.context = context;
+  }
+
+  @Override
+  protected void onOSProcessTerminated(int exitCode) {
+    if (exitCode != 0) {
+      List<String> errors = new ArrayList<String>();
+
+      if (processHasSeparateErrorStream()) {
+        InputStream stderr = this.getProcess().getErrorStream();
+
+
+        InputStreamReader reader = new InputStreamReader(stderr);
+        Scanner scanner = new Scanner(reader);
+
+        boolean hadOutput = false;
+        while (scanner.hasNextLine()) {
+          String nextLine = scanner.nextLine();
+          errors.add(STDERR_PREFIX + nextLine);
+          hadOutput = true;
+        }
+
+        if (hadOutput) {
+          errors.add( STDERR_PREFIX + " ==== End of stderr output. ==== ");
+        } else {
+          errors.add("No additional error information available.");
+        }
+      }
+      errors.add("Command exited with an error code : " + exitCode);
+
+      context.handleOutput(errors.toArray(new String[0]));
+    }
+    super.onOSProcessTerminated(exitCode);
   }
 
   @Override
