@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -184,6 +185,11 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       @Override
       public String getHaxelibPath() {
         return jpsSdk.getSdkProperties().getHaxelibPath();
+      }
+
+      @Override
+      public String getNekoBinPath() {
+        return jpsSdk.getSdkProperties().getNekoBinPath();
       }
 
       @Override

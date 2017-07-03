@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,24 +107,25 @@ public class HaxeSdkUtilBase {
   @NotNull
   private static String getEnvironmentPathPatch(@Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     String result = "";
+    String pathsep = SystemInfo.isWindows ? ";" : ":";
     if(haxeSdkData != null) {
       final String sdkHome = haxeSdkData.getHomePath();
       final String haxelibBin = haxeSdkData.getHaxelibPath();
       final String nekoBin = haxeSdkData.getNekoBinPath();
 
       if(sdkHome != null && !sdkHome.isEmpty()) {
-        result += ":" + sdkHome;
+        result += pathsep + sdkHome;
       }
       else if(haxelibBin != null && !haxelibBin.isEmpty()) {
         // fallback to haxelib path
         final File f = new File(haxelibBin);
-        result += ":" + f.getParent();
+        result += pathsep + f.getParent();
       }
 
 
       if (nekoBin != null && !nekoBin.isEmpty()) {
         final File f = new File(nekoBin);
-        result += ":" + f.getParent();
+        result += pathsep + f.getParent();
       }
     }
     return result;
@@ -137,11 +139,12 @@ public class HaxeSdkUtilBase {
       processBuilder.directory(workingDirectory);
     }
 
-    // TODO: Add Haxe/haxelib environment variables.  Needed for Mac.
+    // TODO: Add Haxe/haxelib environment variables.  Needed for Mac. (Maybe at caller?)
 
-    if (haxeSdkData != null && SystemInfo.isMac) {
+    String pathvar = SystemInfo.isWindows ? "Path" : "PATH";
+    if (haxeSdkData != null) {
       final Map<String, String> env = processBuilder.environment();
-      final String path = env.get("PATH") + getEnvironmentPathPatch(haxeSdkData);
+      final String path = env.get(pathvar) + getEnvironmentPathPatch(haxeSdkData);
       env.put("PATH", path);
     }
 

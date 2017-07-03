@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,6 +278,12 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       public String getHaxelibPath() {
         SdkAdditionalData data = sdk.getSdkAdditionalData();
         return data instanceof HaxeSdkAdditionalDataBase ? ((HaxeSdkAdditionalDataBase)data).getHaxelibPath() : null;
+      }
+
+      @Override
+      public String getNekoBinPath() {
+        SdkAdditionalData data = sdk.getSdkAdditionalData();
+        return data instanceof  HaxeSdkAdditionalDataBase ? ((HaxeSdkAdditionalDataBase)data).getNekoBinPath(): null;
       }
 
       @Override
