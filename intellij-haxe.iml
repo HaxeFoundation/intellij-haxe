@@ -20,7 +20,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/14" />
       <excludeFolder url="file://$MODULE_DIR$/src/14.1" />
     </content>
-    <orderEntry type="jdk" jdkName="IDEA Ultimate" jdkType="IDEA JDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="jps-plugin" />
