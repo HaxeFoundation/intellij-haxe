@@ -384,7 +384,8 @@ varInit ::= '=' expression {pin=1}
 parameter ::= '?'? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 
-openParameterList ::= parameter {extends=parameterList}
+// An open parameter can't have all of the type and init info.  Plus, it makes the parser *very* *very* slow in some circumstances.
+openParameterList ::= componentName {extends=parameterList}
 private parenthesizedParameterList ::= '(' parameterList ')'
 parameterList ::= (parameter (',' parameter)*)? {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
