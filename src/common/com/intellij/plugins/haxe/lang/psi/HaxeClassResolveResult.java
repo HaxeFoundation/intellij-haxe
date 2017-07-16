@@ -202,7 +202,7 @@ public class HaxeClassResolveResult implements Cloneable {
       HaxeType type = getTypeOfTypeListPart(part);
       final String name = type != null ? type.getText() : null;
 
-      HaxeClassResolveResult resolvedParam = innerSpecialization.get(null, name);
+      HaxeClassResolveResult resolvedParam = name != null ? innerSpecialization.get(null, name) : null;
       HaxeClass resolvedClass = null != resolvedParam ? resolvedParam.getHaxeClass() : null;
       if (null == resolvedClass) {
         resolvedParam = HaxeResolveUtil.getHaxeClassResolveResult(type); // No specialization??
