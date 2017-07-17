@@ -211,9 +211,6 @@ public class HaxeTypeResolver {
     return getPsiElementType(element, null).result;
   }
 
-  // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
-  static private Set<PsiElement> processedElements = new HashSet<PsiElement>();
-
   static private void checkMethod(PsiElement element, HaxeExpressionEvaluatorContext context) {
     //final ResultHolder retval = context.getReturnType();
 
@@ -244,15 +241,24 @@ public class HaxeTypeResolver {
     return evaluateFunction(new HaxeExpressionEvaluatorContext(element, holder));
   }
 
+  // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
+  //        At least, we've made it thread local, so the threads aren't stomping on each other any more.
+  static private ThreadLocal<? extends Set<PsiElement>> processedElements = new ThreadLocal<HashSet<PsiElement>>() {
+    @Override
+    protected HashSet<PsiElement> initialValue() {
+      return new HashSet<PsiElement>();
+    }
+  };
+
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluateFunction(@NotNull HaxeExpressionEvaluatorContext context) {
     PsiElement element = context.root;
-    if (processedElements.contains(element)) {
+    if (processedElements.get().contains(element)) {
       context.result = SpecificHaxeClassReference.primitive("Dynamic", element).createHolder();
       return context;
     }
 
-    processedElements.add(element);
+    processedElements.get().add(element);
     try {
       HaxeExpressionEvaluator.evaluate(element, context);
       checkMethod(element.getParent(), context);
@@ -263,7 +269,7 @@ public class HaxeTypeResolver {
 
       return context;
     } finally {
-      processedElements.remove(element);
+      processedElements.get().remove(element);
     }
   }
 
