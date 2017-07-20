@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide.index;
 
+import com.intellij.openapi.util.ThreadLocalCachedValue;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.IOUtil;
@@ -30,11 +31,17 @@ import java.io.IOException;
  * @author: Fedor.Korotkov
  */
 public class HaxeClassInfoExternalizer implements DataExternalizer<HaxeClassInfo> {
-  private final byte[] buffer = IOUtil.allocReadWriteUTFBuffer();
+
+  private final ThreadLocal<byte[]> buffer = new ThreadLocal<byte[]>() {
+    @Override
+    protected byte[] initialValue() {
+      return IOUtil.allocReadWriteUTFBuffer();
+    }
+  };
 
   @Override
   public void save(@NotNull DataOutput out, HaxeClassInfo classInfo) throws IOException {
-    IOUtil.writeUTFFast(buffer, out, classInfo.getValue());
+    IOUtil.writeUTFFast(buffer.get(), out, classInfo.getValue());
     final HaxeComponentType haxeComponentType = classInfo.getType();
     final int key = haxeComponentType == null ? -1 : haxeComponentType.getKey();
     out.writeInt(key);
@@ -42,7 +49,7 @@ public class HaxeClassInfoExternalizer implements DataExternalizer<HaxeClassInfo
 
   @Override
   public HaxeClassInfo read(@NotNull DataInput in) throws IOException {
-    final String value = IOUtil.readUTFFast(buffer, in);
+    final String value = IOUtil.readUTFFast(buffer.get(), in);
     final int key = in.readInt();
     return new HaxeClassInfo(value, HaxeComponentType.valueOf(key));
   }

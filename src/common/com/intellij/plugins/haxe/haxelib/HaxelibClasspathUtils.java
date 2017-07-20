@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -365,7 +366,10 @@ public class HaxelibClasspathUtils {
   @NotNull
   public static List<String> getAvailableLibrariesMatching(@NotNull Sdk sdk, @NotNull String word) {
     List<String> stringList = HaxelibCommandUtils.issueHaxelibCommand(sdk, "search", word);
-    stringList.remove(stringList.size() - 1);
+    if (stringList.size() > 0) {
+      // Last line is the count of libraries found.
+      stringList.remove(stringList.size() - 1);
+    }
     return stringList;
   }
 

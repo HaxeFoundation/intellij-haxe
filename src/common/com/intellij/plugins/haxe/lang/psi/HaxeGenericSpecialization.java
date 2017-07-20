@@ -69,7 +69,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     return filtered;
   }
 
-  public HaxeClassResolveResult get(@Nullable PsiElement element, String genericName) {
+  public HaxeClassResolveResult get(@Nullable PsiElement element, @NotNull String genericName) {
     return map.get(getGenericKey(element, genericName));
   }
 

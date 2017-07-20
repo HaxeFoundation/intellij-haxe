@@ -83,6 +83,15 @@ public class HaxeDebugUtil {
     return stack[stack.length - 2];
   }
 
+  public static String getCallerCanonicalName() {
+    StackTraceElement[] stack = new Exception().getStackTrace();
+    if (stack.length <= 2) {
+      throw new IndexOutOfBoundsException("Not enough callers on the stack.");
+    }
+    StackTraceElement caller = stack[stack.length - 2];
+    return caller.getClassName() + "." + caller.getMethodName();
+  }
+
   /**
    * Create a trace message.  Limits overall length to 500 characters.
    *
@@ -90,7 +99,7 @@ public class HaxeDebugUtil {
    * @return
    */
   public static String traceMessage(String message) {
-    return traceMessage(message, 500);
+    return createTraceMessage(message, 500, 1, false);
   }
 
   /**
@@ -100,12 +109,48 @@ public class HaxeDebugUtil {
    * @return
    */
   public static String traceMessage(String message, int maxMessageLength) {
+    return createTraceMessage(message, maxMessageLength, 1, false);
+  }
+
+  /**
+   * Create a trace message with thread info.  Limits overall length to 500 characters.
+   *
+   * @param message text to append to the standard trace output.
+   * @return
+   */
+  public static String traceThreadMessage(String message) {
+    return createTraceMessage(message, 500, 1, true);
+  }
+
+  /**
+   * Create a trace message, including thread info  Limits overall length to a given number of characters.
+   *
+   * @param message text to append to the standard trace output.
+   * @return
+   */
+  public static String traceThreadMessage(String message, int maxMessageLength) {
+    return createTraceMessage(message, maxMessageLength, 1, true);
+  }
+
+  /**
+   * Create a trace message
+   * @param message text to append to the standard trace output.
+   * @param maxMessageLength length limit (0 for no limit).
+   * @param depthAdjustment number of elements to remove from the stack count. (used by internal callers)
+   * @param includeThreadId whether to include the thread ID (text name) in the message.
+   * @return
+   */
+  private static String createTraceMessage(String message, int maxMessageLength, int depthAdjustment, boolean includeThreadId) {
+
     StringBuilder msg = new StringBuilder();
-    //msg.append("thread=");
-    //msg.append(Thread.currentThread().getId());
-    //msg.append(':');
+    if (includeThreadId) {
+      msg.append("thread=");
+      msg.append(Thread.currentThread().getId());
+      msg.append(':');
+    }
     msg.append("depth=");
-    msg.append(HaxeDebugUtil.getStackDepth() - 1);  // Keep ourselves out of the count.
+    depthAdjustment++;  // Keep ourselves out of the count.
+    msg.append(HaxeDebugUtil.getStackDepth() - depthAdjustment);
     msg.append(':');
     if (null != message) {
       msg.append(message);
@@ -117,4 +162,5 @@ public class HaxeDebugUtil {
     int len = Math.min(maxMessageLength, msg.length());
     return msg.substring(0, len);
   }
+
 }
