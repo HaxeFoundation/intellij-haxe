@@ -15,6 +15,9 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +73,7 @@ public class HaxeDebugUtil {
   }
 
   /**
-   * Gets the calling stack frame at the point getMyCaller is called.  (So, two
+   * Gets the calling stack frame at the point getCallerStackFrame is called.  (So, two
    * frames up.)
    *
    * @return The stack frame for the caller of the method making the request.
@@ -80,7 +83,7 @@ public class HaxeDebugUtil {
     if (stack.length <= 2) {
       throw new IndexOutOfBoundsException("Not enough callers on the stack.");
     }
-    return stack[stack.length - 2];
+    return stack[2]; // [0] is this method
   }
 
   public static String getCallerCanonicalName() {
@@ -88,8 +91,20 @@ public class HaxeDebugUtil {
     if (stack.length <= 2) {
       throw new IndexOutOfBoundsException("Not enough callers on the stack.");
     }
-    StackTraceElement caller = stack[stack.length - 2];
+    // stack[0] is this method, [1] is the method that wants to know its caller.
+    StackTraceElement caller = stack[2];
     return caller.getClassName() + "." + caller.getMethodName();
+  }
+
+  public static String printCallers(int count) {
+    StringBuilder out = new StringBuilder();
+    StackTraceElement[] stack = new Exception().getStackTrace();
+    int offset = 2;
+    for (int i = offset; i < count + offset && i < stack.length; ++i) {
+      out.append(stack[i].toString());
+      out.append('\n');
+    }
+    return out.toString();
   }
 
   /**
@@ -161,6 +176,22 @@ public class HaxeDebugUtil {
     }
     int len = Math.min(maxMessageLength, msg.length());
     return msg.substring(0, len);
+  }
+
+  public static String elementLocation(PsiElement element) {
+    if (null == element) {
+      return "(unknown file) : 0";
+    }
+
+    final PsiFile file = element.getContainingFile();
+    final String contents = null != file ? file.getText() : null;
+    final int line = null != contents ? StringUtil.offsetToLineNumber(contents, element.getTextOffset()) : 0;
+
+    StringBuilder builder = new StringBuilder(file.isPhysical() ? file.getName() : "(virtual file)");
+    builder.append(" : ");
+    builder.append(line);
+
+    return builder.toString();
   }
 
 }
