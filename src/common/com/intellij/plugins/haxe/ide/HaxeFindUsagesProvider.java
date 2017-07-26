@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +43,6 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     }
   }
 
-
   @Override
   public WordsScanner getWordsScanner() {
     return null;
@@ -55,7 +55,9 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     if (null != parent) {
       ret = true;
     }
-    LOG.debug("canFindUsagesFor("+psiElement.toString()+")->"+(ret?"true":"false"));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("canFindUsagesFor(" + debugId(psiElement) + ")->" + (ret ? "true" : "false"));
+    }
     return ret;
   }
 
@@ -70,7 +72,9 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     if (null == result) {
       result = "reference";
     }
-    LOG.debug("getType("+element.toString()+")->"+result);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getType(" + debugId(element) + ")->" + result);
+    }
     return result;
   }
 
@@ -109,4 +113,20 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     PsiElement parent = PsiTreeUtil.getParentOfType(psiElement, HaxeNamedComponent.class, false);
     return parent;
   }
+
+  /**
+   * Get a useful debug value from an element.
+   * XXX: Should check whether element is a HaxePsiElement type and call a specific debug method there?
+   *
+   * @param psiElement
+   * @return ID for debug logging.
+   */
+  private static String debugId(final PsiElement psiElement) {
+    String s = psiElement.toString();
+    if (s.length() > DEBUG_ID_LEN) {
+      s = s.substring(0, DEBUG_ID_LEN);
+    }
+    return s.replaceAll("\n", " ");
+  }
+  private static final int DEBUG_ID_LEN = 80;
 }
