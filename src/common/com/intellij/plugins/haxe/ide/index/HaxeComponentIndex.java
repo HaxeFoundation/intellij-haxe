@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +86,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
   }
 
   public static List<HaxeComponent> getItemsByName(String name, Project project, GlobalSearchScope searchScope) {
+    HaxeIndexUtil.warnIfDumbMode(project);
     Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(HAXE_COMPONENT_INDEX, name, searchScope);
     final List<HaxeComponent> result = new ArrayList<HaxeComponent>();
@@ -102,6 +104,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
   }
 
   public static void processAll(Project project, Processor<Pair<String, HaxeClassInfo>> processor, GlobalSearchScope scope) {
+    HaxeIndexUtil.warnIfDumbMode(project);
     final Collection<String> keys = getNames(project);
     for (String key : keys) {
       final List<HaxeClassInfo> values = FileBasedIndex.getInstance().getValues(HAXE_COMPONENT_INDEX, key, scope);
@@ -115,6 +118,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
   }
 
   public static Collection<String> getNames(Project project) {
+    HaxeIndexUtil.warnIfDumbMode(project);
     return FileBasedIndex.getInstance().getAllKeys(HAXE_COMPONENT_INDEX, project);
   }
 
