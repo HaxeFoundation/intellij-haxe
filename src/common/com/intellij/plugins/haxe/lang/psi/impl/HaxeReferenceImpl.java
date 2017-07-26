@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
@@ -181,7 +182,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     //
 
     // For the moment (while debugging the resolver) let's do this without caching.
-    boolean skipCaching = false;
+    boolean skipCachingForDebug = false;
+
+    // If we are in dumb mode (e.g. we are still indexing files and resolving may
+    // fail until the indices are complete), we don't want to cache the (likely incorrect)
+    // results.
+    boolean skipCaching = skipCachingForDebug || DumbService.isDumb(getProject());
     List<? extends PsiElement> cachedNames
               = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
                             : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
