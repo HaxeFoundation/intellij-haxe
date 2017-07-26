@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@
 package com.intellij.plugins.haxe.ide.index;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.QueryExecutorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.plugins.haxe.HaxeComponentType;
@@ -43,7 +45,12 @@ import java.util.Set;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeInheritanceDefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
+public class HaxeInheritanceDefinitionsSearchExecutor extends QueryExecutorBase<PsiElement, PsiElement> {
+
+  public HaxeInheritanceDefinitionsSearchExecutor() {
+    super(true); // Wrap in a read action.
+  }
+
   public static List<HaxeClass> getItemsByQName(final HaxeClass haxeClass) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     DefinitionsSearch.search(haxeClass).forEach(new Processor<PsiElement>() {
@@ -59,49 +66,50 @@ public class HaxeInheritanceDefinitionsSearchExecutor implements QueryExecutor<P
   }
 
   @Override
-  public boolean execute(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      public Boolean compute() {
-        final PsiElement queryParametersParent = queryParameters.getParent();
-        HaxeNamedComponent haxeNamedComponent;
-        if (queryParameters instanceof HaxeClass) {
-          haxeNamedComponent = (HaxeClass)queryParameters;
-        }
-        else if (queryParametersParent instanceof HaxeNamedComponent && queryParameters instanceof HaxeComponentName) {
-          haxeNamedComponent = (HaxeNamedComponent)queryParametersParent;
-        }
-        else {
-          return true;
-        }
-        if (haxeNamedComponent instanceof HaxeClass) {
-          processInheritors(((HaxeClass)haxeNamedComponent).getQualifiedName(), queryParameters, consumer);
-        }
-        else if (HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.METHOD ||
-                 HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.FIELD) {
-          final String nameToFind = haxeNamedComponent.getName();
-          if (nameToFind == null) return true;
-
-          HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
-          assert haxeClass != null;
-
-          processInheritors(haxeClass.getQualifiedName(), queryParameters, new Processor<PsiElement>() {
-            @Override
-            public boolean process(PsiElement element) {
-              for (HaxeNamedComponent subHaxeNamedComponent : HaxeResolveUtil.getNamedSubComponents((HaxeClass)element)) {
-                if (nameToFind.equals(subHaxeNamedComponent.getName())) {
-                  consumer.process(subHaxeNamedComponent);
-                }
-              }
-              return true;
-            }
-          });
-        }
-        return true;
-      }
-    });
+  public void processQuery(@NotNull PsiElement queryParameters, @NotNull Processor<PsiElement> consumer) {
+    processQueryInternal(queryParameters, consumer);
   }
 
-  private static boolean processInheritors(final String qName, final PsiElement context, final Processor<PsiElement> consumer) {
+  private boolean processQueryInternal(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
+    final PsiElement queryParametersParent = queryParameters.getParent();
+    HaxeNamedComponent haxeNamedComponent;
+    if (queryParameters instanceof HaxeClass) {
+      haxeNamedComponent = (HaxeClass)queryParameters;
+    }
+    else if (queryParametersParent instanceof HaxeNamedComponent && queryParameters instanceof HaxeComponentName) {
+      haxeNamedComponent = (HaxeNamedComponent)queryParametersParent;
+    }
+    else {
+      return true;
+    }
+    if (haxeNamedComponent instanceof HaxeClass) {
+      processInheritors(((HaxeClass)haxeNamedComponent).getQualifiedName(), queryParameters, consumer);
+    }
+    else if (HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.METHOD ||
+             HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.FIELD) {
+      final String nameToFind = haxeNamedComponent.getName();
+      if (nameToFind == null) return true;
+
+      HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
+      assert haxeClass != null;
+
+      processInheritors(haxeClass.getQualifiedName(), queryParameters, new Processor<PsiElement>() {
+        @Override
+        public boolean process(PsiElement element) {
+          for (HaxeNamedComponent subHaxeNamedComponent : HaxeResolveUtil.getNamedSubComponents((HaxeClass)element)) {
+            if (nameToFind.equals(subHaxeNamedComponent.getName())) {
+              consumer.process(subHaxeNamedComponent);
+            }
+          }
+          return true;
+        }
+      });
+    }
+    return true;
+
+  }
+
+  private boolean processInheritors(final String qName, final PsiElement context, final Processor<PsiElement> consumer) {
     final Set<String> namesSet = new THashSet<String>();
     final LinkedList<String> namesQueue = new LinkedList<String>();
     namesQueue.add(qName);
