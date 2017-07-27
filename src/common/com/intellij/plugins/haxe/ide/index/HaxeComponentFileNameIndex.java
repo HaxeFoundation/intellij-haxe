@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +46,9 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
   private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION + 4;
   private DataIndexer<String, Void, FileContent> myDataIndexer = new MyDataIndexer();
 
+  /** The list of files searched in dumb mode.  (Always empty.) */
+  public static List<VirtualFile> DUMB_MODE_LIST = new ArrayList<VirtualFile>();
+
   @NotNull
   @Override
   public ID<String, Void> getName() {
@@ -79,6 +83,14 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
 
   @NotNull
   public static List<VirtualFile> getFilesNameByQName(@NotNull String qName, @NotNull final GlobalSearchScope filter) {
+
+    Project project = filter.getProject();
+    if (project != null) {
+      if (DumbService.isDumb(project)) {
+        return DUMB_MODE_LIST;
+      }
+    }
+
     final List<VirtualFile> result = new ArrayList<VirtualFile>();
     getFileNames(qName, new Processor<VirtualFile>() {
       @Override
@@ -90,7 +102,7 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
     return result;
   }
 
-  public static boolean getFileNames(@NotNull String qName,
+  private static boolean getFileNames(@NotNull String qName,
                                      @NotNull Processor<VirtualFile> processor,
                                      @NotNull final GlobalSearchScope filter) {
     Project project = filter.getProject();

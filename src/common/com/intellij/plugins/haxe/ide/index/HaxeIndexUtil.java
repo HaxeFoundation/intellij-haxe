@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +18,32 @@
  */
 package com.intellij.plugins.haxe.ide.index;
 
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import org.apache.log4j.Level;
+
 /**
  * Created by fedorkorotkov.
  */
 public class HaxeIndexUtil {
   public static int BASE_INDEX_VERSION = 1;
+
+  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  static {
+    // Logs can be turned on externally (and before they're allocated!).  Make sure that
+    // our warnings still get out.
+    if (!LOG.isEnabledFor(Level.WARN)) {
+      LOG.setLevel(Level.WARN);
+    }
+  }
+
+  public static boolean warnIfDumbMode(Project project) {
+    if (DumbService.isDumb(project)) {
+      LOG.warn("Unexpected index activity while in dumb mode at " + HaxeDebugUtil.printCallers(1));
+      return false;
+    }
+    return true;
+  }
 }

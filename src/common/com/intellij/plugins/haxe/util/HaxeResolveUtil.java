@@ -24,6 +24,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentFileNameIndex;
@@ -38,6 +39,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +53,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
  */
 public class HaxeResolveUtil {
   private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  static { LOG.setLevel(Level.INFO); }  // We want warnings to get out to the log.
 
   @Nullable
   public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
@@ -414,75 +417,105 @@ public class HaxeResolveUtil {
     return getHaxeClassResolveResult(element, new HaxeGenericSpecialization());
   }
 
+  private static ThreadLocal<Stack<PsiElement>> resolveStack = new ThreadLocal<Stack<PsiElement>>() {
+    @Override
+    protected Stack<PsiElement> initialValue() {
+      return new Stack<PsiElement>();
+    }
+  };
+
   @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element,
                                                                  @NotNull HaxeGenericSpecialization specialization) {
     if (element == null || element instanceof PsiPackage) {
-      return HaxeClassResolveResult.create(null);
-    }
-    if (element instanceof HaxeComponentName) {
-      return getHaxeClassResolveResult(element.getParent(), specialization);
-    }
-    if (element instanceof AbstractHaxeTypeDefImpl) {
-      final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
-      return typeDef.getTargetClass(specialization);
-    }
-    if (element instanceof HaxeClass) {
-      final HaxeClass haxeClass = (HaxeClass)element;
-      return HaxeClassResolveResult.create(haxeClass);
-    }
-    if (element instanceof HaxeForStatement) {
-      final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
-      if(iterable == null) {
-        // iterable is @Nullable
-        // (sometimes when you're typing for statement it becames null for short time)
-        return HaxeClassResolveResult.EMPTY;
-      }
-      final HaxeExpression expression = iterable.getExpression();
-      if (expression instanceof HaxeReference) {
-        final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
-        final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
-        // try next
-        HaxeClassResolveResult result =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("next"),
-                                    resolveResult.getSpecialization());
-        if (result.getHaxeClass() != null) {
-          return result;
-        }
-        // try iterator
-        HaxeClassResolveResult iteratorResult = getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator"),
-                                           resolveResult.getSpecialization().getInnerSpecialization(resolveResultHaxeClass));
-        HaxeClass iteratorResultHaxeClass = iteratorResult.getHaxeClass();
-        // Now, look for iterator's next
-        result = getHaxeClassResolveResult(iteratorResultHaxeClass == null ? null : iteratorResultHaxeClass.findHaxeMethodByName("next"),
-                                           iteratorResult.getSpecialization());
-
-        return result != null ? result : HaxeClassResolveResult.EMPTY;
-      }
       return HaxeClassResolveResult.EMPTY;
     }
 
-    HaxeClassResolveResult result = tryResolveClassByTypeTag(element, specialization);
-    if (result.getHaxeClass() != null) {
-      return result;
+    final Stack<PsiElement> stack = resolveStack.get();
+    if (stack.search(element) > 0) {
+      // We're already trying to resolve this element.  Prevent stack overflow.
+      LOG.warn("Cannot resolve recursive/cyclic definition of " + element.getText()
+               + "found at " + HaxeDebugUtil.elementLocation(element));
+      return HaxeClassResolveResult.EMPTY;
     }
 
-    result = HaxeAbstractEnumUtil.resolveFieldType(element);
-    if(result != null) {
-      return result;
-    }
+    try {
+      stack.push(element);
 
-    if (specialization.containsKey(null, element.getText())) {
-      return specialization.get(null, element.getText());
+      if (element instanceof HaxeComponentName) {
+        return getHaxeClassResolveResult(element.getParent(), specialization);
+      }
+      if (element instanceof AbstractHaxeTypeDefImpl) {
+        final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
+        return typeDef.getTargetClass(specialization);
+      }
+      if (element instanceof HaxeClass) {
+        final HaxeClass haxeClass = (HaxeClass)element;
+        return HaxeClassResolveResult.create(haxeClass);
+      }
+      if (element instanceof HaxeForStatement) {
+        final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
+        if (iterable == null) {
+          // iterable is @Nullable
+          // (sometimes when you're typing for statement it becames null for short time)
+          return HaxeClassResolveResult.EMPTY;
+        }
+        final HaxeExpression expression = iterable.getExpression();
+        if (expression instanceof HaxeReference) {
+          final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
+          final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+          // try next
+          HaxeClassResolveResult result =
+            getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("next"),
+                                      resolveResult.getSpecialization());
+          if (result.getHaxeClass() != null) {
+            return result;
+          }
+          // try iterator
+          HaxeClassResolveResult iteratorResult =
+            getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator"),
+                                      resolveResult.getSpecialization().getInnerSpecialization(resolveResultHaxeClass));
+          HaxeClass iteratorResultHaxeClass = iteratorResult.getHaxeClass();
+          // Now, look for iterator's next
+          result = getHaxeClassResolveResult(iteratorResultHaxeClass == null ? null : iteratorResultHaxeClass.findHaxeMethodByName("next"),
+                                             iteratorResult.getSpecialization());
+
+          return result != null ? result : HaxeClassResolveResult.EMPTY;
+        }
+        return HaxeClassResolveResult.EMPTY;
+      }
+
+      HaxeClassResolveResult result = tryResolveClassByTypeTag(element, specialization);
+      if (result.getHaxeClass() != null) {
+        return result;
+      }
+
+      result = HaxeAbstractEnumUtil.resolveFieldType(element);
+      if (result != null) {
+        return result;
+      }
+
+      if (specialization.containsKey(null, element.getText())) {
+        return specialization.get(null, element.getText());
+      }
+      final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
+      final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
+      if (initExpression instanceof HaxeReference) {
+        result = ((HaxeReference)initExpression).resolveHaxeClass();
+        result.specialize(initExpression);
+        return result;
+      }
+      return getHaxeClassResolveResult(initExpression);
     }
-    final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
-    final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
-    if (initExpression instanceof HaxeReference) {
-      result = ((HaxeReference)initExpression).resolveHaxeClass();
-      result.specialize(initExpression);
-      return result;
+    finally {
+      try {
+        stack.pop();
+      } catch(EmptyStackException e) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Unexpected excessive stack pop. " + e.toString());
+        }
+      }
     }
-    return getHaxeClassResolveResult(initExpression);
   }
 
   @NotNull

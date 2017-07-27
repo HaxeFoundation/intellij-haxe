@@ -49,7 +49,7 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
     return HaxeBundle.message("haxe.module.type.description");
   }
 
-  @Override
+  // @Override - Missing from 2017.2
   public Icon getBigIcon() {
     return icons.HaxeIcons.Haxe_24;
   }

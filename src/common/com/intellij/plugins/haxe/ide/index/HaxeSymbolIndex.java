@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +81,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
   }
 
   public static String[] getAllSymbols(@NotNull final GlobalSearchScope scope) {
+    HaxeIndexUtil.warnIfDumbMode(scope.getProject());
     final CommonProcessors.CollectProcessor<String> processor = new CommonProcessors.CollectProcessor<String>();
     FileBasedIndex.getInstance().processAllKeys(HAXE_SYMBOL_INDEX, processor, scope, null);
     return ArrayUtil.toStringArray(processor.getResults());
@@ -88,6 +90,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
   public static List<HaxeComponentName> getItemsByName(@NotNull final String name,
                                                        @NotNull final Project project,
                                                        @NotNull final GlobalSearchScope searchScope) {
+    HaxeIndexUtil.warnIfDumbMode(project);
     final Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(HAXE_SYMBOL_INDEX, name, searchScope);
     final Set<HaxeComponentName> result = new THashSet<HaxeComponentName>();

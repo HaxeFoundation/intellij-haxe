@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +18,24 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.VirtualFileSystem;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.util.io.URLUtil;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 
 /**
  * An entry in a classpath.
  */
 public class HaxeClasspathEntry {
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  //static { LOG.setLevel(Level.DEBUG);}
 
   String myName;
   String myUrl;
@@ -32,6 +44,18 @@ public class HaxeClasspathEntry {
   public HaxeClasspathEntry(@Nullable String name, @NotNull String url) {
     myName = name;
     myUrl = url;
+
+    // Try to fix the URL if it wasn't correct.
+    if (!url.contains(URLUtil.SCHEME_SEPARATOR)) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Fixing malformed URL passed by " + HaxeDebugUtil.printCallers(5));
+      }
+      VirtualFileSystem vfs = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL);
+      VirtualFile file = vfs.findFileByPath(url);
+      if (null != file) {
+        myUrl = file.getUrl();
+      }
+    }
 
     if (null != myName) {
       if (HaxelibParser.isManagedLibrary(myName)) {
