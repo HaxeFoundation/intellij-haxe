@@ -27,7 +27,7 @@ import java.util.*;
  */
 public class HaxeClasspath {
 
-  Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeClasspath");
+  static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeClasspath");
 
   /**
    * An immutable empty classpath that can be re-used.

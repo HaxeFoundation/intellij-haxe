@@ -38,6 +38,7 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VFileProperty;
@@ -538,8 +539,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         }
         debugger.Message message = JavaProtocol.readMessage
           (debugSocket.getInputStream());
-//                System.out.println("Received message: " +
-//                                   JavaProtocol.messageToString(message));
+//      System.out.println("Received message: " +
+//                         JavaProtocol.messageToString(message));
         int messageId = JavaProtocol.getMessageId(message);
         if (messageId == JavaProtocol.IdThreadCreated) {
           // Console it out
@@ -785,7 +786,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     private class StackFrame extends XStackFrame {
-      public StackFrame(Project project, Module module,
+      public StackFrame(final Project project, final Module module,
                         debugger.FrameList frameList) {
         mFrameNumber = (Integer)frameList.params.__a[1];
         mFileName = (String)frameList.params.__a[4];
@@ -795,18 +796,29 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
            (String)frameList.params.__a[3]);
         VirtualFile file = null;
 
-        String fileName = VfsUtil.extractFileName(mFileName);
-        if (fileName == null) {
-          fileName = mFileName;
-        }
-        java.util.Collection<VirtualFile> files =
-          FilenameIndex.getVirtualFilesByName
-            (project, fileName, GlobalSearchScope.moduleScope(module));
-        if (files.isEmpty()) {
-          files = FilenameIndex.getVirtualFilesByName
-            (project, fileName,
-             GlobalSearchScope.allScope(project));
-        }
+        //String fileName = VfsUtil.extractFileName(mFileName);
+        //if (fileName == null) {
+        //  fileName = mFileName;
+        //}
+
+        final String fileNameToLookFor = mFileName; // fileName
+        final java.util.Collection<VirtualFile> files =
+          ApplicationManager.getApplication().runReadAction(
+            new Computable<java.util.Collection<VirtualFile>>() {
+              @Override
+              public java.util.Collection<VirtualFile> compute() {
+
+                java.util.Collection<VirtualFile> files =
+                  FilenameIndex.getVirtualFilesByName(
+                    project, fileNameToLookFor, GlobalSearchScope.moduleScope(module));
+                if (files.isEmpty()) {
+                  files = FilenameIndex.getVirtualFilesByName(
+                    project, fileNameToLookFor, GlobalSearchScope.allScope(project));
+                }
+                return files;
+              }
+            }
+          );
 
         java.util.Collection<VirtualFile> matches = new THashSet<VirtualFile>();
         if (!files.isEmpty()) {

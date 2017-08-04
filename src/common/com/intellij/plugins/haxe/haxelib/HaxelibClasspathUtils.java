@@ -565,11 +565,11 @@ public class HaxelibClasspathUtils {
         }
         VirtualFile dirName = vfmInstance.findFileByUrl(dirUrl);
         if (null != dirName && dirName.isDirectory()) {
+          String dirPath = dirName.getCanonicalPath();
           for (VirtualFile f : files) {
             if (f.exists()) {
               // We have a complete path, compare the leading paths.
               String filePath = f.getCanonicalPath();
-              String dirPath = dirName.getCanonicalPath();
               if (filePath.startsWith(dirPath)) {
                 found = f;
               }
