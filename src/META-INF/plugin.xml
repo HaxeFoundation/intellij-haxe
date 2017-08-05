@@ -30,16 +30,29 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.11.0 for @plugin.compatibility.description@</version>
+  <version>0.11.1 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p>Documentation: <a href="https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md">https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md</a></p>
-      <p>Support: <a href="http://intellij-haxe.org">http://intellij-haxe.org</a></p>
-      <p>Donate: <a href="https://www.patreon.com/EricBishton">https://www.patreon.com/EricBishton</a></p>
+      <p>Get Support: <a href="http://intellij-haxe.org">http://intellij-haxe.org</a></p>
+      <p>Contribute: <a href="https://www.patreon.com/EricBishton">https://www.patreon.com/EricBishton</a></p>
       <p>Professionally supported and maintained by Bishton Software Solutions: <a href="http://BishtonSoftwareSolutions.com">http://BishtonSoftwareSolutions.com</a></p>
       <p/>
+      <p>0.11.1: (community release)</p>
+      <ul>
+        <li>Check for and halt type resolution when a cyclical/recursive definition is found.</li>
+        <li>Address some freezes by delaying use of indices until indexing is complete.</li>
+        <li>Speed haxelib syncing (and stop unnecessary re-indexing).  (Regression)</li>
+        <li>Fix freezes by fixing some multi-threading issues and other exceptions being thrown.</li>
+        <li>Speed up parsing of arrow functions.</li>
+        <li>Add Haxe-specific double-click selection logic for strings and comments. (Issue #212)</li>
+        <li>Reroute debugging informational errors to the status bar instead of modal dialogs. </li>
+        <li>Fix compilation halting on "- Link" informational messages.</li>
+        <li>Add neko and haxelib directories to the path when building projects (for all platforms; used to be OSX-only).</li>
+        <li>Fix multi-platform build issues (for the plugin, particularly affects Windows builds).</li>
+      </ul>
       <p>0.11.0: (community release)</p>
       <ul>
         <li>Support IDEA 2017.1</li>
