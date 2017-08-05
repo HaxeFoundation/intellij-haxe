@@ -6,6 +6,19 @@
      plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
   </p>
 
+  <p>0.11.1: (community release)</p>
+  <ul>
+    <li>Check for and halt type resolution when a cyclical/recursive definition is found.</li>
+    <li>Address some freezes by delaying use of indices until indexing is complete.</li>
+    <li>Speed haxelib syncing (and stop unnecessary re-indexing).  (Regression)</li>
+    <li>Fix freezes by fixing some multi-threading issues and other exceptions being thrown.</li>
+    <li>Speed up parsing of arrow functions.</li>
+    <li>Add Haxe-specific double-click selection logic for strings and comments. (Issue #212)</li>
+    <li>Reroute debugging informational errors to the status bar instead of modal dialogs. </li>
+    <li>Fix compilation halting on "- Link" informational messages.</li>
+    <li>Add neko and haxelib directories to the path when building projects (for all platforms; used to be OSX-only).</li>
+    <li>Fix multi-platform build issues (for the plugin, particularly affects Windows builds).</li>
+  </ul>
   <p>0.11.0: (community release)</p>
   <ul>
     <li>Support IDEA 2017.1</li>

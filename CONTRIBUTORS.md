@@ -7,13 +7,13 @@ Recent contributors
  - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
  - Eric Bishton <ebishton@ix.netcom.com>
  - EricBishton <ebishton.ix.netcom.com>
+ - EricBishton <ebishton@ix.netcom.com>
  - Eric Bishton <EricBishton@users.noreply.github.com>
  - GitHub <noreply@github.com>
  - Ilya Kuzmichev <deadbabe@gmail.com>
  - Jens Fischer <jensfischer95@gmail.com>
  - mayakwd <loremipsum.inside@gmail.com>
  - slavara <ratdg@ya.ru>
- - Usievaład Čorny <anibyl@riseup.net>
  - Usievaład Kimajeŭ <usievalad@gmail.com>
  - winmain <d.winmain@gmail.com>
 
@@ -43,6 +43,7 @@ All contributors
 - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
 - Eric Bishton <ebishton@ix.netcom.com>
 - EricBishton <ebishton.ix.netcom.com>
+- EricBishton <ebishton@ix.netcom.com>
 - Eric Bishton <EricBishton@users.noreply.github.com>
 - Eugene Zhuravlev <jeka@intellij.com>
 - Evgeny Pasynkov <Evgeny.Pasynkov@jetbrains.com>

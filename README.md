@@ -2,15 +2,22 @@ Haxe plugin for Intellij IDEA
 ======================================
 
 This plugin allows you to develop [Haxe](http://haxe.org/) programs with [Intellij IDEA](http://www.jetbrains.com/idea).
-It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, 2016.1 through 2016.3, and 2017.1.
+It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, 2016, and 2017 through 2017.2.
 
-#### We have moved!
-The primary maintained branch of this plugin has moved to the Haxe Foundation's github repository.  Please update your
-links and git clones to point to [http://github.com/HaxeFoundation/intellij-haxe](http://github.com/HaxeFoundation/intellij-haxe)
+#### Future Versions Announcement
 
-#### Support
+Very, very few users are continuing to use this plugin with IDEA versions 14.x and 15.x.  Plugin version 0.11.1 will be the last
+version published that will support these environments.  (If you and/or your business need these or previous versions supported, then
+[contact the project maintainers](http://intellij-haxe.org/contact) at the project page ([http://intellij-haxe.org](http://intellij-haxe.org)) and continuing support
+can be arranged.) 
+
+#### Technical Support
 Support for this plugin is available through the project's home page: [http://intellij-haxe.org](http://intellij-haxe.org), or
 the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](http://github.com/HaxeFoundation/intellij-haxe/issues).
+
+#### We have moved!
+As of January 2017, the primary maintained branch of this plugin has moved to the Haxe Foundation's github repository.  Please update your
+links and git clones to point to [http://github.com/HaxeFoundation/intellij-haxe](http://github.com/HaxeFoundation/intellij-haxe)
 
 Install
 -------
