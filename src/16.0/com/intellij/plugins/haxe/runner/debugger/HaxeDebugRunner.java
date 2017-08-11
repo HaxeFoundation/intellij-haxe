@@ -42,7 +42,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VFileProperty;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -56,6 +55,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.NMERunningState;
 import com.intellij.plugins.haxe.runner.OpenFLRunningState;
+import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -64,6 +64,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.concurrency.QueueProcessor;
+import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.MessageCategory;
 import com.intellij.xdebugger.*;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
@@ -803,70 +804,73 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         mClassAndFunctionName =
           ((String)frameList.params.__a[2] + "." +
            (String)frameList.params.__a[3]);
-        VirtualFile file = null;
 
-        String fileName = VfsUtil.extractFileName(mFileName);
-        if (fileName == null) {
-          fileName = mFileName;
-        }
+        VirtualFileManager vfm = VirtualFileManager.getInstance();
+        VirtualFile file = vfm.findFileByUrl(vfm.constructUrl(URLUtil.FILE_PROTOCOL, mFileName));
+        if (null == file || !file.exists()) {
 
-        final String fileNameToLookFor = fileName;
-        final java.util.Collection<VirtualFile> files =
-          ApplicationManager.getApplication().runReadAction(
-            new Computable<java.util.Collection<VirtualFile>>() {
-              @Override
-              public java.util.Collection<VirtualFile> compute() {
+          // Filename index can only deal with the name, not any paths.
+          String fileName = VfsUtil.extractFileName(mFileName);
+          if (fileName == null) {
+            fileName = mFileName;
+          }
 
-                java.util.Collection<VirtualFile> files =
-                  FilenameIndex.getVirtualFilesByName(
-                    project, fileNameToLookFor, GlobalSearchScope.moduleScope(module));
-                if (files.isEmpty()) {
-                  files = FilenameIndex.getVirtualFilesByName(
-                    project, fileNameToLookFor, GlobalSearchScope.allScope(project));
+          final String fileNameToLookFor = fileName;
+          final java.util.Collection<VirtualFile> files =
+            ApplicationManager.getApplication().runReadAction(
+              new Computable<java.util.Collection<VirtualFile>>() {
+                @Override
+                public java.util.Collection<VirtualFile> compute() {
+
+                  java.util.Collection<VirtualFile> files =
+                    FilenameIndex.getVirtualFilesByName(
+                      project, fileNameToLookFor, GlobalSearchScope.moduleScope(module));
+                  if (files.isEmpty()) {
+                    files = FilenameIndex.getVirtualFilesByName(
+                      project, fileNameToLookFor, GlobalSearchScope.moduleWithDependenciesScope(module));
+                  }
+                  if (files.isEmpty()) {
+                    files = FilenameIndex.getVirtualFilesByName(
+                      project, fileNameToLookFor, GlobalSearchScope.moduleWithLibrariesScope(module));
+                  }
+                  if (files.isEmpty()) {
+                    files = FilenameIndex.getVirtualFilesByName(
+                      project, fileNameToLookFor, GlobalSearchScope.allScope(project));
+                  }
+                  return files;
                 }
-                return files;
+              }
+            );
+
+          java.util.Collection<VirtualFile> matches = new THashSet<VirtualFile>();
+          if (!files.isEmpty()) {
+            for (VirtualFile f : files) {
+              if (f.getPath().endsWith(mFileName)) {
+                matches.add(f);
               }
             }
-          );
-
-        java.util.Collection<VirtualFile> matches = new THashSet<VirtualFile>();
-        if (!files.isEmpty()) {
-          for (VirtualFile f : files) {
-            if (f.getPath().endsWith(mFileName)) {
-              matches.add(f);
-            }
           }
-        }
-        if (matches.isEmpty()) {
-          // If we don't have a match yet, then walk the classpath looking for
-          // an appropriate file.
-          file = HaxelibClasspathUtils.findFileOnClasspath(module, mFileName);
-        } else if (matches.size() == 1) {
-          // Got one.  If it's a good file, keep it.  Otherwise, try to pick it
-          // out of the classpath.
-          VirtualFile possible = matches.iterator().next();
-          file = possible.isValid() ? possible : HaxelibClasspathUtils.findFileOnClasspath(module, possible.toString());
-        } else {
-          // Too many matches. Get the first that occurs on the classpath.
-          file = HaxelibClasspathUtils.findFirstFileOnClasspath(module, matches);
+          if (matches.isEmpty()) {
+            // If we don't have a match yet, then walk the classpath looking for
+            // an appropriate file.
+            file = HaxelibClasspathUtils.findFileOnClasspath(module, mFileName);
+          }
+          else if (matches.size() == 1) {
+            // Got one.  If it's a good file, keep it.  Otherwise, try to pick it
+            // out of the classpath.
+            VirtualFile possible = matches.iterator().next();
+            file = possible.isValid() ? possible : HaxelibClasspathUtils.findFileOnClasspath(module, possible.toString());
+          }
+          else {
+            // Too many matches. Get the first that occurs on the classpath.
+            file = HaxelibClasspathUtils.findFirstFileOnClasspath(module, matches);
+          }
         }
 
         // Now, work around the fact that IDEA treats symlinks as separate files.
         // XXX: This should be controlled via an UI option.
-        if (null != file) { // && file.is(VFileProperty.SYMLINK)) {
-          // file.getnCanonicalFile() only works if the file is a symlink.  It ignores symlinks
-          // in the path.
-          // file = file.getCanonicalFile();
-          java.io.File f = new java.io.File(file.getPath());
-          java.io.File absolute = null == f ? null : f.getAbsoluteFile();
-          if ( null != absolute ) {
-            // Of course, IDEA's notion of a URI requires "://" after the protocol separator
-            // (as opposed to Java's ":").  So we can't just use the Java URI.
-            VirtualFileManager vfm = VirtualFileManager.getInstance();
-            String canonicalUri = absolute.toURI().toString();
-            String ideaUri = vfm.constructUrl(absolute.toURI().getScheme(), absolute.getPath());
-            file = VirtualFileManager.getInstance().findFileByUrl(ideaUri);
-          }
+        if (null != file) {
+          file = HaxeFileUtil.getCanonicalFile(file);
         }
 
         mSourcePosition =
