@@ -518,6 +518,7 @@ public class HaxelibClasspathUtils {
         }
         VirtualFile dirName = vfmInstance.findFileByUrl(dirUrl);
         if (null != dirName && dirName.isDirectory()) {
+          // XXX: This is wrong if filePath is already an absolute file name.
           found = dirName.findFileByRelativePath(filePath);
           if (null != found) {
             return false;  // Stop the search.
@@ -565,11 +566,11 @@ public class HaxelibClasspathUtils {
         }
         VirtualFile dirName = vfmInstance.findFileByUrl(dirUrl);
         if (null != dirName && dirName.isDirectory()) {
-          String dirPath = dirName.getCanonicalPath();
+          String dirPath = dirName.getPath();
           for (VirtualFile f : files) {
             if (f.exists()) {
               // We have a complete path, compare the leading paths.
-              String filePath = f.getCanonicalPath();
+              String filePath = f.getPath();
               if (filePath.startsWith(dirPath)) {
                 found = f;
               }
