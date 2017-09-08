@@ -62,6 +62,10 @@ public class HaxeModificationTracker {
   }
 
   public boolean isModifiedSince(Stamp stamp) {
+    if (null == stamp) {
+      return true;  // invalid stamp; always modified.
+    }
+
     if (stamp.tracker != this) {
       String msg = "Stamps can only be compared to their allocating Tracker.";
       LOG.error(msg);
