@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +28,8 @@ import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
+import com.intellij.plugins.haxe.util.HaxeModificationTracker;
+import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,9 +46,10 @@ import org.jetbrains.annotations.Nullable;
   }
 )
 public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
-  implements PersistentStateComponent<HaxeModuleSettings>, HaxeModuleSettingsBase {
+  implements PersistentStateComponent<HaxeModuleSettings>, HaxeModuleSettingsBase, HaxeTrackedModifiable {
 
   private String flexSdkName = "";
+  private HaxeModificationTracker tracker = new HaxeModificationTracker(this.getClass().getName());
 
   public HaxeModuleSettings() {
   }
@@ -67,6 +71,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     super(mainClass, outputFileName, outputFolder, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
           openFLPath, buildConfig);
     this.flexSdkName = flexSdkName;
+    notifyUpdated();
   }
 
   @Override
@@ -77,10 +82,12 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   @Override
   public void loadState(HaxeModuleSettings state) {
     XmlSerializerUtil.copyBean(state, this);
+    notifyUpdated(); // Not technically necessary, because the setters also trigger a notification.
   }
 
   public void setFlexSdkName(String flexSdkName) {
     this.flexSdkName = flexSdkName;
+    notifyUpdated();
   }
 
   public String getFlexSdkName() {
@@ -131,7 +138,24 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   }
 
   @Override
+  protected void notifyUpdated() {
+    tracker.notifyUpdated();
+  }
+
+  @Override
+  public Stamp getStamp() {
+    return tracker.getStamp();
+  }
+
+  @Override
+  public boolean isModifiedSince(Stamp s) {
+    return tracker.isModifiedSince(s);
+  }
+
+  @Override
   public boolean equals(Object o) {
+    // Modification tracker is NOT part of equals or hashCode.
+
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
@@ -156,6 +180,8 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
 
   @Override
   public int hashCode() {
+    // Modification tracker is NOT part of equals or hashCode.
+
     int result = mainClass != null ? mainClass.hashCode() : 0;
     result = 31 * result + (outputFileName != null ? outputFileName.hashCode() : 0);
     result = 31 * result + (outputFolder != null ? outputFolder.hashCode() : 0);
