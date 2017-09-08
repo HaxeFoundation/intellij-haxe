@@ -1,5 +1,5 @@
 /*
- * Copyright 20157 Eric Bishton
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.*;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,8 +38,6 @@ import java.util.List;
  */
 public class HaxeCompilerProjectCache {
 
-  // TODO: Invalidate the cache if the project settings changes.
-
   static final List<String> EMPTY_LIST = new ArrayList<String>(0);
 
 
@@ -48,6 +49,8 @@ public class HaxeCompilerProjectCache {
     public String myFilename; // project file name (from module, but fully located path that the compiler will use).
     public String myTarget;
     public List<String> myArguments;
+    public HaxeTrackedModifiable.Stamp moduleStamp;
+    public HaxeTrackedModifiable.Stamp projectStamp;
 
     public cacheEntry(Module module, String projectFile, String target, List<String> args) {
       init(module, projectFile, target, args);
@@ -58,6 +61,8 @@ public class HaxeCompilerProjectCache {
       myFilename = null != projectFile ? projectFile : "";
       myTarget = null != target ? target : "";
       myArguments = null != args ? args : EMPTY_LIST;
+      moduleStamp = null != module ? HaxeModuleSettings.getInstance(module).getStamp() : HaxeTrackedModifiable.INVALID_STAMP;
+      projectStamp = null != module ? HaxeProjectSettings.getInstance(module.getProject()).getStamp() : HaxeTrackedModifiable.INVALID_STAMP;
     }
   }
 
@@ -85,7 +90,7 @@ public class HaxeCompilerProjectCache {
       private void updateCache(VirtualFileEvent event) {
         // If it changed, kick it out of the cache.
         if (null != myCacheEntry && event.getFile().getUrl().equals(myCacheEntry.myFilename)) {
-          myCacheEntry = null;
+          invalidate();
         }
       }
     });
@@ -112,8 +117,14 @@ public class HaxeCompilerProjectCache {
     if (null != myCacheEntry
         &&  myCacheEntry.myModule.equals(module)
         &&  stringsAreEqual(myCacheEntry.myFilename, projectFileUri)
-        &&  stringsAreEqual(myCacheEntry.myTarget,target)) {
-      return myCacheEntry.myArguments;
+        &&  stringsAreEqual(myCacheEntry.myTarget,target)
+       ) {
+      if (!myCacheEntry.moduleStamp.isOutOfDate() && !myCacheEntry.projectStamp.isOutOfDate()) {
+        return myCacheEntry.myArguments;
+      } else {
+        invalidate();
+        return null;
+      }
     }
     return null;
   }
