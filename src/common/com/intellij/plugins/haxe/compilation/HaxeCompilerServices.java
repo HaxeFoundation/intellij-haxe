@@ -1,7 +1,4 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
- * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,6 +83,49 @@ public class HaxeCompilerServices {
         myErrorNotifier = errorNotifier;
     }
 
+    public List<String> getLimeProjectConfiguration(Module module, @Nullable HaxeDebugTimeLog timeLog) {
+
+        HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(module);
+        String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
+
+        VirtualFile projectFile = verifyProjectFile(module, "OpenFL", moduleSettings.getOpenFLPath(), myErrorNotifier);
+        if (null == projectFile) {
+
+        }
+        VirtualFile compileRoot = HaxeCompilerUtil.findCompileRoot(module);
+
+        List<String> compilerArgsFromProjectFile = openFLDisplayArguments.get(module, projectFile.getUrl(), targetFlag);
+        if (compilerArgsFromProjectFile == null) {
+            ArrayList<String> limeArguments = new ArrayList<String>();
+
+            limeArguments.add(HaxelibCommandUtils.getHaxelibPath(module));
+            limeArguments.add("run");
+            limeArguments.add("lime");
+            limeArguments.add("display");
+            //flash, html5, linux, etc
+            limeArguments.add(targetFlag);
+
+            // Add arguments from the settings panel.  They get echoed out via display,
+            // if appropriate.
+            formatAndAddCompilerArguments(limeArguments, moduleSettings.getOpenFLFlags());
+
+            if (null != timeLog) {
+                timeLog.stamp("Get display vars from lime.");
+            }
+            List<String> stdout = new ArrayList<String>();
+            HaxeCompilerUtil.runInterruptibleCompileProcess(limeArguments, false,
+                                                            compileRoot, HaxeSdkUtilBase.getSdkData(module),
+                                                            stdout, null, timeLog);
+
+            // Need to filter out empty/blank lines.  They cause an empty argument to
+            // haxelib, which errors out and breaks completion.
+            compilerArgsFromProjectFile = filterEmptyLines(stdout);
+            openFLDisplayArguments.put(module, projectFile.getUrl(), targetFlag, compilerArgsFromProjectFile);
+        }
+        return compilerArgsFromProjectFile;
+    }
+
+
     @NotNull
     public List<HaxeCompilerCompletionItem> getPossibleCompletions(@NotNull PsiFile file,
                                                                    @NotNull PsiElement element,
@@ -136,39 +176,11 @@ public class HaxeCompilerServices {
                         completions = collectCompletionsFromNME(file, element, editor, commandLineArguments, timeLog);
                         break;
                     case HaxeModuleSettingsBaseImpl.USE_OPENFL:
-                        projectFile = verifyProjectFile(moduleForFile, "OpenFL", moduleSettings.getOpenFLPath(), myErrorNotifier);
-                        if (null == projectFile) {
-                            break;
-                        }
-
-                        String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
-                        // Load the project defines, etc, from the project.xml file.  Cache them.
-                        List<String> compilerArgsFromProjectFile = openFLDisplayArguments.get(moduleForFile, projectFile.getUrl(), targetFlag);
-                        if (compilerArgsFromProjectFile == null) {
-                            ArrayList<String> limeArguments = new ArrayList<String>();
-
-                            limeArguments.add(HaxelibCommandUtils.getHaxelibPath(moduleForFile));
-                            limeArguments.add("run");
-                            limeArguments.add("lime");
-                            limeArguments.add("display");
-                            //flash, html5, linux, etc
-                            limeArguments.add(targetFlag);
-
-                            // Add arguments from the settings panel.  They get echoed out via display,
-                            // if appropriate.
-                            formatAndAddCompilerArguments(limeArguments, moduleSettings.getOpenFLFlags());
-
-                            timeLog.stamp("Get display vars from lime.");
-                            List<String> stdout = new ArrayList<String>();
-                            HaxeCompilerUtil.runInterruptibleCompileProcess(limeArguments, false,
-                                                                            compileRoot, HaxeSdkUtilBase.getSdkData(moduleForFile),
-                                                                            stdout, null, timeLog);
-
-                            // Need to filter out empty/blank lines.  They cause an empty argument to
-                            // haxelib, which errors out and breaks completion.
-                            compilerArgsFromProjectFile = filterEmptyLines(stdout);
-                            openFLDisplayArguments.put(moduleForFile, projectFile.getUrl(), targetFlag, compilerArgsFromProjectFile);
-                        }
+                        //projectFile = verifyProjectFile(moduleForFile, "OpenFL", moduleSettings.getOpenFLPath(), myErrorNotifier);
+                        //if (null == projectFile) {
+                        //    break;
+                        //}
+                        List<String> compilerArgsFromProjectFile = getLimeProjectConfiguration(moduleForFile, timeLog);
 
                         commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
                         formatAndAddCompilerArguments(commandLineArguments, compilerArgsFromProjectFile);
