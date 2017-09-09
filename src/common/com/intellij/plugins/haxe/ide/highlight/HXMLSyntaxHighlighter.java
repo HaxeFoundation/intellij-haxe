@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,13 +65,13 @@ public class HXMLSyntaxHighlighter extends SyntaxHighlighterBase {
   @NotNull
   @Override
   public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
-    if (tokenType.equals(HXMLTypes.KEY)) {
+    if (tokenType.equals(HXMLTypes.KEY_TOKEN)) {
       return KEY_KEYS;
     }
     else if (tokenType.equals(HXMLTypes.QUALIFIEDCLASSNAME)) {
       return CLASS_NAME_KEYS;
     }
-    else if (tokenType.equals(HXMLTypes.VALUE)) {
+    else if (tokenType.equals(HXMLTypes.VALUE_TOKEN)) {
       return VALUE_KEYS;
     }
     else if (tokenType.equals(HXMLTypes.COMMENT)) {

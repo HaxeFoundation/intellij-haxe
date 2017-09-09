@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +107,7 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
     if (COMPILER_ARGUMENTS == null) {
       getCompilerArguments();
     }
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY).withLanguage(HXMLLanguage.INSTANCE),
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.OPTION).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
