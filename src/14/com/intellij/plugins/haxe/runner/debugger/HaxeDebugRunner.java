@@ -47,6 +47,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.compilation.LimeProjectModel;
+import com.intellij.plugins.haxe.compilation.LimeUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
@@ -132,7 +134,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     boolean flashDebug = false, hxcppDebug = false;
 
-    if (settings.isUseHxmlToBuild()) {
+    if (settings.isUseHxmlToBuild() || settings.isUseUserPropertiesToBuild()) {
       if (settings.getHaxeTarget() == HaxeTarget.FLASH) {
         flashDebug = true;
       }
@@ -170,8 +172,20 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     if (flashDebug) {
-      return runFlash(module, settings, env, executor,
-                      configuration.getCustomFileToLaunchPath());
+      String flashFileToDebug = null;
+      if(configuration.isCustomFileToLaunch()) {
+        flashFileToDebug = configuration.getCustomFileToLaunchPath();
+      }
+      else {
+        //final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
+        //assert model != null;
+        //flashFileToDebug = model.getCompilerOutputUrl() + "/debug/" + settings.getOutputFileName();
+
+        // TODO: Need to add a debug flag to the project model, so that the debug SWF is always displayed.
+        LimeProjectModel lime = LimeUtil.getLimeProjectModel(module);
+        flashFileToDebug = module.getProject().getBasePath() + "/" + lime.getSwfOutputFileName();
+      }
+      return runFlash(module, settings, env, executor, flashFileToDebug);
     }
     else if (hxcppDebug) {
       final Project project = env.getProject();
@@ -539,8 +553,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         }
         debugger.Message message = JavaProtocol.readMessage
           (debugSocket.getInputStream());
-//                System.out.println("Received message: " +
-//                                   JavaProtocol.messageToString(message));
+//      System.out.println("Received message: " +
+//                         JavaProtocol.messageToString(message));
         int messageId = JavaProtocol.getMessageId(message);
         if (messageId == JavaProtocol.IdThreadCreated) {
           // Console it out
