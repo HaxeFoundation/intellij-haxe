@@ -18,15 +18,17 @@
 simpleFile ::= line_* unterminated_line_?
 
 hxml ::= HXML_FILE
+private classname_ ::= qualifiedName
+
 qualifiedName ::= QUALIFIEDCLASSNAME {methods=[getQName]}
 option ::= KEY_TOKEN
 value ::= VALUE_TOKEN | QUALIFIEDCLASSNAME
 private eol_ ::= CRLF
 
-private unterminated_line_ ::= option_
-private line_ ::= option_? eol_
+private unterminated_line_ ::= (option_ | classname_ | hxml)   {recoverWhile="line_recovery"}
+private line_ ::= unterminated_line_? eol_
 private line_recovery ::= !(eol_)
-private option_ ::= (lib | define | classpath | main | property | COMMENT)  {recoverWhile="line_recovery"}
+private option_ ::= (lib | define | classpath | main | property | COMMENT)
 
 property ::= option value? {pin=1}
 define ::= '-D' value {pin=1}
