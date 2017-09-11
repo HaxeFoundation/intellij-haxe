@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,8 @@ import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.util.HaxeModificationTracker;
+import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
 import org.jdom.Element;
@@ -38,10 +41,11 @@ import java.util.Set;
     @Storage(file = StoragePathMacros.PROJECT_CONFIG_DIR + "/haxe.xml", scheme = StorageScheme.DIRECTORY_BASED)
   }
 )
-public class HaxeProjectSettings implements PersistentStateComponent<Element> {
+public class HaxeProjectSettings implements PersistentStateComponent<Element>, HaxeTrackedModifiable {
   public static final String HAXE_SETTINGS = "HaxeProjectSettings";
   public static final String DEFINES = "defines";
   private String userCompilerDefinitions = "";
+  private HaxeModificationTracker tracker = new HaxeModificationTracker(getClass().getName());
 
   public Set<String> getUserCompilerDefinitionsAsSet() {
     return new THashSet<String>(Arrays.asList(getUserCompilerDefinitions()));
@@ -63,11 +67,13 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element> {
         return s != null && !s.isEmpty();
       }
     }), ",");
+    tracker.notifyUpdated();
   }
 
   @Override
   public void loadState(Element state) {
     userCompilerDefinitions = state.getAttributeValue(DEFINES, "");
+    tracker.notifyUpdated();
   }
 
   @Override
@@ -75,5 +81,15 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element> {
     final Element element = new Element(HAXE_SETTINGS);
     element.setAttribute(DEFINES, userCompilerDefinitions);
     return element;
+  }
+
+  @Override
+  public Stamp getStamp() {
+    return tracker.getStamp();
+  }
+
+  @Override
+  public boolean isModifiedSince(Stamp s) {
+    return tracker.isModifiedSince(s);
   }
 }

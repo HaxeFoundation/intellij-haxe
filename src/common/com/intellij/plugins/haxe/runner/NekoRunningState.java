@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +35,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.util.HaxeCommandLine;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,17 +59,17 @@ public class NekoRunningState extends CommandLineState {
     assert settings.getHaxeTarget() == HaxeTarget.NEKO;
     final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
 
-    GeneralCommandLine commandLine = getCommandForNeko(sdkData, settings);
+    HaxeCommandLine commandLine = getCommandForNeko(sdkData, settings);
 
     return new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
   }
 
-  private GeneralCommandLine getCommandForNeko(@Nullable HaxeSdkData sdkData, HaxeModuleSettings settings) throws ExecutionException {
+  private HaxeCommandLine getCommandForNeko(@Nullable HaxeSdkData sdkData, HaxeModuleSettings settings) throws ExecutionException {
     if (sdkData == null || sdkData.getNekoBinPath() == null || sdkData.getNekoBinPath().isEmpty()) {
       throw new ExecutionException(HaxeBundle.message("haxe.run.bad.neko.bin.path"));
     }
 
-    GeneralCommandLine commandLine = new GeneralCommandLine();
+    HaxeCommandLine commandLine = new HaxeCommandLine(module);
 
     commandLine.setExePath(sdkData.getNekoBinPath());
     //commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));

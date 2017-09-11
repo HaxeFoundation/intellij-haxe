@@ -114,12 +114,12 @@ public class HaxeSdkUtilBase {
       final String nekoBin = haxeSdkData.getNekoBinPath();
 
       if(sdkHome != null && !sdkHome.isEmpty()) {
-        result += pathsep + sdkHome;
+        result += sdkHome;
       }
       else if(haxelibBin != null && !haxelibBin.isEmpty()) {
         // fallback to haxelib path
         final File f = new File(haxelibBin);
-        result += pathsep + f.getParent();
+        result += f.getParent();
       }
 
 
@@ -127,6 +127,7 @@ public class HaxeSdkUtilBase {
         final File f = new File(nekoBin);
         result += pathsep + f.getParent();
       }
+      result += pathsep;
     }
     return result;
   }
@@ -139,15 +140,26 @@ public class HaxeSdkUtilBase {
       processBuilder.directory(workingDirectory);
     }
 
-    // TODO: Add Haxe/haxelib environment variables.  Needed for Mac. (Maybe at caller?)
-
-    String pathvar = SystemInfo.isWindows ? "Path" : "PATH";
-    if (haxeSdkData != null) {
-      final Map<String, String> env = processBuilder.environment();
-      final String path = env.get(pathvar) + getEnvironmentPathPatch(haxeSdkData);
-      env.put("PATH", path);
-    }
+    patchEnvironment(processBuilder.environment(), haxeSdkData);
 
     return processBuilder;
+  }
+
+  /**
+   * Patch the PATH environment variable to include the Haxe SDK.  The original environment
+   * is modified in place.
+   *
+   * @param env list of environment variables.
+   * @param haxeSdkData SDK for which the environment is being modified.
+   * @return the environment that was passed in.  It is modified in place.
+   */
+  @NotNull
+  public static Map<String,String> patchEnvironment(@NotNull Map<String,String> env, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    String pathvar = SystemInfo.isWindows ? "Path" : "PATH";
+    if (haxeSdkData != null) {
+      final String path = getEnvironmentPathPatch(haxeSdkData) + env.get(pathvar);
+      env.put(pathvar, path);
+    }
+    return env;
   }
 }

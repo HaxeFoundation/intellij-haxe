@@ -15,15 +15,24 @@
   generate=[names="short"]
 }
 
-simpleFile ::= item_*
-
-private item_ ::= (hxml | lib | define | classpath | main | property | qualifiedName | COMMENT | CRLF)
+simpleFile ::= line_* unterminated_line_?
 
 hxml ::= HXML_FILE
-property ::= (KEY SEPARATOR VALUE) | KEY {methods=[getKey getValue]}
-define ::= '-D' SEPARATOR VALUE
-lib ::= '-lib' SEPARATOR VALUE (':' VALUE)? {methods=[getValue]}
-classpath ::= '-cp' SEPARATOR VALUE {methods=[getValue]}
-main ::= '-main' SEPARATOR qualifiedName
+private classname_ ::= qualifiedName
 
-qualifiedName ::= QUALIFIEDCLASSNAME
+qualifiedName ::= QUALIFIEDCLASSNAME {methods=[getQName]}
+option ::= KEY_TOKEN
+value ::= VALUE_TOKEN | QUALIFIEDCLASSNAME
+private eol_ ::= CRLF
+
+private unterminated_line_ ::= (option_ | classname_ | hxml)   {recoverWhile="line_recovery"}
+private line_ ::= unterminated_line_? eol_
+private line_recovery ::= !(eol_)
+private option_ ::= (lib | define | classpath | main | property | COMMENT)
+
+property ::= option value? {pin=1}
+define ::= '-D' value {pin=1}
+lib ::= '-lib' value (':' value)? {pin=1}
+classpath ::= '-cp' value {pin=1}
+main ::= '-main' qualifiedName {pin=1}
+

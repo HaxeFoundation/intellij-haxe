@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +24,8 @@ import com.intellij.lang.ASTNode;
  * Created by as3boyan on 01.11.14.
  */
 public class HXMLPsiImplUtil {
-  public static String getKey(HXMLProperty property) {
-    ASTNode node = property.getNode().findChildByType(HXMLTypes.KEY);
+  public static String getOption(HXMLProperty property) {
+    ASTNode node = property.getNode().findChildByType(HXMLTypes.OPTION);
 
     if (node != null) {
       return node.getText();

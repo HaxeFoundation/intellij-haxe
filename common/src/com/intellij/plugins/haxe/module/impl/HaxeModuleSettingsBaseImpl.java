@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +81,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setNmeTarget(NMETarget nmeTarget) {
     this.nmeTarget = nmeTarget;
+    notifyUpdated();
   }
 
   public int getBuildConfig() {
@@ -92,6 +94,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setMainClass(String mainClass) {
     this.mainClass = mainClass;
+    notifyUpdated();
   }
 
   public String getArguments() {
@@ -100,6 +103,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setArguments(String arguments) {
     this.arguments = arguments;
+    notifyUpdated();
   }
 
   public String getNmeFlags() {
@@ -108,17 +112,19 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setNmeFlags(String flags) {
     this.nmeFlags = flags;
+    notifyUpdated();
   }
 
   public void setOpenFLFlags(String flags) {
     this.openFLFlags = flags;
+    notifyUpdated();
   }
 
   public String getOpenFLFlags() {
     return openFLFlags;
   }
 
-  public void setOpenFLPath(String openFLPath) { this.openFLPath = openFLPath; }
+  public void setOpenFLPath(String openFLPath) { this.openFLPath = openFLPath; notifyUpdated(); }
 
   public String getOpenFLPath() {
     return openFLPath;
@@ -126,6 +132,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setOpenFLTarget(OpenFLTarget target) {
     this.openFLTarget = target;
+    notifyUpdated();
   }
 
   public OpenFLTarget getOpenFLTarget() {
@@ -142,6 +149,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setHaxeTarget(HaxeTarget haxeTarget) {
     this.haxeTarget = haxeTarget;
+    notifyUpdated();
   }
 
   public boolean isExcludeFromCompilation() {
@@ -150,6 +158,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setExcludeFromCompilation(boolean excludeFromCompilation) {
     this.excludeFromCompilation = excludeFromCompilation;
+    notifyUpdated();
   }
 
   public String getOutputFileName() {
@@ -158,11 +167,12 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setOutputFileName(String outputFileName) {
     this.outputFileName = outputFileName;
+    notifyUpdated();
   }
 
   public String getOutputFolder() { return outputFolder; }
 
-  public void setOutputFolder(String outputFolder) { this.outputFolder = outputFolder; }
+  public void setOutputFolder(String outputFolder) { this.outputFolder = outputFolder; notifyUpdated(); }
 
   public String getHxmlPath() {
     return hxmlPath;
@@ -174,6 +184,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setHxmlPath(String hxmlPath) {
     this.hxmlPath = hxmlPath;
+    notifyUpdated();
   }
 
   public boolean isUseHxmlToBuild() {
@@ -194,9 +205,14 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setNmmlPath(String nmmlPath) {
     this.nmmlPath = nmmlPath;
+    notifyUpdated();
   }
 
   public void setBuildConfig(int buildConfig) {
     this.buildConfig = buildConfig;
+    notifyUpdated();
   }
+
+  protected void notifyUpdated() { return; }
+
 }

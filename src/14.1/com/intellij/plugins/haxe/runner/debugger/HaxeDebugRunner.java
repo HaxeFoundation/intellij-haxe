@@ -37,16 +37,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VFileProperty;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.compilation.LimeProjectModel;
+import com.intellij.plugins.haxe.compilation.LimeUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
@@ -134,7 +136,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
     boolean flashDebug = false, hxcppDebug = false;
 
-    if (settings.isUseHxmlToBuild()) {
+    if (settings.isUseHxmlToBuild() || settings.isUseUserPropertiesToBuild()) {
       if (settings.getHaxeTarget() == HaxeTarget.FLASH) {
         flashDebug = true;
       }
@@ -172,8 +174,20 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     if (flashDebug) {
-      return runFlash(module, settings, env, executor,
-                      configuration.getCustomFileToLaunchPath());
+      String flashFileToDebug = null;
+      if(configuration.isCustomFileToLaunch()) {
+        flashFileToDebug = configuration.getCustomFileToLaunchPath();
+      }
+      else {
+        //final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
+        //assert model != null;
+        //flashFileToDebug = model.getCompilerOutputUrl() + "/debug/" + settings.getOutputFileName();
+
+        // TODO: Need to add a debug flag to the project model, so that the debug SWF is always displayed.
+        LimeProjectModel lime = LimeUtil.getLimeProjectModel(module);
+        flashFileToDebug = module.getProject().getBasePath() + "/" + lime.getSwfOutputFileName();
+      }
+      return runFlash(module, settings, env, executor, flashFileToDebug);
     }
     else if (hxcppDebug) {
       final Project project = env.getProject();

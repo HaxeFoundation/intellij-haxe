@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +39,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.util.HaxeCommandLine;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -87,7 +89,7 @@ public class HaxeRunner extends DefaultProgramRunner {
         @NotNull
         @Override
         protected ProcessHandler startProcess() throws ExecutionException {
-          final GeneralCommandLine commandLine = new GeneralCommandLine();
+          final HaxeCommandLine commandLine = new HaxeCommandLine(module);
           commandLine.withWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
           commandLine.setExePath(configuration.getCustomExecutablePath());
           commandLine.addParameter(filePath);

@@ -236,6 +236,14 @@ public class HaxeCompilerUtil
         //return findSourceRoot(file);
     }
 
+    @Nullable
+    public static VirtualFile findCompileRoot(@NotNull Module module) {
+        // This will work for most people.  For those whose project files are in different trees from their sources,
+        // this has to be changed.
+        // TODO: Add a "compile directory" to the Haxe module settings.
+        return module.getProject().getBaseDir();
+    }
+
     /**
      * Run an interruptible process with the Haxe SDK compiler environment.  Checks
      * whether the process/thread has been canceled (from within IDEA).
