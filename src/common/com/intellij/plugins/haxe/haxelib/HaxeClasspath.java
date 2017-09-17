@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +135,7 @@ public class HaxeClasspath {
 
   /**
    * Determine if a given URL is represented by any Entry/Item in the classpath.
-   * NOTE: This method *does NOT* attempt to normalize the URL.  relative paths
+   * NOTE: This method *does NOT* attempt to normalize the URL.  Relative paths
    * will NOT match.
    *
    * @param url we are looking for.
@@ -143,17 +144,6 @@ public class HaxeClasspath {
   public boolean containsUrl(final String url) {
     if (null == url || url.isEmpty())
       return false;
-
-    // This algorithm could be done using:
-    //   myOrderedEntries.contains(new HaxeIdeaItem(null, url));
-    // but that's not really right, because we'd be creating a sub-class
-    // of HaxeClasspathEntry here, and we would assume the format of the
-    // subclass.  (Plus, it's slower because of the name parsing and
-    // management overhead.)
-    //
-    // Instead, we let the class figure out how to do it, and assume only that
-    // a matching hashcode can be generated given an URL.
-    //
 
     synchronized(this) {
       // OK, this works because the hash code for a HaxeClasspathEntry is the

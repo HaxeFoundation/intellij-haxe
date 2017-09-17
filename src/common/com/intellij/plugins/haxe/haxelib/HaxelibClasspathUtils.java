@@ -96,7 +96,7 @@ public class HaxelibClasspathUtils {
         for (OrderRootType rootType : interestingRootTypes) {
           for (String url : library.getUrls(rootType)) {
             if (!classpath.containsUrl(url)) {  // The if just keeps us from churning.
-              classpath.add(new HaxeIdeaItem(library.getName(), url));
+              classpath.add(new HaxeClasspathEntry(library.getName(), url));
             }
           }
         }
@@ -158,7 +158,7 @@ public class HaxelibClasspathUtils {
       for (OrderRootType rootType : interestingRootTypes) {
         for (String url : library.getUrls(rootType)) {
           if (!classpath.containsUrl(url)) {
-            classpath.add(new HaxeIdeaItem(library.getName(), url));
+            classpath.add(new HaxeClasspathEntry(library.getName(), url));
           }
         }
       }
