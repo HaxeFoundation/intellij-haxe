@@ -91,7 +91,7 @@ public class HaxelibClasspathUtils {
       // That is, if it /is/ a haxelib entry, ignore it; grab the classpaths for
       // libs that aren't haxelibs.
       //
-      if (!HaxelibParser.isManagedLibrary(library.getName())) {
+      if (!HaxelibNameUtil.isManagedLibrary(library.getName())) {
         OrderRootType interestingRootTypes[] = {OrderRootType.SOURCES, OrderRootType.CLASSES};
         for (OrderRootType rootType : interestingRootTypes) {
           for (String url : library.getUrls(rootType)) {
@@ -134,7 +134,7 @@ public class HaxelibClasspathUtils {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
-      if (filterManagedLibs && HaxelibParser.isManagedLibrary(library.getName())) {
+      if (filterManagedLibs && HaxelibNameUtil.isManagedLibrary(library.getName())) {
         continue;
       }
       nameList.add(library.getName());

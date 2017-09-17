@@ -58,8 +58,8 @@ public class HaxeClasspathEntry {
     }
 
     if (null != myName) {
-      if (HaxelibParser.isManagedLibrary(myName)) {
-        myName = HaxelibParser.parseHaxelib(myName);
+      if (HaxelibNameUtil.isManagedLibrary(myName)) {
+        myName = HaxelibNameUtil.parseHaxelib(myName);
         myIsManagedEntry = true;
       }
     }
@@ -68,11 +68,11 @@ public class HaxeClasspathEntry {
   @Nullable
   public String getName() {
     if (null == myName) {
-      myName = HaxelibParser.parseHaxelibNameFromPath(myUrl);
+      myName = HaxelibNameUtil.parseHaxelibNameFromPath(myUrl);
     }
 
     if (myIsManagedEntry) {
-      return HaxelibParser.stringifyHaxelib(myName);
+      return HaxelibNameUtil.stringifyHaxelib(myName);
     }
     return myName;
   }
