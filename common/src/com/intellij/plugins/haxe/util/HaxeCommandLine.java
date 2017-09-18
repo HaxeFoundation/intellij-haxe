@@ -30,17 +30,27 @@ public class HaxeCommandLine extends GeneralCommandLine {
 
   public HaxeCommandLine(@NotNull Module module) {
     super();
+    addEnvironmentVars();
     patchPath(module);
   }
 
   public HaxeCommandLine(@NotNull Module module, @NotNull String... command) {
     super(command);
+    addEnvironmentVars();
     patchPath(module);
   }
 
   public HaxeCommandLine(@NotNull Module module, @NotNull List<String> command) {
     super(command);
+    addEnvironmentVars();
     patchPath(module);
+  }
+
+  /**
+   * Adds environment variables as they seem to not be included by default
+   */
+  private void addEnvironmentVars() {
+    getEnvironment().putAll(System.getenv());
   }
 
   /**
@@ -49,6 +59,6 @@ public class HaxeCommandLine extends GeneralCommandLine {
    */
   public void patchPath(Module module) {
     HaxeSdkAdditionalDataBase sdk = HaxeSdkUtilBase.getSdkData(module);
-    HaxeSdkUtilBase.patchEnvironment(getEffectiveEnvironment(), sdk);
+    HaxeSdkUtilBase.patchEnvironment(getEnvironment(), sdk);
   }
 }
