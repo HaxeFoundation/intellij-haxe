@@ -49,6 +49,6 @@ public class HaxeCommandLine extends GeneralCommandLine {
    */
   public void patchPath(Module module) {
     HaxeSdkAdditionalDataBase sdk = HaxeSdkUtilBase.getSdkData(module);
-    HaxeSdkUtilBase.patchEnvironment(getEnvironment(), sdk);
+    HaxeSdkUtilBase.patchEnvironment(getEffectiveEnvironment(), sdk);
   }
 }
