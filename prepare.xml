@@ -18,9 +18,9 @@
 
     <target name="download" >
         <antcall target="makeToolsDir"/>
-        <antcall target="fetchIdea"/>
-        <antcall target="fetchGrammarKit"/>
-        <antcall target="fetchPsi"/>
+        <antcall target="ideaIU.fetch"/>
+        <antcall target="grammarKit.fetch"/>
+        <antcall target="psi.fetch"/>
     </target>
 
     <target name="setup" >
@@ -39,17 +39,17 @@
 
     <!--DOWNLOAD-->
 
-    <target name="fetchIdea"  depends="ideaIU.check" unless="ideaIU.exists">
+    <target name="ideaIU.fetch" depends="ideaIU.check" unless="ideaIU.exists">
         <get dest="${ideaIUFile}"
             src="http://download.jetbrains.com/idea/ideaIU-${ideaVersion}.tar.gz"/>
     </target>
 
-    <target name="fetchGrammarKit"  depends="grammarKit.check" unless="grammarKit.exists">
+    <target name="grammarKit.fetch" depends="grammarKit.check" unless="grammarKit.exists">
         <get dest="${grammarKitFile}"
             src="https://github.com/JetBrains/Grammar-Kit/releases/download/${grammarKitVersion}/GrammarKit.zip"/>
     </target>
 
-    <target name="fetchPsi"  depends="psi.check" unless="psi.exists">
+    <target name="psi.fetch" depends="psi.check" unless="psi.exists">
         <get dest="${psiFile}"
              src="https://github.com/JetBrains/Grammar-Kit/releases/download/${grammarKitVersion}/light-psi-all.jar"/>
     </target>
