@@ -11,4 +11,3 @@ Exit /B 1
 call ant -f prepare.xml -Dversion="%1"
 call ant -f build.xml -Dversion="%1"
 
-::rm -rf idea-IU
