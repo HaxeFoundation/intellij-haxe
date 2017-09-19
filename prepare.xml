@@ -1,0 +1,133 @@
+<!--
+  ~ Copyright 2000-2013 JetBrains s.r.o.
+  ~ Copyright 2014-2017 AS3Boyan
+  ~ Copyright 2014-2014 Elias Ku
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<project name="Idea Haxe language scripted package plugin" default="init" basedir=".">
+
+
+    <property name="grammarKitVersion" value="1.2.0"/>
+    <property name="toolsDir" value="${basedir}/tools/"/>
+
+    <property name="ideaVersion" value="${version}"/>
+    <property name="ideaIUFile" value="${toolsDir}/ideaIU-${ideaVersion}.tar.gz"/>
+    <property name="grammarKitFile" value="${toolsDir}/GrammarKit-${grammarKitVersion}.zip"/>
+    <property name="psiFile" value="${toolsDir}/light-psi-all-${grammarKitVersion}.jar"/>
+
+
+    <target name="init" depends="ready" unless="isReady">
+        <antcall target="download"/>
+        <antcall target="setup"/>
+        <antcall target="cleanup"/>
+    </target>
+
+    <target name="download" >
+        <antcall target="makeToolsDir"/>
+        <antcall target="fetchIdea"/>
+        <antcall target="fetchGrammarKit"/>
+        <antcall target="fetchPsi"/>
+    </target>
+
+    <target name="setup" >
+        <antcall target="ideaIU.extract"/>
+        <antcall target="grammarKit.extract"/>
+        <antcall target="psi.extract"/>
+    </target>
+
+    <target name="cleanup" >
+        <delete dir="${toolsDir}"/>
+    </target>
+
+    <target name="makeToolsDir" depends="toolsDir.check" unless="toolsDir.exists">
+        <mkdir dir="${toolsDir}" />
+    </target>
+
+    <!--DOWNLOAD-->
+
+    <target name="fetchIdea"  depends="ideaIU.check" unless="ideaIU.exists">
+        <get dest="${ideaIUFile}"
+            src="http://download.jetbrains.com/idea/ideaIU-${ideaVersion}.tar.gz"/>
+    </target>
+
+    <target name="fetchGrammarKit"  depends="grammarKit.check" unless="grammarKit.exists">
+        <get dest="${grammarKitFile}"
+            src="https://github.com/JetBrains/Grammar-Kit/releases/download/${grammarKitVersion}/GrammarKit.zip"/>
+    </target>
+
+    <target name="fetchPsi"  depends="psi.check" unless="psi.exists">
+        <get dest="${psiFile}"
+             src="https://github.com/JetBrains/Grammar-Kit/releases/download/${grammarKitVersion}/light-psi-all.jar"/>
+    </target>
+
+    <!--FILE EXISTS CHECKS-->
+
+    <target name="toolsDir.check">
+        <condition property="toolsDir.exists">
+            <available file="${toolsDir}" type="dir"/>
+        </condition>
+    </target>
+
+    <target name="ideaIU.check">
+        <condition property="ideaIU.exists">
+            <available file="${ideaIUFile}" type="file"/>
+        </condition>
+    </target>
+
+    <target name="grammarKit.check">
+        <condition property="grammarKit.exists">
+            <available file="${grammarKitFile}" type="file"/>
+        </condition>
+    </target>
+    <target name="psi.check">
+        <condition property="psi.exists">
+            <available file="${psiFile}" type="file"/>
+        </condition>
+    </target>
+
+
+    <!--EXTRACT FILES-->
+
+    <target name="ideaIU.extract">
+        <untar src="${ideaIUFile}" dest="${toolsDir}/idea-IU" compression="gzip"/>
+        <dirset dir="${toolsDir}/idea-IU/" includes="idea-IU*" id="wildCardDir" />
+        <pathconvert pathsep=", " property="ideaDir" refid="wildCardDir" />
+        <copy todir="${basedir}/idea-IU/">
+            <fileset  dir="${ideaDir}" includes="**/*"/>
+        </copy>
+    </target>
+
+    <target name="grammarKit.extract">
+        <unzip src="${grammarKitFile}" dest="${toolsDir}"/>
+        <copy file="${toolsDir}/GrammarKit/lib/grammar-kit.jar" tofile="${basedir}/grammar-kit.jar"/>
+    </target>
+
+    <target name="psi.extract">
+        <copy file="${psiFile}" tofile="${basedir}/light-psi-all.jar"/>
+    </target>
+
+    <!--CHECK IF READY TO BUILD-->
+    <target name="ready">
+        <condition property="isReady">
+            <and>
+                <available file="${basedir}/idea-IU" type="dir"/>
+                <available file="${basedir}/grammar-kit.jar" type="file"/>
+                <available file="${basedir}/light-psi-all.jar" type="file"/>
+            </and>
+        </condition>
+    </target>
+
+
+</project>
+
