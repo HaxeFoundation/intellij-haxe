@@ -7,4 +7,4 @@ Exit /B 1
 )
 
 :: call ant tasks that downloads and extracts IDEA source files
-call ant -f prepare.xml -Dversion="%1" makeToolsDir ideaIU.fetch ideaIU.extract cleanup
+call ant -f prepare.xml -Dversion="%1" fetchIdeaOnly

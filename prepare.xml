@@ -112,5 +112,22 @@
     </target>
 
 
+    <!--SINGLE OPERATIONS-->
+    <target name="fetchGrammarKitOnly" >
+        <antcall target="makeToolsDir"/>
+        <antcall target="grammarKit.fetch"/>
+        <antcall target="grammarKit.extract"/>
+        <antcall target="psi.fetch"/>
+        <antcall target="psi.extract"/>
+        <antcall target="cleanup"/>
+    </target>
+
+    <target name="fetchIdeaOnly" >
+        <antcall target="makeToolsDir"/>
+        <antcall target="ideaIU.fetch"/>
+        <antcall target="ideaIU.extract"/>
+        <antcall target="cleanup"/>
+    </target>
+
 </project>
 
