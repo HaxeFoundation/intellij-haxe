@@ -9,8 +9,8 @@ if [[ $# -eq 0 ]] ; then
     exit 1
 fi
 
-./fetchIdea.sh "$1"
-./fetchGrammarKit.sh
+#download and extract dependencies
+ant -f workspace.xml -Dversion="$1"
 
 # Run the tests
 ant -f build-test.xml -Dversion="$1" $2
@@ -19,7 +19,6 @@ ant -f build-test.xml -Dversion="$1" $2
 stat=$?
 
 ant -f build-test.xml -q clean
-rm -rf idea-IU
 
 # Return the build status
 exit ${stat}

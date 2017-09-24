@@ -1,0 +1,58 @@
+<project name="Ant logic for downloading Flex dependencies" default="flexSkeleton.setup" basedir=".">
+
+  <import file="fetchCommon.xml"/>
+
+  <description>
+
+  </description>
+
+
+
+  <property name="flexTargetFile" value="${basedir}/idea-flex.skeleton"/>
+
+  <!-- On a mac, the build.txt is in a Resources directory, whereas on
+     Windows and Linux, it's in the root. -->
+  <condition property="idea.build.id.file" value="Resources/build.txt">
+    <os family="mac"/>
+  </condition>
+  <property name="idea.build.id.file" value="build.txt"/>
+
+
+  <target name="flexSkeleton.setup" depends="flex.findIdeaBuildVersion">
+    <antcall target="common.InitDependenciesDir"/>
+    <antcall target="flex.downloadFromBranch"/>
+    <antcall target="flex.copyToBaseDir"/>
+  </target>
+
+  <target name="flex.findIdeaBuildVersion">
+    <loadfile srcfile="${basedir}/idea-IU/${idea.build.id.file}" property="idea.buildVersion">
+      <filterchain>
+        <linecontainsregexp>
+          <regexp pattern="IU-(\d+.\d+).\d+"/>
+        </linecontainsregexp>
+        <tokenfilter>
+          <stringtokenizer/>
+          <replaceregex pattern="IU-(\d+.\d+).\d+" replace="\1"/>
+        </tokenfilter>
+      </filterchain>
+    </loadfile>
+    <echo message="IDEA build Version found ${idea.buildVersion}"/>
+  </target>
+
+  <target name="flex.checkDownload">
+    <condition property="flex.downloaded">
+      <available file="{dependenciesDir}/idea-flex-${idea.buildVersion}.skeleton" type="file"/>
+    </condition>
+  </target>
+
+  <target name="flex.downloadFromBranch" depends="flex.checkDownload" unless="flex.downloaded">
+    <get dest="${dependenciesDir}/idea-flex-${idea.buildVersion}.skeleton"
+         src="https://raw.githubusercontent.com/JetBrains/intellij-community/${idea.buildVersion}/tools/lexer/idea-flex.skeleton"/>
+  </target>
+
+  <target name="flex.copyToBaseDir">
+    <copy file="${dependenciesDir}/idea-flex-${idea.buildVersion}.skeleton" tofile="${flexTargetFile}"/>
+  </target>
+
+
+</project>

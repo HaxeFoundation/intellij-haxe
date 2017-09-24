@@ -1,0 +1,132 @@
+<project name="Ant logic for downloading and extracting IDEA dependencies" default="idea.setup" basedir=".">
+
+  <import file="fetchCommon.xml"/>
+
+  <description>
+
+  </description>
+
+  <property name="ideaIUFileWindows" value="${dependenciesDir}/ideaIU-${targetVersion}.win.zip"/>
+  <property name="ideaIUFileLinux" value="${dependenciesDir}/ideaIU-${targetVersion}.tar.gz"/>
+  <property name="ideaIUFileMac" value="${dependenciesDir}/ideaIU-${targetVersion}.dmg"/>
+
+  <property name="ideaTargetDir" value="${basedir}/idea-IU"/>
+
+  <target name="idea.setup" >
+    <antcall target="common.versionRequiredCheck"/>
+    <antcall target="common.InitDependenciesDir"/>
+    <antcall target="ideaIU.checkVersionChanged"/>
+    <antcall target="ideaIU.downloadIfNecessary"/>
+    <antcall target="ideaIU.extractAndCopyToBase"/>
+    <antcall target="ideaIU.updateWorkspaceInfo"/>
+  </target>
+
+
+  <target name="ideaIU.checkVersionChanged">
+    <property file="${workspaceInfo}"/>
+    <condition property="ideaIU.versionChanged">
+      <not>
+        <equals arg1="${lastBuildVersion}" arg2="${targetVersion}"/>
+      </not>
+    </condition>
+  </target>
+
+
+  <target name="ideaIU.downloadIfNecessary" depends="ideaIU.checkDownload" unless="ideaIU.downloaded">
+    <antcall target="downloadWindowsRelease"/>
+    <antcall target="downloadLinuxRelease"/>
+    <antcall target="downloadMacRelease"/>
+  </target>
+
+  <target name="downloadWindowsRelease" if="isWindows">
+    <get dest="${ideaIUFileWindows}" src="http://download.jetbrains.com/idea/ideaIU-${targetVersion}.win.zip" />
+  </target>
+
+  <target name="downloadLinuxRelease" if="isUnix">
+    <get dest="${ideaIUFileLinux}" src="http://download.jetbrains.com/idea/ideaIU-${targetVersion}.tar.gz" />
+  </target>
+
+  <target name="downloadMacRelease" if="isMac">
+    <!--Using linux version until i can figure out what the best way to extract DMGs would be -->
+    <get dest="${ideaIUFileLinux}" src="http://download.jetbrains.com/idea/ideaIU-${targetVersion}.tar.gz" />
+    <!--<get dest="${ideaIUFileMac}" src="http://download.jetbrains.com/idea/ideaIU-${targetVersion}.dmg" />-->
+  </target>
+
+
+  <target name="ideaIU.checkDownload">
+    <condition property="ideaIU.downloaded">
+      <or>
+      <available file="${ideaIUFileWindows}" type="file"/>
+      <available file="${ideaIUFileLinux}" type="file"/>
+      <available file="${ideaIUFileMac}" type="file"/>
+      </or>
+    </condition>
+  </target>
+
+
+  <target name="ideaIU.extractAndCopyToBase" depends="ideaIU.checkDownload" if="ideaIU.downloaded">
+
+    <delete dir="${dependenciesDir}/idea-IU/" quiet="true"/>
+    <delete dir="${ideaTargetDir}/" quiet="true"/>
+
+    <antcall target="extractWindowsRelease"/>
+    <antcall target="extractLinuxRelease"/>
+    <antcall target="extractMacRelease"/>
+
+    <antcall target="copyWindowsRelease"/>
+    <antcall target="copyLinuxRelease"/>
+    <antcall target="copyMacRelease"/>
+
+
+  </target>
+
+
+  <target name="extractWindowsRelease" if="isWindows">
+    <unzip src="${ideaIUFileWindows}" dest="${dependenciesDir}/idea-IU"/>
+  </target>
+
+  <target name="extractLinuxRelease" if="isUnix">
+    <untar src="${ideaIUFileLinux}" dest="${dependenciesDir}/idea-IU" compression="gzip" />
+  </target>
+
+  <target name="extractMacRelease" if="isMac">
+    <!--Using linux version until i can figure out what the best way to extract DMGs would be -->
+    <untar src="${ideaIUFileLinux}" dest="${dependenciesDir}/idea-IU" compression="gzip" />
+  </target>
+
+  <target name="copyWindowsRelease" if="isWindows">
+    <copy todir="${ideaTargetDir}/">
+        <fileset dir="${dependenciesDir}/idea-IU/" includes="**/*"/>
+    </copy>
+  </target>
+
+  <target name="copyLinuxRelease" if="isUnix">
+    <dirset dir="${dependenciesDir}/idea-IU/" includes="idea-IU*" id="wildCardDir" />
+    <pathconvert pathsep=", " property="ideaDir" refid="wildCardDir" />
+
+    <copy todir="${ideaTargetDir}/">
+      <fileset  dir="${ideaDir}" includes="**/*"/>
+    </copy>
+  </target>
+
+  <target name="copyMacRelease" if="isMac">
+    <!--Using linux version until i can figure out what the best way to extract DMGs would be -->
+    <dirset dir="${dependenciesDir}/idea-IU/" includes="idea-IU*" id="wildCardDir" />
+    <pathconvert pathsep=", " property="ideaDir" refid="wildCardDir" />
+
+    <copy todir="${ideaTargetDir}/">
+      <fileset  dir="${ideaDir}" includes="**/*"/>
+    </copy>
+  </target>
+
+
+  <target name="ideaIU.updateWorkspaceInfo">
+    <propertyfile file="${workspaceInfo}"  comment="keep track of dependency versions in base dir">
+      <entry key="lastBuildVersion" value="${targetVersion}" type="string"/>
+    </propertyfile>
+  </target>
+
+
+
+</project>
+
