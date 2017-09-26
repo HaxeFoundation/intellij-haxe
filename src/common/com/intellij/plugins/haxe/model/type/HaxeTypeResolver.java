@@ -174,6 +174,11 @@ public class HaxeTypeResolver {
     }
     ResultHolder retval = args.get(args.size() - 1);
     args.remove(args.size() - 1);
+
+    if (args.size() == 1 && args.get(0).getType().isVoid()) {
+      args.remove(0);
+    }
+
     return new SpecificFunctionReference(args, retval, null, type).createHolder();
   }
 
