@@ -643,8 +643,8 @@ private inherit ::= extendsDeclaration | implementsDeclaration
 {pin=1 recoverWhile="inherit_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
 private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 
-extendsDeclaration ::= ('extends' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit"}
-implementsDeclaration ::= ('implements' type)+ {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit"}
+extendsDeclaration ::= 'extends' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
+implementsDeclaration ::= 'implements' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 
 anonymousType ::= '{' anonymousTypeBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
