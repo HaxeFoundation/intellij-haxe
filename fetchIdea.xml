@@ -34,12 +34,18 @@
 
   <target name="ideaIU.downloadIfNecessary" depends="ideaIU.checkDownload" unless="ideaIU.downloaded">
     <antcall target="downloadWindowsRelease"/>
+    <antcall target="downloadWindowsReleaseOldName"/>
     <antcall target="downloadLinuxRelease"/>
     <antcall target="downloadMacRelease"/>
   </target>
 
   <target name="downloadWindowsRelease" if="isWindows">
-    <get dest="${ideaIUFileWindows}" src="http://download.jetbrains.com/idea/ideaIU-${targetVersion}.win.zip" />
+    <get dest="${ideaIUFileWindows}" src="http://download.jetbrains.com/idea/ideaIU-${targetVersion}.win.zip"  ignoreerrors="true" />
+  </target>
+
+  <!--versions before YEAR.X.X might not have the .win.zip ending-->
+  <target name="downloadWindowsReleaseOldName" if="isWindows" unless="ideaIU.downloaded">
+    <get dest="${ideaIUFileWindows}" src="http://download.jetbrains.com/idea/ideaIU-${targetVersion}.zip" />
   </target>
 
   <target name="downloadLinuxRelease" if="isUnix">
