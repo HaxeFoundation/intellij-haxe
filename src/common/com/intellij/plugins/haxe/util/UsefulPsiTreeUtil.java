@@ -441,6 +441,19 @@ public class UsefulPsiTreeUtil {
     return null;
   }
 
+  static public <T extends PsiElement> T getLastChild(PsiElement element, Class<T> clazz, @Nullable T stub) {
+    if (element == null) return stub;
+    for (PsiElement psiElement = element.getLastChild(); psiElement.getPrevSibling() != null; psiElement = psiElement.getPrevSibling()) {
+      if (clazz.isAssignableFrom(psiElement.getClass())) return (T)psiElement;
+    }
+    return stub;
+  }
+
+  @Nullable
+  static public <T extends PsiElement> T getLastChild(PsiElement element, Class<T> clazz) {
+    return getLastChild(element, clazz, null);
+  }
+
   static public PsiElement getToken(PsiElement element, String token) {
     for (ASTNode node : element.getNode().getChildren(null)) {
       if (node.getText().equals(token))  return node.getPsi();

@@ -23,6 +23,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterImpl;
@@ -541,6 +542,9 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
       // For a HaxeType, the identifier is two children below.  The first is
       // a reference.
       HaxeReferenceExpression ref = PsiTreeUtil.getRequiredChildOfType(this, HaxeReferenceExpression.class);
+      if (ref.getFirstChild() instanceof HaxeReferenceExpression) {
+        ref = UsefulPsiTreeUtil.getLastChild(ref, HaxeReferenceExpression.class, ref);
+      }
       HaxeIdentifier id = PsiTreeUtil.getRequiredChildOfType(ref, HaxeIdentifier.class);
       return id;
     }
