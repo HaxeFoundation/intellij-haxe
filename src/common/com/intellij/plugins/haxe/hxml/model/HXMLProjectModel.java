@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.compilation;
+package com.intellij.plugins.haxe.hxml.model;
 
 import com.intellij.plugins.haxe.hxml.psi.HXMLMain;
 import com.intellij.plugins.haxe.hxml.psi.HXMLOption;
@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Created by ebishton on 9/8/2017.
  */
-public class LimeProjectModel {
+public class HXMLProjectModel {
 
   public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   static {LOG.setLevel(Level.INFO);}
@@ -47,9 +47,12 @@ public class LimeProjectModel {
   public static final String MAIN_CLASS = "-main";
   public static final String DEBUG = "-debug";
 
+  public static final String LIBRARY = "-lib";
+  public static final String CLASSPATH = "-cp";
+
   protected PsiFile psiFile;
 
-  public LimeProjectModel(PsiFile psiFile) {
+  public HXMLProjectModel(PsiFile psiFile) {
     this.psiFile = psiFile;
   }
 
@@ -57,6 +60,10 @@ public class LimeProjectModel {
   // public List<String> getMacros();
   // public List<String> getClasspath();
   // public String getMainClass();
+
+  public List<String> getLibraries() {
+    return getProperties(LIBRARY);
+  }
 
   @Nullable
   public String getSwfOutputFileName() {

@@ -62,7 +62,7 @@ public final class HaxelibNameUtil {
       return strings.get(1);
     }
 
-    return null;
+    return data;
   }
 
   /**
@@ -85,6 +85,9 @@ public final class HaxelibNameUtil {
    */
   @Nullable
   public static String parseHaxelibNameFromPath(@NotNull String classpathUrl) {
+
+    // TODO: Jettison this or fix it for the case where the path has extra directories attached to the end.
+
     String libName = null;
     String[] pieces = classpathUrl.split("/");
     if (pieces.length >= 2) {

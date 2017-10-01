@@ -25,6 +25,8 @@ import java.util.*;
 
 /**
  * Manage a classpath.
+ *
+ * Ordering is kept.  Duplicates are discarded.
  */
 public class HaxeClasspath {
 
@@ -52,6 +54,11 @@ public class HaxeClasspath {
     synchronized (initialEntries) {
       myOrderedEntries.addAll(initialEntries.myOrderedEntries);
     }
+  }
+
+  HaxeClasspath(HaxeClasspathEntry initialEntry) {
+    this();
+    myOrderedEntries.add(initialEntry);
   }
 
   HaxeClasspath(Collection<HaxeClasspathEntry> initialEntries) {
@@ -251,6 +258,28 @@ public class HaxeClasspath {
   public int size() {
     synchronized(this) {
       return myOrderedEntries.size();
+    }
+  }
+
+  /**
+   * Get the n'th element from the list.  Do not use this inside of a tight loop,
+   * because the algorithm requires a serial walk of all elements prior.
+   * Use iterate() instead.
+   *
+   * @param i
+   * @return
+   */
+  public HaxeClasspathEntry get(int i) {
+    synchronized (this) {
+      if (i >= 0) {
+        int j = 0;
+        for (HaxeClasspathEntry entry : myOrderedEntries) {
+          if (j++ == i) {
+            return entry;
+          }
+        }
+      }
+      throw new IndexOutOfBoundsException();
     }
   }
 

@@ -34,6 +34,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
 import org.apache.log4j.Level;
@@ -264,114 +265,7 @@ public class HaxeCompilerUtil
                                         /*modifies*/ List<String> stdout,
                                         /*modifies*/ List<String> stderr,
                                                      HaxeDebugTimeLog timeLog) {
-        int ret = 255;
-        Process process = null;
-
-        try {
-            LOG.debug("Starting runInterruptibleCompileProcess for " + command.toString());
-            ProgressManager.checkCanceled();
-
-            File fdir = null != dir ? new File(dir.getPath()) : null;
-            LOG.debug("dir is " + dir.getPath());
-            ProcessBuilder builder = HaxeSdkUtilBase.createProcessBuilder(command, fdir, sdkData);
-            if (mixedOutput)
-                builder.redirectErrorStream(true);
-
-            if (null != timeLog) {
-                timeLog.stamp("Executing " + command.get(0));
-            }
-            process = builder.start();
-            LOG.debug("Compiler process has started.");
-            InputStreamReader stdoutReader = new InputStreamReader(process.getInputStream());
-            BufferedReader bufferedStdout = new BufferedReader(stdoutReader);
-
-            InputStreamReader stderrReader = mixedOutput ? null : new InputStreamReader(process.getErrorStream());
-            BufferedReader bufferedStderr = mixedOutput ? null : new BufferedReader(stderrReader);
-
-            do {
-                try {
-                    // Let our forked process get a little work done.
-                    Thread.sleep(2);
-                } catch (InterruptedException e) {
-                    ; // Swallow it.
-                }
-                GatherOutput(mixedOutput, stdout, stderr, bufferedStdout, bufferedStderr);
-            }
-            while (processIsAlive(process));
-            ret = process.exitValue();
-
-            // Pick up any uncollected output.
-            GatherOutput(mixedOutput, stdout, stderr, bufferedStdout, bufferedStderr);
-
-            String message = "Process exited cleanly: Return value = " + Integer.toString(ret);
-            LOG.debug(message);
-            if (null != timeLog) {
-                timeLog.stamp(message);
-            }
-        }
-        catch (IOException e) {
-            String message = "I/O exception running command " + command.get(0);
-            LOG.info(message);
-            ret = 255;
-            if (null != timeLog) {
-                timeLog.stamp(message);
-            }
-        } catch (ProcessCanceledException e) {
-            String message = "Copmpletion canceled.";
-            LOG.debug(message);
-            ret = 255;
-            if (null!= timeLog) {
-                timeLog.stamp(message);
-            }
-        }finally {
-            if (null != process && processIsAlive(process)) {
-                process.destroy();
-            }
-        }
-        return ret;
+        return HaxeProcessUtil.runProcess(command, mixedOutput, dir, sdkData, stdout, stderr, timeLog, true);
     }
 
-    private static void GatherOutput(boolean mixedOutput,
-                                     List<String> stdout,
-                                     List<String> stderr,
-                                     BufferedReader bufferedStdout,
-                                     BufferedReader bufferedStderr) throws IOException {
-        ProgressManager.checkCanceled();
-
-        while (bufferedStdout.ready()) {
-            if (null != stdout) {
-                stdout.add(bufferedStdout.readLine());
-            }
-            else {
-                // Goes to the bit bucket.
-                bufferedStdout.readLine();
-            }
-        }
-        if (!mixedOutput) {
-            while (bufferedStderr.ready()) {
-                if (null != stderr) {
-                    stderr.add(bufferedStderr.readLine());
-                }
-                else {
-                    // bit bucket.
-                    bufferedStderr.readLine();
-                }
-            }
-        }
-    }
-
-    /**
-     * Check whether the process is still alive the hard way,
-     * Java8 gives us process.isAlive(), but Java6 doesn't.
-     * @param process
-     */
-    private static boolean processIsAlive(Process process) {
-        try {
-            int exitStatus = process.exitValue();
-            return false;
-        } catch (IllegalThreadStateException e) {
-            ; // swallow it.  The thread hasn't exited yet.
-        }
-        return true;
-    }
 }

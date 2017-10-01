@@ -15,15 +15,28 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by ebishton on 8/10/17.
  */
 public class HaxeFileUtil {
+
+  /** File-system-independent separator char.  This is what comes back from VirtualFile
+   * and FileUtil.normalize();
+   */
+  public static final char SEPARATOR = '/';
+  public static final String SEPARATOR_STRING = "" + SEPARATOR;
 
   private HaxeFileUtil() {}
 
@@ -41,7 +54,6 @@ public class HaxeFileUtil {
         // Of course, IDEA's notion of a URI requires "://" after the protocol separator
         // (as opposed to Java's ":").  So we can't just use the Java URI.
         VirtualFileManager vfm = VirtualFileManager.getInstance();
-        String canonicalUri = absolute.toURI().toString();
         String ideaUri = vfm.constructUrl(absolute.toURI().getScheme(), absolute.getPath());
         return VirtualFileManager.getInstance().findFileByUrl(ideaUri);
       }
@@ -51,4 +63,32 @@ public class HaxeFileUtil {
     return null;
   }
 
+  /**
+   * Make a relative path out of a list of strings. (First char is NOT a separator.)
+   * @param strings ordered set of strings to use as directory names.
+   * @return
+   */
+  @Nullable
+  public static String joinPath(List<String> strings) {
+    if (null == strings || strings.isEmpty()) {
+      return null;
+    }
+    return String.join(SEPARATOR_STRING, strings);
+  }
+
+  @Nullable
+  public static String joinPath(@NotNull String... strings) {
+    if (null == strings || 0 == strings.length) {
+      return null;
+    }
+    return String.join(SEPARATOR_STRING, strings);
+  }
+
+  public static List<String> splitPath(String path) {
+    if (null == path || path.isEmpty()) {
+      return Collections.EMPTY_LIST;
+    }
+    String[] parts = path.split(SEPARATOR_STRING);
+    return Arrays.asList(parts);
+  }
 }
