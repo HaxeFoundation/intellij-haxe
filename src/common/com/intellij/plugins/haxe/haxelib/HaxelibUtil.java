@@ -155,9 +155,9 @@ public class HaxelibUtil {
         if (null != ref) {
           moduleLibs.add(ref);
         }
-        if (null == ref || !ref.isAvailable()) {
-          LOG.warn("Unable to find haxelib '" + lib.getName() + "' in haxelib cache for module " + module.getName());
-        }
+        //if (null == ref || !ref.isAvailable()) {
+        //  LOG.warn("Unable to find haxelib '" + lib.getName() + "' in haxelib cache for module " + module.getName());
+        //}
       }
 
     } finally {
