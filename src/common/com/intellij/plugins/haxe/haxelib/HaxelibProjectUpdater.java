@@ -90,7 +90,7 @@ public class HaxelibProjectUpdater  {
    *  Set this to run in the foreground for speed testing.
    *  It overrides myRunInForeground.  The UI is blocked with no updates.
    */
-  private static final boolean myTestInForeground = true;
+  private static final boolean myTestInForeground = false;
   /**
    *  Set this true to put up a modal dialog and run in the foreground thread
    *  (locking up the UI.)
