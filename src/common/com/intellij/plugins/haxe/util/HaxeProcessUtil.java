@@ -58,9 +58,14 @@ public class HaxeProcessUtil {
                                boolean interruptible) {
     int ret = 255;
     Process process = null;
+    boolean weAllocatedTimeLog = false;
+    if (null == timeLog && LOG.isDebugEnabled()) {
+      timeLog = HaxeDebugTimeLog.startNew("runProcess", HaxeDebugTimeLog.Since.StartAndPrevious);
+      weAllocatedTimeLog = true;
+    }
 
     try {
-      LOG.debug("Starting runInterruptibleCompileProcess for " + command.toString());
+      LOG.debug("Starting runProcess for " + command.toString());
 
       if (interruptible) {
         ProgressManager.checkCanceled();
@@ -73,7 +78,7 @@ public class HaxeProcessUtil {
         builder.redirectErrorStream(true);
 
       if (null != timeLog) {
-        timeLog.stamp("Executing " + command.get(0));
+        timeLog.stamp("Executing " + command.toString());
       }
       process = builder.start();
       LOG.debug("Compiler process has started.");
@@ -121,6 +126,9 @@ public class HaxeProcessUtil {
     }finally {
       if (null != process && processIsAlive(process)) {
         process.destroy();
+      }
+      if (weAllocatedTimeLog) {
+        timeLog.print();
       }
     }
     return ret;
