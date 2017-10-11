@@ -47,7 +47,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.compilation.HXMLProjectModel;
+import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.compilation.LimeUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
