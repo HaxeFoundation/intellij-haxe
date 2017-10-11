@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -73,11 +74,14 @@ public class HaxeLibraryReference {
   }
 
   public static HaxeLibraryReference create(@NotNull Project project, @NotNull String name) {
+    HaxelibLibraryCache owner = HaxelibProjectUpdater.getLibraryCache(project);
+    return create(owner, name);
+  }
+
+  public static HaxeLibraryReference create(@NotNull HaxelibLibraryCache owner, @NotNull String name) {
     if (name.isEmpty()) {
       return null;
     }
-
-    HaxelibLibraryCache owner = HaxelibProjectUpdater.getLibraryCache(project);
 
     if (name.contains(":")) {
       String[] parts = name.split(":");
@@ -106,6 +110,16 @@ public class HaxeLibraryReference {
   }
 
   /**
+   * Get the owner of the library.
+   *
+   * @return the Cache that owns the reference (as given at instantiation).
+   */
+  @NotNull
+  public HaxelibLibraryCache getOwner() {
+    return owner;
+  }
+
+  /**
    * @return the semantic version number for this reference.  If this is a development library,
    *         the version may be HaxelibSemVer.DEVELOPMENT_VERSION instead of the library's internal version number.
    */
@@ -121,10 +135,11 @@ public class HaxeLibraryReference {
    */
   @NotNull
   public String getPresentableName() {
-    if (isManaged.get()) {
-      return HaxelibNameUtil.stringifyHaxelib(name);  // Maybe getLibrary().getPresentableName()?
-    }
-    return name;
+    StringBuilder bld = new StringBuilder();
+    bld.append(isManaged.get() ? HaxelibNameUtil.stringifyHaxelib(name) : name);
+    bld.append(':');
+    bld.append(semver.toString());
+    return bld.toString();
   }
 
   /**
@@ -157,6 +172,18 @@ public class HaxeLibraryReference {
     return name + ":" + semver;
   }
 
+  /**
+   * Determine if this reference matches the given library, matching name and
+   * semantic version.  If class library path matching is required, use
+   * getLibrary().matchesIdeaLib().
+   *
+   * @param lib
+   * @return
+   */
+  public boolean matchesIdeaLib(Library lib) {
+    HaxeLibraryReference ref = HaxeLibraryReference.create(getOwner(), lib.getName());
+    return this.equals(ref);
+  }
 
   /**
    * Exact equivalence -- match every member.
@@ -194,7 +221,7 @@ public class HaxeLibraryReference {
   @Override
   final public int hashCode() {
     int result = name.hashCode();
-    result = 31 * result + semver.hashCode();
+    // result = 31 * result + semver.hashCode();
     return result;
   }
 }

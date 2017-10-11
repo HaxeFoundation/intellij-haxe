@@ -18,10 +18,9 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.impl.ModuleRootManagerImpl;
+import com.intellij.openapi.roots.impl.RootModelBase;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -33,11 +32,13 @@ import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.Processor;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -77,9 +78,56 @@ public class HaxelibUtil {
 
 
   public static VirtualFile getLibraryRoot(@NotNull Sdk sdk, @NotNull String libName) {
+    LocalFileSystem lfs = LocalFileSystem.getInstance();
+
     VirtualFile haxelibRoot = getLibraryBasePath(sdk);
     String rootName = haxelibRoot.getPath();
 
+    // Forking 'haxelib path' is slow, so we will do what it does without forking.
+    // In this case, it locates a subdirectory named $HAXELIB_PATH/libName/.dev, and
+    // if it exists, uses the path found in that file.
+    // Failing that, it looks for .current in the same path, and uses the semantic
+    // version found in that file to compute the path name.
+    String libDirName = HaxeFileUtil.joinPath(rootName, libName);
+    VirtualFile libDir = lfs.findFileByPath(libDirName);
+    if (null != libDir) {
+      // Hidden ".dev" file takes precedence.  It contains the path to the library root.
+      VirtualFile dotDev = libDir.findChild(".dev");
+      if (null != dotDev) {
+        try {
+          String libRootName = FileUtil.loadFile(new File(dotDev.getPath()));
+          VirtualFile libRoot = lfs.findFileByPath(libRootName);
+          if (null != libRoot) {
+            return libRoot;
+          }
+        }
+        catch (IOException e) {
+          LOG.debug("IOException reading .dev file for library " + libName, e);
+        }
+      }
+      // Hidden ".current" file contains the semantic version (not the path!) of the
+      // library that haxelib will use.
+      VirtualFile dotCurrent = libDir.findChild(".current");
+      if (null != dotCurrent) {
+        try {
+          String currentVer = FileUtil.loadFile(new File(dotCurrent.getPath()));
+          HaxelibSemVer semver = HaxelibSemVer.create(currentVer.trim());
+          String libRootName = HaxeFileUtil.joinPath(rootName, libName, semver.toDirString());
+          VirtualFile libRoot = lfs.findFileByPath(libRootName);
+          if (null != libRoot) {
+            return libRoot;
+          }
+        }
+        catch (IOException e) {
+          LOG.debug("IOException reading .current file for library " + libName, e);
+        }
+      }
+    } else {
+      if (LOG.isDebugEnabled())
+        LOG.debug("Couldn't find directory " + libDirName + " for library " + libName);
+    }
+
+    // If we got here, then see what haxelib can give us.  This takes >40ms on average.
     List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, "path", libName);
     for (String s : output) {
       if (s.isEmpty()) continue;
@@ -139,32 +187,29 @@ public class HaxelibUtil {
   @NotNull
   public static HaxeLibraryList getModuleLibraries(@NotNull Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-    if (null == rootManager) return HaxeLibraryList.EMPTY_LIST;
-
-    HaxelibLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(module);
-    HaxelibLibraryCache cache = mgr != null ? mgr.getLibraryManager(module) : null;
-    if (null == cache) return HaxeLibraryList.EMPTY_LIST;
+    if (null == rootManager) return new HaxeLibraryList(module);
 
     HaxeLibraryList moduleLibs = new HaxeLibraryList(module);
-    ModifiableRootModel rootModel = null;
-    try {
-      rootModel = rootManager.getModifiableModel();
-      Library[] libraryTable = rootModel.getModuleLibraryTable().getLibraries();
-      for (Library lib : libraryTable) {
-        HaxeLibraryReference ref = HaxeLibraryReference.create(module, lib.getName());
-        if (null != ref) {
-          moduleLibs.add(ref);
-        }
-        //if (null == ref || !ref.isAvailable()) {
-        //  LOG.warn("Unable to find haxelib '" + lib.getName() + "' in haxelib cache for module " + module.getName());
-        //}
-      }
+    if (rootManager instanceof ModuleRootManagerImpl) {
+      ModuleRootManagerImpl rootManagerImpl = (ModuleRootManagerImpl)rootManager;
 
-    } finally {
-      if (null != rootModel) {
-        rootModel.dispose();    // MUST dispose of the model.
-      }
+      RootModelBase modelBase = rootManagerImpl.getRootModel(); // Can't fail.
+      OrderEnumerator entries = modelBase.orderEntries();       // Can't fail.
+
+      entries.forEachLibrary(new Processor<Library>() {
+        @Override
+        public boolean process(Library library) {
+          HaxeLibraryReference ref = HaxeLibraryReference.create(module, library.getName());
+          if (null != ref) {
+            moduleLibs.add(ref);
+          }
+          return true;
+        }
+      });
+    } else {
+      LOG.assertLog(false, "Expected a ModuleRootManagerImpl, but didn't get one.");
     }
+
     return moduleLibs;
   }
 
@@ -184,7 +229,7 @@ public class HaxelibUtil {
   public static HaxeLibraryList getProjectLibraries(@NotNull Project project, boolean filterManagedLibs, boolean filterUnmanagedLibs) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     if (null == libraryTable || (filterManagedLibs && filterUnmanagedLibs)) {
-      return HaxeLibraryList.EMPTY_LIST;
+      return new HaxeLibraryList(ProjectRootManager.getInstance(project).getProjectSdk());
     }
 
     HaxeLibraryList libs = new HaxeLibraryList(ProjectRootManager.getInstance(project).getProjectSdk());
@@ -297,7 +342,7 @@ public class HaxelibUtil {
       }
     }
 
-    return haxelibNewItems.isEmpty() ? HaxeLibraryList.EMPTY_LIST : new HaxeLibraryList(libraryManager.getSdk(), haxelibNewItems);
+    return new HaxeLibraryList(libraryManager.getSdk(), haxelibNewItems);
   }
 
 }

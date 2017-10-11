@@ -35,36 +35,36 @@ public class HaxeLibraryList {
   static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryList");
 
   /**
-   * An immutable empty classpath that can be re-used.
+   * Minimum size to use for new lists.
    */
-  public static final HaxeLibraryList EMPTY_LIST = new HaxeLibraryList(true);
+  public static final int MINIMUM_SIZE = 8;
 
   // Any access of myOrderedEntries MUST be synchronized if this classpath is
   // used in a multi-threaded environment.
-  final protected Set<HaxeLibraryReference> myOrderedEntries;
+  // myOrderedEntries is lazily allocated, to reduce unnecessary churn.
+  private Set<HaxeLibraryReference> myOrderedEntries;
+  final private int mySizeHint;
   final private Sdk mySdk;
 
   /**
-   * Constructor used solely to create the EMPTY_LIST;
-   * @param createEmpty
+   * Create a deep copy of a library list.  All references are cloned.
+   * @param initialList list to copy.
    */
-  private HaxeLibraryList(boolean createEmpty) {
-    myOrderedEntries = Collections.emptySet();
-    mySdk = null;
-  }
-
-  HaxeLibraryList(HaxeLibraryList initialEntries) {
-    this(initialEntries.mySdk, initialEntries.size());
-    synchronized(initialEntries) {
-      for (HaxeLibraryReference ref : initialEntries.myOrderedEntries) {
-        myOrderedEntries.add(ref.clone());
+  HaxeLibraryList(HaxeLibraryList initialList) {
+    this(initialList.mySdk);
+    synchronized(initialList) {
+      if (initialList.hasEntries()) {
+        Set<HaxeLibraryReference> entries = getEntries(initialList.size());
+        for (HaxeLibraryReference ref : initialList.getEntries()) {
+          entries.add(ref.clone());
+        }
       }
     }
   }
 
   HaxeLibraryList(@NotNull Sdk sdk, Collection<? extends HaxeLibraryReference> references) {
-    this(sdk, references.size());
-    myOrderedEntries.addAll(references);
+    this(sdk);
+    getEntries(references.size()).addAll(references);
   }
 
   HaxeLibraryList(@NotNull Module module) {
@@ -72,12 +72,53 @@ public class HaxeLibraryList {
   }
 
   HaxeLibraryList(@NotNull Sdk sdk) {
-    this(sdk, 16);
+    this(sdk, MINIMUM_SIZE);
   }
 
   HaxeLibraryList(@NotNull Sdk sdk, int sizeHint) {
-    myOrderedEntries = new LinkedHashSet<HaxeLibraryReference>(2 * sizeHint);
+    myOrderedEntries = null;
     mySdk = sdk;
+    mySizeHint = sizeHint;
+  }
+
+  /**
+   * Use this to access the orderEntries.  Do not access them directly -- they are
+   * allocated lazily.
+   *
+   * @return the order entries for this object.
+   */
+  protected Set<HaxeLibraryReference> getEntries() {
+    return getEntries(mySizeHint);
+  }
+
+  /**
+   * Use this to access the orderEntries.  Do not access them directly -- they are
+   * allocated lazily.
+   * @param sizeHint - A hint to the allocator, if allocation is necessary.
+   * @return the order entries for this object.
+   */
+  protected Set<HaxeLibraryReference> getEntries(int sizeHint) {
+    synchronized (this) {
+      if (null == myOrderedEntries) {
+        sizeHint = Integer.max(this.mySizeHint, sizeHint);
+        if (sizeHint < MINIMUM_SIZE) {
+          sizeHint = MINIMUM_SIZE;
+        }
+        myOrderedEntries = new LinkedHashSet<HaxeLibraryReference>(2 * sizeHint);
+      }
+      return myOrderedEntries;
+    }
+  }
+
+  /**
+   * Determine whether there are any entries in the list.  Used to avoid
+   * the allocation of getEntries() when we're only reading the list.
+   * @return
+   */
+  protected boolean hasEntries() {
+    synchronized (this) {
+      return null != myOrderedEntries && !myOrderedEntries.isEmpty();
+    }
   }
 
   /**
@@ -93,7 +134,7 @@ public class HaxeLibraryList {
 
     synchronized(this) {
       if (!contains(item))
-        myOrderedEntries.add(item);
+        getEntries().add(item);
     }
   }
 
@@ -111,12 +152,12 @@ public class HaxeLibraryList {
       return;
 
     synchronized(this) {
-      myOrderedEntries.addAll(entries);
+      getEntries(entries.size()).addAll(entries);
     }
   }
 
   /**
-   * Add more libraries to this lislt.  New entries from the other libraries
+   * Add more libraries to this list.  New entries from the other libraries
    * will be added at the end of this list.  Duplicate entries are ignored
    * (current entries with the same URL are maintained, with their current
    * ordering).
@@ -129,7 +170,7 @@ public class HaxeLibraryList {
 
     synchronized(this) {
       synchronized(libraries) {
-        myOrderedEntries.addAll(libraries.myOrderedEntries);
+        getEntries(libraries.size()).addAll(libraries.getEntries());
       }
     }
   }
@@ -139,7 +180,8 @@ public class HaxeLibraryList {
    */
   public void clear() {
     synchronized(this) {
-      myOrderedEntries.clear();
+      if (hasEntries())
+        getEntries().clear();
     }
   }
 
@@ -155,7 +197,9 @@ public class HaxeLibraryList {
       return false;
 
     synchronized(this) {
-      return myOrderedEntries.contains(item);
+      if (hasEntries())
+        return getEntries().contains(item);
+      return false;
     }
   }
 
@@ -166,10 +210,15 @@ public class HaxeLibraryList {
    * @param includeSrcRoot Whether library source roots are included (when different from libRoot).
    * @return a HaxeClasspath containing directories that correspond to the libraries in this list.
    */
+  @NotNull
   public HaxeClasspath getLibraryClasspaths(boolean includeLibRoot, boolean includeSrcRoot) {
+    if (!hasEntries()) {
+      return HaxeClasspath.EMPTY_CLASSPATH;
+    }
     synchronized(this) {
-      HaxeClasspath classpath = new HaxeClasspath(myOrderedEntries.size());
-      for (HaxeLibraryReference ref : myOrderedEntries) {
+      Set<HaxeLibraryReference> entries = getEntries();
+      HaxeClasspath classpath = new HaxeClasspath(entries.size());
+      for (HaxeLibraryReference ref : entries) {
         HaxeLibrary lib = ref.getLibrary();
         if (null != lib) { // May not be available...  That's OK, just skip it.
           // Duplicates are already filtered out of classpaths.
@@ -182,15 +231,25 @@ public class HaxeLibraryList {
   }
 
   /**
+   * Get the owner of this list.
+   *
+   * @return Sdk that contains the libraries in this list.
+   */
+  public Sdk getOwner() {
+    synchronized (this) {
+      return mySdk;
+    }
+  }
+
+  /**
    * Tell whether this classpath is empty (has no entries).  This is a constant
    * time operation, whereas size() would not be.
    *
    * @return true if empty, false if not.
    */
   public boolean isEmpty() {
-    synchronized(this) {
-      return myOrderedEntries.isEmpty();
-    }
+    // hasEntries is already synchronized
+    return !hasEntries();
   }
 
   /**
@@ -203,11 +262,13 @@ public class HaxeLibraryList {
    */
   public boolean iterate(@NotNull Lambda lambda) {
     boolean continu = true;
-    synchronized(this) {
-      for (HaxeLibraryReference entry : myOrderedEntries) {
-        continu = lambda.processEntry(entry);
-        if (!continu)
-          break;
+    if (hasEntries()) {
+      synchronized (this) {
+        for (HaxeLibraryReference entry : getEntries()) {
+          continu = lambda.processEntry(entry);
+          if (!continu)
+            break;
+        }
       }
     }
     return continu;
@@ -219,11 +280,11 @@ public class HaxeLibraryList {
    * @param item to remove.
    */
   public void remove(@Nullable HaxeLibraryReference item) {
-    if (null == item)
+    if (null == item || !hasEntries())
       return;
 
     synchronized(this) {
-      myOrderedEntries.remove(item);
+      getEntries().remove(item);
     }
   }
 
@@ -237,10 +298,11 @@ public class HaxeLibraryList {
   public void removeAll(@Nullable HaxeLibraryList otherPath) {
     if (null == otherPath || otherPath.isEmpty())
       return;
-
     synchronized(this) {
-      synchronized (otherPath) {
-        myOrderedEntries.removeAll(otherPath.myOrderedEntries);
+      if (hasEntries()) {
+        synchronized (otherPath) {
+          getEntries().removeAll(otherPath.getEntries());
+        }
       }
     }
   }
@@ -249,21 +311,20 @@ public class HaxeLibraryList {
    * Remove all entries from this list that occur in the given list.
    * It is NOT an error to specify entries that do not already exist.
    *
-   * @param entries to remove.
+   * @param otherEntries to remove.
    */
-  public void removeAll(@Nullable Collection<HaxeLibraryReference> entries) {
-    if (null == entries || entries.isEmpty())
+  public void removeAll(@Nullable Collection<HaxeLibraryReference> otherEntries) {
+    if (null == otherEntries || otherEntries.isEmpty())
       return;
 
     synchronized(this) {
-      if (entries.isEmpty() || myOrderedEntries.isEmpty()) {
-        return;
-      }
-      Iterator iterator = myOrderedEntries.iterator();
-      while (iterator.hasNext()) {
-        HaxeClasspathEntry entry = (HaxeClasspathEntry)iterator.next();
-        if (entries.contains(entry)) {
-          iterator.remove();
+      if (this.hasEntries()) {
+        Iterator iterator = getEntries().iterator();
+        while (iterator.hasNext()) {
+          HaxeClasspathEntry entry = (HaxeClasspathEntry)iterator.next();
+          if (otherEntries.contains(entry)) {
+            iterator.remove();
+          }
         }
       }
     }
@@ -278,8 +339,16 @@ public class HaxeLibraryList {
    */
   public int size() {
     synchronized(this) {
-      return myOrderedEntries.size();
+      if (hasEntries()) {
+        return getEntries().size();
+      }
     }
+    return 0;
+  }
+
+  @Override
+  public String toString() {
+    return "size = " + size();
   }
 
   /**
