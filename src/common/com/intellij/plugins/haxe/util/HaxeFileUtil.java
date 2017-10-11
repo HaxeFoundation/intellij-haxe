@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
@@ -64,18 +65,38 @@ public class HaxeFileUtil {
   }
 
   /**
+   * Quick 'n' dirty url fixup, if necessary.
+   *
+   * @param url
+   * @return
+   */
+  @Nullable
+  public static String fixUrl(@Nullable String url) {
+    if (null == url || url.isEmpty())
+      return url;
+    return url.startsWith(LocalFileSystem.PROTOCOL)
+           ? url
+           : VirtualFileManager.constructUrl(LocalFileSystem.PROTOCOL, url);
+  }
+
+  /**
    * Make a relative path out of a list of strings. (First char is NOT a separator.)
    * @param strings ordered set of strings to use as directory names.
    * @return
    */
   @Nullable
-  public static String joinPath(List<String> strings) {
+  public static String joinPath(@Nullable List<String> strings) {
     if (null == strings || strings.isEmpty()) {
       return null;
     }
     return String.join(SEPARATOR_STRING, strings);
   }
 
+  /**
+   * Make a relative path out of a list of strings. (First char is NOT a separator.)
+   * @param strings ordered set of strings to use as directory names.
+   * @return
+   */
   @Nullable
   public static String joinPath(@NotNull String... strings) {
     if (null == strings || 0 == strings.length) {
@@ -84,11 +105,18 @@ public class HaxeFileUtil {
     return String.join(SEPARATOR_STRING, strings);
   }
 
-  public static List<String> splitPath(String path) {
+  /**
+   * Split a path into a list of strings.
+   * @param path Path to split.
+   * @return a list of strings, or Collections.EMPTY_LIST if path was null or empty.
+   */
+  @NotNull
+  public static List<String> splitPath(@Nullable String path) {
     if (null == path || path.isEmpty()) {
       return Collections.EMPTY_LIST;
     }
-    String[] parts = path.split(SEPARATOR_STRING);
+    String p = FileUtil.normalize(path);
+    String[] parts = p.split(SEPARATOR_STRING);
     return Arrays.asList(parts);
   }
 }
