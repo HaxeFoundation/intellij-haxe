@@ -71,6 +71,8 @@ public class HaxeClasspath {
   }
 
   HaxeClasspath(int sizeHint) {
+    if (sizeHint < 16)
+      sizeHint  = 16;
     myOrderedEntries = new LinkedHashSet<HaxeClasspathEntry>(2 * sizeHint);
   }
 
