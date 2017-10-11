@@ -16,10 +16,13 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,22 +105,30 @@ public class HaxeLibrary {
    */
   @NotNull
   public HaxeLibraryList collectDependents() {
-    LinkedHashSet<HaxeLibraryDependency> collection = new LinkedHashSet<HaxeLibraryDependency>();
+    LinkedHashMap<String, HaxeLibraryDependency> collection = new LinkedHashMap<String, HaxeLibraryDependency>();
     collectDependentsInternal(collection);
-    return new HaxeLibraryList(myCache.getSdk(), collection);
+    HaxeLibraryList list = new HaxeLibraryList(myCache.getSdk());
+    for (HaxeLibraryDependency dep : collection.values()) {
+      list.add(dep);
+    }
+    return list;
   }
 
-  private void collectDependentsInternal(/*modifies*/ final @NotNull Collection<HaxeLibraryDependency> collection) {
+  private void collectDependentsInternal(/*modifies*/ final @NotNull LinkedHashMap<String, HaxeLibraryDependency> collection) {
     List<HaxeLibraryDependency> dependencies = getDirectDependents();
 
     for (HaxeLibraryDependency dependency : dependencies) {
-      if (!collection.contains(dependency)) { // Don't go down the same path again...
+      if (!collection.containsKey(dependency.getKey())) { // Don't go down the same path again...
         // TODO: Deal with version mismatches here.  Add multiple versions, but don't add a specific version if the latest version is equal to it.
-        collection.add(dependency);
+        collection.put(dependency.getKey(), dependency);
         HaxeLibrary depLib = dependency.getLibrary();
         if (null != depLib) {
           depLib.collectDependentsInternal(collection);
         } // TODO: Else mark dependency unfulfilled somehow??
+      } else {
+        HaxeLibraryDependency contained = collection.get(dependency.getKey());
+        LOG.assertLog(contained != null, "Couldn't get a contained object.");
+        contained.addReliant(dependency);
       }
     }
   }
@@ -208,5 +219,27 @@ public class HaxeLibrary {
   @NotNull
   public HaxeLibraryReference createReference(HaxelibSemVer override) {
     return new HaxeLibraryReference(myCache, myName, override);
+  }
+
+  /**
+   * Test whether this library is effectively the same as a Library appearing
+   * in IDEA's library tables.
+   *
+   * @param lib - Library to test.
+   * @return true if this library uses the same sources as the IDEA library; false otherwise.
+   */
+  public boolean matchesIdeaLib(Library lib) {
+    if (null == lib) {
+      return false;
+    }
+
+    HaxeClasspath cp = getClasspathEntries();
+    VirtualFile[] sources = lib.getFiles(OrderRootType.SOURCES);
+    for (VirtualFile file : sources) {
+      if (!cp.containsUrl(file.getUrl())) {
+        return false;
+      }
+    }
+    return cp.size() == sources.length;
   }
 }

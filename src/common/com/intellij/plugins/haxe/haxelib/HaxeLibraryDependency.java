@@ -54,56 +54,76 @@ public class HaxeLibraryDependency extends HaxeLibraryReference {
     }
   }
 
+  @Override
+  public String toString() {
+    return computePresentableName();
+  }
 
-// Conflicts with name lookups when the dependencies are unknown.
-//
-//
-//  @NotNull
-//  @Override
-//  public String getPresentableName() {
-//    String name = super.getPresentableName();
-//    List<String> relnames = null;
-//
-//    synchronized (this) {
-//      if (!reliants.isEmpty()) {
-//        final int size = reliants.size(); // Slow call!! Don't repeat it.
-//        final List<String> namelist = new ArrayList<String>(size);
-//        reliants.iterate(new HaxeLibraryList.Lambda() {
-//          @Override
-//          public boolean processEntry(HaxeLibraryReference entry) {
-//            namelist.add(entry.getName());
-//            return true;
-//          }
-//        });
-//        relnames = namelist;
-//      }
-//    }
-//
-//    if (null != relnames && !relnames.isEmpty()) {
-//      final StringBuilder builder = new StringBuilder(name);
-//      builder.append(HaxeBundle.message("haxelib.dependency.list.prefix"));
-//
-//      int size = relnames.size();
-//      for (int i = 0; i < size; ++i) {
-//        builder.append(relnames.get(i));
-//        if (i < size) {
-//          builder.append(HaxeBundle.message("haxelib.dependency.list.separator"));
-//        }
-//      }
-//      name = builder.toString();
-//    }
-//
-//    return name;
-//  }
+  // Note: This was intended to override getPresentableName(), but doing so
+  //       makes it difficult to locate the library in the project list.
+  @NotNull
+  public String computePresentableName() {
+    String name = super.getPresentableName();
+    List<String> relnames = null;
+
+    synchronized (this) {
+      if (!reliants.isEmpty()) {
+        final int size = reliants.size(); // Slow call!! Don't repeat it.
+        final List<String> namelist = new ArrayList<String>(size);
+        reliants.iterate(new HaxeLibraryList.Lambda() {
+          @Override
+          public boolean processEntry(HaxeLibraryReference entry) {
+            namelist.add(entry.getName());
+            return true;
+          }
+        });
+        relnames = namelist;
+      }
+    }
+
+    if (null != relnames && !relnames.isEmpty()) {
+      final StringBuilder builder = new StringBuilder(name);
+      builder.append(' ');
+      builder.append(HaxeBundle.message("haxelib.dependency.list.prefix"));
+
+      int size = relnames.size();
+      for (int i = 0; i < size; ++i) {
+        builder.append(relnames.get(i));
+        if (i < size - 1) {
+          builder.append(HaxeBundle.message("haxelib.dependency.list.separator"));
+        }
+      }
+      name = builder.toString();
+    }
+
+    return name;
+  }
 
   public HaxeLibraryList getReliants() {
     return reliants;
   }
 
   public void addReliant(HaxeLibrary reliant) {
-    if (null != reliant && !reliants.contains(reliant.createReference()));
+    HaxeLibraryReference newRef = reliant.createReference();
+    if (null != reliant && !reliants.contains(newRef)) {
+      reliants.add(newRef);
+    }
+
   }
 
+  public void addReliant(HaxeLibraryReference reliant) {
+    if (null != reliant && !reliants.contains(reliant)) {
+      reliants.add(reliant.clone());
+    }
+  }
+
+  /**
+   * Generate a key that matches dependencies.
+   * @return
+   */
+  public String getKey() {
+    return getName();
+  }
 
   /**
    * Full member-by-member equivalency.
