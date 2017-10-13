@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,15 +29,12 @@ import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.DumbModeTask;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.roots.libraries.PersistentLibraryKind;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -235,163 +231,6 @@ public class HaxelibProjectUpdater {
   private void resolveModuleLibraries(ProjectTracker tracker, Module module, HaxeLibraryList externalLibs) {
     HaxeLibraryList toAdd;
     HaxeLibraryList toRemove;
-
-    ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-
-    // Remove project level classpath items from the list of required
-    // external libraries.
-    //
-    // If the SDK is inherited, then we can use the project dependencies to
-    // filter against.  Otherwise, the project dependencies may not be
-    // reliable, since they are not made using the same haxelib.  Checking
-    // whether they resolve to the same thing may be difficult, given that
-    // the actual library location, etc. is kept in the external .xml files,
-    // or *may* be in the environment (though our environment is constant).
-    //
-    // For the moment, we'll presume that if the SDK is NOT inherited, the
-    // module gets the full list.
-    //
-
-    // TODO: Think on how/whether to remove Std or other libs if their classpaths (plus dependencies) appear in the SDK roots.
-    // We're also checking whether the classpath is known to the SDK.  If so,
-    // we also want to filter it out.
-    //
-    HaxeClasspath inheritedClasspaths = HaxelibClasspathUtils.getSdkClasspath(
-      HaxelibSdkUtils.lookupSdk(module));
-
-    // This turns out to just be wrong.  Libs have to appear in the module list to be
-    // considered as sources.  The project libs are just convenient places to create the lib
-    // description that is to be referenced by a/multiple module(s).
-    //   if (rootManager.isSdkInherited()) {
-    //     // Add project classpaths before SDK class paths for correct precedence.
-    //     HaxeClasspath projectClasspaths =  getProjectClasspath(tracker);
-    //     projectClasspaths.addAll(inheritedLibs);
-    //     inheritedClasspaths = projectClasspaths;
-    //   }
-    //
-    //   class NewPathCollector implements HaxeClasspath.Lambda {
-    //     public HaxeClasspath myUninherited = new HaxeClasspath();
-    //     private HaxeClasspath myInherited;
-    //     public NewPathCollector(HaxeClasspath inherited) { myInherited = inherited; }
-    //     @Override
-    //     public boolean processEntry(HaxeClasspathEntry externalPath) {
-    //       if (!myInherited.contains(externalPath)) {
-    //         myUninherited.add(externalPath);
-    //       }
-    //       return true;
-    //     }
-    //   }
-    //   NewPathCollector npCollector = new NewPathCollector(inheritedClasspaths);
-    //   externalLibs.iterate(npCollector);
-    //   HaxeClasspath uninheritedExternalClasspaths = npCollector.myUninherited;
-
-
-    //// Figure out which libs from the module to remove. To be candidates for
-    //// removal:
-    //// - First, they must to be managed libraries/paths.
-    //// - Second, they must not appear in the uninherited external classpaths, OR
-    ////   they appear in the project or SDK classpaths from the module.
-    //class RemoveCollector implements HaxeClasspath.Lambda {
-    //  HaxeClasspath uninherited;
-    //  HaxeClasspath inherited;
-    //  public HaxeClasspath toRemove = new HaxeClasspath();
-    //
-    //  public RemoveCollector(HaxeClasspath uninheritedClasspath, HaxeClasspath inheritedClasspath) {
-    //    uninherited = uninheritedClasspath;
-    //    inherited = inheritedClasspath;
-    //  }
-    //
-    //  @Override
-    //  public boolean processEntry(HaxeClasspathEntry entry) {
-    //    if (entry.isManagedEntry()
-    //        &&  (!uninherited.contains(entry) || inherited.contains(entry))) {
-    //      toRemove.add(entry);
-    //    }
-    //    return true;
-    //  }
-    //}
-    //RemoveCollector collector = new RemoveCollector(uninheritedExternalClasspaths, inheritedLibs);
-    //
-    //HaxeClasspath moduleClasspath = HaxelibClasspathUtils.getModuleClasspath(module);
-    //moduleClasspath.iterate(collector);
-    //toRemove = collector.toRemove;
-
-
-// Second try...
-//
-//
-//
-//    HaxeLibraryList moduleLibs = HaxelibUtil.getModuleLibraries(module);
-//    HaxeLibraryList managedModuleLibs = new HaxeLibraryList(module);
-//    HaxeLibraryList unmanagedModuleLibs = new HaxeLibraryList(module);
-//    moduleLibs.iterate(new HaxeLibraryList.Lambda() {
-//      @Override
-//      public boolean processEntry(HaxeLibraryReference entry) {
-//        if (entry.isManaged()) {
-//          managedModuleLibs.add(entry);
-//        }
-//        else {
-//          unmanagedModuleLibs.add(entry);
-//        }
-//        return true;
-//      }
-//    });
-//    toRemove = new HaxeLibraryList(managedModuleLibs);
-//
-//    // Libs to add is all external libs and all dependencies of both external and
-//    // modules libs.
-//    HaxeLibraryList externalDependencies = new HaxeLibraryList(module);
-//    externalLibs.iterate(new HaxeLibraryList.Lambda() {
-//      @Override
-//      public boolean processEntry(HaxeLibraryReference entry) {
-//        externalDependencies.addAll(entry.getLibrary().collectDependents());
-//        return true;
-//      }
-//    });
-//    HaxeLibraryList moduleDependencies = new HaxeLibraryList(module);
-//    moduleLibs.iterate(new HaxeLibraryList.Lambda() {
-//      @Override
-//      public boolean processEntry(HaxeLibraryReference entry) {
-//        if (entry.isAvailable()) {
-//          moduleDependencies.addAll(entry.getLibrary().collectDependents());
-//        }
-//        return true;
-//      }
-//    });
-//    // Collect everything we might need to add...
-//    toAdd = externalLibs;
-//    toAdd.addAll(externalDependencies);
-//    toAdd.addAll(moduleDependencies);
-//    // And, then remove those that are already in place.
-//    toAdd.removeAll(moduleLibs);
-//
-//    // Don't add libs that have a user-specified name, but still use the same directory.
-//    final HaxeClasspath userLibClasspaths = unmanagedModuleLibs.getLibraryClasspaths(false, true);
-//    final HaxeLibraryList userLibsMatchingDependenciesByClasspath = new HaxeLibraryList(module);
-//    toAdd.iterate(new HaxeLibraryList.Lambda() {
-//      @Override
-//      public boolean processEntry(HaxeLibraryReference entry) {
-//        HaxeLibrary lib = entry.getLibrary();
-//        if (null != lib && userLibClasspaths.contains(lib.getLibraryRoot()))
-//          userLibsMatchingDependenciesByClasspath.add(entry);
-//        return true;
-//      }
-//    });
-//    toAdd.removeAll(userLibsMatchingDependenciesByClasspath);
-//
-//    // Anything new must be marked as managed.
-//    toAdd.iterate(new HaxeLibraryList.Lambda() {
-//      @Override
-//      public boolean processEntry(HaxeLibraryReference entry) {
-//        entry.markAsManagedEntry();
-//        return true;
-//      }
-//    });
-//
-//    // Remove anything that appears in both lists (because it's already there).
-//    HaxeLibraryList originalRemove = new HaxeLibraryList(toRemove);
-//    toRemove.removeAll(toAdd);
-//    toAdd.removeAll(originalRemove);
 
     toAdd = new HaxeLibraryList(module);
     toRemove = new HaxeLibraryList(module);
@@ -676,7 +515,6 @@ public class HaxelibProjectUpdater {
 
     Project project = tracker.getProject();
     HaxeLibraryList haxelibExternalItems = new HaxeLibraryList(module);
-    HaxeLibraryList haxelibNewItemList = new HaxeLibraryList(module);
     HaxelibLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     int buildConfig = settings.getBuildConfig();
@@ -857,6 +695,15 @@ public class HaxelibProjectUpdater {
 
 
   private void synchronizeClasspaths(@NotNull ProjectTracker tracker) {
+
+    //
+    // Either of these commented-out sections will cause indexing to not be attempted
+    // while the haxelibs are synchronizing.  However, they also hide the fact that
+    // haxelibs are updating by not allowing the haxelib progress dialog to start.
+    // Instead, it looks like indexing restarts over and over and over (which it
+    // kinda does).
+    //
+
     //DumbServiceImpl dumbService = DumbServiceImpl.getInstance(tracker.getProject());
     //dumbService.queueTask(new DumbModeTask() {
     //  @Override
@@ -865,7 +712,6 @@ public class HaxelibProjectUpdater {
     //    syncModuleClasspaths(tracker);
     //  }
     //});
-
 
     //TransactionGuard tg = TransactionGuard.getInstance();
     //tg.submitTransactionAndWait(new Runnable() {
@@ -1036,76 +882,6 @@ public class HaxelibProjectUpdater {
     HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("syncProjectClasspath");
     timeLog.stamp("Start synchronizing project " + tracker.getProject().getName());
 
-    HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
-
-    //// ------------------------
-    //// Build the toAdd list
-    //// ------------------------
-    //// Get the list of libraries that the user has added (those without "haxelib|").
-    //HaxeLibraryList userAddedLibraries = HaxelibUtil.getProjectLibraries(tracker.getProject(),true, false);
-    //// Find all of its dependencies.  And split the list, while we're at it.
-    //final HaxeLibraryList userLibDependencies = new HaxeLibraryList(sdk);
-    //userAddedLibraries.iterate(new HaxeLibraryList.Lambda() {
-    //  @Override
-    //  public boolean processEntry(HaxeLibraryReference entry) {
-    //    if (entry.isAvailable()) {
-    //      userLibDependencies.addAll(entry.getLibrary().collectDependents());
-    //    }
-    //    return true;
-    //  }
-    //});
-    //
-    //// Remove the user-added libraries from the dependency list.
-    //userLibDependencies.removeAll(userAddedLibraries);
-    //// However, they may already be there, just using a user-specified name that doesn't match the haxelib directory.
-    //// Let's find them and remove them from the dependency list.
-    //final HaxeClasspath userLibDependenciesClasspath = userLibDependencies.getLibraryClasspaths(false, true);
-    //final HaxeLibraryList userLibsMatchingDependenciesByClasspath = new HaxeLibraryList(sdk);
-    //userAddedLibraries.iterate(new HaxeLibraryList.Lambda() {
-    //  @Override
-    //  public boolean processEntry(HaxeLibraryReference entry) {
-    //    HaxeLibrary lib = entry.getLibrary();
-    //    if (null != lib && userLibDependenciesClasspath.contains(lib.getLibraryRoot()))
-    //      userLibsMatchingDependenciesByClasspath.add(entry);
-    //    return true;
-    //  }
-    //});
-    //userLibDependencies.removeAll(userLibsMatchingDependenciesByClasspath);
-    //
-    //// Everything left in the dependency list is missing from the project, unless they've already been added as managed entries.
-    //HaxeLibraryList toAdd = new HaxeLibraryList(userLibDependencies);
-    //
-    //
-    //// --------------------------
-    //// Build the toRemove list
-    //// --------------------------
-    //// Now find the libraries that were previously added and are no longer needed.
-    //HaxeLibraryList currentManagedLibraries = HaxelibUtil.getProjectLibraries(tracker.getProject(), false, true);
-    //
-    //// Libraries that we want to remove are those specified as 'haxelib' entries and are
-    //// no longer referenced or no longer exist.
-    //HaxeLibraryList managedLibrariesToRemove = new HaxeLibraryList(sdk);
-    //currentManagedLibraries.iterate(new HaxeLibraryList.Lambda() {
-    //  @Override
-    //  public boolean processEntry(HaxeLibraryReference entry) {
-    //    if (!entry.isAvailable()
-    //        || userAddedLibraries.contains(entry)) {
-    //      managedLibrariesToRemove.add(entry);
-    //    }
-    //    return true;
-    //  }
-    //});
-    //currentManagedLibraries.removeAll(managedLibrariesToRemove);
-    //HaxeLibraryList toRemove = new HaxeLibraryList(currentManagedLibraries);
-    //
-    //
-    //// -----------------------------------------------
-    //// Resolve the two lists, removing common entries.
-    //// -----------------------------------------------
-    //toRemove.removeAll(toAdd);
-    //toAdd.removeAll(currentManagedLibraries);
-
-
     HaxeLibraryList toAdd = new HaxeLibraryList(sdk);
     HaxeLibraryList toRemove = new HaxeLibraryList(sdk);
     syncLibraryLists(sdk,
@@ -1114,9 +890,6 @@ public class HaxelibProjectUpdater {
         /*modifies*/ toAdd,
         /*modifies*/ toRemove );
 
-    // ---------------
-    // And.... Update!
-    // ---------------
     if (!toAdd.isEmpty() && !toRemove.isEmpty()) {
       timeLog.stamp("Add/Remove calculations finished.  Queuing write task.");
       updateProject(tracker, toRemove, toAdd);
