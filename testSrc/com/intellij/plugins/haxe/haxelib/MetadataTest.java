@@ -15,10 +15,7 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import com.intellij.testFramework.UsefulTestCase;
 
 import java.util.List;
@@ -52,8 +49,8 @@ public class MetadataTest extends UsefulTestCase {
     el.addProperty(LICENSE, LICENSE_DATA);
 
     JsonArray tags = new JsonArray();
-    tags.add(TAGS_DATA1);
-    tags.add(TAGS_DATA2);
+    tags.add(new JsonPrimitive(TAGS_DATA1));
+    tags.add(new JsonPrimitive(TAGS_DATA2));
     el.add(TAGS, tags);
 
     el.addProperty(DESCRIPTION, DESCRIPTION_DATA);
@@ -62,9 +59,9 @@ public class MetadataTest extends UsefulTestCase {
     el.addProperty(RELEASENOTE, RELEASENOTE_DATA);
 
     JsonArray contributors = new JsonArray();
-    contributors.add(CONTRIBUTOR1);
-    contributors.add(CONTRIBUTOR2);
-    contributors.add(CONTRIBUTOR3);
+    contributors.add(new JsonPrimitive(CONTRIBUTOR1));
+    contributors.add(new JsonPrimitive(CONTRIBUTOR2));
+    contributors.add(new JsonPrimitive(CONTRIBUTOR3));
     el.add(CONTRIBUTORS, contributors);
 
     JsonObject dependencies = new JsonObject();

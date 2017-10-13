@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,6 +43,8 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.build.IdeaTarget;
+import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
@@ -571,7 +574,7 @@ public class HaxelibProjectUpdater {
    * @param list - List of entries to check.
    * @param msg - Message to display on failure.
    */
-  private void assertEntriesAreManaged(HaxeLibraryList list, String msg) {
+  private void assertEntriesAreManaged(HaxeLibraryList list, final String msg) {
     if (null != list) {
       list.iterate(new HaxeLibraryList.Lambda() {
         @Override
@@ -647,7 +650,10 @@ public class HaxelibProjectUpdater {
           if (null != moduleRootModel || null != libraryTableModel)
             timeLog.stamp("Failure to update module libraries");
           if (null != libraryTableModel)
-            libraryTableModel.dispose();
+            if (IdeaTarget.IS_VERSION_15_COMPATIBLE) {
+              // libraryTableModel.dispose() in IDEA 15+; not a disposable in earlier versions.
+              new MethodWrapper<Void>(libraryTableModel.getClass(), "dispose").invoke(libraryTableModel);
+            }
           if (null != moduleRootModel)
             moduleRootModel.dispose();
         }
@@ -906,7 +912,7 @@ public class HaxelibProjectUpdater {
    */
   @NotNull
   private HaxeLibraryList collectDependencies(@NotNull HaxeLibraryList list) {
-    HaxeLibraryList dependencies = new HaxeLibraryList(list.getOwner());
+    final HaxeLibraryList dependencies = new HaxeLibraryList(list.getOwner());
     list.iterate(new HaxeLibraryList.Lambda() {
       @Override
       public boolean processEntry(HaxeLibraryReference entry) {
@@ -943,7 +949,7 @@ public class HaxelibProjectUpdater {
    * @return a list of libraries whose directory entries match entries from the classpath.
    */
   @NotNull
-  private HaxeLibraryList findLibsMatchingClasspath(@NotNull HaxeLibraryList libs, @NotNull HaxeClasspath classpath) {
+  private HaxeLibraryList findLibsMatchingClasspath(@NotNull final HaxeLibraryList libs, @NotNull final HaxeClasspath classpath) {
     final HaxeLibraryList matchingLibs = new HaxeLibraryList(libs.getOwner());
     libs.iterate(new HaxeLibraryList.Lambda() {
       @Override
@@ -972,8 +978,8 @@ public class HaxelibProjectUpdater {
                    /*modifies*/ @NotNull HaxeLibraryList newLibrariesToAdd,
                    /*modifies*/ @NotNull HaxeLibraryList oldLibrariesToRemove) {
 
-    HaxeLibraryList currentManagedEntries = new HaxeLibraryList(sdk);
-    HaxeLibraryList currentUnmanagedEntries = new HaxeLibraryList(sdk);
+    final HaxeLibraryList currentManagedEntries = new HaxeLibraryList(sdk);
+    final HaxeLibraryList currentUnmanagedEntries = new HaxeLibraryList(sdk);
     currentList.iterate(new HaxeLibraryList.Lambda() {
       @Override
       public boolean processEntry(HaxeLibraryReference entry) {

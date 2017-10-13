@@ -185,11 +185,11 @@ public class HaxelibUtil {
   //      that this has to reach back out to HaxelibProjectUpdater to find the library cache for
   //      the module.
   @NotNull
-  public static HaxeLibraryList getModuleLibraries(@NotNull Module module) {
+  public static HaxeLibraryList getModuleLibraries(@NotNull final Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
     if (null == rootManager) return new HaxeLibraryList(module);
 
-    HaxeLibraryList moduleLibs = new HaxeLibraryList(module);
+    final HaxeLibraryList moduleLibs = new HaxeLibraryList(module);
     if (rootManager instanceof ModuleRootManagerImpl) {
       ModuleRootManagerImpl rootManagerImpl = (ModuleRootManagerImpl)rootManager;
 

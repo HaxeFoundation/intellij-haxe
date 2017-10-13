@@ -184,7 +184,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         //flashFileToDebug = model.getCompilerOutputUrl() + "/debug/" + settings.getOutputFileName();
 
         // TODO: Need to add a debug flag to the project model, so that the debug SWF is always displayed.
-        LimeProjectModel lime = LimeUtil.getLimeProjectModel(module);
+        HXMLProjectModel lime = LimeUtil.getLimeProjectModel(module);
         flashFileToDebug = module.getProject().getBasePath() + "/" + lime.getSwfOutputFileName();
       }
       return runFlash(module, settings, env, executor, flashFileToDebug);
