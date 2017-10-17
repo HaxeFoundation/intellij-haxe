@@ -61,6 +61,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             String arguments,
                             String nmeFlags,
                             boolean excludeFromCompilation,
+                            boolean keepSynchronizedWithProjectFile,
                             String outputFileName,
                             String outputFolder,
                             String flexSdkName,
@@ -68,7 +69,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             String hxmlPath,
                             String nmmlPath,
                             String openFLPath) {
-    super(mainClass, outputFileName, outputFolder, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
+    super(mainClass, outputFileName, outputFolder, arguments, nmeFlags, excludeFromCompilation, keepSynchronizedWithProjectFile, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
           openFLPath, buildConfig);
     this.flexSdkName = flexSdkName;
     notifyUpdated();
@@ -162,6 +163,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     HaxeModuleSettings settings = (HaxeModuleSettings)o;
 
     if (excludeFromCompilation != settings.excludeFromCompilation) return false;
+    if (keepSynchronizedWithProjectFile != settings.keepSynchronizedWithProjectFile) return false;
     if (buildConfig != settings.buildConfig) return false;
     if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
     if (nmeFlags != null ? !nmeFlags.equals(settings.nmeFlags) : settings.nmeFlags != null) return false;
@@ -189,6 +191,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     result = 31 * result + (nmeFlags != null ? nmeFlags.hashCode() : 0);
     result = 31 * result + (openFLFlags != null ? openFLFlags.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
+    result = 31 * result + (keepSynchronizedWithProjectFile ? 1 : 0);
     result = 31 * result + (haxeTarget != null ? haxeTarget.hashCode() : 0);
     result = 31 * result + (nmeTarget != null ? nmeTarget.hashCode() : 0);
     result = 31 * result + (openFLTarget != null ? openFLTarget.hashCode() : 0);

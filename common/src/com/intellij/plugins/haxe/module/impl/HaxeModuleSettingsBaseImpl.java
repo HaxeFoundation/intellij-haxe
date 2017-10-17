@@ -39,6 +39,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   protected String nmeFlags = "";
   protected String openFLFlags = "";
   protected boolean excludeFromCompilation = false;
+  protected boolean keepSynchronizedWithProjectFile = true;
   protected HaxeTarget haxeTarget = HaxeTarget.NEKO;
   protected NMETarget nmeTarget = NMETarget.FLASH;
   protected OpenFLTarget openFLTarget = OpenFLTarget.FLASH;
@@ -57,6 +58,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
                                     String arguments,
                                     String nmeFlags,
                                     boolean excludeFromCompilation,
+                                    boolean keepSynchronizedWithProjectFile,
                                     HaxeTarget haxeTarget,
                                     NMETarget nmeTarget,
                                     OpenFLTarget openFLTarget,
@@ -70,6 +72,7 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
     this.arguments = arguments;
     this.nmeFlags = nmeFlags;
     this.excludeFromCompilation = excludeFromCompilation;
+    this.keepSynchronizedWithProjectFile = keepSynchronizedWithProjectFile;
     this.haxeTarget = haxeTarget;
     this.nmeTarget = nmeTarget;
     this.openFLTarget = openFLTarget;
@@ -158,6 +161,15 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public void setExcludeFromCompilation(boolean excludeFromCompilation) {
     this.excludeFromCompilation = excludeFromCompilation;
+    notifyUpdated();
+  }
+
+  public boolean isKeepSynchronizedWithProjectFile() {
+    return keepSynchronizedWithProjectFile;
+  }
+
+  public void setKeepSynchronizedWithProjectFile(boolean keepSynchronizedWithProjectFile) {
+    this.keepSynchronizedWithProjectFile = keepSynchronizedWithProjectFile;
     notifyUpdated();
   }
 

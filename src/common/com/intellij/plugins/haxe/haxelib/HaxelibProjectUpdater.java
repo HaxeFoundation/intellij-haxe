@@ -519,6 +519,12 @@ public class HaxelibProjectUpdater {
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     int buildConfig = settings.getBuildConfig();
 
+    // If the module says not to keep libs synched, then don't.
+    if (!settings.isKeepSynchronizedWithProjectFile()) {
+      timeLog.stamp("Module " + module.getName() + " is set to not synchronize dependencies.");
+      return;
+    }
+
     switch (buildConfig) {
       case HaxeModuleSettings.USE_NMML:
         timeLog.stamp("Start loading haxelibs from NMML file.");
