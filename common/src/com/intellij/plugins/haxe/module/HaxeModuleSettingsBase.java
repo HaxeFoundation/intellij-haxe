@@ -57,6 +57,10 @@ public interface HaxeModuleSettingsBase {
 
   void setExcludeFromCompilation(boolean excludeFromCompilation);
 
+  boolean isKeepSynchronizedWithProjectFile();
+
+  void setKeepSynchronizedWithProjectFile(boolean keepSynchronizedWithProjectFile);
+
   String getOutputFileName();
 
   void setOutputFileName(String outputFileName);

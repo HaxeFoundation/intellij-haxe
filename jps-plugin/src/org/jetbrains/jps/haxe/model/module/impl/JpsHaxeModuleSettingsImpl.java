@@ -131,6 +131,16 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
   }
 
   @Override
+  public boolean isKeepSynchronizedWithProjectFile() {
+    return mySettingsBase.isKeepSynchronizedWithProjectFile();
+  }
+
+  @Override
+  public void setKeepSynchronizedWithProjectFile(boolean keepSynchronizedWithProjectFile) {
+    mySettingsBase.setKeepSynchronizedWithProjectFile(keepSynchronizedWithProjectFile);
+  }
+
+  @Override
   public String getOutputFileName() {
     return mySettingsBase.getOutputFileName();
   }
