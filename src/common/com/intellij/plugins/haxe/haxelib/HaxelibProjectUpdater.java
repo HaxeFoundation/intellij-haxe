@@ -37,8 +37,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.*;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
@@ -49,6 +48,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.Lambda;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -58,10 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -1372,6 +1369,17 @@ public class HaxelibProjectUpdater {
       }
       return tracker;
     }
+
+    public boolean iterate(@NotNull Lambda<ProjectTracker> lambda) {
+      synchronized(this) {
+         for(ProjectTracker tracker : myMap.values()) {
+           if (!lambda.process(tracker)) {
+             return false;
+           }
+         }
+      }
+      return true;
+    }
   }
 
 
@@ -1562,6 +1570,5 @@ public class HaxelibProjectUpdater {
       queueNextProject();
     }
   } // end class projectUpdateQueue
-
 
 }

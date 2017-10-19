@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.util.io.FileSystemUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -80,6 +81,20 @@ public class HaxeFileUtil {
   }
 
   /**
+   * Determine whether a path/url is an absolute file name.
+   *
+   * @param path path to test
+   * @return true if the path is absolute
+   */
+  public static boolean isAbsolutePath(@Nullable String path) {
+    if (null == path || path.isEmpty()) {
+      return false;
+    }
+    String stripped = VirtualFileManager.getInstance().extractPath(path);
+    return (FileUtil.isAbsolute(stripped));
+  }
+
+  /**
    * Make a relative path out of a list of strings. (First char is NOT a separator.)
    * @param strings ordered set of strings to use as directory names.
    * @return
@@ -118,5 +133,39 @@ public class HaxeFileUtil {
     String p = FileUtil.normalize(path);
     String[] parts = p.split(SEPARATOR_STRING);
     return Arrays.asList(parts);
+  }
+
+  /**
+   * Find a file, given a path.  If the path is not absolute, then try as relative
+   * to other given paths.
+   *
+   * @param path Path to test.  Null or empty path is not an error, but will return a null result.
+   * @param rootPaths Variable number of other root paths to search.
+   * @return null if the file could not be located; a VirtualFile if it could.
+   */
+  @Nullable
+  public static VirtualFile locateFile(String path, String... rootPaths) {
+    if (null == path || path.isEmpty()) {
+      return null;
+    }
+
+    String tryPath = fixUrl(path);
+
+    VirtualFileManager vfs = VirtualFileManager.getInstance();
+    VirtualFile file = vfs.findFileByUrl(tryPath);
+    if (null == file && !isAbsolutePath(tryPath)) {
+      String nonUrlPath = vfs.extractPath(path);
+      for (String root : rootPaths) {
+        if (!root.isEmpty()) {
+          tryPath = fixUrl(joinPath(root, nonUrlPath));
+          file = vfs.findFileByUrl(tryPath);
+          if (null != file) {
+            break;
+          }
+        }
+      }
+    }
+
+    return file;
   }
 }
