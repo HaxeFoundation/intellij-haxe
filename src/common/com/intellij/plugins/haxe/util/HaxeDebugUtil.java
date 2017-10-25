@@ -64,6 +64,22 @@ public class HaxeDebugUtil {
   }
 
   /**
+   * Determine whether a class appears on the (current thread's) stack.
+   * @param klass Class name to look for.
+   * @return true, if the class is on the stack (some member function is being executed); false, otherwise.
+   */
+  public static boolean appearsOnStack(@NotNull Class klass) {
+    String klassName = klass.getName();
+    StackTraceElement[] stack = new Exception().getStackTrace();
+    for (StackTraceElement frame : stack) {
+      if (frame.getClassName().equals(klassName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Gets the current stack depth (not counting this call).
    *
    * @return the number of stack frames on the stack at the point of our caller.

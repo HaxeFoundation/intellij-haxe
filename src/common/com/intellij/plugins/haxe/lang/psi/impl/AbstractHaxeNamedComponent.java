@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +18,18 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -102,6 +106,14 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
           result.append(AbstractHaxeNamedComponent.this.getName());
         }
         else {
+          if (isFindUsageRequest()) {
+            HaxeClassModel klass = member.getDeclaringClass();
+            if (null != klass) {
+              result.append(klass.getName());
+              result.append('.');
+            }
+          }
+
           result.append(member.getName());
 
           if (member instanceof HaxeMethodModel) {
@@ -144,6 +156,16 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
       public Icon getIcon(boolean open) {
         return AbstractHaxeNamedComponent.this.getIcon(0);
       }
+
+
+      private boolean isFindUsageRequest() {
+        // HACK: Checking the stack is a bad answer for this, but we don't have a good way to
+        // determine whether this particular request is from findUsages because all FindUsages queries
+        // run on background threads, and they could be running at the same time as another access.
+        // (AND, we can't change IDEA's shipping products on which this must run...)
+        return HaxeDebugUtil.appearsOnStack(PsiElement2UsageTargetAdapter.class);
+      }
+
     };
   }
 
