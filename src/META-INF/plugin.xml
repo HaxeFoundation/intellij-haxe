@@ -699,6 +699,7 @@
     <lang.braceMatcher language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>
     <typedHandler implementation="com.intellij.plugins.haxe.ide.editor.HaxeTypedHandler" id="haxe"/>
 
+    <findUsagesHandlerFactory implementation="com.intellij.plugins.haxe.ide.HaxeFindUsagesHandlerFactory"/>
     <lang.findUsagesProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider"/>
     <lang.implementationTextSelectioner language="Haxe"
                                         implementationClass="com.intellij.plugins.haxe.ide.HaxeImplementationTextSelectioner"/>

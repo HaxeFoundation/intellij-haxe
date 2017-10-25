@@ -23,12 +23,9 @@ import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
@@ -51,7 +48,7 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
   @Override
   public boolean canFindUsagesFor(@NotNull PsiElement psiElement) {
     boolean ret = false;
-    PsiElement parent = getTargetElement(psiElement);
+    PsiElement parent = HaxeFindUsagesUtil.getTargetElement(psiElement);
     if (null != parent) {
       ret = true;
     }
@@ -68,7 +65,7 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
 
   @NotNull
   public String getType(@NotNull final PsiElement element) {
-    String result = HaxeComponentType.getName(getTargetElement(element));
+    String result = HaxeComponentType.getName(HaxeFindUsagesUtil.getTargetElement(element));
     if (null == result) {
       result = "reference";
     }
@@ -80,7 +77,7 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
 
   @NotNull
   public String getDescriptiveName(@NotNull final PsiElement element) {
-    String result = HaxeComponentType.getPresentableName(getTargetElement(element));
+    String result = HaxeComponentType.getPresentableName(HaxeFindUsagesUtil.getTargetElement(element));
     if (null == result) {
       result = "";
     }
@@ -89,7 +86,7 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
 
   @NotNull
   public String getNodeText(@NotNull final PsiElement element, final boolean useFullName) {
-    PsiElement parent = getTargetElement(element);
+    PsiElement parent = HaxeFindUsagesUtil.getTargetElement(element);
     if (null != parent) {
       if (useFullName) {
         if (parent instanceof HaxeClass) {
@@ -98,20 +95,6 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
       }
     }
     return element.getText();
-  }
-
-  /**
-   * Selected element is usually a COMPONENT_NAME, not a named element that we can get
-   * typing, etc, from.  And it's no longer always the parent.  So go find the appropriate
-   * element that can be searched for.
-   *
-   * @param psiElement - lowest level element found at a cursor position -- usually a COMPONENT_NAME.
-   * @return a higher level PsiElement that has context and typing information.
-   */
-  @Nullable
-  private PsiElement getTargetElement(@NotNull final PsiElement psiElement) {
-    PsiElement parent = PsiTreeUtil.getParentOfType(psiElement, HaxeNamedComponent.class, false);
-    return parent;
   }
 
   /**

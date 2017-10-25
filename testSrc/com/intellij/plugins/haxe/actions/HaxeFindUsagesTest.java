@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +20,24 @@ package com.intellij.plugins.haxe.actions;
 
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.fileTypes.FileTypes;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.PsiElementUsageTarget;
+import com.intellij.usages.UsageInfo2UsageAdapter;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetUtil;
+import com.intellij.util.LocalTimeCounter;
 import org.jetbrains.annotations.NonNls;
 
-import java.util.Collection;
+import java.util.*;
+
+import static com.intellij.plugins.haxe.ide.HaxeFindUsagesHandlerFactory.TestInterface.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -35,6 +46,10 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/findUsages/";
+  }
+
+  protected String getResultsPath() {
+    return "results/" + getTestName(false) + ".txt";
   }
 
   protected void doTest(int size) throws Throwable {
@@ -90,4 +105,97 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFiles("com/bar/ClassToFind.hx", "ClassDeclaration.hx");
     doTest(7);
   }
+
+
+  //
+  // Overrides tests
+  //
+
+  // Shortcut answers to the popup dialog when a superclass contains the same method.
+  public static final TestDialog GET_BASE_CLASS = new TestDialog() {
+    public int show(String message) { return getOptionIndex(getBaseClassOption()); }
+  };
+  public static final TestDialog GET_CURRENT_CLASS = new TestDialog() {
+    public int show(String message) { return getOptionIndex(getCurrentClassOption()); }
+  };
+  public static final TestDialog GET_ANCESTOR_CLASSES = new TestDialog() {
+    public int show(String message) { return getOptionIndex(getAncestorClassesOption()); }
+  };
+
+
+  public void doOverrideTest(String testFile, TestDialog answer) throws Throwable {
+    Messages.setTestDialog(answer);
+    myFixture.configureByFiles(testFile, "com/bar/TestSearchOverrides.hx");
+    myFixture.copyFileToProject(getResultsPath());
+    compareExpectedUsages(findUsages());
+  }
+
+  public void compareExpectedUsages(Collection<UsageInfo> foundUsages) {
+
+    assertNotNull(foundUsages);
+
+    // Need to keep the ordering constant, so sort the output.
+    String[] formattedUsages = new String[foundUsages.size()];
+    int i = 0;
+    for (UsageInfo usage : foundUsages) {
+      formattedUsages[i++] = prettyUsageMessage(usage);
+    }
+    Arrays.sort(formattedUsages, new Comparator<String>() {
+      @Override
+      public int compare(String o1, String o2) {
+        return o1.compareTo(o2);
+      }
+    });
+
+    StringBuilder builder = new StringBuilder();
+    for (String s : formattedUsages) {
+      builder.append(s);
+      builder.append('\n');
+    }
+
+    // Convert the output to a file.  MUST use an API that sets eventSystemEnabled==true, or the file won't open.
+    PsiFile foundFile = PsiFileFactory.getInstance(myFixture.getProject())
+      .createFileFromText("testResult", FileTypes.PLAIN_TEXT, builder.toString(),
+                          LocalTimeCounter.currentTime(), true);
+    VirtualFile vFile = foundFile.getViewProvider().getVirtualFile();
+
+    myFixture.openFileInEditor(vFile); // Can't use foundFile.getVirtualFile(); it returns null.
+    myFixture.checkResultByFile(getResultsPath(), false);
+  }
+
+  public String prettyUsageMessage(UsageInfo usage) {
+
+    UsageInfo2UsageAdapter adapter = new UsageInfo2UsageAdapter(usage);
+    StringBuilder builder = new StringBuilder();
+
+    VirtualFile vFile = adapter.getFile();
+    builder.append(null != vFile ? vFile.getName() : "<unknown file>");
+    builder.append(", line ");
+    builder.append(adapter.getLine() + 1);
+    builder.append(':');
+    builder.append(adapter.getPresentation().getPlainText());
+
+    String tooltip = adapter.getPresentation().getTooltipText();
+    if (null != tooltip) {
+      builder.append(" {");
+      builder.append(tooltip);
+      builder.append("} ");
+    }
+
+    return builder.toString();
+  }
+
+
+  public void testFindCurrentClass() throws Throwable {
+    doOverrideTest( "OverrideTop.hx", GET_CURRENT_CLASS);
+  }
+
+  public void testFindBaseClass() throws Throwable {
+    doOverrideTest("OverrideTop.hx", GET_BASE_CLASS);
+  }
+
+  public void testFindAncestorClass() throws Throwable {
+    doOverrideTest("OverrideTop.hx", GET_ANCESTOR_CLASSES);
+  }
+
 }
