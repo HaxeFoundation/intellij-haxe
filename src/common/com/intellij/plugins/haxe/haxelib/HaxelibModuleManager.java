@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -45,14 +47,18 @@ public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleC
     final Project project = mMyModule.getProject();
     LOG.debug("Project opened event (" + debugQueueCounter + ") for " + project);
 
-    HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
+    }
   }
 
   @Override
   public void projectClosed() {
     LOG.debug("Project closed event for module " + mMyModule.getName());
 
-    HaxelibProjectUpdater.getInstance().closeProject(mMyModule.getProject());
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      HaxelibProjectUpdater.getInstance().closeProject(mMyModule.getProject());
+    }
   }
 
   @Override

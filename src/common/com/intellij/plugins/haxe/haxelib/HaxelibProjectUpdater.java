@@ -31,30 +31,26 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.*;
+import com.intellij.plugins.haxe.build.IdeaTarget;
+import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
-import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
-import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
-import com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil;
+import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.Lambda;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -62,9 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -85,23 +79,24 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * come during initialization.
  *
  */
-public class HaxelibProjectUpdater  {
+public class HaxelibProjectUpdater {
 
   static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibManager");
+
   {
     LOG.setLevel(Level.DEBUG);
   }
 
   /**
-   *  Set this to run in the foreground for speed testing.
-   *  It overrides myRunInForeground.  The UI is blocked with no updates.
+   * Set this to run in the foreground for speed testing.
+   * It overrides myRunInForeground.  The UI is blocked with no updates.
    */
   private static final boolean myTestInForeground = false;
   /**
-   *  Set this true to put up a modal dialog and run in the foreground thread
-   *  (locking up the UI.)
-   *  Set it false to run in a background thread.  Progress is updated in the
-   *  status bar and the UI is usable.
+   * Set this true to put up a modal dialog and run in the foreground thread
+   * (locking up the UI.)
+   * Set it false to run in a background thread.  Progress is updated in the
+   * status bar and the UI is usable.
    */
   private static final boolean myRunInForeground = false;
 
@@ -131,7 +126,7 @@ public class HaxelibProjectUpdater  {
     ProjectTracker tracker = myProjects.add(project);
     tracker.setDirty(true);
     myQueue.add(tracker);
-                                                             }
+  }
 
   /**
    * Close and possibly remove a project, if the reference count has been exhausted.
@@ -156,7 +151,7 @@ public class HaxelibProjectUpdater  {
 
   /**
    * Retrieve the HaxelibLibraryCacheManager for a given module/project.
-   *
+   * <p>
    * Convenience function that doesn't quite match the purpose of this class,
    * but we haven't made the CacheManager a singleton -- and we really can't
    * unless we move the notion of a project into it.
@@ -171,7 +166,7 @@ public class HaxelibProjectUpdater  {
 
   /**
    * Retrieve the HaxelibLibraryCacheManager for a given module/project.
-   *
+   * <p>
    * Convenience function that doesn't quite match the purpose of this class,
    * but we haven't made the CacheManager a singleton -- and we really can't
    * unless we move the notion of a project into it.
@@ -186,113 +181,245 @@ public class HaxelibProjectUpdater  {
   }
 
   /**
+   * Retrieve the library cache for a given module.
+   * <p>
+   * Convenience function that doesn't quite match the purpose of this class,
+   * but we haven't made the CacheManager a singleton -- and we really can't
+   * unless we move the notion of a project into it.
+   *
+   * @param module
+   * @return the HaxelibLibraryCache for the module, if found; null, otherwise.
+   */
+  @Nullable
+  public static HaxelibLibraryCache getLibraryCache(@NotNull Module module) {
+    HaxelibLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(module);
+    return mgr != null ? mgr.getLibraryManager(module) : null;
+  }
+
+  /**
+   * Retrieve the library cache for a given module.
+   * <p>
+   * Convenience function that doesn't quite match the purpose of this class,
+   * but we haven't made the CacheManager a singleton -- and we really can't
+   * unless we move the notion of a project into it.
+   *
+   * @param project
+   * @return the HaxelibLibraryCache for the project, if found; null, otherwise.
+   */
+  @Nullable
+  public static HaxelibLibraryCache getLibraryCache(@NotNull Project project) {
+    HaxelibLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(project);
+    Sdk projectSdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    return (mgr != null && projectSdk != null) ? mgr.getLibraryCache(projectSdk) : null;
+  }
+
+  /**
    * Resolve the classpath/library entries for a module.  Determines which
    * libraries to add and remove from the module.  Only libraries that have
    * previously been added may be removed, if they have become redundant
    * or otherwise specified.
    *
-   * @param tracker for the project being updated.
-   * @param module being updated.
-   * @param externalClasspaths potential new classpaths that must be available
-   *                           to the module when this routine finishes.
+   * @param tracker      for the project being updated.
+   * @param module       being updated.
+   * @param externalLibs potential new libraries that must be available
+   *                     to the module when this routine finishes.  These are
+   *                     typically specified in the Haxe project files. (e.g. -lib)
    */
-  private void resolveModuleLibraries(ProjectTracker tracker, Module module, HaxeClasspath externalClasspaths) {
-    HaxeClasspath toAdd;
-    HaxeClasspath toRemove;
+  private void resolveModuleLibraries(ProjectTracker tracker, Module module, HaxeLibraryList externalLibs) {
+    HaxeLibraryList toAdd;
+    HaxeLibraryList toRemove;
 
-    ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+    toAdd = new HaxeLibraryList(module);
+    toRemove = new HaxeLibraryList(module);
+    syncLibraryLists(ModuleRootManager.getInstance(module).getSdk(),
+                     HaxelibUtil.getModuleLibraries(module),
+                     externalLibs,
+        /*modifies*/ toAdd,
+        /*modifies*/ toRemove);
 
-    // Remove project level classpath items from the list of required
-    // external libraries.
-    //
-    // If the SDK is inherited, then we can use the project dependencies to
-    // filter against.  Otherwise, the project dependencies may not be
-    // reliable, since they are not made using the same haxelib.  Checking
-    // whether they resolve to the same thing may be difficult, given that
-    // the actual library location, etc. is kept in the external .xml files,
-    // or *may* be in the environment (though our environment is constant).
-    //
-    // For the moment, we'll presume that if the SDK is NOT inherited, the
-    // module gets the full list.
-    //
-    // We're also checking whether the classpath is known to the SDK.  If so,
-    // we also want to filter it out.
-    //
-    HaxeClasspath inheritedClasspaths = HaxelibClasspathUtils.getSdkClasspath(
-      HaxelibSdkUtils.lookupSdk(module));
-    if (rootManager.isSdkInherited()) {
-      // Add project classpaths before SDK class paths for correct precedence.
-      HaxeClasspath projectClasspaths =  getProjectClasspath(tracker);
-      projectClasspaths.addAll(inheritedClasspaths);
-      inheritedClasspaths = projectClasspaths;
+    updateModule(tracker, module, toRemove, toAdd);
+  }
+
+  /**
+   * Find an IDEA library matching a HaxeLibraryReference.
+   *
+   * @param iter the table iterator.
+   * @param ref the library to look for.
+   * @return the Library, if found; null, otherwise.
+   */
+  @Nullable
+  private Library lookupLibrary(@NotNull Iterator<Library> iter, @NotNull HaxeLibraryReference ref) {
+    Library found = null;
+    while (null == found && iter.hasNext()) {
+      Library toTest = iter.next();
+      if (ref.matchesIdeaLib(toTest)) {
+        found = toTest;
+      }
     }
+    return found;
+  }
 
-    class NewPathCollector implements HaxeClasspath.Lambda {
-      public HaxeClasspath myUninherited = new HaxeClasspath();
-      private HaxeClasspath myInherited;
-      public NewPathCollector(HaxeClasspath inherited) { myInherited = inherited; }
+  /**
+   * Find an IDEA library in a project's LibraryTable matching a HaxeLibraryReference.
+   *
+   * @param table - the LibraryTable to look in.
+   * @param ref - the library to find.
+   * @return the Library, if found; null, otherwise.
+   */
+  @Nullable
+  private Library lookupProjectLibrary(@NotNull LibraryTable table, @NotNull HaxeLibraryReference ref) {
+    return lookupLibrary(table.getLibraryIterator(), ref);
+  }
+
+  /**
+   * Find an IDEA library in a module's LibraryTable (actually, its ModifiableModel)
+   * matching a HaxeLibraryReference.
+   *
+   * @param table - the LibraryTable to look in.
+   * @param ref - the library to find.
+   * @return the Library, if found; null, otherwise.
+   */
+  @Nullable
+  private Library lookupModelLibrary(@NotNull LibraryTable.ModifiableModel table, @NotNull HaxeLibraryReference ref) {
+    return lookupLibrary(table.getLibraryIterator(), ref);
+  }
+
+  /**
+   * Remove libraries from a library table.
+   *
+   * @param toRemove - The list of libraries to remove.
+   * @param libraryTableModel - The (modifiable model of the) table to remove them from.
+   * @param timeLog - Debugging time log.
+   */
+  private void removeLibraries(@NotNull final HaxeLibraryList toRemove,
+                               @NotNull final LibraryTable.ModifiableModel libraryTableModel,
+                               @NotNull final HaxeDebugTimeLog timeLog) {
+    timeLog.stamp("Removing libraries.");
+    toRemove.iterate(new HaxeLibraryList.Lambda() {
       @Override
-      public boolean processEntry(HaxeClasspathEntry externalPath) {
-        if (!myInherited.contains(externalPath)) {
-          myUninherited.add(externalPath);
+      public boolean processEntry(HaxeLibraryReference entry) {
+        Library library = lookupModelLibrary(libraryTableModel, entry);
+        if (null != library) {
+          // Why use this?: ModuleHelper.removeDependency(rootManager, library);
+          libraryTableModel.removeLibrary(library);
+          timeLog.stamp("Removed library " + library.getName());
         }
-        return true;
-      }
-    }
-    NewPathCollector npCollector = new NewPathCollector(inheritedClasspaths);
-    externalClasspaths.iterate(npCollector);
-    HaxeClasspath uninheritedExternalClasspaths = npCollector.myUninherited;
-
-    // Figure out which libs from the module to remove. To be candidates for
-    // removal:
-    // - First, they must to be managed libraries/paths.
-    // - Second, they must not appear in the uninherited external classpaths, OR
-    //   they appear in the project or SDK classpaths from the module.
-    class RemoveCollector implements HaxeClasspath.Lambda {
-      HaxeClasspath uninherited;
-      HaxeClasspath inherited;
-      public HaxeClasspath toRemove = new HaxeClasspath();
-
-      public RemoveCollector(HaxeClasspath uninheritedClasspath, HaxeClasspath inheritedClasspath) {
-        uninherited = uninheritedClasspath;
-        inherited = inheritedClasspath;
-      }
-
-      @Override
-      public boolean processEntry(HaxeClasspathEntry entry) {
-        if (entry.isManagedEntry()
-            &&  (!uninherited.contains(entry) || inherited.contains(entry))) {
-          toRemove.add(entry);
+        else {
+          LOG.warn(
+            "Internal inconsistency: library to remove was not found: " +
+            entry.getName());
         }
-        return true;
-      }
-    }
-    RemoveCollector collector = new RemoveCollector(uninheritedExternalClasspaths, inheritedClasspaths);
-
-    HaxeClasspath moduleClasspath = HaxelibClasspathUtils.getModuleClasspath(module);
-    moduleClasspath.iterate(collector);
-    toRemove = collector.toRemove;
-
-    // uninheritecExternalClaspaths should not contain any non-haxelib entries,
-    // so we don't have to worry about that check here.
-    toAdd = uninheritedExternalClasspaths;
-    toAdd.removeAll(moduleClasspath);
-
-    // Anything new must be marked as managed.
-    toAdd.iterate(new HaxeClasspath.Lambda() {
-      @Override
-      public boolean processEntry(HaxeClasspathEntry entry) {
-        entry.markAsManagedEntry();
         return true;
       }
     });
+  }
 
-    // Remove anything that appears in both lists (because it's already there).
-    HaxeClasspath originalRemove = new HaxeClasspath(toRemove);
-    toRemove.removeAll(toAdd);
-    toAdd.removeAll(originalRemove);
+  /**
+   * Add libraries to a library table.
+   *
+   * @param toAdd - List of libraries to add.
+   * @param projectLibraries - libraries that can be referenced instead of created.
+   * @param projectTable - the library table that projectLibraries belong to.
+   * @param moduleModel - the module we are adding libraries to
+   * @param libraryTableModel - the library table for that module
+   * @param timeLog - Debugging info and timer.
+   */
+  private void addLibraries(@NotNull final HaxeLibraryList toAdd,
+                            @NotNull final HaxeLibraryList projectLibraries,
+                            @NotNull final LibraryTable projectTable,
+                            @NotNull final ModifiableRootModel moduleModel,
+                            @NotNull final LibraryTable.ModifiableModel libraryTableModel,
+                            @NotNull final HaxeDebugTimeLog timeLog) {
+    timeLog.stamp("Locating libraries and adding dependencies.");
+    toAdd.iterate(new HaxeLibraryList.Lambda() {
+      @Override
+      public boolean processEntry(HaxeLibraryReference entry) {
+        Library moduleLibrary = lookupModelLibrary(libraryTableModel, entry);
 
-    updateModule(module, toRemove, toAdd);
+        // If the lib is in the project list, then we just add a reference to it.
+        if (projectLibraries.contains(entry)) {
+          if (null != moduleLibrary) {
+            LOG.warn("Internal inconsistency: attempting to add library that is already in the module.");
+          } else {
+            Library projectLibrary = lookupProjectLibrary(projectTable, entry);
+            if (null == projectLibrary) {
+              // EMB: Not writing recovery code because this really shouldn't happen.
+              LOG.warn("Internal inconsistency: Could not find project library when it should exist.");
+            } else {
+              LibraryOrderEntry libraryOrderEntry = moduleModel.addLibraryEntry(projectLibrary);
+              libraryOrderEntry.setExported(false);
+              libraryOrderEntry.setScope(DependencyScope.PROVIDED);
+              timeLog.stamp("Added module-level reference to project lib " + projectLibrary.getName());
+            }
+          }
+        }
+        else {  // Not in the project, so add it to the module.
+
+          if (moduleLibrary == null) {
+            Library.ModifiableModel libraryModelToDispose = null;
+            try {
+              final Library newLibrary = libraryTableModel.createLibrary(entry.getPresentableName());
+              moduleLibrary = newLibrary;
+
+              final Library.ModifiableModel libraryModifiableModel = newLibrary.getModifiableModel();
+              libraryModelToDispose = libraryModifiableModel;
+
+              entry.getLibrary().getClasspathEntries().iterate(new HaxeClasspath.Lambda() {
+                @Override
+                public boolean processEntry(HaxeClasspathEntry cp) {
+                  String url = HaxeFileUtil.fixUrl(cp.getUrl());
+                  VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(url);
+                  if (null == directory) {
+                    timeLog.stamp("Skipping classpath for " + newLibrary.getName() + ", no directory entry for " + url);
+                  }
+                  else {
+                    libraryModifiableModel.addRoot(directory, OrderRootType.CLASSES);
+                    libraryModifiableModel.addRoot(directory, OrderRootType.SOURCES);
+                  }
+                  return true;
+                }
+              });
+
+              LibraryOrderEntry libraryOrderEntry = moduleModel.findLibraryOrderEntry(newLibrary);
+              libraryOrderEntry.setExported(false);
+              libraryOrderEntry.setScope(DependencyScope.PROVIDED);
+
+              libraryModifiableModel.commit();
+              libraryModelToDispose = null; // So we don't dispose of it now that we've committed.
+              timeLog.stamp("Added library " + newLibrary.getName());
+            }
+            finally {
+              if (null != libraryModelToDispose) {
+                timeLog.stamp("Failure to create library " + moduleLibrary.getName());
+                Disposer.dispose(libraryModelToDispose);
+              }
+            }
+          }
+          else {
+            LOG.warn("Internal inconsistency: library to add was already in the module's library table.");
+          }
+        }
+        return true;
+      }
+    });
+  }
+
+  /**
+   * Ensure that all entries in the given list are managed.
+   *
+   * @param list - List of entries to check.
+   * @param msg - Message to display on failure.
+   */
+  private void assertEntriesAreManaged(HaxeLibraryList list, final String msg) {
+    if (null != list) {
+      list.iterate(new HaxeLibraryList.Lambda() {
+        @Override
+        public boolean processEntry(HaxeLibraryReference entry) {
+          LOG.assertTrue(entry.isManaged(), msg);
+          return true;
+        }
+      });
+    }
   }
 
   /**
@@ -300,32 +427,21 @@ public class HaxelibProjectUpdater  {
    * update of the module.  It will block until all of the running events
    * on the AWT thread have completed, and then this will run on that thread.
    *
-   * @param module to update.
+   * @param module   to update.
    * @param toRemove libraries that need to be removed from the module.
-   * @param toAdd libraries that need to be added to the module.
+   * @param toAdd    libraries that need to be added to the module.
    */
-  private void updateModule(final Module module, final HaxeClasspath toRemove, final HaxeClasspath toAdd) {
+  private void updateModule(final ProjectTracker tracker,
+                            final Module module,
+                            final HaxeLibraryList toRemove,
+                            final HaxeLibraryList toAdd) {
     if ((null == toRemove || toRemove.isEmpty()) && (null == toAdd || toAdd.isEmpty())) {
       return;
     }
-    if (null != toRemove) {
-      toRemove.iterate( new HaxeClasspath.Lambda() {
-        @Override
-        public boolean processEntry(HaxeClasspathEntry entry) {
-          LOG.assertTrue(entry.isManagedEntry(), "Attempting to automatically remove a library that was not marked as managed.");
-          return true;
-        }
-      });
-    }
-    if (null != toAdd) {
-      toAdd.iterate( new HaxeClasspath.Lambda() {
-        @Override
-        public boolean processEntry(HaxeClasspathEntry entry) {
-          LOG.assertTrue(entry.isManagedEntry(), "Attempting to automatically add a library that is not marked as managed.");
-          return true;
-        }
-      });
-    }
+
+    // Some internal error checking.
+    assertEntriesAreManaged(toRemove, "Attempting to automatically remove a library that was not marked as managed.");
+    assertEntriesAreManaged(toAdd, "Attempting to automatically add a library that is not marked as managed.");
 
     final HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("Write action:");
     timeLog.stamp("Queueing write action...");
@@ -336,88 +452,46 @@ public class HaxelibProjectUpdater  {
         timeLog.stamp("<-- Time elapsed waiting for write access on the AWT thread.");
         timeLog.stamp("Begin: Updating module libraries for " + module.getName());
 
-        ModifiableRootModel modifiableModel = null;
+        // Figure out the list of project libraries that we should reference, if we can.
+        HaxeLibraryList projectLibraries = ModuleRootManager.getInstance(module).isSdkInherited()
+                                         ? getProjectLibraryList(tracker)
+                                         : new HaxeLibraryList(module);
+        final LibraryTable projectTable = ProjectLibraryTable.getInstance(tracker.getProject());
+
+        timeLog.stamp("<-- Time elapsed retrieving project libraries.");
+
+        ModifiableRootModel moduleRootModel = null;
+        LibraryTable.ModifiableModel libraryTableModel = null;
         try {
-          ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-          modifiableModel = rootManager.getModifiableModel();
-          final LibraryTable libraryTable = modifiableModel.getModuleLibraryTable();
+          moduleRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
+          libraryTableModel = moduleRootModel.getModuleLibraryTable().getModifiableModel();
 
           // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
           if (null != toRemove) {
-            timeLog.stamp("Removing libraries.");
-            toRemove.iterate(new HaxeClasspath.Lambda() {
-              @Override
-              public boolean processEntry(HaxeClasspathEntry entry) {
-                Library library = libraryTable.getLibraryByName(entry.getName());
-                if (null != library) {
-                  // Why use this?: ModuleHelper.removeDependency(rootManager, library);
-                  libraryTable.removeLibrary(library);
-                  timeLog.stamp("Removed library " + library.getName());
-                }
-                else {
-                  LOG.warn(
-                    "Internal inconsistency: library to remove was not found: " +
-                    entry.getName());
-                }
-                return true;
-              }
-            });
+            removeLibraries(toRemove, libraryTableModel, timeLog);
           }
 
           // Add new dependencies to modules.
           if (null != toAdd) {
-            timeLog.stamp("Locating libraries and adding dependencies.");
-            toAdd.iterate(new HaxeClasspath.Lambda() {
-              @Override
-              public boolean processEntry(HaxeClasspathEntry entry) {
-                Library libraryByName = libraryTable.getLibraryByName(
-                  entry.getName());
-                if (libraryByName == null) {
-                  libraryByName = libraryTable.createLibrary(entry.getName());
-                  String entryUrl = entry.getUrl();
-                  String pathUrl = entryUrl.startsWith(LocalFileSystem.PROTOCOL)
-                                   ? entryUrl
-                                   : VirtualFileManager.constructUrl(LocalFileSystem.PROTOCOL, entryUrl);
-                  VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(pathUrl);
-                  if (null == directory) {
-                    timeLog.stamp("Skipping library " + libraryByName.getName() + ", no directory entry for " + pathUrl);
-                  }
-                  else {
-
-                    Library.ModifiableModel libraryModifiableModel = null;
-                    try {
-                      libraryModifiableModel = libraryByName.getModifiableModel();
-                      libraryModifiableModel.addRoot(directory, OrderRootType.CLASSES);
-                      libraryModifiableModel.addRoot(directory, OrderRootType.SOURCES);
-                      libraryModifiableModel.commit();
-                      libraryModifiableModel = null;
-                      timeLog.stamp("Added library " + libraryByName.getName());
-                    }
-                    finally {
-                      if (null != libraryModifiableModel) {
-                        timeLog.stamp("Failure to add library " + libraryByName.getName());
-                        Disposer.dispose(libraryModifiableModel);
-                      }
-                    }
-                  }
-                }
-                else {
-                  LOG.warn("Internal inconsistency: library to add was already in the module's library table.");
-                }
-                return true;
-              }
-            });
+            addLibraries(toAdd, projectLibraries, projectTable, moduleRootModel, libraryTableModel, timeLog);
           }
 
           timeLog.stamp("Committing changes to module libraries");
-          modifiableModel.commit();
-          modifiableModel = null;
+          libraryTableModel.commit();
+          libraryTableModel = null;
+          moduleRootModel.commit();
+          moduleRootModel = null;
         }
         finally {
-          if (null != modifiableModel) {
-            modifiableModel.dispose();
+          if (null != moduleRootModel || null != libraryTableModel)
             timeLog.stamp("Failure to update module libraries");
-          }
+          if (null != libraryTableModel)
+            if (IdeaTarget.IS_VERSION_15_COMPATIBLE) {
+              // libraryTableModel.dispose() in IDEA 15+; not a disposable in earlier versions.
+              new MethodWrapper<Void>(libraryTableModel.getClass(), "dispose").invoke(libraryTableModel);
+            }
+          if (null != moduleRootModel)
+            moduleRootModel.dispose();
         }
         timeLog.stamp("Finished: Updating module libraries");
       }
@@ -431,23 +505,36 @@ public class HaxelibProjectUpdater  {
    * either a foreground or background task.
    *
    * @param tracker for the project being updated.
-   * @param module being updated.
+   * @param module  being updated.
    * @param timeLog where to log timing results
    */
   private void syncOneModule(@NotNull final ProjectTracker tracker, @NotNull Module module, @NotNull HaxeDebugTimeLog timeLog) {
 
     Project project = tracker.getProject();
-    HaxeClasspath haxelibExternalItems = new HaxeClasspath();
-    HaxeClasspath haxelibNewItemList;
+    HaxeLibraryList haxelibExternalItems = new HaxeLibraryList(module);
     HaxelibLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     int buildConfig = settings.getBuildConfig();
 
+    // If the module says not to keep libs synched, then don't.
+    if (!settings.isKeepSynchronizedWithProjectFile()) {
+      timeLog.stamp("Module " + module.getName() + " is set to not synchronize dependencies.");
+      return;
+    }
+
     switch (buildConfig) {
       case HaxeModuleSettings.USE_NMML:
-        timeLog.stamp("Start loading classpaths from NMML file.");
-        haxelibNewItemList = libManager.findHaxelibPath("nme");
-        haxelibExternalItems.addAll(haxelibNewItemList);
+        timeLog.stamp("Start loading haxelibs from NMML file.");
+        HaxeLibrary nme = libManager.getLibrary("nme", HaxelibSemVer.ANY_VERSION);
+        if (null != nme) {
+          haxelibExternalItems.add(nme.createReference(HaxelibSemVer.ANY_VERSION));
+        }
+        else {
+          // TODO: Figure out how to communicate this to the user.
+          LOG.warn("Required library 'nme' is not known to haxelib.");
+        }
+
+        // TODO: Pull libs off of the command line, too.
 
         String nmmlPath = settings.getNmmlPath();
         if (nmmlPath != null && !nmmlPath.isEmpty()) {
@@ -458,16 +545,28 @@ public class HaxelibProjectUpdater  {
             PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
             if (psiFile != null && psiFile instanceof XmlFile) {
-              haxelibExternalItems.addAll(HaxelibClasspathUtils.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
+              haxelibExternalItems.addAll(HaxelibUtil.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
             }
           }
         }
-        timeLog.stamp("Finished loading classpaths from NMML file.");
+        timeLog.stamp("Finished loading haxelibs from NMML file.");
+
+        // TODO: Load classpaths from the NMML file, CL, and ensure that they are included in the module sources.
+
         break;
+
       case HaxeModuleSettings.USE_OPENFL:
-        timeLog.stamp("Start loading classpaths from openfl file.");
-        haxelibNewItemList = libManager.findHaxelibPath("openfl");
-        haxelibExternalItems.addAll(haxelibNewItemList);
+        timeLog.stamp("Start loading haxelibs from openFL configuration file.");
+        HaxeLibrary openfl = libManager.getLibrary("openfl", HaxelibSemVer.ANY_VERSION);
+        if (null != openfl) {
+          haxelibExternalItems.add(openfl.createReference(HaxelibSemVer.ANY_VERSION)); // No specific version.
+        }
+        else {
+          // TODO: Figure out how to report this to the user.
+          LOG.warn("Required library 'openfl' is not known to haxelib.");
+        }
+
+        // TODO: Pull libs off of the command line, too.
 
         String openFLXmlPath = settings.getOpenFLPath();
         if (openFLXmlPath != null && !openFLXmlPath.isEmpty()) {
@@ -477,11 +576,13 @@ public class HaxelibProjectUpdater  {
             PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
             if (psiFile != null && psiFile instanceof XmlFile) {
-              haxelibExternalItems.addAll(HaxelibClasspathUtils.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
+              haxelibExternalItems.addAll(HaxelibUtil.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
             }
           }
         }
         else {
+          // XXX: EMB - Not sure of the validity of using this path if xml lib isn't specified.
+
           File dir = BuildProperties.getProjectBaseDir(project);
           List<String> projectClasspaths =
             HaxelibClasspathUtils.getProjectDisplayInformation(project, dir, "openfl",
@@ -490,16 +591,29 @@ public class HaxelibProjectUpdater  {
           for (String classpath : projectClasspaths) {
             VirtualFile file = LocalFileFinder.findFile(classpath);
             if (file != null) {
-              haxelibExternalItems.add(new HaxelibItem(classpath, file.getUrl()));
+              HaxeLibrary lib = libManager.getLibraryByPath(file.getPath());
+              if (null != lib) {
+                haxelibExternalItems.add(lib.createReference());
+              }
+              else {
+                // TODO: Figure out how to communicate this to the user.
+                LOG.warn("Library referenced by openFL configuration is not known to haxelib " + classpath);
+              }
             }
           }
         }
-        haxelibExternalItems.debugDump("haxelibExternalItems for module "+ module.getName());
-        timeLog.stamp("Finished loading classpaths from openfl file.");
+        haxelibExternalItems.debugDump("haxelibExternalItems for module " + module.getName());
+        timeLog.stamp("Finished loading haxelibs from openfl file.");
+
+        // TODO: Add classpaths from the xml file and the CL to the module sources.
+
         break;
+
       case HaxeModuleSettings.USE_HXML:
-        timeLog.stamp("Start loading classpaths from HXML file.");
+        timeLog.stamp("Start loading haxelibs from HXML file.");
         String hxmlPath = settings.getHxmlPath();
+
+        // TODO: Walk the command line looking for libs, too.
 
         if (hxmlPath != null && !hxmlPath.isEmpty()) {
           VirtualFile file = LocalFileFinder.findFile(hxmlPath);
@@ -507,22 +621,33 @@ public class HaxelibProjectUpdater  {
           if (file != null && file.getFileType().equals(HXMLFileType.INSTANCE)) {
             PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
             if (psiFile != null) {
-              Collection<HXMLLib> hxmlLibs = PsiTreeUtil.findChildrenOfType(psiFile, HXMLLib.class);
-              for (HXMLLib hxmlLib : hxmlLibs) {
-                String name = HXMLPsiImplUtil.getValue(hxmlLib);
-                haxelibNewItemList = libManager.findHaxelibPath(name);
-                haxelibExternalItems.addAll(haxelibNewItemList);
+              HXMLProjectModel hxml = new HXMLProjectModel(psiFile);
+              // TODO: Needs to walk all of the children and load referenced .hxml files in place. Should probably be added to the model.
+              List<String> libs = hxml.getLibraries();
+              for (String lib : libs) {
+                HaxeLibraryReference reference = HaxeLibraryReference.create(module, lib);
+                if (null != reference.getLibrary()) {
+                  haxelibExternalItems.add(reference);
+                }
+                else {
+                  LOG.warn("Library referenced by HXML configuration is not known to haxelib.");
+                }
               }
             }
           }
         }
-        timeLog.stamp("Finish loading classpaths from HXML file.");
+        timeLog.stamp("Finish loading haxelibs from HXML file.");
+
+        // TODO: Add classpaths from the HXML file and CL to module sources
+
         break;
 
       case HaxeModuleSettings.USE_PROPERTIES:
-        timeLog.stamp("Start loading classpaths from properties.");
+        timeLog.stamp("Start loading haxelibs from properties.");
 
-        timeLog.stamp("Finish loading classpaths from properties.");
+        // TODO: Grab the command line?? Run it through the algorithm for USE_HXML.
+
+        timeLog.stamp("Finish loading haxelibs from properties.");
         break;
     }
 
@@ -556,11 +681,15 @@ public class HaxelibProjectUpdater  {
 
       if (myTestInForeground) {
         syncOneModule(tracker, module, timeLog);
-      } else {
+      }
+      else {
         // Running inside of a read action lets the UI run, and messes with the timing.
-        doReadAction(new Runnable() { @Override public void run() {
+        doReadAction(new Runnable() {
+          @Override
+          public void run() {
             syncOneModule(tracker, module, timeLog);
-        } });
+          }
+        });
       }
     }
     timeLog.stamp("Completed.");
@@ -569,32 +698,174 @@ public class HaxelibProjectUpdater  {
 
 
   private void synchronizeClasspaths(@NotNull ProjectTracker tracker) {
+
+    //
+    // Either of these commented-out sections will cause indexing to not be attempted
+    // while the haxelibs are synchronizing.  However, they also hide the fact that
+    // haxelibs are updating by not allowing the haxelib progress dialog to start.
+    // Instead, it looks like indexing restarts over and over and over (which it
+    // kinda does).
+    //
+
+    //DumbServiceImpl dumbService = DumbServiceImpl.getInstance(tracker.getProject());
+    //dumbService.queueTask(new DumbModeTask() {
+    //  @Override
+    //  public void performInDumbMode(@NotNull ProgressIndicator indicator) {
+    //    syncProjectClasspath(tracker);
+    //    syncModuleClasspaths(tracker);
+    //  }
+    //});
+
+    //TransactionGuard tg = TransactionGuard.getInstance();
+    //tg.submitTransactionAndWait(new Runnable() {
+    //  @Override
+    //  public void run() {
+    //    syncProjectClasspath(tracker);
+    //    syncModuleClasspaths(tracker);
+    //  }
+    //});
+
     syncProjectClasspath(tracker);
     syncModuleClasspaths(tracker);
   }
 
   /**
-   * Retrieves the project's classpath, either from the cache if available,
+   * Retrieves the project's libraries, either from the cache if available,
    * or from the project's library table.
    *
    * @param tracker for the project being updated.
    * @return a HaxeClasspath representing the libraries specified at the project level.
    */
   @NotNull
-  private HaxeClasspath getProjectClasspath(@NotNull ProjectTracker tracker) {
-    ProjectClasspathCache cache = tracker.getCache();
-    HaxeClasspath projectClasspath;
+  private HaxeLibraryList getProjectLibraryList(@NotNull ProjectTracker tracker) {
+    ProjectLibraryCache cache = tracker.getCache();
+    HaxeLibraryList projectLibraries;
     int buildConfig = HaxeModuleSettings.USE_PROPERTIES; // Only properties available.
 
-    if (cache.isClasspathSetFor(buildConfig)) {
-      projectClasspath = cache.getClasspathFor(buildConfig);
-    } else {
-      projectClasspath = HaxelibClasspathUtils.getProjectLibraryClasspath(
-        tracker.getProject());
-      cache.setClasspathFor(buildConfig, projectClasspath);
+    if (cache.isListSetFor(buildConfig)) {
+      projectLibraries = cache.getListFor(buildConfig);
     }
-    return projectClasspath;
+    else {
+      projectLibraries = HaxelibUtil.getProjectLibraries(tracker.getProject(), false, false);
+      cache.setListFor(buildConfig, projectLibraries);
+    }
+    return projectLibraries;
   }
+
+  /**
+   * Collect all dependencies for libraries in list.
+   *
+   * @param list of libraries to collect dependencies for.
+   * @return a list of libraries that list depends upon.  May include entries
+   * from list itself, if there are cross-dependencies.
+   */
+  @NotNull
+  private HaxeLibraryList collectDependencies(@NotNull HaxeLibraryList list) {
+    final HaxeLibraryList dependencies = new HaxeLibraryList(list.getOwner());
+    list.iterate(new HaxeLibraryList.Lambda() {
+      @Override
+      public boolean processEntry(HaxeLibraryReference entry) {
+        if (entry.isAvailable()) {
+          dependencies.addAll(entry.getLibrary().collectDependents());
+        }
+        return true;
+      }
+    });
+    return dependencies;
+  }
+
+  /**
+   * Mark all entries in a list as managed...
+   *
+   * @param list
+   */
+  @NotNull
+  private void markAsManaged(@NotNull HaxeLibraryList list) {
+    list.iterate(new HaxeLibraryList.Lambda() {
+      @Override
+      public boolean processEntry(HaxeLibraryReference entry) {
+        entry.markAsManagedEntry();
+        return true;
+      }
+    });
+  }
+
+  /**
+   * Find libraries with roots that exist in the classpath.
+   *
+   * @param libs libs to match to classpaths.
+   * @param classpath classpath to match.
+   * @return a list of libraries whose directory entries match entries from the classpath.
+   */
+  @NotNull
+  private HaxeLibraryList findLibsMatchingClasspath(@NotNull final HaxeLibraryList libs, @NotNull final HaxeClasspath classpath) {
+    final HaxeLibraryList matchingLibs = new HaxeLibraryList(libs.getOwner());
+    libs.iterate(new HaxeLibraryList.Lambda() {
+      @Override
+      public boolean processEntry(HaxeLibraryReference entry) {
+        HaxeLibrary lib = entry.getLibrary();
+        if (null != lib && classpath.contains(lib.getLibraryRoot()))
+          matchingLibs.add(entry);
+        return true;
+      }
+    });
+    return matchingLibs;
+  }
+
+  /**
+   * Synchronize library lists to figure out which dependencies need to be added or removed.
+   *
+   * @param currentList the list of libraries currently defined in the module/project/sdk.
+   * @param externallyRequired the list of libraries required by project settings. (e.g. openfl, nme)
+   * @param newLibrariesToAdd the resultant list of libraries to add to currentList
+   * @param oldLibrariesToRemove the resultant list of libraries to remove from currentList.
+   */
+  @NotNull
+  private void syncLibraryLists(@NotNull Sdk sdk,
+                                @NotNull HaxeLibraryList currentList,
+                                @NotNull HaxeLibraryList externallyRequired,
+                   /*modifies*/ @NotNull HaxeLibraryList newLibrariesToAdd,
+                   /*modifies*/ @NotNull HaxeLibraryList oldLibrariesToRemove) {
+
+    final HaxeLibraryList currentManagedEntries = new HaxeLibraryList(sdk);
+    final HaxeLibraryList currentUnmanagedEntries = new HaxeLibraryList(sdk);
+    currentList.iterate(new HaxeLibraryList.Lambda() {
+      @Override
+      public boolean processEntry(HaxeLibraryReference entry) {
+        if (entry.isManaged()) { // (e.g. starts with "haxelib|"
+          currentManagedEntries.add(entry);
+        }  else {
+          currentUnmanagedEntries.add(entry);
+        }
+        return true;
+      }
+    });
+
+    HaxeLibraryList dependencies = new HaxeLibraryList(collectDependencies(externallyRequired));
+    dependencies.addAll(collectDependencies(currentUnmanagedEntries));
+
+    // We want to remove all managed entries that we don't need any more.
+    HaxeLibraryList toRemove = currentManagedEntries;
+
+    // We want to add all externally required entries
+    HaxeLibraryList toAdd = new HaxeLibraryList(sdk);
+    toAdd.addAll(externallyRequired);
+    toAdd.addAll(dependencies);
+    toAdd.removeAll(currentUnmanagedEntries);
+    // At this point, we could remove libs that exist via alternative names (find by classpath).
+    // However, they can't be used with the compiler anyway, so the better part of valor
+    // is to include them by the name that haxelib knows, even if it technically duplicates
+    // the entry.
+    markAsManaged(toAdd);
+
+    // Anything that is in both lists, we don't want to touch.
+    newLibrariesToAdd.addAll(toAdd);
+    newLibrariesToAdd.removeAll(toRemove);
+
+    oldLibrariesToRemove.addAll(toRemove);
+    oldLibrariesToRemove.removeAll(toAdd);
+  }
+
 
   /**
    * Removes old unneeded libraries and adds new dependencies to the project classpath.
@@ -604,9 +875,6 @@ public class HaxelibProjectUpdater  {
    */
   @NotNull
   private void syncProjectClasspath(@NotNull ProjectTracker tracker) {
-    HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("syncProjectClasspath");
-    timeLog.stamp("Start synchronizing project " + tracker.getProject().getName());
-
     Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
     boolean isHaxeSDK = sdk.getSdkType().equals(HaxeSdkType.getInstance());
 
@@ -614,34 +882,16 @@ public class HaxelibProjectUpdater  {
       return;
     }
 
-    HaxelibLibraryCache libCache = tracker.getSdkManager().getLibraryCache(sdk);
-    HaxeClasspath currentProjectClasspath = HaxelibClasspathUtils.getProjectLibraryClasspath(
-      tracker.getProject());
-    List<String> currentLibraryNames = HaxelibClasspathUtils.getProjectLibraryNames(tracker.getProject(), true);
-    HaxeClasspath haxelibClasspaths = libCache.getClasspathForHaxelibs(currentLibraryNames);
+    HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("syncProjectClasspath");
+    timeLog.stamp("Start synchronizing project " + tracker.getProject().getName());
 
-    // Libraries that we want to remove are those specified as 'haxelib' entries and are
-    // no longer referenced.
-    class Collector implements HaxeClasspath.Lambda {
-      public HaxeClasspath toRemove = new HaxeClasspath();
-      HaxeClasspath myFilter;
-      public Collector(HaxeClasspath filter) { myFilter = filter; }
-      @Override
-      public boolean processEntry(HaxeClasspathEntry entry) {
-        if (entry.isManagedEntry() && !myFilter.contains(entry)) {
-          toRemove.add(entry);
-        }
-        return true;
-      }
-    }
-    Collector collector = new Collector(haxelibClasspaths);
-    currentProjectClasspath.iterate(collector);
-    HaxeClasspath toRemove = collector.toRemove;
-
-    // Libraries that we want to add are those that aren't already on the current classpath.
-    haxelibClasspaths.removeAll(currentProjectClasspath);
-    HaxeClasspath toAdd = haxelibClasspaths;
-
+    HaxeLibraryList toAdd = new HaxeLibraryList(sdk);
+    HaxeLibraryList toRemove = new HaxeLibraryList(sdk);
+    syncLibraryLists(sdk,
+                     HaxelibUtil.getProjectLibraries(tracker.getProject(),false, false),
+                     new HaxeLibraryList(sdk),
+        /*modifies*/ toAdd,
+        /*modifies*/ toRemove );
 
     if (!toAdd.isEmpty() && !toRemove.isEmpty()) {
       timeLog.stamp("Add/Remove calculations finished.  Queuing write task.");
@@ -652,9 +902,7 @@ public class HaxelibProjectUpdater  {
     timeLog.print();
 
     // And update the cache.
-    currentProjectClasspath.removeAll(toRemove);
-    currentProjectClasspath.addAll(toAdd);
-    tracker.getCache().setPropertiesClassPath(currentProjectClasspath);
+    tracker.getCache().setPropertiesList(HaxelibUtil.getProjectLibraries(tracker.getProject(), false, false));
   }
 
 
@@ -667,24 +915,26 @@ public class HaxelibProjectUpdater  {
    * @param toRemove libraries that need to be removed from the project.
    * @param toAdd libraries that need to be added to the project.
    */
-  private void updateProject(@NotNull final ProjectTracker tracker, final @Nullable HaxeClasspath toRemove, final @Nullable HaxeClasspath toAdd) {
+  private void updateProject(@NotNull final ProjectTracker tracker,
+                             final @Nullable HaxeLibraryList toRemove,
+                             final @Nullable HaxeLibraryList toAdd) {
     if (null == toRemove && null == toAdd) {
       return;
     }
     if (null != toRemove) {
-      toRemove.iterate(new HaxeClasspath.Lambda() {
+      toRemove.iterate(new HaxeLibraryList.Lambda() {
         @Override
-        public boolean processEntry(HaxeClasspathEntry entry) {
-          LOG.assertTrue(entry.isManagedEntry(), "Attempting to automatically remove a library that was not marked as managed.");
+        public boolean processEntry(HaxeLibraryReference entry) {
+          LOG.assertTrue(entry.isManaged(), "Attempting to automatically remove a library that was not marked as managed.");
           return true;
         }
       });
     }
     if (null != toAdd) {
-      toAdd.iterate(new HaxeClasspath.Lambda() {
+      toAdd.iterate(new HaxeLibraryList.Lambda() {
         @Override
-        public boolean processEntry(HaxeClasspathEntry entry) {
-          LOG.assertTrue(entry.isManagedEntry(), "Attempting to automatically add a library that is not marked as managed.");
+        public boolean processEntry(HaxeLibraryReference entry) {
+          LOG.assertTrue(entry.isManaged(), "Attempting to automatically add a library that is not marked as managed.");
           return true;
         }
       });
@@ -702,9 +952,9 @@ public class HaxelibProjectUpdater  {
         // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
         if (null != toRemove) {
           timeLog.stamp("Removing unneeded haxelib libraries.");
-          toRemove.iterate(new HaxeClasspath.Lambda() {
+          toRemove.iterate(new HaxeLibraryList.Lambda() {
             @Override
-            public boolean processEntry(HaxeClasspathEntry entry) {
+            public boolean processEntry(HaxeLibraryReference entry) {
               Library library = projectModifiableModel.getLibraryByName(
                 entry.getName());
               LOG.assertTrue(null != library, "Library " + entry.getName() + " was not found in the project and will not be removed.");
@@ -724,15 +974,16 @@ public class HaxelibProjectUpdater  {
         // Add new dependencies to modules.
         if (null != toAdd) {
           timeLog.stamp("Adding haxelib dependencies.");
-          toAdd.iterate(new HaxeClasspath.Lambda() {
+          toAdd.iterate(new HaxeLibraryList.Lambda() {
             @Override
-            public boolean processEntry(HaxeClasspathEntry newItem) {
+            public boolean processEntry(HaxeLibraryReference newItem) {
               Library libraryByName = projectModifiableModel.getLibraryByName(newItem.getName());
               if (libraryByName == null) {
-                libraryByName = projectModifiableModel.createLibrary(newItem.getName());
+                assert newItem.isAvailable(); // Should have been removed if unavailable.
+                libraryByName = projectModifiableModel.createLibrary(newItem.getName());  // TODO: Presentable Name??
                 Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
-                libraryModifiableModel.addRoot(newItem.getUrl(), OrderRootType.CLASSES);
-                libraryModifiableModel.addRoot(newItem.getUrl(), OrderRootType.SOURCES);
+                libraryModifiableModel.addRoot(newItem.getLibrary().getSourceRoot().getUrl(), OrderRootType.CLASSES);
+                libraryModifiableModel.addRoot(newItem.getLibrary().getSourceRoot().getUrl(), OrderRootType.SOURCES);
                 libraryModifiableModel.commit();
 
                 timeLog.stamp("Added library " + libraryByName.getName());
@@ -784,35 +1035,36 @@ public class HaxelibProjectUpdater  {
   }
 
   /**
-   *  Cache for project library classpaths.
+   *  Cache for project library lists.
    */
-  final private class ProjectClasspathCache {
+  final private class ProjectLibraryCache {
 
-
-    private HaxeClasspath nmmlClassPath;
-    private HaxeClasspath openFLClassPath;
-    private HaxeClasspath hxmlClassPath;
-    private HaxeClasspath propertiesClassPath;
+    private Sdk sdk;
+    private HaxeLibraryList nmmlList;
+    private HaxeLibraryList openFLList;
+    private HaxeLibraryList hxmlList;
+    private HaxeLibraryList propertiesList;
     private boolean nmmlIsSet;
     private boolean openFLIsSet;
     private boolean hxmlIsSet;
     private boolean propertiesIsSet;
 
-    public ProjectClasspathCache() {
+    public ProjectLibraryCache(@NotNull Sdk sdk) {
+      this.sdk = sdk;
       clear();
     }
 
     public void clear() {
-      setNmmlClassPath(HaxeClasspath.EMPTY_CLASSPATH);
-      setOpenFLClassPath(HaxeClasspath.EMPTY_CLASSPATH);
-      setHxmlClassPath(HaxeClasspath.EMPTY_CLASSPATH);
-      setPropertiesClassPath(HaxeClasspath.EMPTY_CLASSPATH);
+      setNmmlList(new HaxeLibraryList(sdk));
+      setOpenFLList(new HaxeLibraryList(sdk));
+      setHxmlList(new HaxeLibraryList(sdk));
+      setPropertiesList(new HaxeLibraryList(sdk));
 
       // Reset the 'set' bits.
       nmmlIsSet = openFLIsSet = hxmlIsSet = propertiesIsSet = false;
     }
 
-    public boolean isClasspathSetFor(int buildConfig) {
+    public boolean isListSetFor(int buildConfig) {
       switch(buildConfig) {
         case HaxeModuleSettings.USE_NMML:
           return nmmlIsSet;
@@ -827,71 +1079,71 @@ public class HaxelibProjectUpdater  {
     }
 
     @NotNull
-    public HaxeClasspath getClasspathFor(int buildConfig) {
+    public HaxeLibraryList getListFor(int buildConfig) {
       switch(buildConfig) {
         case HaxeModuleSettings.USE_NMML:
-          return getNmmlClassPath();
+          return getNmmlList();
         case HaxeModuleSettings.USE_OPENFL:
-          return getOpenFLClassPath();
+          return getOpenFLList();
         case HaxeModuleSettings.USE_HXML:
-          return getHxmlClassPath();
+          return getHxmlList();
         case HaxeModuleSettings.USE_PROPERTIES:
-          return getPropertiesClassPath();
+          return getPropertiesList();
       }
-      return HaxeClasspath.EMPTY_CLASSPATH;
+      return new HaxeLibraryList(sdk);
     }
 
-    public void setClasspathFor(int buildConfig, HaxeClasspath classpath) {
+    public void setListFor(int buildConfig, HaxeLibraryList list) {
       switch(buildConfig) {
         case HaxeModuleSettings.USE_NMML:
-          setNmmlClassPath(classpath);
+          setNmmlList(list);
         case HaxeModuleSettings.USE_OPENFL:
-          setOpenFLClassPath(classpath);
+          setOpenFLList(list);
         case HaxeModuleSettings.USE_HXML:
-          setHxmlClassPath(classpath);
+          setHxmlList(list);
         case HaxeModuleSettings.USE_PROPERTIES:
-          setPropertiesClassPath(classpath);
+          setPropertiesList(list);
       }
     }
 
 
     @NotNull
-    public HaxeClasspath getNmmlClassPath() {
-      return nmmlClassPath != null ? nmmlClassPath : HaxeClasspath.EMPTY_CLASSPATH;
+    public HaxeLibraryList getNmmlList() {
+  return nmmlList != null ? nmmlList : new HaxeLibraryList(sdk);
     }
 
     @NotNull
-    public HaxeClasspath getOpenFLClassPath() {
-      return openFLClassPath != null ? openFLClassPath : HaxeClasspath.EMPTY_CLASSPATH;
+    public HaxeLibraryList getOpenFLList() {
+      return openFLList != null ? openFLList : new HaxeLibraryList(sdk);
     }
 
     @NotNull
-    public HaxeClasspath getHxmlClassPath() {
-      return hxmlClassPath != null ? hxmlClassPath : HaxeClasspath.EMPTY_CLASSPATH;
+    public HaxeLibraryList getHxmlList() {
+      return hxmlList != null ? hxmlList : new HaxeLibraryList(sdk);
     }
 
     @NotNull
-    public HaxeClasspath getPropertiesClassPath() {
-      return propertiesClassPath != null ? propertiesClassPath : HaxeClasspath.EMPTY_CLASSPATH;
+    public HaxeLibraryList getPropertiesList() {
+      return propertiesList != null ? propertiesList : new HaxeLibraryList(sdk);
     }
 
-    public void setNmmlClassPath(HaxeClasspath nmmlClasspath)  {
-      nmmlClassPath = nmmlClasspath;
+    public void setNmmlList(HaxeLibraryList nmmlList)  {
+      this.nmmlList = nmmlList;
       nmmlIsSet = true;
     }
 
-    public void setOpenFLClassPath(HaxeClasspath openFLClassPath) {
-      this.openFLClassPath = openFLClassPath;
+    public void setOpenFLList(HaxeLibraryList openFLList) {
+      this.openFLList = openFLList;
       openFLIsSet = true;
     }
 
-    public void setHxmlClassPath(HaxeClasspath hxmlClassPath) {
-      this.hxmlClassPath = hxmlClassPath;
+    public void setHxmlList(HaxeLibraryList hxmlList) {
+      this.hxmlList = hxmlList;
       hxmlIsSet = true;
     }
 
-    public void setPropertiesClassPath(HaxeClasspath propertiesClassPath) {
-      this.propertiesClassPath = propertiesClassPath;
+    public void setPropertiesList(HaxeLibraryList propertiesList) {
+      this.propertiesList = propertiesList;
       propertiesIsSet = true;
     }
   }
@@ -905,7 +1157,7 @@ public class HaxelibProjectUpdater  {
     final Project myProject;
     boolean myIsDirty;
     boolean myIsUpdating;
-    ProjectClasspathCache myCache;
+    ProjectLibraryCache myCache;
     HaxelibLibraryCacheManager mySdkManager;
 
     // TODO: Determine if we need to track whether the project is still open.
@@ -923,7 +1175,7 @@ public class HaxelibProjectUpdater  {
       myIsDirty = true;
       myIsUpdating = false;
       myReferenceCount = 0;
-      myCache = new ProjectClasspathCache();
+      myCache = new ProjectLibraryCache(HaxelibSdkUtils.lookupSdk(project));
       mySdkManager = new HaxelibLibraryCacheManager();
     }
 
@@ -931,7 +1183,7 @@ public class HaxelibProjectUpdater  {
      * Get the settings cache.
      */
     @NotNull
-    public ProjectClasspathCache getCache() {
+    public ProjectLibraryCache getCache() {
       return myCache;
     }
 
@@ -1116,6 +1368,17 @@ public class HaxelibProjectUpdater  {
         tracker = myMap.get(project.getName());
       }
       return tracker;
+    }
+
+    public boolean iterate(@NotNull Lambda<ProjectTracker> lambda) {
+      synchronized(this) {
+         for(ProjectTracker tracker : myMap.values()) {
+           if (!lambda.process(tracker)) {
+             return false;
+           }
+         }
+      }
+      return true;
     }
   }
 
@@ -1307,6 +1570,5 @@ public class HaxelibProjectUpdater  {
       queueNextProject();
     }
   } // end class projectUpdateQueue
-
 
 }

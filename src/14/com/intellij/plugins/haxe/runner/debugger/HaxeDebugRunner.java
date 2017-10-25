@@ -47,7 +47,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.compilation.LimeProjectModel;
+import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.compilation.LimeUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
@@ -182,7 +182,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         //flashFileToDebug = model.getCompilerOutputUrl() + "/debug/" + settings.getOutputFileName();
 
         // TODO: Need to add a debug flag to the project model, so that the debug SWF is always displayed.
-        LimeProjectModel lime = LimeUtil.getLimeProjectModel(module);
+        HXMLProjectModel lime = LimeUtil.getLimeProjectModel(module);
         flashFileToDebug = module.getProject().getBasePath() + "/" + lime.getSwfOutputFileName();
       }
       return runFlash(module, settings, env, executor, flashFileToDebug);

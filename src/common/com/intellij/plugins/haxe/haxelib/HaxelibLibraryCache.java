@@ -20,16 +20,11 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
-import com.intellij.util.PathUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
@@ -48,68 +43,23 @@ public final class HaxelibLibraryCache {
   }
 
   private final InternalCache myCache;
-  ConcurrentSkipListSet<String> knownLibraries;
-  final Sdk mySdk;
+  private ConcurrentSkipListSet<String> knownLibraries;
+  private final Sdk mySdk;
 
 
   public HaxelibLibraryCache(@NotNull Sdk sdk) {
-    myCache = new InternalCache();
-    knownLibraries = null;
+
+    List<String> installedLibs = HaxelibUtil.getInstalledLibraryNames(sdk);
+
     mySdk = sdk;
+    myCache = new InternalCache();
+    knownLibraries = new ConcurrentSkipListSet<String>();
 
-    /* TODO: EMB Note: This block of code belongs in HaxelibUtils.getInstalledLibraries.
-     *       I'm leaving it here for now, to simplify the merge, but really should be moved.
-     */
-    final List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
-    if ((listCmdOutput.size() > 0) && (! listCmdOutput.get(0).contains("Unknown command"))) {
-      final List<String> installedHaxelibs = new ArrayList<String>();
-      // add haxelib names as args for 'haxelib path' command
-      final String[] pathCmdline = new String[listCmdOutput.size()+1];
-      int index = 0;
-      pathCmdline[index++] = "path";
-      for (final String line : listCmdOutput) {
-        final String[] tokens = line.split(":");
-        pathCmdline[index++] = tokens[0];
-        installedHaxelibs.add(tokens[0]);
-      }
-      // update list of known haxelibs
-      knownLibraries = new ConcurrentSkipListSet<String>(installedHaxelibs);
-      // add haxelib classpath to lookup cache
-      final List<String> pathCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, pathCmdline);
-      for (final String s : pathCmdOutput) {
-        if (s.startsWith("-")) continue; // skip lines that don't contain haxelib path
-        try {
-          //final int tmpSeparator = s.lastIndexOf('/');
-          //final int endSeparator = s.lastIndexOf('/', tmpSeparator-1);
-          //final int beginSeparator = s.lastIndexOf(File.separatorChar, endSeparator - 1);
-          //final String haxelibName = s.substring(beginSeparator+1, endSeparator);
-          String s2 = PathUtil.toSystemIndependentName(s);
-          String[] strings = s2.split("/");
-
-          String haxelibName = null;
-
-          for (int i = strings.length - 1; i >= 0; i--) {
-            if (installedHaxelibs.contains(strings[i])) {
-              haxelibName = strings[i];
-              break;
-            }
-          }
-
-          if (haxelibName != null) {
-            final HaxeClasspath classpath = new HaxeClasspath();
-            classpath.add(new HaxelibItem(haxelibName, s));
-            myCache.add(new HaxelibLibraryEntry(haxelibName, classpath));
-          }
-        }
-        catch (IndexOutOfBoundsException e) {
-          // defensive try-catch block to handle possible exceptions when 'haxelib path'
-          // output does not match above parsing expectations
-          // e.g. when haxelib path output order or format is changed (happened once),
-          //   or when platform specific (Windows OS) format errors occur
-        }
-      }
+    for (String libName : installedLibs) {
+      HaxeLibrary lib = HaxeLibrary.load(this, libName, mySdk);
+      myCache.add(lib);
+      knownLibraries.add(lib.getName());
     }
-    /* END of code that should be moved to HaxelibUtils.getInstalledLibraries. */
   }
 
   /**
@@ -146,10 +96,10 @@ public final class HaxelibLibraryCache {
     try {
       if (libraryIsKnown(libraryName)) {
 
-        timeLog.stamp("Loading library classpath:" + libraryName);
+        timeLog.stamp("Loading library:" + libraryName);
 
         // Try the cache first.
-        HaxelibLibraryEntry lib = myCache.get(libraryName);
+        HaxeLibrary lib = myCache.get(libraryName);
         if (null != lib) {
           timeLog.stamp("Returning cached results");
           return lib.getClasspathEntries();
@@ -158,11 +108,11 @@ public final class HaxelibLibraryCache {
         timeLog.stamp("Cache miss");
 
         // It's not in the cache, so go get it and cache the results.
-        HaxeClasspath itemList = findHaxelibPath(libraryName);
-        myCache.add(new HaxelibLibraryEntry(libraryName, itemList));
+        HaxeLibrary newlib = HaxeLibrary.load(this, libraryName, mySdk);
+        myCache.add(newlib);
 
-        timeLog.stamp("haxelib finished with " + itemList.size() + " entries");
-        return itemList;
+        timeLog.stamp("Finished loading library: " + libraryName);
+        return newlib.getClasspathEntries();
       }
 
       timeLog.stamp("Unknown library !!!  " + libraryName + " !!! ");
@@ -172,6 +122,22 @@ public final class HaxelibLibraryCache {
     finally {
       timeLog.printIfTimeExceeds(2); // Short-timed logs just clutter up the ouput.
     }
+  }
+
+  @Nullable
+  public HaxeLibrary getLibrary(String name, HaxelibSemVer requestedVersion) {
+    if (libraryIsKnown(name)) {
+      HaxeLibrary lib = myCache.get(name);  // We only ever load the "current" one.
+      if (null != lib && (null == requestedVersion || requestedVersion.matchesRequestedVersion(lib.getVersion()))) {
+        return lib;
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  public Sdk getSdk() {
+    return mySdk;
   }
 
   /**
@@ -186,7 +152,7 @@ public final class HaxelibLibraryCache {
       return HaxeClasspath.EMPTY_CLASSPATH;
     }
 
-    HaxelibLibraryEntry cacheEntry = myCache.get(libraryName);
+    HaxeLibrary cacheEntry = myCache.get(libraryName);
     if (cacheEntry != null) {
       return cacheEntry.getClasspathEntries();
     }
@@ -232,24 +198,21 @@ public final class HaxelibLibraryCache {
   }
 
   /**
-   * Encapsulate haxelib output so that it can be cached.
+   * Lookup a library from its path (classpath entry).
+   *
+   * @param path Potential path to a library.
+   * @return a library matching that path.
    */
-  private final class HaxelibLibraryEntry {
-    final String myName;
-    final HaxeClasspath myClasspathEntries;
+  @Nullable
+  public HaxeLibrary getLibraryByPath(String path) {
+    // Looking up a library in the cache resolves to a serial search.  Instead,
+    // parse the path for a library name and version, and then look it up.
 
-    public HaxelibLibraryEntry(String name, HaxeClasspath classpathEntries) {
-      myName = name;
-      myClasspathEntries = new HaxeClasspath(classpathEntries);
+    HaxeLibraryInfo info = HaxelibUtil.deriveLibraryInfoFromPath(mySdk, path);
+    if (null != info) {
+      return getLibrary(info.name, info.semver);
     }
-
-    public String getName() {
-      return myName;
-    }
-
-    public HaxeClasspath getClasspathEntries() {
-      return myClasspathEntries;
-    }
+    return null;
   }
 
   /**
@@ -258,14 +221,25 @@ public final class HaxelibLibraryCache {
    * haxelib.
    */
   private final class InternalCache {
-    final Hashtable<String, HaxelibLibraryEntry> myCache;
+    final Hashtable<String, HaxeLibrary> myCache;
 
     public InternalCache() {
-      myCache = new Hashtable<String, HaxelibLibraryEntry>();
+      myCache = new Hashtable<String, HaxeLibrary>();
     }
 
-    public void add(HaxelibLibraryEntry entry) {
-      HaxelibLibraryEntry oldEntry = myCache.put(entry.getName(), entry);
+    public InternalCache(List<HaxeLibrary> entries) {
+      this();
+      addAll(entries);
+    }
+
+    public void addAll(List<HaxeLibrary> entries) {
+      for (HaxeLibrary entry : entries) {
+        add(entry);
+      }
+    }
+
+    public void add(HaxeLibrary entry) {
+      HaxeLibrary oldEntry = myCache.put(entry.getName(), entry);
       if (null != oldEntry) {
         LOG.warn("Duplicating cached data for entry " + entry.getName());
       }
@@ -276,7 +250,7 @@ public final class HaxelibLibraryCache {
     }
 
     @Nullable
-    public HaxelibLibraryEntry get(@NotNull String name) {
+    public HaxeLibrary get(@NotNull String name) {
       return myCache.get(name);
     }
   }

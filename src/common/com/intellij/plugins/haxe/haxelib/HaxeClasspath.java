@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +25,8 @@ import java.util.*;
 
 /**
  * Manage a classpath.
+ *
+ * Ordering is kept.  Duplicates are discarded.
  */
 public class HaxeClasspath {
 
@@ -53,6 +56,11 @@ public class HaxeClasspath {
     }
   }
 
+  HaxeClasspath(HaxeClasspathEntry initialEntry) {
+    this();
+    myOrderedEntries.add(initialEntry);
+  }
+
   HaxeClasspath(Collection<HaxeClasspathEntry> initialEntries) {
     this(initialEntries.size());
     myOrderedEntries.addAll(initialEntries);
@@ -63,6 +71,8 @@ public class HaxeClasspath {
   }
 
   HaxeClasspath(int sizeHint) {
+    if (sizeHint < 16)
+      sizeHint  = 16;
     myOrderedEntries = new LinkedHashSet<HaxeClasspathEntry>(2 * sizeHint);
   }
 
@@ -134,7 +144,7 @@ public class HaxeClasspath {
 
   /**
    * Determine if a given URL is represented by any Entry/Item in the classpath.
-   * NOTE: This method *does NOT* attempt to normalize the URL.  relative paths
+   * NOTE: This method *does NOT* attempt to normalize the URL.  Relative paths
    * will NOT match.
    *
    * @param url we are looking for.
@@ -143,17 +153,6 @@ public class HaxeClasspath {
   public boolean containsUrl(final String url) {
     if (null == url || url.isEmpty())
       return false;
-
-    // This algorithm could be done using:
-    //   myOrderedEntries.contains(new HaxeIdeaItem(null, url));
-    // but that's not really right, because we'd be creating a sub-class
-    // of HaxeClasspathEntry here, and we would assume the format of the
-    // subclass.  (Plus, it's slower because of the name parsing and
-    // management overhead.)
-    //
-    // Instead, we let the class figure out how to do it, and assume only that
-    // a matching hashcode can be generated given an URL.
-    //
 
     synchronized(this) {
       // OK, this works because the hash code for a HaxeClasspathEntry is the
@@ -261,6 +260,28 @@ public class HaxeClasspath {
   public int size() {
     synchronized(this) {
       return myOrderedEntries.size();
+    }
+  }
+
+  /**
+   * Get the n'th element from the list.  Do not use this inside of a tight loop,
+   * because the algorithm requires a serial walk of all elements prior.
+   * Use iterate() instead.
+   *
+   * @param i
+   * @return
+   */
+  public HaxeClasspathEntry get(int i) {
+    synchronized (this) {
+      if (i >= 0) {
+        int j = 0;
+        for (HaxeClasspathEntry entry : myOrderedEntries) {
+          if (j++ == i) {
+            return entry;
+          }
+        }
+      }
+      throw new IndexOutOfBoundsException();
     }
   }
 

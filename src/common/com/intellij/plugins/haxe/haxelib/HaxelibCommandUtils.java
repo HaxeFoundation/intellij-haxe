@@ -20,8 +20,13 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -37,6 +43,8 @@ import java.util.Scanner;
  * Utilities to run the haxelib command and capture its output.
  */
 public class HaxelibCommandUtils {
+  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+
 
   /**
    * Find the path to the 'haxelib' executable, using the module paths.
@@ -87,7 +95,8 @@ public class HaxelibCommandUtils {
    */
   @NotNull
   public static List<String> issueHaxelibCommand(@NotNull Sdk sdk, String ... args) {
-    // TODO: Wrap this invocation with a timer??
+
+    // TODO: Wrap the process with a timer?
 
     ArrayList<String> commandLineArguments = new ArrayList<String>();
     commandLineArguments.add(getHaxelibPath(sdk));
@@ -95,7 +104,26 @@ public class HaxelibCommandUtils {
       commandLineArguments.add(arg);
     }
 
-    return getProcessStdout(commandLineArguments, HaxeSdkUtilBase.getSdkData(sdk));
+    HaxeSdkAdditionalDataBase sdkData = HaxeSdkUtilBase.getSdkData(sdk);
+    String haxelibPath = null != sdkData ? sdkData.getHaxelibPath() : HaxeSdkUtil.suggestHomePath();
+    if (null == haxelibPath) {
+      LOG.warn("Could not find 'haxelib' executable to run using " + sdk.getName());
+      return Collections.EMPTY_LIST;
+    }
+
+    File haxelibCmd = new File(haxelibPath);
+    VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(haxelibCmd.getParent());
+
+    List<String> stdout = new ArrayList<String>();
+    int exitvalue = HaxeProcessUtil.runProcess(commandLineArguments, true, dir, sdkData,
+                                      stdout, null, null, false);
+
+    if (0 != exitvalue) {
+      // At least throw a warning into idea.log so we have some clue as to what is going on.
+      LOG.warn("Error " + Integer.toString(exitvalue) + " returned from " + commandLineArguments.toString());
+    }
+
+    return stdout;
   }
 
 

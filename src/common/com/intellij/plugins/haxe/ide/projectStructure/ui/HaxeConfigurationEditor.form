@@ -158,7 +158,7 @@
                   </grid>
                 </children>
               </grid>
-              <grid id="c79c2" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="c79c2" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="10" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -168,7 +168,7 @@
                 <children>
                   <component id="28d49" class="javax.swing.JCheckBox" binding="myExcludeFromCompilationCheckBox">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.run.exclude.compile"/>
@@ -177,7 +177,7 @@
                   <grid id="a9131" binding="myAdditionalComponentPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties/>
                     <border type="empty">
@@ -185,6 +185,15 @@
                     </border>
                     <children/>
                   </grid>
+                  <component id="aaa26" class="javax.swing.JCheckBox" binding="mySyncWithProjectCheckBox">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="module.settings.synchronize.dependencies.title"/>
+                      <toolTipText resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="module.settings.synchronize.dependencies"/>
+                    </properties>
+                  </component>
                 </children>
               </grid>
               <grid id="5aa44" binding="myBuildFilePanel" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">

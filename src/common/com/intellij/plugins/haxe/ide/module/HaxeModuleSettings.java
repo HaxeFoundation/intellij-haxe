@@ -21,11 +21,13 @@ package com.intellij.plugins.haxe.ide.module;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
+import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.plugins.haxe.util.HaxeModificationTracker;
@@ -48,6 +50,8 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   implements PersistentStateComponent<HaxeModuleSettings>, HaxeModuleSettingsBase, HaxeTrackedModifiable {
 
+  private static Logger LOG = Logger.getInstance("#" + HaxeModuleSettings.class.getName());
+
   private String flexSdkName = "";
   private HaxeModificationTracker tracker = new HaxeModificationTracker(this.getClass().getName());
 
@@ -61,6 +65,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             String arguments,
                             String nmeFlags,
                             boolean excludeFromCompilation,
+                            boolean keepSynchronizedWithProjectFile,
                             String outputFileName,
                             String outputFolder,
                             String flexSdkName,
@@ -68,7 +73,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
                             String hxmlPath,
                             String nmmlPath,
                             String openFLPath) {
-    super(mainClass, outputFileName, outputFolder, arguments, nmeFlags, excludeFromCompilation, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
+    super(mainClass, outputFileName, outputFolder, arguments, nmeFlags, excludeFromCompilation, keepSynchronizedWithProjectFile, haxeTarget, nmeTarget, openFLTarget, hxmlPath, nmmlPath,
           openFLPath, buildConfig);
     this.flexSdkName = flexSdkName;
     notifyUpdated();
@@ -162,6 +167,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     HaxeModuleSettings settings = (HaxeModuleSettings)o;
 
     if (excludeFromCompilation != settings.excludeFromCompilation) return false;
+    if (keepSynchronizedWithProjectFile != settings.keepSynchronizedWithProjectFile) return false;
     if (buildConfig != settings.buildConfig) return false;
     if (arguments != null ? !arguments.equals(settings.arguments) : settings.arguments != null) return false;
     if (nmeFlags != null ? !nmeFlags.equals(settings.nmeFlags) : settings.nmeFlags != null) return false;
@@ -189,6 +195,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     result = 31 * result + (nmeFlags != null ? nmeFlags.hashCode() : 0);
     result = 31 * result + (openFLFlags != null ? openFLFlags.hashCode() : 0);
     result = 31 * result + (excludeFromCompilation ? 1 : 0);
+    result = 31 * result + (keepSynchronizedWithProjectFile ? 1 : 0);
     result = 31 * result + (haxeTarget != null ? haxeTarget.hashCode() : 0);
     result = 31 * result + (nmeTarget != null ? nmeTarget.hashCode() : 0);
     result = 31 * result + (openFLTarget != null ? openFLTarget.hashCode() : 0);
@@ -197,4 +204,47 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     result = 31 * result + buildConfig;
     return result;
   }
+
+
+
+  /**
+   * Convenience method to find the project file.
+   */
+  @Nullable
+  public String getHaxeProjectPath() {
+    switch(buildConfig) {
+      case USE_HXML:        return getHxmlPath();
+      case USE_OPENFL:      return getOpenFLPath();
+      case USE_NMML:        return getNmmlPath();
+      case USE_PROPERTIES:  return findProjectFileName(getArguments());
+      default:
+        LOG.warn("Internal error: Unknown buildConfig (build type) in project settings.");
+        return null;
+    }
+  }
+
+  @Nullable
+  private static String findProjectFileName(String args) {
+
+    // TODO: Parse the project arguments using an HXML project model.  Can't do it until HXML project model can accept multiple args on one line.
+    // So, for the moment, we're just going to cheat and look for something that looks like a project file name.
+
+    for (String arg : args.split(" ")) {
+      if (!arg.startsWith("-")) {
+        // We don't have enough info to verify that a file exists (we don't have the module's root path).
+        // So, if the file name matches a known extension, then pass that back.
+        int extpos = arg.lastIndexOf('.');
+        if (-1 != extpos) {
+          String ext = arg.substring(extpos + 1);
+          if ("nmml".equals(ext) || "xml".equals(ext) || "hxml".equals(ext)) {
+            return arg;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+
+
 }

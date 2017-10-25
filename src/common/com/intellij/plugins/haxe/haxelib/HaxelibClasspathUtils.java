@@ -91,12 +91,12 @@ public class HaxelibClasspathUtils {
       // That is, if it /is/ a haxelib entry, ignore it; grab the classpaths for
       // libs that aren't haxelibs.
       //
-      if (!HaxelibParser.isManagedLibrary(library.getName())) {
+      if (!HaxelibNameUtil.isManagedLibrary(library.getName())) {
         OrderRootType interestingRootTypes[] = {OrderRootType.SOURCES, OrderRootType.CLASSES};
         for (OrderRootType rootType : interestingRootTypes) {
           for (String url : library.getUrls(rootType)) {
             if (!classpath.containsUrl(url)) {  // The if just keeps us from churning.
-              classpath.add(new HaxeIdeaItem(library.getName(), url));
+              classpath.add(new HaxeClasspathEntry(library.getName(), url));
             }
           }
         }
@@ -134,7 +134,7 @@ public class HaxelibClasspathUtils {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
-      if (filterManagedLibs && HaxelibParser.isManagedLibrary(library.getName())) {
+      if (filterManagedLibs && HaxelibNameUtil.isManagedLibrary(library.getName())) {
         continue;
       }
       nameList.add(library.getName());
@@ -158,7 +158,7 @@ public class HaxelibClasspathUtils {
       for (OrderRootType rootType : interestingRootTypes) {
         for (String url : library.getUrls(rootType)) {
           if (!classpath.containsUrl(url)) {
-            classpath.add(new HaxeIdeaItem(library.getName(), url));
+            classpath.add(new HaxeClasspathEntry(library.getName(), url));
           }
         }
       }
@@ -277,7 +277,7 @@ public class HaxelibClasspathUtils {
     classpath.addAll(getModuleClasspath(module));
     classpath.addAll(getProjectLibraryClasspath(module.getProject()));
     // This grabs either the module's SDK, or the inherited one, if any.
-    classpath.addAll(getSdkClasspath(ModuleRootManager.getInstance(module).getSdk()));
+    classpath.addAll(getSdkClasspath(HaxelibSdkUtils.lookupSdk(module)));
     return classpath;
   }
 
@@ -429,38 +429,6 @@ public class HaxelibClasspathUtils {
   }
 
   /**
-   * Retrieves the list of dependent haxe libraries from an XML-based
-   * configuration file.
-   *
-   * @param psiFile name of the configuration file to read
-   * @return a list of dependent libraries; may be empty, may have duplicates.
-   * TODO: Collect names and pass them all to libraryManager.getClasspathForHaxelib(List) at once.
-   */
-  @NotNull
-  public static HaxeClasspath getHaxelibsFromXmlFile(@NotNull XmlFile psiFile, HaxelibLibraryCache libraryManager) {
-    HaxeClasspath haxelibNewItems = new HaxeClasspath();
-
-    XmlFile xmlFile = (XmlFile)psiFile;
-    XmlDocument document = xmlFile.getDocument();
-
-    if (document != null) {
-      XmlTag rootTag = document.getRootTag();
-      if (rootTag != null) {
-        XmlTag[] haxelibTags = rootTag.findSubTags("haxelib");
-        for (XmlTag haxelibTag : haxelibTags) {
-          String name = haxelibTag.getAttributeValue("name");
-          if (name != null) {
-            HaxeClasspath newPath = libraryManager.getClasspathForHaxelib(name);
-            haxelibNewItems.addAll(newPath);
-          }
-        }
-      }
-    }
-
-    return haxelibNewItems;
-  }
-
-  /**
    * Finds the first file on the classpath having the given name or relative path.
    * This is attempting to emulate what the compiler would do.
    *
@@ -492,7 +460,7 @@ public class HaxelibClasspathUtils {
         }
         if (null == found) {
           // This grabs either the module's SDK, or the inherited one, if any.
-          found = findFileOnOneClasspath(getSdkClasspath(ModuleRootManager.getInstance(module).getSdk()), filePath);
+          found = findFileOnOneClasspath(getSdkClasspath(HaxelibSdkUtils.lookupSdk(module)), filePath);
         }
         return found;
       }

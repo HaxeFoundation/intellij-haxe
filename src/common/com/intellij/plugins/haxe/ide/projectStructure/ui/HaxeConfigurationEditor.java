@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +92,7 @@ public class HaxeConfigurationEditor {
   private JPanel myCompilerOptionsWrapper;
   private TextFieldWithBrowseButton myOpenFLFileChooserTextField;
   private RawCommandLineEditor myOpenFLArgumentTextField;
+  private JCheckBox mySyncWithProjectCheckBox;
 
   private HaxeTarget selectedHaxeTarget = HaxeTarget.NEKO;
   private NMETarget selectedNmeTarget = NMETarget.FLASH;
@@ -405,6 +407,7 @@ public class HaxeConfigurationEditor {
     result = result || !settings.getNmeFlags().equals(myNMEArguments.getText());
     result = result || !settings.getOpenFLFlags().equals(myOpenFLArgumentTextField.getText());
     result = result || (settings.isExcludeFromCompilation() ^ myExcludeFromCompilationCheckBox.isSelected());
+    result = result || (settings.isKeepSynchronizedWithProjectFile() ^ mySyncWithProjectCheckBox.isSelected());
     result = result || !settings.getOutputFileName().equals(myOutputFileNameTextField.getText());
     result = result || !settings.getOutputFolder().equals(myFolderTextField.getText());
 
@@ -426,6 +429,7 @@ public class HaxeConfigurationEditor {
     selectedNmeTarget = settings.getNmeTarget();
     selectedOpenFLTarget = settings.getOpenFLTarget();
     myExcludeFromCompilationCheckBox.setSelected(settings.isExcludeFromCompilation());
+    mySyncWithProjectCheckBox.setSelected(settings.isKeepSynchronizedWithProjectFile());
     myOutputFileNameTextField.setText(settings.getOutputFileName());
     myFolderTextField.setText(settings.getOutputFolder());
     for (UnnamedConfigurable configurable : configurables) {
@@ -465,6 +469,7 @@ public class HaxeConfigurationEditor {
       settings.setHaxeTarget((HaxeTarget)myTargetComboBox.getSelectedItem());
     }
     settings.setExcludeFromCompilation(myExcludeFromCompilationCheckBox.isSelected());
+    settings.setKeepSynchronizedWithProjectFile(mySyncWithProjectCheckBox.isSelected());
     settings.setOutputFileName(myOutputFileNameTextField.getText());
     settings.setOutputFolder(myFolderTextField.getText());
 

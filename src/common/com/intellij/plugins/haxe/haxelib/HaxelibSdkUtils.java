@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
  * Static interface for SDK utility functions.
  */
 public class HaxelibSdkUtils {
+
+  // TODO: Move these routines into HaxeSdkUtil and kill this class.
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugin.haxe.haxelib.HaxelibSdkUtils");
 
@@ -62,7 +65,8 @@ public class HaxelibSdkUtils {
    */
   @NotNull
   public static Sdk lookupSdk(@NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+    ModuleRootManager mgr = ModuleRootManager.getInstance(module);
+    Sdk sdk = null != mgr ? mgr.getSdk() : null;
     if (null == sdk) {
       // TODO: Move error string to a resource in HaxeBundle.
       sdk = getDefaultSDK("Invalid (or no) SDK specified for module " + module.getName());
@@ -79,7 +83,8 @@ public class HaxelibSdkUtils {
    */
   @NotNull
   public static Sdk lookupSdk(@NotNull Project project) {
-    Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    ProjectRootManager mgr = ProjectRootManager.getInstance(project);
+    Sdk sdk = null != mgr ? mgr.getProjectSdk() : null;
     if (null == sdk) {
       // TODO: Move error string to a resource in HaxeBundle.
       sdk = getDefaultSDK("Invalid (or no) SDK specified for project " + project.getName());

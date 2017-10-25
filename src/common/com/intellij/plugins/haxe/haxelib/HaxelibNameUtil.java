@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +29,7 @@ import java.util.List;
 /**
  * Created by as3boyan on 31.10.14.
  */
-public final class HaxelibParser {
+public final class HaxelibNameUtil {
 
   private final static String managedPrefix = "haxelib";
   private final static String joiner = "|";
@@ -61,7 +62,7 @@ public final class HaxelibParser {
       return strings.get(1);
     }
 
-    return null;
+    return data;
   }
 
   /**
@@ -84,6 +85,9 @@ public final class HaxelibParser {
    */
   @Nullable
   public static String parseHaxelibNameFromPath(@NotNull String classpathUrl) {
+
+    // TODO: Jettison this or fix it for the case where the path has extra directories attached to the end.
+
     String libName = null;
     String[] pieces = classpathUrl.split("/");
     if (pieces.length >= 2) {

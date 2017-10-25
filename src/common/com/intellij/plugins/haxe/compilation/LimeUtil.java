@@ -16,15 +16,12 @@
 package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
-import com.intellij.plugins.haxe.hxml.psi.HXMLFile;
+import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
-import com.intellij.testFramework.LightVirtualFile;
 import org.apache.log4j.Level;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +36,7 @@ public class LimeUtil {
 
   private static final StringBuffer EMPTY_STRINGBUFFER = new StringBuffer("\n");
 
-  public static LimeProjectModel getLimeProjectModel(Module module) {
+  public static HXMLProjectModel getLimeProjectModel(Module module) {
 
     HaxeCompilerServices cs = new HaxeCompilerServices(new HaxeCompilerUtil.ErrorNotifier(){
       public void notifyError(String message) {
@@ -52,7 +49,7 @@ public class LimeUtil {
     PsiFile psi = PsiFileFactory.getInstance(module.getProject()).createFileFromText(
       "Lime.Display.Temp." + HXMLFileType.DEFAULT_EXTENSION, HXMLFileType.INSTANCE, displayData);
 
-    return new LimeProjectModel(psi);
+    return new HXMLProjectModel(psi);
   }
 
 
