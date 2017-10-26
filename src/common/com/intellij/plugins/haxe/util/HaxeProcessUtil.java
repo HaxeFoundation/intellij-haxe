@@ -72,7 +72,7 @@ public class HaxeProcessUtil {
       }
 
       File fdir = null != dir ? new File(dir.getPath()) : null;
-      LOG.debug("dir is " + dir.getPath());
+      LOG.debug("dir is " + (null == dir ? "<null>" : dir.getPath()));
       ProcessBuilder builder = HaxeSdkUtilBase.createProcessBuilder(command, fdir, sdkData);
       if (mixedOutput)
         builder.redirectErrorStream(true);

@@ -209,7 +209,7 @@ public class HaxelibProjectUpdater {
   @Nullable
   public static HaxelibLibraryCache getLibraryCache(@NotNull Project project) {
     HaxelibLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(project);
-    Sdk projectSdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    Sdk projectSdk = HaxelibSdkUtils.lookupSdk(project);
     return (mgr != null && projectSdk != null) ? mgr.getLibraryCache(projectSdk) : null;
   }
 

@@ -104,7 +104,7 @@ public class HaxeFileUtil {
     if (null == strings || strings.isEmpty()) {
       return null;
     }
-    return String.join(SEPARATOR_STRING, strings);
+    return HaxeStringUtil.join(SEPARATOR_STRING, strings);
   }
 
   /**
@@ -117,7 +117,7 @@ public class HaxeFileUtil {
     if (null == strings || 0 == strings.length) {
       return null;
     }
-    return String.join(SEPARATOR_STRING, strings);
+    return HaxeStringUtil.join(SEPARATOR_STRING, strings);
   }
 
   /**

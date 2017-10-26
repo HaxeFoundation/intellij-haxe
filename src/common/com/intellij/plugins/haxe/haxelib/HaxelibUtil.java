@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -145,7 +146,7 @@ public class HaxelibUtil {
           }
           // Second is normally the version string.  But that's not *always* the case, if it's a dev path.
           if (!libParts[1].matches(HaxelibSemVer.VERSION_REGEX)
-              && !(new File(String.join("/", rootName, libParts[0], ".dev"))).exists()) {
+              && !(new File(HaxeStringUtil.join("/", rootName, libParts[0], ".dev"))).exists()) {
             LOG.debug("Library version '" + libParts[1] + "' didn't match the regex.");
           }
         }
@@ -229,10 +230,10 @@ public class HaxelibUtil {
   public static HaxeLibraryList getProjectLibraries(@NotNull Project project, boolean filterManagedLibs, boolean filterUnmanagedLibs) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     if (null == libraryTable || (filterManagedLibs && filterUnmanagedLibs)) {
-      return new HaxeLibraryList(ProjectRootManager.getInstance(project).getProjectSdk());
+      return new HaxeLibraryList(HaxelibSdkUtils.lookupSdk(project));
     }
 
-    HaxeLibraryList libs = new HaxeLibraryList(ProjectRootManager.getInstance(project).getProjectSdk());
+    HaxeLibraryList libs = new HaxeLibraryList(HaxelibSdkUtils.lookupSdk(project));
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
       String name = library.getName();
