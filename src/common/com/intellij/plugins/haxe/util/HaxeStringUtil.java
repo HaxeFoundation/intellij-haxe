@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@ import com.intellij.openapi.util.Pair;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -104,5 +106,30 @@ public class HaxeStringUtil {
 
     }
     return out;
+  }
+
+  public static String join(String separator, CharSequence... elements) {
+    // TODO: Replace this function with String.joinHaxeLib when we no longer support Java6/7.
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < elements.length; i++) {
+      builder.append(elements[i]);
+      if (i < elements.length - 1) {
+        builder.append(separator);
+      }
+    }
+    return builder.toString();
+  }
+
+  public static String join(String separator, Iterable<? extends CharSequence> elements) {
+    // TODO: Replace this function with String.join when we no longer support Java6/7.
+    StringBuilder builder = new StringBuilder();
+    Iterator<? extends CharSequence> iterator = elements.iterator();
+    while (iterator.hasNext()) {
+      builder.append(iterator.next());
+      if (iterator.hasNext()) {
+        builder.append(separator);
+      }
+    }
+    return builder.toString();
   }
 }

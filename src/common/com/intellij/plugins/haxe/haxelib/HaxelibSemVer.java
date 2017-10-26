@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,12 +119,12 @@ public class HaxelibSemVer {
 
   @NotNull
   public String toDirString() {
-    return String.join(",", Integer.toString(major), Integer.toString(minor), Integer.toString(patch));
+    return HaxeStringUtil.join(",", Integer.toString(major), Integer.toString(minor), Integer.toString(patch));
   }
 
   @Override
   public String toString() {
-    return String.join(".", Integer.toString(major), Integer.toString(minor), Integer.toString(patch));
+    return HaxeStringUtil.join(".", Integer.toString(major), Integer.toString(minor), Integer.toString(patch));
   }
 
   @Override
