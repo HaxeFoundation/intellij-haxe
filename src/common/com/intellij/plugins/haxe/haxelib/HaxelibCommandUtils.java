@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +113,7 @@ public class HaxelibCommandUtils {
     }
 
     File haxelibCmd = new File(haxelibPath);
-    VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(haxelibCmd.getParent());
+    VirtualFile dir = haxelibCmd.isFile() ? LocalFileSystem.getInstance().findFileByPath(haxelibCmd.getParent()) : null;
 
     List<String> stdout = new ArrayList<String>();
     int exitvalue = HaxeProcessUtil.runProcess(commandLineArguments, true, dir, sdkData,
