@@ -73,8 +73,7 @@ public class HaxelibMetadata {
     }
   }
 
-
-
+  public static HaxelibMetadata EMPTY_METADATA = new HaxelibMetadata(true);
 
   public static String NAME = "name";
   public static String URL = "url";
@@ -89,6 +88,12 @@ public class HaxelibMetadata {
 
   private JsonObject root;
   private String path;
+
+  /** Private constructor for EMPTY_METADATA */
+  private HaxelibMetadata(boolean makeEmpty) {
+    root = null;
+    path = "";
+  }
 
   /** Test constructor */
   public HaxelibMetadata(@NotNull String json) {
@@ -105,12 +110,12 @@ public class HaxelibMetadata {
     path = jsonFile.getParent().getPath();
   }
 
-
+  @NotNull
   public static HaxelibMetadata load(@NotNull VirtualFile libRoot) {
     String mdfile = HaxeFileUtil.joinPath(libRoot.getUrl(), "haxelib.json");
     VirtualFile metadatafile = VirtualFileManager.getInstance().findFileByUrl(mdfile);
     if (null == metadatafile || !metadatafile.exists()) {
-      return null;
+      return EMPTY_METADATA;
     }
     return new HaxelibMetadata(metadatafile);
   }
