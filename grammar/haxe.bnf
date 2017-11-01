@@ -573,7 +573,7 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | arrayLiteral
                     | objectLiteral
                     | stringLiteralExpression
-                    //| blockStatement
+                    | blockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                              | regularExpressionLiteral
