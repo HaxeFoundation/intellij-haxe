@@ -53,4 +53,13 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
   public void testTivo_42() throws Throwable {
     doTest(true);
   }
+
+  public void testFatArrowArrayLiteral() throws Throwable {
+    doTest(true);
+  }
+
+  public void testFatArrowArrayLiteralWithExtraComma() throws Throwable {
+    doTest(true);
+  }
+
 }

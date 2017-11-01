@@ -502,7 +502,7 @@ catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 //mapArrayExpression ::= (expression OFAT_ARROW expression (',' expression OFAT_ARROW expression)*) {recoverWhile="expression_list_recover"}
 //mapArrayExpression
 
-expressionList ::= forStatement | whileStatement | (expression (',' expression)*) {recoverWhile="expression_list_recover"}
+expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
 expression ::= assignExpressionWrapper {recoverWhile="expression_recover"}
