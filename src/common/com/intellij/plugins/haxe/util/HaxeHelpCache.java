@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
@@ -24,6 +26,7 @@ import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,6 +50,12 @@ public class HaxeHelpCache {
   private static List<HXMLCompletionItem> defines;
 
   public HaxeHelpCache() {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      metaTags = Collections.EMPTY_LIST;
+      defines = Collections.EMPTY_LIST;
+      return;
+    }
+
     load();
   }
 
