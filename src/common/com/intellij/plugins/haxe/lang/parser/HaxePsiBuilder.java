@@ -22,6 +22,7 @@ import com.intellij.lang.impl.PsiBuilderImpl;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -40,7 +41,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
   public HaxePsiBuilder(@NotNull ParserDefinition parserDefinition,
                         @NotNull Lexer lexer,
                         @NotNull final CharSequence text) {
-    super(null, null, parserDefinition, lexer, null, text, null, null);
+    super(ProjectManager.getInstance().getDefaultProject(), null, parserDefinition, lexer, null, text, null, null);
     psiFile = null;
   }
 
