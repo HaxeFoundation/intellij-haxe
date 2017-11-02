@@ -24,7 +24,10 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.util.ASTNodeWalker;
+import com.intellij.plugins.haxe.util.Lambda;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.SharedImplUtil;
 import org.apache.log4j.Level;
@@ -63,29 +66,46 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
     psiFile = chameleon.getContainingFile();
   }
 
+  @NotNull
+  @Override
+  public ASTNode getTreeBuilt() {
+    ASTNode built = super.getTreeBuilt();
 
-    @Override
-  public void error(String messageText) {
     if (LOG.isDebugEnabled()) {
-      PsiDocumentManager mgr = PsiDocumentManager.getInstance(getProject());
-      Document doc = null != mgr ? mgr.getDocument(psiFile) : null;
-      int offset = getCurrentOffset();
-      int line = null != doc ? doc.getLineNumber(offset) : StringUtil.offsetToLineNumber(getOriginalText(), offset);
-
-      StringBuilder s = new StringBuilder();
-      s.append("Parsing error at ");
-      s.append(null != psiFile ? psiFile.getName() : "<text>");
-      s.append(", ");
-      s.append(line);
-      s.append(": '");
-      s.append(getTokenText());
-      s.append("'.  ");
-      s.append(messageText);
-
-      LOG.debug(s.toString());
+      // Walk the tree, depth first and print out all remaining error elements.
+      new ASTNodeWalker().walk(built, new Lambda<ASTNode>() {
+        @Override
+        public boolean process(ASTNode node) {
+          if (node instanceof PsiErrorElement) {
+            PsiErrorElement err = (PsiErrorElement)node;
+            printErrorInfo(err.getTextRange().getStartOffset(),
+                           err.getText(),
+                           err.getErrorDescription());
+          }
+          return true;
+        }
+      });
     }
 
-    super.error(messageText);
+    return built;
   }
 
+  public void printErrorInfo(int offset, String token, String message) {
+
+    PsiDocumentManager mgr = PsiDocumentManager.getInstance(getProject());
+    Document doc = null != mgr ? mgr.getDocument(psiFile) : null;
+    int line = null != doc ? doc.getLineNumber(offset) + 1 : StringUtil.offsetToLineNumber(getOriginalText(), offset);
+
+    StringBuilder s = new StringBuilder();
+    s.append("Parsing error at ");
+    s.append(null != psiFile ? psiFile.getName() : "<text>");
+    s.append(", ");
+    s.append(line);
+    s.append(": '");
+    s.append(null != token ? token : "<unknown token>");
+    s.append("'.  ");
+    s.append(null != message ? message : "<no message>");
+
+    LOG.debug(s.toString());
+  }
 }
