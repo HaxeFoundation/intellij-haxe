@@ -210,7 +210,7 @@ elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeMacroClassListElement
 
 private functionMacroMember ::= finalMeta | macroMember | overloadMeta
 private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta | nativeMeta
-                       | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
+                       | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro | finalMeta
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
 autoBuildMacro ::= '@:autoBuild' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}

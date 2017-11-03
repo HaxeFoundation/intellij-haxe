@@ -44,4 +44,8 @@ public class PropertyDeclarationTest extends DeclarationTestBase {
   public void testMissingSemicolon() throws Throwable {
     doTest(true);
   }
+
+  public void testFinalMetaOnProperty() throws Throwable {
+    doTest(true);
+  }
 }
