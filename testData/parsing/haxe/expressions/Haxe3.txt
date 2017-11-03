@@ -1354,6 +1354,7 @@ Haxe File
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('a')
+        HaxePsiToken:;(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@:from')

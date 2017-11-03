@@ -28,4 +28,20 @@ public class PropertyDeclarationTest extends DeclarationTestBase {
   public void testProperty() throws Throwable {
     doTest(true);
   }
+
+  public void testStaticInitializer() throws Throwable {
+    doTest(true);
+  }
+
+  public void testStaticInitializerWithoutSemiColonBare() throws Throwable {
+    doTest(true);
+  }
+
+  public void testStaticInitializerWithoutSemiColon() throws Throwable {
+    doTest(true);
+  }
+
+  public void testMissingSemicolon() throws Throwable {
+    doTest(true);
+  }
 }

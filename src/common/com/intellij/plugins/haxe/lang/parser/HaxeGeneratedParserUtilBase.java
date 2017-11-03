@@ -19,6 +19,8 @@ package com.intellij.plugins.haxe.lang.parser;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.WhitespaceSkippedCallback;
 import com.intellij.lang.parser.GeneratedParserUtilBase;
+import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.tree.IElementType;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
@@ -70,4 +72,26 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
   public static boolean gtEq(PsiBuilder builder_, int level_) {
     return parseOperator(builder_, OGREATER_OR_EQUAL, OGREATER, OASSIGN);
   }
+
+
+  /**
+   * Make a semi-colon optional in the case that it's preceded by a block statement.
+   *
+   */
+  public static boolean semicolonUnlessPrecededByBlock(PsiBuilder builder_, int level) {
+    if (consumeTokenFast(builder_, OSEMI)) {
+      return true;
+    }
+    int i = -1;
+    IElementType previousType = builder_.rawLookup(i);
+    while (null != previousType && isWhitespaceOrComment(builder_, previousType)) {
+      previousType = builder_.rawLookup(--i);
+    }
+    if (previousType == HaxeTokenTypes.PRCURLY) {
+      return true;
+    }
+    builder_.error(HaxeBundle.message("parsing.error.missing.semi.colon"));
+    return false;
+  }
+
 }

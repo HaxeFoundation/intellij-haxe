@@ -70,4 +70,16 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
   public void testFatArrowArrayLiteralWithExtraComma() throws Throwable {
     doTest(true);
   }
+
+  public void testCommaAssignmentRequiringSemicolon() throws Throwable {
+    doTest(true);
+  }
+
+  public void testCommaAssignmentRequiringMissingSemicolon() throws Throwable {
+    doTest(true);
+  }
+
+  public void testCommaAssignmentNotRequiringSemicolon() throws Throwable {
+    doTest(true);
+  }
 }

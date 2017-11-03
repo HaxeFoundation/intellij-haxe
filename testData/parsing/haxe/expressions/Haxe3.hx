@@ -92,7 +92,7 @@ abstract Vector<T>(VectorData<T>) { } // opaque type based on VectorData<T>
 
 abstract StringSplitter(Array<String>) {
     inline function new(a:Array<String>)
-        this = a
+        this = a;
 
     @:from static public inline function fromString(s:String) {
         return new StringSplitter(s.split(""));
