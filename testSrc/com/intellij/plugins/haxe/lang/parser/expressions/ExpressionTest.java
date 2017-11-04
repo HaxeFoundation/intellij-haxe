@@ -115,4 +115,8 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testStaticInitializer() throws Throwable {
     doTest(true);
   }
+
+  public void testParenthesizedArrayAccess() throws Throwable {
+    doTest(true);
+  }
 }
