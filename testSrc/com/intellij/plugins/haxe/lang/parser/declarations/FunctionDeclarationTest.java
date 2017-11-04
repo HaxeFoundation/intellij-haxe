@@ -114,4 +114,8 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testExternFunctionDeclarationSimple() throws Throwable {
     doTest(true);
   }
+
+  public void testAnonymousLocalFunctionAsValue() throws Throwable {
+    doTest(true);
+  }
 }

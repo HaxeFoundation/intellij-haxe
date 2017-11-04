@@ -382,7 +382,7 @@ functionDeclarationWithAttributes          ::= (functionMacroMember | declaratio
 {pin=8 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 functionPrototypeDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ';'
 {pin=8 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
+localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName? genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 anonymousFunctionDeclaration ::= 'function' parenthesizedParameterList typeTag? 'untyped'? '{' '}' {pin=2}
 /* TODO: Should anonymousFunctionDeclaration extend and implement HaxeMethod as well?? */
