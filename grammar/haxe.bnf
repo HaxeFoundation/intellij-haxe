@@ -227,7 +227,7 @@ nsMeta ::= '@:ns' '(' stringLiteralExpression ')'
 getterMeta ::= '@:getter' '(' referenceExpression ')'
 setterMeta ::= '@:setter' '(' referenceExpression ')'
 overloadMeta ::= '@:overload' '(' anonymousFunctionDeclaration ')'
-customMeta ::= MACRO_ID ('(' expressionList ')')?
+customMeta ::= MACRO_ID ('(' expressionList? ')')?
 metaMeta ::= '@:meta' '(' ID '(' metaPartList? ')' ')'
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
 metaKeyValue ::= ID '=' stringLiteralExpression

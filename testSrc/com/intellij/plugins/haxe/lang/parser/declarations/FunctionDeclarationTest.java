@@ -98,4 +98,16 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testNamedNestedFunction() throws Throwable {
     doTest(true);
   }
+
+  public void testCustomMetadataEmpty() throws Throwable {
+    doTest(true);
+  }
+
+  public void testCustomMetadataWithArgs() throws Throwable {
+    doTest(true);
+  }
+
+  public void testCustomMetadataBare() throws Throwable {
+    doTest(true);
+  }
 }
