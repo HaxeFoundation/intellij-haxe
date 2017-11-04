@@ -33,11 +33,11 @@ public class PropertyDeclarationTest extends DeclarationTestBase {
     doTest(true);
   }
 
-  public void testStaticInitializerWithoutSemiColonBare() throws Throwable {
+  public void testStaticInitializerWithoutSemicolonBare() throws Throwable {
     doTest(true);
   }
 
-  public void testStaticInitializerWithoutSemiColon() throws Throwable {
+  public void testStaticInitializerWithoutSemicolon() throws Throwable {
     doTest(true);
   }
 
