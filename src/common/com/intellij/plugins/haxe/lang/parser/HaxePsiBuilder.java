@@ -35,10 +35,14 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
+
 public class HaxePsiBuilder extends PsiBuilderImpl {
 
   private static final Logger LOG = Logger.getLogger("#HaxePsiBuilder");
   static { LOG.setLevel(Level.DEBUG); } // Remove when finished debugging.
+
+  private static final HashSet<String> reportedErrors = new HashSet<String>();
 
   private final PsiFile psiFile;
 
@@ -119,6 +123,13 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
     s.append("'.  ");
     s.append(null != message ? message : "<no message>");
 
-    LOG.debug(s.toString());
+    String error = s.toString();
+    boolean needToReport;
+    synchronized (this) {
+      needToReport = reportedErrors.add(error);
+    }
+    if (needToReport) {
+      LOG.debug(error);
+    }
   }
 }
