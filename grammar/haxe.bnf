@@ -375,7 +375,8 @@ private constructorName ::= 'new'
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-externFunctionDeclaration                  ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? (functionCommonBody | ';')
+// XXX: EMB - Not sure why we need all three of these.  They are increasingly similar.
+externFunctionDeclaration                  ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ((functionCommonBody <<semicolonUnlessPrecededByStatement>>) | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 functionDeclarationWithAttributes          ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody <<semicolonUnlessPrecededByStatement>>
 {pin=8 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}

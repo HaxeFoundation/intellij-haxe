@@ -110,4 +110,8 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testCustomMetadataBare() throws Throwable {
     doTest(true);
   }
+
+  public void testExternFunctionDeclarationSimple() throws Throwable {
+    doTest(true);
+  }
 }
