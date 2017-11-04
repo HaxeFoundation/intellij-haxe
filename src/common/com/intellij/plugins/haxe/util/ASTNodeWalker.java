@@ -16,7 +16,6 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.tree.TokenSet;
 
 /**
  * Depth-first visitor of an ASTNode tree.
@@ -41,7 +40,7 @@ public class ASTNodeWalker {
       return false;
     }
 
-    ASTNode[] children = tree.getChildren(TokenSet.ANY);
+    ASTNode[] children = tree.getChildren(null); // 2016 and later: TokenSet.ANY
     for (ASTNode child : children) {
       if (!walk(child, lambda)) {
         return false;
