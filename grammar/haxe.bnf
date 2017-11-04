@@ -403,7 +403,7 @@ parameterList ::= (parameter (',' parameter)*)? {recoverWhile="parameterListReco
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
-private keywordFunctionLiteral ::= 'function' parenthesizedParameterList typeTag? 'untyped'? functionCommonBody {pin=2}
+private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody {pin=2}
 functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
 
 arrayLiteral ::= '[' (expressionList ','?)? ']'

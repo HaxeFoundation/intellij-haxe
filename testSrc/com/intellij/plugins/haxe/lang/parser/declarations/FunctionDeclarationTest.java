@@ -94,4 +94,8 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testAbstractPrototypeDeclarations() throws Throwable {
     doTest(true);
   }
+
+  public void testNamedNestedFunction() throws Throwable {
+    doTest(true);
+  }
 }
