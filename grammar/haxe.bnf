@@ -498,7 +498,7 @@ throwStatement ::= 'throw' expression ';'?
 
 switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{'  switchCase* defaultCase? '}' {pin=1}
-switchCaseBlock ::= (literalExpression ";") | statementList
+switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
 switchCase ::= ('case' switchCaseExpression (',' switchCaseExpression)* ':')+ switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
 switchCaseExpression ::= expression ('if' '(' expression ')')? {pin=1 extends="expression"}
 private switch_case_recover ::= !('case' | 'default' | '}' | ID)
