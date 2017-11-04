@@ -20,6 +20,7 @@ import com.intellij.lang.LighterLazyParseableNode;
 import com.intellij.lang.ParserDefinition;
 import com.intellij.lang.impl.PsiBuilderImpl;
 import com.intellij.lexer.Lexer;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -46,6 +47,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
                         @NotNull final CharSequence text) {
     super(ProjectManager.getInstance().getDefaultProject(), null, parserDefinition, lexer, null, text, null, null);
     psiFile = null;
+    setupDebugTraces();
   }
 
   public HaxePsiBuilder(@NotNull Project project,
@@ -55,6 +57,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
                         @NotNull CharSequence text) {
     super(project, parserDefinition, lexer, chameleon, text);
     psiFile = SharedImplUtil.getContainingFile(chameleon);
+    setupDebugTraces();
   }
 
   public HaxePsiBuilder(@NotNull Project project,
@@ -64,6 +67,16 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
                         @NotNull CharSequence text) {
     super(project, parserDefinition, lexer, chameleon, text);
     psiFile = chameleon.getContainingFile();
+    setupDebugTraces();
+  }
+
+  private void setupDebugTraces() {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // The trace output causes unit tests to fail. :/
+      setDebugMode(false);
+    } else {
+      setDebugMode(LOG.isTraceEnabled());
+    }
   }
 
   @NotNull
@@ -90,7 +103,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
     return built;
   }
 
-  public void printErrorInfo(int offset, String token, String message) {
+  private void printErrorInfo(int offset, String token, String message) {
 
     PsiDocumentManager mgr = PsiDocumentManager.getInstance(getProject());
     Document doc = null != mgr ? mgr.getDocument(psiFile) : null;
