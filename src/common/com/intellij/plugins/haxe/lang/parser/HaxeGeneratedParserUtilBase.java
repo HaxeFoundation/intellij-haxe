@@ -78,7 +78,7 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
    * Make a semi-colon optional in the case that it's preceded by a block statement.
    *
    */
-  public static boolean semicolonUnlessPrecededByBlock(PsiBuilder builder_, int level) {
+  public static boolean semicolonUnlessPrecededByStatement(PsiBuilder builder_, int level) {
     if (consumeTokenFast(builder_, OSEMI)) {
       return true;
     }
@@ -87,7 +87,7 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     while (null != previousType && isWhitespaceOrComment(builder_, previousType)) {
       previousType = builder_.rawLookup(--i);
     }
-    if (previousType == HaxeTokenTypes.PRCURLY) {
+    if (previousType == HaxeTokenTypes.PRCURLY || previousType == HaxeTokenTypes.OSEMI) {
       return true;
     }
     builder_.error(HaxeBundle.message("parsing.error.missing.semi.colon"));

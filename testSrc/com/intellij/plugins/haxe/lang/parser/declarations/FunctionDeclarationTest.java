@@ -57,4 +57,32 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testReturnStatement() throws  Throwable {
     doTest(true);
   }
+
+  public void testArrowFnSingleArgBareAssignment() throws Throwable {
+    doTest(true);
+  }
+
+  public void testArrowFnSingleArgParensAssignment() throws Throwable {
+    doTest(true);
+  }
+
+  public void testArrowFnTwoArgAssignment() throws Throwable {
+    doTest(true);
+  }
+
+  public void testArrowFnSingleArgBareNested() throws Throwable {
+    doTest(true);
+  }
+
+  public void testArrowFnSingleArgParensNested() throws Throwable {
+    doTest(true);
+  }
+
+  public void testArrowFnTwoArgNested() throws Throwable {
+    doTest(true);
+  }
+
+  public void testArrowFnZeroArg() throws Throwable {
+    doTest(true);
+  }
 }
