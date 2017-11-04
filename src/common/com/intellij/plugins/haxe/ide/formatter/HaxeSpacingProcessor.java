@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +72,7 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(false);
     }
 
-    if (type1 == CLASS_BODY || type1 == EXTERN_CLASS_DECLARATION_BODY || type1 == ENUM_BODY || type1 == INTERFACE_BODY) {
+    if (type1 == CLASS_BODY || type1 == EXTERN_CLASS_DECLARATION_BODY || type1 == ENUM_BODY || type1 == INTERFACE_BODY || type1 == ABSTRACT_BODY) {
       return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
@@ -313,7 +314,7 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type1 == PLCURLY && (type2 == INTERFACE_BODY || type2 == CLASS_BODY || type2 == ENUM_BODY || type2 == ABSTRACT_CLASS_DECLARATION)) {
+    if (type1 == PLCURLY && (type2 == INTERFACE_BODY || type2 == CLASS_BODY || type2 == ENUM_BODY || type2 == ABSTRACT_CLASS_DECLARATION || type2 == ABSTRACT_BODY)) {
       return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_BEFORE_METHOD_BODY, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 

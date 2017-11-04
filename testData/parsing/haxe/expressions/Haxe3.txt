@@ -1106,7 +1106,7 @@ Haxe File
         IDENTIFIER
           HaxePsiToken:ID('Int')
     HaxePsiToken:{('{')
-    CLASS_BODY
+    ABSTRACT_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -1186,7 +1186,7 @@ Haxe File
       IDENTIFIER
         HaxePsiToken:ID('Void')
     HaxePsiToken:{('{')
-    CLASS_BODY
+    ABSTRACT_BODY
       <empty list>
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type with no relations')
@@ -1202,7 +1202,7 @@ Haxe File
         IDENTIFIER
           HaxePsiToken:ID('Float')
     HaxePsiToken:{('{')
-    CLASS_BODY
+    ABSTRACT_BODY
       <empty list>
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type which implicit casts to Float')
@@ -1224,7 +1224,7 @@ Haxe File
         IDENTIFIER
           HaxePsiToken:ID('Int')
     HaxePsiToken:{('{')
-    CLASS_BODY
+    ABSTRACT_BODY
       <empty list>
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value types which auto-casts to and from Int')
@@ -1255,7 +1255,7 @@ Haxe File
             HaxePsiToken:ID('Int')
     HaxePsiToken:)(')')
     HaxePsiToken:{('{')
-    CLASS_BODY
+    ABSTRACT_BODY
       <empty list>
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on Int')
@@ -1289,7 +1289,7 @@ Haxe File
           HaxePsiToken:>('>')
     HaxePsiToken:)(')')
     HaxePsiToken:{('{')
-    CLASS_BODY
+    ABSTRACT_BODY
       <empty list>
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on VectorData<T>')
@@ -1316,7 +1316,7 @@ Haxe File
           HaxePsiToken:>('>')
     HaxePsiToken:)(')')
     HaxePsiToken:{('{')
-    CLASS_BODY
+    ABSTRACT_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           HaxePsiToken:inline('inline')
@@ -1439,7 +1439,7 @@ Haxe File
           HaxePsiToken:ID('Int')
     HaxePsiToken:{('{')
     PsiComment(MSL_COMMENT)('// MyInt + MyInt can be used as is, and returns a MyInt')
-    CLASS_BODY
+    ABSTRACT_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@:op')
