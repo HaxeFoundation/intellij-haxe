@@ -449,7 +449,7 @@ private regularGenericListPart ::= macroMember* componentName (':' ('(' typeList
 // We can't use constMeta here until the lexer returns a string for macros instead of MACRO_ID.
 private constGenericListPart ::= macroMember+ constantExpression (':' ('(' typeList ')' | typeListPart))? {pin=2}
 
-typeListPart ::= typeWrapper | constantExpression
+typeListPart ::= typeWrapper | expression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
@@ -522,37 +522,37 @@ expression ::= assignExpressionWrapper {recoverWhile="expression_recover"}
 private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
 private assignExpressionWrapper ::= fatArrowExpressionWrapper assignExpression?
-left assignExpression ::= assignOperation fatArrowExpressionWrapper { pin=1 }
+left assignExpression ::= assignOperation fatArrowExpressionWrapper { pin=2 }
 
 private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression?
-left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=1}
+left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=2}
 
 private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
-left iteratorExpression ::= '...' ternaryExpressionWrapper
+left iteratorExpression ::= '...' ternaryExpressionWrapper {pin=2}
 
 private ternaryExpressionWrapper ::= logicOrExpressionWrapper ternaryExpression?
-left ternaryExpression ::= '?' expression ':' ternaryExpressionWrapper
+left ternaryExpression ::= '?' expression ':' ternaryExpressionWrapper {pin=2}
 
 private logicOrExpressionWrapper ::= logicAndExpressionWrapper logicOrExpression*
-left logicOrExpression ::= '||' logicAndExpressionWrapper
+left logicOrExpression ::= '||' logicAndExpressionWrapper {pin=2}
 
 private logicAndExpressionWrapper ::= compareExpressionWrapper logicAndExpression*
-left logicAndExpression ::= '&&' compareExpressionWrapper
+left logicAndExpression ::= '&&' compareExpressionWrapper {pin=2}
 
 private compareExpressionWrapper ::= bitwiseExpressionWrapper compareExpression*
-left compareExpression ::= compareOperation bitwiseExpressionWrapper
+left compareExpression ::= compareOperation bitwiseExpressionWrapper {pin=2}
 
 private bitwiseExpressionWrapper ::= shiftExpressionWrapper bitwiseExpression*
-left bitwiseExpression ::= bitOperation shiftExpressionWrapper
+left bitwiseExpression ::= bitOperation shiftExpressionWrapper {pin=2}
 
 private shiftExpressionWrapper ::= additiveExpressionWrapper shiftExpression*
-left shiftExpression ::= shiftOperator additiveExpressionWrapper
+left shiftExpression ::= shiftOperator additiveExpressionWrapper {pin=2}
 
 private additiveExpressionWrapper ::= multiplicativeExpressionWrapper additiveExpression*
-left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper
+left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper {pin=2}
 
 private multiplicativeExpressionWrapper ::= prefixExpression multiplicativeExpression*
-left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper)
+left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper) {pin=2}
 
 prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
 
