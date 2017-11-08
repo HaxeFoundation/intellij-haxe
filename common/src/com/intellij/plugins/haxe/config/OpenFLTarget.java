@@ -47,7 +47,8 @@ public enum OpenFLTarget {
   HTML5("HTML5", HaxeTarget.JAVA_SCRIPT, "html5"),
   NEKO("Neko", HaxeTarget.NEKO, "neko"),
   TIZEN("Tizen", HaxeTarget.CPP, "tizen"),
-  EMSCRIPTEN("Emscripten", HaxeTarget.CPP, "emscripten");
+  EMSCRIPTEN("Emscripten", HaxeTarget.CPP, "emscripten"),
+  AIR("Adobe AIR", HaxeTarget.FLASH, "air");
 
   private final String[] flags;
   private final String description;

@@ -47,7 +47,7 @@ Install the following plugins [from Intellij IDEA plugin manager](https://www.je
 
 IntelliJ IDEA uses the Grammar-Kit plugin to generate its lexer and parser for Haxe and HXML.
 The grammar file for Haxe is [haxe.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/grammar/haxe.bnf).
-The grammar file for HXML is [hxml.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/src/com/intellij/plugins/haxe/hxml/hxml.bnf).
+The grammar file for HXML is [hxml.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/src/common/com/intellij/plugins/haxe/hxml/hxml.bnf).
 
 #### Enable the PSI Viewer
 In versions 13 and later, the PsiViewer is pre-installed, and it is not 
