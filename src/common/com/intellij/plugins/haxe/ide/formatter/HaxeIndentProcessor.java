@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +124,7 @@ public class HaxeIndentProcessor {
     }
     boolean result = type == BLOCK_STATEMENT;
     result = result || type == CLASS_BODY;
+    result = result || type == ABSTRACT_BODY;
     result = result || (type == ARRAY_LITERAL && elementType != PLBRACK && elementType != PRBRACK);
     result = result || type == OBJECT_LITERAL;
     result = result || type == EXTERN_CLASS_DECLARATION_BODY;

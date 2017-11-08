@@ -294,9 +294,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking literal."));
     if (this instanceof HaxeLiteralExpression) {
-      final LeafPsiElement child = (LeafPsiElement)getFirstChild();
-      final IElementType childTokenType = child == null ? null : child.getElementType();
-      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
+      final PsiElement firstChild = getFirstChild();
+      if (firstChild instanceof LeafPsiElement) {
+        final LeafPsiElement child = (LeafPsiElement)getFirstChild();
+        final IElementType childTokenType = child == null ? null : child.getElementType();
+        return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
+      }
+      // Else, it's a block statement and not a named literal.
+      return HaxeClassResolveResult.create(null);
     }
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking array literal."));
     if (this instanceof HaxeArrayLiteral) {
@@ -966,4 +971,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     return HaxeDebugUtil.traceMessage(msg.toString(), 120);
   }
+
+  // HaxeLiteralExpression
+  @Nullable
+  @Override
+  public HaxeBlockStatement getBlockStatement() {
+    return HaxeStatementUtils.getBlockStatement(this);
+  }
+
 }

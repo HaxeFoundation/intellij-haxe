@@ -32,4 +32,8 @@ public class TypedefDeclarationTest extends DeclarationTestBase {
   public void testPoints() throws Throwable {
     doTest(true);
   }
+
+  public void testMacroTypeDeclaration() throws Throwable {
+    doTest(true);
+  }
 }

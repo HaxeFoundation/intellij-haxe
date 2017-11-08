@@ -151,6 +151,9 @@
       kREQUIRE="@:require"
       kFAKEENUM="@:fakeEnum"
       kCOREAPI="@:core_api"
+      kCOREAPIALT="@:coreApi"
+      kUNREFLECTIVE="@:unreflective"
+      kARRAYACCESS="@:arrayAccess"
 
       kJSREQUIRE="@:jsRequire"
 
@@ -208,9 +211,9 @@ macroClassList ::= macroClass (macroClass)* {mixin="com.intellij.plugins.haxe.la
 elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeMacroClassListElementType"}
 //','
 
-private functionMacroMember ::= finalMeta | macroMember | overloadMeta
+private functionMacroMember ::= finalMeta | macroMember | overloadMeta | arrayAccessMeta
 private macroMember ::= macroMeta | protectedMeta | debugMeta | noDebugMeta | keepMeta | nativeMeta
-                       | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro
+                       | requireMeta | nsMeta | getterMeta | setterMeta | customMeta | metaMeta | buildMacro | autoBuildMacro | finalMeta
 
 buildMacro ::= '@:build' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
 autoBuildMacro ::= '@:autoBuild' '(' referenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)* ')' {pin=2}
@@ -224,7 +227,7 @@ nsMeta ::= '@:ns' '(' stringLiteralExpression ')'
 getterMeta ::= '@:getter' '(' referenceExpression ')'
 setterMeta ::= '@:setter' '(' referenceExpression ')'
 overloadMeta ::= '@:overload' '(' anonymousFunctionDeclaration ')'
-customMeta ::= MACRO_ID ('(' expressionList ')')?
+customMeta ::= MACRO_ID ('(' expressionList? ')')?
 metaMeta ::= '@:meta' '(' ID '(' metaPartList? ')' ')'
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
 metaKeyValue ::= ID '=' stringLiteralExpression
@@ -307,8 +310,10 @@ classDeclaration ::= macroClassList? privateKeyWord? 'class' componentName gener
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 //'from' | 'to'
-abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' typeWrapper ')')? ((identifier) type)* '{' classBody '}'
+abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' typeWrapper ')')? ((identifier) type)* '{' abstractBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+abstractBody ::= abstractBodyPart*  {extends="classBody"}
+private abstractBodyPart ::= varDeclaration | functionDeclarationWithAttributes | functionPrototypeDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
 
 classBody ::= classBodyPart*
 private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
@@ -338,14 +343,14 @@ private enum_value_declaration_recovery ::= !(ID | '}')
 
 enumConstructorParameters ::= parenthesizedParameterList
 
-varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList ';'
+varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private varDeclarationPartList ::= varDeclarationPart
 varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private var_declaration_part_recover ::= !(';' | ',')
+private var_declaration_part_recover ::= !(';' | ',' | '}' | 'var' | 'macro' | 'function' | ppToken | metaKeyWord | declarationAttribute)
 
-localVarDeclaration ::= 'var' localVarDeclarationPartList ';'?
+localVarDeclaration ::= 'var' localVarDeclarationPartList <<semicolonUnlessPrecededByStatement>>
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
 localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
@@ -357,19 +362,27 @@ propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | 'get' | 'set' | referenceExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private functionCommonBody ::= blockStatement | returnStatement | (expression ';'?) | throwStatement | ifStatement | forStatement | whileStatement | doWhileStatement
+private functionCommonBody ::= blockStatement
+                             | returnStatement
+                             | throwStatement
+                             | ifStatement
+                             | forStatement
+                             | whileStatement
+                             | doWhileStatement
+                             | expression
 
 private constructorName ::= 'new'
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-externFunctionDeclaration ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? (functionCommonBody | ';')
+// XXX: EMB - Not sure why we need all three of these.  They are increasingly similar.
+externFunctionDeclaration                  ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ((functionCommonBody <<semicolonUnlessPrecededByStatement>>) | ';')
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember| declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ';'
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
+functionDeclarationWithAttributes          ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody <<semicolonUnlessPrecededByStatement>>
+{pin=8 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
+functionPrototypeDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ';'
+{pin=8 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
+localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName? genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 anonymousFunctionDeclaration ::= 'function' parenthesizedParameterList typeTag? 'untyped'? '{' '}' {pin=2}
 /* TODO: Should anonymousFunctionDeclaration extend and implement HaxeMethod as well?? */
@@ -391,7 +404,7 @@ parameterList ::= (parameter (',' parameter)*)? {recoverWhile="parameterListReco
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
-private keywordFunctionLiteral ::= 'function' parenthesizedParameterList typeTag? 'untyped'? functionCommonBody {pin=2}
+private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody {pin=2}
 functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
 
 arrayLiteral ::= '[' (expressionList ','?)? ']'
@@ -436,7 +449,7 @@ private regularGenericListPart ::= macroMember* componentName (':' ('(' typeList
 // We can't use constMeta here until the lexer returns a string for macros instead of MACRO_ID.
 private constGenericListPart ::= macroMember+ constantExpression (':' ('(' typeList ')' | typeListPart))? {pin=2}
 
-typeListPart ::= typeWrapper | constantExpression
+typeListPart ::= typeWrapper | expression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
@@ -486,7 +499,7 @@ throwStatement ::= 'throw' expression ';'?
 
 switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{'  switchCase* defaultCase? '}' {pin=1}
-switchCaseBlock ::= (literalExpression ";") | statementList
+switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
 switchCase ::= ('case' switchCaseExpression (',' switchCaseExpression)* ':')+ switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
 switchCaseExpression ::= expression ('if' '(' expression ')')? {pin=1 extends="expression"}
 private switch_case_recover ::= !('case' | 'default' | '}' | ID)
@@ -502,44 +515,44 @@ catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 //mapArrayExpression ::= (expression OFAT_ARROW expression (',' expression OFAT_ARROW expression)*) {recoverWhile="expression_list_recover"}
 //mapArrayExpression
 
-expressionList ::= forStatement | whileStatement | (expression (',' expression)*) {recoverWhile="expression_list_recover"}
+expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
 expression ::= assignExpressionWrapper {recoverWhile="expression_recover"}
 private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | MACRO_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
 private assignExpressionWrapper ::= fatArrowExpressionWrapper assignExpression?
-left assignExpression ::= assignOperation fatArrowExpressionWrapper { pin=1 }
+left assignExpression ::= assignOperation fatArrowExpressionWrapper { pin=2 }
 
 private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression?
-left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=1}
+left fatArrowExpression ::= '=>' iteratorExpressionWrapper {pin=2}
 
 private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
-left iteratorExpression ::= '...' ternaryExpressionWrapper
+left iteratorExpression ::= '...' ternaryExpressionWrapper {pin=2}
 
 private ternaryExpressionWrapper ::= logicOrExpressionWrapper ternaryExpression?
-left ternaryExpression ::= '?' expression ':' ternaryExpressionWrapper
+left ternaryExpression ::= '?' expression ':' ternaryExpressionWrapper {pin=2}
 
 private logicOrExpressionWrapper ::= logicAndExpressionWrapper logicOrExpression*
-left logicOrExpression ::= '||' logicAndExpressionWrapper
+left logicOrExpression ::= '||' logicAndExpressionWrapper {pin=2}
 
 private logicAndExpressionWrapper ::= compareExpressionWrapper logicAndExpression*
-left logicAndExpression ::= '&&' compareExpressionWrapper
+left logicAndExpression ::= '&&' compareExpressionWrapper {pin=2}
 
 private compareExpressionWrapper ::= bitwiseExpressionWrapper compareExpression*
-left compareExpression ::= compareOperation bitwiseExpressionWrapper
+left compareExpression ::= compareOperation bitwiseExpressionWrapper {pin=2}
 
 private bitwiseExpressionWrapper ::= shiftExpressionWrapper bitwiseExpression*
-left bitwiseExpression ::= bitOperation shiftExpressionWrapper
+left bitwiseExpression ::= bitOperation shiftExpressionWrapper {pin=2}
 
 private shiftExpressionWrapper ::= additiveExpressionWrapper shiftExpression*
-left shiftExpression ::= shiftOperator additiveExpressionWrapper
+left shiftExpression ::= shiftOperator additiveExpressionWrapper {pin=2}
 
 private additiveExpressionWrapper ::= multiplicativeExpressionWrapper additiveExpression*
-left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper
+left additiveExpression ::= ('+' | '-') multiplicativeExpressionWrapper {pin=2}
 
 private multiplicativeExpressionWrapper ::= prefixExpression multiplicativeExpression*
-left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper)
+left multiplicativeExpression ::= ('*' | '/' | '%') (prefixExpression | suffixExpressionWrapper) {pin=2}
 
 prefixExpression ::= ('-' | '--' | '++' | '!' | '~') prefixExpression | suffixExpressionWrapper
 
@@ -553,15 +566,17 @@ left suffixExpression ::= ('--' | '++')
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
 // In particular, calllFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
+// If callOrArrayAccess comes before literalExpression, then referenceExpression (as part of callOrArrayAccess)
+// will take the first identifier and the rest will not match properly.
 private value ::= macroClassList? (('untyped' expression)
                                                    | 'macro' expression
                                                    | callFunctionLiteral
                                                    | (literalExpression qualifiedReferenceTail?)
+                                                   | callOrArrayAccess
                                                    | ifStatement
                                                    | (castExpression qualifiedReferenceTail?)
                                                    | newExpressionOrCall
                                                    | parenthesizedExpressionOrCall
-                                                   | callOrArrayAccess
                                                    | tryStatement
                                                    | switchStatement)
 {pin=2}
@@ -573,7 +588,7 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | arrayLiteral
                     | objectLiteral
                     | stringLiteralExpression
-                    //| blockStatement
+                    | blockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                              | regularExpressionLiteral
@@ -601,7 +616,7 @@ private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 private callFunctionLiteral ::= functionLiteral callExpression
-private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
+private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression | parenthesizedExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 left callExpression ::= '(' expressionList? ')'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
@@ -665,7 +680,7 @@ anonymousTypeField ::= "?"? componentName typeTag
 private emptyObjectLiteral ::= '{' '}'
 objectLiteral ::= ('{' objectLiteralElementList+ '}') | emptyObjectLiteral
 
-private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* {recoverWhile="object_literal_list_recover"}
+private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* ','? {recoverWhile="object_literal_list_recover"}
 private object_literal_list_recover ::= !('}')
 
 objectLiteralElement ::= (identifier | OPEN_QUOTE REGULAR_STRING_PART CLOSING_QUOTE) ':' expression {recoverWhile="object_literal_part_recover"}

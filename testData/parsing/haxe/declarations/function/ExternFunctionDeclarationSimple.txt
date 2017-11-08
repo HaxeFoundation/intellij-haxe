@@ -1,0 +1,109 @@
+Haxe File
+  EXTERN_CLASS_DECLARATION
+    EXTERN_KEY_WORD
+      HaxePsiToken:extern('extern ')
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('ExternDecl')
+    HaxePsiToken:{('{')
+    EXTERN_CLASS_DECLARATION_BODY
+      EXTERN_FUNCTION_DECLARATION
+        DECLARATION_ATTRIBUTE
+          HaxePsiToken:static('static')
+        DECLARATION_ATTRIBUTE
+          HaxePsiToken:inline('inline')
+        HaxePsiToken:function('function')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('resolve')
+        GENERIC_PARAM
+          HaxePsiToken:<('<')
+          GENERIC_LIST_PART
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('T')
+          HaxePsiToken:>('>')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          PARAMETER
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('deliverable')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('Deliverable')
+                  TYPE_PARAM
+                    HaxePsiToken:<('<')
+                    TYPE_LIST
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('T')
+                    HaxePsiToken:>('>')
+          HaxePsiToken:,(',')
+          PARAMETER
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('value')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('T')
+        PsiComment(#if)('#if')
+        PsiComment(PPEXPRESSION)(' ')
+        PsiComment(PPEXPRESSION)('debug')
+        PsiComment(PPBODY)(' ')
+        PsiComment(PPBODY)(',')
+        PsiComment(PPBODY)(' ')
+        PsiComment(PPBODY)('?')
+        PsiComment(PPBODY)('pos')
+        PsiComment(PPBODY)(' ')
+        PsiComment(PPBODY)(':')
+        PsiComment(PPBODY)(' ')
+        PsiComment(PPBODY)('PosInfos')
+        PsiComment(PPBODY)(' ')
+        PsiComment(#end)('#end')
+        HaxePsiToken:)(')')
+        TYPE_TAG
+          HaxePsiToken::(':')
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('Void')
+        CALL_EXPRESSION
+          REFERENCE_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('deliverable')
+            HaxePsiToken:.('.')
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('deliver')
+          HaxePsiToken:(('(')
+          EXPRESSION_LIST
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('value')
+          PsiComment(#if)('#if')
+          PsiComment(PPEXPRESSION)(' ')
+          PsiComment(PPEXPRESSION)('debug')
+          PsiComment(PPBODY)(' ')
+          PsiComment(PPBODY)(',')
+          PsiComment(PPBODY)(' ')
+          PsiComment(PPBODY)('pos')
+          PsiComment(PPBODY)(' ')
+          PsiComment(#end)('#end')
+          HaxePsiToken:)(')')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')

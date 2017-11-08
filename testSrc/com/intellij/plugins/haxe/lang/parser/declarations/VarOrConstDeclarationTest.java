@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +31,14 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
     doTest(true);
   }
 
+  public void testAssignArrayOfObjectLiteral() throws Throwable {
+    doTest(true);
+  }
+
+  public void testAssignArrayOfObjectLiteralWithExtraComma() throws Throwable {
+    doTest(true);
+  }
+
   public void testBoolExpression() throws Throwable {
     doTest(true);
   }
@@ -51,6 +60,26 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
   }
 
   public void testTivo_42() throws Throwable {
+    doTest(true);
+  }
+
+  public void testFatArrowArrayLiteral() throws Throwable {
+    doTest(true);
+  }
+
+  public void testFatArrowArrayLiteralWithExtraComma() throws Throwable {
+    doTest(true);
+  }
+
+  public void testCommaAssignmentRequiringSemicolon() throws Throwable {
+    doTest(true);
+  }
+
+  public void testCommaAssignmentRequiringMissingSemicolon() throws Throwable {
+    doTest(true);
+  }
+
+  public void testCommaAssignmentNotRequiringSemicolon() throws Throwable {
     doTest(true);
   }
 }

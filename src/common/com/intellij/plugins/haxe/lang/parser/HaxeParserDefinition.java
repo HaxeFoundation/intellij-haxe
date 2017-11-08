@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.ParserDefinition;
-import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.project.Project;
@@ -28,43 +27,14 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeLexer;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.source.resolve.FileContextUtil;
-import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeParserDefinition implements ParserDefinition {
-  /** Set this false when you're finished debugging. */
-  private static boolean debugging = false;
-
-  public static class HaxeParserWrapper extends HaxeParser {
-    @Override
-    public ASTNode parse(IElementType t, PsiBuilder b) {
-      if (debugging) {
-        HaxeDebugTimeLog timeLog = null;
-
-        // The file is attached to the user data. :/  I suspect this was a hack, but it's what we've got available.
-        PsiFile file = b.getUserDataUnprotected(FileContextUtil.CONTAINING_FILE_KEY);
-
-        String description = null != file ? file.getName() : t.toString();
-        timeLog = HaxeDebugTimeLog.startNew("HaxeParser " + description, HaxeDebugTimeLog.Since.StartAndPrevious);
-
-        ASTNode node = super.parse(t, b);
-
-        timeLog.stamp("Finished parsing.");
-        timeLog.printIfTimeExceeds(20 /* milliseconds */);
-
-        return node;
-      }
-      return super.parse(t,b);
-    }
-  }
-
 
   @NotNull
   public Lexer createLexer(Project project) {

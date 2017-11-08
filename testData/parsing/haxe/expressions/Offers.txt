@@ -50,7 +50,7 @@ Haxe File
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('n')
-          PsiErrorElement:';', <local function declaration>, <macro class>, <prefix expression>, break, continue, do, for, if, macro, return, switch, throw, try, untyped, var, while or '{' expected, got '}'
+          PsiErrorElement:'!', '(', '++', '-', '--', ';', '@:arrayAccess', '@:autoBuild', '@:bind', '@:bitmap', '@:build', '@:coreApi', '@:fakeEnum', '@:final', '@:hack', '@:jsRequire', '@:keep', '@:macro', '@:meta', '@:native', '@:ns', '@:require', '@:unreflective', ID, LITFLOAT, LITHEX, LITINT, LITOCT, MACRO_ID, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, inline, macro, new, null, return, super, switch, this, throw, true and ... expected, got '}'
             HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
           HaxePsiToken:REGULAR_STRING_PART('\n')
           HaxePsiToken:REGULAR_STRING_PART('}')

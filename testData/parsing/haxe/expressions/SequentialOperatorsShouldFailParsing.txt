@@ -1,0 +1,40 @@
+Haxe File
+  CLASS_DECLARATION
+    HaxePsiToken:class('class')
+    COMPONENT_NAME
+      IDENTIFIER
+        HaxePsiToken:ID('Test')
+    HaxePsiToken:{('{')
+    CLASS_BODY
+      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+        DECLARATION_ATTRIBUTE
+          ACCESS
+            HaxePsiToken:public('public')
+        HaxePsiToken:function('function')
+        HaxePsiToken:new('new')
+        HaxePsiToken:(('(')
+        PARAMETER_LIST
+          <empty list>
+        HaxePsiToken:)(')')
+        BLOCK_STATEMENT
+          HaxePsiToken:{('{')
+          LOCAL_VAR_DECLARATION
+            HaxePsiToken:var('var')
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('a')
+              VAR_INIT
+                HaxePsiToken:=('=')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:LITINT('1')
+              PsiErrorElement:'||' unexpected
+                HaxePsiToken:||('||')
+              HaxePsiToken:&&('&&')
+            PsiErrorElement:Missing semicolon.
+              <empty list>
+          LITERAL_EXPRESSION
+            HaxePsiToken:LITINT('2')
+          HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
+    HaxePsiToken:}('}')
