@@ -88,7 +88,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
   public ASTNode getTreeBuilt() {
     ASTNode built = super.getTreeBuilt();
 
-    if (LOG.isDebugEnabled()) {
+    if (LOG.isDebugEnabled() && !ApplicationManager.getApplication().isUnitTestMode()) {
       // Walk the tree, depth first and print out all remaining error elements.
       new ASTNodeWalker().walk(built, new Lambda<ASTNode>() {
         @Override
