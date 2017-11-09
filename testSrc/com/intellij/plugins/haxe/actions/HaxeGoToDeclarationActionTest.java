@@ -109,7 +109,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testStaticClassMember2() {
-    doTest(myFixture.configureByFiles("StaticClassMember2.hx", "com/bar/Foo.hx"), 2);
+    doTest(myFixture.configureByFiles("StaticClassMember2.hx", "com/bar/Foo.hx"), 1);
   }
 
   public void testFunctionCall() {
@@ -153,7 +153,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testReferenceExpression3() {
-    doTest(myFixture.configureByFiles("ReferenceExpression3.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 2);
+    doTest(myFixture.configureByFiles("ReferenceExpression3.hx", "com/bar/Foo.hx", "com/bar/Baz.hx"), 1);
   }
 
   public void testReferenceExpression4() {

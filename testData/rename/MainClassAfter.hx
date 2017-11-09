@@ -1,5 +1,5 @@
-package foo;
-import foo.MainClassAfter;
+package ;
+import MainClassAfter;
 class MainClassAfter {
   var main:MainClassAfter;
 }

@@ -82,9 +82,8 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('MacroGenerator')
               HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('build')
+              IDENTIFIER
+                HaxePsiToken:ID('build')
             HaxePsiToken:(('(')
             HaxePsiToken:)(')')
           HaxePsiToken:)(')')
@@ -142,10 +141,9 @@ Haxe File
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@customUser')
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('_value')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('_value')
         HaxePsiToken:;(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         GETTER_META
@@ -245,9 +243,8 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('js')
                     HaxePsiToken:.('.')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('JQuery')
+                    IDENTIFIER
+                      HaxePsiToken:ID('JQuery')
             HaxePsiToken:{('{')
             HaxePsiToken:}('}')
           HaxePsiToken:)(')')
@@ -292,9 +289,8 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('MacroGenerator')
               HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('build')
+              IDENTIFIER
+                HaxePsiToken:ID('build')
             HaxePsiToken:(('(')
             EXPRESSION_LIST
               ARRAY_LITERAL

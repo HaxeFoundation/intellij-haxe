@@ -11,23 +11,22 @@ Haxe File
     CLASS_BODY
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a')
-          TYPE_TAG
-            HaxePsiToken::(':')
-            TYPE_OR_ANONYMOUS
-              TYPE
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('String')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            STRING_LITERAL_EXPRESSION
-              HaxePsiToken:OPEN_QUOTE('"')
-              HaxePsiToken:REGULAR_STRING_PART('asdf')
-              HaxePsiToken:CLOSING_QUOTE('"')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a')
+        TYPE_TAG
+          HaxePsiToken::(':')
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('String')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          STRING_LITERAL_EXPRESSION
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('asdf')
+            HaxePsiToken:CLOSING_QUOTE('"')
         PsiErrorElement:Missing semicolon.
           <empty list>
       PsiComment(MSL_COMMENT)('// <--- Missing semicolon should cause an error.')
@@ -36,7 +35,9 @@ Haxe File
           ACCESS
             HaxePsiToken:public('public')
         HaxePsiToken:function('function')
-        HaxePsiToken:new('new')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:new('new')
         HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>

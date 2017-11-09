@@ -45,8 +45,8 @@ public class HaxeAbstractEnumUtil {
    */
   @Contract("null -> false")
   public static boolean couldBeAbstractEnumField(@Nullable PsiElement element) {
-    if(element != null && element instanceof HaxeVarDeclarationPart) {
-      final HaxeVarDeclarationPart decl = (HaxeVarDeclarationPart)element;
+    if(element != null && element instanceof HaxeVarDeclaration) {
+      final HaxeVarDeclaration decl = (HaxeVarDeclaration)element;
        if(decl.getPropertyDeclaration() == null && !decl.isStatic()) {
         return true;
       }
@@ -65,8 +65,8 @@ public class HaxeAbstractEnumUtil {
     final HaxeClass cls = getFieldClass(element);
     if(cls != null && element != null) {
       ResultHolder result = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(cls.getModel(), element)));
-      if(element instanceof HaxeVarDeclarationPart) {
-        final HaxeVarInit init = ((HaxeVarDeclarationPart)element).getVarInit();
+      if(element instanceof HaxeVarDeclaration) {
+        final HaxeVarInit init = ((HaxeVarDeclaration)element).getVarInit();
         if(init != null && init.getExpression() != null) {
           result = result.withConstantValue(init.getExpression().getText());
         }
@@ -80,11 +80,13 @@ public class HaxeAbstractEnumUtil {
   @Contract("null -> null")
   public static ResultHolder getStaticMemberExpression(@Nullable PsiElement expression) {
     if(expression != null) {
-      final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
-      if (childReferences != null && childReferences.length == 2) {
-        final HaxeClass leftClass = childReferences[0].resolveHaxeClass().getHaxeClass();
+      final PsiElement containerElement = expression.getFirstChild();
+      final PsiElement memberElement = expression.getLastChild();
+
+      if (containerElement instanceof HaxeReference && memberElement instanceof HaxeIdentifier) {
+        final HaxeClass leftClass = ((HaxeReference)containerElement).resolveHaxeClass().getHaxeClass();
         if (isAbstractEnum(leftClass)) {
-          final HaxeNamedComponent enumField = leftClass.findHaxeFieldByName(childReferences[1].getText());
+          final HaxeNamedComponent enumField = leftClass.findHaxeFieldByName(memberElement.getText());
           if(enumField != null) {
             ResultHolder result = getFieldType(enumField);
             if(result != null) {
@@ -101,8 +103,8 @@ public class HaxeAbstractEnumUtil {
 
   @Nullable
   private static HaxeClass getFieldClass(@Nullable PsiElement element) {
-    final HaxeVarDeclarationPart varDecl = element != null && (element instanceof HaxeVarDeclarationPart) ?
-                                           (HaxeVarDeclarationPart)element : null;
+    final HaxeVarDeclaration varDecl = element != null && (element instanceof HaxeVarDeclaration) ?
+                                           (HaxeVarDeclaration)element : null;
     if (couldBeAbstractEnumField(varDecl)) {
       final HaxeAbstractClassDeclaration abstractEnumClass =
         PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);

@@ -22,9 +22,9 @@ Haxe File
         HaxePsiToken:)(')')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('array')
@@ -57,9 +57,8 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('array')
                   HaxePsiToken:.('.')
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('map')
+                  IDENTIFIER
+                    HaxePsiToken:ID('map')
                 HaxePsiToken:(('(')
                 EXPRESSION_LIST
                   FUNCTION_LITERAL
@@ -77,9 +76,8 @@ Haxe File
                           IDENTIFIER
                             HaxePsiToken:ID('a')
                         HaxePsiToken:.('.')
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('charCodeAt')
+                        IDENTIFIER
+                          HaxePsiToken:ID('charCodeAt')
                       HaxePsiToken:(('(')
                       EXPRESSION_LIST
                         LITERAL_EXPRESSION
@@ -87,9 +85,8 @@ Haxe File
                       HaxePsiToken:)(')')
                 HaxePsiToken:)(')')
               HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('sort')
+              IDENTIFIER
+                HaxePsiToken:ID('sort')
             HaxePsiToken:(('(')
             EXPRESSION_LIST
               FUNCTION_LITERAL

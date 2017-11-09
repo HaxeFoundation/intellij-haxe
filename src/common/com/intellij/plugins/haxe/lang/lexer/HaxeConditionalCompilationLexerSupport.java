@@ -35,8 +35,7 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
  * Created by ebishton on 3/23/17.
  */
 public class HaxeConditionalCompilationLexerSupport {
-  static final String classname = new Object(){}.getClass().getEnclosingClass().getName();
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + classname);
+  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger(HaxeConditionalCompilationLexerSupport.class);
   static {      // Take this out when finished debugging.
     LOG.setLevel(org.apache.log4j.Level.DEBUG);
   }
@@ -283,8 +282,7 @@ public class HaxeConditionalCompilationLexerSupport {
   public void processConditional(CharSequence chars, IElementType type) {
     if (PPIF.equals(type)) {
       // Start a new section...
-      Section newSection = new Section(currentContext, type);
-      currentContext = newSection;
+      currentContext = new Section(currentContext, type);
     } else if (PPELSE.equals(type)) {
       currentContext.startBlock(type);
     } else if (PPELSEIF.equals(type)) {

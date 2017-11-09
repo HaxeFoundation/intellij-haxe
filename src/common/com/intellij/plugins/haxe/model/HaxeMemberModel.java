@@ -21,20 +21,20 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
-abstract public class HaxeMemberModel {
+abstract public class HaxeMemberModel implements HaxeModel {
   private PsiElement basePsi;
-  private PsiElement modifiersPsi;
-  private PsiElement baseNamePsi;
 
-  public HaxeMemberModel(PsiElement basePsi, PsiElement modifiersPsi, PsiElement baseNamePsi) {
+  public HaxeMemberModel(PsiElement basePsi) {
     this.basePsi = basePsi;
-    this.modifiersPsi = modifiersPsi;
-    this.baseNamePsi = baseNamePsi;
+  }
+
+  @Override
+  public PsiElement getBasePsi() {
+    return basePsi;
   }
 
   public boolean isPublic() {
@@ -48,11 +48,9 @@ abstract public class HaxeMemberModel {
   private HaxeDocumentModel _document = null;
   @NotNull
   public HaxeDocumentModel getDocument() {
-    if (_document == null) _document = new HaxeDocumentModel(this.getPsi());
+    if (_document == null) _document = new HaxeDocumentModel(this.getBasePsi());
     return _document;
   }
-
-  public PsiElement getPsi() { return basePsi; }
 
   public HaxeNamedComponent getNamedComponentPsi() {
     return getNamedComponentPsi(basePsi);
@@ -66,20 +64,22 @@ abstract public class HaxeMemberModel {
   }
 
   public String getName() {
-    PsiElement namePsi = getNamePsi();
-    return (namePsi != null) ? namePsi.getText() : "";
+    HaxeComponentName namePsi = getNamePsi();
+    return namePsi == null ? "" : namePsi.getText();
   }
 
-  public PsiElement getNamePsi() {
-    PsiElement child = UsefulPsiTreeUtil.getChild(UsefulPsiTreeUtil.getChild(baseNamePsi, HaxeComponentName.class), HaxeIdentifier.class);
-    if (child == null) child = UsefulPsiTreeUtil.getToken(baseNamePsi, "new");
-    return child;
+  public HaxeComponentName getNamePsi() {
+    HaxeComponentName componentName = UsefulPsiTreeUtil.getChild(basePsi, HaxeComponentName.class);
+    if (componentName != null && componentName.getParent() instanceof HaxeNamedComponent) {
+      return componentName;
+    }
+    return null;
   }
 
   @NotNull
   public PsiElement getNameOrBasePsi() {
     PsiElement element = getNamePsi();
-    if (element == null) element = getPsi();
+    if (element == null) element = getBasePsi();
     return element;
   }
 
@@ -88,7 +88,7 @@ abstract public class HaxeMemberModel {
   private HaxeModifiersModel _modifiers;
   @NotNull
   public HaxeModifiersModel getModifiers() {
-    if (_modifiers == null) _modifiers = new HaxeModifiersModel(modifiersPsi);
+    if (_modifiers == null) _modifiers = new HaxeModifiersModel(basePsi);
     return _modifiers;
   }
 
@@ -103,7 +103,7 @@ abstract public class HaxeMemberModel {
   }
 
   public ResultHolder getResultType() {
-    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.baseNamePsi);
+    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
   }
 
   public String getPresentableText(HaxeMethodContext context) {

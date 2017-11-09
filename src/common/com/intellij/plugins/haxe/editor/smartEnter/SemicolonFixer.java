@@ -81,12 +81,10 @@ public class SemicolonFixer implements Fixer {
   private static boolean fixAfterLastValidElement(@NotNull Editor editor, @Nullable PsiElement psiElement) {
     if (psiElement == null ||
         !(psiElement instanceof HaxeExpression) &&
-        !(psiElement instanceof HaxeReferenceExpression) &&
-        !(psiElement instanceof HaxeImportStatementRegular) &&
-        !(psiElement instanceof HaxeImportStatementWithInSupport) &&
-        !(psiElement instanceof HaxeImportStatementWithWildcard) &&
+        !(psiElement instanceof HaxeImportStatement) &&
         !(psiElement instanceof HaxeBreakStatement) &&
-        !(psiElement instanceof HaxeContinueStatement)) {
+        !(psiElement instanceof HaxeContinueStatement) &&
+        !(psiElement instanceof HaxeReferenceExpression)) {
       return false;
     }
 

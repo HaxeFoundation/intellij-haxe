@@ -11,16 +11,18 @@ Haxe File
           ACCESS
             HaxePsiToken:public('public')
         HaxePsiToken:function('function')
-        HaxePsiToken:new('new')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:new('new')
         HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
         HaxePsiToken:)(')')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('a')

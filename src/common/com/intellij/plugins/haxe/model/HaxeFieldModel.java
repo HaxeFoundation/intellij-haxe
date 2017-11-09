@@ -19,36 +19,21 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class HaxeFieldModel extends HaxeMemberModel {
-  private HaxeVarDeclaration element;
+  private HaxePsiField element;
 
-  public HaxeFieldModel(HaxeVarDeclaration element) {
-    super(element, element, UsefulPsiTreeUtil.getChild(element, HaxeVarDeclarationPart.class));
+  public HaxeFieldModel(HaxePsiField element) {
+    super(element);
+
     this.element = element;
   }
 
-  @Override
-  public PsiElement getPsi() {
-    return element;
-  }
-
-  public HaxeVarDeclaration getFieldPsi() {
-    return element;
-  }
-
-  @NotNull
-  public HaxeVarDeclarationPart getDeclarationPsi() {
-    return element.getVarDeclarationPart();
-  }
-
   private HaxeClassModel _declaringClass = null;
+
   public HaxeClassModel getDeclaringClass() {
     if (_declaringClass == null) {
       HaxeClass aClass = (HaxeClass)this.element.getContainingClass();
@@ -59,7 +44,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
 
   @Nullable
   public HaxePropertyDeclaration getPropertyDeclarationPsi() {
-    return getDeclarationPsi().getPropertyDeclaration();
+    return element instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)element).getPropertyDeclaration() : null;
   }
 
   @Nullable
@@ -125,8 +110,8 @@ public class HaxeFieldModel extends HaxeMemberModel {
     if (setter == HaxeAccessorType.NULL || setter == HaxeAccessorType.DEFAULT) {
       return true;
     }
-    else if(setter == HaxeAccessorType.NEVER &&
-       (getter == HaxeAccessorType.DEFAULT || getter == HaxeAccessorType.NULL)) {
+    else if (setter == HaxeAccessorType.NEVER &&
+             (getter == HaxeAccessorType.DEFAULT || getter == HaxeAccessorType.NULL)) {
       return true;
     }
     return false;
@@ -136,8 +121,9 @@ public class HaxeFieldModel extends HaxeMemberModel {
     return getInitializerPsi() != null;
   }
 
+  @Nullable
   public HaxeVarInit getInitializerPsi() {
-    return getDeclarationPsi().getVarInit();
+    return element instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)element).getVarInit() : null;
   }
 
   public boolean hasTypeTag() {
@@ -145,6 +131,25 @@ public class HaxeFieldModel extends HaxeMemberModel {
   }
 
   public HaxeTypeTag getTypeTagPsi() {
-    return getDeclarationPsi().getTypeTag();
+    if (element instanceof HaxeAnonymousTypeField) {
+      return ((HaxeAnonymousTypeField)element).getTypeTag();
+    }
+    if (element instanceof HaxeVarDeclaration) {
+      return ((HaxeVarDeclaration)element).getTypeTag();
+    }
+
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public HaxeExposableModel getExhibitor() {
+    return getDeclaringClass();
+  }
+
+  @Nullable
+  @Override
+  public FullyQualifiedInfo getQualifiedInfo() {
+    return null;
   }
 }

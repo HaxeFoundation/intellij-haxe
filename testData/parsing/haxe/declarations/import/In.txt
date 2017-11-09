@@ -1,5 +1,5 @@
 Haxe File
-  IMPORT_STATEMENT_WITH_IN_SUPPORT
+  IMPORT_STATEMENT
     HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
@@ -7,13 +7,11 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('flash')
         HaxePsiToken:.('.')
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('display')
-      HaxePsiToken:.('.')
-      REFERENCE_EXPRESSION
         IDENTIFIER
-          HaxePsiToken:ID('Sprite')
+          HaxePsiToken:ID('display')
+      HaxePsiToken:.('.')
+      IDENTIFIER
+        HaxePsiToken:ID('Sprite')
     HaxePsiToken:in('in')
     IDENTIFIER
       HaxePsiToken:ID('FDSprite')

@@ -8,36 +8,35 @@ Haxe File
     CLASS_BODY
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            OBJECT_LITERAL
-              HaxePsiToken:{('{')
-              OBJECT_LITERAL_ELEMENT
-                IDENTIFIER
-                  HaxePsiToken:ID('common')
-                HaxePsiToken::(':')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('0')
-              HaxePsiToken:,(',')
-              OBJECT_LITERAL_ELEMENT
-                HaxePsiToken:OPEN_QUOTE(''')
-                HaxePsiToken:REGULAR_STRING_PART('singleQuotes')
-                HaxePsiToken:CLOSING_QUOTE(''')
-                HaxePsiToken::(':')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('1')
-              HaxePsiToken:,(',')
-              OBJECT_LITERAL_ELEMENT
-                HaxePsiToken:OPEN_QUOTE('"')
-                HaxePsiToken:REGULAR_STRING_PART('doubleQuotes')
-                HaxePsiToken:CLOSING_QUOTE('"')
-                HaxePsiToken::(':')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('2')
-              HaxePsiToken:}('}')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          OBJECT_LITERAL
+            HaxePsiToken:{('{')
+            OBJECT_LITERAL_ELEMENT
+              IDENTIFIER
+                HaxePsiToken:ID('common')
+              HaxePsiToken::(':')
+              LITERAL_EXPRESSION
+                HaxePsiToken:LITINT('0')
+            HaxePsiToken:,(',')
+            OBJECT_LITERAL_ELEMENT
+              HaxePsiToken:OPEN_QUOTE(''')
+              HaxePsiToken:REGULAR_STRING_PART('singleQuotes')
+              HaxePsiToken:CLOSING_QUOTE(''')
+              HaxePsiToken::(':')
+              LITERAL_EXPRESSION
+                HaxePsiToken:LITINT('1')
+            HaxePsiToken:,(',')
+            OBJECT_LITERAL_ELEMENT
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('doubleQuotes')
+              HaxePsiToken:CLOSING_QUOTE('"')
+              HaxePsiToken::(':')
+              LITERAL_EXPRESSION
+                HaxePsiToken:LITINT('2')
+            HaxePsiToken:}('}')
         HaxePsiToken:;(';')
     HaxePsiToken:}('}')

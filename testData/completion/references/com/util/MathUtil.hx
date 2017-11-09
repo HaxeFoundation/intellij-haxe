@@ -1,4 +1,4 @@
-package com.utils;
+package com.util;
 
 class MathUtil {
   public static function abs(n:Int):Int {

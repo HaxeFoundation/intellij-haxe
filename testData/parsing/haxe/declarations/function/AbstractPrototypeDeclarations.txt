@@ -11,23 +11,24 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('T')
       HaxePsiToken:>('>')
-    HaxePsiToken:(('(')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('IVector')
-        TYPE_PARAM
-          HaxePsiToken:<('<')
-          TYPE_LIST
-            TYPE_LIST_PART
-              TYPE_OR_ANONYMOUS
-                TYPE
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('T')
-          HaxePsiToken:>('>')
-    HaxePsiToken:)(')')
+    UNDERLYING_TYPE
+      HaxePsiToken:(('(')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('IVector')
+          TYPE_PARAM
+            HaxePsiToken:<('<')
+            TYPE_LIST
+              TYPE_LIST_PART
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('T')
+            HaxePsiToken:>('>')
+      HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
       FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES
@@ -35,7 +36,9 @@ Haxe File
           ACCESS
             HaxePsiToken:public('public')
         HaxePsiToken:function('function')
-        HaxePsiToken:new('new')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:new('new')
         HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER

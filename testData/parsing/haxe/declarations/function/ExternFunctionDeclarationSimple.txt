@@ -87,9 +87,8 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('deliverable')
             HaxePsiToken:.('.')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('deliver')
+            IDENTIFIER
+              HaxePsiToken:ID('deliver')
           HaxePsiToken:(('(')
           EXPRESSION_LIST
             REFERENCE_EXPRESSION

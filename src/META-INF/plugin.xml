@@ -3,6 +3,7 @@
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
   ~ Copyright 2017 Eric Bishton
+  ~ Copyright 2017-2017 Ilya Malanin
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,7 +33,7 @@
 
   <version>0.11.1 for @plugin.compatibility.description@</version>
   <change-notes>
-    <![CDATA[
+  <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p>Documentation: <a href="https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md">https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md</a></p>
@@ -795,6 +796,7 @@
                          bundle="com.intellij.plugins.haxe.HaxeBundle" nonDefaultProject="true"/>
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
+    <targetElementEvaluator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator"/>
 
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>

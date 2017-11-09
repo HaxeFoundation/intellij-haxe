@@ -1,8 +1,8 @@
 package completion.references;
 
-import com.extensions.Stuff.IFoo;
+import extensions.Stuff.IFoo;
 
-using com.extensions.Stuff.Util;
+using extensions.Stuff.Util;
 
 class Extensions1 {
   static function main():Void {

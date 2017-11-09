@@ -1,6 +1,6 @@
-import flash.display.Stage;
+import com.foo.Foo;
 
 class Main
 {
-  private var stage:Stage;
+  private var stage:Foo;
 }

@@ -76,10 +76,10 @@
       oGREATER=">"
 
       oTRIPLE_DOT="..."
-      OIN='in'
-      OARROW='->'
+      oIN="in"
+      oARROW='->'
 
-      OFAT_ARROW="=>"
+      oFAT_ARROW="=>"
 
       oNEW="new"
 
@@ -170,6 +170,8 @@
 
       kTRY="try"
       kCATCH="catch"
+      tWILDCARD=".*"
+
     ]
     extends(".*(Expression|Literal)")="expression"
     /* extends(".*Statement")="statement"
@@ -264,16 +266,26 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
 
 private topLevelList ::= topLevel*
-private topLevel ::= importStatementAll | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
+private topLevel ::= importStatement | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover"}
 private top_level_recover ::= !(ppToken | metaKeyWord | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef')
 
-importStatementRegular ::= 'import' simpleQualifiedReferenceExpression ';' {pin=1}
-importStatementWithWildcard ::= 'import' simpleQualifiedReferenceExpressionWithWildcardSupport ';'
-importStatementWithInSupport ::= 'import' simpleQualifiedReferenceExpression ('in' | 'as') identifier';'
+private importAlias ::= ('in' | 'as') identifier {elementType="identifier"}
+importWildcard ::= '.*'
+importStatement ::= 'import' simpleQualifiedReferenceExpression [importWildcard | importAlias]';'
+{
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeImportStatementPsiMixin"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeImportStatementPsiMixinImpl"
+  methods=[
+    alias="identifier";
+    wildcard="importWildcard"
+  ]
+}
 
-private importStatementAll ::= importStatementWithWildcard | importStatementWithInSupport | importStatementRegular
-
-usingStatement ::= 'using' simpleQualifiedReferenceExpression ';' {pin=1}
+usingStatement ::= 'using' simpleQualifiedReferenceExpression ';'
+{
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeUsingStatementPsiMixin"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUsingStatementPsiMixinImpl"
+}
 
 private topLevelDeclaration ::= classDeclaration
                               | interfaceDeclaration
@@ -310,7 +322,8 @@ classDeclaration ::= macroClassList? privateKeyWord? 'class' componentName gener
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 //'from' | 'to'
-abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? ('(' typeWrapper ')')? ((identifier) type)* '{' abstractBody '}'
+underlyingType ::= '(' typeWrapper ')'
+abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? underlyingType? ((identifier) type)* '{' abstractBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 abstractBody ::= abstractBodyPart*  {extends="classBody"}
 private abstractBodyPart ::= varDeclaration | functionDeclarationWithAttributes | functionPrototypeDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
@@ -343,17 +356,12 @@ private enum_value_declaration_recovery ::= !(ID | '}')
 
 enumConstructorParameters ::= parenthesizedParameterList
 
-varDeclaration ::= (macroMember | declarationAttribute)* 'var' varDeclarationPartList <<semicolonUnlessPrecededByStatement>>
+varDeclaration ::= (macroMember | declarationAttribute)* 'var' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private varDeclarationPartList ::= varDeclarationPart
-varDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
-{recoverWhile="var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private var_declaration_part_recover ::= !(';' | ',' | '}' | 'var' | 'macro' | 'function' | ppToken | metaKeyWord | declarationAttribute)
 
-localVarDeclaration ::= 'var' localVarDeclarationPartList <<semicolonUnlessPrecededByStatement>>
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private localVarDeclarationPartList ::= localVarDeclarationPart (',' localVarDeclarationPart)*
-localVarDeclarationPart ::= componentName propertyDeclaration? typeTag? varInit?
+
+localVarDeclarationList ::= 'var' localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
+localVarDeclaration ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
 
@@ -371,7 +379,8 @@ private functionCommonBody ::= blockStatement
                              | doWhileStatement
                              | expression
 
-private constructorName ::= 'new'
+constructorId ::= 'new' {elementType="identifier"}
+constructorName ::= constructorId {elementType="componentName"}
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
@@ -464,7 +473,7 @@ private statement ::= macroClassList? (blockStatement | notBlockStatement)
 
 private notBlockStatement ::= ('untyped' statement ';'?)
                             | ('macro' statement ';'?)
-                            | localVarDeclaration
+                            | localVarDeclarationList
                             | localFunctionDeclaration
                             | ifStatement
                             | forStatement
@@ -625,14 +634,8 @@ left arrayAccessExpression ::= '[' expression ']'
 
 referenceExpression ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
-left qualifiedReferenceExpression ::= '.' referenceExpression {elementType="referenceExpression"}
-
-simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * { elementType="referenceExpression"}
-
-//import wildcard support
-left qualifiedReferenceExpressionOrWildcard ::= '.' referenceExpression {elementType="referenceExpression"}
-left wildcard ::= '.' '*'
-simpleQualifiedReferenceExpressionWithWildcardSupport ::= referenceExpression qualifiedReferenceExpressionOrWildcard * wildcard  { elementType="referenceExpression"}
+left qualifiedReferenceExpression ::= '.' identifier {elementType="referenceExpression" pin=2}
+private simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * { elementType="referenceExpression"}
 
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}

@@ -1,4 +1,4 @@
-package com.extensions;
+package extensions;
 
 interface IFoo {}
 class Foo implements IFoo {}

@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.ide.generation;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public abstract class HaxeGenerateAccessorHandler extends BaseHaxeGenerateHandle
     final Map<String, HaxeNamedComponent> componentMap = HaxeResolveUtil.namedComponentToMap(subComponents);
 
     for (HaxeNamedComponent haxeNamedComponent : subComponents) {
-      if (!(haxeNamedComponent instanceof HaxeVarDeclarationPart)) continue;
+      if (!(haxeNamedComponent instanceof HaxeVarDeclaration)) continue;
 
       if (!myStrategy.accept(haxeNamedComponent.getName(), componentMap.keySet())) continue;
 

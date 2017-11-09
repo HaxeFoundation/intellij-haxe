@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,15 +61,13 @@ public class HaxeSpacingProcessor {
     final ASTNode nodeNode2 = node2 == null ? null : node2.getFirstChildNode();
     final IElementType typeType2 = nodeNode2 == null ? null : nodeNode2.getElementType();
 
-    if (type1 == IMPORT_STATEMENT_REGULAR ||
-        type1 == IMPORT_STATEMENT_WITH_IN_SUPPORT ||
-        type1 == IMPORT_STATEMENT_WITH_WILDCARD ||
+    if (type1 == IMPORT_STATEMENT ||
         type1 == PACKAGE_STATEMENT ||
         type1 == USING_STATEMENT) {
       return addSingleSpaceIf(false, true);
     }
 
-    if (elementType.equals(WILDCARD)) {
+    if (elementType.equals(IMPORT_WILDCARD)) {
       return addSingleSpaceIf(false);
     }
 

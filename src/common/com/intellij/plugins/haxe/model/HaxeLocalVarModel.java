@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
@@ -29,19 +29,18 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
   private HaxeLocalVarDeclaration element;
 
   public HaxeLocalVarModel(HaxeLocalVarDeclaration element) {
-    super(element, element, UsefulPsiTreeUtil.getChild(element, HaxeLocalVarDeclarationPart.class));
+    super(element);
     this.element = element;
   }
 
   @Override
   public HaxeClassModel getDeclaringClass() {
-    final HaxeClass hClass = (HaxeClass)((HaxeLocalVarDeclaration)element).getContainingClass();
+    final HaxeClass hClass = (HaxeClass)(element).getContainingClass();
     return hClass != null ? hClass.getModel() : null;
   }
   @Override
   public ResultHolder getResultType() {
-    final HaxeLocalVarDeclarationPart part = UsefulPsiTreeUtil.getChild(element, HaxeLocalVarDeclarationPart.class);
-    final HaxeTypeTag typeTag = part != null ? part.getTypeTag() : null;
+    final HaxeTypeTag typeTag = element.getTypeTag();
     final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
 
@@ -52,4 +51,15 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
     return type == null ? this.getName() : this.getName() + ":" + type;
   }
 
+  @Nullable
+  @Override
+  public HaxeExposableModel getExhibitor() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public FullyQualifiedInfo getQualifiedInfo() {
+    return null;
+  }
 }

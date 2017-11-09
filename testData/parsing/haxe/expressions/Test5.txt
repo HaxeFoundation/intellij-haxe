@@ -17,9 +17,9 @@ Haxe File
         HaxePsiToken:)(')')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('bar1')
@@ -32,9 +32,8 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('a')
                       HaxePsiToken:.('.')
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('b')
+                      IDENTIFIER
+                        HaxePsiToken:ID('b')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')
                   HaxePsiToken:*('*')
@@ -49,9 +48,8 @@ Haxe File
                           HaxePsiToken:LITINT('0')
                         HaxePsiToken:](']')
                       HaxePsiToken:.('.')
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('d')
+                      IDENTIFIER
+                        HaxePsiToken:ID('d')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')
             HaxePsiToken:;(';')
@@ -71,9 +69,8 @@ Haxe File
                   HaxePsiToken:)(')')
                 HaxePsiToken:)(')')
               HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('start')
+              IDENTIFIER
+                HaxePsiToken:ID('start')
             HaxePsiToken:(('(')
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
@@ -90,15 +87,14 @@ Haxe File
                   HaxePsiToken:LITINT('100')
                 HaxePsiToken:)(')')
               HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('start')
+              IDENTIFIER
+                HaxePsiToken:ID('start')
             HaxePsiToken:(('(')
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('flag')

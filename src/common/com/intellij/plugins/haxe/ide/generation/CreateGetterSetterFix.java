@@ -61,11 +61,11 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
   @Override
   protected String buildFunctionsText(HaxeNamedComponent namedComponent) {
-    if (!(namedComponent instanceof HaxeVarDeclarationPart)) {
+    if (!(namedComponent instanceof HaxeVarDeclaration)) {
       return "";
     }
 
-    HaxeFieldModel field = new HaxeFieldModel((HaxeVarDeclaration)namedComponent.getParent());
+    HaxeFieldModel field = new HaxeFieldModel((HaxeVarDeclaration)namedComponent);
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
       HaxeNamedComponent getterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()));
@@ -84,19 +84,19 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
   @Override
   protected void modifyElement(HaxeNamedComponent namedComponent) {
-    if (!(namedComponent instanceof HaxeVarDeclarationPart)) {
+    if (!(namedComponent instanceof HaxeVarDeclaration)) {
       return;
     }
-    if (((HaxeVarDeclarationPart)namedComponent).getPropertyDeclaration() != null) {
+    if (((HaxeVarDeclaration)namedComponent).getPropertyDeclaration() != null) {
       // todo: modify
       return;
     }
 
-    final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclarationPart)namedComponent).getTypeTag());
+    final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclaration)namedComponent).getTypeTag());
 
     final HaxeVarDeclaration declaration =
       HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent, typeText));
-    final HaxePropertyDeclaration propertyDeclaration = declaration.getVarDeclarationPart().getPropertyDeclaration();
+    final HaxePropertyDeclaration propertyDeclaration = declaration.getPropertyDeclaration();
     if (propertyDeclaration != null) {
       HaxeVarDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeVarDeclaration.class, false);
       if (varDeclaration != null) {

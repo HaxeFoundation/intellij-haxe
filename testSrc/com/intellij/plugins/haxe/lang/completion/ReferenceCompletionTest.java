@@ -87,6 +87,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner("ImportInStatement.txt");
   }
 
+  public void testImportStatic() throws Throwable {
+    myFixture.configureByFiles("ImportStaticStatement.hx", "com/util/StringUtil.hx");
+    doTestVariantsInner("ImportStaticStatement.txt");
+  }
+
   public void testPackageCompletionInPackageStatement1() {
     myFixture.addFileToProject("com/bar/Bar.hx", "");
     configureFileByText("Baz.hx", "package <caret>");

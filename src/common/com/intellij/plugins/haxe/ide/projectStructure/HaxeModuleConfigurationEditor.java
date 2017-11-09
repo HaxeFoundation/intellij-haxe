@@ -31,7 +31,7 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor {
-  private final HaxeConfigurationEditor haxeConfigurationEditor;
+  private HaxeConfigurationEditor haxeConfigurationEditor;
 
   public HaxeModuleConfigurationEditor(ModuleConfigurationState state) {
     haxeConfigurationEditor = new HaxeConfigurationEditor(state.getRootModel().getModule(), state.getRootModel().getModuleExtension(
@@ -59,22 +59,27 @@ public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor 
 
   @Override
   public JComponent createComponent() {
-    return haxeConfigurationEditor.getMainPanel();
+    return haxeConfigurationEditor == null ? null : haxeConfigurationEditor.getMainPanel();
   }
 
   @Override
   public boolean isModified() {
-    return haxeConfigurationEditor.isModified();
+    return haxeConfigurationEditor != null && haxeConfigurationEditor.isModified();
   }
 
   @Override
   public void apply() throws ConfigurationException {
-    haxeConfigurationEditor.apply();
+    if (haxeConfigurationEditor != null) {
+      haxeConfigurationEditor.apply();
+      haxeConfigurationEditor = null;
+    }
   }
 
   @Override
   public void reset() {
-    haxeConfigurationEditor.reset();
+    if (haxeConfigurationEditor != null) {
+      haxeConfigurationEditor.reset();
+    }
   }
 
   @Override
