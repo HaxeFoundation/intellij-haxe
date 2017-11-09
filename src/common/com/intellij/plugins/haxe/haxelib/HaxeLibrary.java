@@ -69,10 +69,8 @@ public class HaxeLibrary {
     mySemVer = semVer;
 
     String cp = myMetadata.getClasspath();
-    if (null == cp || cp.isEmpty()) {
-      if (pathInfo != null) {
+    if ((null == cp || cp.isEmpty()) && pathInfo != null) {
         cp = pathInfo.getClasspath();
-      }
     }
     if (null != cp && !cp.isEmpty()) {
       myRelativeClasspath = cp;
