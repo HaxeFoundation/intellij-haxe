@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +28,7 @@ import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeFileModel;
-import com.intellij.plugins.haxe.model.HaxeImportModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
-import com.intellij.plugins.haxe.model.HaxeStdTypes;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -667,7 +665,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                          resolvedValue instanceof HaxeAbstractClassDeclaration ||
                          resolvedValue instanceof HaxeInterfaceDeclaration ||
                          resolvedValue instanceof HaxeExternClassDeclaration)) {
-          haxeClass = HaxeStdTypes.fromElement(this).CLASS.getHaxeClass();
+          List<HaxeModel> models = HaxeProjectModel.fromElement(this).resolve(new FullyQualifiedInfo("", "Class", null, null));
+          if (models != null && !models.isEmpty() && models.get(0) instanceof HaxeClassModel) {
+            haxeClass = ((HaxeClassModel)models.get(0)).haxeClass;
+          } else {
+            haxeClass = null;
+          }
         }
 
         addClassNonStaticMembersVariants(suggestedVariants, haxeClass,

@@ -35,7 +35,6 @@ public class HaxeProjectModel {
   private final Project project;
   private final HaxePackageModel stdPackage;
   private final HaxeSourceRootModel sdkRoot;
-  private HaxeStdTypes stdTypes;
 
   private HaxeProjectModel(Project project) {
     this.project = project;
@@ -74,11 +73,6 @@ public class HaxeProjectModel {
       project.putUserData(HAXE_PROJECT_MODEL, model = new HaxeProjectModel(project));
     }
     return model;
-  }
-
-  public HaxeStdTypes getStdTypes() {
-    if (this.stdTypes == null) this.stdTypes = new HaxeStdTypes(this);
-    return this.stdTypes;
   }
 
   public Project getProject() {
