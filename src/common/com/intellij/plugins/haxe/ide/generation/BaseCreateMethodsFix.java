@@ -93,9 +93,6 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
                                 ((HaxeClassDeclaration)myHaxeClass).getClassBody() : myHaxeClass;
       assert insert != null;
       for (PsiElement element : elements) {
-        if (element instanceof HaxeVarDeclarationPart) {
-          element = element.getParent();
-        }
         anchor = insert.addAfter(element, anchor);
         anchor = afterAddHandler(element, anchor);
       }

@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.psi.PsiField;
 
 /**
@@ -31,6 +32,6 @@ import com.intellij.psi.PsiField;
 //
 //                                    |||||||||||||
 //                                    vvvvvvvvvvvvv
-public interface HaxePsiField extends HaxeComponent, PsiField {
+public interface HaxePsiField extends HaxeComponent, PsiField, HaxeModelTarget {
 
 }

@@ -450,7 +450,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean isPublic() {
-    return (!isPrivate() && super.isPublic()); // do not change the order of- and the- expressions
+    return !isPrivate();
   }
 
   @NotNull

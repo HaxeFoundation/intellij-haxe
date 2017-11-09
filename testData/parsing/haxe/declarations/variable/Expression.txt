@@ -8,40 +8,38 @@ Haxe File
     CLASS_BODY
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('foo')
-          TYPE_TAG
-            HaxePsiToken::(':')
-            TYPE_OR_ANONYMOUS
-              TYPE
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('int')
-          VAR_INIT
-            HaxePsiToken:=('=')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('foo')
+        TYPE_TAG
+          HaxePsiToken::(':')
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('int')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          MULTIPLICATIVE_EXPRESSION
             MULTIPLICATIVE_EXPRESSION
-              MULTIPLICATIVE_EXPRESSION
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('2')
-                HaxePsiToken:*('*')
-                REFERENCE_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('Math')
-                  HaxePsiToken:.('.')
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('PI')
+              LITERAL_EXPRESSION
+                HaxePsiToken:LITINT('2')
               HaxePsiToken:*('*')
-              ARRAY_ACCESS_EXPRESSION
+              REFERENCE_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    HaxePsiToken:ID('radius')
-                HaxePsiToken:[('[')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('0')
-                HaxePsiToken:](']')
+                    HaxePsiToken:ID('Math')
+                HaxePsiToken:.('.')
+                IDENTIFIER
+                  HaxePsiToken:ID('PI')
+            HaxePsiToken:*('*')
+            ARRAY_ACCESS_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('radius')
+              HaxePsiToken:[('[')
+              LITERAL_EXPRESSION
+                HaxePsiToken:LITINT('0')
+              HaxePsiToken:](']')
         HaxePsiToken:;(';')
     HaxePsiToken:}('}')

@@ -23,5 +23,5 @@ import com.intellij.psi.PsiIdentifier;
  * Created by ebishton on 9/27/14.
  */
 public interface HaxeIdentifierPsiMixin extends HaxePsiCompositeElement, PsiIdentifier {
-
+  public boolean isMatchAny();
 }

@@ -25,9 +25,9 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithInSupport;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.model.HaxeFileModel;
+import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -38,8 +38,6 @@ import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -60,12 +58,7 @@ public class HaxeImportOptimizer implements ImportOptimizer {
       return EmptyRunnable.INSTANCE;
     }
 
-    return new Runnable() {
-      @Override
-      public void run() {
-        optimizeImports(file);
-      }
-    };
+    return () -> optimizeImports(file);
   }
 
   private static void optimizeImports(final PsiFile file) {
@@ -73,7 +66,6 @@ public class HaxeImportOptimizer implements ImportOptimizer {
                                                          HaxeDebugTimeLog.Since.StartAndPrevious);
 
     removeUnusedImports(file);
-
     reorderImports(file);
 
     timeLog.stamp("Finished reordering imports.");
@@ -81,33 +73,24 @@ public class HaxeImportOptimizer implements ImportOptimizer {
   }
 
   private static void removeUnusedImports(PsiFile file) {
-    for (HaxeImportStatementRegular unusedImportStatement : HaxeImportUtil.findUnusedImports(file)) {
+    for (HaxeImportStatement unusedImportStatement : HaxeImportUtil.findUnusedImports(file)) {
       unusedImportStatement.delete();
     }
-
-    for (HaxeImportStatementWithInSupport unusedImportStatement : HaxeImportUtil.findUnusedInImports(file)) {
-      unusedImportStatement.delete();
-    }
-
-    for (HaxeImportStatementWithWildcard unusedImportStatement : HaxeImportUtil.findUnusedInImportsWithWildcards(file)) {
-      unusedImportStatement.delete();
-    }
-
-    // TODO Optimize this method, it takes a lot of time.
 
     // TODO Remove unused usings.
   }
 
   private static void reorderImports(final PsiFile file) {
-    List<HaxeImportStatementRegular> allImports = UsefulPsiTreeUtil.getAllImportStatements(file);
+    HaxeFileModel fileModel = HaxeFileModel.fromElement(file);
+    List<HaxeImportStatement> allImports = fileModel.getImportStatements();
 
     if (allImports.size() < 2) {
       return;
     }
 
-    final HaxeImportStatementRegular firstImport = allImports.get(0);
+    final HaxeImportStatement firstImport = allImports.get(0);
     int startOffset = firstImport.getStartOffsetInParent();
-    final HaxeImportStatementRegular lastImport = allImports.get(allImports.size() - 1);
+    final HaxeImportStatement lastImport = allImports.get(allImports.size() - 1);
     int endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
 
     // We assume the common practice of placing all imports in a single "block" at the top of a file. If there is something else (comments,
@@ -115,24 +98,19 @@ public class HaxeImportOptimizer implements ImportOptimizer {
     for (PsiElement child : file.getChildren()) {
       int childOffset = child.getStartOffsetInParent();
       if (childOffset >= startOffset && childOffset <= endOffset
-          && !(child instanceof HaxeImportStatementRegular)
+          && !(child instanceof HaxeImportStatement)
           && !(child instanceof PsiWhiteSpace)) {
         return;
       }
     }
 
-    List<String> sortedImports = new ArrayList<String>();
+    List<String> sortedImports = new ArrayList<>();
 
-    for (HaxeImportStatementRegular currentImport : allImports) {
+    for (HaxeImportStatement currentImport : allImports) {
       sortedImports.add(currentImport.getText());
     }
 
-    Collections.sort(sortedImports, new Comparator<String>() {
-      @Override
-      public int compare(String s1, String s2) {
-        return s1.compareToIgnoreCase(s2);
-      }
-    });
+    sortedImports.sort(String::compareToIgnoreCase);
 
     final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(file.getProject());
     final Document document = psiDocumentManager.getDocument(file);

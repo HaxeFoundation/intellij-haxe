@@ -58,7 +58,7 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
     HaxeExpression expression1 = assignExpression.getExpressionList().get(0);
     HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)expression1;
     PsiElement resolve = referenceExpression.resolve();
-    assertTrue("list variable should be local var declaration part ", resolve instanceof HaxeVarDeclarationPart);
+    assertTrue("list variable should be local var declaration part ", resolve instanceof HaxeVarDeclaration);
   }
 
 }

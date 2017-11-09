@@ -1,4 +1,4 @@
-using com.utils.MathUtil;
+using com.util.MathUtil;
 class UsingUtil1 {
   function foo(){
     var a = 239;

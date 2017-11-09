@@ -13,13 +13,11 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('haxe')
             HaxePsiToken:.('.')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('macro')
-          HaxePsiToken:.('.')
-          REFERENCE_EXPRESSION
             IDENTIFIER
-              HaxePsiToken:ID('MacroType')
+              HaxePsiToken:ID('macro')
+          HaxePsiToken:.('.')
+          IDENTIFIER
+            HaxePsiToken:ID('MacroType')
         TYPE_PARAM
           HaxePsiToken:<('<')
           TYPE_LIST
@@ -33,9 +31,8 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('TypeBuilder')
                       HaxePsiToken:.('.')
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('build')
+                      IDENTIFIER
+                        HaxePsiToken:ID('build')
                     HaxePsiToken:(('(')
                     EXPRESSION_LIST
                       STRING_LITERAL_EXPRESSION

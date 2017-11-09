@@ -27,8 +27,7 @@ public class PackageDeclarationTest extends DeclarationTestBase {
   }
 
   public void testError() throws Throwable {
-// FIXME: Test failure from ant build for version 14.  v13 works.
-//    doTest(true);
+    doTest(true);
   }
 
   public void testSimple() throws Throwable {

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,13 +55,9 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
     PsiElement elementAt = file.findElementAt(editor.getCaretModel().getOffset());
     HaxeLocalVarDeclaration localVarDeclaration = PsiTreeUtil.getParentOfType(elementAt, HaxeLocalVarDeclaration.class);
     if (localVarDeclaration != null) {
-      List<HaxeLocalVarDeclarationPart> localVarDeclarationPartList = localVarDeclaration.getLocalVarDeclarationPartList();
-      if (localVarDeclarationPartList.size() == 1) {
-        HaxeLocalVarDeclarationPart localVarDeclarationPart = localVarDeclarationPartList.get(0);
-        HaxeVarInit varInit = localVarDeclarationPart.getVarInit();
-        if (localVarDeclarationPart.getPropertyDeclaration() == null && varInit != null) {
-          return true;
-        }
+      HaxeVarInit varInit = localVarDeclaration.getVarInit();
+      if (localVarDeclaration.getPropertyDeclaration() == null && varInit != null) {
+        return true;
       }
     }
     return false;
@@ -70,11 +67,11 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
   public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
     PsiElement elementAt = file.findElementAt(editor.getCaretModel().getOffset());
     HaxeLocalVarDeclaration localVarDeclaration = PsiTreeUtil.getParentOfType(elementAt, HaxeLocalVarDeclaration.class);
-    HaxeLocalVarDeclarationPart localVarDeclarationPart = localVarDeclaration.getLocalVarDeclarationPartList().get(0);
 
-    String name = localVarDeclarationPart.getComponentName().getName();
-    HaxeTypeTag typeTag = localVarDeclarationPart.getTypeTag();
-    HaxeVarInit varInit = localVarDeclarationPart.getVarInit();
+    if (localVarDeclaration == null) return;
+    String name = localVarDeclaration.getComponentName().getName();
+    HaxeTypeTag typeTag = localVarDeclaration.getTypeTag();
+    HaxeVarInit varInit = localVarDeclaration.getVarInit();
 
     String text = "var " + name;
     if (typeTag != null) {
@@ -82,7 +79,9 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
     }
     text += ";";
     HaxeVarDeclaration varDeclaration = HaxeElementGenerator.createVarDeclaration(project, text);
-    text = name + varInit.getText();
+    if (varInit != null) {
+      text = name + varInit.getText();
+    }
     varDeclaration.getNode().addLeaf(HaxeTokenTypes.OSEMI, "\n", null);
     PsiElement statementFromText = HaxeElementGenerator.createStatementFromText(project, text);
     statementFromText.getNode().addLeaf(HaxeTokenTypes.OSEMI, ";", null);

@@ -69,7 +69,7 @@ public class HaxeExpressionEvaluator {
       System.out.println("getPsiElementType: " + element);
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
-    //System.out.println("Handling element: " + element.getClass());
+    //System.out.println("Handling element: " + element.getClassModel());
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
       ResultHolder type = SpecificHaxeClassReference.getUnknown(element).createHolder();
@@ -126,6 +126,10 @@ public class HaxeExpressionEvaluator {
       finally {
         context.endScope();
       }
+    }
+
+    if (element instanceof HaxeSwitchStatement) {
+
     }
 
     if (element instanceof HaxeNewExpression) {
@@ -222,8 +226,8 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
-    if (element instanceof HaxeLocalVarDeclaration) {
-      for (HaxeLocalVarDeclarationPart part : ((HaxeLocalVarDeclaration)element).getLocalVarDeclarationPartList()) {
+    if (element instanceof HaxeLocalVarDeclarationList) {
+      for (HaxeLocalVarDeclaration part : ((HaxeLocalVarDeclarationList)element).getLocalVarDeclarationList()) {
         handle(part, context);
       }
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
@@ -258,10 +262,10 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
-    if (element instanceof HaxeLocalVarDeclarationPart) {
-      final HaxeComponentName name = ((HaxeLocalVarDeclarationPart)element).getComponentName();
-      final HaxeVarInit init = ((HaxeLocalVarDeclarationPart)element).getVarInit();
-      final HaxeTypeTag typeTag = ((HaxeLocalVarDeclarationPart)element).getTypeTag();
+    if (element instanceof HaxeLocalVarDeclaration) {
+      final HaxeComponentName name = ((HaxeLocalVarDeclaration)element).getComponentName();
+      final HaxeVarInit init = ((HaxeLocalVarDeclaration)element).getVarInit();
+      final HaxeTypeTag typeTag = ((HaxeLocalVarDeclaration)element).getTypeTag();
       ResultHolder result = SpecificHaxeClassReference.getUnknown(element).createHolder();
       if (init != null) {
         result = handle(init, context);

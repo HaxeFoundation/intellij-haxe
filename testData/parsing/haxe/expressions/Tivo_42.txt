@@ -8,18 +8,17 @@ Haxe File
     CLASS_BODY
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('abc')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            COMPARE_EXPRESSION
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITINT('1')
-              COMPARE_OPERATION
-                HaxePsiToken:>=('>=')
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITINT('1')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('abc')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          COMPARE_EXPRESSION
+            LITERAL_EXPRESSION
+              HaxePsiToken:LITINT('1')
+            COMPARE_OPERATION
+              HaxePsiToken:>=('>=')
+            LITERAL_EXPRESSION
+              HaxePsiToken:LITINT('1')
         HaxePsiToken:;(';')
     HaxePsiToken:}('}')

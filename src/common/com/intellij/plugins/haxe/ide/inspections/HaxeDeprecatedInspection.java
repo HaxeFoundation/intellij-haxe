@@ -86,9 +86,10 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
 
       @Override
       protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {
+        PsiIdentifier identifier = referenceExpression.getIdentifier();
         result.add(manager.createProblemDescriptor(
-          referenceExpression,
-          TextRange.from(0, referenceExpression.getTextLength()),
+          identifier,
+          TextRange.from(0, identifier.getTextLength()),
           getDisplayName(),
           ProblemHighlightType.LIKE_DEPRECATED,
           isOnTheFly
@@ -97,7 +98,7 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
 
       @Override
       protected void handleDeprecatedVarDeclaration(HaxeVarDeclaration varDeclaration) {
-        PsiIdentifier nameIdentifier = varDeclaration.getVarDeclarationPart().getNameIdentifier();
+        PsiIdentifier nameIdentifier = varDeclaration.getNameIdentifier();
 
         result.add(manager.createProblemDescriptor(
           nameIdentifier,

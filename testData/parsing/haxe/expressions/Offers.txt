@@ -40,9 +40,8 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('l')
                     HaxePsiToken:.('.')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('toString')
+                    IDENTIFIER
+                      HaxePsiToken:ID('toString')
                   HaxePsiToken:(('(')
                   HaxePsiToken:)(')')
                   PsiErrorElement:'&&', '(', '.', '...', <<, <additive expression>, <assign operation>, <bitwise expression>, <compare operation>, <multiplicative expression>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'

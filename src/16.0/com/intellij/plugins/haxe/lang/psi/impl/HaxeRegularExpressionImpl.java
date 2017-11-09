@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +21,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.LiteralTextEscaper;
@@ -52,7 +53,7 @@ public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements Haxe
   public PsiLanguageInjectionHost updateText(@NotNull String text) {
     ASTNode node = getNode();
     ASTNode parent = node.getTreeParent();
-    final HaxeVarDeclarationPart varDeclarationPart = HaxeElementGenerator.createVarDeclarationPart(getProject(), "a=" + text);
+    final HaxeVarDeclaration varDeclarationPart = HaxeElementGenerator.createVarDeclaration(getProject(), "var a=" + text);
     final HaxeVarInit varInit = varDeclarationPart.getVarInit();
     final ASTNode outerNode = varInit == null ? null : varInit.getNode();
     assert outerNode != null;

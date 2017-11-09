@@ -393,6 +393,8 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "=>"                                      { return emitToken( OFAT_ARROW); }
 ">"                                       { return emitToken( OGREATER); }
 
+".*"                                      { return emitToken( TWILDCARD); }
+
 //{CONDITIONAL_IF} | {CONDITIONAL_ELSEIF}                          { return emitToken( CONDITIONAL_STATEMENT_ID); }
 "#end"                                    { return processConditional(PPEND); }
 "#elseif"                                 { return processConditional(PPELSEIF); }

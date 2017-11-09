@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeClass extends HaxeComponent, PsiClass {
+public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
   @NotNull

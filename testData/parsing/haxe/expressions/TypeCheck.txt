@@ -46,9 +46,8 @@ Haxe File
                           HaxePsiToken:ID('Test')
                 HaxePsiToken:)(')')
               HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('foo')
+              IDENTIFIER
+                HaxePsiToken:ID('foo')
             HaxePsiToken:(('(')
             EXPRESSION_LIST
               LITERAL_EXPRESSION

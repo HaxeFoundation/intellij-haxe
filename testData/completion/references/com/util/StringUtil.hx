@@ -1,4 +1,4 @@
-package completion.references.com.util;
+package com.util;
 
 class StringUtil {
   public static function isNotEmpty(str:String):Bool {

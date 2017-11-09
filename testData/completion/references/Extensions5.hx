@@ -1,8 +1,8 @@
 package completion.references;
 
-import com.extensions.Stuff.Alone;
+import extensions.Stuff.Alone;
 
-using com.extensions.Stuff.Util;
+using extensions.Stuff.Util;
 
 class Extensions5 {
   static function main():Void {

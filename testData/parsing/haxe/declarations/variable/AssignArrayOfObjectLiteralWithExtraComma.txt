@@ -15,59 +15,55 @@ Haxe File
           INTERFACE_BODY
             VAR_DECLARATION
               HaxePsiToken:var('var')
-              VAR_DECLARATION_PART
-                COMPONENT_NAME
-                  IDENTIFIER
-                    HaxePsiToken:ID('id')
-                TYPE_TAG
-                  HaxePsiToken::(':')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('String')
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('id')
+              TYPE_TAG
+                HaxePsiToken::(':')
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('String')
               HaxePsiToken:;(';')
             VAR_DECLARATION
               HaxePsiToken:var('var')
-              VAR_DECLARATION_PART
-                COMPONENT_NAME
-                  IDENTIFIER
-                    HaxePsiToken:ID('title')
-                TYPE_TAG
-                  HaxePsiToken::(':')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('String')
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('title')
+              TYPE_TAG
+                HaxePsiToken::(':')
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('String')
               HaxePsiToken:;(';')
             VAR_DECLARATION
               HaxePsiToken:var('var')
-              VAR_DECLARATION_PART
-                COMPONENT_NAME
-                  IDENTIFIER
-                    HaxePsiToken:ID('height')
-                TYPE_TAG
-                  HaxePsiToken::(':')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Int')
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('height')
+              TYPE_TAG
+                HaxePsiToken::(':')
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('Int')
               HaxePsiToken:;(';')
             VAR_DECLARATION
               HaxePsiToken:var('var')
-              VAR_DECLARATION_PART
-                COMPONENT_NAME
-                  IDENTIFIER
-                    HaxePsiToken:ID('width')
-                TYPE_TAG
-                  HaxePsiToken::(':')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Int')
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('width')
+              TYPE_TAG
+                HaxePsiToken::(':')
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('Int')
               HaxePsiToken:;(';')
         HaxePsiToken:}('}')
   CLASS_DECLARATION
@@ -84,107 +80,106 @@ Haxe File
         DECLARATION_ATTRIBUTE
           HaxePsiToken:static('static')
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('COLLECTION')
-          TYPE_TAG
-            HaxePsiToken::(':')
-            TYPE_OR_ANONYMOUS
-              TYPE
-                REFERENCE_EXPRESSION
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('COLLECTION')
+        TYPE_TAG
+          HaxePsiToken::(':')
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('Array')
+              TYPE_PARAM
+                HaxePsiToken:<('<')
+                TYPE_LIST
+                  TYPE_LIST_PART
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('CollectionTypedef')
+                HaxePsiToken:>('>')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          ARRAY_LITERAL
+            HaxePsiToken:[('[')
+            EXPRESSION_LIST
+              OBJECT_LITERAL
+                HaxePsiToken:{('{')
+                OBJECT_LITERAL_ELEMENT
                   IDENTIFIER
-                    HaxePsiToken:ID('Array')
-                TYPE_PARAM
-                  HaxePsiToken:<('<')
-                  TYPE_LIST
-                    TYPE_LIST_PART
-                      TYPE_OR_ANONYMOUS
-                        TYPE
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('CollectionTypedef')
-                  HaxePsiToken:>('>')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            ARRAY_LITERAL
-              HaxePsiToken:[('[')
-              EXPRESSION_LIST
-                OBJECT_LITERAL
-                  HaxePsiToken:{('{')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('id')
-                    HaxePsiToken::(':')
-                    STRING_LITERAL_EXPRESSION
-                      HaxePsiToken:OPEN_QUOTE('"')
-                      HaxePsiToken:REGULAR_STRING_PART('1')
-                      HaxePsiToken:CLOSING_QUOTE('"')
-                  HaxePsiToken:,(',')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('title')
-                    HaxePsiToken::(':')
-                    STRING_LITERAL_EXPRESSION
-                      HaxePsiToken:OPEN_QUOTE('"')
-                      HaxePsiToken:REGULAR_STRING_PART('Collection1')
-                      HaxePsiToken:CLOSING_QUOTE('"')
-                  HaxePsiToken:,(',')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('height')
-                    HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('150')
-                  HaxePsiToken:,(',')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('width')
-                    HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('200')
-                  HaxePsiToken:,(',')
-                  PsiComment(MSL_COMMENT)('// <-- extra comma')
-                  HaxePsiToken:}('}')
+                    HaxePsiToken:ID('id')
+                  HaxePsiToken::(':')
+                  STRING_LITERAL_EXPRESSION
+                    HaxePsiToken:OPEN_QUOTE('"')
+                    HaxePsiToken:REGULAR_STRING_PART('1')
+                    HaxePsiToken:CLOSING_QUOTE('"')
                 HaxePsiToken:,(',')
-                OBJECT_LITERAL
-                  HaxePsiToken:{('{')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('id')
-                    HaxePsiToken::(':')
-                    STRING_LITERAL_EXPRESSION
-                      HaxePsiToken:OPEN_QUOTE('"')
-                      HaxePsiToken:REGULAR_STRING_PART('2')
-                      HaxePsiToken:CLOSING_QUOTE('"')
-                  HaxePsiToken:,(',')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('title')
-                    HaxePsiToken::(':')
-                    STRING_LITERAL_EXPRESSION
-                      HaxePsiToken:OPEN_QUOTE('"')
-                      HaxePsiToken:REGULAR_STRING_PART('Collection2')
-                      HaxePsiToken:CLOSING_QUOTE('"')
-                  HaxePsiToken:,(',')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('height')
-                    HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('150')
-                  HaxePsiToken:,(',')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('width')
-                    HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('200')
-                  HaxePsiToken:,(',')
-                  PsiComment(MSL_COMMENT)('// <-- extra comma')
-                  HaxePsiToken:}('}')
+                OBJECT_LITERAL_ELEMENT
+                  IDENTIFIER
+                    HaxePsiToken:ID('title')
+                  HaxePsiToken::(':')
+                  STRING_LITERAL_EXPRESSION
+                    HaxePsiToken:OPEN_QUOTE('"')
+                    HaxePsiToken:REGULAR_STRING_PART('Collection1')
+                    HaxePsiToken:CLOSING_QUOTE('"')
                 HaxePsiToken:,(',')
-              PsiComment(MSL_COMMENT)('// <-- extra comma')
-              HaxePsiToken:](']')
+                OBJECT_LITERAL_ELEMENT
+                  IDENTIFIER
+                    HaxePsiToken:ID('height')
+                  HaxePsiToken::(':')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('150')
+                HaxePsiToken:,(',')
+                OBJECT_LITERAL_ELEMENT
+                  IDENTIFIER
+                    HaxePsiToken:ID('width')
+                  HaxePsiToken::(':')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('200')
+                HaxePsiToken:,(',')
+                PsiComment(MSL_COMMENT)('// <-- extra comma')
+                HaxePsiToken:}('}')
+              HaxePsiToken:,(',')
+              OBJECT_LITERAL
+                HaxePsiToken:{('{')
+                OBJECT_LITERAL_ELEMENT
+                  IDENTIFIER
+                    HaxePsiToken:ID('id')
+                  HaxePsiToken::(':')
+                  STRING_LITERAL_EXPRESSION
+                    HaxePsiToken:OPEN_QUOTE('"')
+                    HaxePsiToken:REGULAR_STRING_PART('2')
+                    HaxePsiToken:CLOSING_QUOTE('"')
+                HaxePsiToken:,(',')
+                OBJECT_LITERAL_ELEMENT
+                  IDENTIFIER
+                    HaxePsiToken:ID('title')
+                  HaxePsiToken::(':')
+                  STRING_LITERAL_EXPRESSION
+                    HaxePsiToken:OPEN_QUOTE('"')
+                    HaxePsiToken:REGULAR_STRING_PART('Collection2')
+                    HaxePsiToken:CLOSING_QUOTE('"')
+                HaxePsiToken:,(',')
+                OBJECT_LITERAL_ELEMENT
+                  IDENTIFIER
+                    HaxePsiToken:ID('height')
+                  HaxePsiToken::(':')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('150')
+                HaxePsiToken:,(',')
+                OBJECT_LITERAL_ELEMENT
+                  IDENTIFIER
+                    HaxePsiToken:ID('width')
+                  HaxePsiToken::(':')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('200')
+                HaxePsiToken:,(',')
+                PsiComment(MSL_COMMENT)('// <-- extra comma')
+                HaxePsiToken:}('}')
+              HaxePsiToken:,(',')
+            PsiComment(MSL_COMMENT)('// <-- extra comma')
+            HaxePsiToken:](']')
         HaxePsiToken:;(';')
     HaxePsiToken:}('}')

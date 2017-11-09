@@ -21,6 +21,7 @@ import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
+import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -60,20 +61,10 @@ public class HaxeFileMoveHandler extends MoveFileHandler {
 
   @Override
   public void updateMovedFile(PsiFile file) throws IncorrectOperationException {
-    final HaxeFile haxeFile = (HaxeFile)file;
-    final PsiElement firstChild = haxeFile.getFirstChild();
-    final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(haxeFile, HaxePackageStatement.class);
     final HaxePackageStatement newPackageStatement =
-      HaxeElementGenerator.createPackageStatementFromPath(haxeFile.getProject(), file.getUserData(destinationPackageKey));
-    assert newPackageStatement != null;
-    if (packageStatement == null && firstChild == null) {
-      haxeFile.add(newPackageStatement);
-    }
-    else if (packageStatement == null && firstChild != null) {
-      haxeFile.addBefore(newPackageStatement, firstChild);
-    }
-    else {
-      packageStatement.replace(newPackageStatement);
+      HaxeElementGenerator.createPackageStatementFromPath(file.getProject(), file.getUserData(destinationPackageKey));
+    if (newPackageStatement != null) {
+      HaxeFileModel.fromElement(file).replaceOrCreatePackageStatement(newPackageStatement);
     }
   }
 }

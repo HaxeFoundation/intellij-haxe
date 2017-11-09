@@ -60,4 +60,6 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
     // In Java, if the element is a property, return getters and setters that reference it.
     return super.getSecondaryElements();
   }
+
+
 }

@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.build.FieldWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodContext;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
@@ -46,8 +47,10 @@ public class HaxeLookupElement extends LookupElement {
   private final HaxeClassResolveResult leftReference;
   private final HaxeMethodContext context;
 
-  public static Collection<HaxeLookupElement> convert(HaxeClassResolveResult leftReference, @NotNull Collection<HaxeComponentName> componentNames, @NotNull Collection<HaxeComponentName> componentNamesExtension) {
-    final List<HaxeLookupElement> result = new ArrayList<HaxeLookupElement>(componentNames.size());
+  public static Collection<HaxeLookupElement> convert(HaxeClassResolveResult leftReferenceResolveResult,
+                                                      @NotNull Collection<HaxeComponentName> componentNames,
+                                                      @NotNull Collection<HaxeComponentName> componentNamesExtension) {
+    final List<HaxeLookupElement> result = new ArrayList<>(componentNames.size());
     for (HaxeComponentName componentName : componentNames) {
       HaxeMethodContext context = null;
       if (componentNamesExtension.contains(componentName)) {
@@ -55,7 +58,7 @@ public class HaxeLookupElement extends LookupElement {
       } else {
         context = HaxeMethodContext.NO_EXTENSION;
       }
-      result.add(new HaxeLookupElement(leftReference, componentName, context));
+      result.add(new HaxeLookupElement(leftReferenceResolveResult, componentName, context));
     }
     return result;
   }
@@ -69,10 +72,6 @@ public class HaxeLookupElement extends LookupElement {
   @NotNull
   @Override
   public String getLookupString() {
-    final String result = myComponentName.getName();
-    if (result != null) {
-      return result;
-    }
     return myComponentName.getIdentifier().getText();
   }
 

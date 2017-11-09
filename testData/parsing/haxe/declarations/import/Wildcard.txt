@@ -1,33 +1,29 @@
 Haxe File
-  IMPORT_STATEMENT_WITH_WILDCARD
-    HaxePsiToken:import('import')
-    REFERENCE_EXPRESSION
-      WILDCARD
-        REFERENCE_EXPRESSION
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              HaxePsiToken:ID('flash')
-          HaxePsiToken:.('.')
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              HaxePsiToken:ID('display')
-        HaxePsiToken:.('.')
-        HaxePsiToken:*('*')
-    HaxePsiToken:;(';')
-  IMPORT_STATEMENT_REGULAR
+  IMPORT_STATEMENT
     HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('flash')
-        HaxePsiToken:.('.')
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('display')
+        IDENTIFIER
+          HaxePsiToken:ID('flash')
       HaxePsiToken:.('.')
-  HaxePsiToken:*('*')
-  PsiErrorElement:';' expected, got 'in'
-    HaxePsiToken:in('in')
+      IDENTIFIER
+        HaxePsiToken:ID('display')
+    IMPORT_WILDCARD
+      HaxePsiToken:.*('.*')
+    HaxePsiToken:;(';')
+  IMPORT_STATEMENT
+    HaxePsiToken:import('import')
+    REFERENCE_EXPRESSION
+      REFERENCE_EXPRESSION
+        IDENTIFIER
+          HaxePsiToken:ID('flash')
+      HaxePsiToken:.('.')
+      IDENTIFIER
+        HaxePsiToken:ID('display')
+    IMPORT_WILDCARD
+      HaxePsiToken:.*('.*')
+    PsiErrorElement:';' expected, got 'in'
+      <empty list>
+  HaxePsiToken:in('in')
   HaxePsiToken:ID('FDSprite')
   HaxePsiToken:;(';')
