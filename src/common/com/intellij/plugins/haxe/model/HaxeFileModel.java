@@ -221,7 +221,7 @@ public class HaxeFileModel implements HaxeExposableModel {
       currentPsi.replace(statement);
     }
     else {
-      file.addBefore(file.getFirstChild(), statement);
+      file.addBefore(statement, file.getFirstChild());
     }
   }
 
