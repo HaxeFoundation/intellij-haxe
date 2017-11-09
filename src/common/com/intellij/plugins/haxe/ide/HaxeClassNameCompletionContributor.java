@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +48,7 @@ import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
@@ -166,6 +167,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     if (icon != null) lookupElement = lookupElement.withIcon(icon);
     if (tailText != null) {
       if (alias != null) {
+        // TODO: Move to bundle
         tailText = "alias for " + tailText + "." + member.getName();
       }
       tailText = " " + tailText;
