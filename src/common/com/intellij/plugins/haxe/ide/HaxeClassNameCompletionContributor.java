@@ -78,7 +78,9 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-               addVariantsFromIndex(result, parameters.getOriginalFile(), null, FULL_PATH_INSERT_HANDLER);
+               HaxeReference reference = PsiTreeUtil.getParentOfType(parameters.getPosition(), HaxeReference.class);
+               String packagePrefix = reference != null && reference.isQualified() ? reference.getQualifier().getText() : null;
+               addVariantsFromIndex(result, parameters.getOriginalFile(), packagePrefix, FULL_PATH_INSERT_HANDLER);
              }
            });
 
