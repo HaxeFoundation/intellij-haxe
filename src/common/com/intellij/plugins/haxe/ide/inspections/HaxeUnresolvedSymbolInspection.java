@@ -25,6 +25,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nls;
@@ -68,9 +69,11 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
     new HaxeAnnotatingVisitor() {
       @Override
       protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
+        PsiElement nameIdentifier = reference.getReferenceNameElement();
+        if (nameIdentifier == null) return;
         result.add(manager.createProblemDescriptor(
-          reference,
-          TextRange.from(0, reference.getTextLength()),
+          nameIdentifier,
+          TextRange.from(0, nameIdentifier.getTextLength()),
           getDisplayName(),
           ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
           isOnTheFly
