@@ -56,12 +56,11 @@ public class HaxeLibrary {
     String mdname = myMetadata.getName();
     if (null != mdname && !mdname.isEmpty()) {
       myName = mdname;
-    } else if (null != name && !name.isEmpty()) {
+    } else if (!name.isEmpty()) {
       myName = name;
     } else {
-      myName = pathInfo.getName();
+      myName = pathInfo == null ? "" : pathInfo.getName();
     }
-    assert myName != null;
 
     HaxelibSemVer semVer = HaxelibSemVer.create(myMetadata.getVersion());
     if (HaxelibSemVer.ZERO_VERSION == semVer) {
@@ -70,8 +69,8 @@ public class HaxeLibrary {
     mySemVer = semVer;
 
     String cp = myMetadata.getClasspath();
-    if (null == cp || cp.isEmpty()) {
-      cp = pathInfo.getClasspath();
+    if ((null == cp || cp.isEmpty()) && pathInfo != null) {
+        cp = pathInfo.getClasspath();
     }
     if (null != cp && !cp.isEmpty()) {
       myRelativeClasspath = cp;
@@ -90,7 +89,7 @@ public class HaxeLibrary {
   private List<HaxeLibraryDependency> getDirectDependents() {
     List<HaxelibMetadata.Dependency> mdDependencies = myMetadata.getDependencies();
     if (null == mdDependencies || mdDependencies.isEmpty()) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
     List<HaxeLibraryDependency> dependencies = new ArrayList<HaxeLibraryDependency>(mdDependencies.size());
     for (HaxelibMetadata.Dependency md : mdDependencies) {
@@ -128,7 +127,9 @@ public class HaxeLibrary {
       } else {
         HaxeLibraryDependency contained = collection.get(dependency.getKey());
         LOG.assertLog(contained != null, "Couldn't get a contained object.");
-        contained.addReliant(dependency);
+        if (contained != null) {
+          contained.addReliant(dependency);
+        }
       }
     }
   }
