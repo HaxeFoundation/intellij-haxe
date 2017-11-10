@@ -45,58 +45,26 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
     if (reference.getTokenType() != HaxeTokenTypes.REFERENCE_EXPRESSION) {
       return; // call, array access, this, literal, etc
     }
-    if (reference.getFirstChild() instanceof HaxeReference) {
-      checkDeprecatedVarCall(reference);
-      super.visitReferenceExpression(reference);
-      return;
-    }
-    final HaxeReference leftSiblingReference = HaxeResolveUtil.getLeftReference(reference);
-    final PsiElement referenceTarget = reference.resolve();
-    if (referenceTarget != null) {
-      return; // OK
-    }
 
-    if (BUILTIN.contains(reference.getText()) &&
-        reference.getParent() instanceof HaxeCallExpression &&
-        !(reference.getParent().getParent() instanceof HaxeReference)) {
-      return;
-    }
+    if (isInsidePackageStatement(reference) || isBuiltInMethod(reference)) return;
 
-    if (reference.getFirstChild() instanceof HaxeParenthesizedExpression) {
-      HaxeParenthesizedExpression parenthesizedExpression = (HaxeParenthesizedExpression)reference.getFirstChild();
-      if (PsiTreeUtil.getChildOfType(parenthesizedExpression, HaxeTypeCheckExpr.class) != null) {
-        super.visitReferenceExpression(reference);
-        return;
-      }
-    }
+    checkDeprecatedVarCall(reference);
 
-    if (!(reference.getParent() instanceof HaxeReference) &&
-        !(reference.getParent() instanceof HaxePackageStatement) &&
-        !(reference.getParent() instanceof HaxeImportStatement && ((HaxeImportStatement)reference.getParent()).getWildcard() != null)) {
-      // whole reference expression
+    if (reference.resolve() == null) {
       handleUnresolvedReference(reference);
     }
-    final PsiElement leftSiblingReferenceTarget = leftSiblingReference == null ? null : leftSiblingReference.resolve();
-    if (leftSiblingReference != null && leftSiblingReferenceTarget == null) {
-      return; // already bad
-    }
 
-    // check all parents (ex. com.reference.Bar)
-    PsiElement parent = reference.getParent();
-    while (parent instanceof HaxeReference) {
-      if (((HaxeReference)parent).resolve() != null) return;
-      parent = parent.getParent();
-    }
+    super.visitReferenceExpression(reference);
+  }
 
-    if (parent instanceof HaxePackageStatement) {
-      return; // package
-    }
+  private boolean isBuiltInMethod(@NotNull HaxeReferenceExpression reference) {
+    return BUILTIN.contains(reference.getReferenceName()) &&
+           reference.getParent() instanceof HaxeCallExpression &&
+           !(reference.getParent().getParent() instanceof HaxeReference);
+  }
 
-    if (parent instanceof HaxeImportStatement && ((HaxeImportStatement)parent).getWildcard() != null) {
-      return;
-    }
-
-    handleUnresolvedReference(reference);
+  private boolean isInsidePackageStatement(@NotNull HaxeReferenceExpression reference) {
+    return PsiTreeUtil.getParentOfType(reference, HaxePackageStatement.class) != null;
   }
 
   @Override
