@@ -22,20 +22,17 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.PsiPackage;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class HaxeImportUtil {
   public static List<HaxeImportStatement> findUnusedImports(PsiFile file) {
-    final List<PsiElement> classesInFile = getExternalReferences(file);
+    final Collection<PsiElement> externalReferences = getExternalReferences(file);
 
     List<HaxeImportStatement> allImportStatements = ((HaxeFile)file).getImportStatements();
 
@@ -43,14 +40,14 @@ public class HaxeImportUtil {
 
     List<HaxeImportStatement> usefulStatements = allImportStatements
       .stream()
-      .filter(statement -> classesInFile
+      .filter(statement -> externalReferences
         .stream()
         .anyMatch(referencedElement -> isStatementExposesReference(statement, referencedElement)))
       .distinct()
       .collect(Collectors.toList());
 
     if (hasWildcards) {
-      removeUnusedWildcards(classesInFile, usefulStatements);
+      removeUnusedWildcards(externalReferences, usefulStatements);
     }
 
     usefulStatements.forEach(allImportStatements::remove);
@@ -73,7 +70,7 @@ public class HaxeImportUtil {
     return result;
   }
 
-  private static void removeUnusedWildcards(List<PsiElement> classesInFile, List<HaxeImportStatement> usefulStatements) {
+  private static void removeUnusedWildcards(Collection<PsiElement> classesInFile, List<HaxeImportStatement> usefulStatements) {
     final MultiMap<PsiElement, HaxeImportModel> referenceMap = new MultiMap<>();
 
     usefulStatements.forEach(statement -> classesInFile.forEach(referencedElement -> {
@@ -112,30 +109,27 @@ public class HaxeImportUtil {
   }
 
 
-  public static List<PsiElement> getExternalReferences(PsiFile file) {
-    final List<PsiElement> result = new ArrayList<>();
+  public static Collection<PsiElement> getExternalReferences(PsiFile file) {
+    final Map<PsiElement, PsiElement> result = new HashMap<>();
+
     file.acceptChildren(new HaxeRecursiveVisitor() {
       @Override
       public void visitElement(PsiElement element) {
-        super.visitElement(element);
-
+        if (element instanceof HaxePackageStatement || element instanceof HaxeImportStatement || element instanceof HaxeUsingStatement) return;
         if (element instanceof HaxeReference) {
-          PsiElement resolvedElement = ((HaxeReference)element).resolve();
-          if (resolvedElement != null) {
-            if (resolvedElement instanceof HaxeVarDeclaration || resolvedElement instanceof HaxeMethod) {
-              HaxeClass referencedClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class, true);
-              if (((PsiMember)resolvedElement).getContainingClass() != referencedClass) {
-                result.add(element);
-              }
-            }
-            else if (resolvedElement instanceof HaxeClass) {
-              result.add(element);
-            }
-          }
-          else {
-            result.add(element);
+          HaxeReference reference = (HaxeReference)element;
+          PsiElement referencedElement = reference.resolve();
+          if ((!(reference.isQualified() || referencedElement instanceof PsiPackage) || (reference.isQualified() && referencedElement instanceof HaxeClass)) &&
+              isApplicableExternalReference(referencedElement)) {
+            result.put(referencedElement, element);
           }
         }
+
+        super.visitElement(element);
+      }
+
+      private boolean isApplicableExternalReference(PsiElement reference) {
+        return reference != null && !result.containsKey(reference) && reference.getContainingFile() != file;
       }
 
       @Override
@@ -143,6 +137,7 @@ public class HaxeImportUtil {
       }
     });
 
-    return result;
+    result.values().forEach(element -> System.out.println(((HaxeReference)element).getReferenceNameElement().getText()));
+    return result.values();
   }
 }
