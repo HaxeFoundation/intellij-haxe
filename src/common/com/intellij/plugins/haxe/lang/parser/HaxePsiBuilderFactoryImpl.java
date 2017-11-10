@@ -22,6 +22,17 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Handle PSI building when parsing languages.  Beware!  Using this will override *every* language;
+ * HaxePsiBuilder will be used as the only PSIBuilder when this is installed.
+ *
+ * Install this class by adding the following stanza to your src/META-INF/plugin.xml file.  (It is
+ * currently in place, but commented out.)
+ *
+ * <applicationService overrides="true" serviceInterface="com.intellij.lang.PsiBuilderFactory"
+ *                     serviceImplementation="com.intellij.plugins.haxe.lang.parser.HaxePsiBuilderFactoryImpl"/>
+ *
+ */
 public class HaxePsiBuilderFactoryImpl extends PsiBuilderFactory {
 
   @NotNull
@@ -70,12 +81,9 @@ public class HaxePsiBuilderFactoryImpl extends PsiBuilderFactory {
     return new HaxePsiBuilder(parserDefinition, lexer, seq);
   }
 
-
   private static Lexer createLexer(final Project project, final Language lang) {
     final ParserDefinition parserDefinition = LanguageParserDefinitions.INSTANCE.forLanguage(lang);
     assert parserDefinition != null : "ParserDefinition absent for language: " + lang.getID();
     return parserDefinition.createLexer(project);
   }
-
-
 }
