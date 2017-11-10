@@ -40,7 +40,6 @@ import java.util.HashSet;
 public class HaxePsiBuilder extends PsiBuilderImpl {
 
   private static final Logger LOG = Logger.getLogger("#HaxePsiBuilder");
-  static { LOG.setLevel(Level.DEBUG); } // Remove when finished debugging.
 
   private static final HashSet<String> reportedErrors = new HashSet<String>();
 
