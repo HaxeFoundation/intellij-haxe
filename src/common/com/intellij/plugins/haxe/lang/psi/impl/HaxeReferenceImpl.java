@@ -936,12 +936,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Nullable
   @Override
   public PsiElement getQualifier() {
-    // Package/class that this type is part of; the part before
-    // the last '.'.  However, that may only be partial, so adding
-    // package information may also be necessary.
-    PsiElement left = UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.REFERENCE_EXPRESSION);
-    boolean hasDot = nextSiblingIsADot(left);
-    return hasDot ? left : null;
+    PsiElement expression = getFirstChild();
+    return expression != null && expression instanceof HaxeReference ? expression : null;
   }
 
   @Nullable
