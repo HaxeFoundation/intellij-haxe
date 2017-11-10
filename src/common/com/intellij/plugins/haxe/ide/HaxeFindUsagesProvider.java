@@ -32,13 +32,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxeFindUsagesProvider implements FindUsagesProvider {
 
-  final static boolean LogQueries = true; // Turn off when done debugging.
   final static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider");
-  static {
-    if (LogQueries) {
-      LOG.setLevel(Level.DEBUG);
-    }
-  }
 
   @Override
   public WordsScanner getWordsScanner() {
