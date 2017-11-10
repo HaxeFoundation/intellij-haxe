@@ -692,8 +692,13 @@
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
     <lang.rearranger language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.rearranger.HaxeRearrangerModel" />
     <lang.ast.factory language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
+
+    <!-- Enable the following stanza to use the HaxePsiBuilder when parsing.  Beware! It overrides any other
+         PsiBuilder; every language will use the HaxePsiBuilder. -->
+    <!--
     <applicationService overrides="true" serviceInterface="com.intellij.lang.PsiBuilderFactory"
                         serviceImplementation="com.intellij.plugins.haxe.lang.parser.HaxePsiBuilderFactoryImpl"/>
+    -->
 
     <lang.syntaxHighlighterFactory key="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
 

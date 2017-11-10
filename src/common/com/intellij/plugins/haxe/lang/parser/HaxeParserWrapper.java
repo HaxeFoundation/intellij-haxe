@@ -33,8 +33,6 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeParserWrapper extends HaxeParser {
 
   private static Logger LOG = Logger.getInstance("#HaxeParserWrapper");
-/** Set this false when you're finished debugging. */
-  static {LOG.setLevel(Level.DEBUG);}
 
   /** Turns on debugging when running the parser.  On when the logger is in debug mode. */
   private static boolean debugging = LOG.isDebugEnabled();
