@@ -10,5 +10,7 @@ idea-IU
 local-build-overrides.xml
 intellij-haxe*.jar
 /gen/
-
-
+/dependencies/*
+light-psi-all.jar
+grammar-kit.jar
+idea-flex.skeleton
