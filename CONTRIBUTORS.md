@@ -12,9 +12,9 @@ Recent contributors
  - GitHub <noreply@github.com>
  - Ilya Kuzmichev <deadbabe@gmail.com>
  - Jens Fischer <jensfischer95@gmail.com>
+ - m0rkeulv <github@m0rkeulv.net>
  - mayakwd <loremipsum.inside@gmail.com>
  - slavara <ratdg@ya.ru>
- - Usievaład Kimajeŭ <usievalad@gmail.com>
  - winmain <d.winmain@gmail.com>
 
 All contributors
@@ -68,6 +68,7 @@ All contributors
 - jeremyfa <jeremy.faivre@gmail.com>
 - kirill.safonov <kirill.safonov@jetbrains.com>
 - Kirill Safonov <kirill.safonov@jetbrains.com>
+- m0rkeulv <github@m0rkeulv.net>
 - Maxim.Mossienko <Maxim.Mossienko@jetbrains.com>
 - Maxim Shafirov <max@jetbrains.com>
 - mayakwd <loremipsum.inside@gmail.com>

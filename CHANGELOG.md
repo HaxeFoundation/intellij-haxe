@@ -5,7 +5,44 @@
      14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version of the
      plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
   </p>
-
+  <p>0.11.2: (Haxe Foundation Release)</p>
+  <ul>
+    <li>Parsing fixes: </li>
+    <ul>
+      <li>Expressions inside of type parameters.</li>
+      <li>Make sequential operators cause syntax errors.</li>
+      <li>Allow anonymous local function declarations.</li>
+      <li>External function declarations with simple bodies getting 'Unexpected semicolon' messages.</li>
+      <li>Custom meta-data with empy parentheis.</li>
+      <li>Named nested (local) function declarations.</li>
+      <li>Prototype functions in abstract types.</li>
+      <li>Allow @arrayAccess</li>
+      <li>Array access where the name is parenthesized.</li>
+      <li>Allow @final on property declarations.</li>
+      <li>Allow and recover from variable declarations that don't require a semicolon (e.g. preceded by a block).</li>
+      <li>Allow trailing comma inside of an object literal.</li>
+      <li>Allow trailing comma at the end of an array literal.</li>
+      <li>Block statements when used as an initializer.</li>
+    </ul>
+    <li>Fix NPE when haxelib.json was missing from a library.</li>
+    <li>Fix an exception when the Haxe SDK is set up incorrectly.</li>
+    <li>Added Adobe AIR target</li>
+    <li>Refactor haxelib library dependency detection and project update.</li>
+    <li>For FindUsages, ask whether to search for base class/interface usages.</li>
+    <li>Fix bug with environment variables not being passed through to forked processes in some cases. (Issue #659)</li>
+    <li>Add haxelib and neko directories to (the start of) the Path before forking a process.</li>
+    <li>Better tracking of settings changes.</li>
+    <li>Better parsing of HXML/lime (or &quot;haxelib run lime&quot;) output.</li>
+    <li>Fix IndexOutOfBoundsException when checking for static extensions and static member methods have no parameters. (Issue #652)</li>
+    <li>Better parser recovery for &quot;extends&quot; and &quot;implements&quot; statements. (Issue #137)</li>
+    <li>Fixed identifier resolving for dot-references defined in &quottype params.&quot; (Issue#674)</li>
+    <li>Fixed parameter count resolution for anonymous functions. (Partially closes issue #521.)</li>
+    <li>Add neko and haxelib directories to the PATH/Path environment variable when running plugin commands (affects lime, etc.).</li>
+    <li>Better cache coherency for completions.</li>
+    <li>Improved hxml parsing.</li>
+    <li>Added mechanism to track project and module settings changes.</li>
+    <li>Improve locating files when traversing the stack frames during debugging.</li>
+  </ul>
   <p>0.11.1: (community release)</p>
   <ul>
     <li>Check for and halt type resolution when a cyclical/recursive definition is found.</li>

@@ -1,9 +1,9 @@
 Contributing
 ============
 
-NOTE: The development team is currently supporting IDEA versions 14 and later.
-Support for version 13.1 been removed as of release 0.9.8.* &nbsp; Support for versions 14
-will likely be dropped sometime during the year 2017.
+NOTE: The development team is currently supporting IDEA versions 2016 and later.
+Support for version 13.1 been removed as of release 0.9.8.* &nbsp; Support for versions
+14 and 15 are stopped as of release 0.11.2.
 
 ## Reporting errors  
 ------------------
@@ -25,7 +25,7 @@ can reproduce the issue.
 ## Development Environment
 -------------------------
 
-You will need the release version of Intellij IDEA Ultimate 14.x, 15.x, or later to develop the plugin.
+You will need the release version of Intellij IDEA Ultimate 2016.1 or later to develop the plugin.
 *There are reports that you can develop with IDEA Community Edition, though extended functionality such as
 diagrams and hierarchy panels will not be available and you wont be able to test their Haxe equivalents.*
 
@@ -43,7 +43,6 @@ Install the following plugins [from Intellij IDEA plugin manager](https://www.je
 
 #### Optional, install if you want to modify lexer/parser:
 - JFlex (for lexer compilation)
-- PsiViewer (for testing grammar)
 
 IntelliJ IDEA uses the Grammar-Kit plugin to generate its lexer and parser for Haxe and HXML.
 The grammar file for Haxe is [haxe.bnf](https://github.com/JetBrains/intellij-haxe/blob/master/grammar/haxe.bnf).
@@ -110,8 +109,8 @@ particularly if you see ClassNotFound exceptions when attempting to run the plug
 
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
-by the plugin team.  At the time of this writing, that would be 14.0.5,
-and 14.1.1, 14.1.7 (introduced a breaking change), 15.0.6, and 2016.2.4.
+by the plugin team.  At the time of this writing, that would be 2016.1.4, 
+2016.2.5, 2016.3.7, 2017.1.5, and 2017.2.5.
 As new versions are released this will continue to be
 a moving target, as we attempt to keep up with the development community.
 
@@ -195,7 +194,7 @@ you can create one. It is a single line file with the following format:
 
 * A two character product prefix (e.g. IU for IDEA Ultimate, IC for community edition, and so on)  
 * a dash ("-")  
-* code line ID (e.g. 135 for IDEA 13.1, 139 for IDEA 14, 141 for IDEA 14.1)  
+* code line ID (e.g. 161 for IDEA 2016.1.x, 172 for IDEA 2017.2.x, etc.)  
 * a dot (".")  
 * build number (e.g. 1286)    
 * a dot -- optional, but mandatory if a patch number is supplied  
@@ -260,7 +259,7 @@ in the blanks (well... the areas between @...@ signs) in plugin.xml with
 the aforementioned values.  The generation algorithm copies the src/META-INF 
 files to gen/META-INF as part of this process, and the project uses the 
 copied files. The properties are defined in properties files in the 
-project root directory (e.g. idea_v13.properties).
+project root directory (e.g. idea_v17.properties).
 
 #### IDEA builds
 

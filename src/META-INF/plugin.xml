@@ -22,24 +22,101 @@
 
 <idea-plugin version="2">
   <id>com.intellij.plugins.haxe</id>
-  <name>Haxe Support</name>
-  <description>Support for the Haxe programming language.</description>
-  <vendor>JetBrains, Haxe community</vendor>
+  <name>Haxe Toolkit Support</name>
+  <description>
+    <![CDATA[
+      <div style="font-family: 'Open Sans', sans-serif; font-weight: 400; color:white;">
+          <table width="100%" bgcolor="#141419" border="0" cellpadding="5px" style="min-height=49px;">
+            <tr>
+              <td><a href="https://haxe.org"><img border="0" style="text-align:left;" src="https://haxe.org/img/haxe-logo-horizontal-on-dark.png" height="21" width="107"></a></td>
+              <td align="right"><b>The Cross-platform Toolkit</b></td>
+            </tr>
+          </table>
+          <table width="100%" cellpadding="5px" border="0" style="background-color:rgb(168,75,56);">
+            <tr">
+              <td align="right"><b>Documentation:</b></td>
+              <td align="left"><a style="color:white;" href="http://intellij-haxe.org">Project Web Site</a></td>
+            </tr>
+            <tr>
+              <td align="right"><b>Release Notes:</b></td>
+              <td align="left"><a style="color:white;" href="https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md">README</a></td>
+            </tr>
+            <tr>
+              <td align="right"><b>Source Code:</b></td>
+              <td align="left"><a style="color:white;" href="https://github.com/HaxeFoundation/intellij-haxe">GitHub</a></td>
+            </tr>
+            <tr>
+              <td align="right"><b>Support:</b></td>
+              <td align="left"><a style="color:white;" href="http://community.haxe.org/">Community Discourse</a></td>
+            </tr>
+            <tr>
+              <td align="right"><b>Enterprise Support:</b></td>
+              <td align="left"><a style="color:white;" href="http://bishtonsoftwaresolutions.com/">Bishton Software Solutions</a></td>
+            </tr>
+            <tr>
+              <td align="right"><a href="https://www.patreon.com/EricBishton"><img border="0" height="30" width="30" src="https://c5.patreon.com/external/logo/downloads_logomark_color_on_navy.png"></a></td>
+              <td align="left"><a style="color:white;" href="https://www.patreon.com/EricBishton"><b>BECOME A PATRON</b></a></td>
+            </tr>
+          </table>
+          <table width="100%" bgcolor="#141419" border="0" cellpadding="5px">
+            <tr>
+            <td>Professionally maintained by Bishton Software Solutions</td>
+            </tr>
+          </table>
+      </div>
+      <p/>
+    ]]>
+    </description>
+  <vendor>Haxe Community (Original sources provided by JetBrains.)</vendor>
   <idea-version since-build="@plugin.installable.since@" until-build="@plugin.installable.until@"/>
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>0.11.1 for @plugin.compatibility.description@</version>
+  <version>0.11.2 for @plugin.compatibility.description@</version>
   <change-notes>
     <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
-      <p>Documentation: <a href="https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md">https://github.com/HaxeFoundation/intellij-haxe/blob/master/README.md</a></p>
-      <p>Get Support: <a href="http://intellij-haxe.org">http://intellij-haxe.org</a></p>
-      <p>Contribute: <a href="https://www.patreon.com/EricBishton">https://www.patreon.com/EricBishton</a></p>
-      <p>Professionally supported and maintained by Bishton Software Solutions: <a href="http://BishtonSoftwareSolutions.com">http://BishtonSoftwareSolutions.com</a></p>
       <p/>
+      <p>0.11.2: (Haxe Foundation Release)</p>
+      <ul>
+        <li>Parsing fixes:
+        <ul>
+          <li>Expressions inside of type parameters.</li>
+          <li>Make sequential operators cause syntax errors.</li>
+          <li>Allow anonymous local function declarations.</li>
+          <li>External function declarations with simple bodies getting 'Unexpected semicolon' messages.</li>
+          <li>Custom meta-data with empty parenthesis.</li>
+          <li>Named nested (local) function declarations.</li>
+          <li>Prototype functions in abstract .types.</li>
+          <li>Allow @arrayAccess</li>
+          <li>Array access where the name is parenthesized.</li>
+          <li>Allow @final on property declarations.</li>
+          <li>Allow and recover from variable declarations that don't require a semicolon (e.g. preceded by a block).</li>
+          <li>Allow trailing comma inside of an object literal.</li>
+          <li>Allow trailing comma at the end of an array literal.</li>
+          <li>Block statements when used as an initializer.</li>
+        </ul></li>
+        <li>Fix NPE when haxelib.json was missing from a library.</li>
+        <li>Fix an exception when the Haxe SDK is set up incorrectly.</li>
+        <li>Added Adobe AIR target</li>
+        <li>Refactor haxelib library dependency detection and project update.</li>
+        <li>For FindUsages, ask whether to search for base class/interface usages.</li>
+        <li>Fix bug with environment variables not being passed through to forked processes in some cases. (Issue #659)</li>
+        <li>Add haxelib and neko directories to (the start of) the Path before forking a process.</li>
+        <li>Better tracking of settings changes.</li>
+        <li>Better parsing of HXML/lime (or &quot;haxelib run lime&quot;) output.</li>
+        <li>Fix IndexOutOfBoundsException when checking for static extensions and static member methods have no parameters. (Issue #652)</li>
+        <li>Better parser recovery for &quot;extends&quot; and &quot;implements&quot; statements. (Issue #137)</li>
+        <li>Fixed identifier resolving for dot-references defined in &quottype params.&quot; (Issue#674)</li>
+        <li>Fixed parameter count resolution for anonymous functions. (Partially closes issue #521.)</li>
+        <li>Add neko and haxelib directories to the PATH/Path environment variable when running plugin commands (affects lime, etc.).</li>
+        <li>Better cache coherency for completions.</li>
+        <li>Improved hxml parsing.</li>
+        <li>Added mechanism to track project and module settings changes.</li>
+        <li>Improve locating files when traversing the stack frames during debugging.</li>
+      </ul>
       <p>0.11.1: (community release)</p>
       <ul>
         <li>Check for and halt type resolution when a cyclical/recursive definition is found.</li>
