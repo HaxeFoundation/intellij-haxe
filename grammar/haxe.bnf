@@ -449,7 +449,7 @@ private regularGenericListPart ::= macroMember* componentName (':' ('(' typeList
 // We can't use constMeta here until the lexer returns a string for macros instead of MACRO_ID.
 private constGenericListPart ::= macroMember+ constantExpression (':' ('(' typeList ')' | typeListPart))? {pin=2}
 
-typeListPart ::= typeWrapper | expression
+typeListPart ::= typeWrapper | literalExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
@@ -565,7 +565,7 @@ private suffixExpressionWrapper ::= value (assignExpression | suffixExpression)*
 left suffixExpression ::= ('--' | '++')
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
-// In particular, calllFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
+// In particular, callFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
 // If callOrArrayAccess comes before literalExpression, then referenceExpression (as part of callOrArrayAccess)
 // will take the first identifier and the rest will not match properly.
 private value ::= macroClassList? (('untyped' expression)
@@ -645,6 +645,10 @@ thisExpression ::= 'this'
 superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
+// XXX - This could be callExpression, and it makes sense that newExpression would extend/implement callExpression,
+//       but that affects a lot of code and is best not attempted just before a release...
+//private newCallExpression ::= '(' expressionList? ')'
+//newExpression ::= 'new' type newCallExpression
 private newExpressionArgumentsList ::= '(' [!')' expression (',' expression)*] ')' {pin(".*")=1}
 newExpression ::= 'new' type newExpressionArgumentsList
 {pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
