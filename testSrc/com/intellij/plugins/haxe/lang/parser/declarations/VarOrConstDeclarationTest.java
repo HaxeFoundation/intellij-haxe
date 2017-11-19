@@ -82,4 +82,16 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
   public void testCommaAssignmentNotRequiringSemicolon() throws Throwable {
     doTest(true);
   }
+
+  public void testAtConstInstantiationString() throws Throwable {
+    doTest(true);
+  }
+
+  public void testAtConstInstantiationInt() throws Throwable {
+    doTest(true);
+  }
+
+  public void testAssignParameterizedTypeInstance() throws Throwable {
+    doTest(true);
+  }
 }
