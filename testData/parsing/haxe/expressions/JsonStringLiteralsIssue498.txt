@@ -24,17 +24,19 @@ Haxe File
                   HaxePsiToken:LITINT('0')
               HaxePsiToken:,(',')
               OBJECT_LITERAL_ELEMENT
-                HaxePsiToken:OPEN_QUOTE(''')
-                HaxePsiToken:REGULAR_STRING_PART('singleQuotes')
-                HaxePsiToken:CLOSING_QUOTE(''')
+                STRING_LITERAL_EXPRESSION
+                  HaxePsiToken:OPEN_QUOTE(''')
+                  HaxePsiToken:REGULAR_STRING_PART('singleQuotes')
+                  HaxePsiToken:CLOSING_QUOTE(''')
                 HaxePsiToken::(':')
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
               HaxePsiToken:,(',')
               OBJECT_LITERAL_ELEMENT
-                HaxePsiToken:OPEN_QUOTE('"')
-                HaxePsiToken:REGULAR_STRING_PART('doubleQuotes')
-                HaxePsiToken:CLOSING_QUOTE('"')
+                STRING_LITERAL_EXPRESSION
+                  HaxePsiToken:OPEN_QUOTE('"')
+                  HaxePsiToken:REGULAR_STRING_PART('doubleQuotes')
+                  HaxePsiToken:CLOSING_QUOTE('"')
                 HaxePsiToken::(':')
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('2')

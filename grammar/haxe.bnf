@@ -687,5 +687,5 @@ objectLiteral ::= ('{' objectLiteralElementList+ '}') | emptyObjectLiteral
 private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* ','? {recoverWhile="object_literal_list_recover"}
 private object_literal_list_recover ::= !('}')
 
-objectLiteralElement ::= (identifier | OPEN_QUOTE REGULAR_STRING_PART CLOSING_QUOTE) ':' expression {recoverWhile="object_literal_part_recover"}
+objectLiteralElement ::= (identifier | stringLiteralExpression) ':' expression {recoverWhile="object_literal_part_recover"}
 private object_literal_part_recover ::= !(',' | '}')
