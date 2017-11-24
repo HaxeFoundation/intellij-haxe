@@ -36,4 +36,8 @@ public class ExceptionTest extends StatementTestBase {
   public void testMultipleTryCatch() throws Throwable {
     doTest(true);
   }
+
+  public void testThrowFromTernary() throws Throwable {
+    doTest(true);
+  }
 }
