@@ -231,7 +231,12 @@ public class HaxelibProjectUpdater {
 
     toAdd = new HaxeLibraryList(module);
     toRemove = new HaxeLibraryList(module);
-    syncLibraryLists(ModuleRootManager.getInstance(module).getSdk(),
+    Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+    if (null == moduleSdk) {
+      LOG.debug("No SDK for module " + module.getName() + ".  Not syncing haxelibs.");
+      return; // Nothing to do if there is no SDK.
+    }
+    syncLibraryLists(moduleSdk,
                      HaxelibUtil.getModuleLibraries(module),
                      externalLibs,
         /*modifies*/ toAdd,
