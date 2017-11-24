@@ -94,4 +94,13 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
   public void testAssignParameterizedTypeInstance() throws Throwable {
     doTest(true);
   }
+
+  public void testStructureInitialization() throws Throwable {
+    doTest(true);
+  }
+
+  public void testStructureInitWithStringVarName() throws Throwable {
+    doTest(true);
+  }
+
 }
