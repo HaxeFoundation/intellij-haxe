@@ -45,4 +45,12 @@ public class ReturnTest extends StatementTestBase {
   public void testBlockStatement() throws Throwable {
     doTest(true);
   }
+
+  public void testVariableDeclaration() throws Throwable {
+    doTest(true);
+  }
+
+  public void testArrayComprehension() throws Throwable {
+    doTest(true);
+  }
 }
