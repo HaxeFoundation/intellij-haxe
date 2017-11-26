@@ -49,25 +49,58 @@ Haxe File
                   HaxePsiToken:CLOSING_QUOTE('"')
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
-          PsiModifierList:@meta @meta @meta
-            MACRO_CLASS
-              CUSTOM_META
-                HaxePsiToken:MACRO_ID('@meta')
-            MACRO_CLASS
-              CUSTOM_META
-                HaxePsiToken:MACRO_ID('@meta')
-            MACRO_CLASS
-              CUSTOM_META
-                HaxePsiToken:MACRO_ID('@meta')
-          BLOCK_STATEMENT
-            HaxePsiToken:{('{')
-            PsiModifierList:@:meta
-              MACRO_CLASS
-                META_META
-                  HaxePsiToken:@:meta('@:meta')
-            LITERAL_EXPRESSION
-              HaxePsiToken:LITINT('10')
-            HaxePsiToken:;(';')
-            HaxePsiToken:}('}')
+          LOCAL_VAR_DECLARATION
+            HaxePsiToken:var('var')
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('target')
+              VAR_INIT
+                HaxePsiToken:=('=')
+                OBJECT_LITERAL
+                  HaxePsiToken:{('{')
+                  OBJECT_LITERAL_ELEMENT
+                    IDENTIFIER
+                      HaxePsiToken:ID('pos')
+                    HaxePsiToken::(':')
+                    LITERAL_EXPRESSION
+                      HaxePsiToken:LITINT('0')
+                  HaxePsiToken:}('}')
+          LOCAL_VAR_DECLARATION
+            HaxePsiToken:var('var')
+            LOCAL_VAR_DECLARATION_PART
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('targetpos')
+              VAR_INIT
+                HaxePsiToken:=('=')
+                PREFIX_EXPRESSION
+                  PsiModifierList:@meta @meta @:pos(target)
+                    MACRO_CLASS
+                      CUSTOM_META
+                        HaxePsiToken:MACRO_ID('@meta')
+                    MACRO_CLASS
+                      CUSTOM_META
+                        HaxePsiToken:MACRO_ID('@meta')
+                    MACRO_CLASS
+                      CUSTOM_META
+                        HaxePsiToken:MACRO_ID('@:pos')
+                        HaxePsiToken:(('(')
+                        EXPRESSION_LIST
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('target')
+                        HaxePsiToken:)(')')
+                  LITERAL_EXPRESSION
+                    BLOCK_STATEMENT
+                      HaxePsiToken:{('{')
+                      PsiModifierList:@:meta
+                        MACRO_CLASS
+                          META_META
+                            HaxePsiToken:@:meta('@:meta')
+                      LITERAL_EXPRESSION
+                        HaxePsiToken:LITINT('10')
+                      HaxePsiToken:;(';')
+                      HaxePsiToken:}('}')
           HaxePsiToken:}('}')
     HaxePsiToken:}('}')
