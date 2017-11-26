@@ -74,22 +74,24 @@ public class HXMLProjectModel {
   @Nullable
   public String getProperty(String propertyName) {
     List<String> found = getProperties(propertyName);
-    if (null != found && found.size() == 1) {
-      return found.get(0);
-    } else if (found.size() > 1) {
-      if (LOG.isInfoEnabled()) {
-        StringBuilder msg = new StringBuilder(256);
-        msg.append("Unexpectedly found more than one setting for ");
-        msg.append(propertyName);
-        msg.append(":\n");
-        for (String s : found) {
-          msg.append("   ");
-          msg.append(s);
-          msg.append('\n');
+    if (found != null) {
+      if (found.size() == 1) {
+        return found.get(0);
+      } else if (found.size() > 1) {
+        if (LOG.isInfoEnabled()) {
+          StringBuilder msg = new StringBuilder(256);
+          msg.append("Unexpectedly found more than one setting for ");
+          msg.append(propertyName);
+          msg.append(":\n");
+          for (String s : found) {
+            msg.append("   ");
+            msg.append(s);
+            msg.append('\n');
+          }
+          LOG.info(msg);
         }
-        LOG.info(msg);
+        return found.get(0);
       }
-      return found.get(0);
     }
     return null;
   }

@@ -88,13 +88,14 @@ public class HaxeCompilerServices {
         HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(module);
         String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
 
-        VirtualFile projectFile = verifyProjectFile(module, "OpenFL", moduleSettings.getOpenFLPath(), myErrorNotifier);
+        String projectFilePath = moduleSettings.getOpenFLPath();
+        VirtualFile projectFile = verifyProjectFile(module, "OpenFL", projectFilePath, myErrorNotifier);
         if (null == projectFile) {
-
+            // todo ???
         }
         VirtualFile compileRoot = HaxeCompilerUtil.findCompileRoot(module);
 
-        List<String> compilerArgsFromProjectFile = openFLDisplayArguments.get(module, projectFile.getUrl(), targetFlag);
+        List<String> compilerArgsFromProjectFile = openFLDisplayArguments.get(module, projectFile != null ? projectFile.getUrl() : "", targetFlag);
         if (compilerArgsFromProjectFile == null) {
             ArrayList<String> limeArguments = new ArrayList<String>();
 
