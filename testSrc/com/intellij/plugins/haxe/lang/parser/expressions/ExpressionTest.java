@@ -123,4 +123,9 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testSequentialOperatorsShouldFailParsing() throws Throwable {
     doTest(true);
   }
+
+  public void testTooManyMetas() throws Throwable {
+    // github.com/HaxeFoundation/intellij-haxe/issues/81
+    doTest(true);
+  }
 }
