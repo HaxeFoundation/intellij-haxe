@@ -579,7 +579,8 @@ private value ::= macroClassList? (('untyped' expression)
                                                    | parenthesizedExpressionOrCall
                                                    | tryStatement
                                                    | switchStatement
-                                                   | throwStatement)
+                                                   | throwStatement
+                                                   | varDeclaration)
 {pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
