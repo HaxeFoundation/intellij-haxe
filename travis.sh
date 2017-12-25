@@ -9,16 +9,10 @@ if [[ $# -eq 0 ]] ; then
     exit 1
 fi
 
-#download and extract dependencies
-ant -f workspace.xml -Dversion="$1"
-
-# Run the tests
-ant -f build-test.xml -Dversion="$1" $2
+./gradlew -q runTests -PideaVersion="$1"
 
 # Was our build successful?
 stat=$?
-
-ant -f build-test.xml -q clean
 
 # Return the build status
 exit ${stat}
