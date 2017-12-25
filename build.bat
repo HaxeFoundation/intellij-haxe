@@ -5,10 +5,5 @@ echo 'example: build.bat 13.1.6'
 echo 'example: build.bat 2017.2.4'
 Exit /B 1
 )
-::download and extract dependencies if necessary
-call ant -f workspace.xml -Dversion="%1"
 
-::call the build script along with the path to a code package
-::specific to the intellij version which we build against
-call ant -f build.xml -Dversion="%1"
-
+gradlew.bat buildPlugin -PideaVersion="%1"
