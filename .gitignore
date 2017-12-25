@@ -1,6 +1,7 @@
 out/
 .DS_Store
 .idea/
+.gradle/*
 .iml
 .project
 idea-IU
