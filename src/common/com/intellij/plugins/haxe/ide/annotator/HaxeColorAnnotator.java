@@ -54,9 +54,6 @@ public class HaxeColorAnnotator implements Annotator {
     }
 
     PsiElement element = node;
-    if (element instanceof HaxeStringLiteralExpression) {
-      return;
-    }
     if (element instanceof HaxeReference) {
       final boolean chain = PsiTreeUtil.getChildOfType(element, HaxeReference.class) != null;
       if (chain) {
