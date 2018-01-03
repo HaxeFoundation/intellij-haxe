@@ -61,5 +61,4 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
     return super.getSecondaryElements();
   }
 
-
 }
