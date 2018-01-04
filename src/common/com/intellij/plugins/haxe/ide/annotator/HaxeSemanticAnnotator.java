@@ -58,20 +58,15 @@ public class HaxeSemanticAnnotator implements Annotator {
   private static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
     if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element, holder);
-    }
-    else if (element instanceof HaxeMethod) {
+    } else if (element instanceof HaxeMethod) {
       MethodChecker.check((HaxeMethod)element, holder);
-    }
-    else if (element instanceof HaxeClass) {
+    } else if (element instanceof HaxeClass) {
       ClassChecker.check((HaxeClass)element, holder);
-    }
-    else if (element instanceof HaxeType) {
+    } else if (element instanceof HaxeType) {
       TypeChecker.check((HaxeType)element, holder);
-    }
-    else if (element instanceof HaxeVarDeclaration) {
+    } else if (element instanceof HaxeVarDeclaration) {
       FieldChecker.check((HaxeVarDeclaration)element, holder);
-    }
-    else if (element instanceof HaxeStringLiteralExpression) {
+    } else if (element instanceof HaxeStringLiteralExpression) {
       StringChecker.check((HaxeStringLiteralExpression)element, holder);
     }
   }
@@ -105,8 +100,7 @@ class TypeTagChecker {
           document.replaceElementText(initExpression, "", StripSpaces.BEFORE);
         }
       });
-    }
-    else if (requireConstant && type2.getType().getConstant() == null) {
+    } else if (requireConstant && type2.getType().getConstant() == null) {
       // TODO: Move to bundle
       holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
     }
@@ -141,24 +135,19 @@ class FieldChecker {
       fieldDeclaringClass = fieldDeclaringClass.getParentClass();
       if (classSet.contains(fieldDeclaringClass)) {
         break;
-      }
-      else {
+      } else {
         classSet.add(fieldDeclaringClass);
       }
       if (fieldDeclaringClass != null) {
         for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {
           if (parentField.getName().equals(field.getName())) {
+            String message;
             if (parentField.isStatic()) {
-              holder.createWarningAnnotation(field.getNameOrBasePsi(), "Field '" + field.getName()
-                                                                       + "' overrides a static field of a superclass.");
-            }
-            else {
-              holder.createErrorAnnotation(field.getBasePsi(), "Redefinition of variable '" +
-                                                               field.getName()
-                                                               +
-                                                               "' in subclass is not allowed. Previously declared at '" +
-                                                               fieldDeclaringClass.getName() +
-                                                               "'.");
+              message = HaxeBundle.message("haxe.semantic.static.field.override", field.getName());
+              holder.createInfoAnnotation(field.getNameOrBasePsi(), message);
+            } else {
+              message = HaxeBundle.message("haxe.semantic.variable.redefinition", field.getName(), fieldDeclaringClass.getName());
+              holder.createErrorAnnotation(field.getBasePsi(), message);
             }
             break;
           }
@@ -240,7 +229,7 @@ class FieldChecker {
 
 class TypeChecker {
   static public void check(final HaxeType type, final AnnotationHolder holder) {
-      check(type.getReferenceExpression().getIdentifier(), holder);
+    check(type.getReferenceExpression().getIdentifier(), holder);
   }
 
   static public void check(final PsiIdentifier identifier, final AnnotationHolder holder) {
@@ -280,8 +269,7 @@ class ClassChecker {
       if (repeatedMember != null) {
         repeatedMembers.add(member);
         repeatedMembers.add(repeatedMember);
-      }
-      else {
+      } else {
         map.put(memberName, member);
       }
     }
@@ -306,14 +294,12 @@ class ClassChecker {
           // @TODO: Move to bundle
           holder.createErrorAnnotation(clazz.haxeClass.getHaxeExtendsList().get(0), "Not an anonymous type");
         }
-      }
-      else if (clazz.isInterface()) {
+      } else if (clazz.isInterface()) {
         if (!reference.isInterface()) {
           // @TODO: Move to bundle
           holder.createErrorAnnotation(reference.getPsi(), "Not an interface");
         }
-      }
-      else if (!reference.isClass()) {
+      } else if (!reference.isClass()) {
         // @TODO: Move to bundle
         holder.createErrorAnnotation(reference.getPsi(), "Not a class");
       }
@@ -381,8 +367,7 @@ class ClassChecker {
           if (psiMethod == null) {
             missingMethods.add(intMethod);
             missingMethodsNames.add(intMethod.getName());
-          }
-          else {
+          } else {
             final HaxeMethod method = (HaxeMethod)psiMethod;
             final HaxeMethodModel methodModel = method.getModel();
 
@@ -401,8 +386,7 @@ class ClassChecker {
 
                 holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
               }
-            }
-            else {
+            } else {
               MethodChecker.checkMethodsSignatureCompatibility(methodModel, intMethod, holder);
             }
           }
@@ -473,8 +457,7 @@ class MethodChecker {
       }
       if (param.isOptional()) {
         hasOptional = true;
-      }
-      else if (hasOptional) {
+      } else if (hasOptional) {
         // @TODO: Move to bundle
         holder.createWarningAnnotation(param.getBasePsi(), "Non-optional argument after optional argument");
       }
@@ -483,8 +466,7 @@ class MethodChecker {
         // @TODO: Move to bundle
         holder.createWarningAnnotation(param.getNameOrBasePsi(), "Repeated argument name '" + paramName + "'");
         holder.createWarningAnnotation(argumentNames.get(paramName), "Repeated argument name '" + paramName + "'");
-      }
-      else {
+      } else {
         argumentNames.put(paramName, param.getNameOrBasePsi());
       }
     }
@@ -510,21 +492,18 @@ class MethodChecker {
           new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.STATIC)
         );
       }
-    }
-    else if (currentMethod.isStaticInit()) {
+    } else if (currentMethod.isStaticInit()) {
       requiredOverride = false;
       if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
           new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.STATIC)
         );
       }
-    }
-    else if (parentMethod != null) {
+    } else if (parentMethod != null) {
       if (parentMethod.isStatic()) {
         holder.createWarningAnnotation(currentMethod.getNameOrBasePsi(), "Method '" + currentMethod.getName()
                                                                          + "' overrides a static method of a superclass");
-      }
-      else {
+      } else {
         requiredOverride = true;
 
         if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
@@ -559,14 +538,12 @@ class MethodChecker {
       holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
         new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.OVERRIDE)
       );
-    }
-    else if (requiredOverride) {
+    } else if (requiredOverride) {
       if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
           new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.OVERRIDE)
         );
-      }
-      else {
+      } else {
         // It is rightly overriden. Now check the signature.
         checkMethodsSignatureCompatibility(currentMethod, parentMethod, holder);
       }
@@ -595,8 +572,7 @@ class MethodChecker {
             }
           });
       }
-    }
-    else if (currentParameters.size() != parentParameters.size()) {
+    } else if (currentParameters.size() != parentParameters.size()) {
       holder.createErrorAnnotation(
         currentMethod.getNameOrBasePsi(),
         "Not matching arity expected " +
@@ -630,8 +606,7 @@ class MethodChecker {
         if (parentMethod.getDeclaringClass().isInterface()) {
           errorMessage = removeOptional ? "haxe.semantic.implemented.method.parameter.required"
                                         : "haxe.semantic.implemented.method.parameter.optional";
-        }
-        else {
+        } else {
           errorMessage = removeOptional ? "haxe.semantic.overwritten.method.parameter.required"
                                         : "haxe.semantic.overwritten.method.parameter.optional";
         }
@@ -649,8 +624,7 @@ class MethodChecker {
             public void run() {
               if (removeOptional) {
                 currentParam.getOptionalPsi().delete();
-              }
-              else {
+              } else {
                 PsiElement element = currentParam.getBasePsi();
                 document.addTextBeforeElement(element.getFirstChild(), "?");
               }
@@ -729,8 +703,7 @@ class PackageChecker {
             if (expression != null) {
               TextRange range = expression.getTextRange();
               document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
-            }
-            else {
+            } else {
               int offset =
                 element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
               document.replaceString(offset, offset, actualPackage);
@@ -752,8 +725,7 @@ class MethodBodyChecker {
 class StringChecker {
   public static void check(HaxeStringLiteralExpression psi, AnnotationHolder holder) {
     if (isSingleQuotesRequired(psi)) {
-      holder
-        .createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
+      holder.createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
     }
   }
 
