@@ -144,7 +144,7 @@ class FieldChecker {
             String message;
             if (parentField.isStatic()) {
               message = HaxeBundle.message("haxe.semantic.static.field.override", field.getName());
-              holder.createInfoAnnotation(field.getNameOrBasePsi(), message);
+              holder.createWeakWarningAnnotation(field.getNameOrBasePsi(), message);
             } else {
               message = HaxeBundle.message("haxe.semantic.variable.redefinition", field.getName(), fieldDeclaringClass.getName());
               holder.createErrorAnnotation(field.getBasePsi(), message);

@@ -1,8 +1,8 @@
 class StaticsInExtended extends BaseClass {
 
-  public static var <warning descr="Field 'MY_STATIC_FIELD' overrides a static field of a superclass.">MY_STATIC_FIELD</warning>:String = "test";
+  public static var <weak_warning descr="Field 'MY_STATIC_FIELD' overrides a static field of a superclass.">MY_STATIC_FIELD</weak_warning>:String = "test";
 
-  @:isVar public static var <warning descr="Field 'myStaticProperty' overrides a static field of a superclass.">myStaticProperty</warning>(get, set):String;
+  @:isVar public static var <weak_warning descr="Field 'myStaticProperty' overrides a static field of a superclass.">myStaticProperty</weak_warning>(get, set):String;
 
   static function <warning descr="Method 'get_myStaticProperty' overrides a static method of a superclass">get_myStaticProperty</warning>():String {
     return myStaticProperty;
