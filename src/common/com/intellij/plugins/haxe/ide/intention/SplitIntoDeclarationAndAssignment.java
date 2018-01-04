@@ -56,9 +56,7 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
     HaxeLocalVarDeclaration localVarDeclaration = PsiTreeUtil.getParentOfType(elementAt, HaxeLocalVarDeclaration.class);
     if (localVarDeclaration != null) {
       HaxeVarInit varInit = localVarDeclaration.getVarInit();
-      if (localVarDeclaration.getPropertyDeclaration() == null && varInit != null) {
-        return true;
-      }
+      return localVarDeclaration.getPropertyDeclaration() == null && varInit != null;
     }
     return false;
   }
@@ -79,9 +77,8 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
     }
     text += ";";
     HaxeVarDeclaration varDeclaration = HaxeElementGenerator.createVarDeclaration(project, text);
-    if (varInit != null) {
-      text = name + varInit.getText();
-    }
+    text = name + varInit.getText();
+
     varDeclaration.getNode().addLeaf(HaxeTokenTypes.OSEMI, "\n", null);
     PsiElement statementFromText = HaxeElementGenerator.createStatementFromText(project, text);
     statementFromText.getNode().addLeaf(HaxeTokenTypes.OSEMI, ";", null);
