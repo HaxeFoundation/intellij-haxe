@@ -39,7 +39,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(getAnnotatorBasedInspection());
-    myFixture.testHighlighting(true, false, false);
+    myFixture.testHighlighting(true, false, true);
   }
 
   private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
