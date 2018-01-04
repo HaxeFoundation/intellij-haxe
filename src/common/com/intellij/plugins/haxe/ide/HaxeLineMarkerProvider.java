@@ -46,6 +46,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author: Fedor.Korotkov
@@ -72,7 +73,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(supers.toArray(new HaxeClass[supers.size()]));
 
     final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(haxeClass);
-    final List<HaxeNamedComponent> subItems = new ArrayList<HaxeNamedComponent>();
+    final List<HaxeNamedComponent> subItems = new ArrayList<>();
     for (HaxeClass subClass : subClasses) {
       subItems.addAll(HaxeResolveUtil.getNamedSubComponents(subClass));
     }
@@ -103,20 +104,18 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
   @Nullable
   private static LineMarkerInfo tryCreateOverrideMarker(final HaxeNamedComponent namedComponent,
                                                         List<HaxeNamedComponent> superItems) {
+
+    final HaxeComponentName componentName = namedComponent.getComponentName();
     final String methodName = namedComponent.getName();
-    if (methodName == null) {
+    if (componentName == null || methodName == null || methodName.isEmpty()) {
       return null;
     }
-    final List<HaxeNamedComponent> filteredSuperItems = ContainerUtil.filter(superItems, new Condition<HaxeNamedComponent>() {
-      @Override
-      public boolean value(HaxeNamedComponent component) {
-        return methodName.equals(component.getName());
-      }
-    });
+
+    final List<HaxeNamedComponent> filteredSuperItems = ContainerUtil.filter(superItems, item -> methodName.equals(item.getName()));
     if (filteredSuperItems.isEmpty()) {
       return null;
     }
-    final PsiElement element = namedComponent.getComponentName();
+    final PsiElement element = componentName.getIdentifier().getFirstChild();
     HaxeComponentWithDeclarationList componentWithDeclarationList = namedComponent instanceof HaxeComponentWithDeclarationList ?
                                                                     (HaxeComponentWithDeclarationList)namedComponent : null;
     final boolean overrides = componentWithDeclarationList != null &&
@@ -126,7 +125,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     if (null == element) {
       return null;
     }
-    return new LineMarkerInfo<PsiElement>(
+    return new LineMarkerInfo<>(
       element,
       element.getTextRange(),
       icon,
@@ -161,23 +160,20 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
   private static LineMarkerInfo tryCreateImplementationMarker(final HaxeNamedComponent namedComponent,
                                                               List<HaxeNamedComponent> subItems,
                                                               final boolean isInterface) {
-    final PsiElement componentName = namedComponent.getComponentName();
+    final HaxeComponentName componentName = namedComponent.getComponentName();
     final String methodName = namedComponent.getName();
-    if (methodName == null) {
+    if (componentName == null || methodName == null || methodName.isEmpty()) {
       return null;
     }
-    final List<HaxeNamedComponent> filteredSubItems = ContainerUtil.filter(subItems, new Condition<HaxeNamedComponent>() {
-      @Override
-      public boolean value(HaxeNamedComponent component) {
-        return methodName.equals(component.getName());
-      }
-    });
-    if (filteredSubItems.isEmpty() || componentName == null) {
+
+    final List<HaxeNamedComponent> filteredSubItems = ContainerUtil.filter(subItems, item -> methodName.equals(item.getName()));
+    if (filteredSubItems.isEmpty()) {
       return null;
     }
-    return new LineMarkerInfo<PsiElement>(
-      componentName,
-      componentName.getTextRange(),
+    final PsiElement element = componentName.getIdentifier().getFirstChild();
+    return new LineMarkerInfo<>(
+      element,
+      element.getTextRange(),
       isInterface ? AllIcons.Gutter.ImplementedMethod : AllIcons.Gutter.OverridenMethod,
       Pass.UPDATE_ALL,
       new Function<PsiElement, String>() {
@@ -213,19 +209,15 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     if (componentName == null) {
       return null;
     }
-    return new LineMarkerInfo<PsiElement>(
-      componentName,
-      componentName.getTextRange(),
+    final PsiElement element = componentName.getIdentifier().getFirstChild();
+    return new LineMarkerInfo<>(
+      element,
+      element.getTextRange(),
       componentWithDeclarationList instanceof HaxeInterfaceDeclaration
       ? AllIcons.Gutter.ImplementedMethod
       : AllIcons.Gutter.OverridenMethod,
       Pass.UPDATE_ALL,
-      new Function<PsiElement, String>() {
-        @Override
-        public String fun(PsiElement element) {
-          return DaemonBundle.message("method.is.implemented.too.many");
-        }
-      },
+      item -> DaemonBundle.message("method.is.implemented.too.many"),
       new GutterIconNavigationHandler<PsiElement>() {
         @Override
         public void navigate(MouseEvent e, PsiElement elt) {
