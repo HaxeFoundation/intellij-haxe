@@ -71,7 +71,9 @@ public class ReplaceImportStatementWithWildcardWithSingleClassImports implements
     if (importStatement == null || importStatement.getWildcard() == null) return;
 
     List<PsiElement> newImports = HaxeImportUtil.getExternalReferences(file).stream()
-      .map(element -> HaxeImportUtil.exposeReference(importStatement, element)).filter(Objects::nonNull).distinct()
+      .map(element -> HaxeImportUtil.exposeReference(importStatement, element))
+      .filter(Objects::nonNull)
+      .distinct()
       .collect(Collectors.toList());
 
     newImports.forEach(elementToImport -> {
