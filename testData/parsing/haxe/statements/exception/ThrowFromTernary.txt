@@ -68,9 +68,8 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('Type')
                   HaxePsiToken:.('.')
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('createInstance')
+                  IDENTIFIER
+                    HaxePsiToken:ID('createInstance')
                 HaxePsiToken:(('(')
                 EXPRESSION_LIST
                   REFERENCE_EXPRESSION

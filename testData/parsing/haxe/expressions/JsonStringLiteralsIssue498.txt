@@ -40,5 +40,5 @@ Haxe File
               LITERAL_EXPRESSION
                 HaxePsiToken:LITINT('2')
             HaxePsiToken:}('}')
-      HaxePsiToken:;(';')
-  HaxePsiToken:}('}')
+        HaxePsiToken:;(';')
+    HaxePsiToken:}('}')
