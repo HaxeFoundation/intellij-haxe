@@ -221,7 +221,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     String identifier =
       reference instanceof HaxeReferenceExpression ? ((HaxeReferenceExpression)reference).getIdentifier().getText() : reference.getText();
     HaxeClassResolveResult leftExpression = lefthandExpression.resolveHaxeClass();
-    if (leftExpression != HaxeClassResolveResult.EMPTY && leftExpression.getHaxeClass() != null) {
+    if (leftExpression.getHaxeClass() != null) {
       HaxeMemberModel member = leftExpression.getHaxeClass().getModel().getMember(identifier);
       if (member != null) {
         return Collections.singletonList(member.getBasePsi());
