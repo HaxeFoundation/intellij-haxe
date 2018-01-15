@@ -275,9 +275,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @NotNull
   @Override
   public HaxeClassResolveResult resolveHaxeClass() {
-    Throwable t = new Throwable();
-    StackTraceElement[] stack = t.getStackTrace();
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Called from " + stack[1].toString()));
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Begin resolving Haxe class:" + this.getText()));
     HaxeClassResolveResult result = resolveHaxeClassInternal();
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Finished resolving Haxe class " + this.getText() + " as " + result.debugDump()));
