@@ -173,7 +173,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @NotNull
   private JavaResolveResult[] multiResolve(boolean incompleteCode, boolean resolveToParents) {
     //
-    // Resolving through this.resolve, or through the Resolvee.resolve,
+    // Resolving through this.resolve, or through the ResolveCache.resolve,
     // resolves to the *name* of the component.  That's what is cached, that's
     // what is returned.  For the Java processing code, the various reference types
     // are sub-classed, along with the base reference being aware of the type of the
