@@ -223,7 +223,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
    * PsiElement.
    *
    * @return the component name of the found element, or null if not (or
-   * more than one) found.
+   *         more than one) found.
    */
   @Nullable
   public PsiElement resolveToComponentName() {
