@@ -48,6 +48,7 @@ import java.util.*;
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
   public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  public static final String DOT = ".";
 
   //static {
   //  LOG.setLevel(Level.TRACE);
@@ -76,7 +77,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     PsiElement dot = getLastChild();
-    if (Objects.equals(dot.getText(), ".")) {
+    if (DOT.equals(dot.getText())) {
       int index = dot.getStartOffsetInParent() + dot.getTextLength();
       return new TextRange(index, index);
     }
