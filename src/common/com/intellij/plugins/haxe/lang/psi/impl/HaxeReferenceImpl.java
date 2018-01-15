@@ -208,10 +208,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     boolean skipCaching = skipCachingForDebug || DumbService.isDumb(getProject());
     List<? extends PsiElement> cachedNames
       = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
-                    : ResolveCache.getInstance(
-                      getProject()
-                    )
-          .resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
+                    : ResolveCache.getInstance(getProject())
+                        .resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
 
 
     // CandidateInfo does some extra resolution work when checking validity, so
