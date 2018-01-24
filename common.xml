@@ -122,6 +122,7 @@
       // Lookup table for properties files.  Add new versions here.
       var propertiesFile = "";
       switch(parseInt(codeLine, 10)) {
+        case 181:   propertiesFile = "idea_v18.properties";   break;
         case 175:   propertiesFile = "idea_v17.properties";   break; // Not a release, yet.
         case 174:   propertiesFile = "idea_v17.properties";   break; // Not a release, yet.
         case 173:   propertiesFile = "idea_v17.properties";   break; // Not a release, yet.
