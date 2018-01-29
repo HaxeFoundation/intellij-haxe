@@ -130,7 +130,7 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeSwitchStatement) {
-
+      // TODO: Evaluating result of switch statement should properly implemented
     }
 
     if (element instanceof HaxeNewExpression) {
