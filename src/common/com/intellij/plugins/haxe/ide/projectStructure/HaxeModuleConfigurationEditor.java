@@ -70,6 +70,7 @@ public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor 
 
   @Override
   public void apply() throws ConfigurationException {
+    // FIXME: This is hacky workaround - need to investigate the issue https://github.com/HaxeFoundation/intellij-haxe/issues/728
     if (haxeConfigurationEditor != null) {
       haxeConfigurationEditor.apply();
       haxeConfigurationEditor = null;
