@@ -78,8 +78,7 @@ public class HaxeImportModel implements HaxeExposableModel {
           .flatMap(model -> ((HaxeExposableModel)model).getExposedMembers().stream())
           .collect(Collectors.toList());
       }
-    }
-    else {
+    } else {
       if (hasAlias() && qualifiedInfo.fileName != null && qualifiedInfo.className == null) {
         qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.fileName, null);
       }
@@ -100,14 +99,13 @@ public class HaxeImportModel implements HaxeExposableModel {
       for (HaxeModel exposedMember : getExposedMembers()) {
         if (Objects.equals(exposedMember.getName(), name)) return exposedMember.getBasePsi();
       }
-    }
-    else {
+    } else {
       if (getReferenceExpression() != null) {
         FullyQualifiedInfo qualifiedInfo = getQualifiedInfo();
 
-        if (equalsToAlias(name) || qualifiedInfo.equalsToNamedPart(name) || getExposedMember(name) != null) {
-          HaxeModel result = getExposedMember(name);
-          return result != null ? result.getBasePsi() : null;
+        HaxeModel member = getExposedMember(name);
+        if (((equalsToAlias(name) || qualifiedInfo.equalsToNamedPart(name)) && member != null) || member != null) {
+          return member.getBasePsi();
         }
       }
     }
