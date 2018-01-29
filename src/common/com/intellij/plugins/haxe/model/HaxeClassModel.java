@@ -310,7 +310,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public void addMethodsFromPrototype(List<HaxeMethodModel> methods) {
-
+    throw new NotImplementedException("Not implemented HaxeClassMethod.addMethodsFromPrototype() : check HaxeImplementMethodHandler");
   }
 
   public List<HaxeFieldModel> getFields() {
