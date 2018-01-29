@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 public class HaxeUsingModel implements HaxeModel {
   private final HaxeUsingStatement basePsi;
 
-  public HaxeUsingModel(HaxeUsingStatement usingStatement) {
+  public HaxeUsingModel(@NotNull HaxeUsingStatement usingStatement) {
     this.basePsi = usingStatement;
   }
 
