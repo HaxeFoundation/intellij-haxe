@@ -37,6 +37,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,9 +52,9 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 public class HaxeResolveUtil {
   private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
-  //static {
-  //  LOG.setLevel(Level.INFO);
-  //}  // We want warnings to get out to the log.
+  static {
+    LOG.setLevel(Level.INFO);
+  }  // We want warnings to get out to the log.
 
   @Nullable
   public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
@@ -489,7 +490,6 @@ public class HaxeResolveUtil {
     final HaxeTypeOrAnonymous returnTypeOrAnonymous =
       functionType.getTypeOrAnonymousList().get(functionType.getTypeOrAnonymousList().size() - 1);
     final HaxeClassResolveResult result = tryResolveClassByTypeTag(returnTypeOrAnonymous.getType(), specialization);
-    functionType = functionType.getFunctionType();
     while (functionType != null) {
       // todo: anonymous types :(
       final List<HaxeTypeOrAnonymous> typeList = functionType.getTypeOrAnonymousList();
