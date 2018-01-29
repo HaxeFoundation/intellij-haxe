@@ -15,16 +15,26 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeStdPackageModel extends HaxePackageModel {
-  private final HaxeFileModel stdTypesFile;
+  private static final String STD_TYPES = "StdTypes";
+  private final HaxeFileModel stdTypesModel;
 
-  public HaxeStdPackageModel(@NotNull HaxeProjectModel project,
-                             @NotNull HaxeSourceRootModel root) {
+  HaxeStdPackageModel(@NotNull HaxeProjectModel project,
+                      @NotNull HaxeSourceRootModel root) {
     super(project, root, "", null);
-    this.stdTypesFile = this.getFileModel("StdTypes");
+    this.stdTypesModel = this.getStdFileModel();
+  }
+
+  private HaxeFileModel getStdFileModel() {
+    final HaxeFile file = getFile(STD_TYPES);
+    if (file != null) {
+      return new HaxeStdTypesFileModel(file);
+    }
+    return null;
   }
 
   @Nullable
@@ -32,8 +42,8 @@ public class HaxeStdPackageModel extends HaxePackageModel {
   public HaxeClassModel getClassModel(@NotNull String className) {
     HaxeClassModel result = super.getClassModel(className);
 
-    if (result == null && stdTypesFile != null) {
-      result = stdTypesFile.getClassModel(className);
+    if (result == null && stdTypesModel != null) {
+      result = stdTypesModel.getClassModel(className);
     }
 
     return result;
@@ -43,8 +53,8 @@ public class HaxeStdPackageModel extends HaxePackageModel {
   public HaxeModel resolve(FullyQualifiedInfo info) {
     HaxeModel result = super.resolve(info);
 
-    if (result == null && stdTypesFile != null && info.packagePath.isEmpty() && this.path.isEmpty()) {
-      result = stdTypesFile.resolve(new FullyQualifiedInfo("", null, info.fileName, info.memberName));
+    if (result == null && stdTypesModel != null && info.packagePath.isEmpty() && this.path.isEmpty()) {
+      result = stdTypesModel.resolve(new FullyQualifiedInfo("", null, info.fileName, info.memberName));
     }
 
     return result;

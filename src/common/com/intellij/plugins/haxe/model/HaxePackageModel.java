@@ -127,11 +127,16 @@ public class HaxePackageModel implements HaxeExposableModel {
 
   @Nullable
   public HaxeFileModel getFileModel(String fileName) {
+    final HaxeFile file = getFile(fileName);
+    return file != null ? new HaxeFileModel(file) : null;
+  }
+
+  protected HaxeFile getFile(String fileName) {
     PsiDirectory directory = root.access(path);
     if (directory != null && directory.isValid()) {
       PsiFile file = directory.findFile(fileName + ".hx");
       if (file != null && file.isValid() && file instanceof HaxeFile) {
-        return new HaxeFileModel((HaxeFile)file);
+        return (HaxeFile)file;
       }
     }
 

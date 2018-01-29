@@ -44,7 +44,7 @@ public class HaxeFileModel implements HaxeExposableModel {
     if (element == null) return null;
 
     final PsiFile file = element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
-    if (file != null && file instanceof HaxeFile) {
+    if (file != null) {
       return new HaxeFileModel((HaxeFile)file);
     }
     return null;
@@ -191,17 +191,23 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
 
   public HaxeModel resolve(FullyQualifiedInfo info) {
-    if (info.fileName == null || !info.fileName.equals(getName()) || info.className == null) return this;
+    if (isReferencingCurrentFile(info)) {
+      if (info.className == null) return this;
 
-    HaxeClassModel classModel = getClassModel(info.className);
-    if (classModel != null) {
-      if (info.memberName != null) {
-        return classModel.getMember(info.memberName);
+      HaxeClassModel classModel = getClassModel(info.className);
+      if (classModel != null) {
+        if (info.memberName != null) {
+          return classModel.getMember(info.memberName);
+        }
+        return classModel;
       }
-      return classModel;
     }
 
     return null;
+  }
+
+  protected boolean isReferencingCurrentFile(FullyQualifiedInfo info) {
+    return info.fileName != null && info.fileName.equals(getName());
   }
 
   private String detectPackageName() {
