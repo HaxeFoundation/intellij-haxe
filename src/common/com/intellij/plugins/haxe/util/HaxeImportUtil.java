@@ -109,7 +109,7 @@ public class HaxeImportUtil {
   }
 
 
-  public static Collection<PsiElement> getExternalReferences(PsiFile file) {
+  public static Collection<PsiElement> getExternalReferences(@NotNull PsiFile file) {
     final Map<PsiElement, PsiElement> result = new HashMap<>();
 
     file.acceptChildren(new HaxeRecursiveVisitor() {
