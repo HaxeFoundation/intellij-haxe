@@ -168,8 +168,8 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   @Override
   public List<HaxeModel> getExposedMembers() {
-    return new ArrayList<>(getParameters());
-  }
+    return null;
+  };
 
   @Nullable
   @Override

@@ -35,9 +35,8 @@ import java.util.stream.Collectors;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
-  private FullyQualifiedInfo qualifiedInfo;
 
-  public HaxeClassModel(HaxeClass haxeClass) {
+  public HaxeClassModel(@NotNull HaxeClass haxeClass) {
     this.haxeClass = haxeClass;
   }
 
@@ -276,12 +275,9 @@ public class HaxeClassModel implements HaxeExposableModel {
     return haxeClass.getNameIdentifier();
   }
 
-  private HaxeDocumentModel _document = null;
-
   @NotNull
   public HaxeDocumentModel getDocument() {
-    if (_document == null) _document = new HaxeDocumentModel(haxeClass);
-    return _document;
+    return new HaxeDocumentModel(haxeClass);
   }
 
   public String getName() {
@@ -302,17 +298,19 @@ public class HaxeClassModel implements HaxeExposableModel {
   @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
-    if (qualifiedInfo == null) {
-      if (getExhibitor() != null && getExhibitor().getQualifiedInfo() != null) {
-        FullyQualifiedInfo containerInfo = getExhibitor().getQualifiedInfo();
-        this.qualifiedInfo = new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, getName(), null);
+    HaxeExposableModel exhibitor = getExhibitor();
+    if (exhibitor != null) {
+      FullyQualifiedInfo containerInfo = exhibitor.getQualifiedInfo();
+      if (containerInfo != null) {
+        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, getName(), null);
       }
     }
-    return qualifiedInfo;
+
+    return null;
   }
 
   public void addMethodsFromPrototype(List<HaxeMethodModel> methods) {
-    throw new NotImplementedException("Not implemented HaxeClassMethod.addMethodsFromPrototype() : check HaxeImplementMethodHandler");
+
   }
 
   public List<HaxeFieldModel> getFields() {
@@ -323,8 +321,7 @@ public class HaxeClassModel implements HaxeExposableModel {
         .stream()
         .map(HaxeFieldModel::new)
         .collect(Collectors.toList());
-    }
-    else {
+    } else {
       return Collections.emptyList();
     }
   }
@@ -406,13 +403,12 @@ public class HaxeClassModel implements HaxeExposableModel {
         if (!(declaration instanceof PsiMember)) continue;
         if (declaration instanceof HaxeVarDeclaration) {
           HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)declaration;
-          if (varDeclaration.getContainingClass() == haxeClass && varDeclaration.isPublic() && varDeclaration.isStatic()) {
+          if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
             out.add(new HaxeFieldModel((HaxeVarDeclaration)declaration));
           }
-        }
-        else {
+        } else {
           HaxeMethod method = (HaxeMethod)declaration;
-          if (method.getContainingClass() == haxeClass && method.isStatic() && method.isPublic()) {
+          if (method.isStatic() && method.isPublic()) {
             out.add(new HaxeMethodModel(method));
           }
         }

@@ -30,22 +30,16 @@ public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStatementPsiMi
     super(node);
   }
 
-  private HaxeImportModel model;
-
   @NotNull
   @Override
   public HaxeImportModel getModel() {
-    if (model == null) {
-      model = new HaxeImportModel(this);
-    }
-    return model;
+    return new HaxeImportModel(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof HaxeVisitor) {
       ((HaxeVisitor)visitor).visitImportStatement(this);
-    }
-    else {
+    } else {
       super.accept(visitor);
     }
   }

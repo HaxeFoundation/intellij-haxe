@@ -33,24 +33,21 @@ import java.util.stream.Collectors;
 
 public class HaxeFileModel implements HaxeExposableModel {
 
-  private static final Key<HaxeFileModel> KEY = new Key<>("haxeFileModel");
   private final HaxeFile file;
 
-  public HaxeFileModel(HaxeFile file) {
+  public HaxeFileModel(@NotNull HaxeFile file) {
     this.file = file;
   }
 
+  @Nullable
   static public HaxeFileModel fromElement(PsiElement element) {
     if (element == null) return null;
 
-    PsiFile file = element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
-    HaxeFileModel model = file.getUserData(KEY);
-    if (model == null) {
-      model = new HaxeFileModel((HaxeFile)file);
-      file.putUserData(KEY, model);
+    final PsiFile file = element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
+    if (file != null && file instanceof HaxeFile) {
+      return new HaxeFileModel((HaxeFile)file);
     }
-
-    return model;
+    return null;
   }
 
   @Override
@@ -165,6 +162,7 @@ public class HaxeFileModel implements HaxeExposableModel {
       .map(element -> (HaxeUsingStatement)element)
       .collect(Collectors.toList());
   }
+
   public List<HaxeUsingModel> getUsingModels() {
     return Arrays.stream(file.getChildren())
       .filter(element -> element instanceof HaxeUsingStatement)
@@ -193,7 +191,7 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
 
   public HaxeModel resolve(FullyQualifiedInfo info) {
-    if (info.className == null) return this;
+    if (info.fileName == null || !info.fileName.equals(getName()) || info.className == null) return this;
 
     HaxeClassModel classModel = getClassModel(info.className);
     if (classModel != null) {
@@ -219,8 +217,7 @@ public class HaxeFileModel implements HaxeExposableModel {
     HaxePackageStatement currentPsi = getPackagePsi();
     if (currentPsi != null) {
       currentPsi.replace(statement);
-    }
-    else {
+    } else {
       file.addBefore(statement, file.getFirstChild());
     }
   }

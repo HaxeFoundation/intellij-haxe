@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.Objects;
 
 public class FullyQualifiedInfo {
+  public static final char PATH_SEPARATOR = '.';
+
   final public String packagePath;
   final public String fileName;
   final public String className;
@@ -38,7 +40,9 @@ public class FullyQualifiedInfo {
   }
 
   public FullyQualifiedInfo(@Nullable String fullyQualifiedIdentifier) {
-    this(new ArrayList<>(fullyQualifiedIdentifier != null ? Arrays.asList(StringUtils.split(fullyQualifiedIdentifier, '.')) : Collections.emptyList()));
+    this(new ArrayList<>(fullyQualifiedIdentifier != null
+                         ? Arrays.asList(StringUtils.split(fullyQualifiedIdentifier, PATH_SEPARATOR))
+                         : Collections.emptyList()));
   }
 
   public FullyQualifiedInfo(@Nullable HaxeReferenceExpression referenceExpression) {
@@ -62,7 +66,7 @@ public class FullyQualifiedInfo {
       if (!Character.isLowerCase(identifier.charAt(0))) {
         break;
       }
-      if (i > 0) packagePathBuilder.append('.');
+      if (i > 0) packagePathBuilder.append(PATH_SEPARATOR);
       packagePathBuilder.append(identifier);
 
       i++;
@@ -74,14 +78,12 @@ public class FullyQualifiedInfo {
     if (fileName == null) {
       className = null;
       memberName = null;
-    }
-    else {
+    } else {
       final String classOrMemberName = i < size ? parts.get(i++) : null;
       if (classOrMemberName != null && Character.isLowerCase(classOrMemberName.charAt(0))) {
         memberName = classOrMemberName;
         className = fileName;
-      }
-      else {
+      } else {
         className = classOrMemberName;
         memberName = i < size ? parts.get(i) : null;
       }
@@ -96,16 +98,16 @@ public class FullyQualifiedInfo {
     }
 
     if (fileName == null || fileName.isEmpty()) return builder.toString();
-    if (builder.length() > 0) builder.append('.');
+    if (builder.length() > 0) builder.append(PATH_SEPARATOR);
     builder.append(fileName);
 
     if (className != null && !className.isEmpty()) {
-      builder.append('.');
+      builder.append(PATH_SEPARATOR);
       builder.append(className);
     }
 
     if (memberName != null && !memberName.isEmpty()) {
-      builder.append('.');
+      builder.append(PATH_SEPARATOR);
       builder.append(memberName);
     }
 
@@ -119,16 +121,16 @@ public class FullyQualifiedInfo {
     }
 
     if (fileName == null || fileName.isEmpty()) return builder.toString();
-    if (builder.length() > 0) builder.append('.');
+    if (builder.length() > 0) builder.append(PATH_SEPARATOR);
     builder.append(fileName);
 
     if (className != null && !className.isEmpty() && !className.equals(fileName)) {
-      builder.append('.');
+      builder.append(PATH_SEPARATOR);
       builder.append(className);
     }
 
     if (memberName != null && !memberName.isEmpty()) {
-      builder.append('.');
+      builder.append(PATH_SEPARATOR);
       builder.append(memberName);
     }
 
@@ -155,7 +157,7 @@ public class FullyQualifiedInfo {
   }
 
   public String getClassPath() {
-    return getFilePath() + '.' + className;
+    return getFilePath() + PATH_SEPARATOR + className;
   }
 
   public String getFilePath() {
@@ -163,9 +165,8 @@ public class FullyQualifiedInfo {
 
     if (result.isEmpty()) {
       result = fileName;
-    }
-    else {
-      result += '.' + fileName;
+    } else {
+      result += PATH_SEPARATOR + fileName;
     }
 
     return result;
@@ -175,19 +176,19 @@ public class FullyQualifiedInfo {
     return new FullyQualifiedInfo(this.packagePath, null, null, null);
   }
 
-  public boolean equalsToMemberName(String name) {
+  public boolean equalsToNamedPart(String name) {
+    return equalsToMemberName(name) || equalsToClassName(name) || equalsToFileName(name);
+  }
+
+  private boolean equalsToMemberName(String name) {
     return memberName != null && memberName.equals(name);
   }
 
-  public boolean equalsToClassName(String name) {
+  private boolean equalsToClassName(String name) {
     return memberName == null && className != null && className.equals(name);
   }
 
-  public boolean equalsToFileName(String name) {
+  private boolean equalsToFileName(String name) {
     return className == null && fileName != null && fileName.equals(name);
-  }
-
-  public boolean equalsToNamedPart(String name) {
-    return equalsToMemberName(name) || equalsToClassName(name) || equalsToFileName(name);
   }
 }

@@ -24,6 +24,6 @@ public interface HaxeModel {
   PsiElement getBasePsi();
   @Nullable
   HaxeExposableModel getExhibitor();
-  @NotNull
+  @Nullable
   FullyQualifiedInfo getQualifiedInfo();
 }
