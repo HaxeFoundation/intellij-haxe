@@ -1,4 +1,6 @@
 /*
+ * Copyright 2018 Eric Bishton
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +16,10 @@
 package com.intellij.plugins.haxe.build;
 
 /**
- * Created by ebishton on 4/19/15.
+ * A set of constants to identify and use code that is required to be version-specific.
+ *
+ * These are compile-time constants used for creating the version-specific jar files.
+ * They are not useful for run-time decision making.
  */
 public class IdeaTarget {
 
@@ -38,11 +43,17 @@ public class IdeaTarget {
   // of the compatibility strings possible.
   //
 
+  public static final boolean IS_VERSION_18_3_COMPATIBLE = (SDK_CODELINE >= 183);
+  public static final boolean IS_VERSION_18_2_COMPATIBLE = (SDK_CODELINE >= 182);
+  public static final boolean IS_VERSION_18_1_COMPATIBLE = (SDK_CODELINE >= 181);
+  // No 2018.0 release.
+  public static final boolean IS_VERSION_18_COMPATIBLE = (IS_VERSION_18_1_COMPATIBLE || IS_VERSION_18_2_COMPATIBLE || IS_VERSION_18_3_COMPATIBLE);
 
-  public static final boolean IS_VERSION_17_2_COMPATIBLE = (SDK_CODELINE >= 172); // EAP
+  public static final boolean IS_VERSION_17_3_COMPATIBLE = (SDK_CODELINE >= 173);
+  public static final boolean IS_VERSION_17_2_COMPATIBLE = (SDK_CODELINE >= 172);
   public static final boolean IS_VERSION_17_1_COMPATIBLE = (SDK_CODELINE >= 171);
   // No 2017.0 release.
-  public static final boolean IS_VERSION_17_COMPATIBILE= (IS_VERSION_17_1_COMPATIBLE || IS_VERSION_17_2_COMPATIBLE);
+  public static final boolean IS_VERSION_17_COMPATIBLE = (IS_VERSION_17_1_COMPATIBLE || IS_VERSION_17_2_COMPATIBLE || IS_VERSION_17_3_COMPATIBLE);
 
   public static final boolean IS_VERSION_16_3_COMPATIBLE = (SDK_CODELINE >= 163);
   public static final boolean IS_VERSION_16_2_COMPATIBLE = (SDK_CODELINE >= 162);
@@ -55,14 +66,14 @@ public class IdeaTarget {
 
   public static final boolean IS_VERSION_14_1_5_COMPATIBLE = (SDK_CODELINE > 141 ||
                                                               ( SDK_CODELINE == 141 && SDK_BUILD_NUMBER >= 2735));
-  public static final boolean IS_VERSION_14_1_6_COMPATIBLE = (SDK_CODELINE > 141 ||
-                                                              ( SDK_CODELINE == 141 && SDK_BUILD_NUMBER >= 3056));
+//  public static final boolean IS_VERSION_14_1_6_COMPATIBLE = (SDK_CODELINE > 141 ||
+//                                                              ( SDK_CODELINE == 141 && SDK_BUILD_NUMBER >= 3056));
 
-  public static final boolean IS_VERSION_14_1_COMPATIBLE = (SDK_CODELINE >= 141);
-  public static final boolean IS_VERSION_14_0_COMPATIBLE = (SDK_CODELINE >= 139);
-  public static final boolean IS_VERSION_14_COMPATIBLE = (IS_VERSION_14_0_COMPATIBLE || IS_VERSION_14_1_COMPATIBLE);
+//  public static final boolean IS_VERSION_14_1_COMPATIBLE = (SDK_CODELINE >= 141);
+//  public static final boolean IS_VERSION_14_0_COMPATIBLE = (SDK_CODELINE >= 139);
+//  public static final boolean IS_VERSION_14_COMPATIBLE = (IS_VERSION_14_0_COMPATIBLE || IS_VERSION_14_1_COMPATIBLE);
 
-  public static final boolean IS_VERSION_13_1_COMPATIBLE = (SDK_CODELINE >= 137);
-  public static final boolean IS_VERSION_13_0_COMPATIBLE = (SDK_CODELINE >= 135);
-  public static final boolean IS_VERSION_13_COMPATIBLE = (IS_VERSION_13_0_COMPATIBLE || IS_VERSION_13_1_COMPATIBLE);
+//  public static final boolean IS_VERSION_13_1_COMPATIBLE = (SDK_CODELINE >= 137);
+//  public static final boolean IS_VERSION_13_0_COMPATIBLE = (SDK_CODELINE >= 135);
+//  public static final boolean IS_VERSION_13_COMPATIBLE = (IS_VERSION_13_0_COMPATIBLE || IS_VERSION_13_1_COMPATIBLE);
 }

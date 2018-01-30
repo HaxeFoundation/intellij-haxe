@@ -39,7 +39,7 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFile(getTestName(false) + ".hx");
 
     GotoTargetHandler.GotoData data;
-    if (IdeaTarget.IS_VERSION_17_COMPATIBILE) {
+    if (IdeaTarget.IS_VERSION_17_COMPATIBLE) {
       // Version 17 changed the way that gotoImplementation runs on a background thread.
       MethodWrapper<GotoTargetHandler.GotoData> gti =
         new MethodWrapper(CodeInsightTestUtil.class, "gotoImplementation", Editor.class, PsiFile.class);
