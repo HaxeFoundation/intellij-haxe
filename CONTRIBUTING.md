@@ -110,7 +110,7 @@ particularly if you see ClassNotFound exceptions when attempting to run the plug
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
 by the plugin team.  At the time of this writing, that would be 2016.1.4, 
-2016.2.5, 2016.3.7, 2017.1.5, and 2017.2.5.
+2016.2.5, 2016.3.7, 2017.1.5, and 2017.2.6, and 2017.3.3.
 As new versions are released this will continue to be
 a moving target, as we attempt to keep up with the development community.
 
@@ -426,9 +426,8 @@ repository.
 
 - Haxe Foundation releases will be built and smoke tested for the following environments:  
    OS: Linux(Ubuntu14.04), OSX, Windows  
-   JVM: Sun Java 1.6 target, using Sun Java 1.8 compilers (because the Java 1.6 and 1.7 
-   maintenance windows have closed)  
-   IDEA versions: 14, 14.1, 14.1.7, 15, 2016.2 (latest release versions for each code line)
+   JVM: Sun Java 1.8 compilers  
+   IDEA versions: 2016.3.7, 2017.1.5, 2017.2.6, 2017.3.3.
 - JetBrains releases will be copies of the Haxe Foundation releases.  
 
 #### Who will test:
@@ -528,8 +527,8 @@ then push your branch to HaxeFoundation/intellij-haxe.  Travis-ci will automatic
 applying your changes against the master branch.
 6. Create a pull request, and wait for comments.
 7. If you get comments that require changes, address those and return to step 2.
-8. When you get an “OK to merge,” or "approved," message from anyone on the team: Boyan, @as3boyan;
-Eric, @EricBishton; Ilya, @EliasKu (others as they become regular contributors,) go ahead
+8. When you get an “OK to merge,” or "approved," message from anyone on the team: Eric, @EricBishton; Ilya Malanin, @Mayakwd; Boyan, @as3boyan;
+or Ilya Kuzmenko, @EliasKu (others as they become regular contributors,) go ahead
 and merge your changes to master.  A clean merge requires no further testing,
 as Travis-ci will do it for you.  However any build break must be addressed immediately.  A build
 that has conflicts requires manual resolution and must be re-tested locally prior to push.  For regular
