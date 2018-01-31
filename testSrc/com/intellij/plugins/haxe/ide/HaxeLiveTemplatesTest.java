@@ -65,7 +65,7 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(String... files) throws Exception {
     myFixture.configureByFiles(files);
-    if (IdeaTarget.IS_VERSION_17_COMPATIBILE) {
+    if (IdeaTarget.IS_VERSION_17_COMPATIBLE) {
       // The implementation of finishLookup in IDEA 2017 requires that it run OUTSIDE of a write command,
       // while previous versions require that is run inside of one.
       expandTemplate(myFixture.getEditor());
@@ -73,7 +73,7 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
-        if (!IdeaTarget.IS_VERSION_17_COMPATIBILE) {
+        if (!IdeaTarget.IS_VERSION_17_COMPATIBLE) {
           expandTemplate(myFixture.getEditor());
         }
         CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
