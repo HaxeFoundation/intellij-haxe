@@ -122,24 +122,14 @@
       // Lookup table for properties files.  Add new versions here.
       var propertiesFile = "";
       switch(parseInt(codeLine, 10)) {
-        case 175:   propertiesFile = "idea_v17.properties";   break; // Not a release, yet.
-        case 174:   propertiesFile = "idea_v17.properties";   break; // Not a release, yet.
-        case 173:   propertiesFile = "idea_v17.properties";   break; // Not a release, yet.
-        case 172:   propertiesFile = "idea_v17.properties";   break; // EAP.
+        case 181:   propertiesFile = "idea_v18.properties";   break;
+        case 173:   propertiesFile = "idea_v17.properties";   break;
+        case 172:   propertiesFile = "idea_v17.properties";   break;
         case 171:   propertiesFile = "idea_v17.properties";   break;
         case 163:   propertiesFile = "idea_v16.properties";   break;
         case 162:   propertiesFile = "idea_v16.properties";   break;
         case 161:   propertiesFile = "idea_v16.properties";   break;
         case 145:   propertiesFile = "idea_v16.properties";   break;
-        case 143:   propertiesFile = "idea_v15.properties";   break;
-        case 141:
-          if (parseInt(buildNumber, 10) <= 2734) {
-             propertiesFile = "idea_v14.1.properties";
-          } else {
-             propertiesFile = "idea_v14.1.5.properties";
-          }
-          break;
-        case 139:   propertiesFile = "idea_v14.properties";   break;
       }
       if (0 != propertiesFile.length) {
         project.setNewProperty("plugin.properties.file", propertiesFile);

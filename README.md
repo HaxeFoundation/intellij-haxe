@@ -2,18 +2,18 @@ Haxe plugin for Intellij IDEA
 ======================================
 
 This plugin allows you to develop [Haxe](http://haxe.org/) programs with [Intellij IDEA](http://www.jetbrains.com/idea).
-It requires Intellij IDEA Ultimate or Community Edition, versions 14, 15, 2016, and 2017 through 2017.2.
-
-#### Future Versions Announcement
-
-Very, very few users are continuing to use this plugin with IDEA versions 14.x and 15.x.  Plugin version 0.11.1 will be the last
-version published that will support these environments.  (If you and/or your business need these or previous versions supported, then
-[contact the project maintainers](http://intellij-haxe.org/contact) at the project page ([http://intellij-haxe.org](http://intellij-haxe.org)) and continuing support
-can be arranged.) 
+It requires Intellij IDEA Ultimate or Community Edition, versions 2016.x, 2017.x, and 2018.x.
 
 #### Technical Support
 Support for this plugin is available through the project's home page: [http://intellij-haxe.org](http://intellij-haxe.org), or
 the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](http://github.com/HaxeFoundation/intellij-haxe/issues).
+
+#### Past Versions Announcement
+
+Very, very few users are continuing to use this plugin with IDEA versions 14.x and 15.x.  Plugin version 0.11.2 was the last
+version published that supported these environments.  (If you and/or your business need these or previous versions supported, then
+[contact the project maintainers](http://intellij-haxe.org/contact) at the project page ([http://intellij-haxe.org](http://intellij-haxe.org)) and continuing support
+can be arranged.) 
 
 #### We have moved!
 As of January 2017, the primary maintained branch of this plugin has moved to the Haxe Foundation's github repository.  Please update your
@@ -73,7 +73,7 @@ your development environment.  Much more detail is provided there for command li
 
 ### Dependencies
 - Ant
-- Oracle JDK 8 or OpenJDK 8 (Versions 7 may be used with IDEA versions prior to 2016.x)
+- Oracle JDK 8 or OpenJDK 8
 - Make
 - A bash compatible shell
 
@@ -84,10 +84,10 @@ make
 
 This will generate a `intelllij-haxe-<release>.jar` file at the root of the project that you can then install from disk
 (see “Install the latest or a previous Github release).  Note that the default make (see Makefile) will build the plugin for
-Idea 2016.2.5.  To override the default, set the IDEA_VERSION environment variable prior to executing make.
+Idea 2017.3.3.  To override the default, set the IDEA_VERSION environment variable prior to executing make.
 
 ```
-IDEA_VERSION=14.1.7 make
+IDEA_VERSION=2016.3.4 make
 ```
 
 Note that building via make will download the requested version of IntelliJ Ultimate (to a temporary directory)
@@ -109,7 +109,7 @@ This will build and run the tests and display the JUnit report.  Again, you can 
 being tested against by overriding IDEA_VERSION.
 
 ```
-IDEA_VERSION=14.1.7 make test
+IDEA_VERSION=2016.3.4 make test
 ```
 
 
