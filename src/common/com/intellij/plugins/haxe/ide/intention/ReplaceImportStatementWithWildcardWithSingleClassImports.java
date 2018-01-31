@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +21,11 @@ package com.intellij.plugins.haxe.ide.intention;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.model.HaxeModel;
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -33,12 +33,13 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Created by as3boyan on 04.10.14.
  */
 public class ReplaceImportStatementWithWildcardWithSingleClassImports implements IntentionAction {
-
   @NotNull
   @Override
   public String getText() {
@@ -54,34 +55,39 @@ public class ReplaceImportStatementWithWildcardWithSingleClassImports implements
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     PsiElement elementAt = file.findElementAt(editor.getCaretModel().getOffset());
-    HaxeImportStatementWithWildcard importStatementWithWildcard = PsiTreeUtil.getParentOfType(elementAt, HaxeImportStatementWithWildcard.class);
-    if (importStatementWithWildcard != null) {
-      String qName = UsefulPsiTreeUtil.getQNameForImportStatementWithWildcardType(importStatementWithWildcard);
-      if (!UsefulPsiTreeUtil.isImportStatementWildcardForType(qName)) {
-        List<HaxeClass>
-          classesForImportStatementWithWildcard = UsefulPsiTreeUtil.getClassesForImportStatementWithWildcard(importStatementWithWildcard);
+    HaxeImportStatement importStatement = PsiTreeUtil.getParentOfType(elementAt, HaxeImportStatement.class);
 
-        return !classesForImportStatementWithWildcard.isEmpty();
-      }
-    }
-    return false;
+    return importStatement != null &&
+           importStatement.getWildcard() != null &&
+           HaxeImportUtil.getExternalReferences(file).stream()
+             .anyMatch(element -> HaxeImportUtil.isStatementExposesReference(importStatement, element));
   }
 
   @Override
   public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
     PsiElement elementAt = file.findElementAt(editor.getCaretModel().getOffset());
-    HaxeImportStatementWithWildcard importStatementWithWildcard = PsiTreeUtil.getParentOfType(elementAt, HaxeImportStatementWithWildcard.class);
+    HaxeImportStatement importStatement = PsiTreeUtil.getParentOfType(elementAt, HaxeImportStatement.class);
 
-    String packageName = importStatementWithWildcard.getReferenceExpression().getText();
+    if (importStatement == null || importStatement.getWildcard() == null) return;
 
-    for (HaxeClass haxeClass : HaxeImportUtil.getClassesUsedFromImportStatementWithWildcard(file, importStatementWithWildcard)) {
-      HaxeImportStatementRegular importStatementRegular =
-        HaxeElementGenerator.createImportStatementFromPath(importStatementWithWildcard.getProject(), haxeClass.getQualifiedName());
+    List<PsiElement> newImports = HaxeImportUtil.getExternalReferences(file).stream()
+      .map(element -> HaxeImportUtil.exposeReference(importStatement, element))
+      .filter(Objects::nonNull)
+      .distinct()
+      .collect(Collectors.toList());
 
-      importStatementWithWildcard.getParent().addBefore(importStatementRegular, importStatementWithWildcard);
-    }
+    newImports.forEach(elementToImport -> {
+      if (elementToImport instanceof HaxeModelTarget) {
+        HaxeModel model = ((HaxeModelTarget)elementToImport).getModel();
+        HaxeImportStatement newImportStatement =
+          HaxeElementGenerator.createImportStatementFromPath(project, model.getQualifiedInfo().getPresentableText());
+        if (newImportStatement != null) {
+          file.addBefore(newImportStatement, importStatement);
+        }
+      }
+    });
 
-    importStatementWithWildcard.delete();
+    importStatement.delete();
   }
 
   @Override

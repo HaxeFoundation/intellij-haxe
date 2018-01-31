@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
@@ -78,7 +79,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
 
         List<HaxeFieldModel> fields = clazz.getFields();
         for (HaxeFieldModel field : fields) {
-          anchor = field.getPsi();
+          anchor = field.getBasePsi();
         }
 
         for (ParamElement param : params) {
@@ -132,7 +133,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
     final Map<String, HaxeNamedComponent> componentMap = HaxeResolveUtil.namedComponentToMap(subComponents);
 
     for (HaxeNamedComponent haxeNamedComponent : subComponents) {
-      if (!(haxeNamedComponent instanceof HaxeVarDeclarationPart)) continue;
+      if (!(haxeNamedComponent instanceof HaxeVarDeclaration)) continue;
       if (haxeNamedComponent.isStatic()) continue;
 
       //if (!myStrategy.accept(haxeNamedComponent.getName(), componentMap.keySet())) continue;

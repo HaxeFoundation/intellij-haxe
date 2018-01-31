@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,57 +45,26 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
     if (reference.getTokenType() != HaxeTokenTypes.REFERENCE_EXPRESSION) {
       return; // call, array access, this, literal, etc
     }
-    final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(reference, HaxeReference.class);
-    if (childReferences != null && childReferences.length > 1) {
-      checkDeprecatedVarCall(reference);
-      super.visitReferenceExpression(reference);
-      return;
-    }
-    final HaxeReference leftSiblingReference = HaxeResolveUtil.getLeftReference(reference);
-    final PsiElement referenceTarget = reference.resolve();
-    if (referenceTarget != null) {
-      return; // OK
-    }
 
-    if (BUILTIN.contains(reference.getText()) &&
-        reference.getParent() instanceof HaxeCallExpression &&
-        !(reference.getParent().getParent() instanceof HaxeReference)) {
-      return;
-    }
+    if (isInsidePackageStatement(reference) || isBuiltInMethod(reference)) return;
 
-    if (reference.getFirstChild() instanceof HaxeParenthesizedExpression) {
-      HaxeParenthesizedExpression parenthesizedExpression = (HaxeParenthesizedExpression)reference.getFirstChild();
-      if (PsiTreeUtil.getChildOfType(parenthesizedExpression, HaxeTypeCheckExpr.class) != null) {
-        super.visitReferenceExpression(reference);
-        return;
-      }
-    }
+    checkDeprecatedVarCall(reference);
 
-    if (!(reference.getParent() instanceof HaxeReference) && !(reference.getParent() instanceof HaxePackageStatement) && !(reference.getParent() instanceof HaxeImportStatementWithWildcard)) {
-      // whole reference expression
+    if (reference.resolve() == null) {
       handleUnresolvedReference(reference);
     }
-    final PsiElement leftSiblingReferenceTarget = leftSiblingReference == null ? null : leftSiblingReference.resolve();
-    if (leftSiblingReference != null && leftSiblingReferenceTarget == null) {
-      return; // already bad
-    }
 
-    // check all parents (ex. com.reference.Bar)
-    PsiElement parent = reference.getParent();
-    while (parent instanceof HaxeReference) {
-      if (((HaxeReference)parent).resolve() != null) return;
-      parent = parent.getParent();
-    }
+    super.visitReferenceExpression(reference);
+  }
 
-    if (parent instanceof HaxePackageStatement) {
-      return; // package
-    }
+  private boolean isBuiltInMethod(@NotNull HaxeReferenceExpression reference) {
+    return BUILTIN.contains(reference.getReferenceName()) &&
+           reference.getParent() instanceof HaxeCallExpression &&
+           !(reference.getParent().getParent() instanceof HaxeReference);
+  }
 
-    if (parent instanceof HaxeImportStatementWithWildcard) {
-      return;
-    }
-
-    handleUnresolvedReference(reference);
+  private boolean isInsidePackageStatement(@NotNull HaxeReferenceExpression reference) {
+    return PsiTreeUtil.getParentOfType(reference, HaxePackageStatement.class) != null;
   }
 
   @Override
@@ -113,18 +83,15 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   public void visitCallExpression(@NotNull HaxeCallExpression o) {
     final PsiElement child = o.getFirstChild();
     if (child instanceof HaxeReferenceExpression) {
-      HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression) child;
+      HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)child;
       final PsiElement reference = referenceExpression.resolve();
-      final PsiElement lastChild = referenceExpression.getLastChild();
 
-      if (reference instanceof HaxeFunctionDeclarationWithAttributes &&
-          lastChild != null && lastChild instanceof HaxeReferenceExpression) {
-
+      if (reference instanceof HaxeFunctionDeclarationWithAttributes) {
         final HaxeFunctionDeclarationWithAttributes functionDeclaration = (HaxeFunctionDeclarationWithAttributes)reference;
         final List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
         for (HaxeCustomMeta meta : metas) {
           if (isDeprecatedMeta(meta)) {
-            handleDeprecatedCallExpression((HaxeReferenceExpression)lastChild);
+            handleDeprecatedCallExpression(referenceExpression);
           }
         }
       }
@@ -151,21 +118,28 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
     element.acceptChildren(this);
   }
 
-  protected void handleUnresolvedReference(HaxeReferenceExpression reference) {}
-  protected void handleDeprecatedFunctionDeclaration(HaxeFunctionDeclarationWithAttributes functionDeclaration) {}
-  protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {}
-  protected void handleDeprecatedVarDeclaration(HaxeVarDeclaration varDeclaration) {}
+  protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
+  }
+
+  protected void handleDeprecatedFunctionDeclaration(HaxeFunctionDeclarationWithAttributes functionDeclaration) {
+  }
+
+  protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {
+  }
+
+  protected void handleDeprecatedVarDeclaration(HaxeVarDeclaration varDeclaration) {
+  }
 
   private void checkDeprecatedVarCall(HaxeReferenceExpression referenceExpression) {
     PsiElement reference = referenceExpression.resolve();
 
-    if (reference instanceof HaxeVarDeclarationPart) {
-      HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration) reference.getParent();
+    if (reference instanceof HaxeVarDeclaration) {
+      HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)reference;
 
       List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
       for (HaxeCustomMeta meta : metas) {
         if (isDeprecatedMeta(meta)) {
-          handleDeprecatedCallExpression((HaxeReferenceExpression)referenceExpression.getLastChild());
+          handleDeprecatedCallExpression(referenceExpression);
         }
       }
     }

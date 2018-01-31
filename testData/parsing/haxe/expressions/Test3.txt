@@ -24,15 +24,13 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('a')
                 HaxePsiToken:.('.')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('b')
+                IDENTIFIER
+                  HaxePsiToken:ID('b')
               HaxePsiToken:(('(')
               HaxePsiToken:)(')')
             HaxePsiToken:.('.')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('c')
+            IDENTIFIER
+              HaxePsiToken:ID('c')
           HaxePsiToken:;(';')
           ARRAY_ACCESS_EXPRESSION
             REFERENCE_EXPRESSION
@@ -43,19 +41,16 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('a')
                     HaxePsiToken:.('.')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('b')
+                    IDENTIFIER
+                      HaxePsiToken:ID('b')
                   HaxePsiToken:(('(')
                   HaxePsiToken:)(')')
                 HaxePsiToken:.('.')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('c')
-              HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
                 IDENTIFIER
-                  HaxePsiToken:ID('d')
+                  HaxePsiToken:ID('c')
+              HaxePsiToken:.('.')
+              IDENTIFIER
+                HaxePsiToken:ID('d')
             HaxePsiToken:[('[')
             LITERAL_EXPRESSION
               HaxePsiToken:LITINT('0')
@@ -70,21 +65,18 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('a')
                     HaxePsiToken:.('.')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('b')
+                    IDENTIFIER
+                      HaxePsiToken:ID('b')
                   HaxePsiToken:[('[')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('0')
                   HaxePsiToken:](']')
                 HaxePsiToken:.('.')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('c')
-              HaxePsiToken:.('.')
-              REFERENCE_EXPRESSION
                 IDENTIFIER
-                  HaxePsiToken:ID('d')
+                  HaxePsiToken:ID('c')
+              HaxePsiToken:.('.')
+              IDENTIFIER
+                HaxePsiToken:ID('d')
             HaxePsiToken:(('(')
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')

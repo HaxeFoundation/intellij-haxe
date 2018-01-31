@@ -11,7 +11,9 @@ Haxe File
           ACCESS
             HaxePsiToken:public('public')
         HaxePsiToken:function('function')
-        HaxePsiToken:new('new')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:new('new')
         HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>

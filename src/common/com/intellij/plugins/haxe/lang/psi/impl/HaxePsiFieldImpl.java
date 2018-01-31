@@ -3,6 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,8 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeFieldModel;
+import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -51,6 +54,11 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   }
 
   @Override
+  public HaxeModel getModel() {
+    return new HaxeFieldModel(this);
+  }
+
+  @Override
   @Nullable
   @NonNls
   public String getName() {
@@ -63,6 +71,15 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     }
 
     return (name != null) ? name : "<unnamed>";
+  }
+
+  @Override
+  public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
+    final HaxeComponentName componentName = getComponentName();
+    if (componentName != null) {
+      componentName.setName(name);
+    }
+    return this;
   }
 
   @Override
@@ -221,4 +238,6 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     }
     return super.getUseScope();
   }
+
+
 }

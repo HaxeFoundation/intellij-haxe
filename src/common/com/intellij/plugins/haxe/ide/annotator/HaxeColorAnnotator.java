@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,18 +54,24 @@ public class HaxeColorAnnotator implements Annotator {
     }
 
     PsiElement element = node;
+    if (element instanceof HaxeStringLiteralExpression) {
+      return;
+    }
     if (element instanceof HaxeReference) {
       final boolean chain = PsiTreeUtil.getChildOfType(element, HaxeReference.class) != null;
       if (chain) {
-        tryAnnotateQName(node, holder);
-        return;
+        if (tryAnnotateQName(node, holder)) return;
       }
       element = ((HaxeReference)element).resolveToComponentName();
     }
     if (element instanceof HaxeComponentName) {
-      final boolean isStatic = checkStatic(element.getParent());
+      final boolean isStatic = PsiTreeUtil.getParentOfType(node, HaxeImportStatement.class) == null && checkStatic(element.getParent());
       final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(element.getParent()), isStatic);
       if (attribute != null) {
+        if (node instanceof HaxeReference) {
+          element = ((HaxeReference)node).getReferenceNameElement();
+          if (element != null) node = element;
+        }
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
       }
     }
@@ -78,8 +85,8 @@ public class HaxeColorAnnotator implements Annotator {
       IElementType tt = astNode.getElementType();
 
       if (tt == HaxeTokenTypeSets.PPEXPRESSION) {
-//        annotateCompilationExpression(node, holder);
-// Temporary override:
+        //annotateCompilationExpression(node, holder);
+        //FIXME Temporary override:
         holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR);
       }
       if (tt == HaxeTokenTypeSets.PPBODY) {
@@ -118,7 +125,7 @@ public class HaxeColorAnnotator implements Annotator {
     if (element instanceof PsiJavaToken) {
       if (parent instanceof HaxeForStatement) {
         isKeyword = "in".equals(element.getText());
-      } else if (parent instanceof HaxeImportStatementWithInSupport) {
+      } else if (parent instanceof HaxeImportStatement && ((HaxeImportStatement)parent).getAlias() != null) {
         String elementText = element.getText();
         isKeyword = "in".equals(elementText) || "as".equals(elementText);
       }
@@ -132,7 +139,7 @@ public class HaxeColorAnnotator implements Annotator {
     return isKeyword;
   }
 
-  private static void tryAnnotateQName(PsiElement node, AnnotationHolder holder) {
+  private static boolean tryAnnotateQName(PsiElement node, AnnotationHolder holder) {
     // Maybe this is class name
     final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(node);
     if (resultClass != null) {
@@ -140,14 +147,14 @@ public class HaxeColorAnnotator implements Annotator {
       if (attribute != null) {
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
       }
+      return true;
     }
+
+    return false;
   }
 
   private static boolean checkStatic(PsiElement parent) {
-    if (parent instanceof HaxeNamedComponent) {
-      return ((HaxeNamedComponent)parent).isStatic();
-    }
-    return false;
+    return parent instanceof HaxeNamedComponent && ((HaxeNamedComponent)parent).isStatic();
   }
 
   @Nullable

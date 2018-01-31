@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +23,14 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin;
 import com.intellij.psi.tree.IElementType;
 
+import java.util.Objects;
+
 /**
  * Created by ebishton on 9/27/14.
  */
 public class HaxeIdentifierPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeIdentifierPsiMixin {
+
+  private static final String MATCH_ANY_IDENTIFIER = "_";
 
   public HaxeIdentifierPsiMixinImpl(ASTNode node) {
     super(node);
@@ -34,5 +39,10 @@ public class HaxeIdentifierPsiMixinImpl extends HaxePsiCompositeElementImpl impl
   @Override
   public IElementType getTokenType() {
     return HaxeTokenTypes.IDENTIFIER;
+  }
+
+  @Override
+  public boolean isMatchAny() {
+    return Objects.equals(getText(), MATCH_ANY_IDENTIFIER);
   }
 }

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +44,8 @@ public class HaxeElementGenerator {
   public static PsiElement createExpressionFromText(Project myProject, String text) {
     PsiElement fromText = createStatementFromText(myProject, "var test = " + text + ";");
     if (fromText instanceof HaxeVarDeclaration) {
-      HaxeVarDeclarationPart declarationPart = ((HaxeVarDeclaration)fromText).getVarDeclarationPart();
-      HaxeVarInit varInit = declarationPart != null ? declarationPart.getVarInit() : null;
+      HaxeVarDeclaration declarationPart = ((HaxeVarDeclaration)fromText);
+      HaxeVarInit varInit = declarationPart.getVarInit();
       return varInit != null ? varInit.getExpression() : null;
     }
     return null;
@@ -60,20 +61,11 @@ public class HaxeElementGenerator {
     assert statement != null;
     return statement.getChildren()[0];
   }
-
-  public static HaxeVarDeclarationPart createVarDeclarationPart(Project myProject, String text) {
-    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
-    assert haxeClass != null;
-    return (HaxeVarDeclarationPart)haxeClass.getHaxeFields().iterator().next();
-  }
-
   public static HaxeVarDeclaration createVarDeclaration(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    String haxeClassText = haxeClass.getText();
-    return (HaxeVarDeclaration)haxeClass.getVarDeclarations().iterator().next();
+    return haxeClass.getVarDeclarations().iterator().next();
   }
 
   // XXX: Eventually, this ordering should come from the class order in
@@ -110,8 +102,13 @@ public class HaxeElementGenerator {
   }
 
   @Nullable
+  public static HaxeReferenceExpression createReferenceExpressionFromText(Project myProject, String name) {
+    return createImportAndFindChild(myProject, name, HaxeReferenceExpression.class);
+  }
+
+  @Nullable
   private static <T extends PsiElement> T createImportAndFindChild(Project myProject, String name, Class<T> aClass) {
-    final HaxeImportStatementRegular importStatement = createImportStatementFromPath(myProject, name);
+    final HaxeImportStatement importStatement = createImportStatementFromPath(myProject, name);
     if (importStatement == null) {
       return null;
     }
@@ -119,9 +116,9 @@ public class HaxeElementGenerator {
   }
 
   @Nullable
-  public static HaxeImportStatementRegular createImportStatementFromPath(Project myProject, String path) {
+  public static HaxeImportStatement createImportStatementFromPath(Project myProject, String path) {
     final PsiFile dummyFile = createDummyFile(myProject, "import " + path + ";");
-    return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatementRegular.class);
+    return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatement.class);
   }
 
   @Nullable

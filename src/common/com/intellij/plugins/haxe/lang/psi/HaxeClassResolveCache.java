@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +23,18 @@ import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
-import com.intellij.util.containers.ConcurrentWeakHashMap;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.ConcurrentMap;
+
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeClassResolveCache {
-  private final ConcurrentWeakHashMap<HaxeClass, HaxeClassResolveResult> myMap = createWeakMap();
+  private final ConcurrentMap<HaxeClass, HaxeClassResolveResult> myMap = ContainerUtil.createConcurrentWeakMap();
 
   public static HaxeClassResolveCache getInstance(Project project) {
     ProgressIndicatorProvider.checkCanceled(); // We hope this method is being called often enough to cancel daemon processes smoothly
@@ -50,11 +52,6 @@ public class HaxeClassResolveCache {
       public void afterPsiChanged(boolean isPhysical) {
       }
     });
-  }
-
-  private static <K, V> ConcurrentWeakHashMap<K, V> createWeakMap() {
-    return new ConcurrentWeakHashMap<K, V>(7, 0.75f, Runtime.getRuntime().availableProcessors(),
-                                           ContainerUtil.<K>canonicalStrategy());
   }
 
   public void put(@NotNull HaxeClass haxeClass, @NotNull HaxeClassResolveResult result) {

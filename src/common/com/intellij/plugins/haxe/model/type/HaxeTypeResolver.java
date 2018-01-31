@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,22 +93,19 @@ public class HaxeTypeResolver {
       return abstractEnumType;
     }
 
-    if (comp instanceof HaxeVarDeclarationPart) {
+    if (comp instanceof HaxeVarDeclaration) {
       ResultHolder result = null;
 
-      HaxeVarInit init = ((HaxeVarDeclarationPart)comp).getVarInit();
+      HaxeVarDeclaration decl = (HaxeVarDeclaration)comp;
+      HaxeVarInit init = ((HaxeVarDeclaration)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
         final ResultHolder initType = HaxeTypeResolver.getPsiElementType(child);
-        HaxeVarDeclaration decl = ((HaxeVarDeclaration)comp.getParent());
-        boolean isConstant = false;
-        if (decl != null) {
-          isConstant = decl.hasModifierProperty(HaxePsiModifier.INLINE) && decl.isStatic();
-        }
+        boolean isConstant = decl.hasModifierProperty(HaxePsiModifier.INLINE) && decl.isStatic();
         result = isConstant ? initType : initType.withConstantValue(null);
       }
 
-      HaxeTypeTag typeTag = ((HaxeVarDeclarationPart)comp).getTypeTag();
+      HaxeTypeTag typeTag = ((HaxeVarDeclaration)comp).getTypeTag();
       if (typeTag != null) {
         final ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
         final Object initConstant = result != null ? result.getType().getConstant() : null;

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,12 +82,10 @@ public class SemicolonFixer implements Fixer {
   private static boolean fixAfterLastValidElement(@NotNull Editor editor, @Nullable PsiElement psiElement) {
     if (psiElement == null ||
         !(psiElement instanceof HaxeExpression) &&
-        !(psiElement instanceof HaxeReferenceExpression) &&
-        !(psiElement instanceof HaxeImportStatementRegular) &&
-        !(psiElement instanceof HaxeImportStatementWithInSupport) &&
-        !(psiElement instanceof HaxeImportStatementWithWildcard) &&
+        !(psiElement instanceof HaxeImportStatement) &&
         !(psiElement instanceof HaxeBreakStatement) &&
-        !(psiElement instanceof HaxeContinueStatement)) {
+        !(psiElement instanceof HaxeContinueStatement) &&
+        !(psiElement instanceof HaxeReferenceExpression)) {
       return false;
     }
 

@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +22,13 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -40,8 +40,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.containers.ContainerUtil;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +48,11 @@ import java.util.*;
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
   public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-//  static { LOG.setLevel(Level.TRACE); }  // TODO: Pull this out after debugging.
+  public static final String DOT = ".";
+
+  //static {
+  //  LOG.setLevel(Level.TRACE);
+  //}  // TODO: Pull this out after debugging.
 
   public HaxeReferenceImpl(ASTNode node) {
     super(node);
@@ -68,14 +70,31 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public TextRange getRangeInElement() {
-    final TextRange textRange = getTextRange();
-    return new TextRange(0, textRange.getEndOffset() - textRange.getStartOffset());
+    PsiElement nameElement = getReferenceNameElement();
+    if (nameElement != null) {
+      int startOffset = nameElement.getStartOffsetInParent();
+      return new TextRange(startOffset, startOffset + nameElement.getTextLength());
+    }
+
+    PsiElement dot = getLastChild();
+    if (DOT.equals(dot.getText())) {
+      int index = dot.getStartOffsetInParent() + dot.getTextLength();
+      return new TextRange(index, index);
+    }
+
+    return new TextRange(0, getTextLength());
   }
 
   @NotNull
   @Override
   public String getCanonicalText() {
     return getText();
+  }
+
+  @Override
+  public int getTextOffset() {
+    PsiElement nameElement = getReferenceNameElement();
+    return nameElement != null ? nameElement.getTextOffset() : super.getTextOffset();
   }
 
   @Nullable
@@ -85,8 +104,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeExpression expression = this;
     if (this instanceof HaxeCallExpression) {
       expression = ((HaxeCallExpression)this).getExpression();
-    }
-    else if (this instanceof HaxeNewExpression) {
+    } else if (this instanceof HaxeNewExpression) {
       HaxeNewExpression newExpression = (HaxeNewExpression)this;
       HaxeClass haxeClass = (HaxeClass)newExpression.getType().getReferenceExpression().resolve();
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(haxeClass);
@@ -98,7 +116,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // expression, or failing that, from the class in which the reference appears, which is
     // exactly what tryGetLeftResolveResult() gives us.
     final HaxeClassResolveResult result = tryGetLeftResolveResult(expression);
-    return result != null ? result.getSpecialization() : null;
+    return result != HaxeClassResolveResult.EMPTY ? result.getSpecialization() : null;
   }
 
   @Override
@@ -107,12 +125,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("namelist: "+nameList.toString()));
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("namelist: " + nameList.toString()));
     if (nameList == null || nameList.isEmpty()) {
       return Collections.emptyList();
     }
 
-    List<PsiElement> result = new ArrayList<PsiElement>();
+    List<PsiElement> result = new ArrayList<>();
     for (PsiElement element : nameList) {
       PsiElement elementToAdd = element;
       if (element instanceof HaxeComponentName) {
@@ -130,7 +148,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     return result;
   }
-
 
   @Override
   public PsiElement resolve() {
@@ -189,15 +206,15 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // results.
     boolean skipCaching = skipCachingForDebug || DumbService.isDumb(getProject());
     List<? extends PsiElement> cachedNames
-              = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
-                            : ResolveCache.getInstance(getProject()).resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
+      = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
+                    : ResolveCache.getInstance(getProject())
+                        .resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
 
 
     // CandidateInfo does some extra resolution work when checking validity, so
     // the results have to be turned into a CandidateInfoArray, and not just passed
     // around as the list that HaxeResolver returns.
-    JavaResolveResult [] result = toCandidateInfoArray(resolveToParents ? resolveNamesToParents(cachedNames) : cachedNames);
-    return result;
+    return toCandidateInfoArray(resolveToParents ? resolveNamesToParents(cachedNames) : cachedNames);
   }
 
   /**
@@ -205,15 +222,20 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
    * PsiElement.
    *
    * @return the component name of the found element, or null if not (or
-   *         more than one) found.
+   *   more than one) found.
    */
   @Nullable
   public PsiElement resolveToComponentName() {
     final ResolveResult[] resolveResults = multiResolve(true, false);
+    final PsiElement result = resolveResults.length == 0 ||
+                              resolveResults.length > 1 ||
+                              !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
 
-    return resolveResults.length == 0 ||
-           resolveResults.length > 1 ||
-           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
+    if (result != null && result instanceof HaxeNamedComponent) {
+      return ((HaxeNamedComponent)result).getComponentName();
+    }
+
+    return result;
   }
 
   /**
@@ -221,7 +243,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
    *
    * @param incompleteCode Whether to treat the code as a fragment or not.
    *                       Usually, code is considered incomplete.
-   *
    * @return a (possibly empty) list of candidates that this reference matches.
    */
   @NotNull
@@ -233,11 +254,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   /**
    * Resolve this reference to a PsiElement -- *NOT* it's name.
    *
-   * @param incompleteCode  Whether to treat the code as a fragment or not.
-   *                        Usually, code is considered incomplete.
-   *
+   * @param incompleteCode Whether to treat the code as a fragment or not.
+   *                       Usually, code is considered incomplete.
    * @return the element this reference refers to, or null if none (or more
-   *         than one) is found.
+   *   than one) is found.
    */
   @Nullable
   public PsiElement resolve(boolean incompleteCode) {
@@ -245,8 +265,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     final ResolveResult[] resolveResults = multiResolve(incompleteCode);
 
     PsiElement resolved = resolveResults.length == 0 ||
-           resolveResults.length > 1 ||
-           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
+                          resolveResults.length > 1 ||
+                          !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Resolved to " + (resolved != null ? resolved.toString() : "<null>")));
     return resolved;
   }
@@ -282,9 +302,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return HaxeClassResolveResult.create(null);
       }
       final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
-      final HaxeClassResolveResult superClassResolveResult = superExpression instanceof HaxeReference
-                                                             ? ((HaxeReference)superExpression).resolveHaxeClass()
-                                                             : HaxeClassResolveResult.create(null);
+      final HaxeClassResolveResult superClassResolveResult = ((HaxeReference)superExpression).resolveHaxeClass();
       superClassResolveResult.specializeByParameters(haxeClass.getHaxeExtendsList().get(0).getTypeParam());
       return superClassResolveResult;
     }
@@ -307,13 +325,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (this instanceof HaxeArrayLiteral) {
       HaxeArrayLiteral haxeArrayLiteral = (HaxeArrayLiteral)this;
       HaxeExpressionList expressionList = haxeArrayLiteral.getExpressionList();
-      boolean isMap = false;
+      boolean isMap;
       boolean isString = false;
       boolean sameClass = false;
       boolean implementOrExtendSameClass = false;
       HaxeClass haxeClass = null;
-      List<HaxeType> commonTypeList = new ArrayList<HaxeType>();
-      List<HaxeExpression> haxeExpressionList = expressionList != null ? expressionList.getExpressionList() : new ArrayList<HaxeExpression>();
+      List<HaxeType> commonTypeList = new ArrayList<>();
+      List<HaxeExpression> haxeExpressionList = expressionList != null ? expressionList.getExpressionList() : new ArrayList<>();
       if (!haxeExpressionList.isEmpty()) {
         isMap = true;
         isString = true;
@@ -350,17 +368,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             }
 
             if (haxeClass != null && !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
-              List<HaxeType> haxeTypeList = new ArrayList<HaxeType>();
+              List<HaxeType> haxeTypeList = new ArrayList<>();
               haxeTypeList.addAll(haxeClass.getHaxeImplementsList());
               haxeTypeList.addAll(haxeClass.getHaxeExtendsList());
 
               commonTypeList.retainAll(haxeTypeList);
-              if (!commonTypeList.isEmpty()) {
-                implementOrExtendSameClass = true;
-              }
-              else {
-                implementOrExtendSameClass = false;
-              }
+              implementOrExtendSameClass = !commonTypeList.isEmpty();
             }
 
             if (haxeClass == null || !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
@@ -379,25 +392,23 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
 
       HaxeGenericSpecialization specialization = resolveResult.getSpecialization();
-      if (resolveResultHaxeClass != null && specialization.get(resolveResultHaxeClass, "T") == null) {  // TODO: 'T' should not be hard-coded.
+      if (resolveResultHaxeClass != null &&
+          specialization.get(resolveResultHaxeClass, "T") == null) {  // TODO: 'T' should not be hard-coded.
         if (isString) {
           specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this)));
-        }
-        else if (sameClass) {
-          specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
-        }
-        else if (implementOrExtendSameClass) {
+        } else if (sameClass) {
+          specialization.put(resolveResultHaxeClass, "T",
+                             HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
+        } else if (implementOrExtendSameClass) {
           HaxeReferenceExpression haxeReferenceExpression = commonTypeList.get(commonTypeList.size() - 1).getReferenceExpression();
-          if (haxeReferenceExpression != null) {
-            HaxeClassResolveResult resolveHaxeClass = haxeReferenceExpression.resolveHaxeClass();
+          HaxeClassResolveResult resolveHaxeClass = haxeReferenceExpression.resolveHaxeClass();
 
-            if (resolveHaxeClass != null) {
-              HaxeClass resolveHaxeClassHaxeClass = resolveHaxeClass.getHaxeClass();
+          if (resolveHaxeClass != HaxeClassResolveResult.EMPTY) {
+            HaxeClass resolveHaxeClassHaxeClass = resolveHaxeClass.getHaxeClass();
 
-              if (resolveHaxeClassHaxeClass != null) {
-                specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(
-                  resolveHaxeClassHaxeClass.getQualifiedName(), this)));
-              }
+            if (resolveHaxeClassHaxeClass != null) {
+              specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(
+                resolveHaxeClassHaxeClass.getQualifiedName(), this)));
             }
           }
         }
@@ -472,66 +483,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Trying class resolve with specialization."));
-    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve(), tryGetLeftResolveResult(this).getSpecialization());
+    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve, tryGetLeftResolveResult(this).getSpecialization());
     if (result.getHaxeClass() == null) {
       result = HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
-    }
-    return result;
-  }
-
-  @NotNull
-  private static HaxeClassResolveResult tryGetLeftResolveResult(HaxeExpression expression) {
-    final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(expression, HaxeReference.class);
-    final HaxeReference leftReference = childReferences != null ? childReferences[0] : null;
-    return leftReference != null
-           ? leftReference.resolveHaxeClass()
-           : HaxeClassResolveResult.create(PsiTreeUtil.getParentOfType(expression, HaxeClass.class));
-  }
-
-  @Nullable
-  private static String getLiteralClassName(IElementType type) {
-    if (type == HaxeTokenTypes.STRING_LITERAL_EXPRESSION) {
-      return "String";
-    }
-    else if (type == HaxeTokenTypes.ARRAY_LITERAL) {
-      return "Array";
-    }
-    else if (type == HaxeTokenTypes.LITFLOAT) {
-      return "Float";
-    }
-    else if (type == HaxeTokenTypes.REG_EXP) {
-      return "EReg";
-    }
-    else if (type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITOCT) {
-      return "Int";
-    }
-    return null;
-  }
-
-  private static ResolveResult[] resolveByClassAndSymbol(@Nullable HaxeClassResolveResult resolveResult, @NotNull String symbolName) {
-    return resolveResult == null ? ResolveResult.EMPTY_ARRAY : resolveByClassAndSymbol(resolveResult.getHaxeClass(), symbolName);
-  }
-
-  private static ResolveResult[] resolveByClassAndSymbol(@Nullable HaxeClass referenceClass, @NotNull String symbolName) {
-    final HaxeNamedComponent namedSubComponent =
-      HaxeResolveUtil.findNamedSubComponent(referenceClass, symbolName);
-    final HaxeComponentName componentName = namedSubComponent == null ? null : namedSubComponent.getComponentName();
-    return toCandidateInfoArray(componentName);
-  }
-
-  @NotNull
-  private static JavaResolveResult[] toCandidateInfoArray(@Nullable PsiElement element) {
-    if (element == null) {
-      return JavaResolveResult.EMPTY_ARRAY;
-    }
-    return new JavaResolveResult[]{new CandidateInfo(element, null)};
-  }
-
-  @NotNull
-  private static JavaResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
-    final JavaResolveResult[] result = new JavaResolveResult[elements.size()];
-    for (int i = 0, size = elements.size(); i < size; i++) {
-      result[i] = new CandidateInfo(elements.get(i), EmptySubstitutor.getInstance());
     }
     return result;
   }
@@ -539,13 +493,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
     PsiElement element = this;
-    if (getText().indexOf('.') != -1) {
-      // qName
-      final PsiElement lastChild = getLastChild();
-      element = lastChild == null ? this : lastChild;
-    }
     final HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(element, HaxeIdentifier.class);
     final HaxeIdentifier identifierNew = HaxeElementGenerator.createIdentifierFromText(getProject(), newElementName);
+
     if (identifier != null && identifierNew != null) {
       element.getNode().replaceChild(identifier.getNode(), identifierNew.getNode());
     }
@@ -556,11 +506,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
     if (element instanceof HaxeFile) {
       bindToFile(element);
-    }
-    else if (element instanceof PsiPackage) {
+    } else if (element instanceof PsiPackage) {
       bindToPackage((PsiPackage)element);
-    }
-    else if (element instanceof PsiClass) {
+    } else if (element instanceof PsiClass) {
       bindToClass((PsiClass)element);
     }
     return this;
@@ -571,54 +519,84 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private void bindToPackage(PsiPackage element) {
-    final HaxeImportStatementRegular importStatement =
+    final HaxeImportStatement importStatement =
       HaxeElementGenerator.createImportStatementFromPath(getProject(), element.getQualifiedName());
     HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
-    assert referenceExpression != null;
-    replace(referenceExpression);
+    if (referenceExpression == null) {
+      LOG.error("ReferenceExpression generated by HaxeElementGenerator is null!");
+    } else {
+      replace(referenceExpression);
+    }
   }
 
   private void bindToFile(PsiElement element) {
+    final HaxeFileModel elementFileModel = HaxeFileModel.fromElement(element);
+    final HaxeFileModel selfFileModel = HaxeFileModel.fromElement(this);
     String destinationPackage = element.getUserData(HaxeFileMoveHandler.destinationPackageKey);
     if (destinationPackage == null) {
       destinationPackage = "";
     }
     final String importPath = (destinationPackage.isEmpty() ? "" : destinationPackage + ".") +
-                              FileUtil.getNameWithoutExtension(((HaxeFile)element).getName());
+                              elementFileModel.getName();
 
     if (resolve() == null) {
-      if (getParent() instanceof HaxeImportStatementRegular && !destinationPackage.isEmpty()) {
-        final HaxeImportStatementRegular importStatement =
-          HaxeElementGenerator.createImportStatementFromPath(getProject(), importPath);
-        assert importStatement != null;
-        getParent().replace(importStatement);
+      final List<HaxeImportModel> imports = selfFileModel.getImportModels();
+      final boolean isInImportStatement = getParent() instanceof HaxeImportStatement;
+      final boolean isInQualifiedPath = getText().indexOf('.') != -1;
+      final boolean inSamePackage = Objects.equals(selfFileModel.getPackageName(), elementFileModel.getPackageName());
+      final boolean exposedByImports = imports.stream().anyMatch(
+        model -> {
+          return model.getExposedMembers().stream().anyMatch(item -> elementFileModel.getQualifiedInfo().equals(item.getQualifiedInfo()));
+        });
+      final boolean requiredToAddImport = !inSamePackage && (imports.isEmpty() || !exposedByImports);
+
+      if (isInImportStatement) {
+        if (inSamePackage || destinationPackage.isEmpty() || exposedByImports) {
+          deleteImportStatement();
+        } else {
+          updateImportStatement(importPath);
+        }
+      } else if (isInQualifiedPath) {
+        final String newName = destinationPackage.equals(selfFileModel.getPackageName()) ? elementFileModel.getName() : importPath;
+        updateFullyQualifiedReference(newName);
+      } else if (requiredToAddImport) {
+        selfFileModel.addImport(importPath);
       }
-      else if (getParent() instanceof HaxeImportStatementRegular && destinationPackage.isEmpty()) {
-        // need remove, empty destination
-        getParent().getParent().deleteChildRange(getParent(), getParent());
-      }
-      else if (getText().indexOf('.') != -1) {
-        // qName
-        final String newQName = destinationPackage.equals(HaxeResolveUtil.getPackageName(getContainingFile())) ?
-                                FileUtil.getNameWithoutExtension(((HaxeFile)element).getName()) :
-                                importPath;
-        final HaxeImportStatementRegular importStatement =
-          HaxeElementGenerator.createImportStatementFromPath(getProject(), newQName);
-        HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
-        assert referenceExpression != null;
-        replace(referenceExpression);
-      }
-      else if (UsefulPsiTreeUtil.findImportByClassName(this, getText()) == null && UsefulPsiTreeUtil.findImportWithInByClassName(this, getText()) == null && !destinationPackage.isEmpty()) {
-        // need add import
-        HaxeAddImportHelper.addImport(importPath, getContainingFile());
+    } else {
+      final HaxeImportStatement importStatement = selfFileModel.getImportStatements().stream()
+        .filter(statement -> statement.getReferenceExpression() != null && importPath.equals(statement.getReferenceExpression().getText()))
+        .findFirst()
+        .orElse(null);
+
+      if (importStatement != null) {
+        importStatement.delete();
       }
     }
-    else {
-      final HaxeImportStatementRegular importStatement = UsefulPsiTreeUtil.findImportByClassName(this, getText());
-      HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
-      if (referenceExpression != null && !importPath.equals(referenceExpression.getText())) {
-        // need remove, cause can resolve without
-        importStatement.getParent().deleteChildRange(importStatement, importStatement);
+  }
+
+  private void updateFullyQualifiedReference(String newName) {
+    HaxeReferenceExpression referenceExpression =
+      HaxeElementGenerator.createReferenceExpressionFromText(getProject(), newName);
+    if (referenceExpression == null) {
+      LOG.error("ReferenceExpression generated by HaxeElementGenerator is null!");
+    } else {
+      replace(referenceExpression);
+    }
+  }
+
+  private void updateImportStatement(String newImportPath) {
+    HaxeImportStatement importStatement = (HaxeImportStatement)getParent();
+    final HaxeImportStatement newImportStatement = HaxeElementGenerator.createImportStatementFromPath(getProject(), newImportPath);
+    assert newImportStatement != null : "New import statement can't be null - HaxeElementGenerator failed";
+    importStatement.replace(newImportStatement);
+  }
+
+  private void deleteImportStatement() {
+    if (getParent() instanceof HaxeImportStatement) {
+      try {
+        getParent().delete();
+      }
+      catch (IncorrectOperationException ignored) {
       }
     }
   }
@@ -641,8 +619,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @NotNull
   @Override
   public Object[] getVariants() {
-    final Set<HaxeComponentName> suggestedVariants = new THashSet<HaxeComponentName>();
-    final Set<HaxeComponentName> suggestedVariantsExtensions = new THashSet<HaxeComponentName>();
+    final Set<HaxeComponentName> suggestedVariants = new HashSet<>();
+    final Set<HaxeComponentName> suggestedVariantsExtensions = new HashSet<>();
 
     // if not first in chain
     // foo.bar.baz
@@ -653,48 +631,52 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     String name = null;
     if (leftReference != null) {
       result = leftReference.resolveHaxeClass();
-      if (result != null) {
+      if (result != HaxeClassResolveResult.EMPTY) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
           name = haxeClass.getName();
         }
       }
     }
+
     boolean isThis = leftReference instanceof HaxeThisExpression;
-    if (leftReference != null && getParent() instanceof HaxeReference && name != null &&
+    if (leftReference != null && name != null &&
         HaxeResolveUtil.splitQName(leftReference.getText()).getSecond().equals(name)) {
 
       addClassStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
                                     !(isThis));
       addChildClassVariants(suggestedVariants, result.getHaxeClass());
-    }
-    else if (leftReference != null && getParent() instanceof HaxeReference && !result.isFunctionType()) {
+    } else if (leftReference != null && !result.isFunctionType()) {
       if (null == haxeClass) {
         // TODO: fix haxeClass by type inference. Use compiler code assist?!
       }
       if (haxeClass != null) {
         boolean isSuper = leftReference instanceof HaxeSuperExpression;
+        PsiElement resolvedValue = leftReference.resolve();
+        if (!isSuper && (resolvedValue instanceof HaxeClassDeclaration ||
+                         resolvedValue instanceof HaxeAbstractClassDeclaration ||
+                         resolvedValue instanceof HaxeInterfaceDeclaration ||
+                         resolvedValue instanceof HaxeExternClassDeclaration)) {
+          List<HaxeModel> models = HaxeProjectModel.fromElement(this).resolve(new FullyQualifiedInfo("", "Class", null, null));
+          if (models != null && !models.isEmpty() && models.get(0) instanceof HaxeClassModel) {
+            haxeClass = ((HaxeClassModel)models.get(0)).haxeClass;
+          } else {
+            haxeClass = null;
+          }
+        }
 
         addClassNonStaticMembersVariants(suggestedVariants, haxeClass,
                                          !(isThis || isSuper));
-        addUsingVariants(suggestedVariants, suggestedVariantsExtensions, haxeClass,
-                         HaxeResolveUtil.findUsingClasses(getContainingFile()));
+        addUsingVariants(suggestedVariants, suggestedVariantsExtensions, haxeClass, this);
       }
-    }
-    else {
-      // if chain
-      // node(foo.node(bar)).node(baz)
-      final HaxeReference[] childReferences = PsiTreeUtil.getChildrenOfType(this, HaxeReference.class);
-      final boolean isChain = childReferences != null && childReferences.length == 2;
-      if (!isChain) {
+    } else {
+      if (leftReference == null) {
         final boolean isElementInForwardMeta = HaxeAbstractForwardUtil.isElementInForwardMeta(this);
         if (isElementInForwardMeta) {
           addAbstractUnderlyingClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), true);
         } else {
           PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
           addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
-          PsiFile psiFile = this.getContainingFile();
-          addImportStatementWithWildcardTypeClassVariants(suggestedVariants, psiFile);
         }
       }
     }
@@ -704,32 +686,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (leftTarget instanceof PsiPackage) {
       return ArrayUtil.mergeArrays(variants, ((PsiPackage)leftTarget).getSubPackages());
-    }
-    else if (leftTarget instanceof HaxeFile) {
+    } else if (leftTarget instanceof HaxeFile) {
       return ArrayUtil.mergeArrays(variants, ((HaxeFile)leftTarget).getClasses());
-    }
-    else if (leftReference == null) {
+    } else if (leftReference == null) {
       PsiPackage rootPackage = JavaPsiFacade.getInstance(getElement().getProject()).findPackage("");
       return rootPackage == null ? variants : ArrayUtil.mergeArrays(variants, rootPackage.getSubPackages());
     }
     return variants;
-  }
-
-  private void addImportStatementWithWildcardTypeClassVariants(Set<HaxeComponentName> suggestedVariants, PsiFile psiFile) {
-    List<PsiElement> importStatementWithWildcardList = ContainerUtil.findAll(psiFile.getChildren(), new Condition<PsiElement>() {
-      @Override
-      public boolean value(PsiElement element) {
-        return element instanceof HaxeImportStatementWithWildcard;
-      }
-    });
-
-    for (PsiElement element : importStatementWithWildcardList) {
-      List<HaxeNamedComponent> namedSubComponents =
-        UsefulPsiTreeUtil.getImportStatementWithWildcardTypeNamedSubComponents((HaxeImportStatementWithWildcard)element, psiFile);
-      for (HaxeNamedComponent namedComponent : namedSubComponents) {
-        suggestedVariants.add(namedComponent.getComponentName());
-      }
-    }
   }
 
   private void addChildClassVariants(Set<HaxeComponentName> variants, HaxeClass haxeClass) {
@@ -754,24 +717,53 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
   }
 
-  private static void addUsingVariants(Set<HaxeComponentName> variants, Set<HaxeComponentName> variantsWithExtension, @Nullable HaxeClass ourClass, List<HaxeClass> classes) {
-    for (HaxeClass haxeClass : classes) {
-      for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
-        if (haxeNamedComponent.isPublic() && haxeNamedComponent.isStatic() && haxeNamedComponent.getComponentName() != null) {
-          final HaxeClassResolveResult resolveResult = HaxeResolveUtil.findFirstParameterClass(haxeNamedComponent);
-          if (!resolveResult.equals(HaxeClassResolveResult.EMPTY)) {
-            final HaxeClass resolvedClass = resolveResult.getHaxeClass();
-            final HashSet<HaxeClass> baseClassesSet = ourClass != null ? HaxeResolveUtil.getBaseClassesSet(ourClass) : null;
-            final boolean needToAdd = resolvedClass == null || resolvedClass == ourClass
-              || (baseClassesSet != null && baseClassesSet.contains(resolvedClass));
-            if (needToAdd) {
-              variants.add(haxeNamedComponent.getComponentName());
-              variantsWithExtension.add(haxeNamedComponent.getComponentName());
-            }
-          }
-        }
-      }
+  @NotNull
+  private static HaxeClassResolveResult tryGetLeftResolveResult(HaxeExpression expression) {
+    final HaxeReference leftReference = PsiTreeUtil.getChildOfType(expression, HaxeReference.class);
+    return leftReference != null
+           ? leftReference.resolveHaxeClass()
+           : HaxeClassResolveResult.create(PsiTreeUtil.getParentOfType(expression, HaxeClass.class));
+  }
+
+  @Nullable
+  private static String getLiteralClassName(IElementType type) {
+    if (type == HaxeTokenTypes.STRING_LITERAL_EXPRESSION) {
+      return "String";
+    } else if (type == HaxeTokenTypes.ARRAY_LITERAL) {
+      return "Array";
+    } else if (type == HaxeTokenTypes.LITFLOAT) {
+      return "Float";
+    } else if (type == HaxeTokenTypes.REG_EXP) {
+      return "EReg";
+    } else if (type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITOCT) {
+      return "Int";
     }
+    return null;
+  }
+
+  @NotNull
+  private static JavaResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
+    final JavaResolveResult[] result = new JavaResolveResult[elements.size()];
+    for (int i = 0, size = elements.size(); i < size; i++) {
+      result[i] = new CandidateInfo(elements.get(i), EmptySubstitutor.getInstance());
+    }
+    return result;
+  }
+
+  private static void addUsingVariants(Set<HaxeComponentName> variants,
+                                       Set<HaxeComponentName> variantsWithExtension,
+                                       final @Nullable HaxeClass ourClass,
+                                       HaxeReferenceImpl reference) {
+
+    if (ourClass == null) return;
+
+    HaxeFileModel.fromElement(reference).getUsingModels().stream()
+      .flatMap(model -> model.getExtensionMethods(ourClass).stream())
+      .map(HaxeMemberModel::getNamePsi)
+      .forEach(name -> {
+        variants.add(name);
+        variantsWithExtension.add(name);
+      });
   }
 
   private static void addClassVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
@@ -786,7 +778,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
   }
 
-  private static void addAbstractUnderlyingClassVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+  private static void addAbstractUnderlyingClassVariants(Set<HaxeComponentName> suggestedVariants,
+                                                         @Nullable HaxeClass haxeClass,
+                                                         boolean filterByAccess) {
     final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(haxeClass);
     if (underlyingClass == null) {
       return;
@@ -794,7 +788,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     addClassVariants(suggestedVariants, underlyingClass, filterByAccess);
   }
 
-  private static void addClassStaticMembersVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+  private static void addClassStaticMembersVariants(Set<HaxeComponentName> suggestedVariants,
+                                                    @Nullable HaxeClass haxeClass,
+                                                    boolean filterByAccess) {
     if (haxeClass == null) {
       return;
     }
@@ -806,18 +802,19 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       final HaxeComponentName componentName = namedComponent.getComponentName();
-      if(componentName != null) {
-        if(isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
+      if (componentName != null) {
+        if (isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
           suggestedVariants.add(componentName);
-        }
-        else if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum)) {
+        } else if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum)) {
           suggestedVariants.add(componentName);
         }
       }
     }
   }
 
-  private static void addClassNonStaticMembersVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess) {
+  private static void addClassNonStaticMembersVariants(Set<HaxeComponentName> suggestedVariants,
+                                                       @Nullable HaxeClass haxeClass,
+                                                       boolean filterByAccess) {
     if (haxeClass == null) {
       return;
     }
@@ -827,11 +824,15 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(haxeClass);
 
     if (isAbstractForward) {
-      final List<HaxeNamedComponent> forwardingHaxeNamedComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass);
+      final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
+        HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass);
       if (forwardingHaxeNamedComponents != null) {
         for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
           final boolean needFilter = filterByAccess && !namedComponent.isPublic();
-          if ((extern || !needFilter) && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+          if ((extern || !needFilter) &&
+              !namedComponent.isStatic() &&
+              namedComponent.getComponentName() != null &&
+              !isConstructor(namedComponent)) {
             suggestedVariants.add(namedComponent.getComponentName());
           }
         }
@@ -840,20 +841,43 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
-      if(isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
+      if (isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
         continue;
       }
-      if ((extern || !needFilter) && !namedComponent.isStatic() && namedComponent.getComponentName() != null) {
+      if ((extern || !needFilter) &&
+          !namedComponent.isStatic() &&
+          namedComponent.getComponentName() != null &&
+          !isConstructor(namedComponent)) {
         suggestedVariants.add(namedComponent.getComponentName());
       }
     }
   }
 
+  private static boolean isConstructor(HaxeNamedComponent component) {
+    return component instanceof HaxeMethodPsiMixin && ((HaxeMethodPsiMixin)component).isConstructor();
+  }
+
+  /* Determine if the element to the right of the given element in the AST
+   * (at the same level) is a dot '.' separator.
+   * Workhorse for getQualifier().
+   * XXX: If we use this more than once, move it to a utility class, such as UsefulPsiTreeUtil.
+   */
+  private static boolean nextSiblingIsADot(PsiElement element) {
+    if (null == element) return false;
+
+    PsiElement next = element.getNextSibling();
+    ASTNode node = ((null != next) ? next.getNode() : null);
+    IElementType type = ((null != node) ? node.getElementType() : null);
+    boolean ret = (null != type && type.equals(HaxeTokenTypes.ODOT));
+    return ret;
+  }
+
   @Nullable
   @Override
   public PsiElement getReferenceNameElement() {
-    PsiElement child = findChildByType(HaxeTokenTypes.REFERENCE_EXPRESSION); // REFERENCE_NAME in Java
-    return child;
+    PsiElement name = findChildByType(HaxeTokenTypes.IDENTIFIER);
+    if (name == null) name = getLastChild();
+    return name;
   }
 
   @Nullable
@@ -863,7 +887,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     LOG.warn("getParameterList is unimplemented");
 
     // REFERENCE_PARAMETER_LIST  in Java
-    HaxeTypeParam child = (HaxeTypeParam) findChildByType(HaxeTokenTypes.TYPE_PARAM);
+    HaxeTypeParam child = (HaxeTypeParam)findChildByType(HaxeTokenTypes.TYPE_PARAM);
     //return child == null ? null : child.getTypeList();
     return null;
   }
@@ -886,49 +910,24 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     return JavaSourceUtil.getReferenceText(this);
   }
 
-  // PsiJavaReference overrides
-
   @Override
   public void processVariants(@NotNull PsiScopeProcessor processor) {
     // TODO:  Unimplemented.
     LOG.warn("processVariants is unimplemented");
   }
 
-  // PsiQualifiedReference overrides
-
   @Nullable
   @Override
   public PsiElement getQualifier() {
-    // Package/class that this type is part of; the part before
-    // the last '.'.  However, that may only be partial, so adding
-    // package information may also be necessary.
-    PsiElement left = UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.REFERENCE_EXPRESSION);
-    boolean hasDot = nextSiblingIsADot(left);
-    return hasDot ? left : null;
-  }
-
-  /* Determine if the element to the right of the given element in the AST
-   * (at the same level) is a dot '.' separator.
-   * Workhorse for getQualifier().
-   * XXX: If we use this more than once, move it to a utility class, such as UsefulPsiTreeUtil.
-   */
-  private static boolean nextSiblingIsADot(PsiElement element) {
-    if (null == element) return false;
-
-    PsiElement   next = element.getNextSibling();
-    ASTNode      node = ((null != next) ? next.getNode() : null);
-    IElementType type = ((null != node) ? node.getElementType() : null);
-    boolean      ret  = (null != type && type.equals(HaxeTokenTypes.ODOT));
-    return ret;
+    PsiElement expression = getFirstChild();
+    return expression != null && expression instanceof HaxeReference ? expression : null;
   }
 
   @Nullable
   @Override
   public String getReferenceName() {
-    // Unqualified name; the base name without any preceding
-    // package/class name.
-    // TODO: Figure out if this needs to split out any prefix.
-    return getText();
+    PsiElement nameElement = getReferenceNameElement();
+    return nameElement == null ? getText() : nameElement.getText();
   }
 
   // PsiExpression implementations
@@ -955,8 +954,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
       String clazzName = this.getClass().getSimpleName();
       String text = getCanonicalText();
-      ss += ":" + (null == text ? "<no text>" : text);
-      ss += ":" + (null == clazzName ? "<anonymous>" : clazzName);
+      ss += ":" + text;
+      ss += ":" + clazzName;
     }
     return ss;
   }
@@ -969,7 +968,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (null != message) {
       msg.append(message);
     }
-    return HaxeDebugUtil.traceMessage(msg.toString(), 120);
+    return HaxeDebugUtil.traceMessage(msg.toString(), 2048);
   }
 
   // HaxeLiteralExpression
@@ -978,5 +977,4 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public HaxeBlockStatement getBlockStatement() {
     return HaxeStatementUtils.getBlockStatement(this);
   }
-
 }

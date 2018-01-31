@@ -1,5 +1,5 @@
 Haxe File
-  IMPORT_STATEMENT_REGULAR
+  IMPORT_STATEMENT
     HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
@@ -7,13 +7,11 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('haxe')
         HaxePsiToken:.('.')
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('macro')
-      HaxePsiToken:.('.')
-      REFERENCE_EXPRESSION
         IDENTIFIER
-          HaxePsiToken:ID('Expr')
+          HaxePsiToken:ID('macro')
+      HaxePsiToken:.('.')
+      IDENTIFIER
+        HaxePsiToken:ID('Expr')
     HaxePsiToken:;(';')
   ENUM_DECLARATION
     HaxePsiToken:enum('enum')
@@ -189,17 +187,16 @@ Haxe File
           ACCESS
             HaxePsiToken:private('private')
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('s')
-          TYPE_TAG
-            HaxePsiToken::(':')
-            TYPE_OR_ANONYMOUS
-              TYPE
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('TextField')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('s')
+        TYPE_TAG
+          HaxePsiToken::(':')
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('TextField')
         HaxePsiToken:;(';')
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
@@ -214,9 +211,9 @@ Haxe File
         HaxePsiToken:)(')')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('x')
@@ -259,9 +256,9 @@ Haxe File
         HaxePsiToken:)(')')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('name')
@@ -272,9 +269,9 @@ Haxe File
                   HaxePsiToken:REGULAR_STRING_PART('Haxe')
                   HaxePsiToken:CLOSING_QUOTE('"')
             HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('x')
@@ -322,9 +319,8 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('name')
                       HaxePsiToken:.('.')
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('toUpperCase')
+                      IDENTIFIER
+                        HaxePsiToken:ID('toUpperCase')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')
                   HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
@@ -355,9 +351,9 @@ Haxe File
         HaxePsiToken:)(')')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('myTree')
@@ -413,9 +409,9 @@ Haxe File
                       HaxePsiToken:)(')')
                   HaxePsiToken:)(')')
             HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('name')
@@ -504,9 +500,9 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// foo')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('myStructure')
@@ -533,9 +529,9 @@ Haxe File
                       HaxePsiToken:CLOSING_QUOTE('"')
                   HaxePsiToken:}('}')
             HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('value')
@@ -633,9 +629,9 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// haxe')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('myArray')
@@ -651,9 +647,9 @@ Haxe File
                       HaxePsiToken:LITINT('6')
                   HaxePsiToken:](']')
             HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('match')
@@ -769,9 +765,9 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// 1')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('match')
@@ -844,9 +840,9 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// 1')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('myArray')
@@ -862,9 +858,9 @@ Haxe File
                       HaxePsiToken:LITINT('6')
                   HaxePsiToken:](']')
             HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('s')
@@ -979,9 +975,9 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// 6<=7')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('s')
@@ -1140,9 +1136,9 @@ Haxe File
         HaxePsiToken:)(')')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('km')
@@ -1158,9 +1154,9 @@ Haxe File
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('n')
@@ -1247,13 +1243,14 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('EnumValue')
       HaxePsiToken:>('>')
-    HaxePsiToken:(('(')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Int')
-    HaxePsiToken:)(')')
+    UNDERLYING_TYPE
+      HaxePsiToken:(('(')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Int')
+      HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
       <empty list>
@@ -1271,23 +1268,24 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('T')
       HaxePsiToken:>('>')
-    HaxePsiToken:(('(')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('VectorData')
-        TYPE_PARAM
-          HaxePsiToken:<('<')
-          TYPE_LIST
-            TYPE_LIST_PART
-              TYPE_OR_ANONYMOUS
-                TYPE
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('T')
-          HaxePsiToken:>('>')
-    HaxePsiToken:)(')')
+    UNDERLYING_TYPE
+      HaxePsiToken:(('(')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('VectorData')
+          TYPE_PARAM
+            HaxePsiToken:<('<')
+            TYPE_LIST
+              TYPE_LIST_PART
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('T')
+            HaxePsiToken:>('>')
+      HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
       <empty list>
@@ -1298,30 +1296,33 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('StringSplitter')
-    HaxePsiToken:(('(')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Array')
-        TYPE_PARAM
-          HaxePsiToken:<('<')
-          TYPE_LIST
-            TYPE_LIST_PART
-              TYPE_OR_ANONYMOUS
-                TYPE
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('String')
-          HaxePsiToken:>('>')
-    HaxePsiToken:)(')')
+    UNDERLYING_TYPE
+      HaxePsiToken:(('(')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Array')
+          TYPE_PARAM
+            HaxePsiToken:<('<')
+            TYPE_LIST
+              TYPE_LIST_PART
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('String')
+            HaxePsiToken:>('>')
+      HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
       FUNCTION_DECLARATION_WITH_ATTRIBUTES
         DECLARATION_ATTRIBUTE
           HaxePsiToken:inline('inline')
         HaxePsiToken:function('function')
-        HaxePsiToken:new('new')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:new('new')
         HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER
@@ -1400,9 +1401,8 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('s')
                   HaxePsiToken:.('.')
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('split')
+                  IDENTIFIER
+                    HaxePsiToken:ID('split')
                 HaxePsiToken:(('(')
                 EXPRESSION_LIST
                   STRING_LITERAL_EXPRESSION
@@ -1418,13 +1418,14 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('MyInt')
-    HaxePsiToken:(('(')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Int')
-    HaxePsiToken:)(')')
+    UNDERLYING_TYPE
+      HaxePsiToken:(('(')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Int')
+      HaxePsiToken:)(')')
     IDENTIFIER
       HaxePsiToken:ID('from')
     TYPE
@@ -1559,9 +1560,9 @@ Haxe File
                   HaxePsiToken:ID('String')
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('s')
@@ -1605,9 +1606,8 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('s')
                 HaxePsiToken:.('.')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('add')
+                IDENTIFIER
+                  HaxePsiToken:ID('add')
               HaxePsiToken:(('(')
               EXPRESSION_LIST
                 REFERENCE_EXPRESSION
@@ -1623,9 +1623,8 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('s')
                 HaxePsiToken:.('.')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('toString')
+                IDENTIFIER
+                  HaxePsiToken:ID('toString')
               HaxePsiToken:(('(')
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')

@@ -1,4 +1,4 @@
-typedef ExtendedString<T> = {>String, key:T}
+typedef ExtendedString<T> = {>String, key:T};
 class TypeDef2 {
   public function foo(){
     var test = new ExtendedString<String>();

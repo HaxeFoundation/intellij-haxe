@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.HaxeImportOptimizer;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithInSupport;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.util.HaxeImportUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -69,36 +68,13 @@ public class HaxeUnusedImportInspection extends LocalInspectionTool {
   @Nullable
   @Override
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
-    List<HaxeImportStatementRegular> unusedImports = HaxeImportUtil.findUnusedImports(file);
-    List<HaxeImportStatementWithInSupport> unusedInImports = HaxeImportUtil.findUnusedInImports(file);
-    List<HaxeImportStatementWithWildcard> unusedImportsWithWildcard = HaxeImportUtil.findUnusedInImportsWithWildcards(file);
-    if (unusedImports.isEmpty() && unusedInImports.isEmpty() && unusedImportsWithWildcard.isEmpty()) {
+    List<HaxeImportStatement> unusedImports = HaxeImportUtil.findUnusedImports(file);
+
+    if (unusedImports.isEmpty()) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
-    final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
-    for (HaxeImportStatementRegular haxeImportStatement : unusedImports) {
-      result.add(manager.createProblemDescriptor(
-        haxeImportStatement,
-        TextRange.from(0, haxeImportStatement.getTextLength()),
-        getDisplayName(),
-        ProblemHighlightType.LIKE_UNUSED_SYMBOL,
-        isOnTheFly,
-        OPTIMIZE_IMPORTS_FIX
-      ));
-    }
-
-    for (HaxeImportStatementWithInSupport haxeImportStatement : unusedInImports) {
-      result.add(manager.createProblemDescriptor(
-        haxeImportStatement,
-        TextRange.from(0, haxeImportStatement.getTextLength()),
-        getDisplayName(),
-        ProblemHighlightType.LIKE_UNUSED_SYMBOL,
-        isOnTheFly,
-        OPTIMIZE_IMPORTS_FIX
-      ));
-    }
-
-    for (HaxeImportStatementWithWildcard haxeImportStatement : unusedImportsWithWildcard) {
+    final List<ProblemDescriptor> result = new ArrayList<>();
+    for (HaxeImportStatement haxeImportStatement : unusedImports) {
       result.add(manager.createProblemDescriptor(
         haxeImportStatement,
         TextRange.from(0, haxeImportStatement.getTextLength()),

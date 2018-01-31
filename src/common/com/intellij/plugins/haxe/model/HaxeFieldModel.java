@@ -19,7 +19,6 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,31 +26,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class HaxeFieldModel extends HaxeMemberModel {
-  private HaxeVarDeclaration element;
 
-  public HaxeFieldModel(HaxeVarDeclaration element) {
-    super(element, element, UsefulPsiTreeUtil.getChild(element, HaxeVarDeclarationPart.class));
-    this.element = element;
-  }
-
-  @Override
-  public PsiElement getPsi() {
-    return element;
-  }
-
-  public HaxeVarDeclaration getFieldPsi() {
-    return element;
-  }
-
-  @NotNull
-  public HaxeVarDeclarationPart getDeclarationPsi() {
-    return element.getVarDeclarationPart();
+  public HaxeFieldModel(@NotNull HaxePsiField element) {
+    super(element);
   }
 
   private HaxeClassModel _declaringClass = null;
+
   public HaxeClassModel getDeclaringClass() {
     if (_declaringClass == null) {
-      HaxeClass aClass = (HaxeClass)this.element.getContainingClass();
+      HaxeClass aClass = (HaxeClass)getPsiField().getContainingClass();
       _declaringClass = (aClass != null) ? aClass.getModel() : null;
     }
     return _declaringClass;
@@ -59,7 +43,8 @@ public class HaxeFieldModel extends HaxeMemberModel {
 
   @Nullable
   public HaxePropertyDeclaration getPropertyDeclarationPsi() {
-    return getDeclarationPsi().getPropertyDeclaration();
+    final PsiElement basePsi = getBasePsi();
+    return basePsi instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)basePsi).getPropertyDeclaration() : null;
   }
 
   @Nullable
@@ -67,6 +52,11 @@ public class HaxeFieldModel extends HaxeMemberModel {
     if (getPropertyDeclarationPsi() == null) return null;
     List<HaxePropertyAccessor> list = getPropertyDeclarationPsi().getPropertyAccessorList();
     return (list.size() >= index) ? list.get(index) : null;
+  }
+
+  @NotNull
+  public HaxePsiField getPsiField() {
+    return (HaxePsiField)getBasePsi();
   }
 
   @Nullable
@@ -124,9 +114,8 @@ public class HaxeFieldModel extends HaxeMemberModel {
     HaxeAccessorType getter = getGetterType();
     if (setter == HaxeAccessorType.NULL || setter == HaxeAccessorType.DEFAULT) {
       return true;
-    }
-    else if(setter == HaxeAccessorType.NEVER &&
-       (getter == HaxeAccessorType.DEFAULT || getter == HaxeAccessorType.NULL)) {
+    } else if (setter == HaxeAccessorType.NEVER &&
+               (getter == HaxeAccessorType.DEFAULT || getter == HaxeAccessorType.NULL)) {
       return true;
     }
     return false;
@@ -136,8 +125,10 @@ public class HaxeFieldModel extends HaxeMemberModel {
     return getInitializerPsi() != null;
   }
 
+  @Nullable
   public HaxeVarInit getInitializerPsi() {
-    return getDeclarationPsi().getVarInit();
+    final PsiElement basePsi = getBasePsi();
+    return basePsi instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)basePsi).getVarInit() : null;
   }
 
   public boolean hasTypeTag() {
@@ -145,6 +136,32 @@ public class HaxeFieldModel extends HaxeMemberModel {
   }
 
   public HaxeTypeTag getTypeTagPsi() {
-    return getDeclarationPsi().getTypeTag();
+    final PsiElement basePsi = getBasePsi();
+    if (basePsi instanceof HaxeAnonymousTypeField) {
+      return ((HaxeAnonymousTypeField)basePsi).getTypeTag();
+    }
+    if (basePsi instanceof HaxeVarDeclaration) {
+      return ((HaxeVarDeclaration)basePsi).getTypeTag();
+    }
+
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public HaxeExposableModel getExhibitor() {
+    return getDeclaringClass();
+  }
+
+  @Nullable
+  @Override
+  public FullyQualifiedInfo getQualifiedInfo() {
+    if (getDeclaringClass() != null && isStatic() && isPublic()) {
+      FullyQualifiedInfo containerInfo = getDeclaringClass().getQualifiedInfo();
+      if (containerInfo != null) {
+        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());
+      }
+    }
+    return null;
   }
 }

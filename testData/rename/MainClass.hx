@@ -1,5 +1,5 @@
-package foo;
-import foo.MainClass;
+package ;
+import MainClass;
 class MainClass {
   var main:Main<caret>Class;
 }

@@ -8,148 +8,136 @@ Haxe File
     CLASS_BODY
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a1')
-          VAR_INIT
-            HaxePsiToken:=('=')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a1')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          LITERAL_EXPRESSION
+            HaxePsiToken:LITINT('0')
+        HaxePsiToken:;(';')
+      VAR_DECLARATION
+        HaxePsiToken:var('var')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a2')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          PREFIX_EXPRESSION
+            HaxePsiToken:-('-')
             LITERAL_EXPRESSION
-              HaxePsiToken:LITINT('0')
+              HaxePsiToken:LITINT('134')
         HaxePsiToken:;(';')
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a2')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            PREFIX_EXPRESSION
-              HaxePsiToken:-('-')
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITINT('134')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a3')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          LITERAL_EXPRESSION
+            HaxePsiToken:LITHEX('0xFF00')
         HaxePsiToken:;(';')
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a3')
-          VAR_INIT
-            HaxePsiToken:=('=')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a4')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          LITERAL_EXPRESSION
+            HaxePsiToken:LITFLOAT('123.0')
+        HaxePsiToken:;(';')
+      VAR_DECLARATION
+        HaxePsiToken:var('var')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a5')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          LITERAL_EXPRESSION
+            HaxePsiToken:null('null')
+        HaxePsiToken:;(';')
+      VAR_DECLARATION
+        HaxePsiToken:var('var')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a6')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          LITERAL_EXPRESSION
+            HaxePsiToken:LITFLOAT('13e50')
+        HaxePsiToken:;(';')
+      VAR_DECLARATION
+        HaxePsiToken:var('var')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a7')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          PREFIX_EXPRESSION
+            HaxePsiToken:-('-')
             LITERAL_EXPRESSION
-              HaxePsiToken:LITHEX('0xFF00')
+              HaxePsiToken:LITFLOAT('1e-99')
         HaxePsiToken:;(';')
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a4')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
-              HaxePsiToken:LITFLOAT('123.0')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a8')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          STRING_LITERAL_EXPRESSION
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('hello')
+            HaxePsiToken:CLOSING_QUOTE('"')
         HaxePsiToken:;(';')
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a5')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
-              HaxePsiToken:null('null')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a9')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          STRING_LITERAL_EXPRESSION
+            HaxePsiToken:OPEN_QUOTE('"')
+            HaxePsiToken:REGULAR_STRING_PART('hello ')
+            HaxePsiToken:REGULAR_STRING_PART('\"')
+            HaxePsiToken:REGULAR_STRING_PART('world')
+            HaxePsiToken:REGULAR_STRING_PART('\"')
+            HaxePsiToken:REGULAR_STRING_PART(' !')
+            HaxePsiToken:CLOSING_QUOTE('"')
         HaxePsiToken:;(';')
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a6')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
-              HaxePsiToken:LITFLOAT('13e50')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a10')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          STRING_LITERAL_EXPRESSION
+            HaxePsiToken:OPEN_QUOTE(''')
+            HaxePsiToken:REGULAR_STRING_PART('hello "world" !')
+            HaxePsiToken:CLOSING_QUOTE(''')
         HaxePsiToken:;(';')
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a7')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            PREFIX_EXPRESSION
-              HaxePsiToken:-('-')
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITFLOAT('1e-99')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a11')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          LITERAL_EXPRESSION
+            HaxePsiToken:true('true')
         HaxePsiToken:;(';')
       VAR_DECLARATION
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a8')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            STRING_LITERAL_EXPRESSION
-              HaxePsiToken:OPEN_QUOTE('"')
-              HaxePsiToken:REGULAR_STRING_PART('hello')
-              HaxePsiToken:CLOSING_QUOTE('"')
-        HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a9')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            STRING_LITERAL_EXPRESSION
-              HaxePsiToken:OPEN_QUOTE('"')
-              HaxePsiToken:REGULAR_STRING_PART('hello ')
-              HaxePsiToken:REGULAR_STRING_PART('\"')
-              HaxePsiToken:REGULAR_STRING_PART('world')
-              HaxePsiToken:REGULAR_STRING_PART('\"')
-              HaxePsiToken:REGULAR_STRING_PART(' !')
-              HaxePsiToken:CLOSING_QUOTE('"')
-        HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a10')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            STRING_LITERAL_EXPRESSION
-              HaxePsiToken:OPEN_QUOTE(''')
-              HaxePsiToken:REGULAR_STRING_PART('hello "world" !')
-              HaxePsiToken:CLOSING_QUOTE(''')
-        HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a11')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
-              HaxePsiToken:true('true')
-        HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('a12')
-          VAR_INIT
-            HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
-              HaxePsiToken:false('false')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('a12')
+        VAR_INIT
+          HaxePsiToken:=('=')
+          LITERAL_EXPRESSION
+            HaxePsiToken:false('false')
         HaxePsiToken:;(';')
     HaxePsiToken:}('}')

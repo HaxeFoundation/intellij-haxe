@@ -359,8 +359,7 @@ public class HaxeHierarchyUtils {
   @Nullable
   public static HaxeClass resolveClassReference(@NotNull HaxeReference element) {
     HaxeClassResolveResult result = element.resolveHaxeClass();
-    HaxeClass pclass = result == null ? null : result.getHaxeClass();
-    return pclass;
+    return result.getHaxeClass();
   }
 
 

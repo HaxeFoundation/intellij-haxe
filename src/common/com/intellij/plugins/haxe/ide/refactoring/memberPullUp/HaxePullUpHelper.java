@@ -28,7 +28,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAttributes;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclarationPart;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -200,10 +199,6 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
   private void doMoveField(PsiSubstitutor substitutor, MemberInfo info) {
     PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(myProject);
     PsiField field = (PsiField)info.getMember();
-
-    if (field instanceof HaxeVarDeclarationPart) {
-      field = (HaxeVarDeclaration)field.getParent();
-    }
 
     field.normalizeDeclaration();
     RefactoringUtil.replaceMovedMemberTypeParameters(field, PsiUtil.typeParametersIterable(mySourceClass), substitutor, elementFactory);

@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +31,16 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class HaxeMethodModel extends HaxeMemberModel {
+public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
   private HaxeMethodPsiMixin haxeMethod;
 
   public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
-    super(haxeMethod, haxeMethod, haxeMethod);
+    super(haxeMethod);
     this.haxeMethod = haxeMethod;
   }
 
   @Override
-  public PsiElement getPsi() {
+  public PsiElement getBasePsi() {
     return haxeMethod;
   }
 
@@ -53,7 +54,6 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return children[children.length - 1];
   }
 
-  //private List<HaxeParameterModel> _parameters;
   public List<HaxeParameterModel> getParameters() {
     List<HaxeParameterModel> _parameters = new ArrayList<HaxeParameterModel>();
     HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
@@ -79,7 +79,8 @@ public class HaxeMethodModel extends HaxeMemberModel {
     return params;
   }
 
-  @Nullable public HaxeTypeTag getReturnTypeTagPsi() {
+  @Nullable
+  public HaxeTypeTag getReturnTypeTagPsi() {
     return UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeTypeTag.class);
   }
 
@@ -89,6 +90,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
   }
 
   private HaxeClassModel _declaringClass = null;
+
   public HaxeClassModel getDeclaringClass() {
     if (_declaringClass == null) {
       HaxeClass aClass = (HaxeClass)this.haxeMethod.getContainingClass();
@@ -143,7 +145,7 @@ public class HaxeMethodModel extends HaxeMemberModel {
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
-    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getPsi(), resolver);
+    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getBasePsi(), resolver);
   }
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
@@ -162,6 +164,27 @@ public class HaxeMethodModel extends HaxeMemberModel {
   @Override
   public String toString() {
     return "HaxeMethodModel(" + this.getName() + ", " + this.getParameters() + ")";
+  }
+
+  @Override
+  public List<HaxeModel> getExposedMembers() {
+    return null;
+  };
+
+  @Nullable
+  @Override
+  public HaxeExposableModel getExhibitor() {
+    return getDeclaringClass();
+  }
+
+  @Nullable
+  @Override
+  public FullyQualifiedInfo getQualifiedInfo() {
+    FullyQualifiedInfo qualifiedInfo = getDeclaringClass().getQualifiedInfo();
+    if (qualifiedInfo != null) {
+      qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.className, this.getName());
+    }
+    return qualifiedInfo;
   }
 }
 

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.psi.PsiField;
 
 /**
@@ -31,6 +33,6 @@ import com.intellij.psi.PsiField;
 //
 //                                    |||||||||||||
 //                                    vvvvvvvvvvvvv
-public interface HaxePsiField extends HaxeComponent, PsiField {
+public interface HaxePsiField extends HaxeComponent, PsiField, HaxeModelTarget {
 
 }

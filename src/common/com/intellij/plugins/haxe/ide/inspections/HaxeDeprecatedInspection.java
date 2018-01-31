@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,9 +87,10 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
 
       @Override
       protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {
+        PsiIdentifier identifier = referenceExpression.getIdentifier();
         result.add(manager.createProblemDescriptor(
-          referenceExpression,
-          TextRange.from(0, referenceExpression.getTextLength()),
+          identifier,
+          TextRange.from(0, identifier.getTextLength()),
           getDisplayName(),
           ProblemHighlightType.LIKE_DEPRECATED,
           isOnTheFly
@@ -97,7 +99,7 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
 
       @Override
       protected void handleDeprecatedVarDeclaration(HaxeVarDeclaration varDeclaration) {
-        PsiIdentifier nameIdentifier = varDeclaration.getVarDeclarationPart().getNameIdentifier();
+        PsiIdentifier nameIdentifier = varDeclaration.getNameIdentifier();
 
         result.add(manager.createProblemDescriptor(
           nameIdentifier,

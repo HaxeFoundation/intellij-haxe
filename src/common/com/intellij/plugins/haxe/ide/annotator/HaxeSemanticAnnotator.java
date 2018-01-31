@@ -58,17 +58,13 @@ public class HaxeSemanticAnnotator implements Annotator {
   private static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
     if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element, holder);
-    }
-    else if (element instanceof HaxeMethod) {
+    } else if (element instanceof HaxeMethod) {
       MethodChecker.check((HaxeMethod)element, holder);
-    }
-    else if (element instanceof HaxeClass) {
+    } else if (element instanceof HaxeClass) {
       ClassChecker.check((HaxeClass)element, holder);
-    }
-    else if (element instanceof HaxeType) {
+    } else if (element instanceof HaxeType) {
       TypeChecker.check((HaxeType)element, holder);
-    }
-    else if (element instanceof HaxeVarDeclaration) {
+    } else if (element instanceof HaxeVarDeclaration) {
       FieldChecker.check((HaxeVarDeclaration)element, holder);
     } else if (element instanceof HaxeStringLiteralExpression) {
       StringChecker.check((HaxeStringLiteralExpression)element, holder);
@@ -104,8 +100,7 @@ class TypeTagChecker {
           document.replaceElementText(initExpression, "", StripSpaces.BEFORE);
         }
       });
-    }
-    else if (requireConstant && type2.getType().getConstant() == null) {
+    } else if (requireConstant && type2.getType().getConstant() == null) {
       // TODO: Move to bundle
       holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
     }
@@ -114,7 +109,7 @@ class TypeTagChecker {
   @NotNull
   private static ResultHolder getTypeFromVarInit(HaxeVarInit init) {
     final ResultHolder abstractEnumFieldInitType = HaxeAbstractEnumUtil.getStaticMemberExpression(init.getExpression());
-    if(abstractEnumFieldInitType != null) {
+    if (abstractEnumFieldInitType != null) {
       return abstractEnumFieldInitType;
     }
     // fallback to simple init expression
@@ -129,11 +124,11 @@ class FieldChecker {
       checkProperty(field, holder);
     }
     if (field.hasInitializer() && field.hasTypeTag()) {
-      TypeTagChecker.check(field.getPsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
+      TypeTagChecker.check(field.getBasePsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
     }
 
     // Checking for variable redefinition.
-    HashSet<HaxeClassModel> classSet = new HashSet<HaxeClassModel>();
+    HashSet<HaxeClassModel> classSet = new HashSet<>();
     HaxeClassModel fieldDeclaringClass = field.getDeclaringClass();
     classSet.add(fieldDeclaringClass);
     while (fieldDeclaringClass != null) {
@@ -146,12 +141,13 @@ class FieldChecker {
       if (fieldDeclaringClass != null) {
         for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {
           if (parentField.getName().equals(field.getName())) {
+            String message;
             if (parentField.isStatic()) {
-              holder.createWarningAnnotation(field.getNameOrBasePsi(), "Field '" + field.getName()
-                + "' overrides a static field of a superclass.");
+              message = HaxeBundle.message("haxe.semantic.static.field.override", field.getName());
+              holder.createWeakWarningAnnotation(field.getNameOrBasePsi(), message);
             } else {
-              holder.createErrorAnnotation(field.getDeclarationPsi(), "Redefinition of variable '" + field.getName()
-                + "' in subclass is not allowed. Previously declared at '" + fieldDeclaringClass.getName() + "'.");
+              message = HaxeBundle.message("haxe.semantic.variable.redefinition", field.getName(), fieldDeclaringClass.getName());
+              holder.createErrorAnnotation(field.getBasePsi(), message);
             }
             break;
           }
@@ -233,18 +229,7 @@ class FieldChecker {
 
 class TypeChecker {
   static public void check(final HaxeType type, final AnnotationHolder holder) {
-    if (true) {
-      // HACK - Find the identifier manually, rather than just getting it from the reference.
-      // There is an error in the BNF that maps a number of reference types to HaxeReferenceExpression
-      // even though the types do not necessarily have one.  If an identifier doesn't exist,
-      // HaxeReferenceExpression.getIdentifier() will throw a NotNull exception; searching the
-      // children doesn't.
-      HaxeReferenceExpression expression = type.getReferenceExpression();
-      HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(expression, HaxeIdentifier.class);
-      check(identifier, holder);
-    } else {
-      check(type.getReferenceExpression().getIdentifier(), holder);
-    }
+    check(type.getReferenceExpression().getIdentifier(), holder);
   }
 
   static public void check(final PsiIdentifier identifier, final AnnotationHolder holder) {
@@ -284,8 +269,7 @@ class ClassChecker {
       if (repeatedMember != null) {
         repeatedMembers.add(member);
         repeatedMembers.add(repeatedMember);
-      }
-      else {
+      } else {
         map.put(memberName, member);
       }
     }
@@ -303,46 +287,41 @@ class ClassChecker {
   }
 
   private static void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
-    HaxeClassReferenceModel reference = clazz.getParentClassReference();
+    HaxeClassModel reference = clazz.getParentClass();
     if (reference != null) {
-      HaxeClassModel aClass1 = reference.getHaxeClass();
-      if (aClass1 != null) {
-        if(isAnonymousType(clazz)) {
-          if(!isAnonymousType(aClass1)) {
-            // @TODO: Move to bundle
-            holder.createErrorAnnotation(reference.getPsi(), "Not an anonymous type");
-          }
-        }
-        else if(clazz.isInterface()) {
-          if(!aClass1.isInterface()) {
-            // @TODO: Move to bundle
-            holder.createErrorAnnotation(reference.getPsi(), "Not an interface");
-          }
-        }
-        else if(!aClass1.isClass()) {
+      if (isAnonymousType(clazz)) {
+        if (!isAnonymousType(reference)) {
           // @TODO: Move to bundle
-          holder.createErrorAnnotation(reference.getPsi(), "Not a class");
+          holder.createErrorAnnotation(clazz.haxeClass.getHaxeExtendsList().get(0), "Not an anonymous type");
         }
+      } else if (clazz.isInterface()) {
+        if (!reference.isInterface()) {
+          // @TODO: Move to bundle
+          holder.createErrorAnnotation(reference.getPsi(), "Not an interface");
+        }
+      } else if (!reference.isClass()) {
+        // @TODO: Move to bundle
+        holder.createErrorAnnotation(reference.getPsi(), "Not a class");
+      }
 
-        final String qname1 = aClass1.haxeClass.getQualifiedName();
-        final String qname2 = clazz.haxeClass.getQualifiedName();
-        if(qname1.equals(qname2)) {
-          // @TODO: Move to bundle
-          holder.createErrorAnnotation(reference.getPsi(), "Cannot extend self");
-        }
+      final String qname1 = reference.haxeClass.getQualifiedName();
+      final String qname2 = clazz.haxeClass.getQualifiedName();
+      if (qname1.equals(qname2)) {
+        // @TODO: Move to bundle
+        holder.createErrorAnnotation(clazz.haxeClass.getHaxeExtendsList().get(0), "Cannot extend self");
       }
     }
   }
 
   static private boolean isAnonymousType(HaxeClassModel clazz) {
-    if(clazz != null && clazz.haxeClass != null) {
+    if (clazz != null && clazz.haxeClass != null) {
       HaxeClass haxeClass = clazz.haxeClass;
-      if(haxeClass instanceof HaxeAnonymousType) {
+      if (haxeClass instanceof HaxeAnonymousType) {
         return true;
       }
-      if(haxeClass instanceof HaxeTypedefDeclaration) {
+      if (haxeClass instanceof HaxeTypedefDeclaration) {
         HaxeTypeOrAnonymous anonOrType = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
-        if(anonOrType != null) {
+        if (anonOrType != null) {
           return anonOrType.getAnonymousType() != null;
         }
       }
@@ -388,8 +367,7 @@ class ClassChecker {
           if (psiMethod == null) {
             missingMethods.add(intMethod);
             missingMethodsNames.add(intMethod.getName());
-          }
-          else {
+          } else {
             final HaxeMethod method = (HaxeMethod)psiMethod;
             final HaxeMethodModel methodModel = method.getModel();
 
@@ -408,8 +386,7 @@ class ClassChecker {
 
                 holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
               }
-            }
-            else {
+            } else {
               MethodChecker.checkMethodsSignatureCompatibility(methodModel, intMethod, holder);
             }
           }
@@ -471,7 +448,7 @@ class MethodChecker {
       }
       if (param.getVarInitPsi() != null && param.getTypeTagPsi() != null) {
         TypeTagChecker.check(
-          param.getPsi(),
+          param.getBasePsi(),
           param.getTypeTagPsi(),
           param.getVarInitPsi(),
           true,
@@ -480,18 +457,16 @@ class MethodChecker {
       }
       if (param.isOptional()) {
         hasOptional = true;
-      }
-      else if (hasOptional) {
+      } else if (hasOptional) {
         // @TODO: Move to bundle
-        holder.createWarningAnnotation(param.getPsi(), "Non-optional argument after optional argument");
+        holder.createWarningAnnotation(param.getBasePsi(), "Non-optional argument after optional argument");
       }
 
       if (argumentNames.containsKey(paramName)) {
         // @TODO: Move to bundle
         holder.createWarningAnnotation(param.getNameOrBasePsi(), "Repeated argument name '" + paramName + "'");
         holder.createWarningAnnotation(argumentNames.get(paramName), "Repeated argument name '" + paramName + "'");
-      }
-      else {
+      } else {
         argumentNames.put(paramName, param.getNameOrBasePsi());
       }
     }
@@ -502,9 +477,9 @@ class MethodChecker {
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
-    final HaxeClassReferenceModel parentClass = (currentClass != null) ? currentClass.getParentClassReference() : null;
+    final HaxeClassModel parentClass = (currentClass != null) ? currentClass.getParentClass() : null;
     final HaxeMethodModel parentMethod =
-      ((parentClass != null) && parentClass.getHaxeClass() != null) ? parentClass.getHaxeClass().getMethod(currentMethod.getName()) : null;
+      ((parentClass != null) && parentClass != null) ? parentClass.getMethod(currentMethod.getName()) : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 
     boolean requiredOverride = false;
@@ -517,21 +492,18 @@ class MethodChecker {
           new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.STATIC)
         );
       }
-    }
-    else if (currentMethod.isStaticInit()) {
+    } else if (currentMethod.isStaticInit()) {
       requiredOverride = false;
       if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
           new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.STATIC)
         );
       }
-    }
-    else if (parentMethod != null) {
+    } else if (parentMethod != null) {
       if (parentMethod.isStatic()) {
         holder.createWarningAnnotation(currentMethod.getNameOrBasePsi(), "Method '" + currentMethod.getName()
-          + "' overrides a static method of a superclass");
-      }
-      else {
+                                                                         + "' overrides a static method of a superclass");
+      } else {
         requiredOverride = true;
 
         if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
@@ -566,14 +538,12 @@ class MethodChecker {
       holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
         new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.OVERRIDE)
       );
-    }
-    else if (requiredOverride) {
+    } else if (requiredOverride) {
       if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
           new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.OVERRIDE)
         );
-      }
-      else {
+      } else {
         // It is rightly overriden. Now check the signature.
         checkMethodsSignatureCompatibility(currentMethod, parentMethod, holder);
       }
@@ -594,7 +564,7 @@ class MethodChecker {
     if (currentParameters.size() > parentParameters.size()) {
       for (int n = minParameters; n < currentParameters.size(); n++) {
         final HaxeParameterModel currentParam = currentParameters.get(n);
-        holder.createErrorAnnotation(currentParam.getPsi(), "Unexpected argument").registerFix(
+        holder.createErrorAnnotation(currentParam.getBasePsi(), "Unexpected argument").registerFix(
           new HaxeFixer("Remove argument") {
             @Override
             public void run() {
@@ -602,8 +572,7 @@ class MethodChecker {
             }
           });
       }
-    }
-    else if (currentParameters.size() != parentParameters.size()) {
+    } else if (currentParameters.size() != parentParameters.size()) {
       holder.createErrorAnnotation(
         currentMethod.getNameOrBasePsi(),
         "Not matching arity expected " +
@@ -618,7 +587,7 @@ class MethodChecker {
       final HaxeParameterModel parentParam = parentParameters.get(n);
       if (!HaxeTypeCompatible.canAssignToFrom(currentParam.getType(), parentParam.getType())) {
         holder.createErrorAnnotation(
-          currentParam.getPsi(),
+          currentParam.getBasePsi(),
           "Type " + currentParam.getType() + " is not compatible with " + parentParam.getType()).registerFix
           (
             new HaxeFixer("Change type") {
@@ -637,8 +606,7 @@ class MethodChecker {
         if (parentMethod.getDeclaringClass().isInterface()) {
           errorMessage = removeOptional ? "haxe.semantic.implemented.method.parameter.required"
                                         : "haxe.semantic.implemented.method.parameter.optional";
-        }
-        else {
+        } else {
           errorMessage = removeOptional ? "haxe.semantic.overwritten.method.parameter.required"
                                         : "haxe.semantic.overwritten.method.parameter.optional";
         }
@@ -646,7 +614,7 @@ class MethodChecker {
         errorMessage = HaxeBundle.message(errorMessage, parentParam.getPresentableText(),
                                           parentMethod.getDeclaringClass().getName() + "." + parentMethod.getName());
 
-        final Annotation annotation = holder.createErrorAnnotation(currentParam.getPsi(), errorMessage);
+        final Annotation annotation = holder.createErrorAnnotation(currentParam.getBasePsi(), errorMessage);
         final String localFixName = HaxeBundle.message(removeOptional ? "haxe.semantic.method.parameter.optional.remove"
                                                                       : "haxe.semantic.method.parameter.optional.add");
 
@@ -656,9 +624,8 @@ class MethodChecker {
             public void run() {
               if (removeOptional) {
                 currentParam.getOptionalPsi().delete();
-              }
-              else {
-                PsiElement element = currentParam.getPsi();
+              } else {
+                PsiElement element = currentParam.getBasePsi();
                 document.addTextBeforeElement(element.getFirstChild(), "?");
               }
             }
@@ -707,6 +674,7 @@ class PackageChecker {
     final HaxeReferenceExpression expression = element.getReferenceExpression();
     String packageName = (expression != null) ? expression.getText() : "";
     PsiDirectory fileDirectory = element.getContainingFile().getParent();
+    if (fileDirectory == null) return;
     List<PsiFileSystemItem> fileRange = PsiFileUtils.getRange(PsiFileUtils.findRoot(fileDirectory), fileDirectory);
     fileRange.remove(0);
     String actualPath = PsiFileUtils.getListPath(fileRange);
@@ -735,8 +703,7 @@ class PackageChecker {
             if (expression != null) {
               TextRange range = expression.getTextRange();
               document.replaceString(range.getStartOffset(), range.getEndOffset(), actualPackage);
-            }
-            else {
+            } else {
               int offset =
                 element.getNode().findChildByType(HaxeTokenTypes.OSEMI).getTextRange().getStartOffset();
               document.replaceString(offset, offset, actualPackage);
@@ -758,8 +725,7 @@ class MethodBodyChecker {
 class StringChecker {
   public static void check(HaxeStringLiteralExpression psi, AnnotationHolder holder) {
     if (isSingleQuotesRequired(psi)) {
-      holder
-        .createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
+      holder.createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
     }
   }
 

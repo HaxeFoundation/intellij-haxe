@@ -3,6 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +19,22 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.google.common.collect.Lists;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -37,6 +42,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class HaxeFile extends PsiFileBase
   implements HaxeModifierListOwner, PsiClassOwner {
@@ -123,5 +132,14 @@ public class HaxeFile extends PsiFileBase
     else {
       addBefore(packageStatementFromPath, getFirstChild());
     }
+  }
+
+  public List<HaxeImportStatement> getImportStatements() {
+    HaxeImportStatement[] result = PsiTreeUtil.getChildrenOfType(this, HaxeImportStatement.class);
+    return result == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList(result));
+  }
+
+  public HaxeFileModel getModel() {
+    return HaxeFileModel.fromElement(this);
   }
 }

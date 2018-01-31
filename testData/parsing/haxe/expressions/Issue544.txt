@@ -2,16 +2,15 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  IMPORT_STATEMENT_REGULAR
+  IMPORT_STATEMENT
     HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
         IDENTIFIER
           HaxePsiToken:ID('haxe')
       HaxePsiToken:.('.')
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          HaxePsiToken:ID('Timer')
+      IDENTIFIER
+        HaxePsiToken:ID('Timer')
     HaxePsiToken:;(';')
   PsiComment(MSL_COMMENT)('// This tests http:github.com/haxefoundation/intellij-haxe/issues/544')
   PsiComment(MSL_COMMENT)('// which was the inability to parse a function call immediately after an anonymous')
@@ -28,7 +27,9 @@ Haxe File
           ACCESS
             HaxePsiToken:public('public')
         HaxePsiToken:function('function')
-        HaxePsiToken:new('new')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:new('new')
         HaxePsiToken:(('(')
         PARAMETER_LIST
           <empty list>
@@ -38,9 +39,9 @@ Haxe File
           PsiComment(MSL_COMMENT)('// Error markers used to appear here ------------------------------------------------+')
           PsiComment(MSL_COMMENT)('//                          and here ---------------------------------------------+  |')
           PsiComment(MSL_COMMENT)('//                                                                                v  v')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('a')
@@ -52,9 +53,8 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('Timer')
                     HaxePsiToken:.('.')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('delay')
+                    IDENTIFIER
+                      HaxePsiToken:ID('delay')
                   HaxePsiToken:(('(')
                   EXPRESSION_LIST
                     CALL_EXPRESSION
@@ -112,9 +112,9 @@ Haxe File
                   HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// This should parse cleanly and not be in a dummy block.')
-          LOCAL_VAR_DECLARATION
+          LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION_PART
+            LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('v')

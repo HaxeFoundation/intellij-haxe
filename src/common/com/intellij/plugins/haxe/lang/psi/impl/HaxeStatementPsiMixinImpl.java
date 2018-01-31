@@ -28,5 +28,4 @@ public class HaxeStatementPsiMixinImpl extends HaxePsiCompositeElementImpl imple
   public HaxeStatementPsiMixinImpl(ASTNode node) {
     super(node);
   }
-
 }

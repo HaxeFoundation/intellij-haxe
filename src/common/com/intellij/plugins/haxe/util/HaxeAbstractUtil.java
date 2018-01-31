@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +35,12 @@ public class HaxeAbstractUtil {
 
   @Nullable
   public static HaxeMacroClass getMetaByName(@Nullable PsiClass clazz, @Nullable String metaName) {
-    if(clazz != null && metaName != null && clazz instanceof HaxeAbstractClassDeclaration) {
+    if (clazz != null && metaName != null && clazz instanceof HaxeAbstractClassDeclaration) {
       final HaxeMacroClassList metaList = ((HaxeAbstractClassDeclaration)clazz).getMacroClassList();
       final List<HaxeMacroClass> metas = metaList != null ? metaList.getMacroClassList() : null;
-      if(metas != null) {
+      if (metas != null) {
         for (HaxeMacroClass meta : metas) {
-          if (meta.getText().equals(metaName)|| meta.getText().contains(metaName + "(")) {
+          if (meta.getText().equals(metaName) || meta.getText().contains(metaName + "(")) {
             return meta;
           }
         }
@@ -51,15 +52,16 @@ public class HaxeAbstractUtil {
   @Nullable
   public static HaxeClass getAbstractUnderlyingClass(@Nullable PsiClass clazz) {
     if (clazz != null && clazz instanceof HaxeAbstractClassDeclaration) {
-      final HaxeType underlyingType = ((HaxeAbstractClassDeclaration)clazz).getTypeOrAnonymousList().get(0).getType();
+      HaxeUnderlyingType underlyingTypePsi = ((HaxeAbstractClassDeclaration)clazz).getUnderlyingType();
+      if (underlyingTypePsi == null) return null;
+      final HaxeType underlyingType = underlyingTypePsi.getTypeOrAnonymousList().get(0).getType();
       if (underlyingType != null) {
         final HaxeClassResolveResult result = underlyingType.getReferenceExpression().resolveHaxeClass();
-        if (result != null) {
+        if (result != HaxeClassResolveResult.EMPTY) {
           return result.getHaxeClass();
         }
       }
     }
     return null;
   }
-
 }

@@ -1,5 +1,5 @@
 Haxe File
-  IMPORT_STATEMENT_REGULAR
+  IMPORT_STATEMENT
     HaxePsiToken:import('import')
     REFERENCE_EXPRESSION
       REFERENCE_EXPRESSION
@@ -7,11 +7,9 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('com')
         HaxePsiToken:.('.')
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('fedor')
-      HaxePsiToken:.('.')
-      REFERENCE_EXPRESSION
         IDENTIFIER
-          HaxePsiToken:ID('test')
+          HaxePsiToken:ID('fedor')
+      HaxePsiToken:.('.')
+      IDENTIFIER
+        HaxePsiToken:ID('test')
     HaxePsiToken:;(';')

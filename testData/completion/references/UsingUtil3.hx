@@ -1,4 +1,4 @@
-package completion.references;
+package ;
 using com.utils.Tools;
 class UsingUtil3 {
   function foo(){

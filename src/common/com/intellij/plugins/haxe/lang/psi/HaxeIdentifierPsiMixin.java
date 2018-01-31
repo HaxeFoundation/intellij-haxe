@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,5 +24,5 @@ import com.intellij.psi.PsiIdentifier;
  * Created by ebishton on 9/27/14.
  */
 public interface HaxeIdentifierPsiMixin extends HaxePsiCompositeElement, PsiIdentifier {
-
+  public boolean isMatchAny();
 }

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,14 +56,14 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       for (IElementType elementType : HaxeTokenTypeSets.KEYWORDS.getTypes()) {
         add(elementType.toString());
       }
-      add(HaxeTokenTypes.ONEW.toString());
     }
   };
 
   public HaxeKeywordCompletionContributor() {
     final PsiElementPattern.Capture<PsiElement> idInExpression =
       psiElement().withSuperParent(1, HaxeIdentifier.class).withSuperParent(2, HaxeReference.class);
-    final PsiElementPattern.Capture<PsiElement> inComplexExpression = psiElement().withSuperParent(3, HaxeReference.class);
+    final PsiElementPattern.Capture<PsiElement> inComplexExpression =
+      psiElement().withSuperParent(2, psiElement().withFirstChild(StandardPatterns.instanceOf(HaxeReference.class)));
 
     final PsiElementPattern.Capture<PsiElement> inheritPattern =
       psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).withSuperParent(1, PsiErrorElement.class).
@@ -148,10 +149,10 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
   @NotNull
   private static Collection<? extends String> suggestBySibling(@Nullable PsiElement sibling) {
     if (HaxeIfStatement.class.isInstance(sibling)) {
-      return Arrays.asList(HaxeTokenTypes.KELSE.toString());
+      return Collections.singletonList(HaxeTokenTypes.KELSE.toString());
     }
     else if (HaxeTryStatement.class.isInstance(sibling) || HaxeCatchStatement.class.isInstance(sibling)) {
-      return Arrays.asList(HaxeTokenTypes.KCATCH.toString());
+      return Collections.singletonList(HaxeTokenTypes.KCATCH.toString());
     }
 
     return Collections.emptyList();

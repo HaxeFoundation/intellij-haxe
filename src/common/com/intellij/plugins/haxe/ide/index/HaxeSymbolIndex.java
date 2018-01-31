@@ -168,7 +168,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
     new Class[]{HaxeClassBody.class, HaxeEnumBody.class, HaxeExternClassDeclarationBody.class, HaxeAnonymousTypeBody.class};
   private static final Class[] MEMBER_TYPES =
     new Class[]{HaxeEnumValueDeclaration.class, HaxeExternFunctionDeclaration.class, HaxeFunctionDeclarationWithAttributes.class,
-      HaxeVarDeclarationPart.class};
+      HaxeVarDeclaration.class};
 
   @NotNull
   private static List<HaxeNamedComponent> getNamedComponents(@Nullable final HaxeClass cls) {

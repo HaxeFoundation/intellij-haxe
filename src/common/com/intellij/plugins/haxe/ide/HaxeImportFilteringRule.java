@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +19,17 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementRegular;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithInSupport;
-import com.intellij.plugins.haxe.lang.psi.HaxeImportStatementWithWildcard;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.usages.Usage;
+import com.intellij.usages.UsageTarget;
 import com.intellij.usages.rules.ImportFilteringRule;
 import com.intellij.usages.rules.PsiElementUsage;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeImportFilteringRule extends ImportFilteringRule {
-
-  private static final Class[] IMPORT_STATEMENTS = new Class[]{
-    HaxeImportStatementRegular.class,
-    HaxeImportStatementWithInSupport.class,
-    HaxeImportStatementWithWildcard.class
-  };
-
   @Override
   public boolean isVisible(@NotNull Usage usage) {
     if (usage instanceof PsiElementUsage) {
@@ -44,7 +37,7 @@ public class HaxeImportFilteringRule extends ImportFilteringRule {
       final PsiFile containingFile = psiElement.getContainingFile();
 
       if (containingFile != null && containingFile.getFileType() == HaxeFileType.HAXE_FILE_TYPE) {
-        return PsiTreeUtil.getParentOfType(psiElement, IMPORT_STATEMENTS) == null;
+        return PsiTreeUtil.getParentOfType(psiElement, HaxeImportStatement.class) == null;
       }
     }
     return true;

@@ -35,8 +35,8 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
  * Created by ebishton on 3/23/17.
  */
 public class HaxeConditionalCompilationLexerSupport {
-  static final String classname = new Object(){}.getClass().getEnclosingClass().getName();
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + classname);
+  static final String CLASS_NAME = new Object(){}.getClass().getEnclosingClass().getName();
+  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger('#' + CLASS_NAME);
   static {      // Take this out when finished debugging.
     LOG.setLevel(org.apache.log4j.Level.DEBUG);
   }

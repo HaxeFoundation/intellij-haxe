@@ -53,16 +53,15 @@ Haxe File
             HaxePsiToken:CLOSING_QUOTE('"')
           HaxePsiToken:)(')')
         HaxePsiToken:var('var')
-        VAR_DECLARATION_PART
-          COMPONENT_NAME
-            IDENTIFIER
-              HaxePsiToken:ID('b')
-          TYPE_TAG
-            HaxePsiToken::(':')
-            TYPE_OR_ANONYMOUS
-              TYPE
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('Int')
+        COMPONENT_NAME
+          IDENTIFIER
+            HaxePsiToken:ID('b')
+        TYPE_TAG
+          HaxePsiToken::(':')
+          TYPE_OR_ANONYMOUS
+            TYPE
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('Int')
         HaxePsiToken:;(';')
     HaxePsiToken:}('}')

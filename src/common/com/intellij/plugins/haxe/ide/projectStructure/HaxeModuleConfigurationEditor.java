@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +32,7 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor {
-  private final HaxeConfigurationEditor haxeConfigurationEditor;
+  private HaxeConfigurationEditor haxeConfigurationEditor;
 
   public HaxeModuleConfigurationEditor(ModuleConfigurationState state) {
     haxeConfigurationEditor = new HaxeConfigurationEditor(state.getRootModel().getModule(), state.getRootModel().getModuleExtension(
@@ -59,22 +60,28 @@ public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor 
 
   @Override
   public JComponent createComponent() {
-    return haxeConfigurationEditor.getMainPanel();
+    return haxeConfigurationEditor == null ? null : haxeConfigurationEditor.getMainPanel();
   }
 
   @Override
   public boolean isModified() {
-    return haxeConfigurationEditor.isModified();
+    return haxeConfigurationEditor != null && haxeConfigurationEditor.isModified();
   }
 
   @Override
   public void apply() throws ConfigurationException {
-    haxeConfigurationEditor.apply();
+    // FIXME: This is hacky workaround - need to investigate the issue https://github.com/HaxeFoundation/intellij-haxe/issues/728
+    if (haxeConfigurationEditor != null) {
+      haxeConfigurationEditor.apply();
+      haxeConfigurationEditor = null;
+    }
   }
 
   @Override
   public void reset() {
-    haxeConfigurationEditor.reset();
+    if (haxeConfigurationEditor != null) {
+      haxeConfigurationEditor.reset();
+    }
   }
 
   @Override

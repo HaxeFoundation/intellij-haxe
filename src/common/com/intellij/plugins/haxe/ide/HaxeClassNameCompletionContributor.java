@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -29,6 +31,9 @@ import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.model.HaxeExposableModel;
+import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -43,6 +48,9 @@ import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.Icon;
+import java.util.List;
+
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 
 /**
@@ -52,26 +60,27 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   public HaxeClassNameCompletionContributor() {
     final PsiElementPattern.Capture<PsiElement> idInExpression =
       psiElement().withSuperParent(1, HaxeIdentifier.class).withSuperParent(2, HaxeReference.class);
-    final PsiElementPattern.Capture<PsiElement> inComplexExpression = psiElement().withSuperParent(3, HaxeReference.class);
+    final PsiElementPattern.Capture<PsiElement> inComplexExpression =
+      psiElement().withSuperParent(2, psiElement().withFirstChild(StandardPatterns.instanceOf(HaxeReference.class)));
     final PsiElementPattern.Capture<PsiElement> isSimpleIdentifier =
       psiElement().andOr(StandardPatterns.instanceOf(HaxeType.class), idInExpression.andNot(inComplexExpression));
 
     final PsiElementPattern.Capture<PsiElement> matchUsingAndImport = psiElement().andOr(
       StandardPatterns.instanceOf(HaxeUsingStatement.class),
-      StandardPatterns.instanceOf(HaxeImportStatementRegular.class),
-      StandardPatterns.instanceOf(HaxeImportStatementWithWildcard.class),
-      StandardPatterns.instanceOf(HaxeImportStatementWithInSupport.class));
+      StandardPatterns.instanceOf(HaxeImportStatement.class));
 
     final PsiElementPattern.Capture<PsiElement> inImportOrUsing = psiElement().withSuperParent(3, matchUsingAndImport);
 
     extend(CompletionType.BASIC,
-           isSimpleIdentifier.and(inImportOrUsing),
+           psiElement().and(inImportOrUsing),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-               addVariantsFromIndex(result, parameters.getOriginalFile(), null, FULL_PATH_INSERT_HANDLER);
+               HaxeReference reference = PsiTreeUtil.getParentOfType(parameters.getPosition(), HaxeReference.class);
+               String packagePrefix = reference != null && reference.isQualified() ? reference.getQualifier().getText() : null;
+               addVariantsFromIndex(result, parameters.getOriginalFile(), packagePrefix, FULL_PATH_INSERT_HANDLER);
              }
            });
 
@@ -114,27 +123,64 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
 
     if (insertHandler != null) {
       targetFile.acceptChildren(new HaxeRecursiveVisitor() {
-
         @Override
-        public void visitImportStatementWithInSupport(@NotNull HaxeImportStatementWithInSupport importStatementWithInSupport) {
-          String name = importStatementWithInSupport.getIdentifier().getText();
-          String packageName = importStatementWithInSupport.getReferenceExpression().getText();
-          String qName = HaxeResolveUtil.joinQName(packageName, name);
+        public void visitImportStatement(@NotNull HaxeImportStatement importStatement) {
+          final List<HaxeModel> exposedMembers = importStatement.getModel().getExposedMembers();
+          final String alias = importStatement.getAlias() != null ? importStatement.getAlias().getText() : null;
 
-          resultSet.addElement(LookupElementBuilder.create(qName, name)
-                                 .withTailText(" " + packageName, true)
-                                 .withInsertHandler(insertHandler));
+          for (HaxeModel member : exposedMembers) {
+            LookupElementBuilder lookupElement = createLookupElement(member, alias);
+            if (lookupElement != null) resultSet.addElement(lookupElement);
+            if (alias != null) return;
+          }
         }
       });
     }
-
   }
 
-  private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER = new InsertHandler<LookupElement>() {
-    public void handleInsert(final InsertionContext context, final LookupElement item) {
-      addImportForLookupElement(context, item, context.getTailOffset() - 1);
+  @Nullable
+  private static LookupElementBuilder createLookupElement(HaxeModel member, @Nullable String alias) {
+    PsiElement basePsi = member.getBasePsi();
+    HaxeNamedComponent namedComponent = basePsi instanceof HaxeNamedComponent
+                                        ? (HaxeNamedComponent)basePsi
+                                        : PsiTreeUtil.findChildOfType(basePsi, HaxeNamedComponent.class);
+
+    if (namedComponent == null) return null;
+
+    final HaxeExposableModel parent = member.getExhibitor();
+    String tailText = null;
+    if (parent != null) {
+      final FullyQualifiedInfo qualifiedInfo = parent.getQualifiedInfo();
+      tailText = qualifiedInfo.getPresentableText();
     }
-  };
+
+    ItemPresentation presentation = namedComponent.getPresentation();
+    String presentableText = presentation != null ? presentation.getPresentableText() : null;
+    String name = alias != null ? alias : member.getName();
+    Icon icon = presentation != null ? presentation.getIcon(false) : null;
+
+    LookupElementBuilder lookupElement = LookupElementBuilder.create(name);
+    if (presentableText != null) {
+      if (alias != null && presentableText.startsWith(member.getName())) {
+        presentableText = presentableText.replace(member.getName(), alias);
+      }
+      lookupElement = lookupElement.withPresentableText(presentableText);
+    }
+    if (icon != null) lookupElement = lookupElement.withIcon(icon);
+    if (tailText != null) {
+      if (alias != null) {
+        // TODO: Move to bundle
+        tailText = "alias for " + tailText + "." + member.getName();
+      }
+      tailText = " " + tailText;
+      lookupElement = lookupElement.withTailText(tailText, true);
+    }
+
+    return lookupElement;
+  }
+
+  private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER =
+    (context, item) -> addImportForLookupElement(context, item, context.getTailOffset() - 1);
 
   private static void addImportForLookupElement(final InsertionContext context, final LookupElement item, final int tailOffset) {
     final PsiReference ref = context.getFile().findReferenceAt(tailOffset);
@@ -144,19 +190,18 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     }
     new WriteCommandAction(context.getProject(), context.getFile()) {
       @Override
-      protected void run(Result result) throws Throwable {
+      protected void run(@NotNull Result result) throws Throwable {
         final String importPath = (String)item.getObject();
         HaxeAddImportHelper.addImport(importPath, context.getFile());
       }
     }.execute();
   }
 
-  /** Full path insert handler **/
-  private static final InsertHandler<LookupElement> FULL_PATH_INSERT_HANDLER = new InsertHandler<LookupElement>() {
-    public void handleInsert(final InsertionContext context, final LookupElement item) {
-      replaceElementToFullPath(context, item, context.getTailOffset() - 1);
-    }
-  };
+  /**
+   * Full path insert handler
+   **/
+  private static final InsertHandler<LookupElement> FULL_PATH_INSERT_HANDLER =
+    (context, item) -> replaceElementToFullPath(context, item, context.getTailOffset() - 1);
 
   private static void replaceElementToFullPath(final InsertionContext context, final LookupElement item, final int tailOffset) {
     new WriteCommandAction(context.getProject(), context.getFile()) {
@@ -164,10 +209,10 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       protected void run(@NotNull Result result) throws Throwable {
         final String importPath = (String)item.getObject();
         final PsiReference currentReference = context.getFile().findReferenceAt(context.getTailOffset() - 1);
-        if(currentReference != null && currentReference.getElement() != null) {
+        if (currentReference != null && currentReference.getElement() != null) {
           final PsiElement currentElement = currentReference.getElement();
           final HaxeReference fullPathReference = HaxeElementGenerator.createReferenceFromText(context.getProject(), importPath);
-          if(fullPathReference != null) {
+          if (fullPathReference != null) {
             currentElement.replace(fullPathReference);
           }
         }

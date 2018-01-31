@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +105,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     final PsiElement stopper = isBlock ? lastParent : null;
     final List<PsiElement> result = new ArrayList<PsiElement>();
     addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeVarDeclaration.class));
-    addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclaration.class, stopper));
+    addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclarationList.class, stopper));
 
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFunctionDeclarationWithAttributes.class));
     addDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclaration.class, stopper));
@@ -137,22 +138,20 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   }
 
   private static void addLocalVarDeclarations(@NotNull List<PsiElement> result,
-                                              @Nullable HaxeLocalVarDeclaration[] items) {
+                                              @Nullable HaxeLocalVarDeclarationList[] items) {
     if (items == null) {
       return;
     }
-    for (HaxeLocalVarDeclaration varDeclaration : items) {
-      result.addAll(varDeclaration.getLocalVarDeclarationPartList());
-    }
+
+    Arrays.stream(items).forEach(list -> result.addAll(list.getLocalVarDeclarationList()));
   }
 
   private static void addVarDeclarations(@NotNull List<PsiElement> result, @Nullable HaxeVarDeclaration[] items) {
     if (items == null) {
       return;
     }
-    for (HaxeVarDeclaration varDeclaration : items) {
-      result.add(varDeclaration.getVarDeclarationPart());
-    }
+
+    result.addAll(Arrays.asList(items));
   }
 
   private static void addDeclarations(@NotNull List<PsiElement> result, @Nullable PsiElement[] items) {
