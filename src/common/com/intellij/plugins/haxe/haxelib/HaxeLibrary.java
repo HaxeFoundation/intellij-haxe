@@ -63,7 +63,7 @@ public class HaxeLibrary {
     }
 
     HaxelibSemVer semVer = HaxelibSemVer.create(myMetadata.getVersion());
-    if (HaxelibSemVer.ZERO_VERSION == semVer) {
+    if (HaxelibSemVer.ZERO_VERSION == semVer && pathInfo != null) {
       semVer = pathInfo.getVersion();
     }
     mySemVer = semVer;
