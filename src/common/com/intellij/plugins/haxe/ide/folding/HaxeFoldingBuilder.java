@@ -36,6 +36,9 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
 
 public class HaxeFoldingBuilder implements FoldingBuilder {
+
+  public static final String PLACEHOLDER_TEXT = "...";
+
   @NotNull
   @Override
   public FoldingDescriptor[] buildFoldRegions(@NotNull ASTNode node, @NotNull Document document) {
@@ -89,14 +92,18 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
   private static FoldingDescriptor buildBlockFolding(@NotNull ASTNode node, ASTNode openBrace, ASTNode closeBrace) {
+    TextRange textRange;
     if (openBrace != null && closeBrace != null && openBrace.getElementType() == PLCURLY && closeBrace.getElementType() == PRCURLY) {
-      int startOffset = openBrace.getTextRange().getEndOffset();
-      int endOffset = closeBrace.getStartOffset();
-      if (startOffset < endOffset) {
-        return new FoldingDescriptor(node, new TextRange(startOffset, endOffset));
-      }
+      textRange = new TextRange(openBrace.getTextRange().getEndOffset(), closeBrace.getStartOffset());
+    } else {
+      textRange = node.getTextRange();
     }
-    return new FoldingDescriptor(node, node.getTextRange());
+
+    if (textRange.getLength() > PLACEHOLDER_TEXT.length()) {
+      return new FoldingDescriptor(node, textRange);
+    }
+
+    return null;
   }
 
   private static FoldingDescriptor buildImportsFolding(ASTNode node) {
@@ -147,7 +154,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   @Nullable
   @Override
   public String getPlaceholderText(@NotNull ASTNode node) {
-    return "...";
+    return PLACEHOLDER_TEXT;
   }
 
   @Override
