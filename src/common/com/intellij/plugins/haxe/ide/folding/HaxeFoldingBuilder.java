@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,37 +23,131 @@ import com.intellij.lang.folding.FoldingBuilder;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.BODY_TYPES;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import static com.intellij.psi.TokenType.WHITE_SPACE;
+
 public class HaxeFoldingBuilder implements FoldingBuilder {
   @NotNull
   @Override
   public FoldingDescriptor[] buildFoldRegions(@NotNull ASTNode node, @NotNull Document document) {
-    List<FoldingDescriptor> list = new ArrayList<FoldingDescriptor>();
+    List<FoldingDescriptor> list = new ArrayList<>();
     buildFolding(node, list);
     FoldingDescriptor[] descriptors = new FoldingDescriptor[list.size()];
     return list.toArray(descriptors);
   }
 
   private static void buildFolding(ASTNode node, List<FoldingDescriptor> list) {
-    if (node.getElementType() == HaxeTokenTypes.BLOCK_STATEMENT) {
-      final TextRange range = node.getTextRange();
-      list.add(new FoldingDescriptor(node, range));
+    final IElementType elementType = node.getElementType();
+
+    FoldingDescriptor descriptor = null;
+    if (isImportOrUsingStatement(elementType) && isFirstImportStatement(node)) {
+      descriptor = buildImportsFolding(node);
+    } else if (isCodeBlock(elementType)) {
+      descriptor = buildCodeBlockFolding(node);
+    } else if (isBodyBlock(elementType)) {
+      descriptor = buildBodyBlockFolding(node);
     }
+
+    if (descriptor != null) {
+      list.add(descriptor);
+    }
+
     for (ASTNode child : node.getChildren(null)) {
       buildFolding(child, list);
     }
   }
 
+  private static boolean isCodeBlock(IElementType elementType) {
+    return elementType == BLOCK_STATEMENT;
+  }
+
+  private static boolean isBodyBlock(IElementType elementType) {
+    return BODY_TYPES.contains(elementType);
+  }
+
+  private static FoldingDescriptor buildCodeBlockFolding(@NotNull ASTNode node) {
+    final ASTNode openBrace = node.getFirstChildNode();
+    final ASTNode closeBrace = node.getLastChildNode();
+
+    return buildBlockFolding(node, openBrace, closeBrace);
+  }
+
+  private static FoldingDescriptor buildBodyBlockFolding(@NotNull ASTNode node) {
+    final ASTNode openBrace = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(node);
+    final ASTNode closeBrace = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(node);
+
+    return buildBlockFolding(node, openBrace, closeBrace);
+  }
+
+  private static FoldingDescriptor buildBlockFolding(@NotNull ASTNode node, ASTNode openBrace, ASTNode closeBrace) {
+    if (openBrace != null && closeBrace != null && openBrace.getElementType() == PLCURLY && closeBrace.getElementType() == PRCURLY) {
+      int startOffset = openBrace.getTextRange().getEndOffset();
+      int endOffset = closeBrace.getStartOffset();
+      if (startOffset < endOffset) {
+        return new FoldingDescriptor(node, new TextRange(startOffset, endOffset));
+      }
+    }
+    return new FoldingDescriptor(node, node.getTextRange());
+  }
+
+  private static FoldingDescriptor buildImportsFolding(ASTNode node) {
+    final ASTNode lastImportNode = findLastImportNode(node);
+    if (lastImportNode != node) {
+      return new FoldingDescriptor(node, buildImportsFoldingTextRange(node, lastImportNode));
+    }
+    return null;
+  }
+
+  private static TextRange buildImportsFoldingTextRange(ASTNode firstNode, ASTNode lastNode) {
+    ASTNode nodeStartFrom = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(firstNode.getFirstChildNode());
+    if (nodeStartFrom == null) {
+      nodeStartFrom = firstNode;
+    }
+    return new TextRange(nodeStartFrom.getStartOffset(), lastNode.getTextRange().getEndOffset());
+  }
+
+  private static boolean isFirstImportStatement(ASTNode node) {
+    do {
+      node = node.getTreePrev();
+    }
+    while (node != null && node.getElementType() == WHITE_SPACE);
+    return node == null || !isImportOrUsingStatement(node.getElementType());
+  }
+
+  private static ASTNode findLastImportNode(@NotNull ASTNode node) {
+    ASTNode lastImportNode = node;
+    ASTNode nextNode = lastImportNode.getTreeNext();
+    while (nextNode != null && isApplicableForImportsRegion(nextNode.getElementType())) {
+      lastImportNode = nextNode;
+      nextNode = nextNode.getTreeNext();
+    }
+    if (lastImportNode.getElementType() == WHITE_SPACE) {
+      lastImportNode = lastImportNode.getTreePrev();
+    }
+    return lastImportNode;
+  }
+
+  private static boolean isImportOrUsingStatement(IElementType type) {
+    return type == IMPORT_STATEMENT || type == USING_STATEMENT;
+  }
+
+  private static boolean isApplicableForImportsRegion(IElementType type) {
+    return isImportOrUsingStatement(type) || type == WHITE_SPACE;
+  }
+
   @Nullable
   @Override
   public String getPlaceholderText(@NotNull ASTNode node) {
-    return "{...}";
+    return "...";
   }
 
   @Override

@@ -259,5 +259,13 @@ public interface HaxeTokenTypeSets {
     OGREATER_OR_EQUAL,
     OGREATER
   );
+
+  TokenSet BODY_TYPES = TokenSet.create(
+    CLASS_BODY,
+    ABSTRACT_BODY,
+    INTERFACE_BODY,
+    ENUM_BODY,
+    EXTERN_CLASS_DECLARATION_BODY
+  );
 }
 
