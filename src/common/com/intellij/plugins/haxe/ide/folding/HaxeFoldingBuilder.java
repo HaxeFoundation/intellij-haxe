@@ -48,7 +48,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     return list.toArray(descriptors);
   }
 
-  private static void buildFolding(ASTNode node, List<FoldingDescriptor> list) {
+  private static void buildFolding(@NotNull ASTNode node, List<FoldingDescriptor> list) {
     final IElementType elementType = node.getElementType();
 
     FoldingDescriptor descriptor = null;
@@ -106,9 +106,9 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     return null;
   }
 
-  private static FoldingDescriptor buildImportsFolding(ASTNode node) {
+  private static FoldingDescriptor buildImportsFolding(@NotNull ASTNode node) {
     final ASTNode lastImportNode = findLastImportNode(node);
-    if (lastImportNode != node) {
+    if (!node.equals(lastImportNode)) {
       return new FoldingDescriptor(node, buildImportsFoldingTextRange(node, lastImportNode));
     }
     return null;
@@ -122,12 +122,12 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     return new TextRange(nodeStartFrom.getStartOffset(), lastNode.getTextRange().getEndOffset());
   }
 
-  private static boolean isFirstImportStatement(ASTNode node) {
-    do {
-      node = node.getTreePrev();
+  private static boolean isFirstImportStatement(@NotNull ASTNode node) {
+    ASTNode prevNode = node.getTreePrev();
+    while (prevNode != null && prevNode.getElementType() == WHITE_SPACE) {
+      prevNode = prevNode.getTreePrev();
     }
-    while (node != null && node.getElementType() == WHITE_SPACE);
-    return node == null || !isImportOrUsingStatement(node.getElementType());
+    return prevNode == null || !isImportOrUsingStatement(prevNode.getElementType());
   }
 
   private static ASTNode findLastImportNode(@NotNull ASTNode node) {
