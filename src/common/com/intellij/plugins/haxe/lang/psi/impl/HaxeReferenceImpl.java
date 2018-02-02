@@ -45,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
+
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
   public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
@@ -954,8 +956,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
       String clazzName = this.getClass().getSimpleName();
       String text = getCanonicalText();
-      ss += ":" + text;
-      ss += ":" + clazzName;
+      ss += ":" + defaultIfEmpty(text, "<no text>");
+      ss += ":" + defaultIfEmpty(clazzName, "<anonymous>");
     }
     return ss;
   }
