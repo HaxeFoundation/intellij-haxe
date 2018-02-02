@@ -629,13 +629,15 @@ public class HaxelibProjectUpdater {
               HXMLProjectModel hxml = new HXMLProjectModel(psiFile);
               // TODO: Needs to walk all of the children and load referenced .hxml files in place. Should probably be added to the model.
               List<String> libs = hxml.getLibraries();
-              for (String lib : libs) {
-                HaxeLibraryReference reference = HaxeLibraryReference.create(module, lib);
-                if (null != reference.getLibrary()) {
-                  haxelibExternalItems.add(reference);
-                }
-                else {
-                  LOG.warn("Library referenced by HXML configuration is not known to haxelib.");
+              if (libs != null) {
+                for (String lib : libs) {
+                  HaxeLibraryReference reference = HaxeLibraryReference.create(module, lib);
+                  if (null != reference.getLibrary()) {
+                    haxelibExternalItems.add(reference);
+                  }
+                  else {
+                    LOG.warn("Library referenced by HXML configuration is not known to haxelib.");
+                  }
                 }
               }
             }
