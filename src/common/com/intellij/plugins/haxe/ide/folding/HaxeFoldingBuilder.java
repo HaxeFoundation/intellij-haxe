@@ -37,7 +37,7 @@ import static com.intellij.psi.TokenType.WHITE_SPACE;
 
 public class HaxeFoldingBuilder implements FoldingBuilder {
 
-  public static final String PLACEHOLDER_TEXT = "...";
+  private static final String PLACEHOLDER_TEXT = "...";
 
   @NotNull
   @Override
@@ -123,19 +123,16 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
   private static boolean isFirstImportStatement(@NotNull ASTNode node) {
-    ASTNode prevNode = node.getTreePrev();
-    while (prevNode != null && prevNode.getElementType() == WHITE_SPACE) {
-      prevNode = prevNode.getTreePrev();
-    }
+    ASTNode prevNode = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(node);
     return prevNode == null || !isImportOrUsingStatement(prevNode.getElementType());
   }
 
   private static ASTNode findLastImportNode(@NotNull ASTNode node) {
     ASTNode lastImportNode = node;
-    ASTNode nextNode = lastImportNode.getTreeNext();
-    while (nextNode != null && isApplicableForImportsRegion(nextNode.getElementType())) {
+    ASTNode nextNode = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(node);
+    while (nextNode != null && isImportOrUsingStatement(nextNode.getElementType())) {
       lastImportNode = nextNode;
-      nextNode = nextNode.getTreeNext();
+      nextNode = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(nextNode);
     }
     if (lastImportNode.getElementType() == WHITE_SPACE) {
       lastImportNode = lastImportNode.getTreePrev();
@@ -145,10 +142,6 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
   private static boolean isImportOrUsingStatement(IElementType type) {
     return type == IMPORT_STATEMENT || type == USING_STATEMENT;
-  }
-
-  private static boolean isApplicableForImportsRegion(IElementType type) {
-    return isImportOrUsingStatement(type) || type == WHITE_SPACE;
   }
 
   @Nullable
