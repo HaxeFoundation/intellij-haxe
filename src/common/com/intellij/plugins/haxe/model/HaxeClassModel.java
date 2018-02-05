@@ -396,21 +396,32 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @Override
   public List<HaxeModel> getExposedMembers() {
-    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
+    // TODO ClassModel concept should be reviewed. We need to separate logic of abstracts, regular classes, enums, etc. Right now this class a bunch of if-else conditions. It looks dirty.
     ArrayList<HaxeModel> out = new ArrayList<>();
-    if (body != null) {
-      for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeMethod.class)) {
-        if (!(declaration instanceof PsiMember)) continue;
-        if (declaration instanceof HaxeVarDeclaration) {
-          HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)declaration;
-          if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
-            out.add(new HaxeFieldModel((HaxeVarDeclaration)declaration));
+    if (isClass()) {
+      HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
+      if (body != null) {
+        for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeMethod.class)) {
+          if (!(declaration instanceof PsiMember)) continue;
+          if (declaration instanceof HaxeVarDeclaration) {
+            HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)declaration;
+            if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
+              out.add(new HaxeFieldModel((HaxeVarDeclaration)declaration));
+            }
+          } else {
+            HaxeMethod method = (HaxeMethod)declaration;
+            if (method.isStatic() && method.isPublic()) {
+              out.add(new HaxeMethodModel(method));
+            }
           }
-        } else {
-          HaxeMethod method = (HaxeMethod)declaration;
-          if (method.isStatic() && method.isPublic()) {
-            out.add(new HaxeMethodModel(method));
-          }
+        }
+      }
+    } else if (isEnum()) {
+      HaxeEnumBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeEnumBody.class);
+      if (body != null) {
+        List<HaxeEnumValueDeclaration> declarations = body.getEnumValueDeclarationList();
+        for (HaxeEnumValueDeclaration declaration : declarations) {
+          out.add(new HaxeFieldModel(declaration));
         }
       }
     }
