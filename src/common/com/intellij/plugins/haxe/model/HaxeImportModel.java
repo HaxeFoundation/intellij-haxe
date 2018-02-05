@@ -83,12 +83,27 @@ public class HaxeImportModel implements HaxeExposableModel {
         qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.fileName, null);
       }
       result = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
-      if (result != null && !result.isEmpty() && (result.get(0) instanceof HaxeFileModel || result.get(0) instanceof HaxePackageModel)) {
-        result = ((HaxeExposableModel)result.get(0)).getExposedMembers();
+      if (result != null && !result.isEmpty()) {
+        HaxeModel firstItem = result.get(0);
+        if (firstItem instanceof HaxeFileModel || firstItem instanceof HaxePackageModel) {
+          result = ((HaxeExposableModel)firstItem).getExposedMembers();
+        }
       }
     }
 
-    return result != null ? result : Collections.emptyList();
+    return result != null ? exposeEnumValues(result) : Collections.emptyList();
+  }
+
+  @NotNull
+  private List<HaxeModel> exposeEnumValues(@NotNull List<HaxeModel> result) {
+    result.addAll(
+      result.stream()
+        .filter(model -> model instanceof HaxeClassModel && ((HaxeClassModel)model).isEnum())
+        .flatMap(model -> ((HaxeClassModel)model).getExposedMembers().stream())
+        .collect(Collectors.toList())
+    );
+
+    return result;
   }
 
   @Nullable

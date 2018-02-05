@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HaxeProjectModel {
-  static private Key<HaxeProjectModel> HAXE_PROJECT_MODEL = new Key<>("HAXE_PROJECT_MODEL");
-
   private final Project project;
   private final HaxePackageModel stdPackage;
   private final HaxeSourceRootModel sdkRoot;
@@ -53,8 +51,7 @@ public class HaxeProjectModel {
           return new HaxeSourceRootModel(this, stdRootForTests);
         }
       }
-    }
-    else {
+    } else {
       roots = OrderEnumerator.orderEntries(project).sdkOnly().getAllSourceRoots();
       if (roots.length > 0) {
         return new HaxeSourceRootModel(this, roots[0]);
@@ -68,11 +65,7 @@ public class HaxeProjectModel {
   }
 
   public static HaxeProjectModel fromProject(Project project) {
-    HaxeProjectModel model = project.getUserData(HAXE_PROJECT_MODEL);
-    if (model == null) {
-      project.putUserData(HAXE_PROJECT_MODEL, model = new HaxeProjectModel(project));
-    }
-    return model;
+    return new HaxeProjectModel(project);
   }
 
   public Project getProject() {
@@ -113,8 +106,9 @@ public class HaxeProjectModel {
     HaxeModel resolvedValue;
     List<HaxeModel> result = new ArrayList<>();
     for (HaxeSourceRootModel root : getRoots()) {
-      if (searchScope != null && !searchScope.contains(root.root))
+      if (searchScope != null && !searchScope.contains(root.root)) {
         continue;
+      }
       resolvedValue = root.resolve(info);
       if (resolvedValue != null) result.add(resolvedValue);
     }
