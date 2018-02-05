@@ -75,6 +75,21 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         return superElements;
       }
 
+      HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
+      if (fileModel != null) {
+        String className = reference.getText();
+
+        PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
+        if (target == null) target = HaxeResolveUtil.searchInImports(fileModel, className);
+        if (target == null) target = HaxeResolveUtil.searchInSamePackage(fileModel, className);
+
+        if (target != null) {
+          return asList(target);
+        }
+      }
+
+      LogResolution(reference, "failed after exhausting all options.");
+
       if (PsiNameHelper.getInstance(reference.getProject()).isQualifiedName(reference.getText())) {
         List<HaxeModel> resolvedPackage =
           HaxeProjectModel.fromElement(reference).resolve(new FullyQualifiedInfo(reference.getText()), reference.getResolveScope());
@@ -83,19 +98,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           return Collections.singletonList(resolvedPackage.get(0).getBasePsi());
         }
       }
-
-      HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
-      String className = reference.getText();
-
-      PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
-      if (target == null) target = HaxeResolveUtil.searchInImports(fileModel, className);
-      if (target == null) target = HaxeResolveUtil.searchInSamePackage(fileModel, className);
-
-      if (target != null) {
-        return asList(target);
-      }
-
-      LogResolution(reference, "failed after exhausting all options.");
     }
 
     return result == null ? ContainerUtil.emptyList() : result;
