@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,12 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -36,7 +35,9 @@ import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -98,10 +99,24 @@ public class UsefulPsiTreeUtil {
   public static ASTNode getPrevSiblingSkipWhiteSpacesAndComments(@Nullable ASTNode sibling) {
     if (sibling == null) return null;
     ASTNode result = sibling.getTreePrev();
-    while (result != null && isWhitespaceOrComment(result.getPsi())) {
+    while (result != null && isWhitespaceOrComment(result)) {
       result = result.getTreePrev();
     }
     return result;
+  }
+
+  @Nullable
+  public static ASTNode getNextSiblingSkipWhiteSpacesAndComments(@Nullable ASTNode sibling) {
+    if (sibling == null) return null;
+    ASTNode result = sibling.getTreeNext();
+    while (result != null && isWhitespaceOrComment(result.getPsi())) {
+      result = result.getTreeNext();
+    }
+    return result;
+  }
+
+  public static boolean isWhitespaceOrComment(ASTNode node) {
+    return isWhitespaceOrComment(node.getPsi());
   }
 
   public static boolean isWhitespaceOrComment(PsiElement element) {
