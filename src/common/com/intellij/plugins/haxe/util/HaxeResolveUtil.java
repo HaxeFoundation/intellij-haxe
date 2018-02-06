@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
@@ -613,7 +614,16 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name) {
-    return searchInModels(file.getClassModels(), name);
+    List<HaxeClassModel> models = file.getClassModels();
+    final HaxeModel result = Stream.concat(
+      models.stream().filter(model -> name.equals(model.getName())),
+      models.stream().filter(HaxeClassModel::isEnum)
+        .map(model -> model.getField(name))
+        .filter(Objects::nonNull))
+      .findFirst()
+      .orElse(null);
+
+    return result != null ? result.getBasePsi() : null;
   }
 
   @Nullable
@@ -632,38 +642,18 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static PsiElement searchInSamePackage(HaxeFileModel file, String name) {
+  public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name) {
     final HaxePackageModel packageModel = file.getPackageModel();
-    if (packageModel == null) return null;
+    HaxeModel result = null;
 
-    return searchInModels(packageModel.getExposedMembers(), name);
-  }
-
-
-  @Nullable
-  private static PsiElement searchInModels(@NotNull List<? extends HaxeModel> list, @NotNull String name) {
-    PsiElement result = null;
-
-    for (HaxeModel model : list) {
-      if (name.equals(model.getName())) {
-        result = model.getBasePsi();
-      } else if (model instanceof HaxeClassModel) {
-        result = tryGetEnumValue((HaxeClassModel)model, name);
-      }
-
-      if (result != null) return result;
+    if (packageModel != null) {
+      result = packageModel.getExposedMembers().stream()
+        .filter(model -> name.equals(model.getName()))
+        .findFirst()
+        .orElse(null);
     }
-    return null;
-  }
 
-  private static PsiElement tryGetEnumValue(HaxeClassModel model, String name) {
-    if (model.isEnum()) {
-      HaxeFieldModel field = model.getField(name);
-      if (field != null) {
-        return field.getBasePsi();
-      }
-    }
-    return null;
+    return result != null ? result.getBasePsi() : null;
   }
 
   public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
