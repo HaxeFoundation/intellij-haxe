@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.util.Pair;
 
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -132,4 +131,35 @@ public class HaxeStringUtil {
     }
     return builder.toString();
   }
+
+  public static String stripPrefix(String s, String prefix) {
+    if (null == s) return null;
+    if (null == prefix) return s;
+
+    if (s.startsWith(prefix)) {
+      return s.substring(prefix.length());
+    }
+    return s;
+  }
+
+  public static String stripSuffix(String s, String postfix) {
+    if (null == s) return null;
+    if (null == postfix) return s;
+
+    if (s.endsWith(postfix)) {
+      return s.substring(0, s.length() - postfix.length());
+    }
+    return s;
+  }
+
+  public static String terminateAt(String s, char c) {
+    if (null == s) return null;
+
+    int pos = s.indexOf(c);
+    if (pos >= 0) {
+      return s.substring(0, pos).trim();
+    }
+    return s;
+  }
+
 }

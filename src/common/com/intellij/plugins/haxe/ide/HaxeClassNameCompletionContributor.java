@@ -121,6 +121,11 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     final MyProcessor processor = new MyProcessor(resultSet, prefixPackage, insertHandler);
     HaxeComponentIndex.processAll(project, processor, scope);
 
+
+    if (prefixPackage == null) {
+      addEnumValuesFromCurrentFile(resultSet, targetFile);
+    }
+
     if (insertHandler != null) {
       targetFile.acceptChildren(new HaxeRecursiveVisitor() {
         @Override
@@ -136,6 +141,18 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
         }
       });
     }
+  }
+
+  private static void addEnumValuesFromCurrentFile(CompletionResultSet resultSet, PsiFile targetFile) {
+    targetFile.acceptChildren(new HaxeVisitor() {
+      @Override
+      public void visitEnumDeclaration(@NotNull HaxeEnumDeclaration o) {
+        o.getModel().getFields().forEach(element -> {
+          LookupElementBuilder lookupElement = createLookupElement(element, null);
+          if (lookupElement != null) resultSet.addElement(lookupElement);
+        });
+      }
+    });
   }
 
   @Nullable

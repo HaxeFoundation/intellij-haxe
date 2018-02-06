@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +27,27 @@ import com.intellij.psi.tree.IElementType;
  * @author: Fedor.Korotkov
  */
 public class HaxeCommenter implements CodeDocumentationAwareCommenter {
+
+  public static final String SINGLE_LINE_PREFIX = "//";
+  public static final String BLOCK_COMMENT_PREFIX = "/*";
+  public static final String BLOCK_COMMENT_SUFFIX = "*/";
+  public static final String DOC_COMMENT_PREFIX = "/**";
+  public static final String DOC_COMMENT_LINE_PREFIX = "*";
+  public static final String DOC_COMMENT_SUFFIX = "**/";
+
   @Override
   public String getLineCommentPrefix() {
-    return "//";
+    return SINGLE_LINE_PREFIX;
   }
 
   @Override
   public String getBlockCommentPrefix() {
-    return "/*";
+    return BLOCK_COMMENT_PREFIX;
   }
 
   @Override
   public String getBlockCommentSuffix() {
-    return "*/";
+    return BLOCK_COMMENT_SUFFIX;
   }
 
   @Override
@@ -68,17 +77,17 @@ public class HaxeCommenter implements CodeDocumentationAwareCommenter {
 
   @Override
   public String getDocumentationCommentPrefix() {
-    return "/**";
+    return DOC_COMMENT_PREFIX;
   }
 
   @Override
   public String getDocumentationCommentLinePrefix() {
-    return "*";
+    return DOC_COMMENT_LINE_PREFIX;
   }
 
   @Override
   public String getDocumentationCommentSuffix() {
-    return "**/";
+    return DOC_COMMENT_SUFFIX;
   }
 
   @Override
