@@ -49,8 +49,12 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
                                                                         "^}"+WS+"?end"+WS+"*region("+WS+"*(.*))?$",
                                                                         (matcher)->matcher.group(1));
   private static final RegionDefinition PLUGIN_STYLE = new RegionDefinition("^region"+WS+"*(.*)?$",
-                                                                            "^end"+WS+"*region"+WS+"*(.*)?$", (matcher)->matcher.group(1));
-  private static final RegionDefinition COMMENT_REGIONS[] = { FD_STYLE, PLUGIN_STYLE };
+                                                                            "^end"+WS+"*region"+WS+"*(.*)?$",
+                                                                            (matcher)->matcher.group(1));
+  private static final RegionDefinition C_SHARP_STYLE = new RegionDefinition("^#"+WS+"*region"+WS+"+(.*)$",
+                                                                             "^#"+WS+"?end"+WS+"*region("+WS+"*(.*))?$",
+                                                                             (matcher)->matcher.group(1));
+  private static final RegionDefinition COMMENT_REGIONS[] = { FD_STYLE, PLUGIN_STYLE, C_SHARP_STYLE };
 
   private static final RegionDefinition CC_REGION = new RegionDefinition("#", "#", null);
 
@@ -165,14 +169,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
   private static RegionMarker peekUpStack(List<RegionMarker> list, int n) {
-    int current = 0;
-    for (RegionMarker marker : list) {
-      if (current == n) {
-        return marker;
-      }
-      current++;
-    }
-    return null;
+    return n >= 0 && n < list.size() ? list.get(n) : null;
   }
 
   private static void buildMarkerRegions(List<FoldingDescriptor> descriptors, List<RegionMarker> regionMarkers) {
