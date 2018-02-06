@@ -615,13 +615,14 @@ public class HaxeResolveUtil {
   @Nullable
   public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name) {
     List<HaxeClassModel> models = file.getClassModels();
-    final HaxeModel result = Stream.concat(
-      models.stream().filter(model -> name.equals(model.getName())),
-      models.stream().filter(HaxeClassModel::isEnum)
-        .map(model -> model.getField(name))
-        .filter(Objects::nonNull))
-      .findFirst()
-      .orElse(null);
+    final Stream<HaxeClassModel> classesStream = models.stream().filter(model -> name.equals(model.getName()));
+    final Stream<HaxeFieldModel> enumsStream = models.stream().filter(HaxeClassModel::isEnum)
+                                                  .map(model -> model.getField(name))
+                                                  .filter(Objects::nonNull);
+
+    final HaxeModel result = Stream.concat(classesStream, enumsStream)
+                                .findFirst()
+                                .orElse(null);
 
     return result != null ? result.getBasePsi() : null;
   }
