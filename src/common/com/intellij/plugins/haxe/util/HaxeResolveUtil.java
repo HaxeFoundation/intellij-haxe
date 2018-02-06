@@ -592,20 +592,15 @@ public class HaxeResolveUtil {
     }
 
     String className = type.getText();
-    HaxeClass result;
+    PsiElement result = null;
 
     if (className != null && className.indexOf('.') == -1) {
       final HaxeFileModel fileModel = HaxeFileModel.fromElement(type);
-
-      result = searchInSameFile(fileModel, className);
-      if (result == null) {
-        PsiElement psiElement = searchInImports(fileModel, className);
-
-        if (psiElement != null && psiElement instanceof HaxeClass) {
-          result = (HaxeClass)psiElement;
-        }
+      if (fileModel != null) {
+        result = searchInSameFile(fileModel, className);
+        if (result == null) result = searchInImports(fileModel, className);
+        if (result == null) result = searchInSamePackage(fileModel, className);
       }
-      if (result == null) result = searchInSamePackage(fileModel, className);
     } else {
       className = tryResolveFullyQualifiedHaxeReferenceExpression(type);
       result = findClassByQName(className, type.getContext());
@@ -613,16 +608,12 @@ public class HaxeResolveUtil {
 
     result = result != null ? result : findClassByQName(className, type.getContext());
 
-    return result;
+    return result instanceof HaxeClass ? (HaxeClass)result : null;
   }
 
   @Nullable
-  public static HaxeClass searchInSameFile(HaxeFileModel file, String name) {
-    final HaxeClassModel classModel = file.getClassModel(name);
-    if (classModel != null) {
-      return classModel.haxeClass;
-    }
-    return null;
+  public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name) {
+    return searchInModels(file.getClassModels(), name);
   }
 
   @Nullable
@@ -641,13 +632,36 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeClass searchInSamePackage(HaxeFileModel file, String name) {
+  public static PsiElement searchInSamePackage(HaxeFileModel file, String name) {
     final HaxePackageModel packageModel = file.getPackageModel();
     if (packageModel == null) return null;
 
-    final HaxeClassModel classModel = packageModel.getClassModel(name);
-    if (classModel != null) {
-      return classModel.haxeClass;
+    return searchInModels(packageModel.getExposedMembers(), name);
+  }
+
+
+  @Nullable
+  private static PsiElement searchInModels(@NotNull List<? extends HaxeModel> list, @NotNull String name) {
+    PsiElement result = null;
+
+    for (HaxeModel model : list) {
+      if (name.equals(model.getName())) {
+        result = model.getBasePsi();
+      } else if (model instanceof HaxeClassModel) {
+        result = tryGetEnumValue((HaxeClassModel)model, name);
+      }
+
+      if (result != null) return result;
+    }
+    return null;
+  }
+
+  private static PsiElement tryGetEnumValue(HaxeClassModel model, String name) {
+    if (model.isEnum()) {
+      HaxeFieldModel field = model.getField(name);
+      if (field != null) {
+        return field.getBasePsi();
+      }
     }
     return null;
   }
