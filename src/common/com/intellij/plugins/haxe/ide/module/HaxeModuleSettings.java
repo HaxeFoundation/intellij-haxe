@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
+import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
-import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.plugins.haxe.util.HaxeModificationTracker;
@@ -212,11 +212,11 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
    */
   @Nullable
   public String getHaxeProjectPath() {
-    switch(buildConfig) {
-      case USE_HXML:        return getHxmlPath();
-      case USE_OPENFL:      return getOpenFLPath();
-      case USE_NMML:        return getNmmlPath();
-      case USE_PROPERTIES:  return findProjectFileName(getArguments());
+    switch(HaxeConfiguration.translateBuildConfig(buildConfig)) {
+      case HXML:        return getHxmlPath();
+      case OPENFL:      return getOpenFLPath();
+      case NMML:        return getNmmlPath();
+      case CUSTOM:      return findProjectFileName(getArguments());
       default:
         LOG.warn("Internal error: Unknown buildConfig (build type) in project settings.");
         return null;

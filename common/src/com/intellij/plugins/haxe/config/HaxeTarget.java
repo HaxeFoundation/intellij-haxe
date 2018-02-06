@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,78 +19,99 @@
 package com.intellij.plugins.haxe.config;
 
 import com.intellij.plugins.haxe.HaxeCommonBundle;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+
 /**
  * @author: Fedor.Korotkov
  */
 public enum HaxeTarget {
-  NEKO("neko", HaxeCommonBundle.message("haxe.target.neko")) {
+
+  NEKO("neko", HaxeCommonBundle.message("haxe.target.neko"), "neko", OUTPUT_TYPE.FILE) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".n";
     }
-  }, JAVA_SCRIPT("js", HaxeCommonBundle.message("haxe.target.js")) {
+  }, JAVA_SCRIPT("js", HaxeCommonBundle.message("haxe.target.js"), "js", OUTPUT_TYPE.FILE) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".js";
     }
-  }, FLASH("swf", HaxeCommonBundle.message("haxe.target.swf")) {
+  }, FLASH("swf", HaxeCommonBundle.message("haxe.target.swf"), "flash", OUTPUT_TYPE.FILE) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".swf";
     }
-  }, CPP("cpp", HaxeCommonBundle.message("haxe.target.cpp")) {
+  }, CPP("cpp", HaxeCommonBundle.message("haxe.target.cpp"), "cpp", OUTPUT_TYPE.DIRECTORY) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".exe";
     }
-  }, PHP("php", HaxeCommonBundle.message("haxe.target.php")) {
+  }, CPPIA("cppia", HaxeCommonBundle.message("haxe.target.cppia"), "cppia", OUTPUT_TYPE.FILE) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) {
+      return fileName + ".cppia";
+    }
+  }, PHP("php", HaxeCommonBundle.message("haxe.target.php"), "php", OUTPUT_TYPE.DIRECTORY) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".php";
     }
-  }, JAVA("java", HaxeCommonBundle.message("haxe.target.java")) {
+
+  }, JAVA("java", HaxeCommonBundle.message("haxe.target.java"), "java", OUTPUT_TYPE.DIRECTORY) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".jar";
     }
-  }, CSHARP("cs", HaxeCommonBundle.message("haxe.target.csharp")) {
+  }, CSHARP("cs", HaxeCommonBundle.message("haxe.target.csharp"), "cs", OUTPUT_TYPE.DIRECTORY) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".exe";
     }
-  }, PYTHON("python", HaxeCommonBundle.message("haxe.target.python")) {
+  }, PYTHON("python", HaxeCommonBundle.message("haxe.target.python"), "python", OUTPUT_TYPE.FILE) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".py";
     }
-  }, LUA("lua", HaxeCommonBundle.message("haxe.target.lua")) {
+  }, LUA("lua", HaxeCommonBundle.message("haxe.target.lua"), "lua", OUTPUT_TYPE.FILE) {
     @NotNull
     @Override
     public String getTargetFileNameWithExtension(String fileName) {
       return fileName + ".lua";
     }
+  }, HL("hl", HaxeCommonBundle.message("haxe.target.hl"), "hl", OUTPUT_TYPE.FILE) {
+    @NotNull
+    @Override
+    public String getTargetFileNameWithExtension(String fileName) { return fileName + ".hl"; }
   };
+
+  private enum OUTPUT_TYPE {
+    FILE,
+    DIRECTORY
+  }
 
   private final String flag;
   private final String description;
+  private final String outputDir;
+  private final OUTPUT_TYPE outputType;
 
-  HaxeTarget(String flag, String description) {
+  HaxeTarget(String flag, String description, String outputDir, OUTPUT_TYPE outputType) {
     this.flag = flag;
     this.description = description;
+    this.outputDir = outputDir;
+    this.outputType = outputType;
   }
 
   public String getFlag() {
@@ -98,6 +120,10 @@ public enum HaxeTarget {
 
   public String getCompilerFlag() {
     return "-" + flag;
+  }
+
+  public String getDefaultOutputSubdirectory() {
+    return outputDir;
   }
 
   @NotNull
@@ -133,5 +159,12 @@ public enum HaxeTarget {
       return HaxeTarget.FLASH;
     }
     return null;
+  }
+
+  public boolean isOutputToDirectory() {
+    return outputType == OUTPUT_TYPE.DIRECTORY;
+  }
+  public boolean isOutputToSingleFile() {
+    return outputType == OUTPUT_TYPE.FILE;
   }
 }

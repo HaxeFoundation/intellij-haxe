@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,17 @@ import com.intellij.util.BooleanValueHolder;
 import com.intellij.util.PathUtil;
 import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.PropertyKey;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author: Fedor.Korotkov
@@ -95,155 +100,229 @@ public class HaxeCommonCompilerUtil {
       context.log(HaxeCommonBundle.message("module.0.is.excluded.from.compilation", context.getModuleName()));
       return true;
     }
-    final String mainClass = context.getCompilationClass();
-    final String fileName = context.getOutputFileName();
 
-    if (settings.isUseUserPropertiesToBuild()) {
-      if (mainClass == null || mainClass.length() == 0) {
-        context.errorHandler(HaxeCommonBundle.message("no.main.class.for.module", context.getModuleName()));
-        return false;
-      }
-      if (fileName == null || fileName.length() == 0) {
-        context.errorHandler(HaxeCommonBundle.message("no.output.file.name.for.module", context.getModuleName()));
-        return false;
-      }
-    }
-
-    final HaxeTarget target = context.getHaxeTarget();
-    final NMETarget nmeTarget = settings.getNmeTarget();
-    final OpenFLTarget openFLTarget = settings.getOpenFLTarget();
-
-    if (target == null && !settings.isUseNmmlToBuild()) {
-      context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
-      return false;
-    }
-    if (nmeTarget == null && settings.isUseNmmlToBuild()) {
-      context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
-      return false;
-    }
-    if (openFLTarget == null && settings.isUseOpenFLToBuild()) {
-      context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
+    if (!verifyProjectSettings(context)) {
       return false;
     }
 
-    if (context.getSdkHomePath() == null) {
-      context.errorHandler(HaxeCommonBundle.message("no.sdk.for.module", context.getModuleName()));
-      return false;
-    }
-
-    final String sdkExePath = HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath());
-
-    if (sdkExePath == null || sdkExePath.isEmpty()) {
-      context.errorHandler(HaxeCommonBundle.message("invalid.haxe.sdk.for.module", context.getModuleName()));
-      return false;
-    }
-
-    final String nekoPath = context.getNekoBinPath();
-    if ((settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) && (nekoPath == null || nekoPath.isEmpty())) {
-      context.warningHandler(HaxeCommonBundle.message("no.nekopath.for.sdk", context.getSdkName()));
-      return false;
-    }
-
-
-    final String haxelibPath = context.getHaxelibPath();
-    if ((settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) && (haxelibPath == null || haxelibPath.isEmpty())) {
-      context.errorHandler(HaxeCommonBundle.message("no.haxelib.for.sdk", context.getSdkName()));
-      return false;
-    }
-
-    final List<String> commandLine = new ArrayList<String>();
-
-    if (settings.isUseOpenFLToBuild() || settings.isUseNmmlToBuild()) {
-      commandLine.add(haxelibPath);
-    }
-    else {
-      commandLine.add(sdkExePath);
-    }
-
-    String workingPath = context.getCompileOutputPath() + "/" + (context.isDebug() ? "debug" : "release");
-
-    if (settings.isUseOpenFLToBuild()) {
-      setupOpenFL(commandLine, context);
-      workingPath = context.getModuleDirPath();
+    final String workingPath = calculateWorkingPath(context);
+    if (! workingPath.isEmpty()) {
       context.setErrorRoot(workingPath);
     }
-    else if (settings.isUseNmmlToBuild()) {
-      setupNME(commandLine, context);
-      String nmmlPath = settings.getNmmlPath();
-      String nmmlDir = PathUtil.getParentPath(nmmlPath);
-      if (!StringUtil.isEmpty(nmmlDir)) {
-        context.setErrorRoot(nmmlDir);
+    final File workingDirectory = new File(FileUtil.toSystemDependentName(workingPath));
+    if (!workingDirectory.exists()) {
+      if (!workingDirectory.mkdirs()) {
+        context.errorHandler(HaxeCommonBundle.message("output.path.not.found", workingPath));
+        return false;
       }
-    }
-    else if (settings.isUseHxmlToBuild()) {
-      String hxmlPath = settings.getHxmlPath();
-      commandLine.add(FileUtil.toSystemDependentName(hxmlPath));
-      final int endIndex = hxmlPath.lastIndexOf('/');
-      if (endIndex > 0) {
-        workingPath = hxmlPath.substring(0, endIndex);
-      }
-      if (context.isDebug() && context.getHaxeTarget() == HaxeTarget.FLASH) {
-        commandLine.add("-D");
-        commandLine.add("fdb");
-        commandLine.add("-debug");
-      }
-    }
-    else {
-      setupUserProperties(commandLine, context);
     }
 
-    // Show the command line in the output window.
-    // TODO: Make a checkbox in the SDK configuration window.
-    String commandLineString = "";
-
-    if (!commandLine.isEmpty()) {
-      StringBuilder cl = new StringBuilder();
-      for (String commandPart : commandLine) {
-        cl.append(commandPart);
-        cl.append(" ");
-      }
-      commandLineString = cl.toString();
-    }
+    final List<List<String>> commandLines = generateCommandLines(context);
 
     final BooleanValueHolder hasErrors = new BooleanValueHolder(false);
-
     try {
-      final File workingDirectory = new File(FileUtil.toSystemDependentName(workingPath));
-      if (!workingDirectory.exists()) {
-        if (!workingDirectory.mkdirs()) throw new IOException("Cannot create directory " + workingPath);
-      }
-      final BaseOSProcessHandler handler = new HaxeCompilerProcessHandler(
-        context,
-        HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData()).start(),
-        commandLineString,
-        Charset.defaultCharset()
-      );
+      for (List<String> commandLine : commandLines) {
 
-      handler.addProcessListener(new ProcessAdapter() {
-        @Override
-        public void processTerminated(ProcessEvent event) {
-          int exitcode = event.getExitCode();
-          hasErrors.setValue(exitcode != 0);
-          if (exitcode < 0) {
-            context.infoHandler(HaxeCommonBundle.message("negative.error.code.message"));
+        // XXX: Would it be useful to show the working directory in the output window??
+        // If so, then just call notifyTextAvailable() before startNotify() below.
+
+        // Show the command line in the output window.
+        // TODO: Make a checkbox in the SDK configuration window to enable/disable showing the command line.
+        String commandLineString = String.join(" ", commandLine);
+
+        final BaseOSProcessHandler handler = new HaxeCompilerProcessHandler(
+          context,
+          HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData()).start(),
+          commandLineString,
+          Charset.defaultCharset()
+        );
+
+        handler.addProcessListener(new ProcessAdapter() {
+          @Override
+          public void processTerminated(ProcessEvent event) {
+            int exitcode = event.getExitCode();
+            hasErrors.setValue(exitcode != 0);
+            if (exitcode < 0) {
+              context.infoHandler(HaxeCommonBundle.message("negative.error.code.message"));
+            }
+
+            super.processTerminated(event);
           }
+        });
 
-          super.processTerminated(event);
-        }
-      });
-
-      handler.startNotify();
-      handler.waitFor();
+        handler.startNotify();
+        handler.waitFor();
+      }
     }
     catch (IOException e) {
       context.errorHandler(HaxeCommonBundle.message("process.threw.exception", e.getMessage()));
+      hasErrors.setValue(true);
       return false;
     }
 
     return !hasErrors.getValue();
   }
 
-  private static void setupUserProperties(List<String> commandLine, CompilationContext context) {
+  private static boolean verifyProjectSettings(CompilationContext context) {
+    final HaxeModuleSettingsBase settings = context.getModuleSettings();
+    final String mainClass = context.getCompilationClass();
+    final String fileName = context.getOutputFileName();
+    boolean requiresHaxelib = false;
+
+
+    if (settings.isUseUserPropertiesToBuild()) {
+
+      if ( !verifyNonEmptyString(mainClass, context, "no.main.class.for.module")
+        || !verifyNonEmptyString(fileName, context, "no.output.file.name.for.module")
+        || !verifyTargetIsSet(context.getHaxeTarget(), context)) {
+        return false;
+      }
+
+    } else if (settings.isUseHxmlToBuild()) {
+
+      if ( !verifyTargetIsSet(context.getHaxeTarget(), context)
+        || !verifyNonEmptyString(settings.getHxmlPath(), context, "no.project.file.for.module")) {
+        return false;
+      }
+
+    } else if (settings.isUseNmmlToBuild()) {
+
+      requiresHaxelib = true;
+      if ( !verifyTargetIsSet(settings.getNmeTarget(), context)
+        || !verifyNonEmptyString(settings.getNmmlPath(), context, "no.project.file.for.module")) {
+        return false;
+      }
+
+    } else if (settings.isUseOpenFLToBuild()) {
+
+      requiresHaxelib = true;
+      if ( !verifyTargetIsSet(settings.getOpenFLTarget(), context)
+        || !verifyNonEmptyString(settings.getOpenFLPath(), context, "no.project.file.for.module")) {
+        return false;
+      }
+
+    } else {
+      context.errorHandler(HaxeCommonBundle.message("error.unknown.project.settings.type.for.module.0", context.getModuleName()));
+    }
+
+
+    if (!verifyNonEmptyString(context.getSdkHomePath(), context, "no.sdk.for.module")
+        || !verifyNonEmptyString(HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath()),
+                                 context, "invalid.haxe.sdk.for.module")) {
+      return false;
+    }
+    if ( requiresHaxelib
+      && (  !verifyNonEmptyString(context.getNekoBinPath(), context, "no.nekopath.for.sdk")
+         || !verifyNonEmptyString(context.getHaxelibPath(), context, "no.haxelib.for.sdk"))) {
+      return false;
+    }
+
+    // All is well.
+    return true;
+  }
+
+  private static boolean verifyTargetIsSet(Object target, CompilationContext context) {
+    if (null == target) {
+      context.errorHandler(HaxeCommonBundle.message("no.target.for.module", context.getModuleName()));
+      return false;
+    }
+    return true;
+  }
+
+  private static boolean verifyNonEmptyString(String s, CompilationContext context,
+                                              @PropertyKey(resourceBundle = HaxeCommonBundle.BUNDLE) String propertyKey) {
+    if (s == null || s.isEmpty()) {
+      context.errorHandler(HaxeCommonBundle.message(propertyKey, context.getModuleName()));
+      return false;
+    }
+    return true;
+  }
+
+
+  @NotNull
+  private static String calculateWorkingPath(CompilationContext context) {
+    HaxeModuleSettingsBase settings = context.getModuleSettings();
+
+    // TODO: Add a setting for the working directory to the project/module settings dialog.  Then use that here.
+
+    String workingPath = null;
+
+    if (settings.isUseOpenFLToBuild()) {
+      // Use the module directory...
+      workingPath = context.getModuleDirPath();
+    } else if (settings.isUseNmmlToBuild()) {
+      String nmmlPath = settings.getNmmlPath();
+      workingPath = PathUtil.getParentPath(nmmlPath);
+    } else if (settings.isUseHxmlToBuild()) {
+      String hxmlPath = settings.getHxmlPath();
+      workingPath = PathUtil.getParentPath(hxmlPath);
+    } else if (settings.isUseUserPropertiesToBuild()) {
+      workingPath = findCwdInCommandLineArguments(settings);
+    }
+
+    if (null  == workingPath || workingPath.isEmpty()) {
+       workingPath = context.getModuleDirPath();  // Last ditch effort. Location of the .iml
+    }
+    return null == workingPath ? "" : workingPath;
+  }
+
+
+  private static final Pattern CWD_PATTERN = Pattern.compile("--cwd[ \t]+('[^']*'|\"[^\"]*\"|(\\ |[^ \t])+)");
+  private static String findCwdInCommandLineArguments(HaxeModuleSettingsBase settings) {
+    String cl = settings.getArguments();
+
+    Matcher m = CWD_PATTERN.matcher(cl);
+    if (m.find()) {
+      return m.group(1);
+    }
+    return null;
+  }
+
+
+  private static List<List<String>> generateCommandLines(CompilationContext context) {
+    List<List<String>> clList = new ArrayList<List<String>>();
+    HaxeModuleSettingsBase settings = context.getModuleSettings();
+
+    if (settings.isUseOpenFLToBuild()) {
+      clList.addAll(generateOpenflCommands(context));
+    }
+    else if (settings.isUseNmmlToBuild()) {
+      clList.add(generateNmeCommand(context));
+    }
+    else if (settings.isUseHxmlToBuild()) {
+      clList.add(generateHxmlCommand(context));
+    }
+    else {
+      clList.add(generateUserPropertiesCommand(context));
+    }
+
+    return clList;
+  }
+
+
+  private static List<String> generateHxmlCommand(CompilationContext context) {
+
+    final List<String> commandLine = new ArrayList<String>();
+    final String sdkExePath = HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath());
+    commandLine.add(sdkExePath);
+
+    String hxmlPath = context.getModuleSettings().getHxmlPath();
+    commandLine.add(FileUtil.toSystemDependentName(hxmlPath));
+    if (context.isDebug() && context.getHaxeTarget() == HaxeTarget.FLASH) {
+      commandLine.add("-D");
+      commandLine.add("fdb");
+      commandLine.add("-debug");
+    }
+    return commandLine;
+  }
+
+  private static List<String> generateUserPropertiesCommand(CompilationContext context) {
+
+    final List<String> commandLine = new ArrayList<String>();
+    final String sdkExePath = HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath());
+    commandLine.add(sdkExePath);
+
+
     final HaxeModuleSettingsBase settings = context.getModuleSettings();
     commandLine.add("-main");
     commandLine.add(context.getCompilationClass());
@@ -268,9 +347,15 @@ public class HaxeCommonCompilerUtil {
 
     commandLine.add(context.getHaxeTarget().getCompilerFlag());
     commandLine.add(context.getOutputFileName());
+    return commandLine;
   }
 
-  private static void setupNME(List<String> commandLine, CompilationContext context) {
+  private static List<String> generateNmeCommand(CompilationContext context) {
+
+    final List<String> commandLine = new ArrayList<>();
+    final String haxelibPath = context.getHaxelibPath();
+    commandLine.add(haxelibPath);
+
     final HaxeModuleSettingsBase settings = context.getModuleSettings();
     commandLine.add("run");
     commandLine.add("nme");
@@ -288,35 +373,51 @@ public class HaxeCommonCompilerUtil {
     while (flagsTokenizer.hasMoreTokens()) {
       commandLine.add(flagsTokenizer.nextToken());
     }
+    return commandLine;
   }
 
-  private static void setupOpenFL(List<String> commandLine, CompilationContext context) {
+  private static List<List<String>> generateOpenflCommands(CompilationContext context) {
+
+    final String haxelibPath = context.getHaxelibPath();
     final HaxeModuleSettingsBase settings = context.getModuleSettings();
-    commandLine.add("run");
-    commandLine.add("lime");
-    commandLine.add("build");
 
-    if(!StringUtil.isEmpty(settings.getOpenFLPath())) {
-      commandLine.add(settings.getOpenFLPath());
-    }
+    List<List<String>> clList = new ArrayList<>();
 
-    commandLine.add(settings.getOpenFLTarget().getTargetFlag());
+    String cmds[] = {"update", "build"};
+    for (String cmd : cmds) {
 
-    commandLine.add("-verbose");
+      List<String> commandLine = new ArrayList<>();
+      commandLine.add(haxelibPath);
 
-    if (context.isDebug()) {
-      commandLine.add("-debug");
-      commandLine.add("-Ddebug");
+      commandLine.add("run");
+      commandLine.add("lime");
+      commandLine.add(cmd);
 
-      if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
-        commandLine.add("-Dfdb");
+      // XXX: Isn't this an error if the openfl project file is missing?
+      if(!StringUtil.isEmpty(settings.getOpenFLPath())) {
+        commandLine.add(settings.getOpenFLPath());
       }
-    }
 
+      commandLine.add(settings.getOpenFLTarget().getTargetFlag());
 
-    final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getOpenFLFlags());
-    while (flagsTokenizer.hasMoreTokens()) {
-      commandLine.add(flagsTokenizer.nextToken());
+      commandLine.add("-verbose");
+
+      if (context.isDebug()) {
+        commandLine.add("-debug");
+        commandLine.add("-Ddebug");
+
+        if (settings.getOpenFLTarget() == OpenFLTarget.FLASH) {
+          commandLine.add("-Dfdb");
+        }
+      }
+
+      final StringTokenizer flagsTokenizer = new StringTokenizer(settings.getOpenFLFlags());
+      while (flagsTokenizer.hasMoreTokens()) {
+        commandLine.add(flagsTokenizer.nextToken());
+      }
+
+      clList.add(commandLine);
     }
+    return clList;
   }
 }

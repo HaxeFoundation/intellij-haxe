@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -496,17 +496,17 @@ public class HaxeConfigurationEditor {
   }
 
   private int getCurrentBuildConfig() {
-    int buildConfig = HaxeModuleSettings.USE_PROPERTIES;
+    HaxeConfiguration buildConfig = HaxeConfiguration.CUSTOM;
     if (myHxmlFileRadioButton.isSelected()) {
-      buildConfig = HaxeModuleSettings.USE_HXML;
+      buildConfig = HaxeConfiguration.HXML;
     }
     else if (myNmmlFileRadioButton.isSelected()) {
-      buildConfig = HaxeModuleSettings.USE_NMML;
+      buildConfig = HaxeConfiguration.NMML;
     }
     else if (myOpenFLFileRadioButton.isSelected()) {
-      buildConfig = HaxeModuleSettings.USE_OPENFL;
+      buildConfig = HaxeConfiguration.OPENFL;
     }
-    return buildConfig;
+    return buildConfig.asBuildConfigValue();
   }
 
   public JComponent getMainPanel() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  */
 package com.intellij.plugins.haxe.hxml.model;
 
-import com.intellij.plugins.haxe.hxml.psi.HXMLMain;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.hxml.psi.HXMLOption;
 import com.intellij.plugins.haxe.hxml.psi.HXMLProperty;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,10 +51,23 @@ public class HXMLProjectModel {
   public static final String LIBRARY = "-lib";
   public static final String CLASSPATH = "-cp";
 
+  public static final String CWD = "--cwd";
+
+
   protected PsiFile psiFile;
 
   public HXMLProjectModel(PsiFile psiFile) {
     this.psiFile = psiFile;
+  }
+
+  public static HXMLProjectModel create(Project project, VirtualFile hxmlFile) {
+    if (null == project || null == hxmlFile) {
+      LOG.debug("Null project or hxmlFile");
+      return null;
+    }
+
+    PsiFile psi = PsiManager.getInstance(project).findFile(hxmlFile);
+    return new HXMLProjectModel(psi);
   }
 
   // public Map<String,String> getDefinitions();
@@ -120,5 +134,9 @@ public class HXMLProjectModel {
       }
     }
     return found;
+  }
+
+  public String getWorkingDirectory() {
+    return getProperty(CWD);
   }
 }

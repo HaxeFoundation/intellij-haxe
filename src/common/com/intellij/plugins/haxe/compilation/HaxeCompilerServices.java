@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.HaxeCompilerCompletionItem;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -154,10 +155,10 @@ public class HaxeCompilerServices {
                 && ModuleUtil.getModuleType(moduleForFile).equals(HaxeModuleType.getInstance())) {
                 //Get module settings
                 HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(moduleForFile);
-                int buildConfig = moduleSettings.getBuildConfig();
+                HaxeConfiguration buildConfig = moduleSettings.getBuildConfiguration();
                 VirtualFile projectFile = null;
                 switch (buildConfig) {
-                    case HaxeModuleSettings.USE_HXML:
+                    case HXML:
                         projectFile = verifyProjectFile(moduleForFile, "HXML", moduleSettings.getHxmlPath(), myErrorNotifier);
                         if (null == projectFile) {
                             break;
@@ -168,7 +169,7 @@ public class HaxeCompilerServices {
 
                         completions = collectCompletionsFromCompiler(file, element, editor, commandLineArguments, timeLog);
                         break;
-                    case HaxeModuleSettings.USE_NMML:
+                    case NMML:
                         projectFile = verifyProjectFile(moduleForFile, "NMML", moduleSettings.getNmmlPath(), myErrorNotifier);
                         if (null == projectFile) {
                             break;
@@ -176,7 +177,7 @@ public class HaxeCompilerServices {
                         formatAndAddCompilerArguments(commandLineArguments, moduleSettings.getNmeFlags());
                         completions = collectCompletionsFromNME(file, element, editor, commandLineArguments, timeLog);
                         break;
-                    case HaxeModuleSettingsBaseImpl.USE_OPENFL:
+                    case OPENFL:
                         //projectFile = verifyProjectFile(moduleForFile, "OpenFL", moduleSettings.getOpenFLPath(), myErrorNotifier);
                         //if (null == projectFile) {
                         //    break;
@@ -189,7 +190,7 @@ public class HaxeCompilerServices {
                         completions = collectCompletionsFromCompiler(file, element, editor, commandLineArguments, timeLog);
 
                         break;
-                    case HaxeModuleSettingsBaseImpl.USE_PROPERTIES:
+                    case CUSTOM:
                         commandLineArguments.add(HaxeHelpUtil.getHaxePath(moduleForFile));
                         formatAndAddCompilerArguments(commandLineArguments, moduleSettings.getArguments());
                         completions = collectCompletionsFromCompiler(file, element, editor, commandLineArguments, timeLog);
