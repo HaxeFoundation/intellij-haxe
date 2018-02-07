@@ -1,6 +1,8 @@
 Haxe plugin for Intellij IDEA
 ======================================
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/06b13a1d03bb4f1e9c67c0057d816e62)](https://app.codacy.com/app/mayakwd/intellij-haxe?utm_source=github.com&utm_medium=referral&utm_content=HaxeFoundation/intellij-haxe&utm_campaign=badger)
+
 This plugin allows you to develop [Haxe](http://haxe.org/) programs with [Intellij IDEA](http://www.jetbrains.com/idea).
 It requires Intellij IDEA Ultimate or Community Edition, versions 2016.x, 2017.x, and 2018.x.
 
