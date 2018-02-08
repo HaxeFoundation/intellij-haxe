@@ -34,15 +34,15 @@ public class HaxeCompilerErrorTest extends UsefulTestCase {
   }
 
   private void doInfoTest(String compilerOutput) throws Throwable {
-    doTest(compilerOutput, CompilerMessageCategory.INFORMATION, compilerOutput, "", -1, -1);
+    doTest(compilerOutput, CompilerMessageCategory.INFORMATION, compilerOutput, null, -1, -1);
   }
 
   private void doWarningTest(String compilerOutput) throws Throwable {
-    doTest(compilerOutput, CompilerMessageCategory.WARNING, compilerOutput.trim(), "", -1, -1);
+    doTest(compilerOutput, CompilerMessageCategory.WARNING, compilerOutput.trim(), null, -1, -1);
   }
 
   private void doErrorTest(String compilerOutput, String expected) throws Throwable {
-    doTest(compilerOutput, CompilerMessageCategory.ERROR, expected, "", -1, -1);
+    doTest(compilerOutput, CompilerMessageCategory.ERROR, expected, null, -1, -1);
   }
 
   // hxcpp 3.3 link message
@@ -69,7 +69,7 @@ public class HaxeCompilerErrorTest extends UsefulTestCase {
 
   public void testLibraryNotInstalled() throws Throwable {
     String compilerOutput = "Error: Library Flixel is not installed. Please run haxelib...";
-    doTest(compilerOutput, CompilerMessageCategory.ERROR, "Library Flixel is not installed. Please run haxelib...", "", -1, -1);
+    doTest(compilerOutput, CompilerMessageCategory.ERROR, "Library Flixel is not installed. Please run haxelib...", null, -1, -1);
   }
 
   // Hxcpp 3.3

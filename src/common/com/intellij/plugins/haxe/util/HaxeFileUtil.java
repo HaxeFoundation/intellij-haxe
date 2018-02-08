@@ -156,7 +156,7 @@ public class HaxeFileUtil {
     if (null == file && !isAbsolutePath(tryPath)) {
       String nonUrlPath = vfs.extractPath(path);
       for (String root : rootPaths) {
-        if (!root.isEmpty()) {
+        if (null != root && !root.isEmpty()) {
           tryPath = fixUrl(joinPath(root, nonUrlPath));
           file = vfs.findFileByUrl(tryPath);
           if (null != file) {

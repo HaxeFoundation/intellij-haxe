@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.module.impl;
 
+import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
@@ -27,11 +28,6 @@ import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
  * @author: Fedor.Korotkov
  */
 public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
-  public static final int USE_PROPERTIES = 0;
-  public static final int USE_HXML = 1;
-  public static final int USE_NMML = 2;
-  public static final int USE_OPENFL = 3;
-
   protected String mainClass = "";
   protected String outputFileName = "";
   protected String outputFolder = "";
@@ -89,6 +85,10 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
 
   public int getBuildConfig() {
     return buildConfig;
+  }
+
+  public HaxeConfiguration getBuildConfiguration() {
+    return HaxeConfiguration.translateBuildConfig(getBuildConfig());
   }
 
   public String getMainClass() {
@@ -200,19 +200,19 @@ public class HaxeModuleSettingsBaseImpl implements HaxeModuleSettingsBase {
   }
 
   public boolean isUseHxmlToBuild() {
-    return buildConfig == USE_HXML;
+    return HaxeConfiguration.translateBuildConfig(buildConfig) == HaxeConfiguration.HXML;
   }
 
   public boolean isUseNmmlToBuild() {
-    return buildConfig == USE_NMML;
+    return HaxeConfiguration.translateBuildConfig(buildConfig) == HaxeConfiguration.NMML;
   }
 
   public boolean isUseOpenFLToBuild() {
-    return buildConfig == USE_OPENFL;
+    return HaxeConfiguration.translateBuildConfig(buildConfig) == HaxeConfiguration.OPENFL;
   }
 
   public boolean isUseUserPropertiesToBuild() {
-    return buildConfig == USE_PROPERTIES;
+    return HaxeConfiguration.translateBuildConfig(buildConfig) == HaxeConfiguration.CUSTOM;
   }
 
   public void setNmmlPath(String nmmlPath) {

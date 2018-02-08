@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.management.ThreadInfo;
 
 /**
  * Utilities to help debug this plugin.
@@ -203,11 +202,42 @@ public class HaxeDebugUtil {
     final String contents = null != file ? file.getText() : null;
     final int line = null != contents ? StringUtil.offsetToLineNumber(contents, element.getTextOffset()) : 0;
 
-    StringBuilder builder = new StringBuilder(file.isPhysical() ? file.getName() : "(virtual file)");
+    StringBuilder builder = new StringBuilder(null != file && file.isPhysical() ? file.getName() : "(virtual file)");
     builder.append(" : ");
     builder.append(line);
 
     return builder.toString();
+  }
+
+  /**
+   * Use this exception when an invalid (e.g. default) value occurs in a switch statement.
+   * Ultimately, we would rather catch this issue at compile time (that not all possible cases
+   * were covered.)
+   *
+   * THIS IS A PROGRAMMING ERROR.
+   */
+  public static class InvalidCaseException extends RuntimeException {
+    public InvalidCaseException() {
+      super(HaxeBundle.message("invalid.case.value.unadorned"));
+    }
+    public InvalidCaseException(Object o) {
+      super(HaxeBundle.message("invalid.case.value", o.toString()));
+    }
+  }
+
+  /**
+   * Use this exception when an invalid (unexpected) value occurs at runtime.
+   *
+   * THIS IS A PROGRAMMING ERROR.
+   */
+  public static class InvalidValueException extends RuntimeException {
+    private InvalidValueException() {}
+    public InvalidValueException(Object o) {
+      super(valueMessage(o));
+    }
+    private static String valueMessage(Object o) {
+      return HaxeBundle.message("invalid.value.detected.at.runtime", o.toString());
+    }
   }
 
 }
