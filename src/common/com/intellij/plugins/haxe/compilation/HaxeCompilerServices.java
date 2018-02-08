@@ -29,7 +29,6 @@ import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.HaxeCompilerCompletionItem;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
-import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
@@ -414,10 +413,13 @@ public class HaxeCompilerServices {
                 //msg.append("\">");
 
                 String path = compilerError.getPath();
-                if (path.startsWith(projectPath)) {
-                    msg.append(path.subSequence(projectPath.length(), path.length()));
-                } else {
-                    msg.append(path);
+                if (null != path) {
+                    if (path.startsWith(projectPath)) {
+                        msg.append(path.subSequence(projectPath.length(), path.length()));
+                    }
+                    else {
+                        msg.append(path);
+                    }
                 }
                 msg.append(" (");
                 msg.append(compilerError.getLine());

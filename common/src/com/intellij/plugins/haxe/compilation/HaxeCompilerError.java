@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * copyright 2017 Eric Bishton
+ * copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,10 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
-import com.intellij.openapi.vfs.ex.VirtualFileManagerEx;
-import com.intellij.util.LocalFileUrl;
-import com.intellij.util.Url;
-import com.intellij.util.Urls;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,7 +140,7 @@ public class HaxeCompilerError {
         else if ((m = pBareError.matcher(trimmed)).matches()) {
           String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
           return new HaxeCompilerError(CompilerMessageCategory.ERROR,
-                                       msg, "", -1, -1);
+                                       msg, null, -1, -1);
         }
         // ([^:]+) : (.+)  Keep this pattern *last* because it's the most generic
         // and the least useful to users.  There are a number of messages that
@@ -153,19 +152,19 @@ public class HaxeCompilerError {
           if (matchesInformationalPattern(error)) {
             // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
             return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
-                                         message, "", -1, -1);
+                                         message, null, -1, -1);
           }
 
           String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
           return new HaxeCompilerError(CompilerMessageCategory.ERROR,
-                                       msg, "", -1, -1);
+                                       msg, null, -1, -1);
         }
 
         // Anything that doesn't match error patterns is purely informational
         else {
           // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
           return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
-                                         message, "", -1, -1);
+                                         message, null, -1, -1);
         }
 
         // Got a real file error, so handle it

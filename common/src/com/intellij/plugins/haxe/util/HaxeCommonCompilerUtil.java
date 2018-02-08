@@ -18,9 +18,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.execution.process.BaseOSProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
@@ -39,10 +37,8 @@ import org.jetbrains.annotations.PropertyKey;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -123,16 +119,23 @@ public class HaxeCommonCompilerUtil {
     try {
       for (List<String> commandLine : commandLines) {
 
-        // XXX: Would it be useful to show the working directory in the output window??
-        // If so, then just call notifyTextAvailable() before startNotify() below.
-
         // Show the command line in the output window.
         // TODO: Make a checkbox in the SDK configuration window to enable/disable showing the command line.
-        String commandLineString = String.join(" ", commandLine);
+        String commandLineString = HaxeCommonBundle.message("compiler.command.line", String.join(" ", commandLine));
 
+        // Output extra debug information to the console window. Note that process output, and these lines,
+        // in particular, are kept in a LinkedHashSet (internally, a HashMap).  Duplicate lines (having the
+        // same hash value) are NOT added to the set, so these will not be repeated in the output when multiple
+        // commands are run.  For this reason, the lime banner is also not repeated in the output when it runs
+        // a second time.
+        context.infoHandler(HaxeCommonBundle.message("compiler.working.path", workingPath));
+        context.infoHandler(HaxeCommonBundle.message("compiler.output.path", context.getCompileOutputPath()));
+        context.infoHandler(HaxeCommonBundle.message("compiler.output.file", context.getOutputFileName()));
+
+        ProcessBuilder process = HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData());
         final BaseOSProcessHandler handler = new HaxeCompilerProcessHandler(
           context,
-          HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData()).start(),
+          process.start(),
           commandLineString,
           Charset.defaultCharset()
         );
@@ -169,56 +172,46 @@ public class HaxeCommonCompilerUtil {
     final String fileName = context.getOutputFileName();
     boolean requiresHaxelib = false;
 
+    boolean err = false;
 
     if (settings.isUseUserPropertiesToBuild()) {
 
-      if ( !verifyNonEmptyString(mainClass, context, "no.main.class.for.module")
-        || !verifyNonEmptyString(fileName, context, "no.output.file.name.for.module")
-        || !verifyTargetIsSet(context.getHaxeTarget(), context)) {
-        return false;
-      }
+      err |= !verifyNonEmptyString(mainClass, context, "no.main.class.for.module");
+      err |= !verifyNonEmptyString(fileName, context, "no.output.file.name.for.module");
+      err |= !verifyTargetIsSet(context.getHaxeTarget(), context);
 
     } else if (settings.isUseHxmlToBuild()) {
 
-      if ( !verifyTargetIsSet(context.getHaxeTarget(), context)
-        || !verifyNonEmptyString(settings.getHxmlPath(), context, "no.project.file.for.module")) {
-        return false;
-      }
+      err |= !verifyTargetIsSet(context.getHaxeTarget(), context);
+      err |= !verifyNonEmptyString(settings.getHxmlPath(), context, "no.project.file.for.module");
 
     } else if (settings.isUseNmmlToBuild()) {
 
       requiresHaxelib = true;
-      if ( !verifyTargetIsSet(settings.getNmeTarget(), context)
-        || !verifyNonEmptyString(settings.getNmmlPath(), context, "no.project.file.for.module")) {
-        return false;
-      }
+      err |= !verifyTargetIsSet(settings.getNmeTarget(), context);
+      err |= !verifyNonEmptyString(settings.getNmmlPath(), context, "no.project.file.for.module");
 
     } else if (settings.isUseOpenFLToBuild()) {
 
       requiresHaxelib = true;
-      if ( !verifyTargetIsSet(settings.getOpenFLTarget(), context)
-        || !verifyNonEmptyString(settings.getOpenFLPath(), context, "no.project.file.for.module")) {
-        return false;
-      }
+      err |= !verifyTargetIsSet(settings.getOpenFLTarget(), context);
+      err |= !verifyNonEmptyString(settings.getOpenFLPath(), context, "no.project.file.for.module");
 
     } else {
+      err |= true;
       context.errorHandler(HaxeCommonBundle.message("error.unknown.project.settings.type.for.module.0", context.getModuleName()));
     }
 
+    err |= !verifyNonEmptyString(context.getSdkHomePath(), context, "no.sdk.for.module");
+    err |= !verifyNonEmptyString(HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath()),
+                                 context, "invalid.haxe.sdk.for.module");
 
-    if (!verifyNonEmptyString(context.getSdkHomePath(), context, "no.sdk.for.module")
-        || !verifyNonEmptyString(HaxeSdkUtilBase.getCompilerPathByFolderPath(context.getSdkHomePath()),
-                                 context, "invalid.haxe.sdk.for.module")) {
-      return false;
-    }
-    if ( requiresHaxelib
-      && (  !verifyNonEmptyString(context.getNekoBinPath(), context, "no.nekopath.for.sdk")
-         || !verifyNonEmptyString(context.getHaxelibPath(), context, "no.haxelib.for.sdk"))) {
-      return false;
+    if ( requiresHaxelib ) {
+      err |= !verifyNonEmptyString(context.getNekoBinPath(), context, "no.nekopath.for.sdk");
+      err |= !verifyNonEmptyString(context.getHaxelibPath(), context, "no.haxelib.for.sdk");
     }
 
-    // All is well.
-    return true;
+    return !err;
   }
 
   private static boolean verifyTargetIsSet(Object target, CompilationContext context) {

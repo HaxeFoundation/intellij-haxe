@@ -48,6 +48,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.Lambda;
 import com.intellij.psi.PsiFile;
@@ -520,7 +521,6 @@ public class HaxelibProjectUpdater {
     HaxeLibraryList haxelibExternalItems = new HaxeLibraryList(module);
     HaxelibLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
-    int buildConfig = settings.getBuildConfig();
 
     // If the module says not to keep libs synched, then don't.
     if (!settings.isKeepSynchronizedWithProjectFile()) {
@@ -528,7 +528,7 @@ public class HaxelibProjectUpdater {
       return;
     }
 
-    switch (HaxeConfiguration.translateBuildConfig(buildConfig)) {
+    switch (settings.getBuildConfiguration()) {
       case NMML:
         timeLog.stamp("Start loading haxelibs from NMML file.");
         HaxeLibrary nme = libManager.getLibrary("nme", HaxelibSemVer.ANY_VERSION);
@@ -657,6 +657,9 @@ public class HaxelibProjectUpdater {
 
         timeLog.stamp("Finish loading haxelibs from properties.");
         break;
+
+      default:
+        throw new HaxeDebugUtil.InvalidCaseException(settings.getBuildConfiguration());
     }
 
     // We can't just remove all of the project classpaths from the module's
