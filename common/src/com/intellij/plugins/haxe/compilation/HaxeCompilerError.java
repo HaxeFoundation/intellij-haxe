@@ -117,7 +117,7 @@ public class HaxeCompilerError {
             return new HaxeCompilerError(CompilerMessageCategory.ERROR,
                                          "Library " + m.group(1).trim() +
                                          " " +
-                                         m.group(2).trim(), "", -1, -1);
+                                         m.group(2).trim(), null, -1, -1);
         }
 
         String rawPath = null, rawLine, rawColumn, text;
