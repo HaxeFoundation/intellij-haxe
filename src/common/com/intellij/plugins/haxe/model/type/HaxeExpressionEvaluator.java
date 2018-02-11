@@ -445,9 +445,6 @@ public class HaxeExpressionEvaluator {
           LOG.error("Didn't find an initializer in a map comprehension: " + element.toString(),
                     new HaxeDebugUtil.InvalidValueException(element.toString() + '\n' + HaxeDebugUtil.elementLocation(element)));
         }
-
-        //      return SpecificTypeReference.createMap(handle(child, context)).createHolder();
-
       } else {
         initializers.addAll(listElement.getExpressionList());
       }

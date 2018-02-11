@@ -54,7 +54,6 @@ import com.intellij.plugins.haxe.util.Lambda;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.rt.coverage.util.classFinder.ClassPathEntry;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
