@@ -105,9 +105,13 @@ public class HaxeExpressionEvaluator {
       return handle(((HaxeIterable)element).getExpression(), context);
     }
 
-    if (element instanceof HaxeForStatement) {
-      final HaxeComponentName name = ((HaxeForStatement)element).getComponentName();
-      final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
+    if (element instanceof HaxeForStatement || element instanceof HaxeMapInitializerForStatement) {
+      final HaxeComponentName name = element instanceof HaxeForStatement
+                                     ? ((HaxeForStatement)element).getComponentName()
+                                     : ((HaxeMapInitializerForStatement)element).getComponentName();
+      final HaxeIterable iterable = element instanceof HaxeForStatement
+                                    ? ((HaxeForStatement)element).getIterable()
+                                    : ((HaxeMapInitializerForStatement)element).getIterable();
       final PsiElement body = element.getLastChild();
       context.beginScope();
       try {
