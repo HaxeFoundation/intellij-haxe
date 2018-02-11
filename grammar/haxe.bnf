@@ -418,6 +418,9 @@ functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
 
 arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+mapLiteral ::= '[' (mapInitializerStatement | mapInitializerExpressionList) ']'
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
 
 private functionTypeWrapper ::= functionTypeOrWrapper functionType*
 private functionTypeOrWrapper ::= '?'? typeOrAnonymous | '(' functionTypeWrapper ')'
@@ -517,12 +520,18 @@ defaultCase::= 'default' ':' switchCaseBlock? {pin=1}
 tryStatement ::= 'try' statement ';'? catchStatement*
 catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 
+mapInitializerForStatement ::= 'for' '(' componentName 'in' iterable ')' (mapInitializerExpression | mapInitializerStatement)
+{pin=7 methods=[mapInitializer="expression"]}
+mapInitializerWhileStatement ::= 'while' '(' expression ')' (mapInitializerExpression | mapInitializerStatement)
+{pin=5 methods=[condition="expression[0]" mapInitializer="expression[1]"] }
+private mapInitializerStatement ::= mapInitializerForStatement
+                                  | mapInitializerWhileStatement
 /*
  * expressions
  */
 
-//mapArrayExpression ::= (expression OFAT_ARROW expression (',' expression OFAT_ARROW expression)*) {recoverWhile="expression_list_recover"}
-//mapArrayExpression
+mapInitializerExpressionList ::= mapInitializerExpression (',' mapInitializerExpression)* ','? {recoverWhile=expression_list_recover}
+mapInitializerExpression ::= iteratorExpressionWrapper fatArrowExpression {pin=2}
 
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
@@ -596,6 +605,7 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral
                     | 'null' | 'true' | 'false'
                     | functionLiteral
+                    | mapLiteral
                     | arrayLiteral
                     | objectLiteral
                     | stringLiteralExpression
