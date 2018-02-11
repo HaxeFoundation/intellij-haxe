@@ -3,7 +3,6 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,7 +123,7 @@ public class HaxeColorAnnotator implements Annotator {
     PsiElement parent = element != null ? element.getParent() : null;
 
     if (element instanceof PsiJavaToken) {
-      if (parent instanceof HaxeForStatement || parent instanceof HaxeMapInitializerForStatement) {
+      if (parent instanceof HaxeForStatement) {
         isKeyword = "in".equals(element.getText());
       } else if (parent instanceof HaxeImportStatement && ((HaxeImportStatement)parent).getAlias() != null) {
         String elementText = element.getText();

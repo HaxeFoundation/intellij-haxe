@@ -3,7 +3,6 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,8 +158,7 @@ public enum HaxeComponentType {
       return FIELD;
     }
     if (element instanceof HaxeLocalVarDeclaration ||
-        element instanceof HaxeForStatement ||
-        element instanceof HaxeMapInitializerForStatement) {
+        element instanceof HaxeForStatement) {
       return VARIABLE;
     }
     if (element instanceof HaxeParameter) {

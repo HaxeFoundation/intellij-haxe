@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017 Eric Bishton
  * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -380,10 +380,8 @@ public class HaxeResolveUtil {
         final HaxeClass haxeClass = (HaxeClass)element;
         return HaxeClassResolveResult.create(haxeClass);
       }
-      if (element instanceof HaxeForStatement || element instanceof HaxeMapInitializerForStatement) {
-        final HaxeIterable iterable = element instanceof HaxeForStatement
-                                    ? ((HaxeForStatement)element).getIterable()
-                                    : ((HaxeMapInitializerForStatement)element).getIterable();
+      if (element instanceof HaxeForStatement) {
+        final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
         if (iterable == null) {
           // iterable is @Nullable
           // (sometimes when you're typing for statement it becames null for short time)
