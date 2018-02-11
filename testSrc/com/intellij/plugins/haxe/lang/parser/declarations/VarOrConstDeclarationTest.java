@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,11 +63,35 @@ public class VarOrConstDeclarationTest extends DeclarationTestBase {
     doTest(true);
   }
 
-  public void testFatArrowArrayLiteral() throws Throwable {
+  public void testFatArrowMapLiteral() throws Throwable {
     doTest(true);
   }
 
-  public void testFatArrowArrayLiteralWithExtraComma() throws Throwable {
+  public void testFatArrowMapLiteralWithExtraComma() throws Throwable {
+    doTest(true);
+  }
+
+  public void testMapLiteralComprehensionFor() throws Throwable {
+    doTest(true);
+  }
+
+  public void testMapLiteralComprehensionWhile() throws Throwable {
+    doTest(true);
+  }
+
+  public void testMapLiteralComprehensionForFor() throws Throwable {
+    doTest(true);
+  }
+
+  public void testMapLiteralComprehensionWhileWhile() throws Throwable {
+    doTest(true);
+  }
+
+  public void testMapLiteralComprehensionForWhile() throws Throwable {
+    doTest(true);
+  }
+
+  public void testMapLiteralComprehensionWhileFor() throws Throwable {
     doTest(true);
   }
 
