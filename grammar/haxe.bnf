@@ -521,9 +521,9 @@ tryStatement ::= 'try' statement ';'? catchStatement*
 catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 
 mapInitializerForStatement ::= 'for' '(' componentName 'in' iterable ')' (mapInitializerExpression | mapInitializerStatement)
-{pin=7 methods=[mapInitializer="expression"]}
+{pin=7 methods=[mapInitializer="expression"] extends=forStatement mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementImpl"}
 mapInitializerWhileStatement ::= 'while' '(' expression ')' (mapInitializerExpression | mapInitializerStatement)
-{pin=5 methods=[condition="expression[0]" mapInitializer="expression[1]"] }
+{pin=5 methods=[condition="expression[0]" mapInitializer="expression[1]"] extends=whileStatement mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeWhileStatementImpl"}
 private mapInitializerStatement ::= mapInitializerForStatement
                                   | mapInitializerWhileStatement
 /*
