@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -323,11 +323,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Else, it's a block statement and not a named literal.
       return HaxeClassResolveResult.create(null);
     }
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking map literal."));
+    if (this instanceof HaxeMapLiteral) {
+      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
+    }
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking array literal."));
     if (this instanceof HaxeArrayLiteral) {
       HaxeArrayLiteral haxeArrayLiteral = (HaxeArrayLiteral)this;
       HaxeExpressionList expressionList = haxeArrayLiteral.getExpressionList();
-      boolean isMap;
       boolean isString = false;
       boolean sameClass = false;
       boolean implementOrExtendSameClass = false;
@@ -335,14 +338,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       List<HaxeType> commonTypeList = new ArrayList<>();
       List<HaxeExpression> haxeExpressionList = expressionList != null ? expressionList.getExpressionList() : new ArrayList<>();
       if (!haxeExpressionList.isEmpty()) {
-        isMap = true;
         isString = true;
         sameClass = true;
 
         for (HaxeExpression expression : haxeExpressionList) {
-          if (!(expression instanceof HaxeFatArrowExpression)) {
-            isMap = false;
-          }
           if (!(expression instanceof HaxeStringLiteralExpression)) {
             isString = false;
           }
@@ -384,9 +383,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
 
-        if (isMap) {
-          return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
-        }
       }
       HaxeClassResolveResult resolveResult =
         HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
@@ -417,7 +413,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
 
       return resolveResult;
-    }
+    } // end (this instanceof HaxeArrayLiteral)
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking 'new' expression."));
     if (this instanceof HaxeNewExpression) {
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(

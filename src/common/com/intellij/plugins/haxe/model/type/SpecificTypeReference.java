@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +32,11 @@ public abstract class SpecificTypeReference {
   static public SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
     return SpecificHaxeClassReference
       .withGenerics(new HaxeClassReference("Array", elementType.getElementContext()), new ResultHolder[]{elementType}, null);
+  }
+
+  static public SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
+    return SpecificHaxeClassReference
+      .withGenerics(new HaxeClassReference("Map", keyType.getElementContext()), new ResultHolder[]{keyType, valueType}, null);
   }
 
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
