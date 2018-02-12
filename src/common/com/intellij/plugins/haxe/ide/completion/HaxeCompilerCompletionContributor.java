@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.openapi.application.Application;

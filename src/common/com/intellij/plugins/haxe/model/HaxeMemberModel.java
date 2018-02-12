@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,14 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.plugins.haxe.model.HaxeModifierType.*;
 
 abstract public class HaxeMemberModel implements HaxeModel {
   private PsiElement basePsi;
@@ -39,14 +44,20 @@ abstract public class HaxeMemberModel implements HaxeModel {
   }
 
   public boolean isPublic() {
-    return this.getModifiers().hasModifier(HaxeModifierType.PUBLIC);
+    // Extern fields and methods are public by default, private modifier for them should be defined explicitly
+    return hasModifier(PUBLIC) || (getDeclaringClass().isExtern() && !hasModifier(PRIVATE));
+  }
+
+  public boolean hasModifier(HaxeModifierType aPublic) {
+    return this.getModifiers().hasModifier(aPublic);
   }
 
   public boolean isStatic() {
-    return getModifiers().hasModifier(HaxeModifierType.STATIC);
+    return hasModifier(HaxeModifierType.STATIC);
   }
 
   private HaxeDocumentModel _document = null;
+
   @NotNull
   public HaxeDocumentModel getDocument() {
     if (_document == null) _document = new HaxeDocumentModel(this.getBasePsi());
@@ -87,6 +98,7 @@ abstract public class HaxeMemberModel implements HaxeModel {
   abstract public HaxeClassModel getDeclaringClass();
 
   private HaxeModifiersModel _modifiers;
+
   @NotNull
   public HaxeModifiersModel getModifiers() {
     if (_modifiers == null) _modifiers = new HaxeModifiersModel(basePsi);
@@ -95,7 +107,14 @@ abstract public class HaxeMemberModel implements HaxeModel {
 
   public static HaxeMemberModel fromPsi(PsiElement element) {
     if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
-    if (element instanceof HaxeVarDeclaration) return new HaxeFieldModel((HaxeVarDeclaration)element);
+    if (element instanceof HaxeVarDeclaration) {
+      PsiClass containingClass = ((HaxeVarDeclaration)element).getContainingClass();
+      if (HaxeAbstractEnumUtil.isAbstractEnum(containingClass) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(element)) {
+        return new HaxeEnumValueModel((HaxeVarDeclaration)element);
+      }
+      return new HaxeFieldModel((HaxeVarDeclaration)element);
+    }
+    if (element instanceof HaxeEnumValueDeclaration) return new HaxeEnumValueModel((HaxeEnumValueDeclaration)element);
     if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);
     if (element instanceof HaxeParameter) return new HaxeParameterModel((HaxeParameter)element);
     if (element instanceof HaxeForStatement) return null;
@@ -114,5 +133,17 @@ abstract public class HaxeMemberModel implements HaxeModel {
   public HaxeMemberModel getParentMember() {
     final HaxeClassModel aClass = getDeclaringClass().getParentClass();
     return (aClass != null) ? aClass.getMember(this.getName()) : null;
+  }
+
+  @Nullable
+  @Override
+  public FullyQualifiedInfo getQualifiedInfo() {
+    if (getDeclaringClass() != null && isStatic() && isPublic()) {
+      FullyQualifiedInfo containerInfo = getDeclaringClass().getQualifiedInfo();
+      if (containerInfo != null) {
+        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());
+      }
+    }
+    return null;
   }
 }

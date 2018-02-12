@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,8 +98,8 @@ public class HaxeImportModel implements HaxeExposableModel {
   private List<HaxeModel> exposeEnumValues(@NotNull List<HaxeModel> result) {
     result.addAll(
       result.stream()
-        .filter(model -> model instanceof HaxeClassModel && ((HaxeClassModel)model).isEnum())
-        .flatMap(model -> ((HaxeClassModel)model).getExposedMembers().stream())
+        .filter(model -> model instanceof IHaxeEnumModel)
+        .flatMap(model -> ((IHaxeEnumModel)model).getValues().stream())
         .collect(Collectors.toList())
     );
 
@@ -133,7 +133,7 @@ public class HaxeImportModel implements HaxeExposableModel {
   }
 
   private HaxeModel getExposedMember(String name) {
-    List<HaxeModel> members = getExposedMembers();
+    List<? extends HaxeModel> members = getExposedMembers();
     if (members.isEmpty()) return null;
     if (hasAlias()) {
       return (Objects.equals(getAliasName(), name)) ? members.get(0) : null;

@@ -3,7 +3,7 @@
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
   ~ Copyright 2017 Eric Bishton
-  ~ Copyright 2017-2017 Ilya Malanin
+  ~ Copyright 2017-2018 Ilya Malanin
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -829,9 +829,10 @@
     <extendWordSelectionHandler implementation="com.intellij.plugins.haxe.editor.actions.wordSelection.HaxeStringSelectioner" />
     <extendWordSelectionHandler implementation="com.intellij.plugins.haxe.editor.actions.wordSelection.HaxeCommentSelectioner" />
 
-    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeControllingCompletionContributor" order="FIRST"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST"/>
     <completion.contributor language="any" implementationClass="com.intellij.plugins.haxe.ide.HaxeKeywordCompletionContributor"/>
-    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeClassNameCompletionContributor"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeEnumValuesCompletionContributor"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeMetaTagsCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
@@ -841,7 +842,7 @@
     <!-- Keep the compiler contributor last because it is slow compared to the internal stuff.
          Don't use order="LAST" because that puts it after the default contributor, which puts up the "No Suggestions"
          box, and we want compiler error messages to be displayed instead. -->
-    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCompilerCompletionContributor"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeCompilerCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 

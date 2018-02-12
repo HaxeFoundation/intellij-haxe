@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
@@ -95,7 +96,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isEnum() {
-    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.ENUM;
+    return haxeClass.isEnum();
   }
 
   public boolean isTypedef() {
@@ -107,7 +108,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   @Nullable
-  public HaxeTypeOrAnonymous getAbstractUnderlyingType() {
+  public HaxeTypeOrAnonymous getUnderlyingType() {
     if (!isAbstract()) return null;
     HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
     HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
@@ -200,7 +201,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public List<HaxeMemberModel> getMembers() {
-    LinkedList<HaxeMemberModel> members = new LinkedList<>();
+    final List<HaxeMemberModel> members = new ArrayList<>();
     members.addAll(getMethods());
     members.addAll(getFields());
     return members;
@@ -208,8 +209,8 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @NotNull
   public List<HaxeMemberModel> getMembersSelf() {
-    LinkedList<HaxeMemberModel> members = new LinkedList<HaxeMemberModel>();
-    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
+    final List<HaxeMemberModel> members = new ArrayList<>();
+    HaxePsiCompositeElement body = getBodyPsi();
     if (body != null) {
       for (PsiElement element : body.getChildren()) {
         if (element instanceof HaxeMethod || element instanceof HaxeVarDeclaration) {
@@ -266,7 +267,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   @Nullable
-  public HaxeClassBody getBodyPsi() {
+  public HaxePsiCompositeElement getBodyPsi() {
     return (haxeClass instanceof HaxeClassDeclaration) ? ((HaxeClassDeclaration)haxeClass).getClassBody() : null;
   }
 
@@ -375,7 +376,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public List<HaxeGenericParamModel> getGenericParams() {
-    List<HaxeGenericParamModel> out = new LinkedList<HaxeGenericParamModel>();
+    final List<HaxeGenericParamModel> out = new ArrayList<>();
     if (getPsi().getGenericParam() != null) {
       int index = 0;
       for (HaxeGenericListPart part : getPsi().getGenericParam().getGenericListPartList()) {

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +23,10 @@ import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.impl.source.resolve.ResolveClassUtil;
-import org.apache.xmlbeans.impl.common.ResolverUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 public class HaxeTypeCompatible {
   static public boolean canApplyBinaryOperator(SpecificTypeReference left, SpecificTypeReference right, String operator) {
@@ -132,7 +129,7 @@ public class HaxeTypeCompatible {
       if (thatClass.isAbstract()) {
 
         // Check if this is required!
-        HaxeTypeOrAnonymous underlyingAbstractType = thatClass.getAbstractUnderlyingType();
+        HaxeTypeOrAnonymous underlyingAbstractType = thatClass.getUnderlyingType();
         if (underlyingAbstractType != null) {
           ResultHolder thatUnderlying = HaxeTypeResolver.getTypeFromTypeOrAnonymous(underlyingAbstractType);
           if (to.toStringWithoutConstant().equals(thatUnderlying.toStringWithoutConstant())) {

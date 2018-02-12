@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.Nls;
@@ -58,12 +59,12 @@ public class HaxePresentableUtil {
   }
 
   @NotNull
-  public static String getPresentableParameterList(HaxeNamedComponent element) {
+  public static String getPresentableParameterList(PsiElement element) {
     return getPresentableParameterList(element, new HaxeGenericSpecialization());
   }
 
   @NotNull
-  public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericSpecialization specialization) {
+  public static String getPresentableParameterList(PsiElement element, HaxeGenericSpecialization specialization) {
     final StringBuilder result = new StringBuilder();
     final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterListPsiMixinImpl.class);
     if (parameterList == null) {
@@ -75,7 +76,7 @@ public class HaxePresentableUtil {
       result.append(parameter.getName());
       if (parameter.getTypeTag() != null) {
         result.append(":");
-        result.append(buildTypeText(element, parameter.getTypeTag(), specialization));
+        result.append(buildTypeText(parameter, parameter.getTypeTag(), specialization));
       }
       if (i < size - 1) {
         result.append(", ");

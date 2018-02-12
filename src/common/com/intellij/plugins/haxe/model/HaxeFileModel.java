@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
@@ -30,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HaxeFileModel implements HaxeExposableModel {
 
@@ -136,10 +136,13 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
 
   public List<HaxeClassModel> getClassModels() {
+    return getClassModelsStream().collect(Collectors.toList());
+  }
+
+  public Stream<HaxeClassModel> getClassModelsStream() {
     return Arrays.stream(file.getChildren())
       .filter(element -> element instanceof HaxeClass)
-      .map(element -> ((HaxeClass)element).getModel())
-      .collect(Collectors.toList());
+      .map(element -> ((HaxeClass)element).getModel());
   }
 
   public List<HaxeImportStatement> getImportStatements() {

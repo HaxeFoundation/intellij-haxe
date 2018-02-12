@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -54,7 +55,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 /**
  * @author: Fedor.Korotkov
  */
-abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
+abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
   public ResultHolder _cachedType;
@@ -113,6 +114,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
               result.append(klass.getName());
               result.append('.');
             }
+          }
+
+          if (member instanceof HaxeEnumValueModel) {
+            return member.getPresentableText(null);
           }
 
           result.append(member.getName());

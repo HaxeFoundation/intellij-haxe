@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,14 +177,5 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return getDeclaringClass();
   }
 
-  @Nullable
-  @Override
-  public FullyQualifiedInfo getQualifiedInfo() {
-    FullyQualifiedInfo qualifiedInfo = getDeclaringClass().getQualifiedInfo();
-    if (qualifiedInfo != null) {
-      qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.className, this.getName());
-    }
-    return qualifiedInfo;
-  }
 }
 
