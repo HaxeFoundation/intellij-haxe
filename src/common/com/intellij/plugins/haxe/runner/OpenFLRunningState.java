@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.runner;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.CommandLineState;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ColoredProcessHandler;
@@ -71,12 +70,12 @@ public class OpenFLRunningState extends CommandLineState {
     final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     assert sdk != null;
 
-    HaxeCommandLine commandLine = getCommandForNeko(sdk, settings);
+    HaxeCommandLine commandLine = getCommandForOpenFL(sdk, settings);
 
     return new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
   }
 
-  private HaxeCommandLine getCommandForNeko(Sdk sdk, HaxeModuleSettings settings) throws ExecutionException {
+  private HaxeCommandLine getCommandForOpenFL(Sdk sdk, HaxeModuleSettings settings) throws ExecutionException {
     final HaxeSdkData sdkData = sdk.getSdkAdditionalData() instanceof HaxeSdkData ? (HaxeSdkData)sdk.getSdkAdditionalData() : null;
     if (sdkData == null) {
       throw new ExecutionException(HaxeCommonBundle.message("invalid.haxe.sdk"));

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,78 +19,48 @@
 package com.intellij.plugins.haxe.config;
 
 import com.intellij.plugins.haxe.HaxeCommonBundle;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+
 /**
  * @author: Fedor.Korotkov
  */
 public enum HaxeTarget {
-  NEKO("neko", HaxeCommonBundle.message("haxe.target.neko")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".n";
-    }
-  }, JAVA_SCRIPT("js", HaxeCommonBundle.message("haxe.target.js")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".js";
-    }
-  }, FLASH("swf", HaxeCommonBundle.message("haxe.target.swf")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".swf";
-    }
-  }, CPP("cpp", HaxeCommonBundle.message("haxe.target.cpp")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".exe";
-    }
-  }, PHP("php", HaxeCommonBundle.message("haxe.target.php")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".php";
-    }
-  }, JAVA("java", HaxeCommonBundle.message("haxe.target.java")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".jar";
-    }
-  }, CSHARP("cs", HaxeCommonBundle.message("haxe.target.csharp")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".exe";
-    }
-  }, PYTHON("python", HaxeCommonBundle.message("haxe.target.python")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".py";
-    }
-  }, LUA("lua", HaxeCommonBundle.message("haxe.target.lua")) {
-    @NotNull
-    @Override
-    public String getTargetFileNameWithExtension(String fileName) {
-      return fileName + ".lua";
-    }
-  };
+
+  // Target     clFlag    Extension,  OutputDir,  OutputType              Description
+
+  NEKO(         "neko",   ".n",       "neko",     OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.neko")),
+  JAVA_SCRIPT(  "js",     ".js",      "js",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.js")),
+  FLASH(        "swf",    ".swf",     "flash",    OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.swf")),
+  CPP(          "cpp",    ".exe",     "cpp",      OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.cpp")),
+  CPPIA(        "cppia",  ".cppia",   "cppia",    OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.cppia")),
+  PHP(          "php",    ".php",     "php",      OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.php")),
+  JAVA(         "java",   ".jar",     "java",     OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.java")),
+  CSHARP(       "cs",     ".exe",     "cs",       OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.csharp")),
+  PYTHON(       "python", ".py",      "python",   OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.python")),
+  LUA(          "lua",    ".lua",     "lua",      OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.lua")),
+  HL(           "hl",     ".hl",      "hl",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.hl"));
+
+  private enum OUTPUT_TYPE {
+    FILE,
+    DIRECTORY
+  }
 
   private final String flag;
   private final String description;
+  private final String outputDir;
+  private final String fileExtension;
+  private final OUTPUT_TYPE outputType;
 
-  HaxeTarget(String flag, String description) {
+  HaxeTarget(String flag, String fileExtension, String outputDir, OUTPUT_TYPE outputType, String description) {
     this.flag = flag;
     this.description = description;
+    this.outputDir = outputDir;
+    this.outputType = outputType;
+    this.fileExtension = fileExtension;
   }
 
   public String getFlag() {
@@ -100,8 +71,14 @@ public enum HaxeTarget {
     return "-" + flag;
   }
 
+  public String getDefaultOutputSubdirectory() {
+    return outputDir;
+  }
+
   @NotNull
-  public abstract String getTargetFileNameWithExtension(String fileName);
+  public String getTargetFileNameWithExtension(String fileName) {
+    return fileName + fileExtension;
+  }
 
   public static void initCombo(@NotNull DefaultComboBoxModel comboBoxModel) {
     for (HaxeTarget target : HaxeTarget.values()) {
@@ -133,5 +110,12 @@ public enum HaxeTarget {
       return HaxeTarget.FLASH;
     }
     return null;
+  }
+
+  public boolean isOutputToDirectory() {
+    return outputType == OUTPUT_TYPE.DIRECTORY;
+  }
+  public boolean isOutputToSingleFile() {
+    return outputType == OUTPUT_TYPE.FILE;
   }
 }

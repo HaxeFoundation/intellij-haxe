@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.*;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.build.MethodWrapper;
+import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
@@ -47,6 +48,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.Lambda;
 import com.intellij.psi.PsiFile;
@@ -519,7 +521,6 @@ public class HaxelibProjectUpdater {
     HaxeLibraryList haxelibExternalItems = new HaxeLibraryList(module);
     HaxelibLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
-    int buildConfig = settings.getBuildConfig();
 
     // If the module says not to keep libs synched, then don't.
     if (!settings.isKeepSynchronizedWithProjectFile()) {
@@ -527,8 +528,8 @@ public class HaxelibProjectUpdater {
       return;
     }
 
-    switch (buildConfig) {
-      case HaxeModuleSettings.USE_NMML:
+    switch (settings.getBuildConfiguration()) {
+      case NMML:
         timeLog.stamp("Start loading haxelibs from NMML file.");
         HaxeLibrary nme = libManager.getLibrary("nme", HaxelibSemVer.ANY_VERSION);
         if (null != nme) {
@@ -560,7 +561,7 @@ public class HaxelibProjectUpdater {
 
         break;
 
-      case HaxeModuleSettings.USE_OPENFL:
+      case OPENFL:
         timeLog.stamp("Start loading haxelibs from openFL configuration file.");
         HaxeLibrary openfl = libManager.getLibrary("openfl", HaxelibSemVer.ANY_VERSION);
         if (null != openfl) {
@@ -614,7 +615,7 @@ public class HaxelibProjectUpdater {
 
         break;
 
-      case HaxeModuleSettings.USE_HXML:
+      case HXML:
         timeLog.stamp("Start loading haxelibs from HXML file.");
         String hxmlPath = settings.getHxmlPath();
 
@@ -649,13 +650,16 @@ public class HaxelibProjectUpdater {
 
         break;
 
-      case HaxeModuleSettings.USE_PROPERTIES:
+      case CUSTOM:
         timeLog.stamp("Start loading haxelibs from properties.");
 
         // TODO: Grab the command line?? Run it through the algorithm for USE_HXML.
 
         timeLog.stamp("Finish loading haxelibs from properties.");
         break;
+
+      default:
+        throw new HaxeDebugUtil.InvalidCaseException(settings.getBuildConfiguration());
     }
 
     // We can't just remove all of the project classpaths from the module's
@@ -747,7 +751,7 @@ public class HaxelibProjectUpdater {
   private HaxeLibraryList getProjectLibraryList(@NotNull ProjectTracker tracker) {
     ProjectLibraryCache cache = tracker.getCache();
     HaxeLibraryList projectLibraries;
-    int buildConfig = HaxeModuleSettings.USE_PROPERTIES; // Only properties available.
+    HaxeConfiguration buildConfig = HaxeConfiguration.CUSTOM; // Only properties available.
 
     if (cache.isListSetFor(buildConfig)) {
       projectLibraries = cache.getListFor(buildConfig);
@@ -1071,44 +1075,44 @@ public class HaxelibProjectUpdater {
       nmmlIsSet = openFLIsSet = hxmlIsSet = propertiesIsSet = false;
     }
 
-    public boolean isListSetFor(int buildConfig) {
+    public boolean isListSetFor(HaxeConfiguration buildConfig) {
       switch(buildConfig) {
-        case HaxeModuleSettings.USE_NMML:
+        case NMML:
           return nmmlIsSet;
-        case HaxeModuleSettings.USE_OPENFL:
+        case OPENFL:
           return openFLIsSet;
-        case HaxeModuleSettings.USE_HXML:
+        case HXML:
           return hxmlIsSet;
-        case HaxeModuleSettings.USE_PROPERTIES:
+        case CUSTOM:
           return propertiesIsSet;
       }
       return false;
     }
 
     @NotNull
-    public HaxeLibraryList getListFor(int buildConfig) {
+    public HaxeLibraryList getListFor(HaxeConfiguration buildConfig) {
       switch(buildConfig) {
-        case HaxeModuleSettings.USE_NMML:
+        case NMML:
           return getNmmlList();
-        case HaxeModuleSettings.USE_OPENFL:
+        case OPENFL:
           return getOpenFLList();
-        case HaxeModuleSettings.USE_HXML:
+        case HXML:
           return getHxmlList();
-        case HaxeModuleSettings.USE_PROPERTIES:
+        case CUSTOM:
           return getPropertiesList();
       }
       return new HaxeLibraryList(sdk);
     }
 
-    public void setListFor(int buildConfig, HaxeLibraryList list) {
+    public void setListFor(HaxeConfiguration buildConfig, HaxeLibraryList list) {
       switch(buildConfig) {
-        case HaxeModuleSettings.USE_NMML:
+        case NMML:
           setNmmlList(list);
-        case HaxeModuleSettings.USE_OPENFL:
+        case OPENFL:
           setOpenFLList(list);
-        case HaxeModuleSettings.USE_HXML:
+        case HXML:
           setHxmlList(list);
-        case HaxeModuleSettings.USE_PROPERTIES:
+        case CUSTOM:
           setPropertiesList(list);
       }
     }
