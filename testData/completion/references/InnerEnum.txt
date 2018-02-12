@@ -1,0 +1,7 @@
+BASIC 1 INCLUDES
+ONE
+TWO
+THREE
+ONE:AbstractEnum = "one"
+TWO:AbstractEnum = "two"
+THREE:AbstractEnum = "three"
