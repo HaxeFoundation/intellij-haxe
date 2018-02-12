@@ -145,31 +145,6 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   }
 
   /**
-   * Enum value insert handler
-   */
-
-  private static final InsertHandler<LookupElement> ENUM_PATH_INSERT_ = HaxeClassNameCompletionContributor::replaceWithFullEnumValuePath;
-
-  private static void replaceWithFullEnumValuePath(InsertionContext context, LookupElement item) {
-    new WriteCommandAction(context.getProject(), context.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) {
-        final HaxeEnumValueDeclaration declaration = (HaxeEnumValueDeclaration)item.getObject();
-        final FullyQualifiedInfo info = declaration.getModel().getQualifiedInfo();
-        if (info != null) {
-          final PsiReference currentReference = context.getFile().findReferenceAt(context.getTailOffset() - 1);
-          final PsiElement currentElement = currentReference.getElement();
-          final String path = info.className + FullyQualifiedInfo.PATH_SEPARATOR + item.getLookupString();
-          final HaxeReference reference = HaxeElementGenerator.createReferenceFromText(context.getProject(), path);
-          if (reference != null) {
-            currentElement.replace(reference);
-          }
-        }
-      }
-    }.execute();
-  }
-
-  /**
    * Full path insert handler
    **/
   private static final InsertHandler<LookupElement> FULL_PATH_INSERT_HANDLER =
