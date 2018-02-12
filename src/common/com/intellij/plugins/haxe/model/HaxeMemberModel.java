@@ -53,7 +53,7 @@ abstract public class HaxeMemberModel implements HaxeModel {
   }
 
   public boolean isStatic() {
-    return hasModifier(HaxeModifierType.STATIC);
+    return hasModifier(STATIC);
   }
 
   private HaxeDocumentModel _document = null;
