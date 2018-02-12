@@ -371,21 +371,25 @@ public class HaxelibProjectUpdater {
               final Library.ModifiableModel libraryModifiableModel = newLibrary.getModifiableModel();
               libraryModelToDispose = libraryModifiableModel;
 
-              entry.getLibrary().getClasspathEntries().iterate(new HaxeClasspath.Lambda() {
-                @Override
-                public boolean processEntry(HaxeClasspathEntry cp) {
-                  String url = HaxeFileUtil.fixUrl(cp.getUrl());
-                  VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(url);
-                  if (null == directory) {
-                    timeLog.stamp("Skipping classpath for " + newLibrary.getName() + ", no directory entry for " + url);
+              HaxeLibrary entryLibrary = entry.getLibrary();
+              HaxeClasspath classpath = entryLibrary != null ? entryLibrary.getClasspathEntries() : null;
+              if (null != classpath) {
+                classpath.iterate(new HaxeClasspath.Lambda() {
+                  @Override
+                  public boolean processEntry(HaxeClasspathEntry cp) {
+                    String url = HaxeFileUtil.fixUrl(cp.getUrl());
+                    VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(url);
+                    if (null == directory) {
+                      timeLog.stamp("Skipping classpath for " + newLibrary.getName() + ", no directory entry for " + url);
+                    }
+                    else {
+                      libraryModifiableModel.addRoot(directory, OrderRootType.CLASSES);
+                      libraryModifiableModel.addRoot(directory, OrderRootType.SOURCES);
+                    }
+                    return true;
                   }
-                  else {
-                    libraryModifiableModel.addRoot(directory, OrderRootType.CLASSES);
-                    libraryModifiableModel.addRoot(directory, OrderRootType.SOURCES);
-                  }
-                  return true;
-                }
-              });
+                });
+              }
 
               LibraryOrderEntry libraryOrderEntry = moduleModel.findLibraryOrderEntry(newLibrary);
               libraryOrderEntry.setExported(false);

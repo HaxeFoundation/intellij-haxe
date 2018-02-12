@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +28,14 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
-import com.intellij.plugins.haxe.util.HaxeJavaUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.HaxeStringUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -47,6 +46,9 @@ import java.util.List;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeExpressionEvaluator {
+  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  static { LOG.setLevel(Level.DEBUG); }
+
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context) {
     context.result = handle(element, context);
@@ -413,8 +415,61 @@ public class HaxeExpressionEvaluator {
       return HaxeTypeUnifier.unifyHolders(references, element);
     }
 
+    if (element instanceof HaxeMapLiteral) {
+      HaxeMapInitializerExpressionList listElement = ((HaxeMapLiteral)element).getMapInitializerExpressionList();
+      List<HaxeExpression> initializers = new ArrayList<>();
+
+      // In maps, comprehensions don't have expression lists, but they do have one single initializer.
+      if (null == listElement) {
+        HaxeMapInitializerForStatement forStatement = ((HaxeMapLiteral)element).getMapInitializerForStatement();
+        HaxeMapInitializerWhileStatement whileStatement = ((HaxeMapLiteral)element).getMapInitializerWhileStatement();
+        HaxeExpression fatArrow = null;
+        while (null != forStatement || null != whileStatement) {
+          if (null != forStatement) {
+            fatArrow = forStatement.getMapInitializer();
+            forStatement = forStatement.getMapInitializerForStatement();
+            whileStatement = forStatement.getMapInitializerWhileStatement();
+          } else {
+            fatArrow = whileStatement.getMapInitializer();
+            forStatement = whileStatement.getMapInitializerForStatement();
+            whileStatement = whileStatement.getMapInitializerWhileStatement();
+          }
+        }
+        if (null != fatArrow) {
+          initializers.add(fatArrow);
+        } else {
+          LOG.error("Didn't find an initializer in a map comprehension: " + element.toString(),
+                    new HaxeDebugUtil.InvalidValueException(element.toString() + '\n' + HaxeDebugUtil.elementLocation(element)));
+        }
+      } else {
+        initializers.addAll(listElement.getExpressionList());
+      }
+
+      ArrayList<SpecificTypeReference> keyReferences = new ArrayList<>(initializers.size());
+      ArrayList<SpecificTypeReference> valueReferences = new ArrayList<>(initializers.size());
+      for (HaxeExpression ex : initializers) {
+        HaxeFatArrowExpression fatArrow = (HaxeFatArrowExpression)ex;
+        SpecificTypeReference keyType = handle(fatArrow.getFirstChild(), context).getType();
+        keyReferences.add(keyType);
+        SpecificTypeReference valueType = handle(fatArrow.getLastChild(), context).getType();
+        valueReferences.add(valueType);
+      }
+
+      // XXX: Maybe track and add constants to the type references, like arrays do??
+      //      That has implications on how they're displayed (e.g. not as key=>value,
+      //      but as separate arrays).
+      ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, element).withoutConstantValue().createHolder();
+      ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, element).withoutConstantValue().createHolder();
+
+      SpecificTypeReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder);
+      ResultHolder holder = result.createHolder();
+      return holder;
+    } // end HaxeMapLiteral
+
     if (element instanceof HaxeArrayLiteral) {
       HaxeExpressionList list = ((HaxeArrayLiteral)element).getExpressionList();
+
+      // Check if it's a comprehension.
       if (list != null) {
         final List<HaxeExpression> list1 = list.getExpressionList();
         if (list1.isEmpty()) {
@@ -424,6 +479,7 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
+
       ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
       ArrayList<Object> constants = new ArrayList<Object>();
       boolean allConstants = true;

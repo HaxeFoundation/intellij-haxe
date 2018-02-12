@@ -46,9 +46,9 @@ Haxe File
                 HaxePsiToken:>('>')
         VAR_INIT
           HaxePsiToken:=('=')
-          ARRAY_LITERAL
+          MAP_LITERAL
             HaxePsiToken:[('[')
-            EXPRESSION_LIST
+            MAP_INITIALIZER_EXPRESSION_LIST
               FAT_ARROW_EXPRESSION
                 STRING_LITERAL_EXPRESSION
                   HaxePsiToken:OPEN_QUOTE('"')
@@ -70,8 +70,6 @@ Haxe File
                   HaxePsiToken:OPEN_QUOTE('"')
                   HaxePsiToken:REGULAR_STRING_PART('Else')
                   HaxePsiToken:CLOSING_QUOTE('"')
-              HaxePsiToken:,(',')
-            PsiComment(MSL_COMMENT)('// <<-- Extra comma at end.')
             HaxePsiToken:](']')
         HaxePsiToken:;(';')
     HaxePsiToken:}('}')
