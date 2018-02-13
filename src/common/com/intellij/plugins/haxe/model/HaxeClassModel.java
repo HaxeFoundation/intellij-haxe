@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
@@ -105,6 +104,15 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public boolean isAbstract() {
     return haxeClass instanceof HaxeAbstractClassDeclaration;
+  }
+
+  public boolean hasMeta(@NotNull String name) {
+    return haxeClass.hasMeta(name);
+  }
+
+  @Nullable
+  public HaxeMacroClass getMeta(@NotNull String name) {
+    return haxeClass.getMeta(name);
   }
 
   @Nullable

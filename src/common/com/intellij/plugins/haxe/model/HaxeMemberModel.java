@@ -44,8 +44,22 @@ abstract public class HaxeMemberModel implements HaxeModel {
   }
 
   public boolean isPublic() {
-    // Extern fields and methods are public by default, private modifier for them should be defined explicitly
-    return hasModifier(PUBLIC) || (getDeclaringClass().isExtern() && !hasModifier(PRIVATE));
+    HaxeClassModel declaringClass = getDeclaringClass();
+
+    return hasModifier(PUBLIC)
+           // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
+           || ((declaringClass.isInterface() || declaringClass.isExtern()) && !hasModifier(PRIVATE))
+           || isOverriddenPublicMethod()
+           || getDeclaringClass().hasMeta("@:publicFields");
+  }
+
+  private boolean isOverriddenPublicMethod() {
+    if (hasModifier(OVERRIDE)) {
+      final HaxeMemberModel parentMember = getParentMember();
+      return parentMember != null && parentMember.isPublic();
+    }
+
+    return false;
   }
 
   public boolean hasModifier(HaxeModifierType aPublic) {

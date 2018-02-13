@@ -31,7 +31,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
   public boolean hasForwards() {
-    return haxeClass.hasMeta("@:forward");
+    return hasMeta("@:forward");
   }
 
   public HaxeClass getUnderlyingClass() {
