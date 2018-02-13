@@ -15,16 +15,22 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.stream.Stream;
 
 public interface HaxeMetaContainerElement extends HaxePsiCompositeElement {
 
-  boolean hasMeta(String name);
+  boolean hasMeta(@NotNull String name);
 
-  HaxeMacroClass getMeta(String name);
+  @Nullable
+  HaxeMacroClass getMeta(@NotNull String name);
 
+  @NotNull
   List<HaxeMacroClass> getMetaList();
 
+  @NotNull
   Stream<HaxeMacroClass> getMetaStream();
 }

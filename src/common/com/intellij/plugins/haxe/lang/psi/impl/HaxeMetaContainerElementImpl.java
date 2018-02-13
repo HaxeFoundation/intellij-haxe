@@ -16,37 +16,34 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeMacroClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeMacroClassList;
 import com.intellij.plugins.haxe.lang.psi.HaxeMetaContainerElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HaxeMetaContainerElementImpl extends HaxePsiCompositeElementImpl implements HaxeMetaContainerElement {
-  private static final String OPEN_BRACE = "(";
-
   public HaxeMetaContainerElementImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  public boolean hasMeta(String name) {
+  public boolean hasMeta(@NotNull String name) {
     return getMetaStream()
-      .anyMatch(item -> {
-        String text = item.getText();
-        return (text.equals(name) || text.startsWith(name + OPEN_BRACE));
-      });
+      .anyMatch(item -> isMetaMatch(item, name));
   }
 
-  public HaxeMacroClass getMeta(String name) {
+  @Nullable
+  public HaxeMacroClass getMeta(@NotNull String name) {
     return getMetaStream()
-      .filter(item -> {
-        String text = item.getText();
-        return (text.equals(name) || text.startsWith(name + OPEN_BRACE));
-      }).findFirst().orElse(null);
+      .filter(item -> isMetaMatch(item, name))
+      .findFirst()
+      .orElse(null);
   }
 
   @NotNull
@@ -62,5 +59,10 @@ public class HaxeMetaContainerElementImpl extends HaxePsiCompositeElementImpl im
     }
 
     return Stream.empty();
+  }
+
+  private boolean isMetaMatch(@NotNull HaxeMacroClass item, @NotNull String name) {
+    String text = item.getText();
+    return (text.equals(name) || text.startsWith(name + HaxeTokenTypes.PLPAREN.toString()));
   }
 }
