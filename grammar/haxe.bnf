@@ -354,7 +354,7 @@ enumValueDeclaration ::= componentName enumConstructorParameters? ';'
 
 private enum_value_declaration_recovery ::= !(ID | '}')
 
-enumConstructorParameters ::= parenthesizedParameterList
+private enumConstructorParameters ::= parenthesizedParameterList
 
 varDeclaration ::= (macroMember | declarationAttribute)* 'var' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}

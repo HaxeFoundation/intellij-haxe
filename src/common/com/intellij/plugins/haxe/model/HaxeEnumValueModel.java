@@ -24,12 +24,12 @@ import static com.intellij.plugins.haxe.util.HaxePresentableUtil.getPresentableP
 
 public class HaxeEnumValueModel extends HaxeMemberModel {
   private final boolean isAbstract;
-  private HaxeEnumConstructorParameters constructorParameters = null;
+  private final boolean hasConstructor;
 
   public HaxeEnumValueModel(@NotNull HaxeEnumValueDeclaration declaration) {
     super(declaration);
 
-    constructorParameters = PsiTreeUtil.getChildOfType(declaration, HaxeEnumConstructorParameters.class);
+    hasConstructor = declaration.getParameterList() != null;
     isAbstract = false;
   }
 
@@ -37,6 +37,7 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
     super(declaration);
 
     isAbstract = true;
+    hasConstructor = false;
   }
 
   @Override
@@ -71,12 +72,12 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
   }
 
   public boolean hasConstructor() {
-    return constructorParameters != null;
+    return hasConstructor;
   }
 
   @Nullable
-  public HaxeEnumConstructorParameters getConstructorParameters() {
-    return constructorParameters;
+  public HaxeParameterList getConstructorParameters() {
+    return !hasConstructor ? ((HaxeEnumValueDeclaration)getBasePsi()).getParameterList() : null;
   }
 
   @Override
@@ -85,7 +86,7 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
     if (hasConstructor()) {
       result
         .append("(")
-        .append(getPresentableParameterList(constructorParameters))
+        .append(getPresentableParameterList((HaxeEnumValueDeclaration)getBasePsi()))
         .append((")"));
     } else if (isAbstract) {
       result
