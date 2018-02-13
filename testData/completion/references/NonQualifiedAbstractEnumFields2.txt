@@ -1,0 +1,9 @@
+:INCLUDE
+getter
+
+:EXCLUDE
+ONE
+TWO
+THREE
+FOUR
+staticGetter

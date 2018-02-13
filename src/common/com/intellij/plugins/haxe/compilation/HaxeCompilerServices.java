@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
-import com.intellij.plugins.haxe.ide.HaxeCompilerCompletionItem;
+import com.intellij.plugins.haxe.ide.completion.HaxeCompilerCompletionItem;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;

@@ -3,7 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeModel;
+import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -44,6 +46,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implements HaxePsiField {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl");
+
   static {
     LOG.info("Loaded HaxePsiFieldImpl");
     LOG.setLevel(Level.DEBUG);
@@ -55,6 +58,12 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
 
   @Override
   public HaxeModel getModel() {
+    if (this instanceof HaxeEnumValueDeclaration) {
+      return new HaxeEnumValueModel((HaxeEnumValueDeclaration)this);
+    }
+    if (HaxeAbstractEnumUtil.isAbstractEnum(getContainingClass()) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(this)) {
+      return new HaxeEnumValueModel((HaxeVarDeclaration)this);
+    }
     return new HaxeFieldModel(this);
   }
 
@@ -141,12 +150,12 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @NotNull
   @Override
   public PsiType getType() {
-    PsiType                     psiType   = null;
-    final HaxeTypeTag           tag       = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
+    PsiType psiType = null;
+    final HaxeTypeTag tag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
     if (tag != null) {
-      final HaxeTypeOrAnonymous toa       = getFirstItem(tag.getTypeOrAnonymousList());
-      final HaxeType            type      = (toa != null) ? toa.getType() : null;
-      psiType                             = (type != null) ? type.getPsiType() : null;
+      final HaxeTypeOrAnonymous toa = getFirstItem(tag.getTypeOrAnonymousList());
+      final HaxeType type = (toa != null) ? toa.getType() : null;
+      psiType = (type != null) ? type.getPsiType() : null;
     }
     return psiType != null ? psiType : HaxePsiTypeAdapter.DYNAMIC;
   }
@@ -230,14 +239,12 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Override
   public SearchScope getUseScope() {
     final PsiElement localVar = UsefulPsiTreeUtil.getParentOfType(this, HaxeLocalVarDeclaration.class);
-    if(localVar != null) {
+    if (localVar != null) {
       final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(localVar, HaxeBlockStatement.class);
-      if(outerBlock != null) {
+      if (outerBlock != null) {
         return new LocalSearchScope(outerBlock);
       }
     }
     return super.getUseScope();
   }
-
-
 }

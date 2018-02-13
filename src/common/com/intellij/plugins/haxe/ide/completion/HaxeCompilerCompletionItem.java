@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.completion;
 
 import com.google.common.base.Joiner;
 import com.intellij.codeInsight.lookup.LookupElement;

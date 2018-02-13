@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -616,8 +616,8 @@ public class HaxeResolveUtil {
   public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name) {
     List<HaxeClassModel> models = file.getClassModels();
     final Stream<HaxeClassModel> classesStream = models.stream().filter(model -> name.equals(model.getName()));
-    final Stream<HaxeFieldModel> enumsStream = models.stream().filter(HaxeClassModel::isEnum)
-                                                  .map(model -> model.getField(name))
+    final Stream<HaxeEnumValueModel> enumsStream = models.stream().filter(model -> model instanceof HaxeEnumModel)
+                                                  .map(model -> ((HaxeEnumModel)model).getValue(name))
                                                   .filter(Objects::nonNull);
 
     final HaxeModel result = Stream.concat(classesStream, enumsStream)

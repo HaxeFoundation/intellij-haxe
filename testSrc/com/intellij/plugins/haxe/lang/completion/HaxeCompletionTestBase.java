@@ -117,7 +117,7 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
 
     final List<String> variants = new ArrayList<String>();
     while (in.hasNext()) {
-      final String variant = StringUtil.strip(in.next(), CharFilter.NOT_WHITESPACE_FILTER);
+      final String variant = StringUtil.strip(in.next(), CharFilter.WHITESPACE_FILTER);
       if (variant.length() > 0) {
         variants.add(variant);
       }

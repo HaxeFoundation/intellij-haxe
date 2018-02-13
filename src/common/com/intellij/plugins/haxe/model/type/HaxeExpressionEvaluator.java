@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -165,7 +165,7 @@ public class HaxeExpressionEvaluator {
       if (ancestor == null) return SpecificTypeReference.getDynamic(element).createHolder();
       HaxeClassModel model = ancestor.getModel();
       if (model.isAbstract()) {
-        HaxeTypeOrAnonymous type = model.getAbstractUnderlyingType();
+        HaxeTypeOrAnonymous type = model.getUnderlyingType();
         if (type != null) {
           HaxeClass aClass = HaxeResolveUtil.tryResolveClassByQName(type);
           if (aClass != null) {

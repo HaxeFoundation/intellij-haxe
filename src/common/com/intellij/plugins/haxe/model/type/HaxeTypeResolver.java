@@ -75,13 +75,20 @@ public class HaxeTypeResolver {
         return getFunctionReturnType(comp);
       } else if (comp instanceof HaxeFunctionLiteral) {
         return getFunctionReturnType(comp);
+      } else if (comp instanceof HaxeEnumValueDeclaration) {
+        return getEnumReturnType((HaxeEnumValueDeclaration)comp);
       } else {
         return getFieldType(comp);
       }
-    } catch (Throwable e) {
+    }
+    catch (Throwable e) {
       e.printStackTrace();
       return SpecificTypeReference.getUnknown(comp).createHolder();
     }
+  }
+
+  private static ResultHolder getEnumReturnType(HaxeEnumValueDeclaration comp) {
+    return getTypeFromTypeTag(comp.getReturnType(), comp.getParent());
   }
 
   @NotNull
@@ -89,7 +96,7 @@ public class HaxeTypeResolver {
     //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
     final ResultHolder abstractEnumType = HaxeAbstractEnumUtil.getFieldType(comp);
-    if(abstractEnumType != null) {
+    if (abstractEnumType != null) {
       return abstractEnumType;
     }
 
@@ -112,7 +119,7 @@ public class HaxeTypeResolver {
         result = typeFromTag.withConstantValue(initConstant);
       }
 
-      if(result != null) {
+      if (result != null) {
         return result;
       }
     }
@@ -271,7 +278,8 @@ public class HaxeTypeResolver {
       }
 
       return context;
-    } finally {
+    }
+    finally {
       processedElements.get().remove(element);
     }
   }
