@@ -616,8 +616,8 @@ public class HaxeResolveUtil {
   public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name) {
     List<HaxeClassModel> models = file.getClassModels();
     final Stream<HaxeClassModel> classesStream = models.stream().filter(model -> name.equals(model.getName()));
-    final Stream<HaxeEnumValueModel> enumsStream = models.stream().filter(model -> model instanceof IHaxeEnumModel)
-                                                  .map(model -> ((IHaxeEnumModel)model).getValue(name))
+    final Stream<HaxeEnumValueModel> enumsStream = models.stream().filter(model -> model instanceof HaxeEnumModel)
+                                                  .map(model -> ((HaxeEnumModel)model).getValue(name))
                                                   .filter(Objects::nonNull);
 
     final HaxeModel result = Stream.concat(classesStream, enumsStream)

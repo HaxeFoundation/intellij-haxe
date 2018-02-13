@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements IHaxeEnumModel {
+public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements HaxeEnumModel {
   public HaxeAbstractEnumModel(@NotNull HaxeAbstractClassDeclaration haxeClass) {
     super(haxeClass);
   }

@@ -98,8 +98,8 @@ public class HaxeImportModel implements HaxeExposableModel {
   private List<HaxeModel> exposeEnumValues(@NotNull List<HaxeModel> result) {
     result.addAll(
       result.stream()
-        .filter(model -> model instanceof IHaxeEnumModel)
-        .flatMap(model -> ((IHaxeEnumModel)model).getValues().stream())
+        .filter(model -> model instanceof HaxeEnumModel)
+        .flatMap(model -> ((HaxeEnumModel)model).getValues().stream())
         .collect(Collectors.toList())
     );
 

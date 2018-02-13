@@ -46,7 +46,7 @@ public class HaxeEnumValuesCompletionContributor extends CompletionContributor {
     final HaxeFileModel fileModel = ((HaxeFile)targetFile).getModel();
     fileModel.getClassModelsStream()
       .filter(HaxeClassModel::isEnum)
-      .flatMap(model -> ((IHaxeEnumModel)model).getValuesStream())
+      .flatMap(model -> ((HaxeEnumModel)model).getValuesStream())
       .forEach(enumValueModel -> {
         LookupElement lookupElement = HaxeLookupElementFactory.create(enumValueModel);
         if (lookupElement != null) resultSet.addElement(lookupElement);

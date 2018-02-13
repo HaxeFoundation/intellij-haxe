@@ -102,7 +102,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public HaxeClassModel getModel() {
     if (_model == null) {
       if (this instanceof HaxeEnumDeclaration) {
-        _model = new HaxeEnumModel((HaxeEnumDeclaration)this);
+        _model = new HaxeEnumModelImpl((HaxeEnumDeclaration)this);
       } else if (this instanceof HaxeExternClassDeclaration) {
         _model = new HaxeExternClassModel((HaxeExternClassDeclaration)this);
       } else if (this instanceof HaxeAbstractClassDeclaration) {
