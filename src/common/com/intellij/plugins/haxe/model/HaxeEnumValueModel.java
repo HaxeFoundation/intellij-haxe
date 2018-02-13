@@ -25,11 +25,13 @@ import static com.intellij.plugins.haxe.util.HaxePresentableUtil.getPresentableP
 public class HaxeEnumValueModel extends HaxeMemberModel {
   private final boolean isAbstract;
   private final boolean hasConstructor;
+  private final boolean hasReturnType;
 
   public HaxeEnumValueModel(@NotNull HaxeEnumValueDeclaration declaration) {
     super(declaration);
 
     hasConstructor = declaration.getParameterList() != null;
+    hasReturnType = declaration.getReturnType() != null;
     isAbstract = false;
   }
 
@@ -38,6 +40,7 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
 
     isAbstract = true;
     hasConstructor = false;
+    hasReturnType = true;
   }
 
   @Override
@@ -88,7 +91,9 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
         .append("(")
         .append(getPresentableParameterList((HaxeEnumValueDeclaration)getBasePsi()))
         .append((")"));
-    } else if (isAbstract) {
+    }
+
+    if (hasReturnType) {
       result
         .append(":")
         .append(getResultType().toString());
