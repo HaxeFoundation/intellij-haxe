@@ -818,6 +818,10 @@
 
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
 
+    <codeFoldingOptionsProvider instance="com.intellij.plugins.haxe.ide.folding.HaxeFoldingOptionsProvider"/>
+    <applicationService serviceInterface="com.intellij.plugins.haxe.ide.folding.HaxeFoldingSettings"
+                        serviceImplementation="com.intellij.plugins.haxe.ide.folding.HaxeFoldingSettings"/>
+
     <additionalTextAttributes scheme="Default" file="colorSchemes/HaxeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/HaxeDefault.xml"/>
 
