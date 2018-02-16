@@ -484,8 +484,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
       return settings.COLLAPSE_IMPORTS;
     }
 
-    final IElementType elementType = node.getElementType();
-    if (isComment(elementType, node)) {
+    if (isDocComment(node)) {
       boolean isRegionMarker = node.getUserData(REGION_DEFINITION_KEY) != null;
       if (!isRegionMarker && isDocComment(node)) {
         return settings.COLLAPSE_DOC_COMMENTS;
