@@ -163,9 +163,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
       }
     } else if (isCompilerConditional(elementType)) {
       RegionMarker matched = matchCCRegion(node);
-      if (null != matched) {
-        ccMarkers.add(matched);
-      }
+      ccMarkers.add(matched);
     }
 
     if (descriptor != null) {
@@ -484,13 +482,12 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
       return settings.COLLAPSE_IMPORTS;
     }
 
-    if (isDocComment(node)) {
-      boolean isRegionMarker = node.getUserData(REGION_DEFINITION_KEY) != null;
-      if (!isRegionMarker && isDocComment(node)) {
-        return settings.COLLAPSE_DOC_COMMENTS;
-      }
-    }
+    if (isDocComment(node) && !hasRegionMarker(node)) return settings.COLLAPSE_DOC_COMMENTS;
 
     return false;
+  }
+
+  private boolean hasRegionMarker(@NotNull ASTNode node) {
+    return node.getUserData(REGION_DEFINITION_KEY) != null;
   }
 }
