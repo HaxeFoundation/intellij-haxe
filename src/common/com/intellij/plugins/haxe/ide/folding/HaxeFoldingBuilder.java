@@ -47,7 +47,7 @@ import static com.intellij.psi.TokenType.WHITE_SPACE;
 
 public class HaxeFoldingBuilder implements FoldingBuilder {
 
-  private static final Key<Boolean> REGION_DEFINITION_KEY = new Key<>("RegionDefinition");
+  private static final Key<Boolean> REGION_DEFINITION_KEY = new Key<>("HaxeRegionDefinition");
 
   private static final String PLACEHOLDER_TEXT = "...";
 
