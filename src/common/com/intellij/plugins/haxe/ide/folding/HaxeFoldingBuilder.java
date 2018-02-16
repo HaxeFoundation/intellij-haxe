@@ -181,6 +181,10 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     return type == DOC_COMMENT;
   }
 
+  private static boolean isDocComment(ASTNode node) {
+    return isDocComment(node.getElementType());
+  }
+
   private static RegionMarker peekUpStack(List<RegionMarker> list, int n) {
     return n >= 0 && n < list.size() ? list.get(n) : null;
   }
@@ -483,7 +487,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     final IElementType elementType = node.getElementType();
     if (isComment(elementType, node)) {
       boolean isRegionMarker = node.getUserData(REGION_DEFINITION_KEY) != null;
-      if (!isRegionMarker && isDocComment(node.getElementType())) {
+      if (!isRegionMarker && isDocComment(node)) {
         return settings.COLLAPSE_DOC_COMMENTS;
       }
     }
