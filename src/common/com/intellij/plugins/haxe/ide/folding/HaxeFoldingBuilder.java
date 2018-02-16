@@ -19,14 +19,19 @@
  */
 package com.intellij.plugins.haxe.ide.folding;
 
+import com.intellij.codeInsight.folding.CodeFoldingSettings;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingBuilder;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.ide.HaxeCommenter;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
+import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,19 +47,21 @@ import static com.intellij.psi.TokenType.WHITE_SPACE;
 
 public class HaxeFoldingBuilder implements FoldingBuilder {
 
+  private static final Key<Boolean> REGION_DEFINITION_KEY = new Key<>("HaxeRegionDefinition");
+
   private static final String PLACEHOLDER_TEXT = "...";
 
   private static final String WS = "[ \\t]"; // Better unicode space detection: "[\\s\\p{Z}]";
-  private static final RegionDefinition FD_STYLE = new RegionDefinition("^\\{"+WS+"*region"+WS+"+(.*)$",
-                                                                        "^}"+WS+"?end"+WS+"*region("+WS+"*(.*))?$",
-                                                                        (matcher)->matcher.group(1));
-  private static final RegionDefinition PLUGIN_STYLE = new RegionDefinition("^region"+WS+"*(.*)?$",
-                                                                            "^end"+WS+"*region"+WS+"*(.*)?$",
-                                                                            (matcher)->matcher.group(1));
-  private static final RegionDefinition C_SHARP_STYLE = new RegionDefinition("^#"+WS+"*region"+WS+"+(.*)$",
-                                                                             "^#"+WS+"?end"+WS+"*region("+WS+"*(.*))?$",
-                                                                             (matcher)->matcher.group(1));
-  private static final RegionDefinition COMMENT_REGIONS[] = { FD_STYLE, PLUGIN_STYLE, C_SHARP_STYLE };
+  private static final RegionDefinition FD_STYLE = new RegionDefinition("^\\{" + WS + "*region" + WS + "+(.*)$",
+                                                                        "^}" + WS + "?end" + WS + "*region(" + WS + "*(.*))?$",
+                                                                        (matcher) -> matcher.group(1));
+  private static final RegionDefinition PLUGIN_STYLE = new RegionDefinition("^region" + WS + "*(.*)?$",
+                                                                            "^end" + WS + "*region" + WS + "*(.*)?$",
+                                                                            (matcher) -> matcher.group(1));
+  private static final RegionDefinition C_SHARP_STYLE = new RegionDefinition("^#" + WS + "*region" + WS + "+(.*)$",
+                                                                             "^#" + WS + "?end" + WS + "*region(" + WS + "*(.*))?$",
+                                                                             (matcher) -> matcher.group(1));
+  private static final RegionDefinition COMMENT_REGIONS[] = {FD_STYLE, PLUGIN_STYLE, C_SHARP_STYLE};
 
   private static final RegionDefinition CC_REGION = new RegionDefinition("#", "#", null);
 
@@ -62,7 +69,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   private static class RegionDefinition {
     final Pattern begin;
     final Pattern end;
-    final Function<Matcher,String> substitutor;
+    final Function<Matcher, String> substitutor;
 
 
     public RegionDefinition(String begin, String end, Function<Matcher, String> titleExtractor) {
@@ -117,7 +124,6 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
 
-
   @NotNull
   @Override
   public FoldingDescriptor[] buildFoldRegions(@NotNull ASTNode node, @NotNull Document document) {
@@ -148,15 +154,16 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     } else if (isBodyBlock(elementType)) {
       descriptor = buildBodyBlockFolding(node);
     } else if (isComment(elementType, node)) {
-       RegionMarker matched = matchRegion(node);
-       if (null != matched) {
-         regionMarkers.add(matched);
-       }
+      RegionMarker matched = matchRegion(node);
+      if (null != matched) {
+        regionMarkers.add(matched);
+      } else if (isDocComment(elementType)) {
+        // If no special region were detected and comment is kind of documentation - we should create folding region
+        descriptors.add(buildDocCommentFolding(node));
+      }
     } else if (isCompilerConditional(elementType)) {
       RegionMarker matched = matchCCRegion(node);
-      if (null != matched) {
-        ccMarkers.add(matched);
-      }
+      ccMarkers.add(matched);
     }
 
     if (descriptor != null) {
@@ -166,6 +173,14 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     for (ASTNode child : node.getChildren(null)) {
       buildFolding(child, descriptors, regionMarkers, ccMarkers);
     }
+  }
+
+  private static boolean isDocComment(IElementType type) {
+    return type == DOC_COMMENT;
+  }
+
+  private static boolean isDocComment(ASTNode node) {
+    return isDocComment(node.getElementType());
   }
 
   private static RegionMarker peekUpStack(List<RegionMarker> list, int n) {
@@ -239,14 +254,12 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
         // No matter where we start (e.g. #else instead of #if), we just go to the next marker...
         if (null == inProcess) {
           inProcess = marker;
-        }
-        else {
+        } else {
           // #if introduces a new level.  Other kinds do not.
           if (PPIF == type) {
             interruptedStack.push(inProcess);
             inProcess = marker;
-          }
-          else {
+          } else {
             buildCCRegion(descriptors, inProcess, marker, document);
             inProcess = marker;
           }
@@ -365,7 +378,22 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
       textRange = node.getTextRange();
     }
 
-    if (textRange.getLength() > PLACEHOLDER_TEXT.length()) {
+    if (isValidFoldingSize(textRange)) {
+      return new FoldingDescriptor(node, textRange);
+    }
+
+    return null;
+  }
+
+  private static boolean isValidFoldingSize(TextRange textRange) {
+    return textRange.getLength() > PLACEHOLDER_TEXT.length();
+  }
+
+  private static FoldingDescriptor buildDocCommentFolding(ASTNode node) {
+    TextRange textRange = node.getTextRange();
+    textRange = new TextRange(textRange.getStartOffset() + 2, textRange.getEndOffset() - 2);
+
+    if (isValidFoldingSize(textRange)) {
       return new FoldingDescriptor(node, textRange);
     }
 
@@ -374,7 +402,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
   private static FoldingDescriptor buildRegionFolding(final RegionMarker start, final RegionMarker end) {
     TextRange range = new TextRange(start.node.getStartOffset(), end.node.getTextRange().getEndOffset());
-
+    start.node.putUserData(REGION_DEFINITION_KEY, true);
     return new FoldingDescriptor(start.node, range) {
       @Nullable
       @Override
@@ -445,6 +473,21 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
   @Override
   public boolean isCollapsedByDefault(@NotNull ASTNode node) {
+    final PsiElement psiElement = node.getPsi();
+
+    final CodeFoldingSettings settings = CodeFoldingSettings.getInstance();
+    //final HaxeFoldingSettings haxeSettings = HaxeFoldingSettings.getInstance();
+
+    if (psiElement instanceof HaxeImportStatement || psiElement instanceof HaxeUsingStatement) {
+      return settings.COLLAPSE_IMPORTS;
+    }
+
+    if (isDocComment(node) && !hasRegionMarker(node)) return settings.COLLAPSE_DOC_COMMENTS;
+
     return false;
+  }
+
+  private boolean hasRegionMarker(@NotNull ASTNode node) {
+    return node.getUserData(REGION_DEFINITION_KEY) != null;
   }
 }
