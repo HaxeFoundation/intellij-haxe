@@ -17,9 +17,12 @@ package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,16 +38,18 @@ public class HaxeEnumValuesCompletionContributor extends CompletionContributor {
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-               addEnumValuesFromCurrentFile(result, parameters.getOriginalFile());
+               addEnumValuesFromCurrentFile(result, parameters.getOriginalPosition(), parameters.getOriginalFile());
              }
            });
   }
 
-  private static void addEnumValuesFromCurrentFile(CompletionResultSet resultSet, PsiFile targetFile) {
+  private static void addEnumValuesFromCurrentFile(CompletionResultSet resultSet, PsiElement contextElement, PsiFile targetFile) {
     if (!(targetFile instanceof HaxeFile)) return;
 
     final HaxeFileModel fileModel = ((HaxeFile)targetFile).getModel();
+    final HaxeClass contextClass = PsiTreeUtil.getParentOfType(contextElement, HaxeClass.class);
     fileModel.getClassModelsStream()
+      .filter(model -> model.haxeClass != contextClass)
       .filter(HaxeClassModel::isEnum)
       .flatMap(model -> ((HaxeEnumModel)model).getValuesStream())
       .forEach(enumValueModel -> {
