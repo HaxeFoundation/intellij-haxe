@@ -108,8 +108,6 @@
         </javac2>
 
     </target>
-    <!--extra traget  for gradle as "package" is a reserved keyword-->
-    <target name="runAntBuild" depends="package"/>
 
     <target name="package" depends="compile,generateTemplatedFiles" description="Generate JAR file">
         <jar jarfile="intellij-haxe-${idea.version}.jar" update="true">

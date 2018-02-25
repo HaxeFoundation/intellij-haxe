@@ -6,5 +6,10 @@ if [[ $# -eq 0 ]] ; then
     exit 1
 fi
 
-./gradlew buildPlugin -PideaVersion="$1"
+#download and extract dependencies if necessary
+ant -f workspace.xml -Dversion="$1"
+
+#call the build script along with the path to a code package
+#specific to the intellij version which we build against
+ant -f build.xml -Dversion="$1"
 
