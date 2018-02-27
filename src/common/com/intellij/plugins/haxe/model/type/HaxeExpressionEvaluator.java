@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -59,6 +60,15 @@ public class HaxeExpressionEvaluator {
   static private ResultHolder handle(final PsiElement element, final HaxeExpressionEvaluatorContext context) {
     try {
       return _handle(element, context);
+    }
+    catch (NullPointerException e) {
+      // Make sure that these get into the log, because the GeneralHighlightingPass swallows them.
+      LOG.error("Error evaluating expression type for element " + element.toString(), e);
+      throw e;
+    }
+    catch (ProcessCanceledException e) {
+      // Don't log these, because they are common, but DON'T swallow them, either; it makes things unresponsive.
+      throw e;
     }
     catch (Throwable t) {
       // XXX: Watch this.  If it happens a lot, then maybe we shouldn't log it unless in debug mode.
