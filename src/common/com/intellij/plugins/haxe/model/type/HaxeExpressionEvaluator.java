@@ -434,8 +434,8 @@ public class HaxeExpressionEvaluator {
         while (null != forStatement || null != whileStatement) {
           if (null != forStatement) {
             fatArrow = forStatement.getMapInitializer();
-            forStatement = forStatement.getMapInitializerForStatement();
             whileStatement = forStatement.getMapInitializerWhileStatement();
+            forStatement = forStatement.getMapInitializerForStatement();
           } else {
             fatArrow = whileStatement.getMapInitializer();
             forStatement = whileStatement.getMapInitializerForStatement();
