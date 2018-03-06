@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.openapi.util.io.FileSystemUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -104,7 +102,7 @@ public class HaxeFileUtil {
     if (null == strings || strings.isEmpty()) {
       return null;
     }
-    return HaxeStringUtil.join(SEPARATOR_STRING, strings);
+    return String.join(SEPARATOR_STRING, strings);
   }
 
   /**
@@ -117,7 +115,7 @@ public class HaxeFileUtil {
     if (null == strings || 0 == strings.length) {
       return null;
     }
-    return HaxeStringUtil.join(SEPARATOR_STRING, strings);
+    return String.join(SEPARATOR_STRING, strings);
   }
 
   /**
@@ -130,7 +128,7 @@ public class HaxeFileUtil {
     if (null == path || path.isEmpty()) {
       return Collections.EMPTY_LIST;
     }
-    String p = FileUtil.normalize(path);
+    String p = normalize(path);
     String[] parts = p.split(SEPARATOR_STRING);
     return Arrays.asList(parts);
   }
@@ -167,5 +165,19 @@ public class HaxeFileUtil {
     }
 
     return file;
+  }
+
+  /**
+   * Normalize a path name (to IDEA's version of normal).
+   *
+   * converts back slashes to forward slashes
+   * removes double slashes inside the path, e.g. "x/y//z" => "x/y/z"
+   */
+  @NotNull
+  public static String normalize(String path) {
+    if (null == path) {
+      return "";
+    }
+    return FileUtil.normalize(path);
   }
 }

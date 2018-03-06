@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.execution.process.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
@@ -57,6 +58,7 @@ public class HaxeCommonCompilerUtil {
 
     String getCompilationClass();
     String getOutputFileName();
+    String getOutputDirectory();
     Boolean getIsTestBuild();
 
     void errorHandler(String message);
@@ -77,7 +79,7 @@ public class HaxeCommonCompilerUtil {
 
     List<String> getSourceRoots();
 
-    String getCompileOutputPath();
+    String getModuleDefaultCompileOutputPath();
 
     void setErrorRoot(String root);
 
@@ -89,6 +91,8 @@ public class HaxeCommonCompilerUtil {
 
     String getModuleDirPath();
   }
+
+  private static final Logger LOG = Logger.getInstance("#HaxeCommonCompilerUtil");
 
   public static boolean compile(final CompilationContext context) {
     HaxeModuleSettingsBase settings = context.getModuleSettings();
@@ -129,7 +133,7 @@ public class HaxeCommonCompilerUtil {
         // commands are run.  For this reason, the lime banner is also not repeated in the output when it runs
         // a second time.
         context.infoHandler(HaxeCommonBundle.message("compiler.working.path", workingPath));
-        context.infoHandler(HaxeCommonBundle.message("compiler.output.path", context.getCompileOutputPath()));
+        context.infoHandler(HaxeCommonBundle.message("compiler.output.path", context.getModuleDefaultCompileOutputPath()));
         context.infoHandler(HaxeCommonBundle.message("compiler.output.file", context.getOutputFileName()));
 
         ProcessBuilder process = HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData());
@@ -259,6 +263,58 @@ public class HaxeCommonCompilerUtil {
     return null == workingPath ? "" : workingPath;
   }
 
+  /**
+   * Figure out where the compiler's output will go.
+   *
+   * Caveat: This doesn't attempt to read Haxe's project files to determine the actual
+   * output if a project file is used.  Rather it tries to determine what the user wants
+   * by using IDEA's module and project settings.  Use accordingly.
+   *
+   * @param context
+   * @return File name if the target is a file; directory name if the target has multiple files.
+   */
+  public static String calculateOutputPath(CompilationContext context) {
+    if (!context.getModuleSettings().isUseUserPropertiesToBuild()) {
+      LOG.error("Programming Error: Unexpected output target for this routine.");
+    }
+
+    // Directory priorities:
+    // - Absolute directory in the output file name (from settings)
+    // - Specified output directory (from settings)
+    // - '--cwd' argument (from compiler arguments in settings)
+    // Should include, but we don't have an extension:- Module extension's default path (which may inherit from the project).
+    // - Project's configured output path.
+    // - Module directory.
+
+    String outputFile = HaxeFileUtil.normalize(context.getOutputFileName());
+    if (HaxeFileUtil.isAbsolutePath(outputFile)) {
+      return outputFile;
+    }
+
+    String outputRoot = HaxeFileUtil.normalize(context.getOutputDirectory());
+    if (outputRoot.isEmpty()) {
+      // User didn't tell us, so guess the best one.
+      outputRoot = HaxeFileUtil.normalize(findCwdInCommandLineArguments(context.getModuleSettings()));
+      if (outputRoot.isEmpty()) {
+        outputRoot = HaxeFileUtil.normalize(context.getModuleDefaultCompileOutputPath());
+        if (outputRoot.isEmpty()) {
+          outputRoot = HaxeFileUtil.normalize(context.getModuleDirPath());
+        }
+      }
+    }
+
+    // Be a little smart and don't add directories if the user has already specified them.
+    if (outputFile.contains(HaxeFileUtil.SEPARATOR_STRING)) {
+      return HaxeFileUtil.joinPath(outputRoot, outputFile);
+    }
+
+    HaxeTarget target = context.getHaxeTarget();
+    return HaxeFileUtil.joinPath(outputRoot,
+                 "Export",
+                 target != null ? target.getDefaultOutputSubdirectory() : "",
+                 context.isDebug() ? "debug" : "release",
+                 outputFile);
+  }
 
   private static final Pattern CWD_PATTERN = Pattern.compile("--cwd[ \t]+('[^']*'|\"[^\"]*\"|(\\ |[^ \t])+)");
   private static String findCwdInCommandLineArguments(HaxeModuleSettingsBase settings) {
@@ -339,7 +395,7 @@ public class HaxeCommonCompilerUtil {
     }
 
     commandLine.add(context.getHaxeTarget().getCompilerFlag());
-    commandLine.add(context.getOutputFileName());
+    commandLine.add(calculateOutputPath(context));
     return commandLine;
   }
 
