@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.runner;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.CommandLineState;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
@@ -34,9 +33,9 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.util.HaxeCommandLine;
@@ -127,8 +126,6 @@ public class HaxeRunner extends DefaultProgramRunner {
 
   static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
     FileDocumentManager.getInstance().saveAllDocuments();
-    final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
-    assert model != null;
-    return model.getCompilerOutputUrl() + "/release/" + settings.getOutputFileName();
+    return HaxeCompilerUtil.calculateCompilerOutput(module);
   }
 }
