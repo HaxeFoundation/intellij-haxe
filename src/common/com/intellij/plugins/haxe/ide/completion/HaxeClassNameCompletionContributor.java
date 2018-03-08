@@ -187,7 +187,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
         String name = pair.getFirst();
         final String qName = HaxeResolveUtil.joinQName(info.getValue(), name);
         myResultSet.addElement(LookupElementBuilder.create(qName, name)
-                                 .withIcon(info.getIcon())
+                                 .withIcon(info.getCompletionIcon())
                                  .withTailText(" " + info.getValue(), true)
                                  .withInsertHandler(myInsertHandler));
       }

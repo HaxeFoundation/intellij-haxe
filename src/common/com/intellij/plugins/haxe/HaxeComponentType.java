@@ -34,15 +34,27 @@ public enum HaxeComponentType {
     public Icon getIcon() {
       return icons.HaxeIcons.C_Haxe;
     }
+    @Override
+    public Icon getCompletionIcon() {
+      return AllIcons.Nodes.Class;
+    }
   }, ENUM(1) {
     @Override
     public Icon getIcon() {
       return icons.HaxeIcons.E_Haxe;
     }
+    @Override
+    public Icon getCompletionIcon() {
+      return AllIcons.Nodes.Enum;
+    }
   }, INTERFACE(2) {
     @Override
     public Icon getIcon() {
       return icons.HaxeIcons.I_Haxe;
+    }
+    @Override
+    public Icon getCompletionIcon() {
+      return AllIcons.Nodes.Interface;
     }
   }, FUNCTION(3) {
     @Override
@@ -92,6 +104,10 @@ public enum HaxeComponentType {
   }
 
   public abstract Icon getIcon();
+
+  public Icon getCompletionIcon() {
+    return getIcon();
+  }
 
   public static boolean isVariable(@Nullable HaxeComponentType type) {
     return type == VARIABLE || type == PARAMETER || type == FIELD;
