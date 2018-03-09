@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -62,4 +64,27 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
   public FullyQualifiedInfo getQualifiedInfo() {
     return null;
   }
+
+  public boolean hasInitializer() {
+    return getInitializerPsi() != null;
+  }
+
+  @Nullable
+  public HaxeVarInit getInitializerPsi() {
+    final PsiElement basePsi = getBasePsi();
+    return basePsi instanceof HaxeLocalVarDeclaration ? ((HaxeLocalVarDeclaration)basePsi).getVarInit() : null;
+  }
+
+  public boolean hasTypeTag() {
+    return getTypeTagPsi() != null;
+  }
+
+  public HaxeTypeTag getTypeTagPsi() {
+    final PsiElement basePsi = getBasePsi();
+    if (basePsi instanceof HaxeLocalVarDeclaration) {
+      return ((HaxeLocalVarDeclaration)basePsi).getTypeTag();
+    }
+    return null;
+  }
+
 }
