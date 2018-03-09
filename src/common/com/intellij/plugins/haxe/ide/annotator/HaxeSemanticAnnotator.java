@@ -436,7 +436,7 @@ class MethodChecker {
   private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     if (currentClass.isExtern() || currentClass.isInterface()) {
-      if (currentMethod.getReturnTypeTagPsi() == null) {
+      if (currentMethod.getReturnTypeTagPsi() == null && !currentMethod.isConstructor()) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
       }
       for (final HaxeParameterModel param : currentMethod.getParameters()) {
