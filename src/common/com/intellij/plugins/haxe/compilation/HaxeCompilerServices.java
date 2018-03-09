@@ -23,16 +23,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.HaxeConfiguration;
-import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.haxelib.*;
 import com.intellij.plugins.haxe.ide.completion.HaxeCompilerCompletionItem;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
-import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
-import com.intellij.plugins.haxe.util.HaxeHelpUtil;
-import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -284,6 +283,21 @@ public class HaxeCompilerServices {
         Project project = file.getProject();
         Module moduleForFile = ModuleUtil.findModuleForFile(file.getVirtualFile(), project);
         int offset = recalculateFileOffset(file, element, editor);
+
+        // TODO: Add libraries that could be referenced.
+
+        // Source roots need to be in the classpath, too.
+        for (VirtualFile root : ModuleRootManager.getInstance(moduleForFile).getSourceRoots()) {
+            commandLineArguments.add("-cp");
+            commandLineArguments.add(root.getPath());
+        }
+
+        // Add all of the definitions, so that the compiler can see the code we are dealing with.
+        HaxeProjectSettings settings = HaxeProjectSettings.getInstance(project);
+        for (String define : settings.getUserCompilerDefinitions()) {
+            commandLineArguments.add("-D");
+            commandLineArguments.add(define);
+        }
 
         // Tell the compiler we want field completion, adding the type (var or method)
         commandLineArguments.add("-D");
