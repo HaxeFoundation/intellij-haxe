@@ -29,6 +29,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
+import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
@@ -260,4 +261,9 @@ public class HaxeCompilerUtil
         return HaxeProcessUtil.runProcess(command, mixedOutput, dir, sdkData, stdout, stderr, timeLog, true);
     }
 
+
+    public static String calculateCompilerOutput(@NotNull Module module) {
+        HaxeCommonCompilerUtil.CompilationContext context = HaxeCompiler.createDummyCompilationContext(module);
+        return HaxeCommonCompilerUtil.calculateOutputPath(context);
+    }
 }

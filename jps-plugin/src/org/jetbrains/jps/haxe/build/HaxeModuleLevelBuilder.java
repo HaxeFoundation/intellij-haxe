@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.jetbrains.jps.haxe.build;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
@@ -41,6 +42,8 @@ import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
 import org.jetbrains.jps.model.java.JpsJavaExtensionService;
+import org.jetbrains.jps.model.java.JpsJavaProjectExtension;
+import org.jetbrains.jps.model.java.impl.JavaProjectExtensionRole;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
@@ -149,6 +152,11 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       }
 
       @Override
+      public String getOutputDirectory() {
+        return getModuleSettings().getOutputFolder();
+      }
+
+      @Override
       public Boolean getIsTestBuild() {
         return false;
       }
@@ -208,9 +216,20 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
       }
 
       @Override
-      public String getCompileOutputPath() {
-        final String outputRootUrl = JpsJavaExtensionService.getInstance().getOutputUrl(module, false);
-        return JpsPathUtil.urlToPath(outputRootUrl);
+      public String getModuleDefaultCompileOutputPath() {
+        // This is the right way to do it *IF* we have a module output path.  But we don't...
+        //  final String outputRootUrl = JpsJavaExtensionService.getInstance().getOutputUrl(module, false);
+        //  return JpsPathUtil.urlToPath(outputRootUrl);
+
+        // ... so we reach directly down to the project and grab its output path.
+        final JpsJavaProjectExtension projectExtension = module.getProject().getContainer().getChild(JavaProjectExtensionRole.INSTANCE);
+        if (projectExtension != null) {
+          final String url = projectExtension.getOutputUrl();
+          if (url != null) {
+            return VfsUtilCore.urlToPath(url);
+          }
+        }
+        return "";
       }
 
       @Override

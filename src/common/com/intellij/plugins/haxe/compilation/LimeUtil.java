@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class LimeUtil {
 
   private static final StringBuffer EMPTY_STRINGBUFFER = new StringBuffer("\n");
 
-  public static HXMLProjectModel getLimeProjectModel(Module module) {
+  public static HXMLProjectModel getLimeProjectModel(Module module, boolean useDebugConfig) {
 
     HaxeCompilerServices cs = new HaxeCompilerServices(new HaxeCompilerUtil.ErrorNotifier(){
       public void notifyError(String message) {
@@ -44,7 +44,7 @@ public class LimeUtil {
       }
     });
 
-    CharSequence displayData = concatList(cs.getLimeProjectConfiguration(module, null));
+    CharSequence displayData = concatList(cs.getLimeProjectConfiguration(module, useDebugConfig, null));
 
     PsiFile psi = PsiFileFactory.getInstance(module.getProject()).createFileFromText(
       "Lime.Display.Temp." + HXMLFileType.DEFAULT_EXTENSION, HXMLFileType.INSTANCE, displayData);

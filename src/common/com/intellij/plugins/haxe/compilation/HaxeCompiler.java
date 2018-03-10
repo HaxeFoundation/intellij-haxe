@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.util.io.FileUtil;
@@ -55,7 +57,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HaxeCompiler implements SourceProcessingCompiler {
+public class HaxeCompiler implements FileProcessingCompiler {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompiler");
 
   /*
@@ -184,6 +186,16 @@ public class HaxeCompiler implements SourceProcessingCompiler {
     return compiled;
   }
 
+  public static HaxeCommonCompilerUtil.CompilationContext createDummyCompilationContext(final Module module) {
+    DummyCompileContext context = new DummyCompileContext() {
+      @Override
+      public Project getProject() {
+        return module.getProject();
+      }
+    };
+    return createCompilationContext(context, module, null);
+  }
+
   private static HaxeCommonCompilerUtil.CompilationContext createCompilationContext(final CompileContext context,
                                                                                     final Module module,
                                                                                     ModuleBasedConfiguration configuration) {
@@ -233,6 +245,11 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       @Override
       public String getOutputFileName() {
         return getFileNameWithCurrentExtension(getModuleSettings().getOutputFileName());
+      }
+
+      @Override
+      public String getOutputDirectory() {
+        return getModuleSettings().getOutputFolder();
       }
 
       @Override
@@ -304,10 +321,15 @@ public class HaxeCompiler implements SourceProcessingCompiler {
       }
 
       @Override
-      public String getCompileOutputPath() {
-        final CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
-        final String outputUrl = moduleExtension != null ? moduleExtension.getCompilerOutputUrl() : null;
-        return VfsUtilCore.urlToPath(outputUrl);
+      public String getModuleDefaultCompileOutputPath() {
+        // This is probably the right way to do it, *if* we actually had a CompilerModuleExtension for Haxe.
+        //  final CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+        //  final String outputUrl = moduleExtension != null ? moduleExtension.getCompilerOutputUrl() : null;
+        //  return VfsUtilCore.urlToPath(outputUrl);
+
+        // Instead, reach down directly and get the project's output path.
+        final String projectOutputPath = CompilerProjectExtension.getInstance(module.getProject()).getCompilerOutputUrl();
+        return VfsUtilCore.urlToPath(projectOutputPath);
       }
 
       @Override

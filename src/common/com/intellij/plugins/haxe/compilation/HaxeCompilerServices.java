@@ -83,7 +83,10 @@ public class HaxeCompilerServices {
     }
 
     public List<String> getLimeProjectConfiguration(Module module, @Nullable HaxeDebugTimeLog timeLog) {
+        return getLimeProjectConfiguration(module, false, timeLog);
+    }
 
+    public List<String> getLimeProjectConfiguration(Module module, boolean useDebugConfig, @Nullable HaxeDebugTimeLog timeLog) {
         HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(module);
         String targetFlag = moduleSettings.getOpenFLTarget().getTargetFlag();
 
@@ -104,6 +107,12 @@ public class HaxeCompilerServices {
             limeArguments.add("display");
             //flash, html5, linux, etc
             limeArguments.add(targetFlag);
+
+            if (useDebugConfig) {
+                limeArguments.add("-Ddebug");
+                limeArguments.add("-debug");
+                limeArguments.add("-Dfdb"); // XXX: Unnecessary??
+            }
 
             // Add arguments from the settings panel.  They get echoed out via display,
             // if appropriate.

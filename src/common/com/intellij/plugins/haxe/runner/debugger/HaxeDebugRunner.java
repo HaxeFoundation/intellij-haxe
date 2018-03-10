@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
 import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.compilation.LimeUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -178,13 +179,12 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         flashFileToDebug = configuration.getCustomFileToLaunchPath();
       }
       else {
-        //final CompilerModuleExtension model = CompilerModuleExtension.getInstance(module);
-        //assert model != null;
-        //flashFileToDebug = model.getCompilerOutputUrl() + "/debug/" + settings.getOutputFileName();
-
-        // TODO: Need to add a debug flag to the project model, so that the debug SWF is always displayed.
-        HXMLProjectModel lime = LimeUtil.getLimeProjectModel(module);
-        flashFileToDebug = module.getProject().getBasePath() + "/" + lime.getSwfOutputFileName();
+        if (!settings.isUseOpenFLToBuild()) {
+          flashFileToDebug = HaxeCompilerUtil.calculateCompilerOutput(module);
+        } else {
+          HXMLProjectModel lime = LimeUtil.getLimeProjectModel(module, true);
+          flashFileToDebug = HaxeFileUtil.joinPath(module.getProject().getBasePath(), lime.getSwfOutputFileName());
+        }
       }
       return runFlash(module, settings, env, executor, flashFileToDebug);
     }
