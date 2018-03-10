@@ -654,26 +654,16 @@ public class HaxeExpressionEvaluator {
           returnType = HaxeTypeResolver.getTypeFromTypeTag(tag, function);
         } else {
           // If there was no type tag on the function, then we try to infer the value:
-          // If there is a block to this method, then we gather all of the return statements and unify them.
-          // If there is a block and there are no return statements, then return the type of the block.  (See PsiBlockStatement above.)
+          // If there is a block to this method, then return the type of the block.  (See PsiBlockStatement above.)
           // If there is not a block, but there is an expression, then return the type of that expression.
           // If there is not a block, but there is a statement, then return the type of that statement.
           HaxeBlockStatement block = function.getBlockStatement();
           if (null != block) {
-            ArrayList<ResultHolder> returnTypes = new ArrayList<>();
-            List<HaxeReturnStatement> returnStatements = block.getReturnStatementList();
-            if (!returnStatements.isEmpty()) {
-              for (HaxeReturnStatement returnStatement : returnStatements) {
-                returnTypes.add(handle(returnStatement, context));
-              }
-              returnType = HaxeTypeUnifier.unifyHolders(returnTypes, function);
-            } else {
-              returnType = handle(block, context);
-            }
+            returnType = handle(block, context);
           } else if (null != function.getExpression()) {
             returnType = handle(function.getExpression(), context);
           } else {
-            // Only one of these can be non-null.
+            // Only one of these can be non-null at a time.
             PsiElement possibleStatements[] = { function.getDoWhileStatement(), function.getForStatement(), function.getIfStatement(),
                 function.getReturnStatement(), function.getThrowStatement(), function.getWhileStatement() };
             for (PsiElement statement : possibleStatements) {
