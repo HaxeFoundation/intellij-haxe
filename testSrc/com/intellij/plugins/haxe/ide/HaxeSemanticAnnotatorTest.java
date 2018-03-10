@@ -195,4 +195,28 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testStaticsInExtended() throws Exception {
     doTestNoFixWithoutWarnings();
   }
+
+  public void testArrayAssignmentFromEmpty() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testArrayAssignmentBadFunctionType() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testArrayAssignmentWrongType() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testArrayAssignmentBadArrowFunction() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testArrayAssignmentWithAbstract() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testArrayAssignmentWithArrowFunctions() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
