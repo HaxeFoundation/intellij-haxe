@@ -504,7 +504,7 @@ public class HaxeExpressionEvaluator {
       }
 
       ResultHolder elementTypeHolder = references.isEmpty()
-                                       ? SpecificTypeReference.getDynamic(element).createHolder()
+                                       ? SpecificTypeReference.getUnknown(element).createHolder()
                                        : HaxeTypeUnifier.unify(references, element).withoutConstantValue().createHolder();
 
       SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder);
