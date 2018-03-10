@@ -620,29 +620,74 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeFunctionLiteral) {
-      HaxeParameterList params = ((HaxeFunctionLiteral)element).getParameterList();
+      HaxeFunctionLiteral function = (HaxeFunctionLiteral)element;
+      HaxeParameterList params = function.getParameterList();
       if (params == null) {
-        return SpecificHaxeClassReference.getInvalid(element).createHolder();
+        return SpecificHaxeClassReference.getInvalid(function).createHolder();
       }
       LinkedList<ResultHolder> results = new LinkedList<ResultHolder>();
       ResultHolder returnType = null;
       context.beginScope();
       try {
-        for (HaxeParameter parameter : params.getParameterList()) {
-          ResultHolder vartype = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), element);
-          String name = parameter.getName();
-          if (name != null) {
-            context.setLocal(name, vartype);
-          }
+        if (params instanceof HaxeOpenParameterList) {
+          // Arrow function with a single, unparenthesized, parameter.
+          HaxeOpenParameterList openParamList = ((HaxeOpenParameterList)params);
+
+          // TODO: Infer the type from first usage in the function body.
+          ResultHolder vartype = SpecificTypeReference.getUnknown(function).createHolder();
+
+          context.setLocal(openParamList.getComponentName().getName(), vartype);
           results.add(vartype);
+        } else {
+          for (HaxeParameter parameter : params.getParameterList()) {
+            ResultHolder vartype = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), function);
+            String name = parameter.getName();
+            if (name != null) {
+              context.setLocal(name, vartype);
+            }
+            results.add(vartype);
+          }
         }
-        context.addLambda(context.createChild(element.getLastChild()));
-        returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeFunctionLiteral)element).getTypeTag(), element);
+        context.addLambda(context.createChild(function.getLastChild()));
+        HaxeTypeTag tag = (function.getTypeTag());
+        if (null != tag) {
+          returnType = HaxeTypeResolver.getTypeFromTypeTag(tag, function);
+        } else {
+          // If there was no type tag on the function, then we try to infer the value:
+          // If there is a block to this method, then we gather all of the return statements and unify them.
+          // If there is a block and there are no return statements, then return the type of the block.  (See PsiBlockStatement above.)
+          // If there is not a block, but there is an expression, then return the type of that expression.
+          // If there is not a block, but there is a statement, then return the type of that statement.
+          HaxeBlockStatement block = function.getBlockStatement();
+          if (null != block) {
+            ArrayList<ResultHolder> returnTypes = new ArrayList<>();
+            List<HaxeReturnStatement> returnStatements = block.getReturnStatementList();
+            if (!returnStatements.isEmpty()) {
+              for (HaxeReturnStatement returnStatement : returnStatements) {
+                returnTypes.add(handle(returnStatement, context));
+              }
+              returnType = HaxeTypeUnifier.unifyHolders(returnTypes, function);
+            } else {
+              returnType = handle(block, context);
+            }
+          } else if (null != function.getExpression()) {
+            returnType = handle(function.getExpression(), context);
+          } else {
+            // Only one of these can be non-null.
+            PsiElement possibleStatements[] = { function.getDoWhileStatement(), function.getForStatement(), function.getIfStatement(),
+                function.getReturnStatement(), function.getThrowStatement(), function.getWhileStatement() };
+            for (PsiElement statement : possibleStatements) {
+              if (null != statement) {
+                returnType = handle(statement, context);
+              }
+            }
+          }
+        }
       } finally {
         context.endScope();
       }
 
-      return new SpecificFunctionReference(results, returnType, null, element).createHolder();
+      return new SpecificFunctionReference(results, returnType, null, function).createHolder();
     }
 
     if (element instanceof HaxeIfStatement) {
