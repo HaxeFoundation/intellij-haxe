@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -378,12 +378,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     @Override
     public boolean execute(@NotNull PsiElement element, ResolveState state) {
+      HaxeComponentName componentName = null;
       if (element instanceof HaxeNamedComponent) {
-        final HaxeComponentName componentName = ((HaxeNamedComponent)element).getComponentName();
-        if (componentName != null && name.equals(componentName.getText())) {
-          result.add(componentName);
-          return false;
-        }
+        componentName = ((HaxeNamedComponent)element).getComponentName();
+      } else if (element instanceof HaxeOpenParameterList) {
+        componentName = ((HaxeOpenParameterList)element).getComponentName();
+      }
+      if (componentName != null && name.equals(componentName.getText())) {
+        result.add(componentName);
+        return false;
       }
       return true;
     }
