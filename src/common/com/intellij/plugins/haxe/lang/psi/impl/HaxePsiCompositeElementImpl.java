@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +119,10 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
     if (parameterList != null) {
       result.addAll(parameterList.getParameterList());
+    }
+    final HaxeOpenParameterList openParameterList = PsiTreeUtil.getChildOfType(this, HaxeOpenParameterList.class);
+    if (openParameterList != null) {
+      result.add(openParameterList);
     }
     final HaxeGenericParam tygenericParameParam = PsiTreeUtil.getChildOfType(this, HaxeGenericParam.class);
     if (tygenericParameParam != null) {

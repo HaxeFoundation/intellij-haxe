@@ -45,9 +45,11 @@ public class HaxeClassReference {
     HaxeClass clazz = HaxeResolveUtil.findClassByQName(name, elementContext);
     if (clazz == null) {
       clazz = HaxeResolveUtil.tryResolveClassByQName(elementContext);
-      if (clazz == null) {
-        System.err.println("Not found '" + name + "' : " + elementContext + " : " + elementContext.getText());
-      }
+      // Null is a legitimate answer in the case of Dynamic or Unknown.
+      // (Plus, this should be logging, not dumping to stderr.)
+      //if (clazz == null) {
+      //  System.err.println("Not found '" + name + "' : " + elementContext + " : " + elementContext.getText());
+      //}
     }
     return clazz;
   }

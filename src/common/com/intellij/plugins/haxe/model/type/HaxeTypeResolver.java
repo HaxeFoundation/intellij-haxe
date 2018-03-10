@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,6 +198,9 @@ public class HaxeTypeResolver {
     ArrayList<ResultHolder> references = new ArrayList<ResultHolder>();
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
+        for (HaxeFunctionType fnType : part.getFunctionTypeList()) {
+          references.add(getTypeFromFunctionType(fnType));
+        }
         for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
           references.add(getTypeFromTypeOrAnonymous(anonymous));
         }

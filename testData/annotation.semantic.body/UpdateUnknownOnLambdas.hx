@@ -5,8 +5,8 @@ class Test {
   public function main() {
     var out = 10;
 
-    this.demo(function(v) {
-      <error descr="Can't assign String to Int">out = v</error>;
-    });
+    this.demo(<error descr="Can't assign Int -> Int to String -> Void">function(v) {
+      out = v;
+    }</error>);
   }
 }
