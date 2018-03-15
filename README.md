@@ -120,7 +120,7 @@ Use the hxcpp debugger
 IDEA Ultimate is required.  Command-line debugging is available because that is a feature
 of the Haxe language itself.  See the hxcpp-debugger project for more information.*
 
-The hxcpp debugger functionality has been rewritten to conform to the
+The hxcpp debugger functionality conforms to the
 Haxe v3.0 debugger.  In order to use this, you must:
 
 - Install the *VERSION 1.1* debugger haxelib from [https://github.com/HaxeFoundation/hxcpp-debugger/tree/protocol_v1.1](https://github.com/HaxeFoundation/hxcpp-debugger/tree/protocol_v1.1).
