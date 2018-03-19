@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +46,7 @@ public class HaxeClassResolveResult implements Cloneable {
   @Nullable
   private final HaxeClass haxeClass;
   private final HaxeGenericSpecialization specialization;
-  private final List<HaxeClassResolveResult> functionTypes = new ArrayList<HaxeClassResolveResult>();
+  private final List<HaxeClassResolveResult> functionTypes = new ArrayList<>();
 
   private HaxeClassResolveResult(@Nullable HaxeClass aClass) {
     this(aClass, new HaxeGenericSpecialization());
@@ -176,18 +177,14 @@ public class HaxeClassResolveResult implements Cloneable {
   @Nullable
   private static HaxeType getTypeOfGenericListPart(HaxeGenericListPart genericListPart) {
     final HaxeTypeListPart typeListPart = genericListPart.getTypeListPart();
-    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
-    final HaxeTypeOrAnonymous typeOrAnonymous = ((typeOrAnonymousList != null) ? typeOrAnonymousList.get(0) : null);
+    final HaxeTypeOrAnonymous typeOrAnonymous = ((typeListPart != null) ? typeListPart.getTypeOrAnonymous() : null);
     return ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
   }
 
   @Nullable
   private static HaxeType getTypeOfTypeListPart(HaxeTypeListPart typeListPart) {
-    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
-    final HaxeTypeOrAnonymous typeOrAnonymous =
-      (((typeOrAnonymousList != null) && (typeOrAnonymousList.size() > 0)) ? typeOrAnonymousList.get(0) : null);
-    final HaxeType type = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
-    return type;
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeListPart.getTypeOrAnonymous();
+    return ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
   }
 
   public List<HaxeClassResolveResult> getFunctionTypes() {

@@ -121,10 +121,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
     HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
     if (underlyingType != null) {
-      List<HaxeTypeOrAnonymous> list = underlyingType.getTypeOrAnonymousList();
-      if (!list.isEmpty()) {
-        return list.get(0);
-      }
+      return underlyingType.getTypeOrAnonymous();
 
       // TODO: What about function types?
     }

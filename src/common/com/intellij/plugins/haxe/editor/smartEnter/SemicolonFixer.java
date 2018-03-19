@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,12 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * Created by as3boyan on 07.10.14.
@@ -58,9 +57,9 @@ public class SemicolonFixer implements Fixer {
     if (haxeFunctionDeclarationWithAttributes != null) {
       HaxeTypeTag typeTag = haxeFunctionDeclarationWithAttributes.getTypeTag();
       if (typeTag != null) {
-        HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(typeTag.getTypeOrAnonymousList());
+        HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
         if (typeOrAnonymous != null) {
-          if (typeOrAnonymous.getText().equals("Void")) {
+          if (typeOrAnonymous.getText().equals(SpecificTypeReference.VOID)) {
             return false;
           }
         }

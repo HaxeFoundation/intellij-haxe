@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +21,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionType;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -31,7 +29,6 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -105,8 +102,11 @@ public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
     LOG.trace("Resolving " + getText());
     final HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(this, HaxeFunctionType.class);
     HaxeTypeOrAnonymous typeOrAnonymous = PsiTreeUtil.getChildOfType(this, HaxeTypeOrAnonymous.class);
-    if (functionType != null && !functionType.getTypeOrAnonymousList().isEmpty()) {
-      typeOrAnonymous = functionType.getTypeOrAnonymousList().iterator().next();
+    if (functionType != null) {
+      HaxeFunctionReturnType returnType = functionType.getFunctionReturnType();
+      if(returnType != null && returnType.getTypeOrAnonymous() != null) {
+          typeOrAnonymous = returnType.getTypeOrAnonymous();
+      }
     }
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : PsiTreeUtil.getChildOfType(this, HaxeType.class);
     return HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));

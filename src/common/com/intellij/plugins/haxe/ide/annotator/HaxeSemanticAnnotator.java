@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,8 +47,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 public class HaxeSemanticAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -89,7 +87,7 @@ class TypeTagChecker {
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
       Annotation annotation =
-        holder.createErrorAnnotation(erroredElement, "Incompatible type " + type1 + " can't be assigned from " + type2);
+        holder.createErrorAnnotation(erroredElement, "Incompatible type " + type1.toStringWithoutConstant() + " can't be assigned from " + type2.toStringWithoutConstant());
       annotation.registerFix(new HaxeFixer("Change type") {
         @Override
         public void run() {
@@ -331,7 +329,7 @@ class ClassChecker {
         return true;
       }
       if (haxeClass instanceof HaxeTypedefDeclaration) {
-        HaxeTypeOrAnonymous anonOrType = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
+        HaxeTypeOrAnonymous anonOrType = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
         if (anonOrType != null) {
           return anonOrType.getAnonymousType() != null;
         }

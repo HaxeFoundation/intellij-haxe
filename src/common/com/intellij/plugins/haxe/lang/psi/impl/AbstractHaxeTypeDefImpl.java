@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 /**
  * @author: Fedor.Korotkov
  */
@@ -39,7 +38,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   public HaxeClassResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
-    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getFirstItem(getTypeOrAnonymousList());
+    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
     if (haxeTypeOrAnonymous == null) {
       // cause parse error
       return HaxeClassResolveResult.create(null);

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,8 +68,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     if (componentType == HaxeComponentType.FIELD) {
       result.append("var ");
       result.append(element.getName());
-    }
-    else {
+    } else {
       result.append("function ");
       result.append(element.getName());
       result.append(" (");
@@ -76,9 +76,9 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(")");
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    if ((typeTag != null) && (!typeTag.getTypeOrAnonymousList().isEmpty())) {
+    if (typeTag != null && typeTag.getTypeOrAnonymous() != null) {
       result.append(":");
-      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymousList().get(0).getType(), specializations));
+      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymous().getType(), specializations));
     }
     result.append(componentType == HaxeComponentType.FIELD ? ";" : "{\n}");
     return result.toString();

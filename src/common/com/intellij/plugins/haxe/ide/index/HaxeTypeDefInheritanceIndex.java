@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +41,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * @author: Fedor.Korotkov
@@ -113,7 +112,7 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
       final Map<String, String> qNameCache = new THashMap<String, String>();
       for (AbstractHaxeTypeDefImpl haxeTypeDef : classes) {
         final HaxeClassInfo value = new HaxeClassInfo(haxeTypeDef.getQualifiedName(), HaxeComponentType.typeOf(haxeTypeDef));
-        final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getFirstItem(haxeTypeDef.getTypeOrAnonymousList());
+        final HaxeTypeOrAnonymous haxeTypeOrAnonymous = haxeTypeDef.getTypeOrAnonymous();
         final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
         final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
         if (anonymousType != null) {
@@ -150,11 +149,7 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
     }
 
     private static void put(Map<String, List<HaxeClassInfo>> map, String key, HaxeClassInfo value) {
-      List<HaxeClassInfo> infos = map.get(key);
-      if (infos == null) {
-        infos = new ArrayList<HaxeClassInfo>();
-        map.put(key, infos);
-      }
+      List<HaxeClassInfo> infos = map.computeIfAbsent(key, k -> new ArrayList<>());
       infos.add(value);
     }
   }

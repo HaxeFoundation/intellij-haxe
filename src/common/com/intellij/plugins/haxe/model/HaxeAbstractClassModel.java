@@ -37,7 +37,8 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   public HaxeClass getUnderlyingClass() {
     HaxeUnderlyingType underlyingTypePsi = getAbstractClass().getUnderlyingType();
     if (underlyingTypePsi == null) return null;
-    final HaxeType underlyingType = underlyingTypePsi.getTypeOrAnonymousList().get(0).getType();
+    HaxeTypeOrAnonymous anonymous = underlyingTypePsi.getTypeOrAnonymous();
+    final HaxeType underlyingType = anonymous != null ? anonymous.getType() : null;
     if (underlyingType != null) {
       final HaxeClassResolveResult result = underlyingType.getReferenceExpression().resolveHaxeClass();
       return result.getHaxeClass();
