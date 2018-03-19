@@ -25,8 +25,9 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HaxeProjectModel {
   private final Project project;
@@ -76,12 +77,15 @@ public class HaxeProjectModel {
   }
 
   public List<HaxeSourceRootModel> getRoots() {
-    ArrayList<HaxeSourceRootModel> out = new ArrayList<>();
+    OrderEnumerator enumerator = OrderEnumerator.orderEntries(project).withoutSdk();
 
-    for (VirtualFile sourceRoot : OrderEnumerator.orderEntries(project).withoutSdk().getAllSourceRoots()) {
-      out.add(new HaxeSourceRootModel(this, sourceRoot));
-    }
-    return out;
+    return Stream.concat(
+        Arrays.stream(enumerator.getClassesRoots()),
+        Arrays.stream(enumerator.getSourceRoots())
+      )
+      .distinct()
+      .map(root -> new HaxeSourceRootModel(this, root))
+      .collect(Collectors.toList());
   }
 
   @NotNull
