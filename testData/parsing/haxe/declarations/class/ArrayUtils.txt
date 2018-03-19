@@ -54,17 +54,19 @@ Haxe File
             TYPE_TAG
               HaxePsiToken::(':')
               FUNCTION_TYPE
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('T')
+                FUNCTION_ARGUMENT
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('T')
                 HaxePsiToken:->('->')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Bool')
+                FUNCTION_RETURN_TYPE
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('Bool')
         HaxePsiToken:)(')')
         TYPE_TAG
           HaxePsiToken::(':')
