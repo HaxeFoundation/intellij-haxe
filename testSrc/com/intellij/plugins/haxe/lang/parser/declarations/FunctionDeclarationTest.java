@@ -118,4 +118,8 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testAnonymousLocalFunctionAsValue() throws Throwable {
     doTest(true);
   }
+
+  public void testNewFunctionSyntax() throws Throwable {
+    doTest(true);
+  }
 }
