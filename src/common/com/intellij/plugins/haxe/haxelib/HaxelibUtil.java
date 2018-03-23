@@ -35,7 +35,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
 import org.apache.log4j.Level;
-import org.fest.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,7 +169,7 @@ public class HaxelibUtil {
       }
       return installedHaxelibs;
     }
-    return Lists.emptyList();
+    return Collections.emptyList();
   }
 
 

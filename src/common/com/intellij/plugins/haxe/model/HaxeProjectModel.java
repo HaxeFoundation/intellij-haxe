@@ -29,9 +29,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HaxeProjectModel {
-  public static final String STD_TYPES_HX = "StdTypes.hx";
+import static com.intellij.plugins.haxe.model.HaxeStdTypesFileModel.STD_TYPES_HX;
 
+public class HaxeProjectModel {
   private final Project project;
   private final HaxePackageModel stdPackage;
   private final HaxeSourceRootModel sdkRoot;
