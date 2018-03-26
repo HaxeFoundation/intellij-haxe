@@ -24,24 +24,22 @@ import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.codeInsight.daemon.SdkValidationResult.*;
-import static com.intellij.plugins.haxe.model.HaxeProjectModel.STD_TYPES_HX;
+import static com.intellij.plugins.haxe.model.HaxeStdTypesFileModel.STD_TYPES_HX;
 
 public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 
@@ -61,8 +59,10 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
           return ProjectBundle.message("module.sdk.not.defined");
         case PROJECT_SDK_NOT_DEFINED:
           return ProjectBundle.message("project.sdk.not.defined");
-        case MULTIPLE_OR_EMPTY_SDK_ROOTS:
-          return HaxeBundle.message("sdk.roots.misconfigured");
+        case MULTIPLE_ROOTS_FOUND:
+          return HaxeBundle.message("sdk.roots.multiple");
+        case NO_VALID_SDK_ROOTS_FOUND:
+          return HaxeBundle.message("sdk.roots.no.valid.root");
       }
     }
 
@@ -76,10 +76,12 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
       if (sdk == null) {
         if (ModuleRootManager.getInstance(module).isSdkInherited()) {
           return PROJECT_SDK_NOT_DEFINED;
-        } else {
+        }
+        else {
           return MODULE_SDK_NOT_DEFINED;
         }
-      } else {
+      }
+      else {
         return validateSdkRoots(sdk);
       }
     }
@@ -87,19 +89,27 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
   }
 
   private SdkValidationResult validateSdkRoots(Sdk sdk) {
-    List<VirtualFile> roots = StreamEx.of(sdk.getRootProvider().getFiles(OrderRootType.CLASSES))
-      .append(sdk.getRootProvider().getFiles(OrderRootType.SOURCES))
-      .distinct()
-      .collect(Collectors.toList());
+    List<VirtualFile> roots = getDistinctRoots(sdk);
 
     if (hasNoValidRoots(roots)) {
       return NO_VALID_SDK_ROOTS_FOUND;
     }
     if (hasMultipleOrEmptyRoots(roots)) {
-      return MULTIPLE_OR_EMPTY_SDK_ROOTS;
+      return MULTIPLE_ROOTS_FOUND;
     }
 
     return null;
+  }
+
+  private List<VirtualFile> getDistinctRoots(Sdk sdk) {
+    return getDistinctRootsStream(sdk).collect(Collectors.toList());
+  }
+
+  private Stream<VirtualFile> getDistinctRootsStream(Sdk sdk) {
+    return Stream.concat(
+      Arrays.stream(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)),
+      Arrays.stream(sdk.getRootProvider().getFiles(OrderRootType.SOURCES))
+    ).distinct();
   }
 
   private boolean hasNoValidRoots(List<VirtualFile> roots) {
@@ -122,11 +132,11 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
       case MODULE_SDK_NOT_DEFINED:
       case NO_VALID_SDK_ROOTS_FOUND:
         super.doFix(project, file);
-      case MULTIPLE_OR_EMPTY_SDK_ROOTS:
+        break;
+      case MULTIPLE_ROOTS_FOUND:
         pruneExcessiveRoots(project, file);
         break;
     }
-    super.doFix(project, file);
   }
 
   private void pruneExcessiveRoots(Project project, VirtualFile file) {
@@ -135,20 +145,17 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
       final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
       if (sdk != null) {
         final SdkModificator modificator = sdk.getSdkModificator();
-        //modificator.
-        //  stdRoot = StreamEx.of(modificator.getRoots(OrderRootType.CLASSES))
-        //  .append(modificator.getRoots(OrderRootType.SOURCES))
-        //  .append(stdRoot)
-        //  .distinct()
-        //  .filter(root -> root.findChild(STD_TYPES_HX) != null)
-        //  .findFirst()
-        //  .orElse(null);
-        //
-        //if (stdRoot != null) {
-        //  modificator.removeAllRoots();
-        //  modificator.addRoot(stdRoot, OrderRootType.CLASSES);
-        //  modificator.addRoot(stdRoot, OrderRootType.SOURCES);
-        //}
+        final VirtualFile stdRoot = getDistinctRootsStream(sdk)
+          .filter(root -> root.findChild(STD_TYPES_HX) != null)
+          .findFirst()
+          .orElse(null);
+
+        if (stdRoot != null) {
+          modificator.removeAllRoots();
+          modificator.addRoot(stdRoot, OrderRootType.CLASSES);
+          modificator.addRoot(stdRoot, OrderRootType.SOURCES);
+          WriteAction.run(modificator::commitChanges);
+        }
       }
     }
   }
@@ -157,6 +164,6 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
 enum SdkValidationResult {
   PROJECT_SDK_NOT_DEFINED,
   MODULE_SDK_NOT_DEFINED,
-  MULTIPLE_OR_EMPTY_SDK_ROOTS,
+  MULTIPLE_ROOTS_FOUND,
   NO_VALID_SDK_ROOTS_FOUND
 }
