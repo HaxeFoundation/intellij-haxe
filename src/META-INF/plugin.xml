@@ -80,6 +80,10 @@
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>Unreleased changes</p>
+      <ul>
+        <li>Add Haxe Sdk setup validation</li>
+      </ul>
       <p>1.0.0 (HaxeFoundation release)</p>
       <ul>
         <li>Add $trace to the list of built-ins to recognize.</li>
