@@ -359,7 +359,7 @@ varDeclaration ::= (macroMember | declarationAttribute)* 'var' componentName pro
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 
-localVarDeclarationList ::= 'var' localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
+localVarDeclarationList ::= 'var' localVarDeclaration (',' localVarDeclaration)* ';' <<semicolonUnlessPrecededByStatement>>{pin=2}
 localVarDeclaration ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
@@ -422,13 +422,16 @@ mapLiteral ::= '[' (mapInitializerStatement | mapInitializerExpressionList) ']'
 
 optionalMark ::= '?'
 functionType ::= newFunctionType | oldFunctionType
-functionArgument ::= optionalMark? (componentName ':' typeWrapper | typeWrapper)
 functionReturnType ::= typeWrapper
 
 private typeWrapper ::= functionType | typeOrAnonymous
 
 private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=3}
 private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]
+functionArgument ::= optionalFunctionTypeWithoutName | namedTypeOrAnonymous | namedFunctionType
+private namedTypeOrAnonymous ::= [optionalMark] [componentName ':'] typeOrAnonymous
+private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
+private optionalFunctionTypeWithoutName ::= optionalMark '(' functionType ')' {pin=3}
 
 private oldFunctionType ::= oldFunctionTypeArgumentsList functionReturnType {pin=2}
 private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
