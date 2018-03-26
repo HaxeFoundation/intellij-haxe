@@ -69,17 +69,14 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   public String toString() {
     StringBuilder out = new StringBuilder();
 
-    if (arguments.isEmpty()) {
-      out.append(SpecificTypeReference.VOID).append(DELIMITER);
-    } else {
-      out.append('(');
-      for (int n = 0; n < arguments.size(); n++) {
-        if (n > 0) out.append(", ");
-        Argument argument = arguments.get(n);
-        out.append(argument.toStringWithoutConstant());
-      }
-      out.append(')');
+    out.append('(');
+    for (int n = 0; n < arguments.size(); n++) {
+      if (n > 0) out.append(", ");
+      Argument argument = arguments.get(n);
+      out.append(argument.toStringWithoutConstant());
     }
+    out.append(')');
+
     out.append(DELIMITER);
     out.append(returnValue.toStringWithoutConstant());
 
