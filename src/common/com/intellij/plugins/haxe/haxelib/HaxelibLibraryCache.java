@@ -57,8 +57,13 @@ public final class HaxelibLibraryCache {
 
     for (String libName : installedLibs) {
       HaxeLibrary lib = HaxeLibrary.load(this, libName, mySdk);
-      myCache.add(lib);
-      knownLibraries.add(lib.getName());
+      // FIXME: This is just workaround for https://github.com/HaxeFoundation/intellij-haxe/issues/780
+      // @EricBishton, better solution: is to verify if library "dev" lib, and get this information from `haxelib list`
+      // inside method HaxelibUtil.getInstalledLibraryNames. That will lead us to redesign of this method.
+      if (lib != null) {
+        myCache.add(lib);
+        knownLibraries.add(lib.getName());
+      }
     }
   }
 
