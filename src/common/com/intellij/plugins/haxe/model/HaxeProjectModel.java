@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.intellij.plugins.haxe.model.HaxeStdTypesFileModel.STD_TYPES_HX;
+
 public class HaxeProjectModel {
   private final Project project;
   private final HaxePackageModel stdPackage;
@@ -41,9 +43,9 @@ public class HaxeProjectModel {
   }
 
   private HaxeSourceRootModel resolveSdkRoot() {
-    final VirtualFile[] roots;
-
     if (ApplicationManager.getApplication().isUnitTestMode()) {
+      final VirtualFile[] roots;
+
       roots = OrderEnumerator.orderEntries(project).getAllSourceRoots();
       if (roots.length > 0) {
         VirtualFile stdRootForTests = roots[0].findChild("std");
@@ -52,13 +54,23 @@ public class HaxeProjectModel {
         }
       }
     } else {
-      roots = OrderEnumerator.orderEntries(project).sdkOnly().getAllSourceRoots();
-      if (roots.length > 0) {
-        return new HaxeSourceRootModel(this, roots[0]);
+      VirtualFile root = detectProperSDKSourceRoot(OrderEnumerator.orderEntries(project).sdkOnly().getAllSourceRoots());
+
+      if (root != null) {
+        return new HaxeSourceRootModel(this, root);
       }
     }
     return HaxeSourceRootModel.DUMMY;
   }
+
+  private VirtualFile detectProperSDKSourceRoot(VirtualFile[] roots) {
+    for (VirtualFile root : roots) {
+      if (root.findChild(STD_TYPES_HX) != null) return root;
+    }
+
+    return null;
+  }
+
 
   public static HaxeProjectModel fromElement(PsiElement element) {
     return fromProject(element.getProject());
