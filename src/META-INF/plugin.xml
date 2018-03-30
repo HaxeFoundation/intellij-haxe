@@ -74,7 +74,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>1.0.0 for @plugin.compatibility.description@</version>
+  <version>1.0.1.hotfix for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
@@ -83,6 +83,7 @@
       <p>Unreleased changes</p>
       <ul>
         <li>Add Haxe Sdk setup validation</li>
+        <li>Better error handling when haxelibs are installed incorrectly. (Issue #780)</li>
       </ul>
       <p>1.0.0 (HaxeFoundation release)</p>
       <ul>
