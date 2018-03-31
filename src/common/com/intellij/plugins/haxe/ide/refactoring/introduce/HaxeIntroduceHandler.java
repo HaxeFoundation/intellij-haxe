@@ -127,13 +127,19 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     if (selectionModel.hasSelection()) {
       element1 = file.findElementAt(selectionModel.getSelectionStart());
       element2 = file.findElementAt(selectionModel.getSelectionEnd() - 1);
+      // ignore whitespaces
       if (element1 instanceof PsiWhiteSpace) {
-        int startOffset = element1.getTextRange().getEndOffset();
-        element1 = file.findElementAt(startOffset);
+        element1 = getPsiElementAfter(element1, file);
       }
       if (element2 instanceof PsiWhiteSpace) {
-        int endOffset = element2.getTextRange().getStartOffset();
-        element2 = file.findElementAt(endOffset - 1);
+        element2 = getPsiElementBefore(element2, file);
+      }
+      // ignore trailing semicolon
+      if (element2 instanceof HaxePsiToken) {
+        String token = ((HaxePsiToken) element2).getTokenType().toString();
+        if (Objects.equals(token, ";")) {
+          element2 = getPsiElementBefore(element2, file);
+        }
       }
     }
     else {
@@ -165,6 +171,15 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     }
     operation.setElement(element1);
     performActionOnElement(operation);
+  }
+
+  private PsiElement getPsiElementAfter(PsiElement element, PsiFile file) {
+    int endOffset = element.getTextRange().getEndOffset();
+    return file.findElementAt(endOffset - 1);
+  }
+  private PsiElement getPsiElementBefore(PsiElement element, PsiFile file) {
+    int endOffset = element.getTextRange().getStartOffset();
+    return file.findElementAt(endOffset - 1);
   }
 
   protected boolean checkIntroduceContext(PsiFile file, Editor editor, PsiElement element) {
