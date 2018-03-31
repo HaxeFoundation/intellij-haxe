@@ -175,7 +175,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
 
   private PsiElement getPsiElementAfter(PsiElement element, PsiFile file) {
     int endOffset = element.getTextRange().getEndOffset();
-    return file.findElementAt(endOffset - 1);
+    return file.findElementAt(endOffset);
   }
   private PsiElement getPsiElementBefore(PsiElement element, PsiFile file) {
     int endOffset = element.getTextRange().getStartOffset();
