@@ -66,6 +66,32 @@ processResources {
     }
 }
 
+patchPluginXml.finalizedBy('patchCustomTags')
+task patchCustomTags() {
+    doFirst {
+        file(patchPluginXml.destinationDir.toString() + '/plugin.xml')
+        .renameTo(patchPluginXml.destinationDir.toString()+'/plugin.xml.partial')
+    }
+    doLast {
+        copy {
+            findValues(file("${ideaTargetDir}/build.txt"))
+            from(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+            filter(ReplaceTokens, tokens:
+                    [
+                            'idea.sdk.version'                 : "$ideaVersion".toString(),
+                            'plugin.compatibility.description' : "$ideaVersion".toString(),
+                    ]
+            )
+            into patchPluginXml.destinationDir.toString()
+            rename ('plugin.xml.partial', 'plugin.xml')
+        }
+
+    }
+    doLast {
+        delete file(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+    }
+}
+
 jar {
     baseName = "intellij-haxe-${ideaVersion}"
 
