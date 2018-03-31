@@ -1,0 +1,182 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2018 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//runIde.enabled = false
+//patchPluginXml.enabled = false
+//verifyPlugin.enabled = false
+
+if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
+
+sourceSets.main.java.srcDirs = ['src/main/java', 'src/generated/java']
+sourceSets.main.resources.srcDir 'src/main/resources'
+
+sourceSets.test.java.srcDir 'src/test/java'
+sourceSets.test.resources.srcDir 'src/test/resources'
+
+
+dependencies {
+    compile project(':jps-plugin')
+    compile project(':haxe-common')
+    compile project(':hxcpp-debugger-protocol')
+
+    compileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
+    compileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
+    compileOnly files("${ideaTargetDir}/lib/openapi.jar")
+    compileOnly files("${ideaTargetDir}/lib/util.jar")
+
+
+    testCompileOnly project(':jps-plugin')
+    testCompileOnly project(':haxe-plugin')
+    testCompileOnly project(':haxe-common')
+    testCompileOnly project(':hxcpp-debugger-protocol')
+
+
+    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
+    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
+    testCompileOnly files("${ideaTargetDir}/lib/openapi.jar")
+    testCompileOnly files("${ideaTargetDir}/lib/util.jar")
+
+}
+
+
+compileJava {
+    dependsOn 'generateIdeaSdkIdentifer'
+    dependsOn 'generateHaxeParser'
+    dependsOn 'generateHxmlParser'
+}
+
+processResources {
+    from('src/main/java') {
+        include '**/*.properties'
+    }
+}
+
+jar {
+    baseName = "intellij-haxe-${ideaVersion}"
+
+    include('**/*')
+    // include  submodules
+    from(project(':jps-plugin').sourceSets.main.output).include('**/*')
+    from(project(':haxe-common').sourceSets.main.output).include('**/*')
+    from(project(':hxcpp-debugger-protocol').sourceSets.main.output).include('**/*')
+
+    from(zipTree("${ideaTargetDir}/lib/forms_rt.jar")).include('com/intellij/uiDesigner/core/*.class')
+}
+jar.finalizedBy('copyJar')
+
+task copyJar() {
+    doLast {
+        copy {
+            from("${haxePluginDir}/build/libs/").include("*")
+            into("${rootDir}/")
+        }
+    }
+}
+
+test {
+    useJUnit()
+    jvmArgs = [
+            "-Didea.home.path=${ideaTargetDir}",
+            "-Xbootclasspath/a:${ideaTargetDir}/lib/boot.jar",
+            "-Dfile.encoding=UTF-8",
+            "-ea",
+            "-Didea.launcher.bin.path=${ideaTargetDir}/bin"
+    ]
+}
+
+clean.dependsOn('cleanGenerated')
+task cleanGenerated(type: Delete, group: 'generate') {
+    delete "$generatedSrcDir"
+}
+
+task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
+    workingDir = "${toolDir}"
+    main '-jar'
+    args "\"grammar-kit.jar\" \"${generatedSrcDir}\" \"${grammarHaxe}\""
+
+    inputs.file "${grammarHaxe}"
+    outputs.dir "${generatedSrcDir}/com/intellij/plugins/haxe/lang"
+}
+
+
+task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
+    workingDir = "${toolDir}"
+    main '-jar'
+    args "\"grammar-kit.jar\" \"${generatedSrcDir}\" \"${grammarHxml}\""
+
+    inputs.file "${grammarHxml}"
+    outputs.dir "${generatedSrcDir}/com/intellij/plugins/haxe/hxml"
+}
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task generateIdeaSdkIdentifer(type: Copy, group: 'generate') {
+    file("${generatedSrcDir}/com/intellij/plugins/haxe/build/").mkdirs()
+    findValues(file("${ideaTargetDir}/build.txt"))
+    from("${haxePluginDir}/templates/java/com/intellij/plugins/haxe/build/IdeaSDKIdentifier.java.template") {
+        filter(ReplaceTokens, tokens:
+                [
+                        'idea.sdk.version'                   : "$ideaVersion".toString(),
+                        'idea.sdk.type'                      : "$ideaSdkType".toString(),
+                        'idea.sdk.codeline'                  : "$ideaSdkCodeline".toString(),
+                        'idea.sdk.build.number'              : "$ideaSdkBuildNumber".toString(),
+                        'idea.sdk.patch.number'              : "$ideaSdkPatchNumber".toString(),
+                        'replace.with.plugin.autogen.warning': 'Warning!! This file is auto-generated.  Do NOT edit it directly.',
+                ]
+        )
+    }
+    into "${generatedSrcDir}/com/intellij/plugins/haxe/build/"
+    rename('IdeaSDKIdentifier.java.template', 'IdeaSDKIdentifier.java')
+
+}
+
+void findValues(File buildFile) {
+    def buildId = buildFile.getText()
+    def typeSep = buildId.indexOf("-");
+    def clSep = buildId.indexOf(".", typeSep + 1);
+    def bldSep = buildId.indexOf(".", clSep + 1);
+
+    def buildType = buildId.substring(0, typeSep);
+    def codeLine = buildId.substring(typeSep + 1, clSep);
+    def buildNumber = (bldSep >= 0 ? buildId.substring(clSep + 1, bldSep) : buildId.substring(clSep + 1));
+    def patchNumber = (bldSep >= 0 ? buildId.substring(bldSep + 1) : 0);
+
+    ext.ideaSdkType = buildType
+    ext.ideaSdkCodeline = codeLine
+    ext.ideaSdkBuildNumber = buildNumber
+    ext.ideaSdkPatchNumber = patchNumber
+
+    // Lookup table for properties files.  Add new versions here.
+    def propertiesFile = "";
+    switch (Integer.valueOf(codeLine, 10)) {
+        case 183: propertiesFile = "idea_v18.properties"; break;
+        case 182: propertiesFile = "idea_v18.properties"; break;
+        case 181: propertiesFile = "idea_v18.properties"; break;
+        case 173: propertiesFile = "idea_v17.properties"; break;
+        case 172: propertiesFile = "idea_v17.properties"; break;
+        case 171: propertiesFile = "idea_v17.properties"; break;
+        case 163: propertiesFile = "idea_v16.properties"; break;
+        case 162: propertiesFile = "idea_v16.properties"; break;
+        case 161: propertiesFile = "idea_v16.properties"; break;
+        case 145: propertiesFile = "idea_v16.properties"; break;
+    }
+    if (0 != propertiesFile.size()) {
+        ext.pluginPropertiesFile = propertiesFile
+    }
+}
+

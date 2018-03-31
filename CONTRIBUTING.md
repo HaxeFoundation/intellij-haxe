@@ -302,10 +302,10 @@ the project structure to match the environment you're trying to build.
 *Note: This same concept applies for current versions.*
 
 So, for 13.1.6, open "File->Project Structure->Module->intellij-haxe->Sources(tab)," and change this:
-![Project Structure for IDEA 14](./doc/Idea_Project_Structure_for_v14.png)
+![Project Structure for IDEA 14](./documentation/Idea_Project_Structure_for_v14.png)
 
 to this:  
-![Project Structure for IDEA 13](./doc/Idea_Project_Structure_for_v13.png)
+![Project Structure for IDEA 13](./documentation/Idea_Project_Structure_for_v13.png)
 
 Then try to rebuild.
 
