@@ -125,7 +125,7 @@
         case 183:   propertiesFile = "idea_v18.properties";   break;
         case 182:   propertiesFile = "idea_v18.properties";   break;
         case 181:   propertiesFile = "idea_v18.properties";   break;
-        case 173:   propertiesFile = "idea_v17.properties";   break;
+        case 173:   propertiesFile = "idea_v17.3.properties"; break;
         case 172:   propertiesFile = "idea_v17.properties";   break;
         case 171:   propertiesFile = "idea_v17.properties";   break;
         case 163:   propertiesFile = "idea_v16.properties";   break;
