@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.plugins.haxe.build.ClassWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
+import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
@@ -33,7 +34,10 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
   protected HaxeCodeInsightFixtureTestCase() {
     super();
     HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
-    PlatformTestCase.initPlatformLangPrefix();
+    if (!IdeaTarget.IS_VERSION_18_COMPATIBLE) {
+      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", null);
+      init.invoke(null,null);
+    }
   }
 
   @Override
