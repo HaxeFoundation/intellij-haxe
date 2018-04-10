@@ -273,7 +273,7 @@ public class HaxelibClasspathUtils {
    */
   @NotNull
   public static HaxeClasspath getFullClasspath(@NotNull Module module) {
-    HaxeClasspath classpath = getImplicitClassPath(module);
+    HaxeClasspath classpath = new HaxeClasspath(getImplicitClassPath(module));
     classpath.addAll(getModuleClasspath(module));
     classpath.addAll(getProjectLibraryClasspath(module.getProject()));
     // This grabs either the module's SDK, or the inherited one, if any.
