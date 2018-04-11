@@ -676,8 +676,7 @@ public class HaxeResolveUtil {
                               .orElse(null));
 
     final HaxeExpression importStatementExpression = importStatement == null ? null : importStatement.getReferenceExpression();
-
-    if (importStatement != null && importStatementExpression != null) {
+    if (importStatementExpression != null) {
       return importStatementExpression.getText();
     }
 
