@@ -37,7 +37,7 @@ public class HaxeSourceRootModel {
       rootPackage = null;
     }
     else {
-      rootPackage = new HaxePackageModel(project, this, "", null);
+      rootPackage = new HaxePackageModel(this, "", null);
     }
   }
 

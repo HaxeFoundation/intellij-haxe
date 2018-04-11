@@ -29,7 +29,9 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,13 +41,11 @@ public class HaxeProjectModel {
   private static final Key<HaxeProjectModel> HAXE_PROJECT_MODEL_KEY = new Key<>("HAXE_PROJECT_MODEL");
   private final Project project;
 
-  private boolean rootsInitialized = false;
-  private List<HaxeSourceRootModel> roots;
-  private HaxeSourceRootModel sdkRoot;
-  private HaxePackageModel stdPackage;
+  private RootsCache rootsCache;
 
   private HaxeProjectModel(Project project) {
     this.project = project;
+    addProjectListeners();
   }
 
   public static HaxeProjectModel fromElement(PsiElement element) {
@@ -62,35 +62,6 @@ public class HaxeProjectModel {
     return model;
   }
 
-  private HaxeSourceRootModel resolveSdkRoot() {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      final VirtualFile[] roots;
-
-      roots = OrderEnumerator.orderEntries(project).getAllSourceRoots();
-      if (roots.length > 0) {
-        VirtualFile stdRootForTests = roots[0].findChild("std");
-        if (stdRootForTests != null) {
-          return new HaxeSourceRootModel(this, stdRootForTests);
-        }
-      }
-    } else {
-      VirtualFile root = detectProperSDKSourceRoot(OrderEnumerator.orderEntries(project).sdkOnly().getAllSourceRoots());
-
-      if (root != null) {
-        return new HaxeSourceRootModel(this, root);
-      }
-    }
-    return HaxeSourceRootModel.DUMMY;
-  }
-
-  private VirtualFile detectProperSDKSourceRoot(VirtualFile[] roots) {
-    for (VirtualFile root : roots) {
-      if (root.findChild(STD_TYPES_HX) != null) return root;
-    }
-
-    return null;
-  }
-
   public Project getProject() {
     return project;
   }
@@ -100,46 +71,17 @@ public class HaxeProjectModel {
   }
 
   public List<HaxeSourceRootModel> getRoots() {
-    if (!rootsInitialized) setupRoots();
-    return roots;
-  }
-
-  private void setupRoots() {
-    validateRoots();
-    project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-      @Override
-      public void rootsChanged(ModuleRootEvent event) {
-        validateRoots();
-      }
-    });
-    rootsInitialized = true;
-  }
-
-  private void validateRoots() {
-    final OrderEnumerator enumerator = OrderEnumerator.orderEntries(project).withoutSdk();
-
-    roots = Stream.concat(
-      Arrays.stream(enumerator.getClassesRoots()),
-      Arrays.stream(enumerator.getSourceRoots())
-    )
-      .distinct()
-      .map(root -> new HaxeSourceRootModel(this, root))
-      .collect(Collectors.toList());
-
-    sdkRoot = resolveSdkRoot();
-    stdPackage = new HaxeStdPackageModel(this, sdkRoot);
+    return getRootsCache().roots;
   }
 
   @NotNull
   public HaxeSourceRootModel getSdkRoot() {
-    if (!rootsInitialized) setupRoots();
-    return sdkRoot;
+    return getRootsCache().sdkRoot;
   }
 
   @NotNull
   public HaxePackageModel getStdPackage() {
-    if (!rootsInitialized) setupRoots();
-    return stdPackage;
+    return getRootsCache().stdPackageModel;
   }
 
   @Nullable
@@ -160,8 +102,8 @@ public class HaxeProjectModel {
       if (resolvedValue != null) result.add(resolvedValue);
     }
 
-    if (result.isEmpty() && stdPackage != null) {
-      resolvedValue = stdPackage.resolve(info);
+    if (result.isEmpty()) {
+      resolvedValue = getStdPackage().resolve(info);
       if (resolvedValue != null) result.add(resolvedValue);
     }
 
@@ -191,5 +133,70 @@ public class HaxeProjectModel {
       }
     }
     return null;
+  }
+
+  private void addProjectListeners() {
+    project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        rootsCache = null;
+      }
+    });
+  }
+
+  private RootsCache getRootsCache() {
+    if (rootsCache == null) {
+      rootsCache = RootsCache.fromProjectModel(this);
+    }
+    return rootsCache;
+  }
+}
+
+class RootsCache {
+  final List<HaxeSourceRootModel> roots;
+  final HaxeSourceRootModel sdkRoot;
+  final HaxeStdPackageModel stdPackageModel;
+
+  private RootsCache(List<HaxeSourceRootModel> roots, HaxeSourceRootModel sdkRoot) {
+    this.roots = roots;
+    this.sdkRoot = sdkRoot;
+    this.stdPackageModel = new HaxeStdPackageModel(sdkRoot);
+  }
+
+  static RootsCache fromProjectModel(HaxeProjectModel model) {
+    return new RootsCache(getProjectRoots(model), getSdkRoot(model));
+  }
+
+  private static List<HaxeSourceRootModel> getProjectRoots(final HaxeProjectModel model) {
+    final OrderEnumerator enumerator = OrderEnumerator.orderEntries(model.getProject()).withoutSdk();
+
+    return Stream.concat(
+      Arrays.stream(enumerator.getClassesRoots()),
+      Arrays.stream(enumerator.getSourceRoots())
+    )
+      .distinct()
+      .map(root -> new HaxeSourceRootModel(model, root))
+      .collect(Collectors.toList());
+  }
+
+  private static HaxeSourceRootModel getSdkRoot(final HaxeProjectModel model) {
+    final VirtualFile[] roots;
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      roots = OrderEnumerator.orderEntries(model.getProject()).getAllSourceRoots();
+      if (roots.length > 0) {
+        VirtualFile stdRootForTests = roots[0].findChild("std");
+        if (stdRootForTests != null) {
+          return new HaxeSourceRootModel(model, stdRootForTests);
+        }
+      }
+    } else {
+      roots = OrderEnumerator.orderEntries(model.getProject()).sdkOnly().getAllSourceRoots();
+      for (VirtualFile root : roots) {
+        if (root.findChild(STD_TYPES_HX) != null) {
+          return new HaxeSourceRootModel(model, root);
+        }
+      }
+    }
+    return HaxeSourceRootModel.DUMMY;
   }
 }
