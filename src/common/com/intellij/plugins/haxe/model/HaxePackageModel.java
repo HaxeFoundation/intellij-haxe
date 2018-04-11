@@ -39,11 +39,10 @@ public class HaxePackageModel implements HaxeExposableModel {
   private final FullyQualifiedInfo qualifiedInfo;
 
 
-  public HaxePackageModel(@NotNull HaxeProjectModel project,
-                          @NotNull HaxeSourceRootModel root,
+  public HaxePackageModel(@NotNull HaxeSourceRootModel root,
                           @NotNull String name,
                           @Nullable HaxePackageModel parent) {
-    this.project = project;
+    this.project = root.project;
     this.name = name;
     this.root = root;
     this.parent = parent;
@@ -102,7 +101,7 @@ public class HaxePackageModel implements HaxeExposableModel {
     } else {
       PsiDirectory directory = root.access(path.isEmpty() ? name : path + '.' + name);
       if (directory != null) {
-        return new HaxePackageModel(project, root, name, this);
+        return new HaxePackageModel(root, name, this);
       }
     }
 
@@ -114,7 +113,7 @@ public class HaxePackageModel implements HaxeExposableModel {
     PsiDirectory directory = root.access(path);
     if (directory != null) {
       return Arrays.stream(directory.getSubdirectories())
-        .map(subDirectory -> new HaxePackageModel(project, root, subDirectory.getName(), this))
+        .map(subDirectory -> new HaxePackageModel(root, subDirectory.getName(), this))
         .collect(Collectors.toList());
     }
     return Collections.emptyList();
