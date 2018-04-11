@@ -291,15 +291,20 @@ IDEA output will be seen.
 ##### Yes, Build Errors Are Expected
 
 ###### Syntax Errors
-OK. If you haven't changed anything, this most likely isn't an issue of code. 
+First thing: You *MUST* build the project to generate the PSI sources.  Until you
+do, you will have missing classes in many places that will magically disappear when
+you build (or when the ant `common.generateTemplatedFiles` target executes).
+
+*NOTE: The following procedure was required for the 0.x.x versions of the plugin.  As of
+version 1.0.0 of the plugin, there are no longer separate directories per version.*
+
+After that, if you haven't changed anything, this most likely isn't an issue of code. 
 It's an issue of updating your project structure. Since all of the versions 
 of the plugin build from a single source base, the project must be set up correctly. 
 We decided to make the default settings be correct for IDEA v2016.x. However, to
 build other versions, you can either use the ant builds (see 
 ![Ant Builds][Ant Builds] above), or you can change 
 the project structure to match the environment you're trying to build.
-
-*Note: This same concept applies for current versions.*
 
 So, for 13.1.6, open "File->Project Structure->Module->intellij-haxe->Sources(tab)," and change this:
 ![Project Structure for IDEA 14](./doc/Idea_Project_Structure_for_v14.png)
@@ -468,11 +473,10 @@ then copy the relevant section to CHANGELOG.md.
 can test and tag it.
 
 4. Build *each* of the releases: For each release, run make (or your local equivalent) 
-    - `IDEA_VERSION=14.0.4 make`, or `ant -Didea.ultimate.build=<path_to_intellij_14.0.4>`
-    - `IDEA_VERSION=14.1.4 make`
-    - `IDEA_VERSION=14.1.6 make`
-    - `IDEA_VERSION=15.0.3 make`
-    - `IDEA_VERSION=2016.2.5 make`
+    - `IDEA_VERSION=2016.3.5 make`
+    - `IDEA_VERSION=2017.2 make`
+    - `IDEA_VERSION=2017.3 make`
+    - `IDEA_VERSION=2018.1 make`
 
 5. Smoke test *each* of the releases.  A smoke test includes loading the releases in a primary instance of IDEA and verifying 
 basic functionality:  
@@ -488,7 +492,7 @@ basic functionality:
     - Run the project
 
 5. Run the unit tests on all versions:
-    - `IDEA_VERSION=2016.2.5 make test`, etc.
+    - `IDEA_VERSION=2016.3.5 make test`, etc.
     - or `ant -Dintellij.ultimate.build=<path_to_intellij_2016.2.5> -f build-test.xml`, etc.
     
 4. Tag the commit using the agreed upon release number: `git tag -a 0.9.5 -m "Release 0.9.5"`
