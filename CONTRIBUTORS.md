@@ -8,7 +8,6 @@ Recent contributors
  - EricBishton <ebishton@ix.netcom.com>
  - Eric Bishton <EricBishton@users.noreply.github.com>
  - GitHub <noreply@github.com>
- - Ilya Kuzmichev <deadbabe@gmail.com>
  - Jens Fischer <jensfischer95@gmail.com>
  - m0rkeulv <github@m0rkeulv.net>
  - mayakwd <loremipsum.inside@gmail.com>

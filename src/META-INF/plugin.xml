@@ -74,19 +74,29 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>1.0.1.hotfix for @plugin.compatibility.description@</version>
+  <version>1.0.1 for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
-      <p>Unreleased changes</p>
+      <p>1.0.1 (HaxeFoundation release)</p>
       <ul>
-        <li>Add Haxe Sdk setup validation</li>
+        <li>Updated change notes for 1.0.0 (enumerated several important import changes).</li>
+        <li>Add Haxe Sdk setup validation.</li>
+        <li>Use SDK classpath as well as sourcepath to find the standard library. (Issue #774)</li>
         <li>Better error handling when haxelibs are installed incorrectly. (Issue #780)</li>
+        <li>2017.3 and 2018.1 builds. (Issues #719, #789)</li>
+        <li>Workaround debugger crash. (Issue #792)</li>
+        <li>Fix typo in haxelib metadata parser, which was keeping library sub-tree source directories from being found.</li>
       </ul>
       <p>1.0.0 (HaxeFoundation release)</p>
       <ul>
+        <li>Import of static fields/methods.</li>
+        <li>Imports alias hinting support.</li>
+        <li>Proper wildcard import resolution.</li>
+        <li>Import optimizer now works properly.</li>
+        <li>Proper module scoping for resolving.</li>
         <li>Add $trace to the list of built-ins to recognize.</li>
         <li>Semantic Annotation: Infer missing function types from code blocks.</li>
         <li>Semantic Annotation: Support arrow functions.</li>
@@ -118,7 +128,6 @@
         <li>Dropped support for IDEA versions 14 and 15.</li>
         <li>Internal: Began refactoring the resolver. New models are introduced.</li>
         <li>Changed "static variable override" to a weak warning, instead of a regular warning.</li>
-        <li>Imports handling has been refactored.</li>
         <li>Allow @:meta without parens.</li>
         <li>Properly parse variable declarations in return statements. (Issue #329)</li>
         <li>Fixed parsing of 'throw' statements within a ternary expression. (Issue #704)</li>
