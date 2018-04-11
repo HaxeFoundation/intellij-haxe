@@ -74,12 +74,16 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>1.0.1 for @plugin.compatibility.description@</version>
+  <version>1.0.2 for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>1.0.2 (HaxeFoundation release)</p>
+      <ul>
+        <li>Performance hot-fix for projects that have multiple source roots. (Issue #799)</li>
+      </ul>
       <p>1.0.1 (HaxeFoundation release)</p>
       <ul>
         <li>Updated change notes for 1.0.0 (enumerated several important import changes).</li>
