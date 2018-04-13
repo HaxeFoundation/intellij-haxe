@@ -23,9 +23,8 @@ public class HaxeStdPackageModel extends HaxePackageModel {
   private static final String STD_TYPES = "StdTypes";
   private final HaxeFileModel stdTypesModel;
 
-  HaxeStdPackageModel(@NotNull HaxeProjectModel project,
-                      @NotNull HaxeSourceRootModel root) {
-    super(project, root, "", null);
+  HaxeStdPackageModel(@NotNull HaxeSourceRootModel root) {
+    super(root, "", null);
     this.stdTypesModel = this.getStdFileModel();
   }
 

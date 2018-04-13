@@ -81,7 +81,7 @@ public class HaxelibMetadata {
   public static String TAGS = "tags";
   public static String DESCRIPTION = "description";
   public static String VERSION = "version";
-  public static String CLASSPATH = "classpath";
+  public static String CLASSPATH = "classPath";
   public static String RELEASENOTE = "releasenote";
   public static String CONTRIBUTORS = "contributors";
   public static String DEPENDENCIES = "dependencies";

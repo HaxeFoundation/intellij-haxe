@@ -1,6 +1,21 @@
 # Changelog
+  <p>1.0.1 (HaxeFoundation release)</p>
+  <ul>
+    <li>Updated change notes for 1.0.0 (enumerated several important import changes).</li>
+    <li>Add Haxe Sdk setup validation.</li>
+    <li>Use SDK classpath as well as sourcepath to find the standard library. (Issue #774)</li>
+    <li>Better error handling when haxelibs are installed incorrectly. (Issue #780)</li>
+    <li>2017.3 and 2018.1 builds. (Issues #719, #789)</li>
+    <li>Workaround debugger crash. (Issue #792)</li>
+    <li>Fix typo in haxelib metadata parser, which was keeping library sub-tree source directories from being found.</li>
+  </ul>
   <p>1.0.0 (HaxeFoundation release)</p>
   <ul>
+    <li>Import of static fields/methods.</li>
+    <li>Imports alias hinting support.</li>
+    <li>Proper wildcard import resolution.</li>
+    <li>Import optimizer now works properly.</li>
+    <li>Proper module scoping for resolving.</li>
     <li>Add $trace to the list of built-ins to recognize.</li>
     <li>Semantic Annotation: Infer missing function types from code blocks.</li>
     <li>Semantic Annotation: Support arrow functions.</li>

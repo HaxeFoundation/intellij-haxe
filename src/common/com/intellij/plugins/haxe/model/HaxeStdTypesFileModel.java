@@ -19,6 +19,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeStdTypesFileModel extends HaxeFileModel {
+  public static final String STD_TYPES_HX = "StdTypes.hx";
 
   public HaxeStdTypesFileModel(@NotNull HaxeFile file) {
     super(file);
