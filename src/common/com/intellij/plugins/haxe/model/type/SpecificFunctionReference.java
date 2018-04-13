@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class SpecificFunctionReference extends SpecificTypeReference {
-  private static final String DELIMITER = " -> ";
+  private static final String DELIMITER = "->";
 
   final public List<Argument> arguments;
   final public ResultHolder returnValue;
@@ -69,13 +69,14 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   public String toString() {
     StringBuilder out = new StringBuilder();
 
-    out.append('(');
+    final boolean notSingleArgument = arguments.size() > 1;
+    if (notSingleArgument) out.append('(');
     for (int n = 0; n < arguments.size(); n++) {
       if (n > 0) out.append(", ");
       Argument argument = arguments.get(n);
       out.append(argument.toStringWithoutConstant());
     }
-    out.append(')');
+    if (notSingleArgument) out.append(')');
 
     out.append(DELIMITER);
     out.append(returnValue.toStringWithoutConstant());
