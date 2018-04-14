@@ -26,10 +26,9 @@ notifications:
 
 jobs:
   include:
-    - if: branch = feature/development-build
+    - if: branch = develop
       script: make
       env:
-        - IDEA_VERSION=2016.3.8
-        - IDEA_VERSION=2017.2.7
-        - IDEA_VERSION=2017.3.5
-        - IDEA_VERSION=2018.1
+        - IDEA_VERSION=2018.1 PLUGIN_VERSION=18
+      after_success:
+        - curl -k -i -F username="$PLUGIN_USER_NAME" -F password="$PLUGIN_USER_PASS" -F channel="EAP" -F pluginid=6873 -F file=intellij-haxe-$PLUGIN_VERSION.jar https://plugins.jetbrains.com/plugin/uploadPlugin
