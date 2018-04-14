@@ -26,7 +26,7 @@ notifications:
 
 jobs:
   include:
-    - if: branch = develop
+    - if: branch = feature/development-build
       script: make
       env:
         - IDEA_VERSION=2016.3.8
