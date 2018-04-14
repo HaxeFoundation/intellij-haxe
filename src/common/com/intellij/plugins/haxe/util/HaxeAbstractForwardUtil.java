@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +19,11 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.PsiClass;
+import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,11 +31,6 @@ import java.util.List;
  * Extensions for resolving and analyzing @:forward abstract meta
  */
 public class HaxeAbstractForwardUtil {
-
-  @Contract("null -> false")
-  public static boolean isAbstractForward(@Nullable PsiClass clazz) {
-    return HaxeAbstractUtil.hasMeta(clazz, "@:forward");
-  }
 
   public static boolean isElementInForwardMeta(@Nullable PsiElement element) {
     if (element != null) {
@@ -47,15 +43,16 @@ public class HaxeAbstractForwardUtil {
   }
 
   @Nullable
-  public static List<HaxeNamedComponent> findAbstractForwardingNamedSubComponents(@Nullable PsiClass clazz) {
+  public static List<HaxeNamedComponent> findAbstractForwardingNamedSubComponents(@Nullable HaxeClass clazz) {
     final List<String> forwardingFieldsNames = getAbstractForwardingFieldsNames(clazz);
-    if (forwardingFieldsNames != null) {
-      final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(clazz);
+    if (forwardingFieldsNames != null && clazz instanceof HaxeAbstractClassDeclaration) {
+      final HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)clazz.getModel();
+      final HaxeClass underlyingClass = abstractClassModel.getUnderlyingClass();
       if (underlyingClass != null) {
         if (forwardingFieldsNames.isEmpty()) {
           return HaxeResolveUtil.findNamedSubComponents(underlyingClass);
         }
-        List<HaxeNamedComponent> haxeNamedComponentList = new LinkedList<HaxeNamedComponent>();
+        List<HaxeNamedComponent> haxeNamedComponentList = new ArrayList<>();
         for (String fieldName : forwardingFieldsNames) {
           HaxeNamedComponent component = HaxeResolveUtil.findNamedSubComponent(underlyingClass, fieldName);
           if (component != null) {
@@ -69,9 +66,10 @@ public class HaxeAbstractForwardUtil {
   }
 
   @Nullable
-  public static List<String> getAbstractForwardingFieldsNames(@Nullable PsiClass clazz) {
-    List<String> forwardingFields = new LinkedList<String>();
-    HaxeMacroClass meta = HaxeAbstractUtil.getMetaByName(clazz, "@:forward");
+  public static List<String> getAbstractForwardingFieldsNames(@Nullable HaxeClass clazz) {
+    if (clazz == null) return null;
+    List<String> forwardingFields = new LinkedList<>();
+    HaxeMacroClass meta = clazz.getMeta("@:forward");
     if (meta != null) {
       HaxeCustomMeta customMeta = meta.getCustomMeta();
       if (customMeta != null) {
@@ -89,5 +87,4 @@ public class HaxeAbstractForwardUtil {
     }
     return null;
   }
-
 }

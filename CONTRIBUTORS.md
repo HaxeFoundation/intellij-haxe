@@ -1,27 +1,25 @@
 Recent contributors
 -----------------------------------
+ - artem pecheny <pecheny@gmail.com>
  - as3boyan <denis.flash.as3@gmail.com>
- - bynuff <igor.bulankov@gmail.com>
  - David Nemcok <nemcok.david@gmail.com>
- - EBatTiVo <ebishton@tivo.com>
- - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
  - Eric Bishton <ebishton@ix.netcom.com>
  - EricBishton <ebishton.ix.netcom.com>
  - EricBishton <ebishton@ix.netcom.com>
  - Eric Bishton <EricBishton@users.noreply.github.com>
  - GitHub <noreply@github.com>
- - Ilya Kuzmichev <deadbabe@gmail.com>
  - Jens Fischer <jensfischer95@gmail.com>
  - m0rkeulv <github@m0rkeulv.net>
  - mayakwd <loremipsum.inside@gmail.com>
- - slavara <ratdg@ya.ru>
- - winmain <d.winmain@gmail.com>
+ - Slava Buynov <slavab@playtika.com>
+ - The Codacy Badger <badger@codacy.com>
 
 All contributors
 -----------------------------------
 - Alexander Doroshko <alexander.doroshko@jetbrains.com>
 - Alexey Kudravtsev <cdr@intellij.com>
 - anna <Anna.Kozlova@jetbrains.com>
+- artem pecheny <pecheny@gmail.com>
 - as3boyan <denis.flash.as3@gmail.com>
 - AS3Boyan <denis.flash.as3@gmail.com>
 - bjitivo <bji@tivo.com>
@@ -79,8 +77,10 @@ All contributors
 - Roman Shevchenko <roman.shevchenko@jetbrains.com>
 - Rustam Vishnyakov <rustam.vishnyakov@jetbrains.com>
 - sganapavarapu1 <ganapavarapu@tivo.com>
+- Slava Buynov <slavab@playtika.com>
 - slavara <ratdg@ya.ru>
 - Srikanth Ganapavarapu <ganapavarapu@tivo.com>
+- The Codacy Badger <badger@codacy.com>
 - Tim Hepner <tim@hepners.net>
 - Todd Brannam <tbrannam@casualpenguin.com>
 - Usievaład Čorny <anibyl@riseup.net>

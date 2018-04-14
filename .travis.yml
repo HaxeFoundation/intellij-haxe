@@ -16,9 +16,10 @@ before_script:
 - mkdir report
 script: make ANT_TARGET=$ANT_TARGET test
 env:
-    - IDEA_VERSION=2016.3.7 ANT_TARGET=test
-    - IDEA_VERSION=2017.1.5 ANT_TARGET=test
-    - IDEA_VERSION=2017.2.6 ANT_TARGET=test
+    - IDEA_VERSION=2016.3.8 ANT_TARGET=test
+    - IDEA_VERSION=2017.2.7 ANT_TARGET=test
+    - IDEA_VERSION=2017.3.5 ANT_TARGET=test
+    - IDEA_VERSION=2018.1 ANT_TARGET=test
 
 notifications:
   email: false

@@ -2,7 +2,8 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -27,16 +29,14 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
-import com.intellij.plugins.haxe.util.HaxeJavaUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.HaxeStringUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -47,6 +47,9 @@ import java.util.List;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeExpressionEvaluator {
+  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+  static { LOG.setLevel(Level.INFO); }
+
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context) {
     context.result = handle(element, context);
@@ -58,8 +61,18 @@ public class HaxeExpressionEvaluator {
     try {
       return _handle(element, context);
     }
+    catch (NullPointerException e) {
+      // Make sure that these get into the log, because the GeneralHighlightingPass swallows them.
+      LOG.error("Error evaluating expression type for element " + element.toString(), e);
+      throw e;
+    }
+    catch (ProcessCanceledException e) {
+      // Don't log these, because they are common, but DON'T swallow them, either; it makes things unresponsive.
+      throw e;
+    }
     catch (Throwable t) {
-      t.printStackTrace();
+      // XXX: Watch this.  If it happens a lot, then maybe we shouldn't log it unless in debug mode.
+      LOG.warn("Error evaluating expression type for element " + element.toString(), t);
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
   }
@@ -67,10 +80,9 @@ public class HaxeExpressionEvaluator {
   @NotNull
   static private ResultHolder _handle(final PsiElement element, final HaxeExpressionEvaluatorContext context) {
     if (element == null) {
-      System.out.println("getPsiElementType: " + element);
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
-    //System.out.println("Handling element: " + element.getClassModel());
+    LOG.debug("Handling element: " + element);
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
       ResultHolder type = SpecificHaxeClassReference.getUnknown(element).createHolder();
@@ -121,8 +133,6 @@ public class HaxeExpressionEvaluator {
           context.setLocal(name.getText(), new ResultHolder(type));
         }
         return handle(body, context);
-        //System.out.println(name);
-        //System.out.println(iterable);
       }
       finally {
         context.endScope();
@@ -163,7 +173,7 @@ public class HaxeExpressionEvaluator {
       if (ancestor == null) return SpecificTypeReference.getDynamic(element).createHolder();
       HaxeClassModel model = ancestor.getModel();
       if (model.isAbstract()) {
-        HaxeTypeOrAnonymous type = model.getAbstractUnderlyingType();
+        HaxeTypeOrAnonymous type = model.getUnderlyingType();
         if (type != null) {
           HaxeClass aClass = HaxeResolveUtil.tryResolveClassByQName(type);
           if (aClass != null) {
@@ -185,7 +195,6 @@ public class HaxeExpressionEvaluator {
       }
 
       return holder;
-      //System.out.println("HaxeIdentifier:" + reference);
     }
 
     if (element instanceof HaxeCastExpression) {
@@ -362,7 +371,7 @@ public class HaxeExpressionEvaluator {
       }
 
       if (functionType.isUnknown()) {
-        //System.out.println("Couldn't resolve " + callLeft.getText());
+        LOG.debug("Couldn't resolve " + callLeft.getText());
       }
 
       List<HaxeExpression> parameterExpressions = null;
@@ -413,8 +422,61 @@ public class HaxeExpressionEvaluator {
       return HaxeTypeUnifier.unifyHolders(references, element);
     }
 
+    if (element instanceof HaxeMapLiteral) {
+      HaxeMapInitializerExpressionList listElement = ((HaxeMapLiteral)element).getMapInitializerExpressionList();
+      List<HaxeExpression> initializers = new ArrayList<>();
+
+      // In maps, comprehensions don't have expression lists, but they do have one single initializer.
+      if (null == listElement) {
+        HaxeMapInitializerForStatement forStatement = ((HaxeMapLiteral)element).getMapInitializerForStatement();
+        HaxeMapInitializerWhileStatement whileStatement = ((HaxeMapLiteral)element).getMapInitializerWhileStatement();
+        HaxeExpression fatArrow = null;
+        while (null != forStatement || null != whileStatement) {
+          if (null != forStatement) {
+            fatArrow = forStatement.getMapInitializer();
+            whileStatement = forStatement.getMapInitializerWhileStatement();
+            forStatement = forStatement.getMapInitializerForStatement();
+          } else {
+            fatArrow = whileStatement.getMapInitializer();
+            forStatement = whileStatement.getMapInitializerForStatement();
+            whileStatement = whileStatement.getMapInitializerWhileStatement();
+          }
+        }
+        if (null != fatArrow) {
+          initializers.add(fatArrow);
+        } else {
+          LOG.error("Didn't find an initializer in a map comprehension: " + element.toString(),
+                    new HaxeDebugUtil.InvalidValueException(element.toString() + '\n' + HaxeDebugUtil.elementLocation(element)));
+        }
+      } else {
+        initializers.addAll(listElement.getExpressionList());
+      }
+
+      ArrayList<SpecificTypeReference> keyReferences = new ArrayList<>(initializers.size());
+      ArrayList<SpecificTypeReference> valueReferences = new ArrayList<>(initializers.size());
+      for (HaxeExpression ex : initializers) {
+        HaxeFatArrowExpression fatArrow = (HaxeFatArrowExpression)ex;
+        SpecificTypeReference keyType = handle(fatArrow.getFirstChild(), context).getType();
+        keyReferences.add(keyType);
+        SpecificTypeReference valueType = handle(fatArrow.getLastChild(), context).getType();
+        valueReferences.add(valueType);
+      }
+
+      // XXX: Maybe track and add constants to the type references, like arrays do??
+      //      That has implications on how they're displayed (e.g. not as key=>value,
+      //      but as separate arrays).
+      ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, element).withoutConstantValue().createHolder();
+      ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, element).withoutConstantValue().createHolder();
+
+      SpecificTypeReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder);
+      ResultHolder holder = result.createHolder();
+      return holder;
+    } // end HaxeMapLiteral
+
     if (element instanceof HaxeArrayLiteral) {
       HaxeExpressionList list = ((HaxeArrayLiteral)element).getExpressionList();
+
+      // Check if it's a comprehension.
       if (list != null) {
         final List<HaxeExpression> list1 = list.getExpressionList();
         if (list1.isEmpty()) {
@@ -424,6 +486,7 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
+
       ArrayList<SpecificTypeReference> references = new ArrayList<SpecificTypeReference>();
       ArrayList<Object> constants = new ArrayList<Object>();
       boolean allConstants = true;
@@ -440,7 +503,9 @@ public class HaxeExpressionEvaluator {
         }
       }
 
-      ResultHolder elementTypeHolder = HaxeTypeUnifier.unify(references, element).withoutConstantValue().createHolder();
+      ResultHolder elementTypeHolder = references.isEmpty()
+                                       ? SpecificTypeReference.getUnknown(element).createHolder()
+                                       : HaxeTypeUnifier.unify(references, element).withoutConstantValue().createHolder();
 
       SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder);
       if (allConstants) result = result.withConstantValue(constants);
@@ -464,17 +529,17 @@ public class HaxeExpressionEvaluator {
         return SpecificHaxeClassReference.primitive("Dynamic", element, HaxeNull.instance).createHolder();
       }
       else {
-        //System.out.println("Unhandled token type: " + tokenType);
+        LOG.debug("Unhandled token type: " + type);
         return SpecificHaxeClassReference.getDynamic(element).createHolder();
       }
     }
 
     if (element instanceof HaxeSuperExpression) {
       /*
-      System.out.println("-------------------------");
+      LOG.debug("-------------------------");
       final HaxeExpressionList list = HaxePsiUtils.getChildWithText(element, HaxeExpressionList.class);
-      System.out.println(element);
-      System.out.println(list);
+      LOG.debug(element);
+      LOG.debug(list);
       final List<HaxeExpression> parameters = (list != null) ? list.getExpressionList() : Collections.<HaxeExpression>emptyList();
       final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeMethodModel.fromPsi(element), HaxeMethodModel.class);
       if (method == null) {
@@ -485,12 +550,12 @@ public class HaxeExpressionEvaluator {
         if (parentMethod == null) {
           context.addError(element, "Calling super without parent constructor");
         } else {
-          System.out.println(element);
-          System.out.println(parentMethod.getFunctionType());
-          System.out.println(parameters);
+          LOG.debug(element);
+          LOG.debug(parentMethod.getFunctionType());
+          LOG.debug(parameters);
           checkParameters(element, parentMethod.getFunctionType(), parameters, context);
-          //System.out.println(method);
-          //System.out.println(parentMethod);
+          //LOG.debug(method);
+          //LOG.debug(parentMethod);
         }
       }
       return SpecificHaxeClassReference.getVoid(element);
@@ -555,29 +620,64 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeFunctionLiteral) {
-      HaxeParameterList params = ((HaxeFunctionLiteral)element).getParameterList();
+      HaxeFunctionLiteral function = (HaxeFunctionLiteral)element;
+      HaxeParameterList params = function.getParameterList();
       if (params == null) {
-        return SpecificHaxeClassReference.getInvalid(element).createHolder();
+        return SpecificHaxeClassReference.getInvalid(function).createHolder();
       }
       LinkedList<ResultHolder> results = new LinkedList<ResultHolder>();
       ResultHolder returnType = null;
       context.beginScope();
       try {
-        for (HaxeParameter parameter : params.getParameterList()) {
-          ResultHolder vartype = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), element);
-          String name = parameter.getName();
-          if (name != null) {
-            context.setLocal(name, vartype);
-          }
+        if (params instanceof HaxeOpenParameterList) {
+          // Arrow function with a single, unparenthesized, parameter.
+          HaxeOpenParameterList openParamList = ((HaxeOpenParameterList)params);
+
+          // TODO: Infer the type from first usage in the function body.
+          ResultHolder vartype = SpecificTypeReference.getUnknown(function).createHolder();
+
+          context.setLocal(openParamList.getComponentName().getName(), vartype);
           results.add(vartype);
+        } else {
+          for (HaxeParameter parameter : params.getParameterList()) {
+            ResultHolder vartype = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), function);
+            String name = parameter.getName();
+            if (name != null) {
+              context.setLocal(name, vartype);
+            }
+            results.add(vartype);
+          }
         }
-        context.addLambda(context.createChild(element.getLastChild()));
-        returnType = HaxeTypeResolver.getTypeFromTypeTag(((HaxeFunctionLiteral)element).getTypeTag(), element);
+        context.addLambda(context.createChild(function.getLastChild()));
+        HaxeTypeTag tag = (function.getTypeTag());
+        if (null != tag) {
+          returnType = HaxeTypeResolver.getTypeFromTypeTag(tag, function);
+        } else {
+          // If there was no type tag on the function, then we try to infer the value:
+          // If there is a block to this method, then return the type of the block.  (See PsiBlockStatement above.)
+          // If there is not a block, but there is an expression, then return the type of that expression.
+          // If there is not a block, but there is a statement, then return the type of that statement.
+          HaxeBlockStatement block = function.getBlockStatement();
+          if (null != block) {
+            returnType = handle(block, context);
+          } else if (null != function.getExpression()) {
+            returnType = handle(function.getExpression(), context);
+          } else {
+            // Only one of these can be non-null at a time.
+            PsiElement possibleStatements[] = { function.getDoWhileStatement(), function.getForStatement(), function.getIfStatement(),
+                function.getReturnStatement(), function.getThrowStatement(), function.getWhileStatement() };
+            for (PsiElement statement : possibleStatements) {
+              if (null != statement) {
+                returnType = handle(statement, context);
+              }
+            }
+          }
+        }
       } finally {
         context.endScope();
       }
 
-      return new SpecificFunctionReference(results, returnType, null, element).createHolder();
+      return new SpecificFunctionReference(results, returnType, null, function).createHolder();
     }
 
     if (element instanceof HaxeIfStatement) {
@@ -675,7 +775,7 @@ public class HaxeExpressionEvaluator {
       }
     }
 
-    System.out.println("Unhandled " + element.getClass());
+    LOG.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getDynamic(element).createHolder();
   }
 
@@ -710,7 +810,7 @@ public class HaxeExpressionEvaluator {
       }
     }
 
-    //System.out.println(ftype.getDebugString());
+    //LOG.debug(ftype.getDebugString());
     // More parameters than expected
     if (parameterExpressions.size() > parameterTypes.size()) {
       for (int n = parameterTypes.size(); n < parameterExpressions.size(); n++) {

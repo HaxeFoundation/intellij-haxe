@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
@@ -592,20 +593,15 @@ public class HaxeResolveUtil {
     }
 
     String className = type.getText();
-    HaxeClass result;
+    PsiElement result = null;
 
     if (className != null && className.indexOf('.') == -1) {
       final HaxeFileModel fileModel = HaxeFileModel.fromElement(type);
-
-      result = searchInSameFile(fileModel, className);
-      if (result == null) {
-        PsiElement psiElement = searchInImports(fileModel, className);
-
-        if (psiElement != null && psiElement instanceof HaxeClass) {
-          result = (HaxeClass)psiElement;
-        }
+      if (fileModel != null) {
+        result = searchInSameFile(fileModel, className);
+        if (result == null) result = searchInImports(fileModel, className);
+        if (result == null) result = searchInSamePackage(fileModel, className);
       }
-      if (result == null) result = searchInSamePackage(fileModel, className);
     } else {
       className = tryResolveFullyQualifiedHaxeReferenceExpression(type);
       result = findClassByQName(className, type.getContext());
@@ -613,16 +609,22 @@ public class HaxeResolveUtil {
 
     result = result != null ? result : findClassByQName(className, type.getContext());
 
-    return result;
+    return result instanceof HaxeClass ? (HaxeClass)result : null;
   }
 
   @Nullable
-  public static HaxeClass searchInSameFile(HaxeFileModel file, String name) {
-    final HaxeClassModel classModel = file.getClassModel(name);
-    if (classModel != null) {
-      return classModel.haxeClass;
-    }
-    return null;
+  public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name) {
+    List<HaxeClassModel> models = file.getClassModels();
+    final Stream<HaxeClassModel> classesStream = models.stream().filter(model -> name.equals(model.getName()));
+    final Stream<HaxeEnumValueModel> enumsStream = models.stream().filter(model -> model instanceof HaxeEnumModel)
+      .map(model -> ((HaxeEnumModel)model).getValue(name))
+      .filter(Objects::nonNull);
+
+    final HaxeModel result = Stream.concat(classesStream, enumsStream)
+      .findFirst()
+      .orElse(null);
+
+    return result != null ? result.getBasePsi() : null;
   }
 
   @Nullable
@@ -641,18 +643,30 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeClass searchInSamePackage(HaxeFileModel file, String name) {
+  public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name) {
     final HaxePackageModel packageModel = file.getPackageModel();
-    if (packageModel == null) return null;
+    HaxeModel result = null;
 
-    final HaxeClassModel classModel = packageModel.getClassModel(name);
-    if (classModel != null) {
-      return classModel.haxeClass;
+    if (packageModel != null) {
+      result = packageModel.getExposedMembers().stream()
+        .filter(model -> name.equals(model.getName()))
+        .findFirst()
+        .orElse(null);
     }
-    return null;
+
+    return result != null ? result.getBasePsi() : null;
   }
 
   public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
+    final HaxeClass classForType = (HaxeClass)Arrays.stream(fileChildren)
+      .filter(child -> child instanceof HaxeClass && result.equals(((HaxeClass)child).getName()))
+      .findFirst()
+      .orElse(null);
+
+    if (classForType != null) {
+      return classForType.getQualifiedName();
+    }
+
     final HaxeImportStatement importStatement =
       (HaxeImportStatement)(StreamUtil.reverse(Arrays.stream(fileChildren))
                               .filter(element ->
@@ -662,27 +676,23 @@ public class HaxeResolveUtil {
                               .orElse(null));
 
     final HaxeExpression importStatementExpression = importStatement == null ? null : importStatement.getReferenceExpression();
-    final String packageName = getPackageName(
-      (HaxePackageStatement)Arrays.stream(fileChildren)
-        .filter(element -> element instanceof HaxePackageStatement)
-        .findFirst()
-        .orElse(null)
-    );
-
-    final HaxeClass classForType = (HaxeClass)ContainerUtil.find(fileChildren, new Condition<PsiElement>() {
-      @Override
-      public boolean value(PsiElement element) {
-        return element instanceof HaxeClass && result.equals(((HaxeClass)element).getName());
-      }
-    });
-
-    if (classForType != null) {
-      return classForType.getQualifiedName();
-    } else if (importStatement != null && importStatementExpression != null) {
+    if (importStatementExpression != null) {
       return importStatementExpression.getText();
-    } else if (searchInSamePackage && !packageName.isEmpty()) {
-      return packageName + "." + result;
     }
+
+    if (searchInSamePackage && fileChildren.length > 0) {
+      final HaxeFileModel fileModel = HaxeFileModel.fromElement(fileChildren[0]);
+      if (fileModel != null) {
+        final HaxePackageModel packageModel = fileModel.getPackageModel();
+        if (packageModel != null) {
+          final HaxeClassModel classModel = packageModel.getClassModel(result);
+          if (classModel != null) {
+            return classModel.haxeClass.getQualifiedName();
+          }
+        }
+      }
+    }
+
     return result;
   }
 

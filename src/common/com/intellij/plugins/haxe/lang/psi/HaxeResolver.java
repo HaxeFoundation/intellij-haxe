@@ -2,8 +2,8 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,21 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         return superElements;
       }
 
+      HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
+      if (fileModel != null) {
+        String className = reference.getText();
+
+        PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
+        if (target == null) target = HaxeResolveUtil.searchInImports(fileModel, className);
+        if (target == null) target = HaxeResolveUtil.searchInSamePackage(fileModel, className);
+
+        if (target != null) {
+          return asList(target);
+        }
+      }
+
+      LogResolution(reference, "failed after exhausting all options.");
+
       if (PsiNameHelper.getInstance(reference.getProject()).isQualifiedName(reference.getText())) {
         List<HaxeModel> resolvedPackage =
           HaxeProjectModel.fromElement(reference).resolve(new FullyQualifiedInfo(reference.getText()), reference.getResolveScope());
@@ -83,19 +98,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           return Collections.singletonList(resolvedPackage.get(0).getBasePsi());
         }
       }
-
-      HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
-      String className = reference.getText();
-
-      PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
-      if (target == null) target = HaxeResolveUtil.searchInImports(fileModel, className);
-      if (target == null) target = HaxeResolveUtil.searchInSamePackage(fileModel, className);
-
-      if (target != null) {
-        return asList(target);
-      }
-
-      LogResolution(reference, "failed after exhausting all options.");
     }
 
     return result == null ? ContainerUtil.emptyList() : result;
@@ -202,8 +204,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       String message = "Resolved " + ref.getText() + " " + tailmsg;
       if (LOG.isTraceEnabled()) {
         LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), message);
-      }
-      else {
+      } else {
         LOG.debug(message);
       }
     }
@@ -278,8 +279,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       final HaxeClass componentDeclaration =
         HaxeResolveUtil.findComponentDeclaration(leftResultClass.getContainingFile(), helperName);
       componentName = componentDeclaration == null ? null : componentDeclaration.getComponentName();
-    }
-    else {
+    } else {
       // try to find component at abstract forwarding underlying class
       leftResultClass = leftReference.resolveHaxeClass().getHaxeClass();
       if (LOG.isTraceEnabled()) {
@@ -289,11 +289,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
       if (leftResultClass != null) {
-        HaxeMemberModel member = leftResultClass.getModel().getMember(helperName);
+        HaxeClassModel model = leftResultClass.getModel();
+        HaxeMemberModel member = model.getMember(helperName);
         if (member != null) return member.getNamePsi();
 
-        final Boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftResultClass);
-        if (isAbstractForward) {
+        if (model.isAbstract() && ((HaxeAbstractClassModel)model).hasForwards()) {
           final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
             HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass);
           if (forwardingHaxeNamedComponents != null) {
@@ -335,25 +335,27 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (member != null) return asList(member.getNamePsi());
 
       // if class is abstract try find in forwards
-      final boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(leftClass);
-      if (isAbstractForward) {
-        final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(leftClass);
-        if (underlyingClass != null) {
-          member = underlyingClass.getModel().getMember(reference.getReferenceName());
-          if (member != null) {
-            return asList(member.getNamePsi());
+      if (leftClass.isAbstract()) {
+        HaxeAbstractClassModel model = (HaxeAbstractClassModel)leftClass.getModel();
+        if (model.hasForwards()) {
+          final HaxeClass underlyingClass = model.getUnderlyingClass();
+          if (underlyingClass != null) {
+            member = underlyingClass.getModel().getMember(reference.getReferenceName());
+            if (member != null) {
+              return asList(member.getNamePsi());
+            }
           }
         }
       }
-    }
-    // try find using
-    HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
-    if (leftClass != null) {
-      for (HaxeUsingModel model : fileModel.getUsingModels()) {
-        HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), leftClass);
-        if (method != null) {
-          isExtension.set(true);
-          return asList(method.getNamePsi());
+      // try find using
+      HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
+      if (fileModel != null) {
+        for (HaxeUsingModel model : fileModel.getUsingModels()) {
+          HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), leftClass);
+          if (method != null) {
+            isExtension.set(true);
+            return asList(method.getNamePsi());
+          }
         }
       }
     }
@@ -376,12 +378,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     @Override
     public boolean execute(@NotNull PsiElement element, ResolveState state) {
+      HaxeComponentName componentName = null;
       if (element instanceof HaxeNamedComponent) {
-        final HaxeComponentName componentName = ((HaxeNamedComponent)element).getComponentName();
-        if (componentName != null && name.equals(componentName.getText())) {
-          result.add(componentName);
-          return false;
-        }
+        componentName = ((HaxeNamedComponent)element).getComponentName();
+      } else if (element instanceof HaxeOpenParameterList) {
+        componentName = ((HaxeOpenParameterList)element).getComponentName();
+      }
+      if (componentName != null && name.equals(componentName.getText())) {
+        result.add(componentName);
+        return false;
       }
       return true;
     }

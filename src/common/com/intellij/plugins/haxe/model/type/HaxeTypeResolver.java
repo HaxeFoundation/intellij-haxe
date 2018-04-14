@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,13 +76,20 @@ public class HaxeTypeResolver {
         return getFunctionReturnType(comp);
       } else if (comp instanceof HaxeFunctionLiteral) {
         return getFunctionReturnType(comp);
+      } else if (comp instanceof HaxeEnumValueDeclaration) {
+        return getEnumReturnType((HaxeEnumValueDeclaration)comp);
       } else {
         return getFieldType(comp);
       }
-    } catch (Throwable e) {
+    }
+    catch (Throwable e) {
       e.printStackTrace();
       return SpecificTypeReference.getUnknown(comp).createHolder();
     }
+  }
+
+  private static ResultHolder getEnumReturnType(HaxeEnumValueDeclaration comp) {
+    return getTypeFromTypeTag(comp.getReturnType(), comp.getParent());
   }
 
   @NotNull
@@ -89,7 +97,7 @@ public class HaxeTypeResolver {
     //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
     final ResultHolder abstractEnumType = HaxeAbstractEnumUtil.getFieldType(comp);
-    if(abstractEnumType != null) {
+    if (abstractEnumType != null) {
       return abstractEnumType;
     }
 
@@ -112,7 +120,7 @@ public class HaxeTypeResolver {
         result = typeFromTag.withConstantValue(initConstant);
       }
 
-      if(result != null) {
+      if (result != null) {
         return result;
       }
     }
@@ -190,6 +198,9 @@ public class HaxeTypeResolver {
     ArrayList<ResultHolder> references = new ArrayList<ResultHolder>();
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
+        for (HaxeFunctionType fnType : part.getFunctionTypeList()) {
+          references.add(getTypeFromFunctionType(fnType));
+        }
         for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
           references.add(getTypeFromTypeOrAnonymous(anonymous));
         }
@@ -271,7 +282,8 @@ public class HaxeTypeResolver {
       }
 
       return context;
-    } finally {
+    }
+    finally {
       processedElements.get().remove(element);
     }
   }

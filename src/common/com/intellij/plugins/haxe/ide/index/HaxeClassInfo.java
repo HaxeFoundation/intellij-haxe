@@ -50,6 +50,11 @@ public class HaxeClassInfo {
     return type == null ? null : type.getIcon();
   }
 
+  @Nullable
+  public Icon getCompletionIcon() {
+    return type == null ? null : type.getCompletionIcon();
+  }
+
   private int getTypeKey() {
     return type != null ? type.getKey() : -1;
   }

@@ -2,8 +2,8 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
 
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
@@ -287,7 +290,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       HaxeClass clazz = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
       // this has different semantics on abstracts
       if (clazz != null && clazz.getModel().isAbstract()) {
-        HaxeTypeOrAnonymous type = clazz.getModel().getAbstractUnderlyingType();
+        HaxeTypeOrAnonymous type = clazz.getModel().getUnderlyingType();
         if (type != null) {
           return HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
         }
@@ -321,11 +324,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Else, it's a block statement and not a named literal.
       return HaxeClassResolveResult.create(null);
     }
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking map literal."));
+    if (this instanceof HaxeMapLiteral) {
+      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
+    }
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking array literal."));
     if (this instanceof HaxeArrayLiteral) {
       HaxeArrayLiteral haxeArrayLiteral = (HaxeArrayLiteral)this;
       HaxeExpressionList expressionList = haxeArrayLiteral.getExpressionList();
-      boolean isMap;
       boolean isString = false;
       boolean sameClass = false;
       boolean implementOrExtendSameClass = false;
@@ -333,14 +339,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       List<HaxeType> commonTypeList = new ArrayList<>();
       List<HaxeExpression> haxeExpressionList = expressionList != null ? expressionList.getExpressionList() : new ArrayList<>();
       if (!haxeExpressionList.isEmpty()) {
-        isMap = true;
         isString = true;
         sameClass = true;
 
         for (HaxeExpression expression : haxeExpressionList) {
-          if (!(expression instanceof HaxeFatArrowExpression)) {
-            isMap = false;
-          }
           if (!(expression instanceof HaxeStringLiteralExpression)) {
             isString = false;
           }
@@ -382,9 +384,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
 
-        if (isMap) {
-          return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
-        }
       }
       HaxeClassResolveResult resolveResult =
         HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
@@ -415,7 +414,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
 
       return resolveResult;
-    }
+    } // end (this instanceof HaxeArrayLiteral)
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Checking 'new' expression."));
     if (this instanceof HaxeNewExpression) {
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(
@@ -643,9 +642,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (leftReference != null && name != null &&
         HaxeResolveUtil.splitQName(leftReference.getText()).getSecond().equals(name)) {
 
-      addClassStaticMembersVariants(suggestedVariants, result.getHaxeClass(),
-                                    !(isThis));
-      addChildClassVariants(suggestedVariants, result.getHaxeClass());
+      if (!isInUsingStatement() && !(isInImportStatement() && (haxeClass.isEnum() || haxeClass instanceof HaxeAbstractClassDeclaration))) {
+        addClassStaticMembersVariants(suggestedVariants, haxeClass, !(isThis));
+      }
+
+      addChildClassVariants(suggestedVariants, haxeClass);
     } else if (leftReference != null && !result.isFunctionType()) {
       if (null == haxeClass) {
         // TODO: fix haxeClass by type inference. Use compiler code assist?!
@@ -673,7 +674,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (leftReference == null) {
         final boolean isElementInForwardMeta = HaxeAbstractForwardUtil.isElementInForwardMeta(this);
         if (isElementInForwardMeta) {
-          addAbstractUnderlyingClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), true);
+          addAbstractUnderlyingClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class));
         } else {
           PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
           addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
@@ -693,6 +694,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return rootPackage == null ? variants : ArrayUtil.mergeArrays(variants, rootPackage.getSubPackages());
     }
     return variants;
+  }
+
+  private boolean isInUsingStatement() {
+    return UsefulPsiTreeUtil.getParentOfType(this, HaxeUsingStatement.class) != null;
+  }
+
+  private boolean isInImportStatement() {
+    return UsefulPsiTreeUtil.getParentOfType(this, HaxeImportStatement.class) != null;
   }
 
   private void addChildClassVariants(Set<HaxeComponentName> variants, HaxeClass haxeClass) {
@@ -779,37 +788,29 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private static void addAbstractUnderlyingClassVariants(Set<HaxeComponentName> suggestedVariants,
-                                                         @Nullable HaxeClass haxeClass,
-                                                         boolean filterByAccess) {
-    final HaxeClass underlyingClass = HaxeAbstractUtil.getAbstractUnderlyingClass(haxeClass);
-    if (underlyingClass == null) {
-      return;
+                                                         @Nullable HaxeClass haxeClass) {
+    if (haxeClass == null || !haxeClass.isAbstract()) return;
+
+    final HaxeAbstractClassModel model = (HaxeAbstractClassModel)haxeClass.getModel();
+    final HaxeClass underlyingClass = model.getUnderlyingClass();
+    if (underlyingClass != null) {
+      addClassVariants(suggestedVariants, underlyingClass, true);
     }
-    addClassVariants(suggestedVariants, underlyingClass, filterByAccess);
   }
 
-  private static void addClassStaticMembersVariants(Set<HaxeComponentName> suggestedVariants,
-                                                    @Nullable HaxeClass haxeClass,
+  private static void addClassStaticMembersVariants(@NotNull final Set<HaxeComponentName> suggestedVariants,
+                                                    @NotNull final HaxeClass haxeClass,
                                                     boolean filterByAccess) {
-    if (haxeClass == null) {
-      return;
-    }
 
-    boolean extern = haxeClass.isExtern();
-    boolean isEnum = haxeClass instanceof HaxeEnumDeclaration;
-    boolean isAbstractEnum = HaxeAbstractEnumUtil.isAbstractEnum(haxeClass);
+    final boolean isEnum = haxeClass.isEnum();
 
-    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
-      final boolean needFilter = filterByAccess && !namedComponent.isPublic();
-      final HaxeComponentName componentName = namedComponent.getComponentName();
-      if (componentName != null) {
-        if (isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
-          suggestedVariants.add(componentName);
-        } else if ((extern || !needFilter) && (namedComponent.isStatic() || isEnum)) {
-          suggestedVariants.add(componentName);
-        }
-      }
-    }
+    List<HaxeComponentName> staticMembers = haxeClass.getModel().getMembersSelf().stream()
+      .filter(member -> (isEnum && member instanceof HaxeEnumValueModel) || member.isStatic())
+      .filter(member -> !filterByAccess || member.isPublic())
+      .map(HaxeMemberModel::getNamePsi)
+      .collect(Collectors.toList());
+
+    suggestedVariants.addAll(staticMembers);
   }
 
   private static void addClassNonStaticMembersVariants(Set<HaxeComponentName> suggestedVariants,
@@ -819,9 +820,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return;
     }
 
+    HaxeClassModel classModel = haxeClass.getModel();
+
     boolean extern = haxeClass.isExtern();
-    boolean isAbstractEnum = HaxeAbstractEnumUtil.isAbstractEnum(haxeClass);
-    boolean isAbstractForward = HaxeAbstractForwardUtil.isAbstractForward(haxeClass);
+    boolean isAbstractEnum = haxeClass.isAbstract() && haxeClass.isEnum();
+    boolean isAbstractForward = haxeClass.isAbstract() && ((HaxeAbstractClassModel)classModel).hasForwards();
 
     if (isAbstractForward) {
       final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
@@ -954,8 +957,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
       String clazzName = this.getClass().getSimpleName();
       String text = getCanonicalText();
-      ss += ":" + text;
-      ss += ":" + clazzName;
+      ss += ":" + defaultIfEmpty(text, "<no text>");
+      ss += ":" + defaultIfEmpty(clazzName, "<anonymous>");
     }
     return ss;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,12 +83,27 @@ public class HaxeImportModel implements HaxeExposableModel {
         qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.fileName, null);
       }
       result = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
-      if (result != null && !result.isEmpty() && (result.get(0) instanceof HaxeFileModel || result.get(0) instanceof HaxePackageModel)) {
-        result = ((HaxeExposableModel)result.get(0)).getExposedMembers();
+      if (result != null && !result.isEmpty()) {
+        HaxeModel firstItem = result.get(0);
+        if (firstItem instanceof HaxeFileModel || firstItem instanceof HaxePackageModel) {
+          result = ((HaxeExposableModel)firstItem).getExposedMembers();
+        }
       }
     }
 
-    return result != null ? result : Collections.emptyList();
+    return result != null ? exposeEnumValues(result) : Collections.emptyList();
+  }
+
+  @NotNull
+  private List<HaxeModel> exposeEnumValues(@NotNull List<HaxeModel> result) {
+    result.addAll(
+      result.stream()
+        .filter(model -> model instanceof HaxeEnumModel)
+        .flatMap(model -> ((HaxeEnumModel)model).getValues().stream())
+        .collect(Collectors.toList())
+    );
+
+    return result;
   }
 
   @Nullable
@@ -118,7 +133,7 @@ public class HaxeImportModel implements HaxeExposableModel {
   }
 
   private HaxeModel getExposedMember(String name) {
-    List<HaxeModel> members = getExposedMembers();
+    List<? extends HaxeModel> members = getExposedMembers();
     if (members.isEmpty()) return null;
     if (hasAlias()) {
       return (Objects.equals(getAliasName(), name)) ? members.get(0) : null;

@@ -349,12 +349,12 @@ enumBody ::= enumValueDeclaration*
 access ::= 'public' | 'private'
 declarationAttribute ::= 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | access
 
-enumValueDeclaration ::= componentName enumConstructorParameters? ';'
-{recoverWhile="enum_value_declaration_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+enumValueDeclaration ::= componentName genericParam? enumConstructorParameters? typeTag? ';'
+{recoverWhile="enum_value_declaration_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField" methods=[returnType="typeTag"]}
 
 private enum_value_declaration_recovery ::= !(ID | '}')
 
-enumConstructorParameters ::= parenthesizedParameterList
+private enumConstructorParameters ::= parenthesizedParameterList
 
 varDeclaration ::= (macroMember | declarationAttribute)* 'var' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
@@ -418,6 +418,9 @@ functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
 
 arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+mapLiteral ::= '[' (mapInitializerStatement | mapInitializerExpressionList) ']'
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
 
 private functionTypeWrapper ::= functionTypeOrWrapper functionType*
 private functionTypeOrWrapper ::= '?'? typeOrAnonymous | '(' functionTypeWrapper ')'
@@ -517,12 +520,18 @@ defaultCase::= 'default' ':' switchCaseBlock? {pin=1}
 tryStatement ::= 'try' statement ';'? catchStatement*
 catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 
+mapInitializerForStatement ::= 'for' '(' componentName 'in' iterable ')' (mapInitializerExpression | mapInitializerStatement)
+{pin=7 methods=[mapInitializer="expression"] extends=forStatement mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementImpl"}
+mapInitializerWhileStatement ::= 'while' '(' expression ')' (mapInitializerExpression | mapInitializerStatement)
+{pin=5 methods=[condition="expression[0]" mapInitializer="expression[1]"] extends=whileStatement mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeWhileStatementImpl"}
+private mapInitializerStatement ::= mapInitializerForStatement
+                                  | mapInitializerWhileStatement
 /*
  * expressions
  */
 
-//mapArrayExpression ::= (expression OFAT_ARROW expression (',' expression OFAT_ARROW expression)*) {recoverWhile="expression_list_recover"}
-//mapArrayExpression
+mapInitializerExpressionList ::= mapInitializerExpression (',' mapInitializerExpression)* ','? {recoverWhile=expression_list_recover}
+mapInitializerExpression ::= iteratorExpressionWrapper fatArrowExpression {pin=2}
 
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
@@ -596,6 +605,7 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral
                     | 'null' | 'true' | 'false'
                     | functionLiteral
+                    | mapLiteral
                     | arrayLiteral
                     | objectLiteral
                     | stringLiteralExpression

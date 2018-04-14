@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +41,6 @@ import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +66,8 @@ public class HaxeSemanticAnnotator implements Annotator {
       TypeChecker.check((HaxeType)element, holder);
     } else if (element instanceof HaxeVarDeclaration) {
       FieldChecker.check((HaxeVarDeclaration)element, holder);
+    } else if (element instanceof HaxeLocalVarDeclaration) {
+      LocalVarChecker.check((HaxeLocalVarDeclaration)element, holder);
     } else if (element instanceof HaxeStringLiteralExpression) {
       StringChecker.check((HaxeStringLiteralExpression)element, holder);
     }
@@ -114,6 +116,15 @@ class TypeTagChecker {
     }
     // fallback to simple init expression
     return HaxeTypeResolver.getPsiElementType(init);
+  }
+}
+
+class LocalVarChecker {
+  public static void check(final HaxeLocalVarDeclaration var, final AnnotationHolder holder) {
+    HaxeLocalVarModel local = new HaxeLocalVarModel(var);
+    if (local.hasInitializer() && local.hasTypeTag()) {
+      TypeTagChecker.check(local.getBasePsi(), local.getTypeTagPsi(), local.getInitializerPsi(), false, holder);
+    }
   }
 }
 
@@ -425,7 +436,7 @@ class MethodChecker {
   private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     if (currentClass.isExtern() || currentClass.isInterface()) {
-      if (currentMethod.getReturnTypeTagPsi() == null) {
+      if (currentMethod.getReturnTypeTagPsi() == null && !currentMethod.isConstructor()) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
       }
       for (final HaxeParameterModel param : currentMethod.getParameters()) {

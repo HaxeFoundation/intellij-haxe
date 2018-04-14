@@ -39,19 +39,17 @@ public class HaxePackageModel implements HaxeExposableModel {
   private final FullyQualifiedInfo qualifiedInfo;
 
 
-  public HaxePackageModel(@NotNull HaxeProjectModel project,
-                          @NotNull HaxeSourceRootModel root,
+  public HaxePackageModel(@NotNull HaxeSourceRootModel root,
                           @NotNull String name,
                           @Nullable HaxePackageModel parent) {
-    this.project = project;
+    this.project = root.project;
     this.name = name;
     this.root = root;
     this.parent = parent;
 
     if (parent != null && !parent.path.isEmpty()) {
       path = parent.path + '.' + name;
-    }
-    else {
+    } else {
       path = name;
     }
 
@@ -76,15 +74,13 @@ public class HaxePackageModel implements HaxeExposableModel {
       HaxeFileModel file = getFileModel(info.fileName);
       if (file != null) return file.resolve(info);
       return null;
-    }
-    else
-      if (info.packagePath.indexOf(path) == 0 || path.isEmpty()) {
-        String searchName = path.isEmpty() ? info.packagePath : info.packagePath.substring(path.length() + 1);
-        HaxePackageModel child = getChild(searchName);
-        if (child != null) {
-          return child.resolve(info);
-        }
-        return null;
+    } else if (info.packagePath.indexOf(path) == 0 || path.isEmpty()) {
+      String searchName = path.isEmpty() ? info.packagePath : info.packagePath.substring(path.length() + 1);
+      HaxePackageModel child = getChild(searchName);
+      if (child != null) {
+        return child.resolve(info);
+      }
+      return null;
     }
     return null;
   }
@@ -93,8 +89,7 @@ public class HaxePackageModel implements HaxeExposableModel {
   public HaxePackageModel getChild(@NotNull String name) {
     if (name.isEmpty()) {
       return this;
-    }
-    else if (name.indexOf('.') >= 0) {
+    } else if (name.indexOf('.') >= 0) {
       String[] packages = StringUtils.split(name, '.');
       HaxePackageModel result = this;
       for (String packageName : packages) {
@@ -103,11 +98,10 @@ public class HaxePackageModel implements HaxeExposableModel {
       }
 
       return result;
-    }
-    else {
+    } else {
       PsiDirectory directory = root.access(path.isEmpty() ? name : path + '.' + name);
       if (directory != null) {
-        return new HaxePackageModel(project, root, name, this);
+        return new HaxePackageModel(root, name, this);
       }
     }
 
@@ -119,7 +113,7 @@ public class HaxePackageModel implements HaxeExposableModel {
     PsiDirectory directory = root.access(path);
     if (directory != null) {
       return Arrays.stream(directory.getSubdirectories())
-        .map(subDirectory -> new HaxePackageModel(project, root, subDirectory.getName(), this))
+        .map(subDirectory -> new HaxePackageModel(root, subDirectory.getName(), this))
         .collect(Collectors.toList());
     }
     return Collections.emptyList();
@@ -158,13 +152,14 @@ public class HaxePackageModel implements HaxeExposableModel {
     if (directory != null) {
       PsiFile[] files = directory.getFiles();
 
-      List<HaxeModel> result = Arrays.stream(files)
+      return Arrays.stream(files)
         .filter(file -> file instanceof HaxeFile)
-        .map(file -> HaxeFileModel.fromElement(file).getMainClassModel())
+        .map(file -> {
+          HaxeFileModel fileModel = HaxeFileModel.fromElement(file);
+          return fileModel != null ? fileModel.getMainClassModel() : null;
+        })
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-
-      return result;
     }
 
     return Collections.emptyList();

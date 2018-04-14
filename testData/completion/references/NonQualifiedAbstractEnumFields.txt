@@ -1,0 +1,8 @@
+:INCLUDE
+ONE
+TWO
+THREE
+FOUR
+
+:EXCLUDE
+getter

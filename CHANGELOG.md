@@ -1,10 +1,58 @@
 # Changelog
-  <p>
-     Warning for IDEA v14.1.x users: The 14.1 version of this plugin will NOT
-     work correctly using IDEA version 14.1.2.  It works well with versions
-     14.1, 14.1.1, 14.1.3, and 14.1.4.  The version 14.1.5 version of the
-     plugin is for IDEA versions 14.1.5, 14.1.6, and 14.1.7.
-  </p>
+  <p>1.0.1 (HaxeFoundation release)</p>
+  <ul>
+    <li>Updated change notes for 1.0.0 (enumerated several important import changes).</li>
+    <li>Add Haxe Sdk setup validation.</li>
+    <li>Use SDK classpath as well as sourcepath to find the standard library. (Issue #774)</li>
+    <li>Better error handling when haxelibs are installed incorrectly. (Issue #780)</li>
+    <li>2017.3 and 2018.1 builds. (Issues #719, #789)</li>
+    <li>Workaround debugger crash. (Issue #792)</li>
+    <li>Fix typo in haxelib metadata parser, which was keeping library sub-tree source directories from being found.</li>
+  </ul>
+  <p>1.0.0 (HaxeFoundation release)</p>
+  <ul>
+    <li>Import of static fields/methods.</li>
+    <li>Imports alias hinting support.</li>
+    <li>Proper wildcard import resolution.</li>
+    <li>Import optimizer now works properly.</li>
+    <li>Proper module scoping for resolving.</li>
+    <li>Add $trace to the list of built-ins to recognize.</li>
+    <li>Semantic Annotation: Infer missing function types from code blocks.</li>
+    <li>Semantic Annotation: Support arrow functions.</li>
+    <li>Semantic Annotation: Add local variable type checking.</li>
+    <li>Properly detect function types when used in type parameters (generics).</li>
+    <li>Fix Flash "Run" target to launch the file that the compile process creates.</li>
+    <li>Non-OpenFL projects now use a better algorithm to determine output directories and files.</li>
+    <li>Add source directories to classpath during compiler completions. (More completions, fewer errors.)</li>
+    <li>Use non-haxe-logo version of icons when completions are not provided by the compiler.</li>
+    <li>Compatibility fix for non-IDEA products: stop logging to stderr! (Issue #724)</li>
+    <li>Improved Enum parsing; added generalized algebraic data types support.</li>
+    <li>Add true Map literal support. (No longer parsed as Array.)</li>
+    <li>Added visibility detection rules (e.g. @NoCompletion) regarding language docs.</li>
+    <li>Fixes to error message parsing (no longer account info messages to JetBrains installation directory).</li>
+    <li>Split 'lime test' into 'lime update; lime build' and 'lime run', for Make and Run/Debug tasks.</li>
+    <li>Add folding support:
+      <ul>
+        <li>For documentation comments (/** */).</li>
+        <li>For comment regions. (// region Name ... // end region) (Issue #529)</li>
+        <li>Braces for classes, methods, etc.</li>
+        <li>For imports and usings.</li>
+        <li>For compiler conditionals (#if, etc.)</li>
+      </ul>
+    </li>
+    <li>Fixed a number of NPEs in the ProjectUpdater.</li>
+    <li>Add enums from the current file completion suggestion lists.</li>
+    <li>Fixed the resolution order for imports vs. package. (Issue #741)</li>
+    <li>Fixed inability to resolve enum parameter symbols at case statement. (Issue #351)</li>
+    <li>Dropped support for IDEA versions 14 and 15.</li>
+    <li>Internal: Began refactoring the resolver. New models are introduced.</li>
+    <li>Changed "static variable override" to a weak warning, instead of a regular warning.</li>
+    <li>Imports handling has been refactored.</li>
+    <li>Allow @:meta without parens.</li>
+    <li>Properly parse variable declarations in return statements. (Issue #329)</li>
+    <li>Fixed parsing of 'throw' statements within a ternary expression. (Issue #704)</li>
+    <li>Allow all string literal forms as field identifiers in structures. (Issue #662)</li>
+  </ul>
   <p>0.11.2: (Haxe Foundation Release)</p>
   <ul>
     <li>Parsing fixes: </li>

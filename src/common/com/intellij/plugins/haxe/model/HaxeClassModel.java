@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isEnum() {
-    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.ENUM;
+    return haxeClass.isEnum();
   }
 
   public boolean isTypedef() {
@@ -106,8 +106,17 @@ public class HaxeClassModel implements HaxeExposableModel {
     return haxeClass instanceof HaxeAbstractClassDeclaration;
   }
 
+  public boolean hasMeta(@NotNull String name) {
+    return haxeClass.hasMeta(name);
+  }
+
   @Nullable
-  public HaxeTypeOrAnonymous getAbstractUnderlyingType() {
+  public HaxeMacroClass getMeta(@NotNull String name) {
+    return haxeClass.getMeta(name);
+  }
+
+  @Nullable
+  public HaxeTypeOrAnonymous getUnderlyingType() {
     if (!isAbstract()) return null;
     HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
     HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
@@ -200,7 +209,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public List<HaxeMemberModel> getMembers() {
-    LinkedList<HaxeMemberModel> members = new LinkedList<>();
+    final List<HaxeMemberModel> members = new ArrayList<>();
     members.addAll(getMethods());
     members.addAll(getFields());
     return members;
@@ -208,8 +217,8 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @NotNull
   public List<HaxeMemberModel> getMembersSelf() {
-    LinkedList<HaxeMemberModel> members = new LinkedList<HaxeMemberModel>();
-    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
+    final List<HaxeMemberModel> members = new ArrayList<>();
+    HaxePsiCompositeElement body = getBodyPsi();
     if (body != null) {
       for (PsiElement element : body.getChildren()) {
         if (element instanceof HaxeMethod || element instanceof HaxeVarDeclaration) {
@@ -266,7 +275,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   @Nullable
-  public HaxeClassBody getBodyPsi() {
+  public HaxePsiCompositeElement getBodyPsi() {
     return (haxeClass instanceof HaxeClassDeclaration) ? ((HaxeClassDeclaration)haxeClass).getClassBody() : null;
   }
 
@@ -375,7 +384,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public List<HaxeGenericParamModel> getGenericParams() {
-    List<HaxeGenericParamModel> out = new LinkedList<HaxeGenericParamModel>();
+    final List<HaxeGenericParamModel> out = new ArrayList<>();
     if (getPsi().getGenericParam() != null) {
       int index = 0;
       for (HaxeGenericListPart part : getPsi().getGenericParam().getGenericListPartList()) {
@@ -396,21 +405,32 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @Override
   public List<HaxeModel> getExposedMembers() {
-    HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
+    // TODO ClassModel concept should be reviewed. We need to separate logic of abstracts, regular classes, enums, etc. Right now this class a bunch of if-else conditions. It looks dirty.
     ArrayList<HaxeModel> out = new ArrayList<>();
-    if (body != null) {
-      for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeMethod.class)) {
-        if (!(declaration instanceof PsiMember)) continue;
-        if (declaration instanceof HaxeVarDeclaration) {
-          HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)declaration;
-          if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
-            out.add(new HaxeFieldModel((HaxeVarDeclaration)declaration));
+    if (isClass()) {
+      HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
+      if (body != null) {
+        for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeMethod.class)) {
+          if (!(declaration instanceof PsiMember)) continue;
+          if (declaration instanceof HaxeVarDeclaration) {
+            HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)declaration;
+            if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
+              out.add(new HaxeFieldModel((HaxeVarDeclaration)declaration));
+            }
+          } else {
+            HaxeMethod method = (HaxeMethod)declaration;
+            if (method.isStatic() && method.isPublic()) {
+              out.add(new HaxeMethodModel(method));
+            }
           }
-        } else {
-          HaxeMethod method = (HaxeMethod)declaration;
-          if (method.isStatic() && method.isPublic()) {
-            out.add(new HaxeMethodModel(method));
-          }
+        }
+      }
+    } else if (isEnum()) {
+      HaxeEnumBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeEnumBody.class);
+      if (body != null) {
+        List<HaxeEnumValueDeclaration> declarations = body.getEnumValueDeclarationList();
+        for (HaxeEnumValueDeclaration declaration : declarations) {
+          out.add(new HaxeFieldModel(declaration));
         }
       }
     }

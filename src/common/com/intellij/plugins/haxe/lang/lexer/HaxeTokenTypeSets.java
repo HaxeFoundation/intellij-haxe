@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +61,13 @@ public interface HaxeTokenTypeSets {
     PPBODY,
     PPEXPRESSION,
     CONDITIONAL_STATEMENT_ID
+  );
+
+  TokenSet ONLY_CC_DIRECTIVES = TokenSet.create(
+    PPIF,
+    PPEND,
+    PPELSE,
+    PPELSEIF
   );
 
   TokenSet CONDITIONALLY_NOT_COMPILED = TokenSet.create(
@@ -258,6 +266,14 @@ public interface HaxeTokenTypeSets {
     OSHIFT_RIGHT_ASSIGN,
     OGREATER_OR_EQUAL,
     OGREATER
+  );
+
+  TokenSet BODY_TYPES = TokenSet.create(
+    CLASS_BODY,
+    ABSTRACT_BODY,
+    INTERFACE_BODY,
+    ENUM_BODY,
+    EXTERN_CLASS_DECLARATION_BODY
   );
 }
 

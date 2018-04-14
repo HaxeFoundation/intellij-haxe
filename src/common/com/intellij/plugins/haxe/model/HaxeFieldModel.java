@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,17 +151,5 @@ public class HaxeFieldModel extends HaxeMemberModel {
   @Override
   public HaxeExposableModel getExhibitor() {
     return getDeclaringClass();
-  }
-
-  @Nullable
-  @Override
-  public FullyQualifiedInfo getQualifiedInfo() {
-    if (getDeclaringClass() != null && isStatic() && isPublic()) {
-      FullyQualifiedInfo containerInfo = getDeclaringClass().getQualifiedInfo();
-      if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());
-      }
-    }
-    return null;
   }
 }

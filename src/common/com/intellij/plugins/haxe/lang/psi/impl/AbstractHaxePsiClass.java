@@ -4,7 +4,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.InheritanceImplUtil;
@@ -80,10 +79,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       return name == null ? "" : name;
     }
 
-    if(name == null && this instanceof HaxeAnonymousType) {
+    if (name == null && this instanceof HaxeAnonymousType) {
       // restore name from parent
       final PsiElement typedefDecl = getParent().getParent();
-      if(typedefDecl != null && typedefDecl instanceof HaxeTypedefDeclaration) {
+      if (typedefDecl != null && typedefDecl instanceof HaxeTypedefDeclaration) {
         name = ((HaxeTypedefDeclaration)typedefDecl).getName();
       }
     }
@@ -99,19 +98,36 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   private HaxeClassModel _model = null;
+
   public HaxeClassModel getModel() {
-    if (_model == null) _model = new HaxeClassModel(this);
+    if (_model == null) {
+      if (this instanceof HaxeEnumDeclaration) {
+        _model = new HaxeEnumModelImpl((HaxeEnumDeclaration)this);
+      } else if (this instanceof HaxeExternClassDeclaration) {
+        _model = new HaxeExternClassModel((HaxeExternClassDeclaration)this);
+      } else if (this instanceof HaxeAbstractClassDeclaration) {
+        HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)this;
+        if (abstractDeclaration.isEnum()) {
+          _model = new HaxeAbstractEnumModel(abstractDeclaration);
+        } else {
+          _model = new HaxeAbstractClassModel(abstractDeclaration);
+        }
+      } else {
+        _model = new HaxeClassModel(this);
+      }
+    }
+
     return _model;
   }
 
   // check if class is declared inside haxe module `MyClass.MySupportType`
   private boolean isAncillaryClass(@NotNull String packageName, @NotNull String name, @NotNull String fileName) {
     // if file name matches type name
-    if(fileName.equals(name)) {
+    if (fileName.equals(name)) {
       return false;
     }
     // if StdTypes
-    if(packageName.isEmpty() && fileName.equals("StdTypes")) {
+    if (packageName.isEmpty() && fileName.equals("StdTypes")) {
       return false;
     }
     // file contains valid type declaration
@@ -121,6 +137,11 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public boolean isExtern() {
     return (this instanceof HaxeExternClassDeclaration || this instanceof HaxeExternInterfaceDeclaration);
+  }
+
+  @Override
+  public boolean isAbstract() {
+    return (this instanceof HaxeAbstractClassDeclaration);
   }
 
   @Override
@@ -141,7 +162,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-   public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {
+  public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {
     return super.add(element);
   }
 
@@ -152,8 +173,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     //      may not be what we want.
     final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(this);
     final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
-    final List<HaxeMethod> result = new ArrayList<HaxeMethod>();
-    for ( HaxeNamedComponent method : methods ) {
+    final List<HaxeMethod> result = new ArrayList<>();
+    for (HaxeNamedComponent method : methods) {
       result.add((HaxeMethod)method);
     }
     return result;
@@ -220,7 +241,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean isEnum() {
-    return (HaxeComponentType.typeOf(this) == HaxeComponentType.ENUM);
+    return (HaxeComponentType.typeOf(this) == HaxeComponentType.ENUM) || this.isAbstract() && hasMeta("@:enum");
   }
 
   @Override
@@ -422,29 +443,24 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-   public PsiElement getRBrace() {
+  public PsiElement getRBrace() {
     return findChildByRoleAsPsiElement(ChildRole.RBRACE);
   }
 
   private boolean isPrivate() {
     HaxePrivateKeyWord privateKeyWord = null;
     if (this instanceof HaxeClassDeclaration) { // concrete class
-      privateKeyWord = ((HaxeClassDeclaration) this).getPrivateKeyWord();
-    }
-    else if (this instanceof HaxeAbstractClassDeclaration) { // abstract class
-      privateKeyWord = ((HaxeAbstractClassDeclaration) this).getPrivateKeyWord();
-    }
-    else if (this instanceof HaxeExternClassDeclaration) { // extern class
+      privateKeyWord = ((HaxeClassDeclaration)this).getPrivateKeyWord();
+    } else if (this instanceof HaxeAbstractClassDeclaration) { // abstract class
+      privateKeyWord = ((HaxeAbstractClassDeclaration)this).getPrivateKeyWord();
+    } else if (this instanceof HaxeExternClassDeclaration) { // extern class
       privateKeyWord = ((HaxeExternClassDeclaration)this).getPrivateKeyWord();
-    }
-    else if (this instanceof HaxeTypedefDeclaration) { // typedef
-      privateKeyWord = ((HaxeTypedefDeclaration) this).getPrivateKeyWord();
-    }
-    else if (this instanceof HaxeInterfaceDeclaration) { // interface
-      privateKeyWord = ((HaxeInterfaceDeclaration) this).getPrivateKeyWord();
-    }
-    else if (this instanceof HaxeEnumDeclaration) { // enum
-      privateKeyWord = ((HaxeEnumDeclaration) this).getPrivateKeyWord();
+    } else if (this instanceof HaxeTypedefDeclaration) { // typedef
+      privateKeyWord = ((HaxeTypedefDeclaration)this).getPrivateKeyWord();
+    } else if (this instanceof HaxeInterfaceDeclaration) { // interface
+      privateKeyWord = ((HaxeInterfaceDeclaration)this).getPrivateKeyWord();
+    } else if (this instanceof HaxeEnumDeclaration) { // enum
+      privateKeyWord = ((HaxeEnumDeclaration)this).getPrivateKeyWord();
     }
     return (privateKeyWord != null);
   }
@@ -556,7 +572,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     // FIX: for twice deletion of file in project view (issue #424)
     final HaxeFile file = (HaxeFile)getContainingFile();
     super.delete();
-    if(file != null && file.getClasses().length == 0) {
+    if (file != null && file.getClasses().length == 0) {
       file.delete();
     }
   }

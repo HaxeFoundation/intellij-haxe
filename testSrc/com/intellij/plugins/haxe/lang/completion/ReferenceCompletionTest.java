@@ -341,4 +341,21 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testForLoopVariable4() throws Throwable {
     doTest();
   }
+
+
+  public void testNonQualifiedAbstractEnumFields() throws Throwable {
+    doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
+  public void testNonQualifiedAbstractEnumFields2() throws Throwable {
+    doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
+  public void testNonQualifiedAbstractEnumFields3() throws Throwable {
+    doTestInclude("com/util/SampleAbstractEnum.hx");
+  }
+
+  public void testInnerEnum() throws Throwable {
+    doTest();
+  }
 }

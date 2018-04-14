@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.plugins.haxe.util.HaxeEventLogUtil;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.xml.XmlDocument;
@@ -50,6 +52,8 @@ public class HaxelibUtil {
   static { LOG.setLevel(Level.DEBUG); } // Remove when finished debugging.
 
   static Key<VirtualFile> HaxelibRootKey = new Key<VirtualFile>("Haxelib.rootDirectory");
+
+  static final String HAXELIB_LOG_ID = "Haxelib Synchronization";
 
   // TODO: Figure out what the haxelib configuration is coming from and watch for changes, to invalidate the cache.
   //       (In practice this will not change often.
@@ -134,6 +138,10 @@ public class HaxelibUtil {
       if (s.isEmpty()) continue;
       if (s.startsWith("-D")) continue;
       if (s.startsWith("-L")) continue;
+      if (s.matches("Error: .*")) {
+        logWarningEvent(HaxeBundle.message("haxelib.synchronization.title"), s);
+        continue; // break??
+      }
       s = FileUtil.normalize(s);
       if (FileUtil.startsWith(s, rootName)) {
         String libClasspath = FileUtil.getRelativePath(rootName, s, '/');
@@ -151,9 +159,17 @@ public class HaxelibUtil {
           }
         }
         String libRoot = FileUtil.join(rootName, libParts[0], libParts[1]);
-        return LocalFileSystem.getInstance().findFileByPath(libRoot);
+        VirtualFile srcroot = LocalFileSystem.getInstance().findFileByPath(libRoot);
+        if (null == srcroot) {
+          logWarningEvent(HaxeBundle.message("haxelib.synchronization.title"),
+                          HaxeBundle.message("library.source.root.was.not.found.0", libRoot));
+        }
+        return srcroot;
       }
     }
+
+    logWarningEvent(HaxeBundle.message("haxelib.synchronization.title"),
+                    HaxeBundle.message("could.not.determine.library.source.root.0", libName));
     return null;
   }
 
@@ -169,7 +185,7 @@ public class HaxelibUtil {
       }
       return installedHaxelibs;
     }
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 
 
@@ -344,6 +360,37 @@ public class HaxelibUtil {
     }
 
     return new HaxeLibraryList(libraryManager.getSdk(), haxelibNewItems);
+  }
+
+
+  /**
+   * Post an error event to the Event Log.
+   *
+   * @param title
+   * @param details
+   */
+  public static void logErrorEvent(String title, String... details) {
+    HaxeEventLogUtil.error(HAXELIB_LOG_ID, title, details);
+  }
+
+  /**
+   * Post a warning event to the Event Log.
+   *
+   * @param title
+   * @param details
+   */
+  public static void logWarningEvent(String title, String... details) {
+    HaxeEventLogUtil.warn(HAXELIB_LOG_ID, title, details);
+  }
+
+  /**
+   * Post an informational message to the Event Log.
+   *
+   * @param title
+   * @param details
+   */
+  public static void logInfoEvent(String title, String... details) {
+    HaxeEventLogUtil.info(HAXELIB_LOG_ID, title, details);
   }
 
 }

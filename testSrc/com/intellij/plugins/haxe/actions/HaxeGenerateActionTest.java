@@ -18,6 +18,8 @@
 package com.intellij.plugins.haxe.actions;
 
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.build.IdeaTarget;
+import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.ide.generation.*;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
@@ -30,7 +32,10 @@ import org.jetbrains.annotations.NotNull;
 public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   public HaxeGenerateActionTest() {
-    PlatformTestCase.initPlatformLangPrefix();
+    if (!IdeaTarget.IS_VERSION_18_COMPATIBLE) {
+      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", null);
+      init.invoke(null,null);
+    }
   }
 
   @NotNull
