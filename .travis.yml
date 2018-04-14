@@ -23,3 +23,13 @@ env:
 
 notifications:
   email: false
+
+jobs:
+  include:
+    - if: branch = develop
+      script: make
+      env:
+        - IDEA_VERSION=2016.3.8
+        - IDEA_VERSION=2017.2.7
+        - IDEA_VERSION=2017.3.5
+        - IDEA_VERSION=2018.1
