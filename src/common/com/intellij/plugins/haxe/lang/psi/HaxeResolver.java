@@ -337,7 +337,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // if class is abstract try find in forwards
       if (leftClass.isAbstract()) {
         HaxeAbstractClassModel model = (HaxeAbstractClassModel)leftClass.getModel();
-        if (model.hasForwards()) {
+        if (model.isForwarded(reference.getReferenceName())) {
           final HaxeClass underlyingClass = model.getUnderlyingClass();
           if (underlyingClass != null) {
             member = underlyingClass.getModel().getMember(reference.getReferenceName());

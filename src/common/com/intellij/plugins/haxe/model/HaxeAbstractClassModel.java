@@ -20,6 +20,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeAbstractClassModel extends HaxeClassModel {
+
+  public static final String FORWARD = "@:forward";
+
   public HaxeAbstractClassModel(@NotNull HaxeAbstractClassDeclaration haxeClass) {
     super(haxeClass);
   }
@@ -31,7 +34,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
   public boolean hasForwards() {
-    return hasMeta("@:forward");
+    return hasMeta(FORWARD);
   }
 
   public HaxeClass getUnderlyingClass() {
@@ -52,5 +55,18 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
 
   protected HaxeAbstractBody getAbstractClassBody() {
     return getAbstractClass().getAbstractBody();
+  }
+
+  public boolean isForwarded(String name) {
+    final HaxeMacroClass forwardMeta = getMeta(FORWARD);
+    if (forwardMeta != null) {
+      HaxeCustomMeta customMeta = forwardMeta.getCustomMeta();
+      final HaxeExpressionList expressionList = customMeta.getExpressionList();
+      if (expressionList == null) return true;
+      for (HaxeExpression expression : expressionList.getExpressionList()) {
+        if (expression.getText().equals(name)) return true;
+      }
+    }
+    return false;
   }
 }
