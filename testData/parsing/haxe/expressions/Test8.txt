@@ -76,27 +76,31 @@ Haxe File
                   HaxePsiToken:ID('f')
               TYPE_TAG
                 HaxePsiToken::(':')
-                HaxePsiToken:(('(')
                 FUNCTION_TYPE
-                  FUNCTION_TYPE
-                    TYPE_OR_ANONYMOUS
-                      TYPE
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('Void')
-                    HaxePsiToken:->('->')
-                    TYPE_OR_ANONYMOUS
-                      TYPE
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('Void')
-                  HaxePsiToken:)(')')
+                  FUNCTION_ARGUMENT
+                    HaxePsiToken:(('(')
+                    FUNCTION_TYPE
+                      FUNCTION_ARGUMENT
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Void')
+                      HaxePsiToken:->('->')
+                      FUNCTION_RETURN_TYPE
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Void')
+                    HaxePsiToken:)(')')
                   HaxePsiToken:->('->')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Void')
+                  FUNCTION_RETURN_TYPE
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Void')
               VAR_INIT
                 HaxePsiToken:=('=')
                 FUNCTION_LITERAL
@@ -110,17 +114,19 @@ Haxe File
                       TYPE_TAG
                         HaxePsiToken::(':')
                         FUNCTION_TYPE
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Void')
+                          FUNCTION_ARGUMENT
+                            TYPE_OR_ANONYMOUS
+                              TYPE
+                                REFERENCE_EXPRESSION
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('Void')
                           HaxePsiToken:->('->')
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Void')
+                          FUNCTION_RETURN_TYPE
+                            TYPE_OR_ANONYMOUS
+                              TYPE
+                                REFERENCE_EXPRESSION
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('Void')
                   HaxePsiToken:)(')')
                   TYPE_TAG
                     HaxePsiToken::(':')

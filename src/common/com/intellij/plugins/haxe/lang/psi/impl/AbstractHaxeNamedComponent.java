@@ -50,8 +50,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Set;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 /**
  * @author: Fedor.Korotkov
  */
@@ -178,7 +176,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
   @Override
   public HaxeNamedComponent getTypeComponent() {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
     final PsiReference reference = type != null ? type.getReference() : null;
     if (reference != null) {

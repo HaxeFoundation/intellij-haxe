@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
+import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -35,8 +36,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeTypeResolver {
   @NotNull
@@ -150,8 +149,8 @@ public class HaxeTypeResolver {
   @NotNull
   static public ResultHolder getTypeFromTypeTag(@Nullable final HaxeTypeTag typeTag, @NotNull PsiElement context) {
     if (typeTag != null) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(typeTag.getTypeOrAnonymousList());
-      final HaxeFunctionType functionType = getFirstItem(typeTag.getFunctionTypeList());
+      final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+      final HaxeFunctionType functionType = typeTag.getFunctionType();
 
       if (typeOrAnonymous != null) {
         return getTypeFromTypeOrAnonymous(typeOrAnonymous);
@@ -174,18 +173,53 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public ResultHolder getTypeFromFunctionType(HaxeFunctionType type) {
-    ArrayList<ResultHolder> args = new ArrayList<ResultHolder>();
-    for (HaxeTypeOrAnonymous anonymous : type.getTypeOrAnonymousList()) {
-      args.add(getTypeFromTypeOrAnonymous(anonymous));
-    }
-    ResultHolder retval = args.get(args.size() - 1);
-    args.remove(args.size() - 1);
+    ArrayList<Argument> args = new ArrayList<>();
 
-    if (args.size() == 1 && args.get(0).getType().isVoid()) {
-      args.remove(0);
+    List<HaxeFunctionArgument> list = type.getFunctionArgumentList();
+    for (int i = 0; i < list.size(); i++) {
+      HaxeFunctionArgument argument = list.get(i);
+      ResultHolder argumentType = getTypeFromFunctionArgument(argument);
+      args.add(new Argument(i, argument.getOptionalMark() != null, argumentType, getArgumentName(argument)));
     }
 
-    return new SpecificFunctionReference(args, retval, null, type).createHolder();
+    if (args.size() == 1 && args.get(0).isVoid()) {
+      args.clear();
+    }
+
+    ResultHolder returnValue = null;
+    HaxeFunctionReturnType returnType = type.getFunctionReturnType();
+    if (returnType != null) {
+      if (returnType.getFunctionType() != null) {
+        returnValue = getTypeFromFunctionType(returnType.getFunctionType());
+      } else if (returnType.getTypeOrAnonymous() != null) {
+        returnValue = getTypeFromTypeOrAnonymous(returnType.getTypeOrAnonymous());
+      }
+    }
+
+    if (returnValue == null) {
+      returnValue = SpecificTypeReference.getInvalid(type).createHolder();
+    }
+
+    return new SpecificFunctionReference(args, returnValue, null, type).createHolder();
+  }
+
+  static String getArgumentName(HaxeFunctionArgument argument) {
+    HaxeComponentName componentName = argument.getComponentName();
+    String argumentName = null;
+    if (componentName != null) {
+      argumentName = componentName.getIdentifier().getText();
+    }
+
+    return argumentName;
+  }
+
+  private static ResultHolder getTypeFromFunctionArgument(HaxeFunctionArgument argument) {
+    if (argument.getFunctionType() != null) {
+      return getTypeFromFunctionType(argument.getFunctionType());
+    } else if (argument.getTypeOrAnonymous() != null) {
+      return getTypeFromTypeOrAnonymous(argument.getTypeOrAnonymous());
+    }
+    return SpecificTypeReference.getUnknown(argument).createHolder();
   }
 
   @NotNull
@@ -195,14 +229,14 @@ public class HaxeTypeResolver {
     HaxeReferenceExpression expression = type.getReferenceExpression();
     HaxeClassReference reference = new HaxeClassReference(expression.getText(), expression);
     HaxeTypeParam param = type.getTypeParam();
-    ArrayList<ResultHolder> references = new ArrayList<ResultHolder>();
+    ArrayList<ResultHolder> references = new ArrayList<>();
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
-        for (HaxeFunctionType fnType : part.getFunctionTypeList()) {
-          references.add(getTypeFromFunctionType(fnType));
+        if (part.getFunctionType() != null) {
+          references.add(getTypeFromFunctionType(part.getFunctionType()));
         }
-        for (HaxeTypeOrAnonymous anonymous : part.getTypeOrAnonymousList()) {
-          references.add(getTypeFromTypeOrAnonymous(anonymous));
+        if (part.getTypeOrAnonymous() != null) {
+          references.add(getTypeFromTypeOrAnonymous(part.getTypeOrAnonymous()));
         }
       }
     }
@@ -226,8 +260,6 @@ public class HaxeTypeResolver {
   }
 
   static private void checkMethod(PsiElement element, HaxeExpressionEvaluatorContext context) {
-    //final ResultHolder retval = context.getReturnType();
-
     if (!(element instanceof HaxeMethod)) return;
     final HaxeTypeTag typeTag = UsefulPsiTreeUtil.getChild(element, HaxeTypeTag.class);
     ResultHolder expectedType = SpecificTypeReference.getDynamic(element).createHolder();

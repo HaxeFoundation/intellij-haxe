@@ -38,8 +38,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 /**
  * Created by srikanthg on 10/9/14.
  */
@@ -153,7 +151,7 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     PsiType psiType = null;
     final HaxeTypeTag tag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
     if (tag != null) {
-      final HaxeTypeOrAnonymous toa = getFirstItem(tag.getTypeOrAnonymousList());
+      final HaxeTypeOrAnonymous toa = tag.getTypeOrAnonymous();
       final HaxeType type = (toa != null) ? toa.getType() : null;
       psiType = (type != null) ? type.getPsiType() : null;
     }

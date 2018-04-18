@@ -284,7 +284,7 @@ public class HaxeResolveUtil {
     } else if (type == HaxeComponentType.ENUM) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
     } else if (haxeClass instanceof HaxeTypedefDeclaration) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
+      final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
       if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
         HaxeAnonymousType anonymous = typeOrAnonymous.getAnonymousType();
         if (anonymous != null) {
@@ -451,7 +451,7 @@ public class HaxeResolveUtil {
   public static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = (typeOrAnonymous != null) ? typeOrAnonymous.getType() :
                           ((element instanceof HaxeType) ? (HaxeType)element : null);
 
@@ -473,7 +473,7 @@ public class HaxeResolveUtil {
     }
 
     if (typeTag != null) {
-      return tryResolveFunctionType(getFirstItem(typeTag.getFunctionTypeList()), specialization);
+      return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
     }
 
     return HaxeClassResolveResult.EMPTY;
@@ -484,20 +484,11 @@ public class HaxeResolveUtil {
     if (functionType == null) {
       return HaxeClassResolveResult.EMPTY;
     }
-    final HaxeTypeOrAnonymous returnTypeOrAnonymous =
-      functionType.getTypeOrAnonymousList().get(functionType.getTypeOrAnonymousList().size() - 1);
-    final HaxeClassResolveResult result = tryResolveClassByTypeTag(returnTypeOrAnonymous.getType(), specialization);
-    while (functionType != null) {
-      // todo: anonymous types :(
-      final List<HaxeTypeOrAnonymous> typeList = functionType.getTypeOrAnonymousList();
-      Collections.reverse(typeList);
-      for (HaxeTypeOrAnonymous typeOrAnonymous : typeList) {
-        result.getFunctionTypes().add(tryResolveClassByTypeTag(typeOrAnonymous.getType(), specialization));
-      }
-      functionType = functionType.getFunctionType();
-    }
-    Collections.reverse(result.getFunctionTypes());
-    return result;
+
+    final HaxeFunctionReturnType returnType = functionType.getFunctionReturnType();
+    if (returnType == null || returnType.getTypeOrAnonymous() == null) { return HaxeClassResolveResult.EMPTY; }
+    // TODO Stub classes must be introduced in the near future to cover cases where Function is a return type, not a class type or anonymous structure.
+    return tryResolveClassByTypeTag(returnType.getTypeOrAnonymous().getType(), specialization);
   }
 
   @NotNull

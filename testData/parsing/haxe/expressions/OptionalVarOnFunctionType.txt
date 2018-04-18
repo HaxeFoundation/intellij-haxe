@@ -27,19 +27,22 @@ Haxe File
                   HaxePsiToken:ID('a')
               TYPE_TAG
                 HaxePsiToken::(':')
-                HaxePsiToken:?('?')
                 FUNCTION_TYPE
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Int')
+                  FUNCTION_ARGUMENT
+                    OPTIONAL_MARK
+                      HaxePsiToken:?('?')
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Int')
                   HaxePsiToken:->('->')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Void')
+                  FUNCTION_RETURN_TYPE
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Void')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
             HaxePsiToken:var('var')
@@ -50,25 +53,28 @@ Haxe File
               TYPE_TAG
                 HaxePsiToken::(':')
                 FUNCTION_TYPE
-                  FUNCTION_TYPE
+                  FUNCTION_ARGUMENT
                     TYPE_OR_ANONYMOUS
                       TYPE
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('Int')
-                    HaxePsiToken:->('->')
-                    HaxePsiToken:?('?')
+                  HaxePsiToken:->('->')
+                  FUNCTION_ARGUMENT
+                    OPTIONAL_MARK
+                      HaxePsiToken:?('?')
                     TYPE_OR_ANONYMOUS
                       TYPE
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('Float')
                   HaxePsiToken:->('->')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Void')
+                  FUNCTION_RETURN_TYPE
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Void')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
     HaxePsiToken:}('}')
