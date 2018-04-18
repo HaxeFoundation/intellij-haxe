@@ -31,17 +31,19 @@ Haxe File
               TYPE_TAG
                 HaxePsiToken::(':')
                 FUNCTION_TYPE
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Void')
+                  FUNCTION_ARGUMENT
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Void')
                   HaxePsiToken:->('->')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Int')
+                  FUNCTION_RETURN_TYPE
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Int')
             HaxePsiToken:;(';')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION

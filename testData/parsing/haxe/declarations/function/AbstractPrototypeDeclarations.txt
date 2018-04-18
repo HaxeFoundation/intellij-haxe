@@ -42,7 +42,8 @@ Haxe File
         HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER
-            HaxePsiToken:?('?')
+            OPTIONAL_MARK
+              HaxePsiToken:?('?')
             COMPONENT_NAME
               IDENTIFIER
                 HaxePsiToken:ID('length')
@@ -55,7 +56,8 @@ Haxe File
                       HaxePsiToken:ID('Int')
           HaxePsiToken:,(',')
           PARAMETER
-            HaxePsiToken:?('?')
+            OPTIONAL_MARK
+              HaxePsiToken:?('?')
             COMPONENT_NAME
               IDENTIFIER
                 HaxePsiToken:ID('fixed')

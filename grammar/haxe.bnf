@@ -171,7 +171,6 @@
       kTRY="try"
       kCATCH="catch"
       tWILDCARD=".*"
-
     ]
     extends(".*(Expression|Literal)")="expression"
     /* extends(".*Statement")="statement"
@@ -396,14 +395,14 @@ localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' compo
 anonymousFunctionDeclaration ::= 'function' parenthesizedParameterList typeTag? 'untyped'? '{' '}' {pin=2}
 /* TODO: Should anonymousFunctionDeclaration extend and implement HaxeMethod as well?? */
 private arrowFunctionParameterList ::= openParameterList | parenthesizedParameterList
-private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' functionCommonBody
+private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' functionCommonBody {pin=3}
 
 /*
  *
  */
 
 varInit ::= '=' expression {pin=1}
-parameter ::= '?'? componentName typeTag? varInit?
+parameter ::= optionalMark? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 
 // An open parameter can't have all of the type and init info.  Plus, it makes the parser *very* *very* slow in some circumstances.
@@ -421,20 +420,23 @@ arrayLiteral ::= '[' (expressionList ','?)? ']'
 mapLiteral ::= '[' (mapInitializerStatement | mapInitializerExpressionList) ']'
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
+optionalMark ::= '?'
+functionType ::= newFunctionType | oldFunctionType
+functionReturnType ::= typeWrapper
 
-private functionTypeWrapper ::= functionTypeOrWrapper functionType*
-private functionTypeOrWrapper ::= '?'? typeOrAnonymous | '(' functionTypeWrapper ')'
-left functionType ::= '->' '?'? typeOrAnonymous
+private typeWrapper ::= functionType | typeOrAnonymous
 
-private typeWrapper::= functionTypeWrapper
+private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=3}
+private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]
+functionArgument ::= optionalFunctionTypeWithoutName | namedTypeOrAnonymous | namedFunctionType
+private namedTypeOrAnonymous ::= [optionalMark] [componentName ':'] typeOrAnonymous
+private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
+private optionalFunctionTypeWithoutName ::= optionalMark '(' functionType ')' {pin=3}
 
-// EMB: To replace the above four lines.  See issue #575. //////////////////////////////////
-//functionArgument ::=  (typeOrAnonymous | ('(' functionType ')'))
-//private functionOptionalArgument ::= '?'? functionArgument
-//functionType ::= functionOptionalArgument '->' (functionOptionalArgument '->')* functionArgument {pin=2 recoverWhile="functionTypeRecovery"}
-//functionTypeRecovery ::= !('}' | ';' | '>' | '=')
-//
-//private typeWrapper ::= functionType | typeOrAnonymous
+private oldFunctionType ::= oldFunctionTypeArgumentsList functionReturnType {pin=2}
+private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
+oldFunctionTypeArgument ::= optionalMark? ('(' functionType ')' | typeOrAnonymous) {elementType="functionArgument" pin(".*")=3}
+
 // /////////////////////////////////////////////////////////////////////////////////////////
 /*
  * Haxe and Java have this backward from each other.

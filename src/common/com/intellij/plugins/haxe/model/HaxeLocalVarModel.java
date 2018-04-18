@@ -3,6 +3,7 @@
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +44,7 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
   @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = element.getTypeTag();
-    final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
 
   }

@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 public class HaxeParameterModel extends HaxeMemberModel {
 
   final private HaxeParameter parameter;
@@ -42,7 +40,7 @@ public class HaxeParameterModel extends HaxeMemberModel {
     super(parameter);
 
     this.parameter = parameter;
-    this.optional = UsefulPsiTreeUtil.getToken(parameter, "?") != null;
+    this.optional = parameter.getOptionalMark() != null;
 
     final PsiMember parentPsi = PsiTreeUtil.getParentOfType(parameter, HaxeEnumValueDeclaration.class, HaxeMethod.class);
     if (parentPsi instanceof HaxeMethod) {
@@ -131,7 +129,7 @@ public class HaxeParameterModel extends HaxeMemberModel {
   @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = parameter.getTypeTag();
-    final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
   }
 

@@ -70,11 +70,11 @@ public class HaxeTypeCompatible {
     @NotNull SpecificFunctionReference to,
     @NotNull SpecificFunctionReference from
   ) {
-    if (to.params.size() != from.params.size()) return false;
-    for (int n = 0; n < to.params.size(); n++) {
-      if (!to.params.get(n).canAssign(from.params.get(n))) return false;
+    if (to.arguments.size() != from.arguments.size()) return false;
+    for (int n = 0; n < to.arguments.size(); n++) {
+      if (!to.arguments.get(n).canAssign(from.arguments.get(n))) return false;
     }
-    return to.retval.canAssign(from.retval);
+    return to.returnValue.canAssign(from.returnValue);
   }
 
   static private boolean canAssignToFromType(
