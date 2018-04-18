@@ -31,4 +31,4 @@ jobs:
       env:
         - IDEA_VERSION=2018.1 PLUGIN_VERSION=18
       after_success:
-        - curl -k -i -F username="$PLUGIN_USER_NAME" -F password="$PLUGIN_USER_PASS" -F channel="EAP" -F pluginid=6873 -F file=intellij-haxe-$PLUGIN_VERSION.jar https://plugins.jetbrains.com/plugin/uploadPlugin
+        - curl -k -i -F username=$PLUGIN_USER_NAME -F password=$PLUGIN_USER_PASS -F channel=EAP -F pluginid=6873 -F file=@intellij-haxe-$PLUGIN_VERSION.jar https://plugins.jetbrains.com/plugin/uploadPlugin
