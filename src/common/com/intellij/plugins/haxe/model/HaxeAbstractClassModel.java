@@ -19,6 +19,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class HaxeAbstractClassModel extends HaxeClassModel {
 
   public static final String FORWARD = "@:forward";
@@ -61,10 +63,12 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   public boolean isForwarded(String name) {
     final HaxeMacroClass forwardMeta = getMeta(FORWARD);
     if (forwardMeta != null) {
-      HaxeCustomMeta customMeta = forwardMeta.getCustomMeta();
+      final HaxeCustomMeta customMeta = forwardMeta.getCustomMeta();
       final HaxeExpressionList expressionList = customMeta.getExpressionList();
       if (expressionList == null) return true;
-      for (HaxeExpression expression : expressionList.getExpressionList()) {
+      final List<HaxeExpression> list = expressionList.getExpressionList();
+      if (list.isEmpty()) return true;
+      for (HaxeExpression expression : list) {
         if (expression.getText().equals(name)) return true;
       }
     }
