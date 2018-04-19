@@ -12,7 +12,7 @@ Haxe File
     PsiComment(PPEXPRESSION)(' ')
     PsiComment(PPEXPRESSION)('true')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

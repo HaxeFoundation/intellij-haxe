@@ -18,7 +18,7 @@ Haxe File
         HaxePsiToken:ID('NativeAnnotationIssue490')
     HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
-      EXTERN_FUNCTION_DECLARATION
+      METHOD_DECLARATION
         NATIVE_META
           HaxePsiToken:@:native('@:native')
           HaxePsiToken:(('(')
@@ -43,7 +43,7 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Void')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
+      FIELD_DECLARATION
         NATIVE_META
           HaxePsiToken:@:native('@:native')
           HaxePsiToken:(('(')
@@ -52,7 +52,8 @@ Haxe File
             HaxePsiToken:REGULAR_STRING_PART('a')
             HaxePsiToken:CLOSING_QUOTE('"')
           HaxePsiToken:)(')')
-        HaxePsiToken:var('var')
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('b')

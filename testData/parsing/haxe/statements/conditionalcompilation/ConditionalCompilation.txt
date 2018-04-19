@@ -55,13 +55,12 @@ Haxe File
     PsiComment(PPEXPRESSION)('!')
     PsiComment(PPEXPRESSION)('debug')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:inline('inline')
         PsiComment(#end)('#end')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -153,7 +152,7 @@ Haxe File
         HaxePsiToken:ID('ConditionalCompilation')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -197,8 +196,8 @@ Haxe File
       PsiComment(#if)('#if')
       PsiComment(PPEXPRESSION)(' ')
       PsiComment(PPEXPRESSION)('neko')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:inline('inline')
         PsiComment(#elseif)('#elseif')
         PsiComment(PPEXPRESSION)(' ')
