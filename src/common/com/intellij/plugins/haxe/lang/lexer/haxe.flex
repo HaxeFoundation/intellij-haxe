@@ -288,6 +288,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "throw"                                   {  return emitToken( KTHROW );  }
 
 "var"                                     {  return emitToken( KVAR);  }
+"final"                                   {  return emitToken( KFINAL);  }
 "public"                                  {  return emitToken( KPUBLIC);  }
 "private"                                 {  return emitToken( KPRIVATE);  }
 "static"                                  {  return emitToken( KSTATIC);  }
@@ -302,7 +303,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 "extern" [\ ]+                                  {  return emitToken( KEXTERN);  }
 
-"@:final"                                 {  return emitToken( KFINAL);  }
+"@:final"                                 {  return emitToken( KFINAL_META);  }
 "@:hack"                                  {  return emitToken( KHACK);  }
 "@:native"                                {  return emitToken( KNATIVE);  }
 "@:macro"                                 {  return emitToken( KMACRO);  }
