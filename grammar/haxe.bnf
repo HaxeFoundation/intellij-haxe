@@ -615,7 +615,7 @@ private value ::= macroClassList? (('untyped' expression)
                                                    | tryStatement
                                                    | switchStatement
                                                    | throwStatement
-                                                   | fieldDeclaration)
+                                                   | localVarDeclarationList)
 {pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
