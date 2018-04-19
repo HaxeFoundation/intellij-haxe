@@ -35,6 +35,7 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String STATIC = "static";
   @NonNls String DYNAMIC = "dynamic";
   @NonNls String FINAL = "final";
+  @NonNls String VAR = "var";
   @NonNls String OVERRIDE = "override";
 
   @NonNls String FINAL_META = "@:final";

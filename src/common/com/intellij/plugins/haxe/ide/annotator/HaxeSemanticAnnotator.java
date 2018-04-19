@@ -27,6 +27,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
+import com.intellij.plugins.haxe.ide.quickfix.HaxeSwitchMutabilityModifier;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
@@ -136,7 +137,16 @@ class FieldChecker {
     HaxeFieldModel field = new HaxeFieldModel(var);
     if (field.isProperty()) {
       checkProperty(field, holder);
+    } else {
+      if (field.isFinal() && !field.hasInitializer()) {
+        if (field.isStatic()) {
+          holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.static.var.init", field.getName()));
+        } else if (!isFieldInitializedInTheConstructor(field)) {
+          holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.var.init", field.getName()));
+        }
+      }
     }
+
     if (field.hasInitializer() && field.hasTypeTag()) {
       TypeTagChecker.check(field.getBasePsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
     }
@@ -170,6 +180,19 @@ class FieldChecker {
     }
   }
 
+  private static boolean isFieldInitializedInTheConstructor(HaxeFieldModel field) {
+    HaxeClassModel declaringClass = field.getDeclaringClass();
+    if (declaringClass == null) return false;
+    HaxeMethodModel constructor = declaringClass.getConstructor();
+    if (constructor == null) return false;
+    PsiElement body = constructor.getBodyPsi();
+    if (body == null) return false;
+
+    final InitVariableVisitor visitor = new InitVariableVisitor(field.getName());
+    body.accept(visitor);
+    return visitor.result;
+  }
+
   private static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
     final HaxeDocumentModel document = field.getDocument();
 
@@ -181,9 +204,11 @@ class FieldChecker {
       holder.createErrorAnnotation(field.getSetterPsi(), "Invalid setter accessor");
     }
 
-    checkPropertyAccessorMethods(field, holder);
-
-    if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
+    if (field.isFinal()) {
+      holder
+        .createErrorAnnotation(field.getBasePsi(), HaxeBundle.message("haxe.semantic.property.cant.be.final"))
+        .registerFix(new HaxeSwitchMutabilityModifier((HaxeFieldDeclaration)field.getBasePsi()));
+    } else if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
       final HaxeVarInit psi = field.getInitializerPsi();
       Annotation annotation = holder.createErrorAnnotation(
         field.getInitializerPsi(),
@@ -210,6 +235,7 @@ class FieldChecker {
         });
       }
     }
+    checkPropertyAccessorMethods(field, holder);
   }
 
   private static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
@@ -743,5 +769,42 @@ class StringChecker {
   private static boolean isSingleQuotesRequired(HaxeStringLiteralExpression psi) {
     return (psi.getLongTemplateEntryList().size() > 0 || psi.getShortTemplateEntryList().size() > 0) &&
            psi.getFirstChild().textContains('"');
+  }
+}
+
+class InitVariableVisitor extends HaxeVisitor {
+  public boolean result = false;
+
+  private final String fieldName;
+
+  InitVariableVisitor(String fieldName) {
+    this.fieldName = fieldName;
+  }
+
+  @Override
+  public void visitElement(PsiElement element) {
+    super.visitElement(element);
+    if (result) return;
+    if (element instanceof HaxeIdentifier || element instanceof HaxePsiToken || element instanceof HaxeStringLiteralExpression) return;
+    element.acceptChildren(this);
+  }
+
+  @Override
+  public void visitAssignExpression(@NotNull HaxeAssignExpression o) {
+    HaxeExpression expression = (o.getExpressionList()).get(0);
+    if (expression instanceof HaxeReferenceExpression) {
+      final HaxeReferenceExpression reference = (HaxeReferenceExpression)expression;
+      final HaxeIdentifier identifier = reference.getIdentifier();
+
+      if (identifier.getText().equals(fieldName)) {
+        PsiElement firstChild = reference.getFirstChild();
+        if (firstChild instanceof HaxeThisExpression || firstChild == identifier) {
+          this.result = true;
+          return;
+        }
+      }
+    }
+
+    super.visitAssignExpression(o);
   }
 }

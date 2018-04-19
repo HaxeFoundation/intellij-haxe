@@ -53,6 +53,10 @@ abstract public class HaxeMemberModel implements HaxeModel {
            || getDeclaringClass().hasMeta("@:publicFields");
   }
 
+  public boolean isFinal() {
+    return hasModifier(FINAL);
+  }
+
   private boolean isOverriddenPublicMethod() {
     if (hasModifier(OVERRIDE)) {
       final HaxeMemberModel parentMember = getParentMember();

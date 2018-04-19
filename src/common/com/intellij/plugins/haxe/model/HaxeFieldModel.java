@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +40,16 @@ public class HaxeFieldModel extends HaxeMemberModel {
       _declaringClass = (aClass != null) ? aClass.getModel() : null;
     }
     return _declaringClass;
+  }
+
+  @Override
+  public boolean isFinal() {
+    HaxeFieldDeclaration fieldDeclaration = ObjectUtils.tryCast(getBasePsi(), HaxeFieldDeclaration.class);
+    if (fieldDeclaration != null) {
+      final PsiElement mutabilityPsi = fieldDeclaration.getMutabilityModifier().getFirstChild();
+      return mutabilityPsi.getText().equals(HaxePsiModifier.FINAL);
+    }
+    return false;
   }
 
   @Nullable
