@@ -99,7 +99,7 @@ public class ExtractSuperClassUtil {
     try {
       final PsiModifierList superClassModifierList = superclass.getModifierList();
       assert superClassModifierList != null;
-      //superClassModifierList.setModifierProperty(PsiModifier.FINAL, false);
+      //superClassModifierList.setModifierProperty(PsiModifier.FINAL_META, false);
       //superClassModifierList.setModifierProperty(PsiModifier.PUBLIC, false);
       final PsiReferenceList subClassExtends = subclass.getExtendsList();
       if (subClassExtends != null) {

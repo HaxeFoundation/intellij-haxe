@@ -19,7 +19,6 @@
 // This is a generated file. Not intended for manual editing.
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAttributes;
 import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,10 +26,6 @@ public class HaxePsiVisitor extends HaxeVisitor {
 
   public void visitParameterList(@NotNull HaxeParameterListPsiMixinImpl o) {
     visitPsiCompositeElement(o);
-  }
-
-  public void visitFunctionPrototypeDeclarationWithAttributes(@NotNull HaxeFunctionPrototypeDeclarationWithAttributes o) {
-    visitMethod(o);
   }
 
 }

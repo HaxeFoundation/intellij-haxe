@@ -23,6 +23,6 @@ import com.intellij.psi.PsiMethod;
 /**
  * Created by ebishton on 9/28/14.
  */
-public interface HaxeMethodPsiMixin extends HaxeComponentWithDeclarationList, PsiMethod {
+public interface HaxeMethodPsiMixin extends PsiMethod, HaxeNamedComponent {
   HaxeMethodModel getModel();
 }

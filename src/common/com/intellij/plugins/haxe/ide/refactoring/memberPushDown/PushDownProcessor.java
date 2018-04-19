@@ -27,8 +27,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
 import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -482,8 +482,8 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
                 text = text.substring(0, text.length() - 1) + " {}";
               }
 
-              HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
-                HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
+              HaxeMethod functionDeclarationWithAttributes =
+                HaxeElementGenerator.createMethodDeclaration(myProject, text);
               newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
             }
             else {
@@ -516,8 +516,8 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               text = text.substring(0, text.length() - 1) + " {}";
             }
 
-            HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
-              HaxeElementGenerator.createFunctionDeclarationWithAttributes(myProject, text);
+            HaxeMethod functionDeclarationWithAttributes =
+              HaxeElementGenerator.createMethodDeclaration(myProject, text);
             newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
 
             reformat(newMember);

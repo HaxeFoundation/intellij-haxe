@@ -159,16 +159,14 @@ public enum HaxeComponentType {
     if (element instanceof HaxeTypedefDeclaration) {
       return TYPEDEF;
     }
-    if (element instanceof HaxeFunctionDeclarationWithAttributes ||
-        element instanceof HaxeExternFunctionDeclaration ||
-        element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+    if (element instanceof HaxeMethodDeclaration) {
       return METHOD;
     }
     if (element instanceof HaxeLocalFunctionDeclaration ||
         element instanceof HaxeFunctionLiteral) {
       return FUNCTION;
     }
-    if (element instanceof HaxeVarDeclaration ||
+    if (element instanceof HaxeFieldDeclaration ||
         element instanceof HaxeEnumValueDeclaration ||
         element instanceof HaxeAnonymousTypeField) {
       return FIELD;
@@ -180,7 +178,7 @@ public enum HaxeComponentType {
     if (element instanceof HaxeParameter) {
       return PARAMETER;
     }
-    if (element instanceof HaxeVarDeclaration) {
+    if (element instanceof HaxeFieldDeclaration) {
       return CLASSVARIABLE;
     }
 

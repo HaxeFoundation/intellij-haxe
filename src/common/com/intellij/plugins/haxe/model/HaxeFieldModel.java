@@ -44,7 +44,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
   @Nullable
   public HaxePropertyDeclaration getPropertyDeclarationPsi() {
     final PsiElement basePsi = getBasePsi();
-    return basePsi instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)basePsi).getPropertyDeclaration() : null;
+    return basePsi instanceof HaxeFieldDeclaration ? ((HaxeFieldDeclaration)basePsi).getPropertyDeclaration() : null;
   }
 
   @Nullable
@@ -128,7 +128,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
   @Nullable
   public HaxeVarInit getInitializerPsi() {
     final PsiElement basePsi = getBasePsi();
-    return basePsi instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)basePsi).getVarInit() : null;
+    return basePsi instanceof HaxeFieldDeclaration ? ((HaxeFieldDeclaration)basePsi).getVarInit() : null;
   }
 
   public boolean hasTypeTag() {
@@ -140,8 +140,8 @@ public class HaxeFieldModel extends HaxeMemberModel {
     if (basePsi instanceof HaxeAnonymousTypeField) {
       return ((HaxeAnonymousTypeField)basePsi).getTypeTag();
     }
-    if (basePsi instanceof HaxeVarDeclaration) {
-      return ((HaxeVarDeclaration)basePsi).getTypeTag();
+    if (basePsi instanceof HaxeFieldDeclaration) {
+      return ((HaxeFieldDeclaration)basePsi).getTypeTag();
     }
 
     return null;

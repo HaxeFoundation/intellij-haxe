@@ -24,15 +24,18 @@ import org.jetbrains.annotations.NonNls;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public interface HaxePsiModifier extends PsiModifier {
+public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
 
   @NonNls String PUBLIC = "public";
   @NonNls String PRIVATE = "private";
   @NonNls String ABSTRACT = "abstract";
 
   @NonNls String INLINE = "inline";
+  @NonNls String STATIC = "static";
+  @NonNls String DYNAMIC = "dynamic";
+  @NonNls String FINAL = "final";
 
-  @NonNls String FINAL = "@:final";
+  @NonNls String FINAL_META = "@:final";
   @NonNls String KEEP = "@:keep";
   @NonNls String COREAPI = "@:coreApi";
   @NonNls String BIND = "@:bind";
@@ -55,13 +58,13 @@ public interface HaxePsiModifier extends PsiModifier {
   @NonNls String AUTOBUILD = "@:autoBuild";
 
   @NonNls String[] MODIFIERS = {
-    PUBLIC, PRIVATE, ABSTRACT, FINAL, KEEP, COREAPI, BIND, MACRO, HACK,
+    PUBLIC, PRIVATE, FINAL, STATIC, DYNAMIC, ABSTRACT, FINAL_META, KEEP, COREAPI, BIND, MACRO, HACK,
     REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
     AUTOBUILD, UNREFLECTIVE
   };
 
   @MagicConstant(stringValues = {
-    PUBLIC, PRIVATE, ABSTRACT, FINAL, KEEP, COREAPI, BIND, MACRO, HACK,
+    PUBLIC, PRIVATE, STATIC, FINAL, DYNAMIC, ABSTRACT, FINAL_META, KEEP, COREAPI, BIND, MACRO, HACK,
     REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
     AUTOBUILD, UNREFLECTIVE
   })

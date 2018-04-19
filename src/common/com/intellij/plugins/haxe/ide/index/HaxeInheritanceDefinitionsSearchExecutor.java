@@ -18,10 +18,8 @@
  */
 package com.intellij.plugins.haxe.ide.index;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.QueryExecutorBase;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
@@ -29,10 +27,10 @@ import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.DefinitionsScopedSearch;
 import com.intellij.psi.search.searches.DefinitionsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.QueryExecutor;
 import com.intellij.util.indexing.FileBasedIndex;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
@@ -53,14 +51,11 @@ public class HaxeInheritanceDefinitionsSearchExecutor extends QueryExecutorBase<
 
   public static List<HaxeClass> getItemsByQName(final HaxeClass haxeClass) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
-    DefinitionsSearch.search(haxeClass).forEach(new Processor<PsiElement>() {
-      @Override
-      public boolean process(PsiElement element) {
-        if (element instanceof HaxeClass) {
-          result.add((HaxeClass)element);
-        }
-        return true;
+    DefinitionsScopedSearch.search(haxeClass).forEach(element -> {
+      if (element instanceof HaxeClass) {
+        result.add((HaxeClass)element);
       }
+      return true;
     });
     return result;
   }
@@ -93,16 +88,13 @@ public class HaxeInheritanceDefinitionsSearchExecutor extends QueryExecutorBase<
       HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
       assert haxeClass != null;
 
-      processInheritors(haxeClass.getQualifiedName(), queryParameters, new Processor<PsiElement>() {
-        @Override
-        public boolean process(PsiElement element) {
-          for (HaxeNamedComponent subHaxeNamedComponent : HaxeResolveUtil.getNamedSubComponents((HaxeClass)element)) {
-            if (nameToFind.equals(subHaxeNamedComponent.getName())) {
-              consumer.process(subHaxeNamedComponent);
-            }
+      processInheritors(haxeClass.getQualifiedName(), queryParameters, element -> {
+        for (HaxeNamedComponent subHaxeNamedComponent : HaxeResolveUtil.getNamedSubComponents((HaxeClass)element)) {
+          if (nameToFind.equals(subHaxeNamedComponent.getName())) {
+            consumer.process(subHaxeNamedComponent);
           }
-          return true;
         }
+        return true;
       });
     }
     return true;

@@ -93,23 +93,20 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
     HaxeIndexUtil.warnIfDumbMode(project);
     final Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(HAXE_SYMBOL_INDEX, name, searchScope);
-    final Set<HaxeComponentName> result = new THashSet<HaxeComponentName>();
+    final Set<HaxeComponentName> result = new THashSet<>();
     for (VirtualFile vFile : files) {
       final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
       if (psiFile == null || psiFile.getFileType() != HaxeFileType.HAXE_FILE_TYPE) {
         continue;
       }
-      processComponents(psiFile, new PsiElementProcessor<HaxeNamedComponent>() {
-        @Override
-        public boolean execute(@NotNull HaxeNamedComponent subComponent) {
-          if (name.equals(subComponent.getName())) {
-            result.add(subComponent.getComponentName());
-          }
-          return true;
+      processComponents(psiFile, subComponent -> {
+        if (name.equals(subComponent.getName())) {
+          result.add(subComponent.getComponentName());
         }
+        return true;
       });
     }
-    return new ArrayList<HaxeComponentName>(result);
+    return new ArrayList<>(result);
   }
 
   private static class MyDataIndexer implements DataIndexer<String, Void, FileContent> {
@@ -121,7 +118,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
-      final Map<String, Void> result = new THashMap<String, Void>();
+      final Map<String, Void> result = new THashMap<>();
       for (HaxeClass haxeClass : classes) {
         final String className = haxeClass.getName();
         if (className == null) {
@@ -167,8 +164,8 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
   private static final Class[] BODY_TYPES =
     new Class[]{HaxeClassBody.class, HaxeEnumBody.class, HaxeExternClassDeclarationBody.class, HaxeAnonymousTypeBody.class};
   private static final Class[] MEMBER_TYPES =
-    new Class[]{HaxeEnumValueDeclaration.class, HaxeExternFunctionDeclaration.class, HaxeFunctionDeclarationWithAttributes.class,
-      HaxeVarDeclaration.class};
+    new Class[]{HaxeEnumValueDeclaration.class, HaxeMethod.class,
+      HaxeFieldDeclaration.class};
 
   @NotNull
   private static List<HaxeNamedComponent> getNamedComponents(@Nullable final HaxeClass cls) {

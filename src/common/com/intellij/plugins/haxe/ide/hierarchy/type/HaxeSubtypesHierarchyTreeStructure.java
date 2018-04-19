@@ -53,7 +53,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
     if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL_META)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
     final PsiFile inClassPsiFile = theHaxeClass.getContainingFile();
 
@@ -63,9 +63,11 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     // search current file for sub-types that extend/implement from this class/type
     //
     final HaxeClass[] allHaxeClassesInFile = PsiTreeUtil.getChildrenOfType(inClassPsiFile, HaxeClass.class);
-    for (HaxeClass aClassInFile : allHaxeClassesInFile) {
-      if (isThisTypeASubTypeOfTheSuperType(aClassInFile, theHaxeClass)) {
-        subTypeList.add(aClassInFile);
+    if (allHaxeClassesInFile != null) {
+      for (HaxeClass aClassInFile : allHaxeClassesInFile) {
+        if (isThisTypeASubTypeOfTheSuperType(aClassInFile, theHaxeClass)) {
+          subTypeList.add(aClassInFile);
+        }
       }
     }
 

@@ -62,8 +62,8 @@ public class HaxeSemanticAnnotator implements Annotator {
       ClassChecker.check((HaxeClass)element, holder);
     } else if (element instanceof HaxeType) {
       TypeChecker.check((HaxeType)element, holder);
-    } else if (element instanceof HaxeVarDeclaration) {
-      FieldChecker.check((HaxeVarDeclaration)element, holder);
+    } else if (element instanceof HaxeFieldDeclaration) {
+      FieldChecker.check((HaxeFieldDeclaration)element, holder);
     } else if (element instanceof HaxeLocalVarDeclaration) {
       LocalVarChecker.check((HaxeLocalVarDeclaration)element, holder);
     } else if (element instanceof HaxeStringLiteralExpression) {
@@ -87,7 +87,10 @@ class TypeTagChecker {
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
       Annotation annotation =
-        holder.createErrorAnnotation(erroredElement, "Incompatible type " + type1.toStringWithoutConstant() + " can't be assigned from " + type2.toStringWithoutConstant());
+        holder.createErrorAnnotation(erroredElement, "Incompatible type " +
+                                                     type1.toStringWithoutConstant() +
+                                                     " can't be assigned from " +
+                                                     type2.toStringWithoutConstant());
       annotation.registerFix(new HaxeFixer("Change type") {
         @Override
         public void run() {
@@ -127,7 +130,7 @@ class LocalVarChecker {
 }
 
 class FieldChecker {
-  public static void check(final HaxeVarDeclaration var, final AnnotationHolder holder) {
+  public static void check(final HaxeFieldDeclaration var, final AnnotationHolder holder) {
     HaxeFieldModel field = new HaxeFieldModel(var);
     if (field.isProperty()) {
       checkProperty(field, holder);
@@ -369,7 +372,7 @@ class ClassChecker {
           final PsiMethod psiMethod = ContainerUtil.find(methods, new Condition<PsiMethod>() {
             @Override
             public boolean value(PsiMethod method) {
-              return !(method instanceof HaxeFunctionPrototypeDeclarationWithAttributes);
+              return method instanceof HaxeMethod;
             }
           });
 

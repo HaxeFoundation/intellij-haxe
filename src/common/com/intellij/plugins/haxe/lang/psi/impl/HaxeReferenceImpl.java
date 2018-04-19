@@ -467,7 +467,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       PsiElement parent = resolve.getParent();
 
       if (parent != null) {
-        if (parent instanceof HaxeFunctionDeclarationWithAttributes || parent instanceof HaxeExternFunctionDeclaration) {
+        if (parent instanceof HaxeMethodDeclaration) {
           return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
         }
         HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(parent, HaxeTypeTag.class);

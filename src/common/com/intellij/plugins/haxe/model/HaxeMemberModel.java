@@ -121,12 +121,12 @@ abstract public class HaxeMemberModel implements HaxeModel {
 
   public static HaxeMemberModel fromPsi(PsiElement element) {
     if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
-    if (element instanceof HaxeVarDeclaration) {
-      PsiClass containingClass = ((HaxeVarDeclaration)element).getContainingClass();
+    if (element instanceof HaxeFieldDeclaration) {
+      PsiClass containingClass = ((HaxeFieldDeclaration)element).getContainingClass();
       if (HaxeAbstractEnumUtil.isAbstractEnum(containingClass) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(element)) {
-        return new HaxeEnumValueModel((HaxeVarDeclaration)element);
+        return new HaxeEnumValueModel((HaxeFieldDeclaration)element);
       }
-      return new HaxeFieldModel((HaxeVarDeclaration)element);
+      return new HaxeFieldModel((HaxeFieldDeclaration)element);
     }
     if (element instanceof HaxeEnumValueDeclaration) return new HaxeEnumValueModel((HaxeEnumValueDeclaration)element);
     if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);

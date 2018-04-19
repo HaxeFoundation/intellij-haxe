@@ -20,14 +20,10 @@ package com.intellij.plugins.haxe.ide.generation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeModifierType;
-import com.intellij.plugins.haxe.model.HaxeModifiersModel;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.log4j.Level;
 
 import java.util.List;
