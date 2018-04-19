@@ -28,11 +28,10 @@ import com.intellij.plugins.haxe.build.FieldWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodContext;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeModifierType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -92,7 +91,7 @@ public class HaxeLookupElement extends LookupElement {
       presentableText = member.getPresentableText(context);
 
       // Check deprecated modifiers
-      if (member.getModifiers().hasModifier(HaxeModifierType.DEPRECATED)) {
+      if (member.getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {
         presentation.setStrikeout(true);
       }
 

@@ -47,6 +47,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
+
 public class HaxeSemanticAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -196,7 +198,7 @@ class FieldChecker {
       annotation.registerFix(new HaxeFixer("Add @:isVar") {
         @Override
         public void run() {
-          field.getModifiers().addModifier(HaxeModifierType.IS_VAR);
+          field.getModifiers().addModifier(IS_VAR);
         }
       });
       if (field.getSetterPsi() != null) {
@@ -490,25 +492,22 @@ class MethodChecker {
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
     final HaxeClassModel parentClass = (currentClass != null) ? currentClass.getParentClass() : null;
-    final HaxeMethodModel parentMethod =
-      ((parentClass != null) && parentClass != null) ? parentClass.getMethod(currentMethod.getName()) : null;
+    final HaxeMethodModel parentMethod = parentClass != null ? parentClass.getMethod(currentMethod.getName()) : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 
     boolean requiredOverride = false;
 
     if (currentMethod.isConstructor()) {
-      requiredOverride = false;
-      if (currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+      if (currentModifiers.hasModifier(STATIC)) {
         // @TODO: Move to bundle
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Constructor can't be static").registerFix(
-          new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.STATIC)
+          new HaxeModifierRemoveFixer(currentModifiers, STATIC)
         );
       }
     } else if (currentMethod.isStaticInit()) {
-      requiredOverride = false;
-      if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+      if (!currentModifiers.hasModifier(STATIC)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
-          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.STATIC)
+          new HaxeModifierAddFixer(currentModifiers, STATIC)
         );
       }
     } else if (parentMethod != null) {
@@ -518,19 +517,19 @@ class MethodChecker {
       } else {
         requiredOverride = true;
 
-        if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
+        if (parentModifiers.hasAnyModifier(INLINE, STATIC, FINAL, FINAL_META)) {
           Annotation annotation =
             holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
-          for (HaxeModifierType mod : new HaxeModifierType[]{HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC}) {
-            if (parentModifiers.hasModifier(mod)) {
+          for (String modifier : new String[]{FINAL, FINAL_META, INLINE, STATIC}) {
+            if (parentModifiers.hasModifier(modifier)) {
               annotation.registerFix(
-                new HaxeModifierRemoveFixer(parentModifiers, mod, "Remove " + mod.s + " from " + parentMethod.getFullName())
+                new HaxeModifierRemoveFixer(parentModifiers, modifier, "Remove " + modifier + " from " + parentMethod.getFullName())
               );
             }
           }
         }
 
-        if (currentModifiers.getVisibility().hasLowerVisibilityThan(parentModifiers.getVisibility())) {
+        if (HaxePsiModifier.hasLowerVisibilityThan(currentModifiers.getVisibility(), parentModifiers.getVisibility())) {
           Annotation annotation = holder.createErrorAnnotation(
             currentMethod.getNameOrBasePsi(),
             "Field " +
@@ -546,14 +545,14 @@ class MethodChecker {
     }
 
     //System.out.println(aClass);
-    if (currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && !requiredOverride) {
-      holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
-        new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.OVERRIDE)
+    if (currentModifiers.hasModifier(OVERRIDE) && !requiredOverride) {
+      holder.createErrorAnnotation(currentModifiers.getModifierPsi(OVERRIDE), "Overriding nothing").registerFix(
+        new HaxeModifierRemoveFixer(currentModifiers, OVERRIDE)
       );
     } else if (requiredOverride) {
-      if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE)) {
+      if (!currentModifiers.hasModifier(OVERRIDE)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
-          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.OVERRIDE)
+          new HaxeModifierAddFixer(currentModifiers, OVERRIDE)
         );
       } else {
         // It is rightly overriden. Now check the signature.

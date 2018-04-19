@@ -22,7 +22,6 @@ package com.intellij.plugins.haxe.ide.annotator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeModifierType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import gnu.trove.THashSet;
@@ -147,6 +146,6 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   private boolean isDeprecatedMeta(@NotNull HaxeCustomMeta meta) {
     String metaText = meta.getText();
-    return metaText != null && metaText.startsWith(HaxeModifierType.DEPRECATED.s);
+    return metaText != null && metaText.startsWith(HaxePsiModifier.DEPRECATED);
   }
 }

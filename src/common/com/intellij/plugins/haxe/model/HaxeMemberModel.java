@@ -29,7 +29,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.plugins.haxe.model.HaxeModifierType.*;
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 
 abstract public class HaxeMemberModel implements HaxeModel {
   private PsiElement basePsi;
@@ -62,12 +62,12 @@ abstract public class HaxeMemberModel implements HaxeModel {
     return false;
   }
 
-  public boolean hasModifier(HaxeModifierType aPublic) {
-    return this.getModifiers().hasModifier(aPublic);
+  public boolean hasModifier(@HaxePsiModifier.ModifierConstant String modifier) {
+    return this.getModifiers().hasModifier(modifier);
   }
 
   public boolean isStatic() {
-    return hasModifier(STATIC);
+    return hasModifier(HaxePsiModifier.STATIC);
   }
 
   private HaxeDocumentModel _document = null;

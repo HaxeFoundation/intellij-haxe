@@ -21,9 +21,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeModifierType;
 import org.apache.log4j.Level;
 
 import java.util.List;
@@ -52,8 +52,9 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
       // Only add methods that doesn't have @:final or static modifiers and also that are not constructors
       if (
         !method.getModifiers().hasAnyModifier(
-          HaxeModifierType.FINAL,
-          HaxeModifierType.STATIC
+          HaxePsiModifier.FINAL,
+          HaxePsiModifier.FINAL_META,
+          HaxePsiModifier.STATIC
         ) &&
         !method.isConstructor()
       ) {

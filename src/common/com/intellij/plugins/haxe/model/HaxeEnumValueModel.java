@@ -50,7 +50,7 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
 
   @Override
   public boolean isPublic() {
-    return !isAbstract() || !hasModifier(HaxeModifierType.PRIVATE);
+    return !isAbstract() || !hasModifier(HaxePsiModifier.PRIVATE);
   }
 
   public boolean isAbstract() {

@@ -29,13 +29,16 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String PUBLIC = "public";
   @NonNls String PRIVATE = "private";
   @NonNls String ABSTRACT = "abstract";
+  @NonNls String EMPTY = "";
 
   @NonNls String INLINE = "inline";
   @NonNls String STATIC = "static";
   @NonNls String DYNAMIC = "dynamic";
   @NonNls String FINAL = "final";
+  @NonNls String OVERRIDE = "override";
 
   @NonNls String FINAL_META = "@:final";
+  @NonNls String IS_VAR = "@:isVar";
   @NonNls String KEEP = "@:keep";
   @NonNls String COREAPI = "@:coreApi";
   @NonNls String BIND = "@:bind";
@@ -56,17 +59,33 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
 
   @NonNls String BUILD = "@:build";
   @NonNls String AUTOBUILD = "@:autoBuild";
-
-  @NonNls String[] MODIFIERS = {
-    PUBLIC, PRIVATE, FINAL, STATIC, DYNAMIC, ABSTRACT, FINAL_META, KEEP, COREAPI, BIND, MACRO, HACK,
-    REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
-    AUTOBUILD, UNREFLECTIVE
-  };
+  @NonNls String DEPRECATED = "@:deprecated";
 
   @MagicConstant(stringValues = {
-    PUBLIC, PRIVATE, STATIC, FINAL, DYNAMIC, ABSTRACT, FINAL_META, KEEP, COREAPI, BIND, MACRO, HACK,
+    PUBLIC, PRIVATE, EMPTY, STATIC, FINAL, DYNAMIC, ABSTRACT, OVERRIDE, FINAL_META, KEEP, IS_VAR, COREAPI, BIND, MACRO, HACK,
     REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
-    AUTOBUILD, UNREFLECTIVE
+    AUTOBUILD, UNREFLECTIVE, DEPRECATED
   })
-  @interface ModifierConstant { }
+  @interface ModifierConstant {
+  }
+
+  static String getStringWithSpace(@ModifierConstant String modifier) {
+    return (modifier.length() == 0) ? "" : (modifier + " ");
+  }
+
+  static int getVisibilityValue(@ModifierConstant String modifier) {
+    switch (modifier) {
+      case PUBLIC:
+        return 1;
+      case PRIVATE:
+        return 0;
+      case EMPTY:
+        return 0;
+    }
+    return -1;
+  }
+
+  static boolean hasLowerVisibilityThan(@ModifierConstant String thisModifier, @ModifierConstant String thatModifier) {
+    return getVisibilityValue(thisModifier) < getVisibilityValue(thatModifier);
+  }
 }
