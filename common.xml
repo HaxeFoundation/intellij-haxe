@@ -162,6 +162,11 @@
 
   <!-- The properties are mostly used as filters, but they can be useful for other things. -->
   <property file="${plugin.properties.file}"/>
+  <!-- If DEV_BUILD env variable is set it will be used during generation of "metainf" -->
+  <property environment="env"/>
+  <condition property="plugin.dev.version" value="${env.DEV_BUILD}" else="">
+    <isset property="env.DEV_BUILD" />
+  </condition>
 
   <!-- defines a path for code specific to an intellij version.
      IntelliJ SDK has non-backward compatible changes which require
@@ -220,6 +225,7 @@
         <!-- An odd construction, but it allows using a property in the filtered file. -->
         <filter token="idea.sdk.version" value="${idea.sdk.version}"/>
         <filter token="replace.with.plugin.autogen.warning" value="${plugin.autogen.warning}"/>
+        <filter token="plugin.dev.version" value="${plugin.dev.version}"/>
       </filterset>
     </copy>
   </target>
