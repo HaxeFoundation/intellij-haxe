@@ -26,9 +26,9 @@ notifications:
 
 jobs:
   include:
-    - if: branch = develop
+    - if: branch = develop AND type = push
       script: make
       env:
-        - IDEA_VERSION=2018.1 PLUGIN_VERSION=18
+        - IDEA_VERSION=2018.1 PLUGIN_VERSION=18 DEV_BUILD=.dev.${TRAVIS_COMMIT::7}
       after_success:
         - curl -k -i -F "userName=$PLUGIN_USER_NAME" -F "password=$PLUGIN_USER_PASS" -F channel=EAP -F pluginId=6873 -F "file=@intellij-haxe-$PLUGIN_VERSION.jar" https://plugins.jetbrains.com/plugin/uploadPlugin
