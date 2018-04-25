@@ -178,9 +178,6 @@ public enum HaxeComponentType {
     if (element instanceof HaxeParameter) {
       return PARAMETER;
     }
-    if (element instanceof HaxeFieldDeclaration) {
-      return CLASSVARIABLE;
-    }
 
     return null;
   }
