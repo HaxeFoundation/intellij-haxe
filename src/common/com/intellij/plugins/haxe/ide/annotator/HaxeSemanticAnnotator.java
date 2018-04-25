@@ -512,6 +512,7 @@ class MethodChecker {
     }
   }
 
+  private static final String[] OVERRIDE_FORBIDDEN_MODIFIERS = {FINAL, FINAL_META, INLINE, STATIC};
   private static void checkOverride(final HaxeMethod methodPsi, final AnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
@@ -543,10 +544,10 @@ class MethodChecker {
       } else {
         requiredOverride = true;
 
-        if (parentModifiers.hasAnyModifier(INLINE, STATIC, FINAL, FINAL_META)) {
+        if (parentModifiers.hasAnyModifier(OVERRIDE_FORBIDDEN_MODIFIERS)) {
           Annotation annotation =
             holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
-          for (String modifier : new String[]{FINAL, FINAL_META, INLINE, STATIC}) {
+          for (String modifier : OVERRIDE_FORBIDDEN_MODIFIERS) {
             if (parentModifiers.hasModifier(modifier)) {
               annotation.registerFix(
                 new HaxeModifierRemoveFixer(parentModifiers, modifier, "Remove " + modifier + " from " + parentMethod.getFullName())
