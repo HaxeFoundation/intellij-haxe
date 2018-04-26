@@ -682,8 +682,8 @@ private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 extendsDeclaration ::= 'extends' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 implementsDeclaration ::= 'implements' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 
-anonymousType ::= '{' anonymousTypeBody '}'
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+anonymousType ::= '{' '}' | '{' anonymousTypeBody '}'
+{pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBody
 private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (',' interfaceBody)?
