@@ -61,11 +61,11 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
   @Override
   protected String buildFunctionsText(HaxeNamedComponent namedComponent) {
-    if (!(namedComponent instanceof HaxeVarDeclaration)) {
+    if (!(namedComponent instanceof HaxeFieldDeclaration)) {
       return "";
     }
 
-    HaxeFieldModel field = new HaxeFieldModel((HaxeVarDeclaration)namedComponent);
+    HaxeFieldModel field = new HaxeFieldModel((HaxeFieldDeclaration)namedComponent);
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
       HaxeNamedComponent getterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()));
@@ -84,21 +84,21 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
   @Override
   protected void modifyElement(HaxeNamedComponent namedComponent) {
-    if (!(namedComponent instanceof HaxeVarDeclaration)) {
+    if (!(namedComponent instanceof HaxeFieldDeclaration)) {
       return;
     }
-    if (((HaxeVarDeclaration)namedComponent).getPropertyDeclaration() != null) {
+    if (((HaxeFieldDeclaration)namedComponent).getPropertyDeclaration() != null) {
       // todo: modify
       return;
     }
 
-    final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeVarDeclaration)namedComponent).getTypeTag());
+    final String typeText = HaxePresentableUtil.buildTypeText(namedComponent, ((HaxeFieldDeclaration)namedComponent).getTypeTag());
 
-    final HaxeVarDeclaration declaration =
+    final HaxeFieldDeclaration declaration =
       HaxeElementGenerator.createVarDeclaration(namedComponent.getProject(), buildVarDeclaration(namedComponent, typeText));
     final HaxePropertyDeclaration propertyDeclaration = declaration.getPropertyDeclaration();
     if (propertyDeclaration != null) {
-      HaxeVarDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeVarDeclaration.class, false);
+      HaxeFieldDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeFieldDeclaration.class, false);
       if (varDeclaration != null) {
         varDeclaration.replace(declaration);
       }

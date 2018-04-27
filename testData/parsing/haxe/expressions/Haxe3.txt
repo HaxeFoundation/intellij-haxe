@@ -105,12 +105,11 @@ Haxe File
         HaxePsiToken:ID('Test')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:@:macro('@:macro')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -173,7 +172,7 @@ Haxe File
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      VAR_DECLARATION
+      FIELD_DECLARATION
         META_META
           HaxePsiToken:@:meta('@:meta')
           HaxePsiToken:(('(')
@@ -181,10 +180,10 @@ Haxe File
           HaxePsiToken:(('(')
           HaxePsiToken:)(')')
           HaxePsiToken:)(')')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:private('private')
-        HaxePsiToken:var('var')
+        FIELD_MODIFIER
+          HaxePsiToken:private('private')
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('s')
@@ -196,8 +195,8 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('TextField')
         HaxePsiToken:;(';')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -243,7 +242,7 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -338,7 +337,7 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -1101,7 +1100,7 @@ Haxe File
           HaxePsiToken:ID('Int')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -1121,8 +1120,8 @@ Haxe File
         HaxePsiToken:ID('Main')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -1314,8 +1313,8 @@ Haxe File
       HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:inline('inline')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -1354,15 +1353,14 @@ Haxe File
             IDENTIFIER
               HaxePsiToken:ID('a')
         HaxePsiToken:;(';')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@:from')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:inline('inline')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -1439,7 +1437,7 @@ Haxe File
     HaxePsiToken:{('{')
     PsiComment(MSL_COMMENT)('// MyInt + MyInt can be used as is, and returns a MyInt')
     ABSTRACT_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@:op')
           HaxePsiToken:(('(')
@@ -1453,11 +1451,10 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('B')
           HaxePsiToken:)(')')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -1498,7 +1495,7 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@:commutative')
         CUSTOM_META
@@ -1514,11 +1511,10 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('B')
           HaxePsiToken:)(')')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

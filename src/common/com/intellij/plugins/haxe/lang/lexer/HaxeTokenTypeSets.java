@@ -123,6 +123,7 @@ public interface HaxeTokenTypeSets {
     KTHROW,
     KUNTYPED,
     KVAR,
+    KFINAL,
     KWHILE,
     KTRY,
     KCATCH,
@@ -133,7 +134,7 @@ public interface HaxeTokenTypeSets {
     PPERROR,
     PPIF,
     KEXTERN,
-    KFINAL,
+    KFINAL_META,
     KHACK,
     KNATIVE,
     KMACRO,
@@ -163,8 +164,7 @@ public interface HaxeTokenTypeSets {
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(
-    FUNCTION_DECLARATION_WITH_ATTRIBUTES,
-    FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES,
+    METHOD_DECLARATION,
     LOCAL_FUNCTION_DECLARATION,
     FUNCTION_LITERAL
   );

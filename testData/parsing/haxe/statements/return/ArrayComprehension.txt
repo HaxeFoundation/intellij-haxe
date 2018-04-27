@@ -6,10 +6,9 @@ Haxe File
         HaxePsiToken:ID('TestIssue329')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

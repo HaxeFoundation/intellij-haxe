@@ -23,7 +23,7 @@ import com.intellij.plugins.haxe.ide.refactoring.introduce.HaxeIntroduceOperatio
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassBody;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiRecursiveElementVisitor;
@@ -60,7 +60,7 @@ public class HaxeIntroduceConstantHandler extends HaxeIntroduceHandler {
     //return parent.addBefore(declaration, anchor);
     HaxeClass haxeClass = PsiTreeUtil.getParentOfType(expression, HaxeClass.class, false);
     if (haxeClass != null) {
-      //haxeClass.getVarDeclarations().get(0)
+      //haxeClass.getFieldDeclarations().get(0)
       HaxeClassBody classBody = PsiTreeUtil.getChildOfType(haxeClass, HaxeClassBody.class);
 
       if (classBody != null) {
@@ -117,7 +117,7 @@ public class HaxeIntroduceConstantHandler extends HaxeIntroduceHandler {
 
   @Nullable
   @Override
-  protected HaxeVarDeclaration createDeclaration(Project project, String text, PsiElement anchor) {
+  protected HaxeFieldDeclaration createDeclaration(Project project, String text, PsiElement anchor) {
     return HaxeElementGenerator.createVarDeclaration(project, text);
   }
 }

@@ -25,9 +25,9 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.util.ArrayUtil;
@@ -71,7 +71,7 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
     new HaxeAnnotatingVisitor() {
       @Override
-      protected void handleDeprecatedFunctionDeclaration(@NotNull HaxeFunctionDeclarationWithAttributes function) {
+      protected void handleDeprecatedFunctionDeclaration(@NotNull HaxeMethodDeclaration function) {
         PsiIdentifier nameIdentifier = function.getNameIdentifier();
 
         if (nameIdentifier != null) {
@@ -98,7 +98,7 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
       }
 
       @Override
-      protected void handleDeprecatedVarDeclaration(HaxeVarDeclaration varDeclaration) {
+      protected void handleDeprecatedFieldDeclaration(HaxeFieldDeclaration varDeclaration) {
         PsiIdentifier nameIdentifier = varDeclaration.getNameIdentifier();
 
         result.add(manager.createProblemDescriptor(

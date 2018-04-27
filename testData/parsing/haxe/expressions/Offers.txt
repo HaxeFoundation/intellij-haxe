@@ -6,10 +6,9 @@ Haxe File
         HaxePsiToken:ID('Offers')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -49,17 +48,16 @@ Haxe File
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('n')
-          PsiErrorElement:'!', '(', '++', '-', '--', ';', '@:arrayAccess', '@:autoBuild', '@:bind', '@:bitmap', '@:build', '@:coreApi', '@:debug', '@:fakeEnum', '@:final', '@:getter', '@:hack', '@:jsRequire', '@:keep', '@:macro', '@:meta', '@:native', '@:nodebug', '@:ns', '@:protected', '@:require', '@:setter', '@:unreflective', ID, LITFLOAT, LITHEX, LITINT, LITOCT, MACRO_ID, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, dynamic, false, for, function, if, inline, macro, new, null and ... expected, got '}'
+          PsiErrorElement:'!', '(', '++', '-', '--', ';', '@:arrayAccess', '@:autoBuild', '@:bind', '@:bitmap', '@:build', '@:coreApi', '@:fakeEnum', '@:final', '@:hack', '@:jsRequire', '@:keep', '@:macro', '@:meta', '@:native', '@:ns', '@:require', '@:unreflective', ID, LITFLOAT, LITHEX, LITINT, LITOCT, MACRO_ID, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, inline, macro, new, null, return, super, switch, this, throw, true and ... expected, got '}'
             HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
           HaxePsiToken:REGULAR_STRING_PART('\n')
           HaxePsiToken:REGULAR_STRING_PART('}')
           HaxePsiToken:CLOSING_QUOTE(''')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

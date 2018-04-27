@@ -6,11 +6,11 @@ Haxe File
         HaxePsiToken:ID('Main')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        FIELD_MODIFIER
+          HaxePsiToken:public('public')
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('x')
@@ -30,12 +30,11 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Int')
         HaxePsiToken:;(';')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

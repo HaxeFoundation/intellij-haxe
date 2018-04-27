@@ -9,8 +9,9 @@ Haxe File
         HaxePsiToken:ID('MapLiteral')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('words')
@@ -35,8 +36,9 @@ Haxe File
                 HaxePsiToken:CLOSING_QUOTE('"')
             HaxePsiToken:](']')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('map')

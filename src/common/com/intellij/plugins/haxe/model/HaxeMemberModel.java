@@ -29,7 +29,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.plugins.haxe.model.HaxeModifierType.*;
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 
 abstract public class HaxeMemberModel implements HaxeModel {
   private PsiElement basePsi;
@@ -53,6 +53,10 @@ abstract public class HaxeMemberModel implements HaxeModel {
            || getDeclaringClass().hasMeta("@:publicFields");
   }
 
+  public boolean isFinal() {
+    return hasModifier(FINAL);
+  }
+
   private boolean isOverriddenPublicMethod() {
     if (hasModifier(OVERRIDE)) {
       final HaxeMemberModel parentMember = getParentMember();
@@ -62,12 +66,12 @@ abstract public class HaxeMemberModel implements HaxeModel {
     return false;
   }
 
-  public boolean hasModifier(HaxeModifierType aPublic) {
-    return this.getModifiers().hasModifier(aPublic);
+  public boolean hasModifier(@HaxePsiModifier.ModifierConstant String modifier) {
+    return this.getModifiers().hasModifier(modifier);
   }
 
   public boolean isStatic() {
-    return hasModifier(STATIC);
+    return hasModifier(HaxePsiModifier.STATIC);
   }
 
   private HaxeDocumentModel _document = null;
@@ -121,12 +125,12 @@ abstract public class HaxeMemberModel implements HaxeModel {
 
   public static HaxeMemberModel fromPsi(PsiElement element) {
     if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
-    if (element instanceof HaxeVarDeclaration) {
-      PsiClass containingClass = ((HaxeVarDeclaration)element).getContainingClass();
+    if (element instanceof HaxeFieldDeclaration) {
+      PsiClass containingClass = ((HaxeFieldDeclaration)element).getContainingClass();
       if (HaxeAbstractEnumUtil.isAbstractEnum(containingClass) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(element)) {
-        return new HaxeEnumValueModel((HaxeVarDeclaration)element);
+        return new HaxeEnumValueModel((HaxeFieldDeclaration)element);
       }
-      return new HaxeFieldModel((HaxeVarDeclaration)element);
+      return new HaxeFieldModel((HaxeFieldDeclaration)element);
     }
     if (element instanceof HaxeEnumValueDeclaration) return new HaxeEnumValueModel((HaxeEnumValueDeclaration)element);
     if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);

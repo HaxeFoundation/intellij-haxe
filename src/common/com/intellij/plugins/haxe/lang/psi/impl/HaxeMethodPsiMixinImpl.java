@@ -82,13 +82,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return _model;
   }
 
-  @Nullable
-  @Override
-  public List<HaxeDeclarationAttribute> getDeclarationAttributeList() {
-    // Not all function types have one of these...  If they do, the
-    // subclass (via the generator) will override this method.
-    return null;
-  }
 
 
   @Nullable

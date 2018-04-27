@@ -9,8 +9,9 @@ Haxe File
         HaxePsiToken:ID('Test')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a')
@@ -30,10 +31,9 @@ Haxe File
         PsiErrorElement:Missing semicolon.
           <empty list>
       PsiComment(MSL_COMMENT)('// <--- Missing semicolon should cause an error.')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

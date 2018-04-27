@@ -51,8 +51,8 @@ public class SemicolonFixer implements Fixer {
       return false;
     }
 
-    HaxeFunctionDeclarationWithAttributes haxeFunctionDeclarationWithAttributes =
-      PsiTreeUtil.getParentOfType(haxeReturnStatement, HaxeFunctionDeclarationWithAttributes.class);
+    HaxeMethodDeclaration haxeFunctionDeclarationWithAttributes =
+      PsiTreeUtil.getParentOfType(haxeReturnStatement, HaxeMethodDeclaration.class);
 
     if (haxeFunctionDeclarationWithAttributes != null) {
       HaxeTypeTag typeTag = haxeFunctionDeclarationWithAttributes.getTypeTag();

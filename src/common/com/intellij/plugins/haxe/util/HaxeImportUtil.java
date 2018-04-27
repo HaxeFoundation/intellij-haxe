@@ -75,7 +75,7 @@ public class HaxeImportUtil {
 
     usefulStatements.forEach(statement -> classesInFile.forEach(referencedElement -> {
       if (referencedElement instanceof HaxeClass ||
-          referencedElement instanceof HaxeVarDeclaration ||
+          referencedElement instanceof HaxeFieldDeclaration ||
           referencedElement instanceof HaxeMethod) {
         HaxeNamedComponent component = (HaxeNamedComponent)referencedElement;
         if (statement.getModel().exposeByName(component.getName()) != null) {

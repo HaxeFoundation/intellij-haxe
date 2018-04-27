@@ -47,8 +47,8 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
 
     assert file != null;
     HaxeFile haxeFile = (HaxeFile)file;
-    HaxeFunctionDeclarationWithAttributes method =
-      (HaxeFunctionDeclarationWithAttributes)haxeFile.getClasses()[0].findMethodsByName("new", false)[0];
+    HaxeMethodDeclaration method =
+      (HaxeMethodDeclaration)haxeFile.getClasses()[0].findMethodsByName("new", false)[0];
 
     HaxeBlockStatement blockStatement = method.getBlockStatement();
     assert blockStatement != null;
@@ -58,7 +58,7 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
     HaxeExpression expression1 = assignExpression.getExpressionList().get(0);
     HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)expression1;
     PsiElement resolve = referenceExpression.resolve();
-    assertTrue("list variable should be local var declaration part ", resolve instanceof HaxeVarDeclaration);
+    assertTrue("list variable should be local var declaration part ", resolve instanceof HaxeFieldDeclaration);
   }
 
 }

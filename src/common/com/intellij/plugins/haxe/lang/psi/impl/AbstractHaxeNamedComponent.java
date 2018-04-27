@@ -212,7 +212,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
       return true; // public
     }
 
-    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
     if (declarationAttributeList != null) {
       final Set<IElementType> declarationTypes = HaxeResolveUtil.getDeclarationTypes((declarationAttributeList));
       // do not change the order of these if-statements
@@ -231,19 +231,19 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
   public boolean isStatic() {
     AbstractHaxeNamedComponent element = this;
 
-    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KSTATIC);
   }
 
   @Override
   public boolean isOverride() {
-    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
   }
 
   @Override
   public boolean isInline() {
-    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxeDeclarationAttribute.class);
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
   }
 

@@ -75,7 +75,7 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type2 == FUNCTION_DECLARATION_WITH_ATTRIBUTES && !ONLY_COMMENTS.contains(type1)) { // prevent excess linefeed between doctype and function
+    if (type2 == METHOD_DECLARATION && !ONLY_COMMENTS.contains(type1)) { // prevent excess linefeed between doctype and function
       return Spacing.createSpacing(0, 0, 2, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
@@ -309,7 +309,7 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_AROUND_ARROW);
     }
 
-    if (type1 == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES && type2 == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES) {
+    if (type1 == METHOD_DECLARATION && type2 == METHOD_DECLARATION) {
       return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
@@ -317,7 +317,7 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_BEFORE_METHOD_BODY, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type1 == FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES && type2 == PRCURLY) {
+    if (type1 == METHOD_DECLARATION && type2 == PRCURLY) {
       return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
