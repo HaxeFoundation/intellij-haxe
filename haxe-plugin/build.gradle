@@ -1,0 +1,237 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2018 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
+
+sourceSets.main.java.srcDirs = ['src/main/java', 'gen']
+sourceSets.main.resources.srcDir 'src/main/resources'
+
+sourceSets.test.java.srcDir 'src/test/java'
+sourceSets.test.resources.srcDir 'src/test/resources'
+
+idea.module { generatedSourceDirs += file('gen') }
+
+
+dependencies {
+    compile project(':jps-plugin')
+    compile project(':haxe-common')
+    compile project(':hxcpp-debugger-protocol')
+
+    compileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
+    compileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
+    compileOnly files("${ideaTargetDir}/lib/openapi.jar")
+    compileOnly files("${ideaTargetDir}/lib/util.jar")
+
+
+    testCompileOnly project(':jps-plugin')
+    testCompileOnly project(':haxe-plugin')
+    testCompileOnly project(':haxe-common')
+    testCompileOnly project(':hxcpp-debugger-protocol')
+
+
+    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
+    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
+    testCompileOnly files("${ideaTargetDir}/lib/openapi.jar")
+    testCompileOnly files("${ideaTargetDir}/lib/util.jar")
+
+}
+
+
+compileJava {
+    dependsOn 'generateIdeaSdkIdentifer'
+    dependsOn 'generateHaxeParser'
+    dependsOn 'generateHxmlParser'
+}
+
+processResources {
+    from('src/main/java') {
+        include '**/*.properties'
+    }
+}
+
+patchPluginXml.finalizedBy('patchCustomTags')
+task patchCustomTags() {
+    doFirst {
+        file(patchPluginXml.destinationDir.toString() + '/plugin.xml')
+                .renameTo(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+    }
+    doLast {
+        copy {
+            def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+            from(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+            filter(ReplaceTokens, tokens: props)
+            into patchPluginXml.destinationDir.toString()
+            rename('plugin.xml.partial', 'plugin.xml')
+        }
+
+    }
+    doLast {
+        delete file(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+    }
+}
+
+jar {
+    baseName = "intellij-haxe-${ideaVersion}"
+
+    include('**/*')
+    // include  submodules
+    from(project(':jps-plugin').sourceSets.main.output).include('**/*')
+    from(project(':haxe-common').sourceSets.main.output).include('**/*')
+    from(project(':hxcpp-debugger-protocol').sourceSets.main.output).include('**/*')
+
+    from(zipTree("${ideaTargetDir}/lib/forms_rt.jar")).include('com/intellij/uiDesigner/core/*.class')
+}
+jar.finalizedBy('copyJar')
+
+task copyJar() {
+    doLast {
+        copy {
+            from("${haxePluginDir}/build/libs/").include("*")
+            into("${rootDir}/")
+        }
+    }
+}
+
+test {
+    useJUnit()
+    jvmArgs = [
+            "-Didea.home.path=${ideaTargetDir}",
+            "-Xbootclasspath/a:${ideaTargetDir}/lib/boot.jar",
+            "-Dfile.encoding=UTF-8",
+            "-ea",
+            "-Didea.launcher.bin.path=${ideaTargetDir}/bin"
+    ]
+}
+
+clean.dependsOn('cleanGenerated')
+task cleanGenerated(type: Delete, group: 'generate') {
+    outputs.upToDateWhen { !file("$generatedSrcDir").exists() }
+    delete "$generatedSrcDir"
+}
+
+task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
+    workingDir = "${toolDir}"
+    main '-jar'
+    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarHaxe}"]
+
+    inputs.file "${grammarHaxe}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang").exists() }
+}
+
+
+task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
+    workingDir = "${toolDir}"
+    main '-jar'
+    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarHxml}"]
+
+    inputs.file "${grammarHxml}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml").exists() }
+}
+
+
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+task generateIdeaSdkIdentifer(type: Copy, group: 'generate') {
+    file("${generatedSrcDir}/com/intellij/plugins/haxe/build/").mkdirs()
+    Properties properties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+    from("${haxePluginDir}/src/main/java/com/intellij/plugins/haxe/build/IdeaSDKIdentifier.java.template") {
+        filter(ReplaceTokens, tokens: properties)
+    }
+    into "${generatedSrcDir}/com/intellij/plugins/haxe/build/"
+    rename('IdeaSDKIdentifier.java.template', 'IdeaSDKIdentifier.java')
+
+}
+
+Properties findSdkValuesAndProperties(File buildFile) {
+    def buildId = buildFile.getText()
+    def typeSep = buildId.indexOf("-")
+    def clSep = buildId.indexOf(".", typeSep + 1)
+    def bldSep = buildId.indexOf(".", clSep + 1)
+
+    String buildType = buildId.substring(0, typeSep)
+    String codeLine = buildId.substring(typeSep + 1, clSep)
+    String buildNumber = (bldSep >= 0 ? buildId.substring(clSep + 1, bldSep) : buildId.substring(clSep + 1))
+    String patchNumber = (bldSep >= 0 ? buildId.substring(bldSep + 1) : 0)
+
+    ext.ideaSdkType = buildType
+    ext.ideaSdkCodeline = codeLine
+    ext.ideaSdkBuildNumber = buildNumber
+    ext.ideaSdkPatchNumber = patchNumber
+
+    // Lookup table for properties files.  Add new versions here.
+    def propertiesFile = ""
+    switch (Integer.valueOf(codeLine, 10)) {
+        case 183: propertiesFile = "idea_v18.properties"; break
+        case 182: propertiesFile = "idea_v18.properties"; break
+        case 181: propertiesFile = "idea_v18.properties"; break
+        case 173: propertiesFile = "idea_v17.3.properties"; break
+        case 172: propertiesFile = "idea_v17.properties"; break
+        case 171: propertiesFile = "idea_v17.properties"; break
+        case 163: propertiesFile = "idea_v16.properties"; break
+        case 162: propertiesFile = "idea_v16.properties"; break
+        case 161: propertiesFile = "idea_v16.properties"; break
+        case 145: propertiesFile = "idea_v16.properties"; break
+    }
+    def properties = new Properties()
+    if (0 != propertiesFile.size()) {
+        file("${rootDir}/properties/" + propertiesFile).withInputStream { properties.load(it) }
+    } else {
+        println "WARNING!: No Properties file found"
+    }
+    properties.setProperty('idea.sdk.version', "$ideaVersion")
+    properties.setProperty('idea.sdk.type', buildType)
+    properties.setProperty('idea.sdk.codeline', codeLine)
+    properties.setProperty('idea.sdk.build.number', buildNumber)
+    properties.setProperty('idea.sdk.patch.number', patchNumber)
+    properties.setProperty('replace.with.plugin.autogen.warning', "${pluginAutogenWarning}")
+
+    return properties
+}
+
+tasks.withType(Test) {
+    // force all tests to run every time
+    dependsOn "cleanTest"
+
+    // output summary and any failed or skipped tests
+
+    // from https://stackoverflow.com/questions/3963708/gradle-how-to-display-test-results-in-the-console-in-real-time
+    testLogging {
+        events TestLogEvent.FAILED,
+                TestLogEvent.SKIPPED
+
+        exceptionFormat TestExceptionFormat.FULL
+        showExceptions true
+        showCauses true
+        showStackTraces true
+
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                def startItem = '|  ', endItem = '  |'
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+            }
+        }
+    }
+}

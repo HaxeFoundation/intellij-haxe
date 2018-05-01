@@ -1,0 +1,153 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2018 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+if (!file("$ideaBaseDir").exists())file("$ideaBaseDir").mkdirs()
+if (!file("$downloadsDir").exists())file("$downloadsDir").mkdirs()
+if (!file("$toolDir").exists())file("$toolDir").mkdirs()
+
+task setupTools(group: 'dependencies') {
+  dependsOn 'grammarKitSetup'
+  dependsOn 'psiSetup'
+  dependsOn 'flexSetup'
+}
+
+task removeTools(group: 'dependencies') {
+  doLast {
+    delete "$toolDir"
+  }
+}
+task removeIdeaCache(group: 'dependencies') {
+  doLast {
+    delete "$ideaBaseDir"
+  }
+}
+
+task grammarKitDownload(group: 'dependencies') {
+  outputs.upToDateWhen { file("$downloadsDir/$grammarKitDownloadFile").exists() }
+  doLast {
+    download {
+      src "https://github.com/JetBrains/Grammar-Kit/releases/download/${grammarKitVersion}/GrammarKit.zip"
+      dest "$downloadsDir/$grammarKitDownloadFile"
+      overwrite true
+    }
+  }
+}
+task grammarKitSetup(group: 'dependencies', dependsOn: 'grammarKitDownload') {
+  inputs.file("$downloadsDir/$grammarKitDownloadFile")
+  outputs.upToDateWhen { file("$toolDir/grammar-kit.jar").exists() }
+  doLast {
+    copy {
+      from zipTree("$downloadsDir/$grammarKitDownloadFile").matching {
+        include('GrammarKit/lib/grammar-kit.jar')
+      }
+      into "$toolDir"
+      eachFile { f -> f.path = f.path.replaceFirst('GrammarKit/lib/', '') }
+      includeEmptyDirs false
+    }
+  }
+}
+
+task psiDownload(group: 'dependencies') {
+  outputs.upToDateWhen { file("$downloadsDir/$psiDownloadFile").exists() }
+  doLast {
+    download {
+      src "https://github.com/JetBrains/Grammar-Kit/releases/download/${grammarKitVersion}/light-psi-all.jar"
+      dest "$downloadsDir/$psiDownloadFile"
+      overwrite true
+    }
+  }
+}
+
+task psiSetup(group: 'dependencies', dependsOn: 'psiDownload') {
+  inputs.file("$downloadsDir/$psiDownloadFile")
+  outputs.upToDateWhen { file("$toolDir/$psiTargetFile").exists() }
+  doLast {
+    copy {
+      from "$downloadsDir/$psiDownloadFile"
+      into "$toolDir"
+      rename { "$psiTargetFile" }
+    }
+  }
+}
+
+
+task flexDownload(group: 'dependencies') {
+  outputs.upToDateWhen { file("$downloadsDir/$flexDownloadFile").exists() }
+  doLast {
+    def url = getFlexUrl(file("${ideaTargetDir}/build.txt"))
+    download {
+      src url
+      dest "$downloadsDir/$flexDownloadFile"
+      overwrite true
+    }
+  }
+}
+
+
+task flexSetup(group: 'dependencies', dependsOn: 'flexDownload') {
+  inputs.file("$downloadsDir/$flexDownloadFile")
+  outputs.upToDateWhen { file("$toolDir/$flexTargetFile").exists() }
+  doLast {
+    copy {
+      from "$downloadsDir/$flexDownloadFile"
+      into "$toolDir"
+      rename { "$flexTargetFile" }
+    }
+  }
+}
+
+
+String getFlexUrl(File buildFile) {
+//    println  "IDEA build number: " +buildFile.getText()
+  def matcher = buildFile.getText() =~ /([^\d]+)-(\d+)(\.\d+)(\.\d+)/
+  if (!matcher.matches()) {
+    println "unable to determine build version number"
+  }
+
+  def shortBuildNumber = matcher.group(2)
+  def longBuildNumber = matcher.group(2) + matcher.group(3)
+
+
+  def url = "https://raw.githubusercontent.com/JetBrains/intellij-community/${longBuildNumber}/tools/lexer/idea-flex.skeleton"
+  def code = new URL(url).openConnection().with {
+    requestMethod = 'HEAD'
+    connect()
+    responseCode
+  }
+  if (code == 200) {
+    return url
+  }
+  else {
+    println "unable to find flex on branch ${longBuildNumber} attempting ${shortBuildNumber}"
+  }
+
+  url = "https://raw.githubusercontent.com/JetBrains/intellij-community/${shortBuildNumber}/tools/lexer/idea-flex.skeleton"
+  code = new URL(url).openConnection().with {
+    requestMethod = 'HEAD'
+    connect()
+    responseCode
+  }
+  if (code == 200) {
+    return url
+  }
+  else {
+    println "unable to find flex on branch ${shortBuildNumber} attemting master branch"
+  }
+  return 'https://raw.githubusercontent.com/JetBrains/intellij-community/master/tools/lexer/idea-flex.skeleton'
+}
