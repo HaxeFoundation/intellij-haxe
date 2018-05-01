@@ -21,7 +21,7 @@ package com.intellij.plugins.haxe.build;
  * Created by ebishton on 4/19/15.
  */
 public class IdeaSDKIdentifier {
-   // Populated by ant build constants.  See common.xml in the project root.
+   // Populated by gradle build constants.  See build.gradle.
   public static final String BUILD_IDENTIFIER = "@idea.sdk.version@";
   public static final String BUILD_TYPE = "@idea.sdk.type@";
   public static final int BUILD_CODELINE = @idea.sdk.codeline@;
