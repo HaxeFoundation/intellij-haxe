@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <option name="DEFAULT_COMPILER" value="Javac" />
-    <resourceExtensions />
-    <wildcardResourcePatterns>
-      <entry name="!?*.java" />
-      <entry name="!?*.form" />
-      <entry name="!?*.class" />
-      <entry name="!?*.groovy" />
-      <entry name="!?*.scala" />
-      <entry name="!?*.flex" />
-      <entry name="!?*.kt" />
-      <entry name="!?*.clj" />
-    </wildcardResourcePatterns>
-    <annotationProcessing>
-      <profile default="true" name="Default" enabled="false">
-        <processorPath useClasspath="true" />
-      </profile>
-    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="haxe-common_main" target="1.8" />
+      <module name="haxe-common_test" target="1.8" />
+      <module name="haxe-plugin_main" target="1.8" />
+      <module name="haxe-plugin_test" target="1.8" />
+      <module name="hxcpp-debugger-protocol_main" target="1.8" />
+      <module name="hxcpp-debugger-protocol_test" target="1.8" />
+      <module name="intellij-haxe_main" target="1.8" />
+      <module name="intellij-haxe_test" target="1.8" />
+      <module name="jps-plugin_main" target="1.8" />
+      <module name="jps-plugin_test" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
-

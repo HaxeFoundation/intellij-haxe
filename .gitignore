@@ -24,6 +24,7 @@ intellij-haxe*.jar
 ################
 # DEPENDENCIES #
 ################
+/idea-IU
 /dependencies/downloads
 /dependencies/tools
-/dependencies/idea-IU
+
