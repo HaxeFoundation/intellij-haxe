@@ -6,11 +6,5 @@ if [[ $# -eq 0 ]] ; then
     exit 1
 fi
 
-./fetchIdea.sh "$1"
-./fetchGrammarKit.sh
+./gradlew clean buildPlugin -PtargetVersion="$1" --info
 
-#call the build script along with the path to a code package
-#specific to the intellij version which we build against
-ant -f build.xml -Dversion="$1"
-
-rm -rf idea-IU
