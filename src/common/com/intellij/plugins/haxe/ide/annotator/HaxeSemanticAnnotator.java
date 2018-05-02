@@ -119,7 +119,7 @@ class TypeTagChecker {
       return abstractEnumFieldInitType;
     }
     // fallback to simple init expression
-    return HaxeTypeResolver.getPsiElementType(init);
+    return HaxeTypeResolver.getPsiElementType(init.getExpression());
   }
 }
 
