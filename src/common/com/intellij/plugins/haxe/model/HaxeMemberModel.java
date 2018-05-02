@@ -134,6 +134,7 @@ abstract public class HaxeMemberModel implements HaxeModel {
     }
     if (element instanceof HaxeEnumValueDeclaration) return new HaxeEnumValueModel((HaxeEnumValueDeclaration)element);
     if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);
+    if (element instanceof HaxeAnonymousTypeField) return new HaxeAnonymousTypeFieldModel((HaxeAnonymousTypeField)element);
     if (element instanceof HaxeParameter) return new HaxeParameterModel((HaxeParameter)element);
     if (element instanceof HaxeForStatement) return null;
     final PsiElement parent = element.getParent();
