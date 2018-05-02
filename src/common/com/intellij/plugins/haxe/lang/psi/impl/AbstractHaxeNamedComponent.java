@@ -140,7 +140,14 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         HaxeClass haxeClass = AbstractHaxeNamedComponent.this instanceof HaxeClass
                               ? (HaxeClass)AbstractHaxeNamedComponent.this
                               : PsiTreeUtil.getParentOfType(AbstractHaxeNamedComponent.this, HaxeClass.class);
+        String path = "";
         if (haxeClass instanceof HaxeAnonymousType) {
+          HaxeAnonymousTypeField field = PsiTreeUtil.getParentOfType(haxeClass, HaxeAnonymousTypeField.class);
+          while(field != null) {
+            boolean addDelimiter = !path.isEmpty();
+            path = field.getName() + (addDelimiter ? "." : "") + path;
+            field = PsiTreeUtil.getParentOfType(field, HaxeAnonymousTypeField.class);
+          }
           final HaxeTypedefDeclaration typedefDeclaration = PsiTreeUtil.getParentOfType(haxeClass, HaxeTypedefDeclaration.class);
           if (typedefDeclaration != null) {
             haxeClass = typedefDeclaration;
@@ -153,7 +160,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         if (haxeClass == AbstractHaxeNamedComponent.this) {
           return qName.getFirst();
         }
-        return haxeClass.getQualifiedName();
+        return haxeClass.getQualifiedName()+(path.isEmpty() ?  "" : "." + path);
       }
 
       @Override
