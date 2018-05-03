@@ -158,6 +158,17 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     return psiType != null ? psiType : HaxePsiTypeAdapter.DYNAMIC;
   }
 
+  @Override
+  @Nullable
+  public HaxeTypeTag getTypeTag() {
+    return null;
+  }
+  @Override
+  @Nullable
+  public HaxeVarInit getVarInit() {
+    return null;
+  }
+
   @Nullable
   @Override
   public PsiTypeElement getTypeElement() {
