@@ -304,7 +304,11 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeVarInit) {
-      return handle(((HaxeVarInit)element).getExpression(), context);
+      final HaxeExpression expression = ((HaxeVarInit)element).getExpression();
+      if (expression == null) {
+        return SpecificTypeReference.getInvalid(element).createHolder();
+      }
+      return handle(expression, context);
     }
 
     if (element instanceof HaxeReferenceExpression) {
