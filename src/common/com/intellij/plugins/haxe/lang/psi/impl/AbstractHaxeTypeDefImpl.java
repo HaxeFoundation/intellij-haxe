@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +36,23 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
 
   public HaxeClassResolveResult getTargetClass() {
     return getTargetClass(new HaxeGenericSpecialization());
+  }
+
+  public SpecificHaxeClassReference getTargetClass(HaxeGenericResolver genericResolver) {
+    final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
+    if (haxeTypeOrAnonymous == null) {
+      // cause parse error
+      return null;
+    }
+
+    if (haxeTypeOrAnonymous.getAnonymousType() != null) {
+      return SpecificHaxeClassReference.withGenerics(
+        new HaxeClassReference(haxeTypeOrAnonymous.getAnonymousType().getModel(), this),
+        ResultHolder.EMPTY
+      );
+    }
+
+    return SpecificHaxeClassReference.propagateGenericsToType(haxeTypeOrAnonymous.getType(), genericResolver);
   }
 
   public HaxeClassResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
