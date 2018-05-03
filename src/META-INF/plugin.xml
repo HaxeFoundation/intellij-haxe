@@ -86,6 +86,14 @@
         <li>Add support of <a href="https://github.com/HaxeFoundation/haxe-evolution/blob/master/proposals/0003-new-function-type.md">new function types syntax</a> introduced in Haxe 4</li>
         <li>Fix of support of explicit abstract forwards. Now fields and methods that has not been forwarded will not be resolved as valid.</li>
         <li>Fixed recognition of standard types</li>
+        <li>Add anonymous types in anonymous types support</li>
+        <li>Add anonymous structures names support</li>
+        <li>Added chained anonymous fields recognition</li>
+        <li>Add proper generics propagation for anonymous structures, typedefs and classes</li>
+        <li>Add generic constraint support</li>
+        <li>Add Null&lt;T&gt; support</li>
+        <li>Add proper from-to declaration support, types infer and compatibility checks</li>
+        <li>Fix referenced var-init support check</li>
       </ul>
       <p>1.0.2 (HaxeFoundation release)</p>
       <ul>
