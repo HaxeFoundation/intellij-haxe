@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
@@ -52,6 +53,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   public static final String DOT = ".";
+  private static final Key<HaxeGenericSpecialization> SPECIALIZATION_KEY = new Key<>("HAXE_SPECIALIZATION_KEY");
 
   //static {
   //  LOG.setLevel(Level.TRACE);
@@ -103,6 +105,16 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Nullable
   public HaxeGenericSpecialization getSpecialization() {
     if (LOG.isTraceEnabled()) LOG.trace(traceMsg(null));
+    HaxeGenericSpecialization specialization = getUserData(SPECIALIZATION_KEY);
+    if (specialization == null) {
+      specialization = getSpecializationInternal();
+      putUserData(SPECIALIZATION_KEY, specialization);
+    }
+
+    return specialization;
+  }
+
+  private HaxeGenericSpecialization getSpecializationInternal() {
     // CallExpressions need to resolve their child, rather than themselves.
     HaxeExpression expression = this;
     if (this instanceof HaxeCallExpression) {
@@ -211,7 +223,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     List<? extends PsiElement> cachedNames
       = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
                     : ResolveCache.getInstance(getProject())
-                        .resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
+          .resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
 
 
     // CandidateInfo does some extra resolution work when checking validity, so
@@ -383,7 +395,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             }
           }
         }
-
       }
       HaxeClassResolveResult resolveResult =
         HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
@@ -463,30 +474,58 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Packages don't ever resolve to classes. (And they don't have children!)
       return HaxeClassResolveResult.EMPTY;
     }
-    if (resolve != null) {
-      PsiElement parent = resolve.getParent();
-
-      if (parent != null) {
-        if (parent instanceof HaxeMethodDeclaration) {
-          return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
-        }
-        HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(parent, HaxeTypeTag.class);
-
-        if (typeTag != null) {
-          HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(typeTag, HaxeFunctionType.class);
-          if (functionType != null) {
-            return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+    if (resolve instanceof HaxeAnonymousTypeField) {
+      HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
+      HaxeTypeTag typeTag = field.getTypeTag();
+      if (typeTag.getTypeOrAnonymous() != null) {
+        HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+        if (typeOrAnonymous != null) {
+          if (typeOrAnonymous.getAnonymousType() != null) {
+            return HaxeClassResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization().getInnerSpecialization(typeOrAnonymous));
+          } else {
+            HaxeType type = typeOrAnonymous.getType();
+            if (type != null) {
+              PsiElement resolvedType = type.getReferenceExpression().resolve();
+              if(resolvedType instanceof HaxeGenericListPart) {
+                final HaxeComponentName componentName = ((HaxeGenericListPart)resolvedType).getComponentName();
+                final HaxeGenericSpecialization specialization = getSpecialization();
+                if(specialization != null && componentName != null) {
+                  String genericName = componentName.getText();
+                  final HaxeClassResolveResult result = getSpecialization().get(resolve, genericName);
+                  if (result != null) {
+                    return result;
+                  }
+                }
+              }
+              if (resolvedType instanceof HaxeClass) {
+                return HaxeClassResolveResult.create((HaxeClass)resolvedType, getSpecialization());
+              }
+            }
           }
         }
       }
+      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
     }
 
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Trying class resolve with specialization."));
-    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve, tryGetLeftResolveResult(this).getSpecialization());
-    if (result.getHaxeClass() == null) {
-      result = HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
+    if (resolve instanceof HaxeGenericListPart) {
+      final HaxeComponentName componentName = ((HaxeGenericListPart)resolve).getComponentName();
+      if (componentName != null) {
+        HaxeGenericSpecialization innerSpecialization =
+          tryGetLeftResolveResult(this).getSpecialization();
+        String genericName = componentName.getText();
+        final HaxeClassResolveResult result = innerSpecialization.get(resolve, genericName);
+        if (result != null) {
+          return result;
+        }
+      }
     }
-    return result;
+    if (resolve != null) {
+      return HaxeResolveUtil.getHaxeClassResolveResult(resolve, getSpecialization());
+    }
+
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Trying class resolve by fully qualified name."));
+
+    return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
   }
 
   @Override
