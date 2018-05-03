@@ -88,6 +88,7 @@ public class HaxeLookupElement extends LookupElement {
     HaxeMemberModel member = HaxeMemberModel.fromPsi(myComponentName);
 
     if (member != null) {
+      // TODO: Specialization support required
       presentableText = member.getPresentableText(context);
 
       // Check deprecated modifiers
