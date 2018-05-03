@@ -697,19 +697,20 @@ private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 extendsDeclaration ::= 'extends' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 implementsDeclaration ::= 'implements' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 
-anonymousType ::= '{' '}' | '{' anonymousTypeBody '}'
-{pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+anonymousType ::= anonymousTypeWithEmptyBody | regularAnonymousType
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
+private regularAnonymousType ::= '{' anonymousTypeBody? '}' {pin=2}
 
 anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBody
 private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (',' interfaceBody)?
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBody)?
 
-typeExtendsList ::= '>' type (',' '>' type)*
+typeExtendsList ::= '>' type (',' '>' type)* {pin=1}
 
-anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
-
+anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)* {recoverWhile="object_literal_part_recover" pin=1}
 anonymousTypeField ::= "?"? componentName typeTag
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 // Do NOT genericize objectLiteral by making objectLiteralElementList optional.  Doing so
 // makes blockStatement be overridden by objectLiteral in return statements.
