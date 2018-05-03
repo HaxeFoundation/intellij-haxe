@@ -13,11 +13,10 @@ Haxe File
         HaxePsiToken:ID('NativeRandom')
     HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
-      EXTERN_FUNCTION_DECLARATION
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -35,7 +34,7 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Int')
         HaxePsiToken:;(';')
-      EXTERN_FUNCTION_DECLARATION
+      METHOD_DECLARATION
         HaxePsiToken:@:macro('@:macro')
         REQUIRE_META
           HaxePsiToken:@:require('@:require')
@@ -43,10 +42,9 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('something')
           HaxePsiToken:)(')')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME

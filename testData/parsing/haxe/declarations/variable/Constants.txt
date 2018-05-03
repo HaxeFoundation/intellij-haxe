@@ -6,8 +6,9 @@ Haxe File
         HaxePsiToken:ID('Constants')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a1')
@@ -16,8 +17,9 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:LITINT('0')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a2')
@@ -28,8 +30,9 @@ Haxe File
             LITERAL_EXPRESSION
               HaxePsiToken:LITINT('134')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a3')
@@ -38,8 +41,9 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:LITHEX('0xFF00')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a4')
@@ -48,8 +52,9 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:LITFLOAT('123.0')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a5')
@@ -58,8 +63,9 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:null('null')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a6')
@@ -68,8 +74,9 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:LITFLOAT('13e50')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a7')
@@ -80,8 +87,9 @@ Haxe File
             LITERAL_EXPRESSION
               HaxePsiToken:LITFLOAT('1e-99')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a8')
@@ -92,8 +100,9 @@ Haxe File
             HaxePsiToken:REGULAR_STRING_PART('hello')
             HaxePsiToken:CLOSING_QUOTE('"')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a9')
@@ -108,8 +117,9 @@ Haxe File
             HaxePsiToken:REGULAR_STRING_PART(' !')
             HaxePsiToken:CLOSING_QUOTE('"')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a10')
@@ -120,8 +130,9 @@ Haxe File
             HaxePsiToken:REGULAR_STRING_PART('hello "world" !')
             HaxePsiToken:CLOSING_QUOTE(''')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a11')
@@ -130,8 +141,9 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:true('true')
         HaxePsiToken:;(';')
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('a12')

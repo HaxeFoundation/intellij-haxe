@@ -9,8 +9,8 @@ Haxe File
         HaxePsiToken:ID('TestIssue704')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME

@@ -91,7 +91,7 @@ Haxe File
     PsiComment(PPEXPRESSION)('\n     ')
     PsiComment(PPEXPRESSION)(')')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -221,7 +221,7 @@ Haxe File
       PsiComment(PPEXPRESSION)(')')
       PsiComment(PPEXPRESSION)('\n     ')
       PsiComment(PPEXPRESSION)(')')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -261,7 +261,7 @@ Haxe File
       PsiComment(PPEXPRESSION)('false')
       PsiComment(PPEXPRESSION)('\n     ')
       PsiComment(PPEXPRESSION)(')')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -292,7 +292,7 @@ Haxe File
       PsiComment(PPEXPRESSION)(' ')
       PsiComment(PPEXPRESSION)(')')
       PsiComment(MSL_COMMENT)('// true because "false" is a non-empty string.')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

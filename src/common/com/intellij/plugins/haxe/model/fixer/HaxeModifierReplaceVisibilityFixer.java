@@ -17,18 +17,18 @@
  */
 package com.intellij.plugins.haxe.model.fixer;
 
-import com.intellij.plugins.haxe.model.HaxeModifierType;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.ModifierConstant;
 import com.intellij.plugins.haxe.model.HaxeModifiersModel;
 
 public class HaxeModifierReplaceVisibilityFixer extends HaxeFixer {
   private HaxeModifiersModel modifiers;
-  private HaxeModifierType visibility;
+  private @ModifierConstant String visibility;
 
-  public HaxeModifierReplaceVisibilityFixer(HaxeModifiersModel modifiers, HaxeModifierType visibility) {
-    this(modifiers, visibility, "Remove " + visibility.s);
+  public HaxeModifierReplaceVisibilityFixer(HaxeModifiersModel modifiers, @ModifierConstant String visibility) {
+    this(modifiers, visibility, "Remove " + visibility);
   }
 
-  public HaxeModifierReplaceVisibilityFixer(HaxeModifiersModel modifiers, HaxeModifierType visibility, String text) {
+  public HaxeModifierReplaceVisibilityFixer(HaxeModifiersModel modifiers, @ModifierConstant String visibility, String text) {
     super(text);
     this.modifiers = modifiers;
     this.visibility = visibility;

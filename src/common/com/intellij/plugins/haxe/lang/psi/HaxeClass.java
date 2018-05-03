@@ -59,7 +59,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget, Hax
   List<HaxeNamedComponent> getHaxeFields();
 
   @NotNull
-  List<HaxeVarDeclaration> getVarDeclarations();
+  List<HaxeFieldDeclaration> getFieldDeclarations();
 
   @Nullable
   HaxeNamedComponent findHaxeFieldByName(@NotNull final String name);

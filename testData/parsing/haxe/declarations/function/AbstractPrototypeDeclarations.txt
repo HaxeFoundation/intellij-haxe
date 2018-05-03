@@ -31,10 +31,9 @@ Haxe File
       HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
-      FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

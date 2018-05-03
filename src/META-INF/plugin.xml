@@ -82,8 +82,10 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Add support of <a href="https://github.com/HaxeFoundation/haxe/pull/6596">final syntax</a> introduced in Haxe 4</li>
         <li>Add support of <a href="https://github.com/HaxeFoundation/haxe-evolution/blob/master/proposals/0003-new-function-type.md">new function types syntax</a> introduced in Haxe 4</li>
         <li>Fix of support of explicit abstract forwards. Now fields and methods that has not been forwarded will not be resolved as valid.</li>
+        <li>Fixed recognition of standard types</li>
         <li>Fix parsing of anonymous type with empty body</li>
       </ul>
       <p>1.0.2 (HaxeFoundation release)</p>

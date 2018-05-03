@@ -13,10 +13,10 @@ Haxe File
         HaxePsiToken:ID('TestIssue81')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@meta')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class HaxeStdPackageModel extends HaxePackageModel {
   private static final String STD_TYPES = "StdTypes";
-  private final HaxeFileModel stdTypesModel;
 
   HaxeStdPackageModel(@NotNull HaxeSourceRootModel root) {
     super(root, "", null);
-    this.stdTypesModel = this.getStdFileModel();
   }
 
   private HaxeFileModel getStdFileModel() {
     final HaxeFile file = getFile(STD_TYPES);
     if (file != null) {
-      return new HaxeStdTypesFileModel(file);
+      return HaxeStdTypesFileModel.fromFile(file);
     }
     return null;
   }
@@ -41,6 +39,7 @@ public class HaxeStdPackageModel extends HaxePackageModel {
   public HaxeClassModel getClassModel(@NotNull String className) {
     HaxeClassModel result = super.getClassModel(className);
 
+    HaxeFileModel stdTypesModel = getStdFileModel();
     if (result == null && stdTypesModel != null) {
       result = stdTypesModel.getClassModel(className);
     }
@@ -52,6 +51,7 @@ public class HaxeStdPackageModel extends HaxePackageModel {
   public HaxeModel resolve(FullyQualifiedInfo info) {
     HaxeModel result = super.resolve(info);
 
+    HaxeFileModel stdTypesModel = getStdFileModel();
     if (result == null && stdTypesModel != null && info.packagePath.isEmpty() && this.path.isEmpty()) {
       result = stdTypesModel.resolve(new FullyQualifiedInfo("", null, info.fileName, info.memberName));
     }

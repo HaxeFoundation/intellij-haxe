@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
@@ -133,7 +133,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
     final Map<String, HaxeNamedComponent> componentMap = HaxeResolveUtil.namedComponentToMap(subComponents);
 
     for (HaxeNamedComponent haxeNamedComponent : subComponents) {
-      if (!(haxeNamedComponent instanceof HaxeVarDeclaration)) continue;
+      if (!(haxeNamedComponent instanceof HaxeFieldDeclaration)) continue;
       if (haxeNamedComponent.isStatic()) continue;
 
       //if (!myStrategy.accept(haxeNamedComponent.getName(), componentMap.keySet())) continue;

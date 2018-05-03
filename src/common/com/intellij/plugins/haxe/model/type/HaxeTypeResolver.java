@@ -100,11 +100,11 @@ public class HaxeTypeResolver {
       return abstractEnumType;
     }
 
-    if (comp instanceof HaxeVarDeclaration) {
+    if (comp instanceof HaxeFieldDeclaration) {
       ResultHolder result = null;
 
-      HaxeVarDeclaration decl = (HaxeVarDeclaration)comp;
-      HaxeVarInit init = ((HaxeVarDeclaration)comp).getVarInit();
+      HaxeFieldDeclaration decl = (HaxeFieldDeclaration)comp;
+      HaxeVarInit init = ((HaxeFieldDeclaration)comp).getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
         final ResultHolder initType = HaxeTypeResolver.getPsiElementType(child);
@@ -112,7 +112,7 @@ public class HaxeTypeResolver {
         result = isConstant ? initType : initType.withConstantValue(null);
       }
 
-      HaxeTypeTag typeTag = ((HaxeVarDeclaration)comp).getTypeTag();
+      HaxeTypeTag typeTag = ((HaxeFieldDeclaration)comp).getTypeTag();
       if (typeTag != null) {
         final ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
         final Object initConstant = result != null ? result.getType().getConstant() : null;

@@ -6,10 +6,9 @@ Haxe File
         HaxePsiToken:ID('TestIssue329')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -31,52 +30,53 @@ Haxe File
         RETURN_STATEMENT
           HaxePsiToken:return('return')
           PREFIX_EXPRESSION
-            VAR_DECLARATION
+            LOCAL_VAR_DECLARATION_LIST
               HaxePsiToken:var('var')
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('a')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Array')
-                    TYPE_PARAM
-                      HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Int')
-                      HaxePsiToken:>('>')
-              VAR_INIT
-                HaxePsiToken:=('=')
-                ARRAY_LITERAL
-                  HaxePsiToken:[('[')
-                  EXPRESSION_LIST
-                    FOR_STATEMENT
-                      HaxePsiToken:for('for')
-                      HaxePsiToken:(('(')
-                      COMPONENT_NAME
-                        IDENTIFIER
-                          HaxePsiToken:ID('i')
-                      HaxePsiToken:in('in')
-                      ITERABLE
-                        ITERATOR_EXPRESSION
-                          LITERAL_EXPRESSION
-                            HaxePsiToken:LITINT('0')
-                          HaxePsiToken:...('...')
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('size')
-                      HaxePsiToken:)(')')
+              LOCAL_VAR_DECLARATION
+                COMPONENT_NAME
+                  IDENTIFIER
+                    HaxePsiToken:ID('a')
+                TYPE_TAG
+                  HaxePsiToken::(':')
+                  TYPE_OR_ANONYMOUS
+                    TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          HaxePsiToken:ID('i')
-                  HaxePsiToken:](']')
+                          HaxePsiToken:ID('Array')
+                      TYPE_PARAM
+                        HaxePsiToken:<('<')
+                        TYPE_LIST
+                          TYPE_LIST_PART
+                            TYPE_OR_ANONYMOUS
+                              TYPE
+                                REFERENCE_EXPRESSION
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('Int')
+                        HaxePsiToken:>('>')
+                VAR_INIT
+                  HaxePsiToken:=('=')
+                  ARRAY_LITERAL
+                    HaxePsiToken:[('[')
+                    EXPRESSION_LIST
+                      FOR_STATEMENT
+                        HaxePsiToken:for('for')
+                        HaxePsiToken:(('(')
+                        COMPONENT_NAME
+                          IDENTIFIER
+                            HaxePsiToken:ID('i')
+                        HaxePsiToken:in('in')
+                        ITERABLE
+                          ITERATOR_EXPRESSION
+                            LITERAL_EXPRESSION
+                              HaxePsiToken:LITINT('0')
+                            HaxePsiToken:...('...')
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('size')
+                        HaxePsiToken:)(')')
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('i')
+                    HaxePsiToken:](']')
               HaxePsiToken:;(';')
     HaxePsiToken:}('}')

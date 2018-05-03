@@ -9,10 +9,9 @@ Haxe File
         HaxePsiToken:ID('Test')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         PsiComment(#if)('#if')
         PsiComment(PPEXPRESSION)(' ')
         PsiComment(PPEXPRESSION)('cpp')

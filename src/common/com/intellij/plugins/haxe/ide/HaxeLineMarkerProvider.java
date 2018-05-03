@@ -116,10 +116,10 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
       return null;
     }
     final PsiElement element = componentName.getIdentifier().getFirstChild();
-    HaxeComponentWithDeclarationList componentWithDeclarationList = namedComponent instanceof HaxeComponentWithDeclarationList ?
-                                                                    (HaxeComponentWithDeclarationList)namedComponent : null;
-    final boolean overrides = componentWithDeclarationList != null &&
-                              HaxeResolveUtil.getDeclarationTypes(componentWithDeclarationList.getDeclarationAttributeList()).
+    HaxeMethodDeclaration methodDeclaration = namedComponent instanceof HaxeMethodDeclaration?
+                                                                    (HaxeMethodDeclaration)namedComponent : null;
+    final boolean overrides = methodDeclaration != null &&
+                              HaxeResolveUtil.getDeclarationTypes(methodDeclaration.getMethodModifierList()).
                                 contains(HaxeTokenTypes.KOVERRIDE);
     final Icon icon = overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
     if (null == element) {

@@ -320,20 +320,20 @@ public class HaxeResolveUtil {
     return result;
   }
 
-  public static List<HaxeVarDeclaration> getClassVarDeclarations(HaxeClass haxeClass) {
+  public static List<HaxeFieldDeclaration> getClassVarDeclarations(HaxeClass haxeClass) {
     PsiElement body = null;
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
     if (type == HaxeComponentType.CLASS) {
       body = PsiTreeUtil.getChildOfAnyType(haxeClass, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
     }
 
-    final List<HaxeVarDeclaration> result = new ArrayList<HaxeVarDeclaration>();
+    final List<HaxeFieldDeclaration> result = new ArrayList<>();
 
     if (body == null) {
       return result;
     }
 
-    final HaxeVarDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeVarDeclaration.class);
+    final HaxeFieldDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeFieldDeclaration.class);
 
     if (variables == null) {
       return result;
@@ -699,21 +699,17 @@ public class HaxeResolveUtil {
     return null;
   }
 
-  public static Set<IElementType> getDeclarationTypes(@Nullable HaxeDeclarationAttribute[] attributeList) {
+  public static Set<IElementType> getDeclarationTypes(@Nullable HaxePsiModifier[] attributeList) {
     return attributeList == null ? Collections.<IElementType>emptySet() : getDeclarationTypes(Arrays.asList(attributeList));
   }
 
-  public static Set<IElementType> getDeclarationTypes(@Nullable List<HaxeDeclarationAttribute> attributeList) {
+  public static Set<IElementType> getDeclarationTypes(@Nullable List<? extends HaxePsiModifier> attributeList) {
     if (attributeList == null || attributeList.isEmpty()) {
       return Collections.emptySet();
     }
     final Set<IElementType> resultSet = new THashSet<IElementType>();
-    for (HaxeDeclarationAttribute attribute : attributeList) {
+    for (HaxePsiModifier attribute : attributeList) {
       PsiElement result = attribute.getFirstChild();
-      final HaxeAccess access = attribute.getAccess();
-      if (access != null) {
-        result = access.getFirstChild();
-      }
       if (result instanceof LeafPsiElement) {
         resultSet.add(((LeafPsiElement)result).getElementType());
       }

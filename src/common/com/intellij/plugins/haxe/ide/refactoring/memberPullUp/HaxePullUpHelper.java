@@ -26,8 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAttributes;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -235,7 +234,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
       deleteOverrideAnnotationIfFound(methodCopy);
     }
     boolean isOriginalMethodAbstract = method.hasModifierProperty(PsiModifier.ABSTRACT) || method.hasModifierProperty(PsiModifier.DEFAULT);
-    boolean isOriginalMethodPrototype = method instanceof HaxeFunctionPrototypeDeclarationWithAttributes;
+    boolean isOriginalMethodPrototype = method instanceof HaxeMethod;
     if (myIsTargetInterface || info.isToAbstract()) {
       ChangeContextUtil.clearContextInfo(method);
 
@@ -256,7 +255,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         movedElement = (PsiMember)superClassMethod.replace(convertMethodToLanguage(methodCopy, language));
       }
       else {
-        methodCopy = HaxeElementGenerator.createFunctionPrototypeDeclarationWithAttributes(myProject, methodCopy.getText().trim() + ";");
+        methodCopy = HaxeElementGenerator.createMethodDeclaration(myProject, methodCopy.getText().trim() + ";");
 
         movedElement =
           anchor != null ? (PsiMember)myTargetSuperClass.addBefore(methodCopy, anchor) : (PsiMember)myTargetSuperClass.addBefore(methodCopy, myTargetSuperClass.getRBrace());

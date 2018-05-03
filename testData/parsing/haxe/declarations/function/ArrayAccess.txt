@@ -31,13 +31,12 @@ Haxe File
       HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@:arrayAccess')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:inline('inline')
         HaxePsiToken:function('function')
         COMPONENT_NAME
