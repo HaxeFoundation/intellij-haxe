@@ -321,10 +321,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
     for (ResultHolder specific : type.getSpecifics()) {
       if (specific.canBeTypeVariable()) {
-        String typeVariableName = specific.getClassType().getHaxeClassReference().name;
-        ResultHolder possibleValue = genericResolver.resolve(typeVariableName);
-        if (possibleValue != null) {
-          specific.setType(possibleValue.getType());
+        final SpecificHaxeClassReference classType = specific.getClassType();
+        if(classType != null) {
+          String typeVariableName = classType.getHaxeClassReference().name;
+          ResultHolder possibleValue = genericResolver.resolve(typeVariableName);
+          if (possibleValue != null) {
+            specific.setType(possibleValue.getType());
+          }
         }
       }
     }
