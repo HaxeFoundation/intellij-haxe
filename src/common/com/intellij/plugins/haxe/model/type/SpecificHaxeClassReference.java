@@ -211,7 +211,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     final HaxeGenericResolver genericResolver = getGenericResolver();
 
     final Set<SpecificHaxeClassReference> list = new HashSet<>();
-
     if (model == null) return list;
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
@@ -221,7 +220,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)model.haxeClass).getTargetClass(genericResolver);
         if (type != null) {
           list.add(type);
-          list.addAll(type.getCompatibleTypes());
+          list.addAll(type.getCompatibleTypesInternal());
         }
       } else
       for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
