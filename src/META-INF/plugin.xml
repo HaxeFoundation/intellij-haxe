@@ -88,6 +88,7 @@
         <li>Fixed recognition of standard types</li>
         <li>Fixed NPE that occurred if current project sdk was not properly configured</li>
         <li>Fix indents for anonymous structures fields and extends list</li>
+        <li>Fix parsing of anonymous type with empty body</li>
       </ul>
       <p>1.0.2 (HaxeFoundation release)</p>
       <ul>
