@@ -259,7 +259,7 @@ public class HaxeTypeResolver {
       return getTypeFromType(type);
     }
     final HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
-    if(anonymousType != null) {
+    if (anonymousType != null) {
       return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(anonymousType.getModel(), typeOrAnonymous)).createHolder();
     }
     return SpecificTypeReference.getDynamic(typeOrAnonymous).createHolder();
@@ -277,25 +277,6 @@ public class HaxeTypeResolver {
       PsiElement targetElement = ((HaxeReferenceExpression)element).resolve();
       if (targetElement instanceof HaxePsiField) {
         return getTypeFromFieldDeclaration((HaxePsiField)targetElement, element);
-      }
-    } else if (element instanceof HaxeArrayLiteral) {
-      HaxeArrayLiteral arrayLiteral = (HaxeArrayLiteral)element;
-      if (arrayLiteral.getExpressionList() != null) {
-        final List<HaxeExpression> expressions = arrayLiteral.getExpressionList().getExpressionList();
-        if (!expressions.isEmpty()) {
-          ResultHolder arrayElementType = getPsiElementType(expressions.get(0), arrayLiteral.getContext());
-          return SpecificTypeReference.createArray(arrayElementType).createHolder();
-        }
-      }
-      PsiElement context = element.getContext();
-      if (context instanceof HaxeVarInit) {
-        HaxePsiField field = PsiTreeUtil.getParentOfType(context, HaxePsiField.class);
-        if (field != null) {
-          SpecificHaxeClassReference fieldType = getTypeFromTypeTag(field.getTypeTag(), element).getClassType();
-          if (fieldType != null && fieldType.isArray()) {
-            return SpecificTypeReference.createArray(fieldType.getArrayElementType()).createHolder();
-          }
-        }
       }
     }
     return getPsiElementType(element, (AnnotationHolder)null).result;
