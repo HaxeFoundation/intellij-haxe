@@ -37,6 +37,12 @@ public class HaxeClassReference {
     this.clazz = clazz;
   }
 
+  public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
+    this.name = name;
+    this.elementContext = elementContext;
+    this.clazz = null;
+  }
+
   private String getClassName(HaxeClassModel clazz) {
     if (clazz.haxeClass instanceof HaxeAnonymousType) {
       HaxeNamedComponent namedComponent = PsiTreeUtil.getParentOfType(clazz.haxeClass.getContext(), HaxeNamedComponent.class);
@@ -49,12 +55,6 @@ public class HaxeClassReference {
       return clazz.haxeClass.getText();
     }
     return clazz.getName();
-  }
-
-  public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
-    this.name = name;
-    this.elementContext = elementContext;
-    this.clazz = null;
   }
 
   public HaxeClass getHaxeClass() {
