@@ -46,14 +46,14 @@ public abstract class SpecificTypeReference {
 
   public static SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
     final PsiElement context = elementType.getElementContext();
-    return SpecificHaxeClassReference
-      .withGenerics(new HaxeClassReference(getStdTypeModel(ARRAY, context), context), new ResultHolder[]{elementType}, null);
+    final HaxeClassReference classReference = getStdClassReference(ARRAY, context);
+    return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{elementType}, null);
   }
 
   public static SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
     final PsiElement context = keyType.getElementContext();
-    return SpecificHaxeClassReference
-      .withGenerics(new HaxeClassReference(getStdTypeModel(MAP, context), context), new ResultHolder[]{keyType, valueType}, null);
+    final HaxeClassReference classReference = getStdClassReference(MAP, context);
+    return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{keyType, valueType}, null);
   }
 
   public static SpecificHaxeClassReference getVoid(@NotNull PsiElement context) {
@@ -86,28 +86,16 @@ public abstract class SpecificTypeReference {
 
   public static SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
     final PsiElement context = type.getElementContext();
-    return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(getStdTypeModel(ITERATOR, context), context),
-                                                   new ResultHolder[]{type.createHolder()});
+    final HaxeClassReference classReference = getStdClassReference(ITERATOR, context);
+    return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{type.createHolder()});
   }
 
   public static SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
-    HaxeClassModel haxeClassModel = getStdTypeModel(name, context);
-    if (haxeClassModel == null) {
-      return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context));
-    }
-    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(haxeClassModel, context));
+    return SpecificHaxeClassReference.withoutGenerics(getStdClassReference(name, context));
   }
 
   public static SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context, Object constant) {
-    HaxeClassModel haxeClassModel = getStdTypeModel(name, context);
-    if (haxeClassModel == null) {
-      return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context), constant);
-    }
-    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(haxeClassModel, context), constant);
-  }
-
-  private static HaxeClassModel getStdTypeModel(String name, PsiElement context) {
-    return HaxeProjectModel.fromElement(context).getStdPackage().getClassModel(name);
+    return SpecificHaxeClassReference.withoutGenerics(getStdClassReference(name, context), constant);
   }
 
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
@@ -235,4 +223,21 @@ public abstract class SpecificTypeReference {
   }
 
   public abstract boolean canBeTypeVariable();
+
+  @NotNull
+  private static HaxeClassReference getStdClassReference(String className, PsiElement context) {
+    final HaxeClassModel model = getStdTypeModel(className, context);
+    HaxeClassReference classReference;
+    if (model != null) {
+      classReference = new HaxeClassReference(model, context);
+    } else {
+      classReference = new HaxeClassReference(className, context);
+    }
+    return classReference;
+  }
+
+  @Nullable
+  private static HaxeClassModel getStdTypeModel(String name, PsiElement context) {
+    return HaxeProjectModel.fromElement(context).getStdPackage().getClassModel(name);
+  }
 }
