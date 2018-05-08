@@ -104,17 +104,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Nullable
   public HaxeGenericSpecialization getSpecialization() {
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg(null));
-    HaxeGenericSpecialization specialization = getUserData(SPECIALIZATION_KEY);
-    if (specialization == null) {
-      specialization = getSpecializationInternal();
-      putUserData(SPECIALIZATION_KEY, specialization);
-    }
-
-    return specialization;
-  }
-
-  private HaxeGenericSpecialization getSpecializationInternal() {
     // CallExpressions need to resolve their child, rather than themselves.
     HaxeExpression expression = this;
     if (this instanceof HaxeCallExpression) {
