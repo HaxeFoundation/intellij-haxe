@@ -32,16 +32,6 @@ public class HaxeFieldModel extends HaxeMemberModel {
     super(element);
   }
 
-  private HaxeClassModel _declaringClass = null;
-
-  public HaxeClassModel getDeclaringClass() {
-    if (_declaringClass == null) {
-      HaxeClass aClass = (HaxeClass)getPsiField().getContainingClass();
-      _declaringClass = (aClass != null) ? aClass.getModel() : null;
-    }
-    return _declaringClass;
-  }
-
   @Override
   public boolean isFinal() {
     HaxeFieldDeclaration fieldDeclaration = ObjectUtils.tryCast(getBasePsi(), HaxeFieldDeclaration.class);

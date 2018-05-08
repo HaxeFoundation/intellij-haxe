@@ -301,8 +301,8 @@ class ClassChecker {
   }
 
   static private void checkDuplicatedFields(final HaxeClassModel clazz, final AnnotationHolder holder) {
-    Map<String, HaxeMemberModel> map = new HashMap<String, HaxeMemberModel>();
-    Set<HaxeMemberModel> repeatedMembers = new HashSet<HaxeMemberModel>();
+    Map<String, HaxeMemberModel> map = new HashMap<>();
+    Set<HaxeMemberModel> repeatedMembers = new HashSet<>();
     for (HaxeMemberModel member : clazz.getMembersSelf()) {
       final String memberName = member.getName();
       HaxeMemberModel repeatedMember = map.get(memberName);
@@ -470,7 +470,7 @@ class MethodChecker {
       }
       for (final HaxeParameterModel param : currentMethod.getParameters()) {
         if (param.getTypeTagPsi() == null) {
-          holder.createErrorAnnotation(param.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
+          holder.createErrorAnnotation(param.getBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
         }
       }
     }
@@ -504,10 +504,10 @@ class MethodChecker {
 
       if (argumentNames.containsKey(paramName)) {
         // @TODO: Move to bundle
-        holder.createWarningAnnotation(param.getNameOrBasePsi(), "Repeated argument name '" + paramName + "'");
+        holder.createWarningAnnotation(param.getNamePsi(), "Repeated argument name '" + paramName + "'");
         holder.createWarningAnnotation(argumentNames.get(paramName), "Repeated argument name '" + paramName + "'");
       } else {
-        argumentNames.put(paramName, param.getNameOrBasePsi());
+        argumentNames.put(paramName, param.getNamePsi());
       }
     }
   }

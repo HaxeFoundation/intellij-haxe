@@ -27,17 +27,7 @@ public class HaxeAnonymousTypeFieldModel extends HaxeMemberModel {
     super(basePsi);
   }
 
-  private HaxeClassModel _declaringClass = null;
-
-  public HaxeClassModel getDeclaringClass() {
-    if (_declaringClass == null) {
-      HaxeClass aClass = (HaxeClass)getAnonymousTypeField().getContainingClass();
-      _declaringClass = (aClass != null) ? aClass.getModel() : null;
-    }
-    return _declaringClass;
-  }
-
-  public HaxeAnonymousTypeField getAnonymousTypeField() {
+  public HaxeAnonymousTypeField getAnonymousTypeFieldPsi() {
     return (HaxeAnonymousTypeField)this.getBasePsi();
   }
 
