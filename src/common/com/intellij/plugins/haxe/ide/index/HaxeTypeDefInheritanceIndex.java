@@ -20,10 +20,7 @@ package com.intellij.plugins.haxe.ide.index;
 
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeExtendsList;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -116,15 +113,18 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
         final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
         final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
         if (anonymousType != null) {
-          final HaxeTypeExtendsList typeExtendsList = anonymousType.getAnonymousTypeBody().getTypeExtendsList();
-          if (typeExtendsList != null) {
-            final List<HaxeType> typeList = typeExtendsList.getTypeList();
-            for (HaxeType haxeType : typeList) {
-              final String classNameCandidate = haxeType.getText();
-              final String key = classNameCandidate.indexOf('.') != -1 ?
-                                 classNameCandidate :
-                                 getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
-              put(result, key, value);
+          final HaxeAnonymousTypeBody body = anonymousType.getAnonymousTypeBody();
+          if(body != null) {
+            final HaxeTypeExtendsList typeExtendsList = body.getTypeExtendsList();
+            if (typeExtendsList != null) {
+              final List<HaxeType> typeList = typeExtendsList.getTypeList();
+              for (HaxeType haxeType : typeList) {
+                final String classNameCandidate = haxeType.getText();
+                final String key = classNameCandidate.indexOf('.') != -1 ?
+                                   classNameCandidate :
+                                   getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
+                put(result, key, value);
+              }
             }
           }
         }

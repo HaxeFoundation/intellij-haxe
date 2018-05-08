@@ -297,11 +297,14 @@ public class HaxeResolveUtil {
 
     final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
     if (haxeClass instanceof HaxeAnonymousType) {
-      final HaxeAnonymousTypeFieldList typeFieldList = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getAnonymousTypeFieldList();
-      if (typeFieldList != null) {
-        result.addAll(typeFieldList.getAnonymousTypeFieldList());
+      final HaxeAnonymousTypeBody anonymousTypeBody = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody();
+      if (anonymousTypeBody != null) {
+        final HaxeAnonymousTypeFieldList typeFieldList = anonymousTypeBody.getAnonymousTypeFieldList();
+        if (typeFieldList != null) {
+          result.addAll(typeFieldList.getAnonymousTypeFieldList());
+        }
+        body = anonymousTypeBody.getInterfaceBody();
       }
-      body = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getInterfaceBody();
     }
     if (body == null) {
       return result;
