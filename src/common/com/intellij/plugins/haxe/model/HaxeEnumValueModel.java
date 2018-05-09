@@ -57,15 +57,9 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
     return this.isAbstract;
   }
 
-  @Override
-  public HaxeClassModel getDeclaringClass() {
-    HaxeClass containingClass = (HaxeClass)getPsiField().getContainingClass();
-    return containingClass != null ? containingClass.getModel() : null;
-  }
-
   @NotNull
-  public HaxePsiField getPsiField() {
-    return (HaxePsiField)getBasePsi();
+  public HaxeEnumValueDeclaration getEnumValuePsi() {
+    return (HaxeEnumValueDeclaration)getBasePsi();
   }
 
   @Nullable

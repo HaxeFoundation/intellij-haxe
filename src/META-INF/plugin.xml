@@ -89,6 +89,14 @@
         <li>Fixed NPE that occurred if current project sdk was not properly configured</li>
         <li>Fix indents for anonymous structures fields and extends list</li>
         <li>Fix parsing of anonymous type with empty body</li>
+        <li>Add anonymous types in anonymous types support</li>
+        <li>Add anonymous structures names support</li>
+        <li>Added chained anonymous fields recognition</li>
+        <li>Add proper generics propagation for anonymous structures, typedefs and classes</li>
+        <li>Add generic constraint support</li>
+        <li>Add Null&lt;T&gt; support</li>
+        <li>Add proper from-to declaration support, types infer and compatibility checks</li>
+        <li>Fix referenced var-init support check</li>
       </ul>
       <p>1.0.2 (HaxeFoundation release)</p>
       <ul>
