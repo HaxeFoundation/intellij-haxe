@@ -35,6 +35,11 @@ public class HaxeTestUtils {
     if (f.exists()) {
       return f.getAbsolutePath();
     }
+    //NOTE m0rkeulv: added for easier gradle integration
+    File dataDir = new File(HaxeTestUtils.class.getClassLoader().getResource("testData").getFile());
+    if (dataDir.exists()) {
+      return dataDir.getAbsolutePath();
+    }
     return PathManager.getHomePath() + "/plugins/haxe/testData";
   }
 }
