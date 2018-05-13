@@ -540,7 +540,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                                                         debugger.Message message) {
                                 if (messageId == JavaProtocol.IdClasses) {
                                   DebugProcess.this.handlePartialClassList
-                                    ((debugger.ClassList)message.params.__a[0]);
+                                    ((debugger.ClassList)message.params[0]);
                                 }
                               }
                             });
@@ -612,14 +612,14 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           // Continued
           this.enqueueCommand
             (debugger.Command.Classes
-               ((String)classList.params.__a[0]),
+               ((String)classList.params[0]),
              new MessageListener() {
                public void handleMessage(int messageId,
                                          debugger.Message message) {
                  if (messageId == JavaProtocol.IdClasses) {
                    DebugProcess.this.handlePartialClassList
                      ((debugger.ClassList)
-                        message.params.__a[0]);
+                        message.params[0]);
                  }
                  else {
                    throw new RuntimeException
@@ -632,11 +632,11 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           break;
         }
         // Element
-        if (((Boolean)classList.params.__a[1]).booleanValue()) {
+        if (((Boolean)classList.params[1]).booleanValue()) {
           mClassesWithStatics.addElement
-            ((String)classList.params.__a[0]);
+            ((String)classList.params[0]);
         }
-        classList = (debugger.ClassList)classList.params.__a[2];
+        classList = (debugger.ClassList)classList.params[2];
       }
     }
 
@@ -655,7 +655,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           public void handleMessage(int messageId,
                                     debugger.Message message) {
             if (messageId == JavaProtocol.IdFileLineBreakpointNumber) {
-              mMap.put(breakpoint, (Integer)(message.params.__a[0]));
+              mMap.put(breakpoint, (Integer)(message.params[0]));
             }
             else {
               getSession().updateBreakpointPresentation
@@ -712,7 +712,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                             debugger.Message threadsWhereMessages) {
         mExecutionStacks = this.buildWhereList
           (project, module, (debugger.ThreadWhereList)
-            threadsWhereMessages.params.__a[0]).
+            threadsWhereMessages.params[0]).
           toArray(new XExecutionStack[0]);
       }
 
@@ -743,18 +743,18 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           return;
         }
 
-        int number = ((Integer)whereList.params.__a[0]).intValue();
+        int number = ((Integer)whereList.params[0]).intValue();
         debugger.ThreadStatus status = (debugger.ThreadStatus)
-          whereList.params.__a[1];
+          whereList.params[1];
         debugger.FrameList frameList = (debugger.FrameList)
-          whereList.params.__a[2];
+          whereList.params[2];
 
         executionStacks.addElement
           (new ExecutionStack(project, module, number, frameList));
 
         this.addWhereList(project, module, executionStacks,
                           (debugger.ThreadWhereList)
-                            whereList.params.__a[3]);
+                            whereList.params[3]);
       }
 
       private XExecutionStack[] mExecutionStacks;
@@ -794,7 +794,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                                                frameList));
 
         this.addFrameList(project, module, (debugger.FrameList)
-          frameList.params.__a[6]);
+          frameList.params[6]);
       }
 
       private Vector<XStackFrame> mStackFrames;
@@ -803,12 +803,12 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     private class StackFrame extends XStackFrame {
       public StackFrame(final Project project, final Module module,
                         debugger.FrameList frameList) {
-        mFrameNumber = (Integer)frameList.params.__a[1];
-        mFileName = (String)frameList.params.__a[4];
-        mLineNumber = (((Integer)frameList.params.__a[5]).intValue());
+        mFrameNumber = (Integer)frameList.params[1];
+        mFileName = (String)frameList.params[4];
+        mLineNumber = (((Integer)frameList.params[5]).intValue());
         mClassAndFunctionName =
-          ((String)frameList.params.__a[2] + "." +
-           (String)frameList.params.__a[3]);
+          ((String)frameList.params[2] + "." +
+           (String)frameList.params[3]);
 
         VirtualFileManager vfm = VirtualFileManager.getInstance();
         VirtualFile file = vfm.findFileByUrl(vfm.constructUrl(URLUtil.FILE_PROTOCOL, mFileName));
@@ -947,7 +947,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                    new XValueChildrenList();
                  debugger.StringList stringList =
                    (debugger.StringList)
-                     message.params.__a[0];
+                     message.params[0];
                  addChildren(childrenList, stringList);
                  if (true) {
                    node.addChildren(childrenList, true);
@@ -976,12 +976,12 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             break;
           }
 
-          String string = (String)stringList.params.__a[0];
+          String string = (String)stringList.params[0];
           if (! isIntermediateVariableName(string)) {
             childrenList.add(string, new Value(string));
           }
 
-          stringList = (debugger.StringList)stringList.params.__a[1];
+          stringList = (debugger.StringList)stringList.params[1];
         }
       }
 
@@ -1153,7 +1153,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                  if (messageId == JavaProtocol.IdStructured) {
                    debugger.StructuredValue structuredValue =
                      (debugger.StructuredValue)
-                       message.params.__a[0];
+                       message.params[0];
                    Value.this.fromStructuredValue
                      (structuredValue);
                  }
@@ -1181,14 +1181,14 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
         private void fromStructuredValue
           (debugger.StructuredValue structuredValue) {
           if (structuredValue.index == 0) {  // Elided
-            mExpression = (String)structuredValue.params.__a[1];
+            mExpression = (String)structuredValue.params[1];
           }
           else if (structuredValue.index == 1) {  // Single
             debugger.StructuredValueType type =
               (debugger.StructuredValueType)
-                structuredValue.params.__a[0];
+                structuredValue.params[0];
             String value = (String)
-              structuredValue.params.__a[1];
+              structuredValue.params[1];
             mIcon = AllIcons.Debugger.Value;
             mType = getTypeString(type);
             mValue = stripErrorAdornments(value);
@@ -1196,10 +1196,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
           else if (structuredValue.index == 2) {  // List
             debugger.StructuredValueListType type =
               (debugger.StructuredValueListType)
-                structuredValue.params.__a[0];
+                structuredValue.params[0];
             debugger.StructuredValueList list =
               (debugger.StructuredValueList)
-                structuredValue.params.__a[1];
+                structuredValue.params[1];
             mIcon = AllIcons.Debugger.Value;
             mType = getTypeString(type);
             mValue = "";
@@ -1218,11 +1218,11 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             return;
           }
 
-          String name = (String)list.params.__a[0];
+          String name = (String)list.params[0];
           debugger.StructuredValue structuredValue =
-            (debugger.StructuredValue)list.params.__a[1];
+            (debugger.StructuredValue)list.params[1];
           debugger.StructuredValueList next =
-            (debugger.StructuredValueList)list.params.__a[2];
+            (debugger.StructuredValueList)list.params[2];
 
           Value val = new Value(name);
           val.fromStructuredValue(structuredValue);
@@ -1248,16 +1248,16 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             return "String";
           }
           else if (type.index == 5) {
-            return (String)type.params.__a[0];
+            return (String)type.params[0];
           }
           else if (type.index == 6) {
-            return (String)type.params.__a[0];
+            return (String)type.params[0];
           }
           else if (type.index == 7) {
             return "{ ... }";
           }
           else if (type.index == 8) {
-            return (String)type.params.__a[0];
+            return (String)type.params[0];
           }
           else if (type.index == 9) {
             return "Function";
@@ -1273,7 +1273,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
             return "{ ... }";
           }
           else if (type.index == 1) {
-            return (String)type.params.__a[0];
+            return (String)type.params[0];
           }
           else if (type.index == 2) {
             return "Array";

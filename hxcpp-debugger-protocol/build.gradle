@@ -37,16 +37,16 @@ idea.module { sourceDirs += file('src/main/java') }
 task installHxJava(group: "hxcpp") {
     doLast {
         exec {
-            commandLine 'haxelib', 'install', 'hxjava', "$hxjavaVersion"
-            standardOutput = new ByteArrayOutputStream() // avoid to much output (loads of empty lines)
+            commandLine 'haxelib', 'install', 'hxjava', "$hxjavaVersion" , "$haxeLibChangeVersion"
+            if(!logger.isDebugEnabled())standardOutput = new ByteArrayOutputStream() // avoid to much output (loads of empty lines on install)
         }
     }
 }
 task installHxcppDebugger(group: "hxcpp") {
     doLast {
         exec {
-            commandLine 'haxelib', 'git', 'hxcpp-debugger', "$hxcppDebuggerGit", "$hxcppDebuggerBranch"
-            standardOutput = new ByteArrayOutputStream() // avoid to much output (loads of empty lines)
+            commandLine 'haxelib', 'git', 'hxcpp-debugger', "$hxcppDebuggerGit", "$hxcppDebuggerBranch", "$haxeLibChangeVersion"
+            if(!logger.isDebugEnabled())standardOutput = new ByteArrayOutputStream() // avoid to much output (loads of empty lines on install)
         }
     }
 }
