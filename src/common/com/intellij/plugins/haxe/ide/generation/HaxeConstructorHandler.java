@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
@@ -77,8 +74,8 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
 
         PsiElement anchor = null;
 
-        List<HaxeFieldModel> fields = clazz.getFields();
-        for (HaxeFieldModel field : fields) {
+        List<HaxeMemberModel> fields = clazz.getFields();
+        for (HaxeMemberModel field : fields) {
           anchor = field.getBasePsi();
         }
 
