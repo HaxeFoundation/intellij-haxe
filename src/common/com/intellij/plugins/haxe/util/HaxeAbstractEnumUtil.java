@@ -104,8 +104,9 @@ public class HaxeAbstractEnumUtil {
 
   @Nullable
   private static HaxeClass getFieldClass(@Nullable PsiElement element) {
-    final HaxeFieldDeclaration varDecl = element != null && (element instanceof HaxeFieldDeclaration) ?
-                                       (HaxeFieldDeclaration)element : null;
+    final HaxeFieldDeclaration varDecl = (element instanceof HaxeFieldDeclaration) ?
+                                         (HaxeFieldDeclaration)element : null;
+    if (varDecl != null && !varDecl.getModel().getDeclaringClass().isAbstract()) return null;
     if (couldBeAbstractEnumField(varDecl)) {
       final HaxeAbstractClassDeclaration abstractEnumClass =
         PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
