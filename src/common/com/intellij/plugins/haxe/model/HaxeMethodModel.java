@@ -93,16 +93,6 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return (psi != null) ? psi : getNameOrBasePsi();
   }
 
-  private HaxeClassModel _declaringClass = null;
-
-  public HaxeClassModel getDeclaringClass() {
-    if (_declaringClass == null) {
-      HaxeClass aClass = (HaxeClass)this.haxeMethod.getContainingClass();
-      _declaringClass = (aClass != null) ? aClass.getModel() : null;
-    }
-    return _declaringClass;
-  }
-
   public String getFullName() {
     return this.getDeclaringClass().getName() + "." + this.getName();
   }

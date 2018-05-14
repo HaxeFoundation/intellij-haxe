@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
@@ -304,7 +305,11 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeVarInit) {
-      return handle(((HaxeVarInit)element).getExpression(), context);
+      final HaxeExpression expression = ((HaxeVarInit)element).getExpression();
+      if (expression == null) {
+        return SpecificTypeReference.getInvalid(element).createHolder();
+      }
+      return handle(expression, context);
     }
 
     if (element instanceof HaxeReferenceExpression) {
@@ -551,7 +556,7 @@ public class HaxeExpressionEvaluator {
       }
       return SpecificHaxeClassReference.getVoid(element);
       */
-      final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeMethodModel.fromPsi(element), HaxeMethodModel.class);
+      final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeBaseMemberModel.fromPsi(element), HaxeMethodModel.class);
       final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod() : null;
       if (parentMethod != null) {
         return parentMethod.getFunctionType().createHolder();

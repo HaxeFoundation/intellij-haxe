@@ -63,8 +63,8 @@ public class HaxelibUtil {
    * @param sdk
    * @return
    */
+  @Nullable
   public static VirtualFile getLibraryBasePath(@NotNull final Sdk sdk) {
-
     VirtualFile rootDirectory = sdk.getUserData(HaxelibRootKey);
     if (null == rootDirectory) {
       List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, "config");
@@ -86,6 +86,10 @@ public class HaxelibUtil {
     LocalFileSystem lfs = LocalFileSystem.getInstance();
 
     VirtualFile haxelibRoot = getLibraryBasePath(sdk);
+    if(haxelibRoot == null) {
+      LOG.debug("Haxe libraries base path was not found for current project sdk");
+      return null;
+    }
     String rootName = haxelibRoot.getPath();
 
     // Forking 'haxelib path' is slow, so we will do what it does without forking.

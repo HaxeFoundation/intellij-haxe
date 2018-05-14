@@ -45,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 /**
  * @author: Fedor.Korotkov
  */
@@ -299,11 +297,14 @@ public class HaxeResolveUtil {
 
     final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
     if (haxeClass instanceof HaxeAnonymousType) {
-      final HaxeAnonymousTypeFieldList typeFieldList = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getAnonymousTypeFieldList();
-      if (typeFieldList != null) {
-        result.addAll(typeFieldList.getAnonymousTypeFieldList());
+      final HaxeAnonymousTypeBody anonymousTypeBody = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody();
+      if (anonymousTypeBody != null) {
+        final HaxeAnonymousTypeFieldList typeFieldList = anonymousTypeBody.getAnonymousTypeFieldList();
+        if (typeFieldList != null) {
+          result.addAll(typeFieldList.getAnonymousTypeFieldList());
+        }
+        body = anonymousTypeBody.getInterfaceBody();
       }
-      body = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getInterfaceBody();
     }
     if (body == null) {
       return result;
@@ -339,11 +340,6 @@ public class HaxeResolveUtil {
     return result;
   }
 
-  @NotNull
-  public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element) {
-    return getHaxeClassResolveResult(element, new HaxeGenericSpecialization());
-  }
-
   private static ThreadLocal<Stack<PsiElement>> resolveStack = new ThreadLocal<Stack<PsiElement>>() {
     @Override
     protected Stack<PsiElement> initialValue() {
@@ -352,10 +348,19 @@ public class HaxeResolveUtil {
   };
 
   @NotNull
+  public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element) {
+    return getHaxeClassResolveResult(element, null);
+  }
+
+  @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element,
-                                                                 @NotNull HaxeGenericSpecialization specialization) {
+                                                                 @Nullable HaxeGenericSpecialization specialization) {
     if (element == null || element instanceof PsiPackage) {
       return HaxeClassResolveResult.EMPTY;
+    }
+
+    if (specialization == null) {
+      specialization = new HaxeGenericSpecialization();
     }
 
     final Stack<PsiElement> stack = resolveStack.get();
@@ -378,7 +383,7 @@ public class HaxeResolveUtil {
       }
       if (element instanceof HaxeClass) {
         final HaxeClass haxeClass = (HaxeClass)element;
-        return HaxeClassResolveResult.create(haxeClass);
+        return HaxeClassResolveResult.create(haxeClass, specialization);
       }
       if (element instanceof HaxeForStatement) {
         final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();

@@ -19,13 +19,14 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeLocalVarModel extends HaxeMemberModel {
 
@@ -36,11 +37,6 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
     this.element = element;
   }
 
-  @Override
-  public HaxeClassModel getDeclaringClass() {
-    final HaxeClass hClass = (HaxeClass)(element).getContainingClass();
-    return hClass != null ? hClass.getModel() : null;
-  }
   @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = element.getTypeTag();

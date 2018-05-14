@@ -26,10 +26,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
@@ -100,35 +97,35 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
       @Override
       public String getPresentableText() {
         final StringBuilder result = new StringBuilder();
-        HaxeMemberModel member = HaxeMemberModel.fromPsi(AbstractHaxeNamedComponent.this);
+        HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(AbstractHaxeNamedComponent.this);
 
-        if (member == null) {
+        if (model == null) {
           result.append(AbstractHaxeNamedComponent.this.getName());
         }
         else {
           if (isFindUsageRequest()) {
-            HaxeClassModel klass = member.getDeclaringClass();
+            HaxeClassModel klass = model.getDeclaringClass();
             if (null != klass) {
               result.append(klass.getName());
               result.append('.');
             }
           }
 
-          if (member instanceof HaxeEnumValueModel) {
-            return member.getPresentableText(null);
+          if (model instanceof HaxeEnumValueModel) {
+            return model.getPresentableText(null);
           }
 
-          result.append(member.getName());
+          result.append(model.getName());
 
-          if (member instanceof HaxeMethodModel) {
-            final String parameterList = HaxePresentableUtil.getPresentableParameterList(member.getNamedComponentPsi());
+          if (model instanceof HaxeMethodModel) {
+            final String parameterList = HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi());
             result.append("(").append(parameterList).append(")");
           }
 
-          final ResultHolder resultType = member.getResultType();
+          final ResultHolder resultType = model.getResultType();
           if (resultType != null) {
             result.append(":");
-            result.append(member.getResultType().toString());
+            result.append(model.getResultType().toString());
           }
         }
 
@@ -140,7 +137,14 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         HaxeClass haxeClass = AbstractHaxeNamedComponent.this instanceof HaxeClass
                               ? (HaxeClass)AbstractHaxeNamedComponent.this
                               : PsiTreeUtil.getParentOfType(AbstractHaxeNamedComponent.this, HaxeClass.class);
+        String path = "";
         if (haxeClass instanceof HaxeAnonymousType) {
+          HaxeAnonymousTypeField field = PsiTreeUtil.getParentOfType(haxeClass, HaxeAnonymousTypeField.class);
+          while(field != null) {
+            boolean addDelimiter = !path.isEmpty();
+            path = field.getName() + (addDelimiter ? "." : "") + path;
+            field = PsiTreeUtil.getParentOfType(field, HaxeAnonymousTypeField.class);
+          }
           final HaxeTypedefDeclaration typedefDeclaration = PsiTreeUtil.getParentOfType(haxeClass, HaxeTypedefDeclaration.class);
           if (typedefDeclaration != null) {
             haxeClass = typedefDeclaration;
@@ -153,7 +157,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         if (haxeClass == AbstractHaxeNamedComponent.this) {
           return qName.getFirst();
         }
-        return haxeClass.getQualifiedName();
+        return haxeClass.getQualifiedName()+(path.isEmpty() ?  "" : "." + path);
       }
 
       @Override

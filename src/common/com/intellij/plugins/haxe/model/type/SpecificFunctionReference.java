@@ -89,6 +89,11 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return toString();
   }
 
+  @Override
+  public boolean canBeTypeVariable() {
+    return false;
+  }
+
   public static class Argument {
     final private int index;
     final private boolean optional;
