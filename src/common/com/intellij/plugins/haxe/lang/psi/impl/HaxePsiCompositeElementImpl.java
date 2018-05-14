@@ -79,13 +79,16 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     return sb.toString();
   }
 
+  protected String myName = null;
+
   public String toString() {
-    String out = getTokenType().toString();
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      // Unit tests don't want the extra data.
-      out += " " + getDebugName();
+    if (myName == null) {
+      myName = getTokenType().toString();
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        myName += " " + getDebugName();
+      }
     }
-    return out;
+    return myName;
   }
 
   @Override
@@ -135,7 +138,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
 
     if (this instanceof HaxeCatchStatement) {
       final HaxeParameter catchParameter = PsiTreeUtil.getChildOfType(this, HaxeParameter.class);
-      if(catchParameter != null) {
+      if (catchParameter != null) {
         result.add(catchParameter);
       }
     }
@@ -177,8 +180,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   @Nullable
   @Override
   public HaxeModifierList getModifierList() {
-    HaxeModifierList list = (HaxeModifierList) this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
+    HaxeModifierList list = (HaxeModifierList)this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
     return list;
   }
-
 }

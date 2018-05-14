@@ -64,11 +64,15 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
   @Nullable
   @NonNls
   public String getName() {
-    final HaxeComponentName name = getComponentName();
-    if (name != null) {
-      return name.getText();
+    if (myName == null) {
+      final HaxeComponentName name = getComponentName();
+      if (name != null) {
+        myName = name.getText();
+      } else {
+        myName = super.getName();
+      }
     }
-    return super.getName();
+    return myName;
   }
 
   @Override
@@ -101,8 +105,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
 
         if (model == null) {
           result.append(AbstractHaxeNamedComponent.this.getName());
-        }
-        else {
+        } else {
           if (isFindUsageRequest()) {
             HaxeClassModel klass = model.getDeclaringClass();
             if (null != klass) {
@@ -140,7 +143,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         String path = "";
         if (haxeClass instanceof HaxeAnonymousType) {
           HaxeAnonymousTypeField field = PsiTreeUtil.getParentOfType(haxeClass, HaxeAnonymousTypeField.class);
-          while(field != null) {
+          while (field != null) {
             boolean addDelimiter = !path.isEmpty();
             path = field.getName() + (addDelimiter ? "." : "") + path;
             field = PsiTreeUtil.getParentOfType(field, HaxeAnonymousTypeField.class);
@@ -157,7 +160,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         if (haxeClass == AbstractHaxeNamedComponent.this) {
           return qName.getFirst();
         }
-        return haxeClass.getQualifiedName()+(path.isEmpty() ?  "" : "." + path);
+        return haxeClass.getQualifiedName() + (path.isEmpty() ? "" : "." + path);
       }
 
       @Override
@@ -173,7 +176,6 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         // (AND, we can't change IDEA's shipping products on which this must run...)
         return HaxeDebugUtil.appearsOnStack(PsiElement2UsageTargetAdapter.class);
       }
-
     };
   }
 
@@ -274,8 +276,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
   public int getChildRole(ASTNode child) {
     if (child.getElementType() == HaxeTokenTypes.PLCURLY) {
       return ChildRole.LBRACE;
-    }
-    else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
+    } else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
       return ChildRole.RBRACE;
     }
 
