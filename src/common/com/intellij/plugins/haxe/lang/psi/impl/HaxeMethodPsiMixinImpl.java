@@ -23,7 +23,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
@@ -48,6 +47,7 @@ import java.util.List;
 public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeMethodPsiMixin {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodPsiMixinImpl");
+
   static {
     LOG.info("Loaded HaxeMethodPsiMixinImpl");
     LOG.setLevel(Level.DEBUG);
@@ -75,14 +75,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
     return (name != null) ? name : "<unnamed>";
   }
-
-  private HaxeMethodModel _model = null;
-  public HaxeMethodModel getModel() {
-    if (_model == null) _model = new HaxeMethodModel(this);
-    return _model;
-  }
-
-
 
   @Nullable
   public HaxeReturnStatement getReturnStatement() {

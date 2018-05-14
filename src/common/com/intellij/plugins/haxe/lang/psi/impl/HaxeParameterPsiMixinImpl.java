@@ -3,6 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +21,9 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -35,6 +38,7 @@ import java.util.Arrays;
 public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeParameterPsiMixin {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterBase");
+  private static final Key<HaxeParameterModel> HAXE_PARAMETER_MODEL_KEY = new Key<>("HAXE_PARAMETER_MODEL");
 
   public HaxeParameterPsiMixinImpl(ASTNode node) {
     super(node);
@@ -84,6 +88,16 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
 
     LOG.error("Code block not found among parameter' (" + this + ") parent' (" + parent + ") children: " + Arrays.asList(children));
     return null;
+  }
+
+  @Override
+  public HaxeParameterModel getModel() {
+    HaxeParameterModel model = getUserData(HAXE_PARAMETER_MODEL_KEY);
+    if (model == null) {
+      model = new HaxeParameterModel((HaxeParameter)this);
+      putUserData(HAXE_PARAMETER_MODEL_KEY, model);
+    }
+    return model;
   }
 
   @Override

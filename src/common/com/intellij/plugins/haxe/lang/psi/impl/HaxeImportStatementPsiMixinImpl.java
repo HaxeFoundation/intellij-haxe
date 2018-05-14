@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.psi.PsiElementVisitor;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl implements HaxeImportStatement {
+  private static final Key<HaxeImportModel> HAXE_IMPORT_MODEL_KEY = new Key<>("HAXE_IMPORT_MODEL");
 
   public HaxeImportStatementPsiMixinImpl(ASTNode node) {
     super(node);
@@ -33,7 +35,12 @@ public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStatementPsiMi
   @NotNull
   @Override
   public HaxeImportModel getModel() {
-    return new HaxeImportModel(this);
+    HaxeImportModel model = getUserData(HAXE_IMPORT_MODEL_KEY);
+    if (model == null) {
+      model = new HaxeImportModel(this);
+      putUserData(HAXE_IMPORT_MODEL_KEY, model);
+    }
+    return model;
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

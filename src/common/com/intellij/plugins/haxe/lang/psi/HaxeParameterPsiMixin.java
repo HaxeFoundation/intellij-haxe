@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +18,13 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiParameter;
 
 /**
  * Created by ebishton on 9/27/14.
  */
-public interface HaxeParameterPsiMixin extends HaxeComponent, PsiParameter {
-
+public interface HaxeParameterPsiMixin extends HaxeComponent, PsiParameter, HaxeModelTarget {
+  HaxeParameterModel getModel();
 }

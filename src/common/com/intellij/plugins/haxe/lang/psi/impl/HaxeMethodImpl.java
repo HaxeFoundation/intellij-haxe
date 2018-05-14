@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +19,9 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 
 /**
  * This is effectively an alias for the mixin class, except with a more
@@ -27,7 +30,18 @@ import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
  * Created by ebishton on 9/28/14.
  */
 public abstract class HaxeMethodImpl extends HaxeMethodPsiMixinImpl implements HaxeMethod {
+  private static final Key<HaxeMethodModel> HAXE_METHOD_MODEL_KEY = new Key<>("HAXE_METHOD_MODEL");
+
   public HaxeMethodImpl(ASTNode node) {
     super(node);
+  }
+
+  public HaxeMethodModel getModel() {
+    HaxeMethodModel model = getUserData(HAXE_METHOD_MODEL_KEY);
+    if (model == null) {
+      model = new HaxeMethodModel(this);
+      putUserData(HAXE_METHOD_MODEL_KEY, model);
+    }
+    return model;
   }
 }

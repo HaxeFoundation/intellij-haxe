@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.model.HaxeImportModel;
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import org.jetbrains.annotations.NotNull;
 
-public interface HaxeImportStatementPsiMixin extends HaxeStatementPsiMixin {
+public interface HaxeImportStatementPsiMixin extends HaxeStatementPsiMixin, HaxeModelTarget {
   @NotNull
   HaxeImportModel getModel();
 }

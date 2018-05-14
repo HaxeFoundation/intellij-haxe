@@ -21,11 +21,9 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.model.HaxeModel;
-import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -44,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implements HaxePsiField {
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl");
+  private static final Key<HaxeMemberModel> HAXE_FIELD_MODEL_KEY = new Key<>("HAXE_FIELD_MODEL");
 
   static {
     LOG.info("Loaded HaxePsiFieldImpl");
@@ -55,14 +54,13 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   }
 
   @Override
-  public HaxeModel getModel() {
-    if (this instanceof HaxeEnumValueDeclaration) {
-      return new HaxeEnumValueModel((HaxeEnumValueDeclaration)this);
+  public HaxeMemberModel getModel() {
+    HaxeMemberModel model = getUserData(HAXE_FIELD_MODEL_KEY);
+    if (model == null) {
+      model = HaxeMemberModel.fromPsi(this);
+      putUserData(HAXE_FIELD_MODEL_KEY, model);
     }
-    if (HaxeAbstractEnumUtil.isAbstractEnum(getContainingClass()) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(this)) {
-      return new HaxeEnumValueModel((HaxeFieldDeclaration)this);
-    }
-    return new HaxeFieldModel(this);
+    return model;
   }
 
   @Override
