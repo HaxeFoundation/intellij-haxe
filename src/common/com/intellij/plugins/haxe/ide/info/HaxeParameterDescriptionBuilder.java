@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class HaxeParameterDescriptionBuilder {
 
   @NotNull
   private static HaxeParameterDescription build(HaxeParameter parameter, HaxeClassResolveResult resolveResult) {
-    final HaxeParameterModel model = new HaxeParameterModel(parameter);
+    final HaxeParameterModel model = parameter.getModel();
 
     String name = model.getName();
     String type;
@@ -57,7 +57,7 @@ public class HaxeParameterDescriptionBuilder {
     boolean optional = model.hasOptionalPsi();
 
     HaxeTypeTag typeTag = model.getTypeTagPsi();
-    HaxeVarInit varInit = model.getVarInitPsi();
+    HaxeVarInit varInit = model.getInitializerPsi();
 
     if (typeTag != null) {
       type = HaxePresentableUtil.buildTypeText(parameter, parameter.getTypeTag(), resolveResult.getSpecialization());
