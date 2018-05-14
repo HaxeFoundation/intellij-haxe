@@ -36,20 +36,24 @@ import java.util.*;
 public class PsiFileUtils {
 
   static public String getListPath(List<PsiFileSystemItem> range) {
-    String out = "";
-    for (PsiFileSystemItem item : range) {
-      if (out.length() != 0) out += "/";
-      out += item.getName();
-    }
-    return out;
+    return getListPath(range, '/');
   }
 
-  static public List<PsiFileSystemItem> getRange(PsiFileSystemItem from, PsiFileSystemItem to) {
-    LinkedList<PsiFileSystemItem> items = new LinkedList<PsiFileSystemItem>();
+  public static String getListPath(List<PsiFileSystemItem> range, char delimiter) {
+    StringBuilder out = new StringBuilder();
+    for (PsiFileSystemItem item : range) {
+      if (out.length() != 0) out.append(delimiter);
+      out.append(item.getName());
+    }
+    return out.toString();
+  }
+
+  static public List<PsiFileSystemItem> getRange(@NotNull PsiFileSystemItem from, @NotNull PsiFileSystemItem to) {
+    LinkedList<PsiFileSystemItem> items = new LinkedList<>();
     PsiFileSystemItem current = to;
-    while (current != null) {
+
+    while (current != null && !current.equals(from)) {
       items.addFirst(current);
-      if (current == from) break;
       current = current.getParent();
     }
     return items;

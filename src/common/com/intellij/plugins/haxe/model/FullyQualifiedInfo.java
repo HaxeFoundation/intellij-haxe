@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -88,6 +89,36 @@ public class FullyQualifiedInfo {
         memberName = i < size ? parts.get(i) : null;
       }
     }
+  }
+
+  public static String getRelativeQualifiedName(HaxeModel model, HaxeModel relativeModel) {
+    FullyQualifiedInfo relativeInfo = relativeModel.getQualifiedInfo();
+    FullyQualifiedInfo methodInfo = model.getQualifiedInfo();
+    if (relativeInfo != null &&
+        methodInfo != null &&
+        Objects.equals(relativeInfo.packagePath, methodInfo.packagePath) &&
+        Objects.equals(relativeInfo.fileName, methodInfo.fileName)) {
+      final String relativeMethodPath = relativeInfo.getPresentableText();
+      final String methodPath = methodInfo.getPresentableText();
+      int commonPrefixLength = StringUtil.commonPrefixLength(relativeMethodPath, methodPath, true);
+      if (commonPrefixLength > 0) {
+        if (relativeMethodPath.charAt(commonPrefixLength-1) != '.') {
+          commonPrefixLength = relativeMethodPath.substring(0, commonPrefixLength).lastIndexOf('.')+1;
+        }
+        return methodPath.substring(commonPrefixLength);
+      }
+    }
+    if (methodInfo != null) return methodInfo.getPresentableText();
+    return model.getName();
+  }
+
+  public static String getQualifiedName(HaxeModel model) {
+    FullyQualifiedInfo info = model.getQualifiedInfo();
+    if (info != null) {
+      return info.getPresentableText();
+    }
+
+    return model.getName();
   }
 
   @Override

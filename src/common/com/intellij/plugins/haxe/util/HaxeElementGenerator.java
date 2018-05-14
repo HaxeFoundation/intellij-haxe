@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeExpressionCodeFragmentImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.impl.PsiFileFactoryImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
@@ -150,4 +151,9 @@ public class HaxeElementGenerator {
     assert haxeClass != null;
     return (HaxeMethodDeclaration)haxeClass.getHaxeMethods().iterator().next();
   }
+
+  public static PsiElement createNewLine(Project project) {
+    return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n\n");
+  }
+
 }
