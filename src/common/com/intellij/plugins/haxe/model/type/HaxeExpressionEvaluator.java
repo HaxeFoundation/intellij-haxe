@@ -22,13 +22,16 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.quickfix.HaxeAddCastFix;
+import com.intellij.plugins.haxe.ide.quickfix.HaxeCreateConstructorFromCallFix;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
@@ -37,6 +40,7 @@ import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.util.ObjectUtils;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +53,11 @@ import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Arg
 
 public class HaxeExpressionEvaluator {
   static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static { LOG.setLevel(Level.INFO); }
+  private static final String BUILTIN_CHARACTER_CODE = "code";
+
+  static {
+    LOG.setLevel(Level.INFO);
+  }
 
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context) {
@@ -151,13 +159,8 @@ public class HaxeExpressionEvaluator {
         if (clazz != null) {
           HaxeMethodModel constructor = clazz.getConstructor();
           if (constructor == null) {
-            context.addError(element, "Class " + clazz.getName() + " doesn't have a constructor", new HaxeFixer("Create constructor") {
-              @Override
-              public void run() {
-                // @TODO: Check arguments
-                clazz.addMethod("new");
-              }
-            });
+            context.addError(element, HaxeBundle.message("haxe.semantic.no.constructor", clazz.getName()))
+              .registerFix(new HaxeCreateConstructorFromCallFix((HaxeNewExpression)element));
           } else {
             checkParameters(element, constructor, ((HaxeNewExpression)element).getExpressionList(), context);
           }
@@ -185,13 +188,10 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeIdentifier) {
-      //PsiReference reference = element.getReference();
       ResultHolder holder = context.get(element.getText());
 
       if (holder == null) {
-        context.addError(element, "Unknown variable", new HaxeCreateLocalVariableFixer(element.getText(), element));
-
-        return SpecificTypeReference.getDynamic(element).createHolder();
+        return SpecificTypeReference.getUnknown(element).createHolder();
       }
 
       return holder;
@@ -219,11 +219,9 @@ public class HaxeExpressionEvaluator {
         type = SpecificTypeReference.getDynamic(element);
       }
       if (!type.isBool() && lastExpression != null) {
-        context.addError(
-          lastExpression,
-          "While expression must be boolean",
-          new HaxeCastFixer(lastExpression, type, SpecificHaxeClassReference.getBool(element))
-        );
+        context
+          .addError(lastExpression, HaxeBundle.message("haxe.semantic.condition.must.be.boolean"))
+          .registerFix(new HaxeAddCastFix(lastExpression, type, SpecificTypeReference.getBool(element)));
       }
 
       PsiElement body = element.getLastChild();
@@ -313,45 +311,51 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeReferenceExpression) {
-      PsiElement[] children = element.getChildren();
-      ResultHolder typeHolder = handle(children[0], context);
-      boolean resolved = true;
-      for (int n = 1; n < children.length; n++) {
-        String accessName = children[n].getText();
-        if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
-          String str = (String)typeHolder.getType().getConstant();
-          typeHolder = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
-          if (str == null || str.length() != 1) {
-            context.addError(element, "String must be a single UTF8 char");
+      HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)element;
+      if (referenceExpression.getFirstChild() instanceof HaxeIdentifier) {
+        PsiElement resolvedElement = referenceExpression.resolve();
+        if (resolvedElement instanceof HaxeFieldDeclaration ||
+            resolvedElement instanceof HaxeMethodDeclaration ||
+            resolvedElement instanceof HaxeParameter) {
+          ResultHolder resultType = handle(referenceExpression.getIdentifier(), context);
+          if (resultType.isUnknown()) {
+            HaxeBaseMemberModel model = (HaxeBaseMemberModel)((HaxeModelTarget)resolvedElement).getModel();
+            return model.getResultType();
+          }
+          return resultType;
+        } else if (resolvedElement instanceof HaxeClass) {
+          return SpecificHaxeClassReference
+            .withoutGenerics(new HaxeClassReference(((HaxeClass)resolvedElement).getModel(), element))
+            .createHolder();
+        } else {
+          return handle(referenceExpression.getIdentifier(), context);
+        }
+      } else {
+        ResultHolder typeHolder = handle(referenceExpression.getFirstChild(), context);
+        final SpecificTypeReference type = typeHolder.getType();
+        final String memberName = referenceExpression.getIdentifier().getText();
+        if (referenceExpression.getIdentifier().getText().equals(BUILTIN_CHARACTER_CODE)) {
+          HaxeStringLiteralExpression stringLiteral = ObjectUtils.tryCast(referenceExpression.getQualifier(), HaxeStringLiteralExpression.class);
+          Character character = HaxeStringLiteralUtil.getCharacter(stringLiteral);
+          if (character != null) {
+            return SpecificTypeReference.getInt(element, (int)character).createHolder();
+          } else {
+            context.addError(referenceExpression.getFirstChild(), "String must be a single UTF8 char");
           }
         } else {
-          ResultHolder access = typeHolder.getType().access(accessName, context);
-          if (access == null) {
-            resolved = false;
-            Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType());
-            if (children.length == 1) {
-              annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
-            } else {
-              annotation.registerFix(new HaxeCreateMethodFixer(accessName, element));
-              annotation.registerFix(new HaxeCreateFieldFixer(accessName, element));
-            }
-          }
-          typeHolder = access;
-        }
-      }
-
-      // @TODO: this should be innecessary when code is working right!
-      if (!resolved) {
-        PsiReference reference = element.getReference();
-        if (reference != null) {
-          PsiElement subelement = reference.resolve();
-          if (subelement instanceof AbstractHaxeNamedComponent) {
-            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement);
+          ResultHolder memberType = type.access(memberName, context);
+          if (memberType == null) {
+            Annotation annotation =
+              context.addError(referenceExpression.getIdentifier(), "Can't resolve '" + memberName + "' in " + typeHolder.getType());
+            annotation.registerFix(new HaxeCreateLocalVariableFixer(memberName, element));
+            annotation.registerFix(new HaxeCreateMethodFixer(memberName, element));
+            annotation.registerFix(new HaxeCreateFieldFixer(memberName, element));
+          } else {
+            return memberType;
           }
         }
       }
-
-      return (typeHolder != null) ? typeHolder : SpecificTypeReference.getDynamic(element).createHolder();
+      return SpecificTypeReference.getDynamic(element).createHolder();
     }
 
     if (element instanceof HaxeCallExpression) {
