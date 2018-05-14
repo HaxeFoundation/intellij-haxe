@@ -1,6 +1,8 @@
 package;
 
 abstract W (Int) from Int to Int {
+    public function new(value:Int) this = value;
+
     @:to inline public function toString():String return '$this';
 }
 

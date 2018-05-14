@@ -2,7 +2,7 @@ package ;
 
 class AbstractAssignmentFromTo1 {
   public static function test():Void {
-    var <error descr="Incompatible type MyArray<Int> can't be assigned from Array<Int>">val:MyArray<Int> = [10]</error>;
+    var <error descr="<html><body>Incompatible types.<table><tr><td>Expected:</td><td><b>MyArray<Int></b></td></tr><tr><td>Found:</td><td><font color='red'><b>Array<Int></b></font></td></tr></table></body></html>">val:MyArray<Int> = [10]</error>;
   }
 }
 

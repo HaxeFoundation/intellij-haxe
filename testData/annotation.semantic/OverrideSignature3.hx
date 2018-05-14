@@ -1,5 +1,5 @@
 class Test1 extends Test2 {
-  override public function test1(a:Int, <error descr="Unexpected argument">?b:St<caret>ring</error>, <error descr="Unexpected argument">c:Int</error>) {
+  override public function test1(a:Int, <error descr="Unexpected parameter">?b:<caret>String</error>, <error descr="Unexpected parameter">c:Int</error>) {
 
   }
 }

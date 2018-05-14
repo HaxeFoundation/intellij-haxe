@@ -1,3 +1,3 @@
 class Test {
-  public function <error descr="__init__ must be static">__init__</error>() {}
+  <error descr="Static initializer method '__init__' must be static">public function __init__() {}</error>
 }

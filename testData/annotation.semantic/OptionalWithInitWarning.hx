@@ -1,4 +1,4 @@
 class OptionalWithInitWarning {
-  static public function demo(<warning descr="Optional not needed when specified an init value">?</warning>a:Int = 10) {
+  static public function demo(<weak_warning descr="Optional mark is redundant when initial value specified">?</weak_warning>a:Int = 10) {
   }
 }

@@ -1,6 +1,6 @@
 package ;
 
-class <info descr="null">RemoveOverride</info> {
-  <error descr="Overriding nothing">over<caret>ride</error> public function <info descr="null">testMethod</info>() {
+class RemoveOverride {
+  <error descr="Method overrides nothing">override<caret></error> public function testMethod() {
   }
 }

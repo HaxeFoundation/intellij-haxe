@@ -66,23 +66,23 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testFixPackage() throws Exception {
-    doTest("Fix package");
+    doTest("Set package name to ''");
   }
 
   public void testRemoveOverride() throws Exception {
-    doTest("Remove override");
+    doTest("Drop modifier 'override'");
   }
 
   public void testRemoveFinal() throws Exception {
-    doTest("Remove @:final from Base.test");
+    doTest("Drop modifier '@:final' from 'Base.test'");
   }
 
   public void testChangeArgumentType() throws Exception {
-    doTest("Change type");
+    doTest("Change parameter 'a' type from 'Int' to 'Bool'");
   }
 
   public void testRemoveArgumentInit() throws Exception {
-    doTest("Remove init");
+    doTest("Drop initializer");
   }
 
   public void testInterfaceMethodsShouldHaveTypeTags() throws Exception {
@@ -90,10 +90,6 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testOptionalWithInitWarning() throws Exception {
-    doTestNoFixWithWarnings();
-  }
-
-  public void testNonOptionalArgumentsAfterOptionalOnes() throws Exception {
     doTestNoFixWithWarnings();
   }
 
@@ -154,7 +150,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testUcFirstClassName() throws Exception {
-    doTest("Change name");
+    doTest("Rename to 'Test'");
   }
 
   public void testUcFirstClassName2() throws Exception {
@@ -174,7 +170,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testOverrideSignature() throws Exception {
-    doTest("Remove argument");
+    doTest("Remove parameter");
   }
 
   public void testOverrideSignature2() throws Exception {
@@ -182,11 +178,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testOverrideSignature3() throws Exception {
-    doTest("Remove argument");
+    doTest("Remove parameter");
   }
 
   public void testOverrideSignature4() throws Exception {
-    doTest("Remove argument");
+    doTest("Remove parameter");
   }
 
   public void testImplementSignature() throws Exception {
@@ -221,10 +217,6 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
-  public void testStaticsInExtended() throws Exception {
-    doTestNoFixWithoutWarnings();
-  }
-
   public void testArrayAssignmentFromEmpty() throws Exception {
     doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
   }
@@ -254,6 +246,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNullTAssignment2() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testStringLiteral() throws Exception {
     doTestNoFixWithWarnings();
   }
 }

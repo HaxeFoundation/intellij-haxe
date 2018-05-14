@@ -1,1 +1,1 @@
-<error descr="Invalid package name! 'test.pack' should be ''">package test.pack;</error>
+<error descr="Package name 'test.pack' does not correspond to the file path ''">package test.pack;</error>

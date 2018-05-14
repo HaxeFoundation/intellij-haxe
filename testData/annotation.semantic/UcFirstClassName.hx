@@ -1,3 +1,3 @@
-class <error descr="Type name must start by upper case">tes<caret>t</error> {
+class <error descr="Type name 'test' must start with uppercase"><caret>test</error> {
 
 }

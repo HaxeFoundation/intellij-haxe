@@ -1,4 +1,5 @@
 class NonConstantArgument {
-  function test(<error descr="Parameter default type should be constant but was NonConstantArgument">arg:NonConstantArgument = new NonConstantArgument()</error>) {
+  public function new() {}
+  function test(arg:NonConstantArgument <error descr="Parameter default type should be constant but was 'NonConstantArgument'">= new NonConstantArgument()</error>) {
   }
 }

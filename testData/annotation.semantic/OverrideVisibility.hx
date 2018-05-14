@@ -19,7 +19,7 @@ class B {
 }
 
 class CC extends C {
-  override private function <error descr="Field c has less visibility (public/private) than superclass one">c</error>() {
+  override private function <error descr="<html>Method 'c' has less visibility (<font color='red'><b>private</b></font>) than declared at 'C.c' (was <b>public</b>)</html>">c</error>() {
   }
 }
 

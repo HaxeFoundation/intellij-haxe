@@ -9,9 +9,9 @@ class Foo implements IFoo {
 }
 
 class Bar extends Foo {
-  <error descr="Redefinition of variable 'variable' in subclass is not allowed. Previously declared at 'Foo'.">var variable:Dynamic;</error>
+  <error descr="Redefinition of variable 'variable' in subclass is not allowed. Previously declared at 'Foo'">var variable:Dynamic;</error>
 }
 
 class BarString extends Foo {
-  <error descr="Redefinition of variable 'variable' in subclass is not allowed. Previously declared at 'Foo'.">var variable:String;</error>
+  <error descr="Redefinition of variable 'variable' in subclass is not allowed. Previously declared at 'Foo'">var variable:String;</error>
 }

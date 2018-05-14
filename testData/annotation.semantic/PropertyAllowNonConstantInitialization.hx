@@ -3,7 +3,9 @@ class Test {
   static public var instance2:Test = new Test();
   static public var v:Int = 1;
 
-  static public function a(<error descr="Parameter default type should be constant but was Test">t:Test = new Test()</error>) {
+  public function new() {}
+
+  static public function a(t:Test <error descr="Parameter default type should be constant but was 'Test'">= new Test()</error>) {
 }
 
   static public function b(t = new Test()) {
