@@ -153,4 +153,14 @@ public class HaxeFieldModel extends HaxeMemberModel {
   public HaxeExposableModel getExhibitor() {
     return getDeclaringClass();
   }
+
+  @Override
+  public String getPresentableText(HaxeMethodContext context) {
+    StringBuilder result = new StringBuilder().append(this.getName());
+    if (isProperty()) {
+      result.append('(').append(getGetterType().text).append(",").append(getSetterType().text).append(")");
+    }
+    result.append(":").append(getResultType());
+    return result.toString();
+  }
 }

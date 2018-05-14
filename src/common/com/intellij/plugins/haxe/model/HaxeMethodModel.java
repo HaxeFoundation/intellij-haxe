@@ -22,10 +22,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -36,9 +33,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
-  private HaxeMethodPsiMixin haxeMethod;
+  private HaxeMethod haxeMethod;
 
-  public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
+  public HaxeMethodModel(HaxeMethod haxeMethod) {
     super(haxeMethod);
     this.haxeMethod = haxeMethod;
   }
@@ -48,14 +45,18 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return haxeMethod;
   }
 
-  public HaxeMethodPsiMixin getMethodPsi() {
+  public HaxeMethod getMethodPsi() {
     return haxeMethod;
   }
 
   public PsiElement getBodyPsi() {
-    PsiElement[] children = haxeMethod.getChildren();
-    if (children.length == 0) return null;
-    return children[children.length - 1];
+    PsiElement lastChild = haxeMethod.getLastChild();
+    if (lastChild instanceof HaxeTypeTag ||
+        lastChild instanceof HaxeParameterList ||
+        (lastChild instanceof HaxePsiToken && lastChild.textMatches(HaxeTokenTypes.OSEMI.toString()))) {
+      return null;
+    }
+    return lastChild;
   }
 
   public List<HaxeParameterModel> getParameters() {
@@ -63,7 +64,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
     if (parameterList != null) {
       for (HaxeParameter parameter : parameterList.getParameterList()) {
-        _parameters.add(new HaxeParameterModel(parameter));
+        _parameters.add(parameter.getModel());
       }
     }
     return _parameters;
@@ -88,9 +89,12 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeTypeTag.class);
   }
 
-  public PsiElement getReturnTypeTagOrNameOrBasePsi() {
-    HaxeTypeTag psi = getReturnTypeTagPsi();
-    return (psi != null) ? psi : getNameOrBasePsi();
+  public boolean hasReturnType() {
+    return getReturnTypeTagPsi() != null;
+  }
+
+  public boolean hasBody() {
+    return getBodyPsi() != null;
   }
 
   public String getFullName() {
@@ -139,6 +143,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
+    if (this.isConstructor()) {
+      return SpecificHaxeClassReference.withoutGenerics(getDeclaringClass().getReference()).createHolder();
+    }
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getBasePsi(), resolver);
   }
 

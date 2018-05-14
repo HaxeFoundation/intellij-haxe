@@ -26,12 +26,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.SmartList;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
@@ -273,7 +273,12 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @Nullable
   public HaxePsiCompositeElement getBodyPsi() {
-    return (haxeClass instanceof HaxeClassDeclaration) ? ((HaxeClassDeclaration)haxeClass).getClassBody() : null;
+    if (haxeClass instanceof HaxeInterfaceDeclaration) {
+      return ((HaxeInterfaceDeclaration)haxeClass).getInterfaceBody();
+    } else if (haxeClass instanceof HaxeClassDeclaration) {
+      return ((HaxeClassDeclaration)haxeClass).getClassBody();
+    }
+    return null;
   }
 
   @Nullable
@@ -319,17 +324,15 @@ public class HaxeClassModel implements HaxeExposableModel {
     throw new NotImplementedException("Not implemented HaxeClassMethod.addMethodsFromPrototype() : check HaxeImplementMethodHandler");
   }
 
-  public List<HaxeFieldModel> getFields() {
-    HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(haxeClass, isEnum() ? HaxeEnumBody.class : HaxeClassBody.class);
-
-    if (body != null) {
-      return PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)
-        .stream()
-        .map(HaxeFieldModel::new)
-        .collect(Collectors.toList());
-    } else {
-      return Collections.emptyList();
+  public List<HaxeMemberModel> getFields() {
+    List<HaxeMemberModel> models = new SmartList<>();
+    for (HaxeNamedComponent field : haxeClass.getHaxeFields()) {
+      if (field instanceof HaxeFieldDeclaration || field instanceof HaxeAnonymousTypeField || field instanceof HaxeEnumValueDeclaration) {
+        HaxeMemberModel model = HaxeMemberModel.fromPsi(field);
+        models.add(model);
+      }
     }
+    return models;
   }
 
   public Set<HaxeClassModel> getCompatibleTypes() {
@@ -412,12 +415,12 @@ public class HaxeClassModel implements HaxeExposableModel {
           if (declaration instanceof HaxeFieldDeclaration) {
             HaxeFieldDeclaration varDeclaration = (HaxeFieldDeclaration)declaration;
             if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
-              out.add(new HaxeFieldModel((HaxeFieldDeclaration)declaration));
+              out.add(HaxeMemberModel.fromPsi(declaration));
             }
           } else {
             HaxeMethod method = (HaxeMethod)declaration;
             if (method.isStatic() && method.isPublic()) {
-              out.add(new HaxeMethodModel(method));
+              out.add(HaxeMemberModel.fromPsi(method));
             }
           }
         }

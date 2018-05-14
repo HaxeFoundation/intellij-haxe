@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +24,10 @@ import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.ModifierConstant;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class HaxeModifiersModel {
   private PsiElement baseElement;
@@ -104,5 +108,16 @@ public class HaxeModifiersModel {
     if (getModifierPsi(HaxePsiModifier.PRIVATE) != null) return HaxePsiModifier.PRIVATE;
 
     return HaxePsiModifier.EMPTY;
+  }
+
+  public List<String> getPresentModifiers(@ModifierConstant String[] modifiers) {
+    List<String> result = new SmartList<>();
+    for (String modifier : modifiers) {
+      if (hasModifier(modifier)) {
+        result.add(modifier);
+      }
+    }
+
+    return result;
   }
 }

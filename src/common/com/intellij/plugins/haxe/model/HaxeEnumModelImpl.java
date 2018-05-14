@@ -174,7 +174,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   }
 
   @Override
-  public List<HaxeFieldModel> getFields() {
+  public List<HaxeMemberModel> getFields() {
     return Collections.emptyList();
   }
 

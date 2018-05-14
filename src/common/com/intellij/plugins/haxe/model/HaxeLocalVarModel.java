@@ -20,11 +20,11 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,10 +40,16 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
   @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = element.getTypeTag();
-    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
-    return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
-
+    if (typeTag != null) {
+      return HaxeTypeResolver.getTypeFromTypeTag(typeTag, this.element);
+    }
+    final HaxeVarInit initializer = getInitializerPsi();
+    if (initializer != null) {
+      return HaxeTypeResolver.getPsiElementType(initializer);
+    }
+    return SpecificTypeReference.getUnknown(this.element).createHolder();
   }
+
   @Override
   public String getPresentableText(HaxeMethodContext context) {
     final ResultHolder type = getResultType();

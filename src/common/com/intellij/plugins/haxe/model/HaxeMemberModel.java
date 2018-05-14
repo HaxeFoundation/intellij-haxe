@@ -19,6 +19,9 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
@@ -107,10 +110,22 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     return (aClass != null) ? aClass.getMember(this.getName()) : null;
   }
 
+  public ResultHolder getResultType() {
+    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
+  }
+
+  public String getPresentableText() {
+    return getPresentableText(HaxeMethodContext.NO_EXTENSION);
+  }
+
+  public String getPresentableText(HaxeMethodContext context) {
+    return this.getName() + ":" + getResultType();
+  }
+
   @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
-    if (getDeclaringClass() != null && isStatic() && isPublic()) {
+    if (getDeclaringClass() != null) {
       FullyQualifiedInfo containerInfo = getDeclaringClass().getQualifiedInfo();
       if (containerInfo != null) {
         return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());

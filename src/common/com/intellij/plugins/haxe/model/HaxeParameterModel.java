@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
@@ -60,14 +61,18 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   }
 
   public boolean isOptional() {
-    return this.hasOptionalPsi() || this.hasInit();
+    return this.hasOptionalPsi() || this.hasInitializer();
   }
 
-  public boolean hasInit() {
-    return getVarInitPsi() != null;
+  public boolean hasTypeTag() {
+    return getTypeTagPsi() != null;
   }
 
-  public HaxeVarInit getVarInitPsi() {
+  public boolean hasInitializer() {
+    return getInitializerPsi() != null;
+  }
+
+  public HaxeVarInit getInitializerPsi() {
     return getParameterPsi().getVarInit();
   }
 
@@ -131,8 +136,14 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = getTypeTagPsi();
-    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
-    return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
+    if (typeTag != null) {
+      return HaxeTypeResolver.getTypeFromTypeTag(typeTag, getBasePsi());
+    }
+    final HaxeVarInit initializer = getInitializerPsi();
+    if (initializer != null) {
+      return HaxeTypeResolver.getPsiElementType(initializer);
+    }
+    return SpecificHaxeClassReference.getUnknown(getBasePsi()).createHolder();
   }
 
   @Override
