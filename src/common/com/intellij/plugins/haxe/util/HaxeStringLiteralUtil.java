@@ -19,8 +19,8 @@ import com.intellij.plugins.haxe.lang.psi.HaxePsiToken;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.SmartList;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.REGULAR_STRING_PART;
