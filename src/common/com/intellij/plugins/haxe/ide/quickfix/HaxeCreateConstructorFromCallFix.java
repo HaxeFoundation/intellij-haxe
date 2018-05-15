@@ -63,7 +63,6 @@ public class HaxeCreateConstructorFromCallFix extends CreateFromUsageBaseFix {
     return false;
   }
 
-  @Override
   protected List<PsiClass> filterTargetClasses(PsiElement element, Project project) {
     return Collections.singletonList(getElement((HaxeNewExpression)element));
   }

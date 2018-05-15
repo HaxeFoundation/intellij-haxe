@@ -31,6 +31,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.Consumer;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -283,6 +284,49 @@ public class UsefulPsiTreeUtil {
       sibling = sibling.getNextSibling();
     }
     return sibling;
+  }
+
+  @Nullable
+  public static PsiElement findSiblingForward(@NotNull final PsiElement element,
+                                              @NotNull final IElementType elementType,
+                                              @Nullable final Consumer<PsiElement> consumer) {
+    return findSiblingForward(element, elementType, true, consumer);
+  }
+
+  @Nullable
+  public static PsiElement findSiblingForward(@NotNull final PsiElement element,
+                                              @NotNull final IElementType elementType,
+                                              boolean strict,
+                                              @Nullable final Consumer<PsiElement> consumer) {
+    for (PsiElement e = strict ? element.getNextSibling() : element; e != null; e = e.getNextSibling()) {
+      if (elementType.equals(e.getNode().getElementType())) {
+        return e;
+      }
+      if (consumer != null) consumer.consume(e);
+    }
+    return null;
+  }
+
+
+  @Nullable
+  public static PsiElement findSiblingBackward(@NotNull final PsiElement element,
+                                               @NotNull final IElementType elementType,
+                                               @Nullable final Consumer<PsiElement> consumer) {
+    return findSiblingBackward(element, elementType, true, consumer);
+  }
+
+  @Nullable
+  public static PsiElement findSiblingBackward(@NotNull final PsiElement element,
+                                               @NotNull final IElementType elementType,
+                                               boolean strict,
+                                               @Nullable final Consumer<PsiElement> consumer) {
+    for (PsiElement e = strict ? element.getPrevSibling() : element; e != null; e = e.getPrevSibling()) {
+      if (elementType.equals(e.getNode().getElementType())) {
+        return e;
+      }
+      if (consumer != null) consumer.consume(e);
+    }
+    return null;
   }
 
 }

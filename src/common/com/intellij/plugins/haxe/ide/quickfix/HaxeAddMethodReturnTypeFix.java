@@ -50,11 +50,11 @@ public class HaxeAddMethodReturnTypeFix extends HaxeFixAndIntentionAction {
     HaxeMethodModel model = ((HaxeMethod)startElement).getModel();
     PsiElement anchor = UsefulPsiTreeUtil.getChild(model.getMethodPsi(), HaxeParameterList.class);
     if (anchor != null) {
-      anchor = PsiTreeUtil.findSiblingForward(anchor, HaxeTokenTypes.PRPAREN, null);
+      anchor = UsefulPsiTreeUtil.findSiblingForward(anchor, HaxeTokenTypes.PRPAREN, null);
     } else {
       PsiElement body = model.getBodyPsi();
       if (body != null) {
-        anchor = PsiTreeUtil.findSiblingBackward(body, HaxeTokenTypes.PRPAREN, null);
+        anchor = UsefulPsiTreeUtil.findSiblingBackward(body, HaxeTokenTypes.PRPAREN, null);
       }
     }
     if (anchor != null) {
