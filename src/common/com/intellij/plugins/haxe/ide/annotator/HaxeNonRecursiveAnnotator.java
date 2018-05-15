@@ -32,6 +32,7 @@ public class HaxeNonRecursiveAnnotator extends HaxeVisitor implements Annotator 
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     this.holder = holder;
     visitElement(element);
+    this.holder = null;
   }
 
   @Override
