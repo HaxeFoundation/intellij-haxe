@@ -93,22 +93,22 @@ public class FullyQualifiedInfo {
 
   public static String getRelativeQualifiedName(HaxeModel model, HaxeModel relativeModel) {
     FullyQualifiedInfo relativeInfo = relativeModel.getQualifiedInfo();
-    FullyQualifiedInfo methodInfo = model.getQualifiedInfo();
+    FullyQualifiedInfo info = model.getQualifiedInfo();
     if (relativeInfo != null &&
-        methodInfo != null &&
-        Objects.equals(relativeInfo.packagePath, methodInfo.packagePath) &&
-        Objects.equals(relativeInfo.fileName, methodInfo.fileName)) {
-      final String relativeMethodPath = relativeInfo.getPresentableText();
-      final String methodPath = methodInfo.getPresentableText();
-      int commonPrefixLength = StringUtil.commonPrefixLength(relativeMethodPath, methodPath, true);
+        info != null &&
+        Objects.equals(relativeInfo.packagePath, info.packagePath) &&
+        Objects.equals(relativeInfo.fileName, info.fileName)) {
+      final String relativePath = relativeInfo.getPresentableText();
+      final String path = info.getPresentableText();
+      int commonPrefixLength = StringUtil.commonPrefixLength(relativePath, path);
       if (commonPrefixLength > 0) {
-        if (relativeMethodPath.charAt(commonPrefixLength-1) != '.') {
-          commonPrefixLength = relativeMethodPath.substring(0, commonPrefixLength).lastIndexOf('.')+1;
+        if (relativePath.charAt(commonPrefixLength-1) != '.') {
+          commonPrefixLength = relativePath.substring(0, commonPrefixLength).lastIndexOf('.')+1;
         }
-        return methodPath.substring(commonPrefixLength);
+        return path.substring(commonPrefixLength);
       }
     }
-    if (methodInfo != null) return methodInfo.getPresentableText();
+    if (info != null) return info.getPresentableText();
     return model.getName();
   }
 
