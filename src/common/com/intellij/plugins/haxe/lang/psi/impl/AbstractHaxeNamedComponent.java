@@ -53,6 +53,7 @@ import java.util.Set;
 abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
+  private String myName;
   public ResultHolder _cachedType;
   public long _cachedTypeStamp;
 
@@ -85,6 +86,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
     final HaxeComponentName componentName = getComponentName();
     if (componentName != null) {
       componentName.setName(name);
+      myName = name;
     }
     return this;
   }
