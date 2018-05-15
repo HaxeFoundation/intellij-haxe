@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 /**
@@ -71,4 +72,9 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
     return annotator.newInstance();
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    UsefulTestCase.clearFields(this);
+  }
 }
