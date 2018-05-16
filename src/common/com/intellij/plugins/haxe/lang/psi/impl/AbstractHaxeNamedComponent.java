@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -65,7 +66,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
   @Nullable
   @NonNls
   public String getName() {
-    if (myName == null) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       final HaxeComponentName name = getComponentName();
       if (name != null) {
         myName = name.getText();
