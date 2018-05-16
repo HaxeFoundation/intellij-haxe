@@ -79,16 +79,12 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     return sb.toString();
   }
 
-  protected String degubName = null;
-
   public String toString() {
-    if (degubName == null) {
-      degubName = getTokenType().toString();
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        degubName += " " + getDebugName();
-      }
+    String out = getTokenType().toString();
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      out += " " + getDebugName();
     }
-    return degubName;
+    return out;
   }
 
   @Override
