@@ -6,6 +6,7 @@ out/
 idea-IU
 /idea-IU*
 /build/
+*/build/
 /build_test/
 local-build-overrides.xml
 intellij-haxe*.jar
