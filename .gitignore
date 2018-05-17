@@ -1,14 +1,30 @@
-out/
+##########
+# CONFIG #
+##########
 .DS_Store
-.idea/
+.idea
 .iml
 .project
-idea-IU
-/idea-IU*
+/intellij-haxe.iml
+
+##########
+# GRADLE #
+##########
+.gradle/
+
+##########
+# OUTPUT #
+##########
+out/
 /build/
 /build_test/
-local-build-overrides.xml
 intellij-haxe*.jar
-/gen/
+*/gen/
 
+################
+# DEPENDENCIES #
+################
+/idea-IU
+/dependencies/downloads
+/dependencies/tools
 
