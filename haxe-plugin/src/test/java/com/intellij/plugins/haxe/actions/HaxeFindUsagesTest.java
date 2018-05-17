@@ -106,6 +106,11 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
     doTest(7);
   }
 
+  public void testClassConstructor() throws Throwable {
+    myFixture.configureByFiles("ClassConstructor.hx");
+    doTest(3);
+  }
+
 
   //
   // Overrides tests
@@ -197,5 +202,6 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   public void testFindAncestorClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_ANCESTOR_CLASSES);
   }
+
 
 }

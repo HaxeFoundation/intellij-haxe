@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -53,6 +54,7 @@ import java.util.Set;
 abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
+  private String myName;
   public ResultHolder _cachedType;
   public long _cachedTypeStamp;
 
@@ -64,11 +66,15 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
   @Nullable
   @NonNls
   public String getName() {
-    final HaxeComponentName name = getComponentName();
-    if (name != null) {
-      return name.getText();
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      final HaxeComponentName name = getComponentName();
+      if (name != null) {
+        myName = name.getText();
+      } else {
+        myName = super.getName();
+      }
     }
-    return super.getName();
+    return myName;
   }
 
   @Override
@@ -81,6 +87,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
     final HaxeComponentName componentName = getComponentName();
     if (componentName != null) {
       componentName.setName(name);
+      myName = name;
     }
     return this;
   }
@@ -101,8 +108,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
 
         if (model == null) {
           result.append(AbstractHaxeNamedComponent.this.getName());
-        }
-        else {
+        } else {
           if (isFindUsageRequest()) {
             HaxeClassModel klass = model.getDeclaringClass();
             if (null != klass) {
@@ -140,7 +146,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         String path = "";
         if (haxeClass instanceof HaxeAnonymousType) {
           HaxeAnonymousTypeField field = PsiTreeUtil.getParentOfType(haxeClass, HaxeAnonymousTypeField.class);
-          while(field != null) {
+          while (field != null) {
             boolean addDelimiter = !path.isEmpty();
             path = field.getName() + (addDelimiter ? "." : "") + path;
             field = PsiTreeUtil.getParentOfType(field, HaxeAnonymousTypeField.class);
@@ -157,7 +163,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         if (haxeClass == AbstractHaxeNamedComponent.this) {
           return qName.getFirst();
         }
-        return haxeClass.getQualifiedName()+(path.isEmpty() ?  "" : "." + path);
+        return haxeClass.getQualifiedName() + (path.isEmpty() ? "" : "." + path);
       }
 
       @Override
@@ -173,7 +179,6 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
         // (AND, we can't change IDEA's shipping products on which this must run...)
         return HaxeDebugUtil.appearsOnStack(PsiElement2UsageTargetAdapter.class);
       }
-
     };
   }
 
@@ -274,8 +279,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
   public int getChildRole(ASTNode child) {
     if (child.getElementType() == HaxeTokenTypes.PLCURLY) {
       return ChildRole.LBRACE;
-    }
-    else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
+    } else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
       return ChildRole.RBRACE;
     }
 
