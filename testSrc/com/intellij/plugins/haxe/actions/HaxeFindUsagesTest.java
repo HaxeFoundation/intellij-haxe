@@ -71,6 +71,16 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
     return myFixture.findUsages(((PsiElementUsageTarget)targets[0]).getElement());
   }
 
+  public void testProperties1() throws Throwable {
+    myFixture.configureByFiles("Properties1.hx");
+    doTest(1);
+  }
+
+  public void testProperties2() throws Throwable {
+    myFixture.configureByFiles("Properties2.hx");
+    doTest(1);
+  }
+
   public void testVarDeclaration() throws Throwable {
     myFixture.configureByFiles("VarDeclaration.hx", "com/bar/Foo.hx");
     doTest(0);
