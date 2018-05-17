@@ -23,7 +23,7 @@ install:
     - haxelib setup "%HAXELIB_ROOT%"
 
 build_script:
-    - gradlew.bat buildPlugin -PgenerateHxcppDebugger=false -PtargetVersion=%IDEA_VERSION%
+    - gradlew.bat buildPlugin verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=%IDEA_VERSION%
 
 artifacts:
     path: intellij-haxe-*.jar
