@@ -177,7 +177,7 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
     if (StringUtils.startsWith(methodName, GETTER_PREFIX)) {
       classField = declaringClass.getField(methodName.substring(GETTER_PREFIX.length()));
     } else if (StringUtils.startsWith(methodName, SETTER_PREFIX)) {
-      classField = declaringClass.getField(methodName.substring(GETTER_PREFIX.length()));
+      classField = declaringClass.getField(methodName.substring(SETTER_PREFIX.length()));
     }
     return classField == null ? null : new PsiElement[]{classField.getBasePsi()};
   }
