@@ -1,7 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +16,20 @@
  */
 package com.intellij.plugins.haxe.ide.editor;
 
+import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.CodeInsightSettings;
+import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.editorActions.JavaTypedHandler;
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.util.HaxeDebugPsiUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -74,6 +77,23 @@ public class HaxeTypedHandler extends TypedHandlerDelegate {
     return text.endsWith("$") && PsiTreeUtil.getParentOfType(at, HaxePsiCompositeElement.class) != null;
   }
 
+  @NotNull
+  @Override
+  public Result checkAutoPopup(char charTyped, @NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+
+    int offset = editor.getCaretModel().getOffset();
+    PsiElement prevElement = file.findElementAt(offset-1);
+    if (prevElement == null || prevElement.getLanguage() != HaxeLanguage.INSTANCE) {
+      return Result.CONTINUE;
+    }
+
+    if (isAutoPopChar(charTyped) || (isAutoPopSpace(charTyped) && isAutoPopChar(prevElement))) {
+      AutoPopupController.getInstance(project).scheduleAutoPopup(editor, CompletionType.SMART, null);
+      return Result.STOP;
+    }
+    return super.checkAutoPopup(charTyped, project, editor, file);
+  }
+
   @Override
   public Result charTyped(char c, Project project, Editor editor, @NotNull PsiFile file) {
     String textToInsert = null;
@@ -94,5 +114,19 @@ public class HaxeTypedHandler extends TypedHandlerDelegate {
       }
     }
     return super.charTyped(c, project, editor, file);
+  }
+
+  private static boolean isAutoPopChar(char charTyped) {
+    return charTyped == ':';
+  }
+
+  private static boolean isAutoPopChar(PsiElement element) {
+    if (null == element) { return false; }
+    final String text = element.getText();
+    return null != text && text.length() == 1 && isAutoPopChar(text.charAt(0));
+  }
+
+  private static boolean isAutoPopSpace(char charTyped) {
+    return charTyped == ' ' || charTyped == '\t';
   }
 }

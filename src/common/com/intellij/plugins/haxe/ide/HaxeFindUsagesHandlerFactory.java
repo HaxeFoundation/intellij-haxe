@@ -70,7 +70,7 @@ public class HaxeFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       if (!forHighlightUsages) {
         if (target instanceof PsiReference) {
           PsiElement resolved = ((PsiReference)target).resolve();
-          if (null != resolved && resolved instanceof HaxeMethod) {
+          if (resolved instanceof HaxeMethod) {
             target = resolved;
           }
         }
@@ -78,13 +78,12 @@ public class HaxeFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
           PsiMethod[] supers = ((HaxeMethod)target).findSuperMethods();
           if (supers.length != 0) {
             String chosen = askWhetherToSearchForOverridingMethods(target);
-            if (CURRENT_CLASS == chosen)    { return new HaxeFindUsagesHandler(target); }
-            else if (BASE_CLASS == chosen)  { return new HaxeFindUsagesHandler(supers[supers.length - 1]); }
+            if (CURRENT_CLASS.equals(chosen))    { return new HaxeFindUsagesHandler(target); }
+            else if (BASE_CLASS.equals(chosen))  { return new HaxeFindUsagesHandler(supers[supers.length - 1]); }
             else /* ANCESTOR_CLASSES */     { return new HaxeFindUsagesHandler(target, supers); }
           }
         }
       }
-
       return new HaxeFindUsagesHandler(target != null ? target : element);
     }
     return FindUsagesHandler.NULL_HANDLER;
