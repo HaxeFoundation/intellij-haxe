@@ -1,0 +1,127 @@
+<project name="Ant logic for downloading Flex dependencies" default="flexSkeleton.setup" basedir=".">
+
+  <import file="fetchCommon.xml"/>
+
+  <description>
+
+  </description>
+
+
+  <property name="flexTargetFile" value="${basedir}/idea-flex.skeleton"/>
+
+  <!-- On a mac, the build.txt is in a Resources directory, whereas on
+     Windows and Linux, it's in the root. -->
+  <condition property="idea.build.id.file" value="Resources/build.txt">
+    <os family="mac"/>
+  </condition>
+  <property name="idea.build.id.file" value="build.txt"/>
+
+
+  <target name="flexSkeleton.setup" depends="flex.findIdeaBuildVersionDefault, flex.findIdeaBuildVersionAlt">
+    <antcall target="common.InitDependenciesDir"/>
+    <antcall target="flex.fetchFromBranchDefault"/>
+    <antcall target="flex.fetchFromBranchAlt"/>
+    <antcall target="flex.fetchFromBranchMaster"/>
+  </target>
+
+  <target name="flex.fetchFromBranchDefault"  unless="flex.downloadedDefault" depends="flex.checkDownloadDefault" >
+    <antcall target="flex.downloadFromBranchDefault"/>
+    <antcall target="flex.copyToBaseDirDefault"/>
+  </target>
+
+  <target name="flex.fetchFromBranchAlt" unless="flex.downloadedDefaultOrAlt" depends="flex.checkDownloadDefaultOrAlt">
+    <antcall target="flex.downloadFromBranchAlt"/>
+    <antcall target="flex.copyToBaseDirAlt"/>
+  </target>
+
+  <target name="flex.fetchFromBranchMaster" unless="flex.anyDownloaded" depends="flex.checkAnyDownload">
+    <property name="idea.buildVersionMaster" value="master"/>
+    <antcall target="flex.downloadFromMaster"/>
+    <antcall target="flex.copyToBaseDirMaster"/>
+  </target>
+
+  <target name="flex.findIdeaBuildVersionDefault">
+    <loadfile srcfile="${basedir}/idea-IU/${idea.build.id.file}" property="idea.buildVersionDefault">
+      <filterchain>
+        <linecontainsregexp>
+          <regexp pattern="IU-(\d+.\d+).\d+"/>
+        </linecontainsregexp>
+        <tokenfilter>
+          <stringtokenizer/>
+          <replaceregex pattern="IU-(\d+.\d+).\d+" replace="\1"/>
+        </tokenfilter>
+      </filterchain>
+    </loadfile>
+  </target>
+
+  <target name="flex.findIdeaBuildVersionAlt">
+    <loadfile srcfile="${basedir}/idea-IU/${idea.build.id.file}" property="idea.buildVersionAlt" >
+      <filterchain>
+        <linecontainsregexp>
+          <regexp pattern="IU-(\d+).\d+.\d+"/>
+        </linecontainsregexp>
+        <tokenfilter>
+          <stringtokenizer/>
+          <replaceregex pattern="IU-(\d+).\d+.\d+" replace="\1"/>
+        </tokenfilter>
+      </filterchain>
+    </loadfile>
+  </target>
+
+  <target name="flex.checkDownloadDefault">
+    <condition property="flex.downloadedDefault">
+      <available file="{dependenciesDir}/idea-flex-${idea.buildVersionDefault}.skeleton" type="file"/>
+    </condition>
+  </target>
+
+  <target name="flex.checkDownloadDefaultOrAlt">
+    <condition property="flex.downloadedDefaultOrAlt">
+      <or>
+        <available file="{dependenciesDir}/idea-flex-${idea.buildVersionDefault}.skeleton" type="file"/>
+        <available file="{dependenciesDir}/idea-flex-${idea.buildVersionAlt}.skeleton" type="file"/>
+      </or>
+    </condition>
+  </target>
+  <target name="flex.checkAnyDownload">
+    <condition property="flex.anyDownloaded">
+      <or>
+        <available file="{dependenciesDir}/idea-flex-${idea.buildVersionDefault}.skeleton" type="file"/>
+        <available file="{dependenciesDir}/idea-flex-${idea.buildVersionAlt}.skeleton" type="file"/>
+        <available file="{dependenciesDir}/idea-flex-master.skeleton" type="file"/>
+      </or>
+    </condition>
+  </target>
+
+
+
+  <target name="flex.downloadFromBranchDefault" depends="flex.checkDownloadDefault" unless="flex.downloadedDefault">
+    <get dest="${dependenciesDir}/idea-flex-${idea.buildVersionDefault}.skeleton"
+         src="https://raw.githubusercontent.com/JetBrains/intellij-community/${idea.buildVersionDefault}/tools/lexer/idea-flex.skeleton" ignoreerrors="true"/>
+  </target>
+
+  <target name="flex.downloadFromBranchAlt" depends="flex.checkDownloadDefaultOrAlt" unless="flex.downloadedDefaultOrAlt">
+    <get dest="${dependenciesDir}/idea-flex-${idea.buildVersionAlt}.skeleton"
+         src="https://raw.githubusercontent.com/JetBrains/intellij-community/${idea.buildVersionAlt}/tools/lexer/idea-flex.skeleton" ignoreerrors="true"/>
+  </target>
+
+  <target name="flex.downloadFromMaster" depends="flex.checkAnyDownload" unless="flex.anyDownloaded">
+    <get dest="${dependenciesDir}/idea-flex-master.skeleton"
+         src="https://raw.githubusercontent.com/JetBrains/intellij-community/master/tools/lexer/idea-flex.skeleton" ignoreerrors="true"/>
+  </target>
+
+
+  <target name="flex.copyToBaseDirDefault" depends="flex.checkDownloadDefault" if="flex.downloadedDefault">
+    <copy file="${dependenciesDir}/idea-flex-${idea.buildVersionDefault}.skeleton" tofile="${flexTargetFile}"/>
+  </target>
+
+  <target name="flex.copyToBaseDirAlt" depends="flex.checkDownloadDefaultOrAlt" if="flex.downloadedDefaultOrAlt" unless="flex.downloadedDefault">
+    <copy file="${dependenciesDir}/idea-flex-${idea.buildVersionAlt}.skeleton" tofile="${flexTargetFile}"/>
+  </target>
+
+  <target name="flex.copyToBaseDirMaster" depends="flex.checkAnyDownload" unless="flex.anyDownloaded">
+    <copy file="${dependenciesDir}/idea-flex-master.skeleton" tofile="${flexTargetFile}"/>
+  </target>
+
+
+
+</project>
