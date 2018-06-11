@@ -29,7 +29,7 @@ if (!project.hasProperty('targetVersion')) {
     println 'to specify build target use -PtargetVersion=<version>'
     println 'Ex:'
     println 'gradlew buildPlugin -PtargetVersion=2017.2.2'
-    println 'If your running "gradle clean" just ignore this warning'
+    println 'If you\'re running "gradle clean," just ignore this warning.'
     println '-------------------------------------------------------'
 } else {
     ext.ideaVersion = project.property('targetVersion')
@@ -80,10 +80,6 @@ allprojects {
     }
 }
 
-
-
-
-
 //Download build tools
 apply from: 'dependencies/tools.gradle'
 
@@ -127,6 +123,9 @@ dependencies {
 
 }
 
+runIde {
+    jbreVersion 'jbrex8u152b1248.6'
+}
 
 compileJava {
     dependsOn 'generateIdeaSdkIdentifer'
@@ -172,8 +171,12 @@ task patchCustomTags() {
 }
 
 jar {
-    baseName = "intellij-haxe-${ideaVersion}"
-
+    if(jarNametruncateMinor) {
+        // remove minor version digit from jar name (ex. 2017.2.3 -> 2017.2)
+        baseName = "intellij-haxe-${ideaVersion.replaceAll('(\\d{4}\\.\\d)(\\.\\d)?','$1')}"
+    }else {
+        baseName = "intellij-haxe-${ideaVersion}"
+    }
     include('**/*').includeEmptyDirs(false)
     // include submodules
     from(project(':jps-plugin').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
@@ -230,6 +233,7 @@ task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'genera
 }
 
 
+import groovy.xml.MarkupBuilder
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
@@ -320,6 +324,81 @@ tasks.withType(Test) {
                 def startItem = '|  ', endItem = '  |'
                 def repeatLength = startItem.length() + output.length() + endItem.length()
                 println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+            }
+        }
+    }
+}
+
+
+task checkForMissingRunConfigurations() {
+    def runConfigurationsDir = new File(".idea/runConfigurations")
+    if (!runConfigurationsDir.exists()) {
+        generateRunConfigurations()
+    }
+}
+
+task regenerateRunConfigurations() {
+    doLast {
+        generateRunConfigurations()
+    }
+}
+
+private void generateRunConfigurations() {
+
+
+
+    createGradleRunConfiguration('Run IDE (default)', 'runIde', '', '')
+    createGradleRunConfiguration('Run Tests (default)', 'clean test', '', '')
+
+    createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
+
+
+    createGradleRunConfiguration('Run Tests 2018', 'clean test', "-PtargetVersion=$latest2018Version", '')
+    createGradleRunConfiguration('Run Tests 2017', 'clean test', "-PtargetVersion=$latest2017Version", '')
+    createGradleRunConfiguration('Run Tests 2016', 'clean test', "-PtargetVersion=$latest2016Version", '')
+
+    createGradleRunConfiguration('Run IDE 2018',
+                                 'runIde',
+                                 "-PtargetVersion=$latest2018Version",
+                                 ' -DHAXELIB_LIST_PATH_SUPPORTED=1')
+    createGradleRunConfiguration('Run IDE 2017',
+                                 'runIde',
+                                 "-PtargetVersion=$latest2017Version",
+                                 '-DHAXELIB_LIST_PATH_SUPPORTED=1')
+    createGradleRunConfiguration('Run IDE 2016',
+                                 'runIde',
+                                 "-PtargetVersion=$latest2016Version",
+                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -ea -DHAXELIB_LIST_PATH_SUPPORTED=1')
+
+
+
+}
+
+// create IDEA run configurations from Gradle JavaExec tasks
+private void createGradleRunConfiguration(String configName, String taskList,String scriptParams, String vmOptions) {
+
+
+    def runConfigurationsDir = new File(".idea/runConfigurations")
+    runConfigurationsDir.mkdirs()
+
+    def writer = new FileWriter(new File(runConfigurationsDir, "${configName.replaceAll("\\s", "_")}.xml"))
+    def xml = new MarkupBuilder(writer)
+
+    xml.component(name: "ProjectRunConfigurationManager") {
+        configuration(default: 'false', name: configName, type: "GradleRunConfiguration", factoryName: "Gradle") {
+            ExternalSystemSettings() {
+                option(name: 'executionName')
+                option(name: 'externalProjectPath', value: '$PROJECT_DIR$')
+                option(name: 'externalSystemIdString', value: "GRADLE")
+                option(name: 'scriptParameters', value: scriptParams)
+                option(name: 'taskNames') {
+                    list() {
+                        for (String task : taskList.split('\\s')) {
+                            option(value: task)
+                        }
+                    }
+                }
+                option(name: 'vmOptions', value: vmOptions)
             }
         }
     }
