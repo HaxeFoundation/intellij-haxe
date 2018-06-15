@@ -3,6 +3,9 @@ out/
 .idea/
 .iml
 .project
+.gradle/
+dependencies/downloads/
+dependencies/tools/
 idea-IU
 /idea-IU*
 /build/
@@ -11,5 +14,4 @@ idea-IU
 local-build-overrides.xml
 intellij-haxe*.jar
 /gen/
-
 
