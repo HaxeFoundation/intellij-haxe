@@ -128,9 +128,7 @@ runIde {
 }
 
 compileJava {
-    dependsOn 'generateIdeaSdkIdentifer'
-    dependsOn 'generateHaxeParser'
-    dependsOn 'generateHxmlParser'
+    dependsOn 'generateSources'
 }
 
 processResources {
@@ -252,6 +250,12 @@ task generateIdeaSdkIdentifer(group: 'generate') {
   }
 }
 
+task generateSources(group: 'generate') {
+    dependsOn 'generateIdeaSdkIdentifer'
+    dependsOn 'generateHaxeParser'
+    dependsOn 'generateHxmlParser'
+}
+
 Properties findSdkValuesAndProperties(File buildFile) {
     def buildId = buildFile.getText()
     def typeSep = buildId.indexOf("-")
@@ -347,7 +351,7 @@ private void generateRunConfigurations() {
 
 
 
-    createGradleRunConfiguration('Run IDE (default)', 'runIde', '', '')
+    createGradleRunConfiguration('Run IDE (default)', 'runIde', '', '-Didea.is.internal=true')
     createGradleRunConfiguration('Run Tests (default)', 'clean test', '', '')
 
     createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
@@ -360,15 +364,15 @@ private void generateRunConfigurations() {
     createGradleRunConfiguration('Run IDE 2018',
                                  'runIde',
                                  "-PtargetVersion=$latest2018Version",
-                                 ' -DHAXELIB_LIST_PATH_SUPPORTED=1')
+                                 ' -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
     createGradleRunConfiguration('Run IDE 2017',
                                  'runIde',
                                  "-PtargetVersion=$latest2017Version",
-                                 '-DHAXELIB_LIST_PATH_SUPPORTED=1')
+                                 '-DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
     createGradleRunConfiguration('Run IDE 2016',
                                  'runIde',
                                  "-PtargetVersion=$latest2016Version",
-                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -ea -DHAXELIB_LIST_PATH_SUPPORTED=1')
+                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -ea -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
 
 
 

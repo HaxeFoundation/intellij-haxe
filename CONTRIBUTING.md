@@ -190,6 +190,13 @@ all these tasks  can be found under project root (intellij-haxe)
 You can chose between run and debug by right clicking on the task you want to execute 
 ![gradle panel](./doc/idea_gradle_panel.png)
 
+###### Syntax Errors
+Its recommended to build the project first before you start writing code as some parts of the project 
+uses generated code and you may experience syntax errors in your code editor, the code will however
+build just fine as these sources are generated when the project is built.
+ 
+If you just want to generate the nessesary sources you can run the `generateSources` gradle task.
+
 ## Debugging
 -------
 
