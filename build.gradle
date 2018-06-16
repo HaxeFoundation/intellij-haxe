@@ -56,7 +56,7 @@ allprojects {
 
         //Note: path is system directory separator sensitive, file.absolutePath solves this for us
         grammarHaxe = file("${haxePluginDir}/grammar/haxe.bnf").absolutePath
-        grammarHxml = file("${haxePluginDir}/src/common/com/intellij/plugins/haxe/hxml/hxml.bnf").absolutePath
+        grammarHxml = file("${haxePluginDir}/grammar/hxml.bnf").absolutePath
 
         flexDownloadFile = "idea-flex-${ideaVersion}.skeleton"
         flexTargetFile = "idea-flex.skeleton"
