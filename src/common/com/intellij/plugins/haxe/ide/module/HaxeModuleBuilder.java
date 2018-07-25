@@ -121,7 +121,7 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
             + "--interp";
           buildHxml.setBinaryContent(buildHxmlSource.getBytes(StandardCharsets.UTF_8));
 
-          createRunConfiguration(module, buildHxml.getPath());
+          createDefaultRunConfiguration(module, buildHxml.getPath());
 
         } catch (IOException e) {
         }
@@ -130,7 +130,7 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
     LOG.debug("Hey");
   }
 
-  private void createRunConfiguration(Module module, String buildHxmlPath) {
+  private void createDefaultRunConfiguration(Module module, String buildHxmlPath) {
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
     settings.setHaxeTarget(HaxeTarget.INTERP);
     settings.setBuildConfig(HaxeConfiguration.HXML.asBuildConfigValue());
