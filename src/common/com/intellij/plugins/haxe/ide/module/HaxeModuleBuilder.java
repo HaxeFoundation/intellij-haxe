@@ -17,19 +17,44 @@
  */
 package com.intellij.plugins.haxe.ide.module;
 
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
 import com.intellij.ide.util.projectWizard.SourcePathsBuilder;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.config.HaxeConfiguration;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
+import com.intellij.plugins.haxe.runner.HaxeApplicationModuleBasedConfiguration;
+import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsBuilder, ModuleBuilderListener {
+  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
+
   @Override
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
     addListener(this);
@@ -51,6 +76,73 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
     final CompilerModuleExtension model = (CompilerModuleExtension)CompilerModuleExtension.getInstance(module).getModifiableModel(true);
     model.setCompilerOutputPath(model.getCompilerOutputUrl());
     model.inheritCompilerOutputPath(false);
+    createHelloWorldIfEligible(module);
+
     model.commit();
+  }
+
+  private void createHelloWorldIfEligible(Module module) {
+    ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+    VirtualFile[] srcDirs = rootManager.getSourceRoots();
+    VirtualFile[] rootDirs = rootManager.getContentRoots();
+    if(rootDirs.length != 1 || srcDirs.length != 1) {
+      return;
+    }
+
+    VirtualFile root = rootDirs[0];
+    VirtualFile src = srcDirs[0];
+
+    if(src.getChildren().length != 0) {
+      return;
+    }
+    for(VirtualFile item:root.getChildren()) {
+      if(item.getExtension() == "hxml") {
+        return;
+      }
+    }
+
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          VirtualFile mainHx = src.createChildData(this, "Main.hx");
+          String mainHxSource = "class Main {\n"
+            + "    static public function main() {\n"
+            + "        trace(\"Hello, world!\");\n"
+            + "    }\n"
+            + "}\n";
+          mainHx.setBinaryContent(mainHxSource.getBytes(StandardCharsets.UTF_8));
+
+          VirtualFile buildHxml = root.createChildData(this, "build.hxml");
+          String buildHxmlSource = "-cp src\n"
+            + "-D analyzer-optimize\n"
+            + "-main Main\n"
+            + "--interp";
+          buildHxml.setBinaryContent(buildHxmlSource.getBytes(StandardCharsets.UTF_8));
+
+          createRunConfiguration(module, buildHxml.getPath());
+
+        } catch (IOException e) {
+        }
+      }
+    });
+    LOG.debug("Hey");
+  }
+
+  private void createRunConfiguration(Module module, String buildHxmlPath) {
+    HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+    settings.setHaxeTarget(HaxeTarget.INTERP);
+    settings.setBuildConfig(HaxeConfiguration.HXML.asBuildConfigValue());
+    settings.setHxmlPath(buildHxmlPath);
+    RunManager manager = RunManager.getInstance(module.getProject());
+    HaxeRunConfigurationType configType = HaxeRunConfigurationType.getInstance();
+    if(manager.getConfigurationsList(configType).isEmpty()) {
+      RunnerAndConfigurationSettings runSettings = manager.createConfiguration("Execute", configType.getConfigurationFactories()[0]);
+      HaxeApplicationConfiguration config = (HaxeApplicationConfiguration)runSettings.getConfiguration();
+      config.setModule(module);
+      manager.addConfiguration(runSettings);
+      manager.setSelectedConfiguration(runSettings);
+    }
   }
 }
