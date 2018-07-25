@@ -23,6 +23,7 @@ import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
 import com.intellij.ide.util.projectWizard.SourcePathsBuilder;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
@@ -112,6 +113,9 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
           buildHxml.setBinaryContent(buildHxmlSource.getBytes(StandardCharsets.UTF_8));
 
           createDefaultRunConfiguration(module, buildHxml.getPath());
+
+          FileEditorManager editorManager = FileEditorManager.getInstance(module.getProject());
+          editorManager.openFile(mainHx, true);
 
         } catch (IOException e) {
         }
