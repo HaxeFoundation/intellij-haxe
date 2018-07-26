@@ -23,8 +23,6 @@ import com.intellij.openapi.projectRoots.SdkType;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 
 public class HaxeSdkWizardStep extends ProjectJdkForModuleStep {
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-
   private HaxeModuleBuilder myModuleBuilder;
 
   public HaxeSdkWizardStep(HaxeModuleBuilder moduleBuilder, WizardContext context, SdkType type) {

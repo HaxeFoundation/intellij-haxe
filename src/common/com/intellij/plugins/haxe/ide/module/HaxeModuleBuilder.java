@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.ide.module;
 
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
 import com.intellij.ide.util.projectWizard.SourcePathsBuilder;
@@ -44,8 +45,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsBuilder, ModuleBuilderListener {
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-
   @Override
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
     addListener(this);
@@ -121,7 +120,6 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
         }
       }
     });
-    LOG.debug("Hey");
   }
 
   private void createDefaultRunConfiguration(Module module, String buildHxmlPath) {
@@ -132,9 +130,11 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
     RunManager manager = RunManager.getInstance(module.getProject());
     HaxeRunConfigurationType configType = HaxeRunConfigurationType.getInstance();
     if(manager.getConfigurationsList(configType).isEmpty()) {
-      RunnerAndConfigurationSettings runSettings = manager.createConfiguration("Execute", configType.getConfigurationFactories()[0]);
-      HaxeApplicationConfiguration config = (HaxeApplicationConfiguration)runSettings.getConfiguration();
+      ConfigurationFactory factory = configType.getConfigurationFactories()[0];
+      HaxeApplicationConfiguration config = (HaxeApplicationConfiguration)factory.createTemplateConfiguration(module.getProject());
+      config.setName("Execute");
       config.setModule(module);
+      RunnerAndConfigurationSettings runSettings = manager.createConfiguration(config, factory);
       manager.addConfiguration(runSettings);
       manager.setSelectedConfiguration(runSettings);
     }
