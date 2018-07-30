@@ -68,12 +68,8 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   public ModuleWizardStep[] createWizardSteps(final WizardContext wizardContext,
                                               final HaxeModuleBuilder moduleBuilder,
                                               final ModulesProvider modulesProvider) {
-    return new ModuleWizardStep[]{new ProjectJdkForModuleStep(wizardContext, HaxeSdkType.getInstance()) {
-      public void updateDataModel() {
-        super.updateDataModel();
-        moduleBuilder.setModuleJdk(getJdk());
-        // TODO: generate Main class as entry point for new projects
-      }
-    }};
+    return new ModuleWizardStep[]{
+      new HaxeSdkWizardStep(moduleBuilder, wizardContext, HaxeSdkType.getInstance())
+    };
   }
 }
