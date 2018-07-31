@@ -67,7 +67,6 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   public ModuleWizardStep[] createWizardSteps(final WizardContext wizardContext,
                                               final HaxeModuleBuilder moduleBuilder,
                                               final ModulesProvider modulesProvider) {
-
     HaxeSdkType type = HaxeSdkType.getInstance();
     type.ensureSdk();
 
