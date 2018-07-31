@@ -19,19 +19,13 @@ package com.intellij.plugins.haxe.ide.module;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleTypeManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 
 import javax.swing.*;
-import java.util.List;
 
 public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   private static final String MODULE_TYPE_ID = "HAXE_MODULE";
@@ -75,14 +69,7 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
                                               final ModulesProvider modulesProvider) {
 
     HaxeSdkType type = HaxeSdkType.getInstance();
-
-    ProjectJdkTable sdkTable = ProjectJdkTable.getInstance();
-    if(sdkTable.getSdksOfType(type).isEmpty()) {
-      String homePath = HaxeSdkUtil.suggestHomePath();
-      Sdk sdk = new ProjectJdkImpl(type.getName(), type, homePath, type.getVersionString(homePath));
-      type.setupSdkPaths(sdk);
-      ApplicationManager.getApplication().runWriteAction(() -> sdkTable.addJdk(sdk));
-    }
+    type.ensureSdk();
 
     return new ModuleWizardStep[]{
       new HaxeSdkWizardStep(moduleBuilder, wizardContext, type)

@@ -17,9 +17,10 @@
  */
 package com.intellij.plugins.haxe.config.sdk;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
@@ -120,5 +121,18 @@ public class HaxeSdkType extends SdkType {
       result.withShowHiddenFiles(true); // TODO: Test on a mac: converted for v15.
     }
     return result;
+  }
+
+  /**
+   * Try to automatically setup Haxe SDK if it's not configured yet.
+   */
+  public void ensureSdk() {
+    ProjectJdkTable sdkTable = ProjectJdkTable.getInstance();
+    if(sdkTable.getSdksOfType(this).isEmpty()) {
+      String homePath = HaxeSdkUtil.suggestHomePath();
+      Sdk sdk = new ProjectJdkImpl(getName(), this, homePath, getVersionString(homePath));
+      setupSdkPaths(sdk);
+      ApplicationManager.getApplication().runWriteAction(() -> sdkTable.addJdk(sdk));
+    }
   }
 }
