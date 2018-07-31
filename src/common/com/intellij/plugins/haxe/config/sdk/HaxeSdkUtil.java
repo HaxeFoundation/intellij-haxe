@@ -77,7 +77,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       }
       final HaxeSdkData haxeSdkData = new HaxeSdkData(path, haxeVersion);
       haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
-      haxeSdkData.setNekoBinPath(locateExecutable("neko"));
+      haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
       return haxeSdkData;
     }
     catch (ExecutionException e) {
@@ -115,6 +115,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     }
   }
 
+  @Nullable
   private static String suggestNekoBinPath(@NotNull String path) {
     String result = System.getenv("NEKOPATH");
     if (result == null) {
