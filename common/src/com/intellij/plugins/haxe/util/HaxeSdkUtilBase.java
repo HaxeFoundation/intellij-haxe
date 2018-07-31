@@ -72,7 +72,7 @@ public class HaxeSdkUtilBase {
   }
 
   public static String getExecutableName(String name) {
-    if (SystemInfo.isWindows) {
+    if (SystemInfo.isWindows && !name.endsWith(".exe")) {
       return name + ".exe";
     }
     return name;

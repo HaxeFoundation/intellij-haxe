@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,7 +77,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       }
       final HaxeSdkData haxeSdkData = new HaxeSdkData(path, haxeVersion);
       haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
-      haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
+      haxeSdkData.setNekoBinPath(locateExecutable("neko"));
       return haxeSdkData;
     }
     catch (ExecutionException e) {
@@ -92,7 +93,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     VirtualFile stdRoot;
     final String stdPath = System.getenv("HAXE_STD_PATH");
     if (stdPath != null) {
-      stdRoot = VirtualFileManager.getInstance().findFileByUrl(stdPath);
+      stdRoot = VirtualFileManager.getInstance().findFileByUrl("file://" + stdPath);
     }
     else {
       stdRoot = sdkRoot.findChild("std");
@@ -114,7 +115,6 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     }
   }
 
-  @Nullable
   private static String suggestNekoBinPath(@NotNull String path) {
     String result = System.getenv("NEKOPATH");
     if (result == null) {
@@ -141,19 +141,59 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       return s;
     }
 
+    result = locateExecutable("neko");
+    if(result != null) {
+      LOG.debug("returning neko path: " + result);
+      return result;
+    }
+
     LOG.debug("returning neko path: null");
     return null;
   }
 
   @Nullable
   public static String suggestHomePath() {
-    final String result = System.getenv("HAXEPATH");
-    if (result == null && !SystemInfo.isWindows) {
-      final String candidate = "/usr/lib/haxe";
-      if (VirtualFileManager.getInstance().findFileByUrl(VfsUtil.pathToUrl(candidate)) != null) {
-        return candidate;
+    //HAXEPATH is created by windows installer. Used by haxelib.
+    String haxePath = System.getenv("HAXEPATH");
+    if(haxePath != null) {
+      return haxePath;
+    }
+
+    //Specifies the path to `std` directory in SDK. Used by Haxe compiler.
+    String stdPath = System.getenv("HAXE_STD_PATH");
+    if(stdPath != null) {
+      return new File(stdPath).getParent();
+    }
+
+    //Try to locate SDK path relative to the compiler executable.
+    String compilerPath = locateExecutable("haxe");
+    if(compilerPath != null) {
+      String presumedSdkPath = new File(compilerPath).getParent();
+      if(new File(presumedSdkPath, "std/Array.hx").exists()) {
+        return presumedSdkPath;
       }
     }
-    return result;
+
+    return null;
+  }
+
+  /**
+   * Look for specified program in directories which are listed in the PATH environment variable.
+   * @return Canonical path (absolute, symlinks resolved) to `executable` if found. `null` otherwise.
+   */
+  @Nullable
+  private static String locateExecutable(String executable) {
+    String pathEnv = System.getenv("PATH");
+    String[] paths = pathEnv.split(SystemInfo.isWindows ? ";" : ":");
+    for(String path:paths) {
+      File file = new File(path, getExecutableName(executable));
+      if(file.exists()) {
+        try {
+          return file.getCanonicalPath();
+        }
+        catch (IOException e) {}
+      }
+    }
+    return null;
   }
 }
