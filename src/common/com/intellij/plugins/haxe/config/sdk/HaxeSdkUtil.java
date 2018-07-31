@@ -184,10 +184,11 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
    */
   @Nullable
   private static String locateExecutable(String executable) {
+    executable = getExecutableName(executable);
     String pathEnv = System.getenv("PATH");
     String[] paths = pathEnv.split(SystemInfo.isWindows ? ";" : ":");
     for(String path:paths) {
-      File file = new File(path, getExecutableName(executable));
+      File file = new File(path, executable);
       if(file.exists()) {
         try {
           return file.getCanonicalPath();
