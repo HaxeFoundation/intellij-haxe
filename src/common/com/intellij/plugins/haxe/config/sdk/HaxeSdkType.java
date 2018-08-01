@@ -130,9 +130,11 @@ public class HaxeSdkType extends SdkType {
     ProjectJdkTable sdkTable = ProjectJdkTable.getInstance();
     if(sdkTable.getSdksOfType(this).isEmpty()) {
       String homePath = HaxeSdkUtil.suggestHomePath();
-      Sdk sdk = new ProjectJdkImpl(getName(), this, homePath, getVersionString(homePath));
-      setupSdkPaths(sdk);
-      ApplicationManager.getApplication().runWriteAction(() -> sdkTable.addJdk(sdk));
+      if(homePath != null) {
+        Sdk sdk = new ProjectJdkImpl(getName(), this, homePath, getVersionString(homePath));
+        setupSdkPaths(sdk);
+        ApplicationManager.getApplication().runWriteAction(() -> sdkTable.addJdk(sdk));
+      }
     }
   }
 }
