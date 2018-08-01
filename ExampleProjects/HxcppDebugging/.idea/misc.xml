@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" default="false" project-jdk-name="Haxe 3.4.2" project-jdk-type="Haxe toolkit">
+    <output url="file://out" />
+  </component>
+</project>

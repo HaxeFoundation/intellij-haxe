@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+    <meta title="HxcppDebugging" package="org.HaxeFoundation.intellij-haxe" version="1.0.0" company="Bishton Software Solutions" />
+    <app main="Main" path="Export" file="./HxcppDebugging" />
+
+    <source path="src" />
+
+    <haxelib name="openfl"/>
+    <haxelib name="hxcpp" if="cpp"/>
+    <haxelib name="hxcpp-debugger" if="debug cpp"/>
+
+    <!-- Show the console -->
+    <set name="SHOW_CONSOLE" value="1" />
+
+    <!-- Debugger -->
+    <haxedef name="HXCPP_DEBUG" if="debug" />
+    <haxedef name="HXCPP_DEBUGGER" value="1" if="debug" />
+    <haxedef name="HXCPP_CHECK_POINTER" if="debug" />  <!--makes null references cause errors-->
+    <haxedef name="HXCPP_STACK_VARS" if="debug" />    <!--if you want stack variables-->
+    <haxedef name="HXCPP_STACK_LINE" if="debug" />    <!--if you want line numbers-->
+    <haxedef name="HXCPP_STACK_TRACE" if="debug" />    <!--if you want stack traces-->
+
+</project>

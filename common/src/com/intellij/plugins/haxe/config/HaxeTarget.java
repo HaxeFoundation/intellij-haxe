@@ -42,11 +42,13 @@ public enum HaxeTarget {
   CSHARP(       "cs",     ".exe",     "cs",       OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.csharp")),
   PYTHON(       "python", ".py",      "python",   OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.python")),
   LUA(          "lua",    ".lua",     "lua",      OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.lua")),
-  HL(           "hl",     ".hl",      "hl",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.hl"));
+  HL(           "hl",     ".hl",      "hl",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.hl")),
+  INTERP(       "-interp","",         "",         OUTPUT_TYPE.NONE,       HaxeCommonBundle.message("haxe.target.interp"));
 
   private enum OUTPUT_TYPE {
     FILE,
-    DIRECTORY
+    DIRECTORY,
+    NONE
   }
 
   private final String flag;
@@ -117,5 +119,8 @@ public enum HaxeTarget {
   }
   public boolean isOutputToSingleFile() {
     return outputType == OUTPUT_TYPE.FILE;
+  }
+  public boolean isNoOutput() {
+    return outputType == OUTPUT_TYPE.NONE;
   }
 }
