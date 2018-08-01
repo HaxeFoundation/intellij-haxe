@@ -117,39 +117,26 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
 
   @Nullable
   private static String suggestNekoBinPath(@NotNull String path) {
-    String result = System.getenv("NEKOPATH");
-    if (result == null) {
-      result = System.getenv("NEKO_INSTPATH");
+    final String binName = "neko";
+    String result = null;
+
+    String nekoDir = System.getenv("NEKOPATH");
+    if (nekoDir == null) {
+      nekoDir = System.getenv("NEKO_INSTPATH");
     }
-    if (result == null && !SystemInfo.isWindows) {
-      final VirtualFile candidate = VirtualFileManager.getInstance().findFileByUrl("/usr/bin/neko");
-      if (candidate != null && candidate.exists()) {
-        String s = FileUtil.toSystemIndependentName(candidate.getPath());
-        LOG.debug("returning neko path: " + s);
-        return s;
+    if(nekoDir != null) {
+      File nekoFile =  new File(nekoDir, binName);
+      if(nekoFile.exists()) {
+        result = nekoFile.getPath();
       }
     }
-    if (result == null) {
-      final String parentPath = new File(path).getParent();
-      result = new File(parentPath, "neko").getAbsolutePath();
-    }
-    if (result != null) {
-      result = new File(result, getExecutableName("neko")).getAbsolutePath();
-    }
-    if (result != null && new File(result).exists()) {
-      String s = FileUtil.toSystemIndependentName(result);
-      LOG.debug("returning neko path: " + s);
-      return s;
+
+    if(result == null) {
+      result = locateExecutable(binName);
     }
 
-    result = locateExecutable("neko");
-    if(result != null) {
-      LOG.debug("returning neko path: " + result);
-      return result;
-    }
-
-    LOG.debug("returning neko path: null");
-    return null;
+    LOG.debug("returning neko path: " + String.valueOf(result));
+    return result;
   }
 
   @Nullable
