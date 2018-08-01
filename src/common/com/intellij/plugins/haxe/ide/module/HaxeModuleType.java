@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.ide.module;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.ProjectJdkForModuleStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleTypeManager;
@@ -68,8 +67,11 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   public ModuleWizardStep[] createWizardSteps(final WizardContext wizardContext,
                                               final HaxeModuleBuilder moduleBuilder,
                                               final ModulesProvider modulesProvider) {
+    HaxeSdkType type = HaxeSdkType.getInstance();
+    type.ensureSdk();
+
     return new ModuleWizardStep[]{
-      new HaxeSdkWizardStep(moduleBuilder, wizardContext, HaxeSdkType.getInstance())
+      new HaxeSdkWizardStep(moduleBuilder, wizardContext, type)
     };
   }
 }
