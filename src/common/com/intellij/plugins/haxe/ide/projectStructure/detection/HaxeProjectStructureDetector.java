@@ -89,7 +89,9 @@ public class HaxeProjectStructureDetector extends ProjectStructureDetector {
       new LibrariesDetectionStep(builder, projectDescriptor, moduleInsight, stepIcon, "reference.dialogs.new.project.fromCode.page1"));
     steps.add(
       new ModulesDetectionStep(this, builder, projectDescriptor, moduleInsight, stepIcon, "reference.dialogs.new.project.fromCode.page2"));
-    steps.add(new ProjectJdkForModuleStep(builder.getContext(), HaxeSdkType.getInstance()));
+    HaxeSdkType type = HaxeSdkType.getInstance();
+    type.ensureSdk();
+    steps.add(new ProjectJdkForModuleStep(builder.getContext(), type));
     return steps;
   }
 
