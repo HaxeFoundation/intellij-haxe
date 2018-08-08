@@ -21,6 +21,7 @@ import com.intellij.ide.util.importProject.ModuleDescriptor;
 import com.intellij.ide.util.importProject.ModuleInsight;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
 import com.intellij.ide.util.projectWizard.importSources.DetectedSourceRoot;
+import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -30,21 +31,18 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeModuleInsight extends ModuleInsight {
-  public HaxeModuleInsight(@Nullable final ProgressIndicator progress,
-                           Set<String> existingModuleNames,
-                           Set<String> existingProjectLibraryNames) {
-    super(progress, existingModuleNames, existingProjectLibraryNames);
+  HaxeModuleInsight(@Nullable final ProgressIndicator progress, ProjectFromSourcesBuilder builder) {
+    super(progress, builder.getExistingModuleNames(), builder.getExistingProjectLibraryNames());
   }
 
   @Override
   protected ModuleDescriptor createModuleDescriptor(File moduleContentRoot, Collection<DetectedSourceRoot> sourceRoots) {
-    return new ModuleDescriptor(moduleContentRoot, HaxeModuleType.getInstance(), sourceRoots);
+    return new HaxeModuleDescriptor(moduleContentRoot, HaxeModuleType.getInstance(), sourceRoots);
   }
 
   @Override

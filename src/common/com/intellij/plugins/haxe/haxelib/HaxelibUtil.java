@@ -48,6 +48,8 @@ import java.util.*;
  * Various utilities to work with haxe libraries.
  */
 public class HaxelibUtil {
+  static public final String LOCAL_REPO = ".haxelib";
+
   private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   static { LOG.setLevel(Level.DEBUG); } // Remove when finished debugging.
 

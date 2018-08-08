@@ -295,7 +295,7 @@ public class HaxelibClasspathUtils {
     List<String> classpathUrls = new ArrayList<String>(strings.size());
 
     for (String string : strings) {
-      if (!string.startsWith("-L") && !string.startsWith("-D")) {
+      if (!string.startsWith("-") && !string.startsWith("Error:")) {
         VirtualFile file = LocalFileFinder.findFile(string);
         if (file != null) {
           classpathUrls.add(file.getUrl());
@@ -318,7 +318,7 @@ public class HaxelibClasspathUtils {
     HaxeClasspath classpath = new HaxeClasspath(strings.size());
 
     for (String string : strings) {
-      if (!string.startsWith("-L") && !string.startsWith("-D")) {
+      if (!string.startsWith("-") && !string.startsWith("Error:")) {
         VirtualFile file = LocalFileFinder.findFile(string);
         if (file != null) {
           // There are no duplicates in the return from haxelib, so no need to check contains().
@@ -328,6 +328,28 @@ public class HaxelibClasspathUtils {
     }
 
     return classpath;
+  }
+
+  /**
+   * Local classpaths of specified libraries and their dependencies.
+   */
+  public static List<String> getHaxelibLibrariesClasspaths(@NotNull Sdk sdk, String... libNames) {
+    List<String> result = new ArrayList<>();
+
+    ArrayList<String> args = new ArrayList<>();
+    args.add("path");
+    Collections.addAll(args, libNames);
+
+    List<String> out = HaxelibCommandUtils.issueHaxelibCommand(sdk, args.toArray(new String[0]));
+    for(String line:out) {
+      if(line.startsWith("-") || line.startsWith("Error:")) {
+        continue;
+      }
+      if(!result.contains(line)) {
+        result.add(line);
+      }
+    }
+    return result;
   }
 
   /**

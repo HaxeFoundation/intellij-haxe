@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.ide.projectStructure.detection;
 
 import com.intellij.ide.util.DelegatingProgressIndicator;
-import com.intellij.ide.util.importProject.LibrariesDetectionStep;
 import com.intellij.ide.util.importProject.ModulesDetectionStep;
 import com.intellij.ide.util.importProject.ProjectDescriptor;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -26,6 +25,7 @@ import com.intellij.ide.util.projectWizard.ProjectJdkForModuleStep;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
 import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
+import com.intellij.ide.util.projectWizard.importSources.impl.ProjectFromSourcesBuilderImpl;
 import com.intellij.ide.util.projectWizard.importSources.util.CommonSourceRootDetectionUtil;
 import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lexer.Lexer;
@@ -34,6 +34,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.util.NullableFunction;
@@ -64,6 +65,11 @@ public class HaxeProjectStructureDetector extends ProjectStructureDetector {
                                                @NotNull File[] children,
                                                @NotNull File base,
                                                @NotNull List<DetectedProjectRoot> result) {
+    //Ignore local haxelib repo
+    if(dir.getName().equals(HaxelibUtil.LOCAL_REPO)) {
+      return DirectoryProcessingResult.SKIP_CHILDREN;
+    }
+
     for (File child : children) {
       if (child.isFile() && child.getName().endsWith(HaxeFileType.DEFAULT_EXTENSION)) {
         Pair<File, String> root =
@@ -82,16 +88,17 @@ public class HaxeProjectStructureDetector extends ProjectStructureDetector {
 
   @Override
   public List<ModuleWizardStep> createWizardSteps(ProjectFromSourcesBuilder builder, ProjectDescriptor projectDescriptor, Icon stepIcon) {
-    HaxeModuleInsight moduleInsight =
-      new HaxeModuleInsight(new DelegatingProgressIndicator(), builder.getExistingModuleNames(), builder.getExistingProjectLibraryNames());
-    final List<ModuleWizardStep> steps = new ArrayList<ModuleWizardStep>();
-    steps.add(
-      new LibrariesDetectionStep(builder, projectDescriptor, moduleInsight, stepIcon, "reference.dialogs.new.project.fromCode.page1"));
-    steps.add(
-      new ModulesDetectionStep(this, builder, projectDescriptor, moduleInsight, stepIcon, "reference.dialogs.new.project.fromCode.page2"));
     HaxeSdkType type = HaxeSdkType.getInstance();
     type.ensureSdk();
+    HaxeProjectConfigurationUpdater projectUpdater = new HaxeProjectConfigurationUpdater();
+    ((ProjectFromSourcesBuilderImpl)builder).addConfigurationUpdater(projectUpdater);
+    HaxeModuleInsight moduleInsight = new HaxeModuleInsight(new DelegatingProgressIndicator(), builder);
+
+    final List<ModuleWizardStep> steps = new ArrayList<>();
+    steps.add(new HaxeLibrariesDetectionStep(builder, moduleInsight, projectUpdater));
+    steps.add(new ModulesDetectionStep(this, builder, projectDescriptor, moduleInsight, stepIcon, "reference.dialogs.new.project.fromCode.page2"));
     steps.add(new ProjectJdkForModuleStep(builder.getContext(), type));
+    steps.add(new HaxeHxmlDetectionStep(builder, projectDescriptor));
     return steps;
   }
 
