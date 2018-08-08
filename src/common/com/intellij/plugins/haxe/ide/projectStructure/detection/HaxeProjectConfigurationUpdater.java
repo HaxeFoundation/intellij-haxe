@@ -54,11 +54,11 @@ import java.util.Vector;
 
 public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilderImpl.ProjectConfigurationUpdater {
   private Vector<String> myLibraries;
-  private String hxml;
-  private String projectRoot;
+  private String myHxml;
+  private String myProjectRoot;
 
   public HaxeProjectConfigurationUpdater(String projectRoot) {
-    this.projectRoot = projectRoot;
+    this.myProjectRoot = projectRoot;
   }
 
   @Override
@@ -69,7 +69,7 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
         setupLibraries(project, modelsProvider, modulesProvider, libraries);
       }
     }
-    if(hxml != null) {
+    if(myHxml != null) {
       Module rootModule = getRootModule(modelsProvider, modulesProvider);
       if(rootModule != null) {
         setupCompilationSettings(rootModule, modelsProvider.getModuleModifiableModel(rootModule));
@@ -83,7 +83,7 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
     for(Module module:modulesProvider.getModules()) {
       ModifiableRootModel model = modelsProvider.getModuleModifiableModel(module);
       for(VirtualFile root:model.getContentRoots()) {
-        if(root.getPath().equals(projectRoot)) {
+        if(root.getPath().equals(myProjectRoot)) {
           return module;
         }
       }
@@ -94,10 +94,10 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
   private void setupCompilationSettings(Module module, ModifiableRootModel model) {
     Project project = module.getProject();
     for(VirtualFile root:model.getContentRoots()) {
-      if(hasCompilationTarget(project, root.getPath(), hxml)) {
+      if(hasCompilationTarget(project, root.getPath(), myHxml)) {
         HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
         settings.setBuildConfig(HaxeConfiguration.HXML.asBuildConfigValue());
-        settings.setHxmlPath(getPath(root.getPath(), hxml));
+        settings.setHxmlPath(getPath(root.getPath(), myHxml));
         //TODO: Proper implementation of running the output of every Haxe target.
         settings.setHaxeTarget(HaxeTarget.INTERP);
         break;
@@ -191,7 +191,7 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
   }
 
   public void setHxml(@Nullable String hxml) {
-    this.hxml = hxml;
+    this.myHxml = hxml;
   }
 
   public void setLibraries(Vector<String> libraries) {
@@ -203,20 +203,20 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
   }
 
   private class LibraryData {
-    private final String classpath;
-    private final String name;
+    private final String myClasspath;
+    private final String myName;
 
     LibraryData(String name, String classpath) {
-      this.name = name;
-      this.classpath = classpath;
+      this.myName = name;
+      this.myClasspath = classpath;
     }
 
     public String getClasspath() {
-      return classpath;
+      return myClasspath;
     }
 
     public String getName() {
-      return name;
+      return myName;
     }
   }
 }

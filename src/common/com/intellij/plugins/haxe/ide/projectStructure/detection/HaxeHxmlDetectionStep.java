@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.Vector;
 
 public class HaxeHxmlDetectionStep extends ModuleWizardStep {
-  private final HXMLSelector gui;
-  private final HaxeProjectConfigurationUpdater projectUpdater;
+  private final HXMLSelector myGui;
+  private final HaxeProjectConfigurationUpdater myProjectUpdater;
 
   public HaxeHxmlDetectionStep(ProjectFromSourcesBuilder builder, HaxeProjectConfigurationUpdater projectUpdater) {
-    this.projectUpdater = projectUpdater;
+    this.myProjectUpdater = projectUpdater;
 
     WizardContext context = builder.getContext();
     Vector<String> hxmlList = new Vector<>();
@@ -57,17 +57,17 @@ public class HaxeHxmlDetectionStep extends ModuleWizardStep {
       }
     }
 
-    gui = new HXMLSelector(hxmlList);
+    myGui = new HXMLSelector(hxmlList);
   }
 
   @Override
   public JComponent getComponent() {
-    return gui.getContentPane();
+    return myGui.getContentPane();
   }
 
   @Override
   public void updateDataModel() {
-    projectUpdater.setHxml(gui.getSelected());
+    myProjectUpdater.setHxml(myGui.getSelected());
   }
 
   static List<String> findHxmlFiles(String directory) {

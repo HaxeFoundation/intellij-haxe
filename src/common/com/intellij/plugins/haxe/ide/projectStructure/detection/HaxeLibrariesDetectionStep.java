@@ -31,24 +31,24 @@ import java.io.File;
 import java.util.*;
 
 public class HaxeLibrariesDetectionStep extends ModuleWizardStep {
-  private final HaxeModuleInsight insight;
-  private final ProjectFromSourcesBuilder builder;
-  private final HaxeDetectedLibraries gui;
-  private final Vector<String> libraries;
-  private final HaxeProjectConfigurationUpdater projectUpdater;
+  private final HaxeModuleInsight myInsight;
+  private final ProjectFromSourcesBuilder myBuilder;
+  private final HaxeDetectedLibraries myGui;
+  private final Vector<String> myLibraries;
+  private final HaxeProjectConfigurationUpdater myProjectUpdater;
 
   public HaxeLibrariesDetectionStep(ProjectFromSourcesBuilder builder, HaxeModuleInsight insight, HaxeProjectConfigurationUpdater projectUpdater) {
     super();
-    this.builder = builder;
-    this.insight = insight;
-    this.libraries = suggestLibraries();
-    this.projectUpdater = projectUpdater;
-    gui = new HaxeDetectedLibraries(libraries);
+    this.myBuilder = builder;
+    this.myInsight = insight;
+    this.myLibraries = suggestLibraries();
+    this.myProjectUpdater = projectUpdater;
+    myGui = new HaxeDetectedLibraries(myLibraries);
   }
 
   @Override
   public JComponent getComponent() {
-    return gui.getContentPane();
+    return myGui.getContentPane();
   }
 
   @Override
@@ -60,10 +60,10 @@ public class HaxeLibrariesDetectionStep extends ModuleWizardStep {
     while (tokenizer.hasMoreTokens()) {
       fileTypes.add(tokenizer.nextToken());
     }
-    insight.setRoots(Collections.singletonList(new File(builder.getBaseProjectPath())), getSourceRoots(), fileTypes);
+    myInsight.setRoots(Collections.singletonList(new File(myBuilder.getBaseProjectPath())), getSourceRoots(), fileTypes);
     //}
 
-    projectUpdater.setLibraries(libraries);
+    myProjectUpdater.setLibraries(myLibraries);
   }
 
   private List<DetectedSourceRoot> getSourceRoots() {
@@ -71,8 +71,8 @@ public class HaxeLibrariesDetectionStep extends ModuleWizardStep {
     ProjectStructureDetector[] detectors = ProjectStructureDetector.EP_NAME.getExtensions();
 
     for(ProjectStructureDetector detector:detectors) {
-      for(DetectedProjectRoot root:builder.getProjectRoots(detector)) {
-        if (insight.isApplicableRoot(root)) {
+      for(DetectedProjectRoot root: myBuilder.getProjectRoots(detector)) {
+        if (myInsight.isApplicableRoot(root)) {
           sourceRoots.add((DetectedSourceRoot)root);
         }
       }
@@ -82,7 +82,7 @@ public class HaxeLibrariesDetectionStep extends ModuleWizardStep {
   }
 
   private Vector<String> suggestLibraries() {
-    String projectDir = builder.getContext().getProjectFileDirectory();
+    String projectDir = myBuilder.getContext().getProjectFileDirectory();
     Vector<String> libraries = new Vector<>();
     List<String> hxmls = HaxeHxmlDetectionStep.findHxmlFiles(projectDir);
     for(String hxml:hxmls) {

@@ -35,23 +35,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+/**
+ * Collects compiler arguments data from HXML file.
+ */
 public class HXMLData {
-  private List<String> classPaths;
-  private List<String> libraries;
+  private List<String> myClassPaths;
+  private List<String> myLibraries;
   @Nullable
-  private HaxeTarget target;
+  private HaxeTarget myTarget;
   @Nullable
-  private String targetPath;
+  private String myTargetPath;
 
   private HXMLData() {
-    classPaths = new ArrayList<>();
-    libraries = new ArrayList<>();
+    myClassPaths = new ArrayList<>();
+    myLibraries = new ArrayList<>();
   }
 
-  static public List<HXMLData> load(String cwd, String hxmlPath) throws HXMLDataException {
-    return load(null, cwd, hxmlPath);
-  }
-
+  /**
+   * This method returns separate HXMLData instance for each --next section in hxml file.
+   * Recursively handles other hxml files referenced in the current one.
+   */
   static public List<HXMLData> load(@Nullable Project project, String cwd, String hxmlPath) throws HXMLDataException {
     HXMLData each = new HXMLData();
     HXMLData current = new HXMLData();
@@ -71,7 +74,7 @@ public class HXMLData {
       if(type == HXMLTypes.CLASSPATH) {
         HXMLValue value = node.getPsi(HXMLClasspath.class).getValue();
         if(value != null) {
-          current.classPaths.add(getPath(cwd, value.getText()));
+          current.myClassPaths.add(getPath(cwd, value.getText()));
         }
 
       } else if(type == HXMLTypes.HXML) {
@@ -84,7 +87,7 @@ public class HXMLData {
       } else if(type == HXMLTypes.LIB) {
         List<HXMLValue> values = node.getPsi(HXMLLib.class).getValueList();
         for(HXMLValue value:values) {
-          current.libraries.add(value.getText());
+          current.myLibraries.add(value.getText());
         }
       } else if(type == HXMLTypes.PROPERTY) {
         HXMLProperty property = node.getPsi(HXMLProperty.class);
@@ -115,14 +118,18 @@ public class HXMLData {
     return result;
   }
 
+  static public List<HXMLData> load(String cwd, String hxmlPath) throws HXMLDataException {
+    return load(null, cwd, hxmlPath);
+  }
+
   private static String getPath(String cwd, String path) {
     return Paths.get(path).isAbsolute() ? path : Paths.get(cwd, path).toString();
   }
 
   private HXMLData copy() {
     HXMLData result = new HXMLData();
-    result.classPaths.addAll(classPaths);
-    result.libraries.addAll(libraries);
+    result.myClassPaths.addAll(myClassPaths);
+    result.myLibraries.addAll(myLibraries);
     return result;
   }
 
@@ -171,15 +178,15 @@ public class HXMLData {
   }
 
   static private void setTarget(HXMLData data, HaxeTarget target, String cwd, @Nullable String targetPath) throws HXMLDataException {
-    if(data.target != null) {
+    if(data.myTarget != null) {
       throw new HXMLDataException("Multiple compilation targets.");
     }
     if(targetPath == null && !target.isNoOutput()) {
       throw new HXMLDataException("The compilation target is missing an output path.");
     }
-    data.target = target;
+    data.myTarget = target;
     if(targetPath != null) {
-      data.targetPath = getPath(cwd, targetPath);
+      data.myTargetPath = getPath(cwd, targetPath);
     }
   }
 
@@ -199,21 +206,21 @@ public class HXMLData {
   }
 
   public boolean hasTarget() {
-    return target != null;
+    return myTarget != null;
   }
 
   @Nullable
   public HaxeTarget getTarget() {
-    return target;
+    return myTarget;
   }
 
   @Nullable
   public String getTargetPath() {
-    return targetPath;
+    return myTargetPath;
   }
 
   public List<String> getLibraries() {
-    return libraries;
+    return myLibraries;
   }
 
   static public class HXMLDataException extends Exception {

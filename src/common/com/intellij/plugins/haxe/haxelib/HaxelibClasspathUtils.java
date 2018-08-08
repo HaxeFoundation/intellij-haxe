@@ -295,7 +295,7 @@ public class HaxelibClasspathUtils {
     List<String> classpathUrls = new ArrayList<String>(strings.size());
 
     for (String string : strings) {
-      if (!string.startsWith("-") && !string.startsWith("Error:")) {
+      if (isClassPathLine(string)) {
         VirtualFile file = LocalFileFinder.findFile(string);
         if (file != null) {
           classpathUrls.add(file.getUrl());
@@ -318,7 +318,7 @@ public class HaxelibClasspathUtils {
     HaxeClasspath classpath = new HaxeClasspath(strings.size());
 
     for (String string : strings) {
-      if (!string.startsWith("-") && !string.startsWith("Error:")) {
+      if (isClassPathLine(string)) {
         VirtualFile file = LocalFileFinder.findFile(string);
         if (file != null) {
           // There are no duplicates in the return from haxelib, so no need to check contains().
@@ -342,7 +342,7 @@ public class HaxelibClasspathUtils {
 
     List<String> out = HaxelibCommandUtils.issueHaxelibCommand(sdk, args.toArray(new String[0]));
     for(String line:out) {
-      if(line.startsWith("-") || line.startsWith("Error:")) {
+      if(!isClassPathLine(line)) {
         continue;
       }
       if(!result.contains(line)) {
@@ -582,4 +582,7 @@ public class HaxelibClasspathUtils {
     return lambda.found;
   }
 
+  private static boolean isClassPathLine(String haxelibResponseLine) {
+    return !haxelibResponseLine.startsWith("-") && !haxelibResponseLine.startsWith("Error:");
+  }
 }
