@@ -17,13 +17,12 @@
  */
 package com.intellij.plugins.haxe.ide.projectStructure.detection;
 
-import com.intellij.ide.util.importProject.ModuleDescriptor;
-import com.intellij.ide.util.importProject.ProjectDescriptor;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.plugins.haxe.ide.projectStructure.HXMLData;
 import com.intellij.plugins.haxe.ide.projectStructure.ui.HXMLSelector;
+
 import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -35,11 +34,11 @@ import java.util.List;
 import java.util.Vector;
 
 public class HaxeHxmlDetectionStep extends ModuleWizardStep {
-  private final ProjectDescriptor descriptor;
   private final HXMLSelector gui;
+  private final HaxeProjectConfigurationUpdater projectUpdater;
 
-  public HaxeHxmlDetectionStep(ProjectFromSourcesBuilder builder, ProjectDescriptor descriptor) {
-    this.descriptor = descriptor;
+  public HaxeHxmlDetectionStep(ProjectFromSourcesBuilder builder, HaxeProjectConfigurationUpdater projectUpdater) {
+    this.projectUpdater = projectUpdater;
 
     WizardContext context = builder.getContext();
     Vector<String> hxmlList = new Vector<>();
@@ -68,12 +67,7 @@ public class HaxeHxmlDetectionStep extends ModuleWizardStep {
 
   @Override
   public void updateDataModel() {
-    List<ModuleDescriptor> modules = descriptor.getModules();
-    for(ModuleDescriptor module:modules) {
-      if(module instanceof HaxeModuleDescriptor) {
-        ((HaxeModuleDescriptor)module).setHxml(gui.getSelected());
-      }
-    }
+    projectUpdater.setHxml(gui.getSelected());
   }
 
   static List<String> findHxmlFiles(String directory) {

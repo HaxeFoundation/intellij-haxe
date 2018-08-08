@@ -22,6 +22,7 @@ import com.intellij.ide.util.importProject.ModulesDetectionStep;
 import com.intellij.ide.util.importProject.ProjectDescriptor;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.ProjectJdkForModuleStep;
+import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
 import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
@@ -90,15 +91,15 @@ public class HaxeProjectStructureDetector extends ProjectStructureDetector {
   public List<ModuleWizardStep> createWizardSteps(ProjectFromSourcesBuilder builder, ProjectDescriptor projectDescriptor, Icon stepIcon) {
     HaxeSdkType type = HaxeSdkType.getInstance();
     type.ensureSdk();
-    HaxeProjectConfigurationUpdater projectUpdater = new HaxeProjectConfigurationUpdater();
+    WizardContext wizardContext = builder.getContext();
+    HaxeProjectConfigurationUpdater projectUpdater = new HaxeProjectConfigurationUpdater(wizardContext.getProjectFileDirectory());
     ((ProjectFromSourcesBuilderImpl)builder).addConfigurationUpdater(projectUpdater);
     HaxeModuleInsight moduleInsight = new HaxeModuleInsight(new DelegatingProgressIndicator(), builder);
-
     final List<ModuleWizardStep> steps = new ArrayList<>();
     steps.add(new HaxeLibrariesDetectionStep(builder, moduleInsight, projectUpdater));
     steps.add(new ModulesDetectionStep(this, builder, projectDescriptor, moduleInsight, stepIcon, "reference.dialogs.new.project.fromCode.page2"));
-    steps.add(new ProjectJdkForModuleStep(builder.getContext(), type));
-    steps.add(new HaxeHxmlDetectionStep(builder, projectDescriptor));
+    steps.add(new ProjectJdkForModuleStep(wizardContext, type));
+    steps.add(new HaxeHxmlDetectionStep(builder, projectUpdater));
     return steps;
   }
 

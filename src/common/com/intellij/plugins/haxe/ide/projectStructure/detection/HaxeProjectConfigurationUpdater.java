@@ -40,17 +40,26 @@ import com.intellij.plugins.haxe.haxelib.HaxelibMetadata;
 import com.intellij.plugins.haxe.haxelib.HaxelibSdkUtils;
 import com.intellij.plugins.haxe.ide.library.HaxeLibraryType;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.ide.projectStructure.HXMLData;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilderImpl.ProjectConfigurationUpdater {
   private Vector<String> myLibraries;
+  private String hxml;
+  private String projectRoot;
+
+  public HaxeProjectConfigurationUpdater(String projectRoot) {
+    this.projectRoot = projectRoot;
+  }
 
   @Override
   public void updateProject(@NotNull Project project, @NotNull ModifiableModelsProvider modelsProvider, @NotNull ModulesProvider modulesProvider) {
@@ -60,21 +69,68 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
         setupLibraries(project, modelsProvider, modulesProvider, libraries);
       }
     }
-    setupHxmlRunConfigurations(project, modelsProvider, modulesProvider);
+    if(hxml != null) {
+      Module rootModule = getRootModule(modelsProvider, modulesProvider);
+      if(rootModule != null) {
+        setupCompilationSettings(rootModule, modelsProvider.getModuleModifiableModel(rootModule));
+        setupHxmlRunConfigurations(rootModule);
+      }
+    }
   }
 
-  private void setupHxmlRunConfigurations(Project project, ModifiableModelsProvider modelsProvider, ModulesProvider modulesProvider) {
-    RunManager manager = RunManager.getInstance(project);
+  @Nullable
+  private Module getRootModule(ModifiableModelsProvider modelsProvider, ModulesProvider modulesProvider) {
+    for(Module module:modulesProvider.getModules()) {
+      ModifiableRootModel model = modelsProvider.getModuleModifiableModel(module);
+      for(VirtualFile root:model.getContentRoots()) {
+        if(root.getPath().equals(projectRoot)) {
+          return module;
+        }
+      }
+    }
+    return null;
+  }
+
+  private void setupCompilationSettings(Module module, ModifiableRootModel model) {
+    Project project = module.getProject();
+    for(VirtualFile root:model.getContentRoots()) {
+      if(hasCompilationTarget(project, root.getPath(), hxml)) {
+        HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+        settings.setBuildConfig(HaxeConfiguration.HXML.asBuildConfigValue());
+        settings.setHxmlPath(getPath(root.getPath(), hxml));
+        //TODO: Proper implementation of running the output of every Haxe target.
+        settings.setHaxeTarget(HaxeTarget.INTERP);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Check if specified hxml file contains the compilation target settings. (e.g. `-js` flag)
+   */
+  static private boolean hasCompilationTarget(Project project, String root, String hxml) {
+    try {
+      List<HXMLData> dataList = HXMLData.load(project, root, hxml);
+      for(HXMLData data:dataList) {
+        if(data.hasTarget()) {
+          return true;
+        }
+      }
+    }
+    catch (HXMLData.HXMLDataException e) {
+      //e.printStackTrace();
+    }
+    return false;
+  }
+
+  private void setupHxmlRunConfigurations(Module module) {
+    RunManager manager = RunManager.getInstance(module.getProject());
     HaxeRunConfigurationType configType = HaxeRunConfigurationType.getInstance();
     ConfigurationFactory factory = configType.getConfigurationFactories()[0];
 
-    for(Module module:modulesProvider.getModules()) {
-      HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
-      String hxmlPath = settings.getHxmlPath();
-      if(hxmlPath == null || hxmlPath.isEmpty()) {
-        continue;
-      }
-
+    HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+    String hxmlPath = settings.getHxmlPath();
+    if(hxmlPath != null && !hxmlPath.isEmpty()) {
       HaxeApplicationConfiguration config = (HaxeApplicationConfiguration)factory.createTemplateConfiguration(module.getProject());
       config.setName(module.getName() + " " + new File(hxmlPath).getName());
       config.setModule(module);
@@ -134,8 +190,16 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
     librariesModel.commit();
   }
 
+  public void setHxml(@Nullable String hxml) {
+    this.hxml = hxml;
+  }
+
   public void setLibraries(Vector<String> libraries) {
     myLibraries = libraries;
+  }
+
+  private static String getPath(String dir, String path) {
+    return Paths.get(path).isAbsolute() ? path : Paths.get(dir, path).toString();
   }
 
   private class LibraryData {

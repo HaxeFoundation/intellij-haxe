@@ -30,19 +30,24 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeModuleInsight extends ModuleInsight {
+  private final ProjectFromSourcesBuilder myBuilder;
+
   HaxeModuleInsight(@Nullable final ProgressIndicator progress, ProjectFromSourcesBuilder builder) {
     super(progress, builder.getExistingModuleNames(), builder.getExistingProjectLibraryNames());
+    myBuilder = builder;
   }
 
   @Override
   protected ModuleDescriptor createModuleDescriptor(File moduleContentRoot, Collection<DetectedSourceRoot> sourceRoots) {
-    return new HaxeModuleDescriptor(moduleContentRoot, HaxeModuleType.getInstance(), sourceRoots);
+    return new ModuleDescriptor(moduleContentRoot, HaxeModuleType.getInstance(), sourceRoots);
   }
 
   @Override
@@ -66,5 +71,14 @@ public class HaxeModuleInsight extends ModuleInsight {
 
   @Override
   protected void scanLibraryForDeclaredPackages(File file, Consumer<String> result) throws IOException {
+  }
+
+  @Override
+  public void scanModules() {
+    File root = new File(myBuilder.getContext().getProjectFileDirectory());
+    ModuleDescriptor descriptor = createModuleDescriptor(root, this.getSourceRootsToScan());
+    List<ModuleDescriptor> list = new ArrayList<>();
+    list.add(descriptor);
+    addModules(list);
   }
 }
