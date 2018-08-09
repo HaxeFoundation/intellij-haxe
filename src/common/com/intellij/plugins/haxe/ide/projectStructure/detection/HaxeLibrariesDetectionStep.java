@@ -1,7 +1,6 @@
 /*
+ * Copyright 2018 Aleksandr Kuzmenko
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2018 AS3Boyan
- * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +33,7 @@ public class HaxeLibrariesDetectionStep extends ModuleWizardStep {
   private final HaxeModuleInsight myInsight;
   private final ProjectFromSourcesBuilder myBuilder;
   private final HaxeDetectedLibraries myGui;
-  private final Vector<String> myLibraries;
+  private final Set<String> myLibraries;
   private final HaxeProjectConfigurationUpdater myProjectUpdater;
 
   public HaxeLibrariesDetectionStep(ProjectFromSourcesBuilder builder, HaxeModuleInsight insight, HaxeProjectConfigurationUpdater projectUpdater) {
@@ -53,7 +52,7 @@ public class HaxeLibrariesDetectionStep extends ModuleWizardStep {
 
   @Override
   public void updateDataModel() {
-    //{ Copy-pasted from LibrariesDetectionStep.java
+    //{ Copy-pasted from com.intellij.ide.util.importProject.LibrariesDetectionStep.java
     HashSet<String> fileTypes = new HashSet<>();
     StringTokenizer tokenizer = new StringTokenizer(FileTypeManager.getInstance().getIgnoredFilesList(), ";", false);
 
@@ -81,25 +80,21 @@ public class HaxeLibrariesDetectionStep extends ModuleWizardStep {
     return sourceRoots;
   }
 
-  private Vector<String> suggestLibraries() {
+  private Set<String> suggestLibraries() {
     String projectDir = myBuilder.getContext().getProjectFileDirectory();
-    Vector<String> libraries = new Vector<>();
+    Set<String> result = new HashSet<>();
     List<String> hxmls = HaxeHxmlDetectionStep.findHxmlFiles(projectDir);
     for(String hxml:hxmls) {
       try {
         List<HXMLData> dataList = HXMLData.load(projectDir, hxml);
         for(HXMLData data:dataList) {
-          for(String lib:data.getLibraries()) {
-            if(!libraries.contains(lib)) {
-              libraries.add(lib);
-            }
-          }
+          result.addAll(data.getLibraries());
         }
       }
       catch (HXMLData.HXMLDataException e) {
         //e.printStackTrace();
       }
     }
-    return libraries;
+    return result;
   }
 }

@@ -1,7 +1,5 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2018 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +16,15 @@
 package com.intellij.plugins.haxe.ide.projectStructure.ui;
 
 import javax.swing.*;
+import java.util.Collection;
 import java.util.Vector;
 
 public class HaxeDetectedLibraries {
   private JPanel contentPane;
   private JList<String> libraries;
 
-  public HaxeDetectedLibraries(Vector<String> list) {
-    libraries.setListData(list);
+  public HaxeDetectedLibraries(Collection<String> list) {
+    libraries.setListData(new Vector<>(list));
   }
 
   public JPanel getContentPane() {

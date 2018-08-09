@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -333,8 +334,8 @@ public class HaxelibClasspathUtils {
   /**
    * Local classpaths of specified libraries and their dependencies.
    */
-  public static List<String> getHaxelibLibrariesClasspaths(@NotNull Sdk sdk, String... libNames) {
-    List<String> result = new ArrayList<>();
+  public static Set<String> getHaxelibLibrariesClasspaths(@NotNull Sdk sdk, String... libNames) {
+    Set<String> result = new HashSet<>();
 
     ArrayList<String> args = new ArrayList<>();
     args.add("path");
@@ -345,9 +346,7 @@ public class HaxelibClasspathUtils {
       if(!isClassPathLine(line)) {
         continue;
       }
-      if(!result.contains(line)) {
-        result.add(line);
-      }
+      result.add(line);
     }
     return result;
   }

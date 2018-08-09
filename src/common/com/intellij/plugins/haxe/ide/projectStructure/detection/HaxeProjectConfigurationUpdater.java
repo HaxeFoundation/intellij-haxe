@@ -1,7 +1,5 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2018 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +48,11 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilderImpl.ProjectConfigurationUpdater {
-  private Vector<String> myLibraries;
+  private Set<String> myLibraries;
   private String myHxml;
   private String myProjectRoot;
 
@@ -144,7 +143,7 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
     List<HaxeProjectConfigurationUpdater.LibraryData> result = new ArrayList<>();
     Sdk sdk = HaxelibSdkUtils.lookupSdk(project);
     String[] libNames = myLibraries.toArray(new String[0]);
-    List<String> cpList = HaxelibClasspathUtils.getHaxelibLibrariesClasspaths(sdk, libNames);
+    Set<String> cpList = HaxelibClasspathUtils.getHaxelibLibrariesClasspaths(sdk, libNames);
     for(String cp:cpList) {
       VirtualFile current = LocalFileSystem.getInstance().findFileByPath(cp);
       //"haxelib path" returns something like "/path/to/repo/libname/1,0,0/src"
@@ -194,7 +193,7 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
     this.myHxml = hxml;
   }
 
-  public void setLibraries(Vector<String> libraries) {
+  public void setLibraries(Set<String> libraries) {
     myLibraries = libraries;
   }
 

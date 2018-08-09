@@ -1,7 +1,5 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2018 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +29,14 @@ import com.intellij.psi.tree.IElementType;
 import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * Collects compiler arguments data from HXML file.
  */
 public class HXMLData {
   private List<String> myClassPaths;
-  private List<String> myLibraries;
+  private Set<String> myLibraries;
   @Nullable
   private HaxeTarget myTarget;
   @Nullable
@@ -48,7 +44,7 @@ public class HXMLData {
 
   private HXMLData() {
     myClassPaths = new ArrayList<>();
-    myLibraries = new ArrayList<>();
+    myLibraries = new HashSet<>();
   }
 
   /**
@@ -219,7 +215,7 @@ public class HXMLData {
     return myTargetPath;
   }
 
-  public List<String> getLibraries() {
+  public Set<String> getLibraries() {
     return myLibraries;
   }
 
