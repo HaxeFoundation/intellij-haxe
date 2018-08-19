@@ -201,18 +201,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // the resolveToParents logic (here, at least).
     //
 
-    // For the moment (while debugging the resolver) let's do this without caching.
-    boolean skipCachingForDebug = false;
-
-    // If we are in dumb mode (e.g. we are still indexing files and resolving may
-    // fail until the indices are complete), we don't want to cache the (likely incorrect)
-    // results.
-    boolean skipCaching = skipCachingForDebug || DumbService.isDumb(getProject());
-    List<? extends PsiElement> cachedNames
-      = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
-                    : ResolveCache.getInstance(getProject())
-                        .resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
-
+    List<? extends PsiElement> cachedNames =
+      (HaxeResolver.INSTANCE).resolve(this, incompleteCode);
 
     // CandidateInfo does some extra resolution work when checking validity, so
     // the results have to be turned into a CandidateInfoArray, and not just passed
