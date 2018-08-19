@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
@@ -32,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.intellij.plugins.haxe.HaxeComponentType.*;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
@@ -87,11 +91,11 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isClass() {
-    return !this.isAbstract() && (HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.CLASS);
+    return !this.isAbstract() && (typeOf(haxeClass) == CLASS);
   }
 
   public boolean isInterface() {
-    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.INTERFACE;
+    return typeOf(haxeClass) == INTERFACE;
   }
 
   public boolean isEnum() {
@@ -99,7 +103,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isTypedef() {
-    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.TYPEDEF;
+    return typeOf(haxeClass) == TYPEDEF;
   }
 
   public boolean isAbstract() {
@@ -203,9 +207,11 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public HaxeMemberModel getMember(String name) {
     if (name == null) return null;
-    final HaxeMethodModel method = getMethod(name);
-    final HaxeFieldModel field = getField(name);
-    return (method != null) ? method : field;
+    HaxeNamedComponent component = haxeClass.findHaxeMemberByName(name);
+    if (component != null) {
+      return HaxeMemberModel.fromPsi(component);
+    }
+    return null;
   }
 
   public List<HaxeMemberModel> getMembers() {
