@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +20,8 @@ import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,9 +32,11 @@ import java.util.stream.Collectors;
 
 public class HaxeImportModel implements HaxeExposableModel {
   private final HaxeImportStatement basePsi;
+  private final CachedValuesManager cacheManager;
 
   public HaxeImportModel(@NotNull HaxeImportStatement importStatement) {
     this.basePsi = importStatement;
+    this.cacheManager = CachedValuesManager.getManager(importStatement.getProject());
   }
 
   @NotNull
@@ -61,8 +66,7 @@ public class HaxeImportModel implements HaxeExposableModel {
   }
 
   @NotNull
-  @Override
-  public List<HaxeModel> getExposedMembers() {
+  public List<HaxeModel> getExposedMembersInternal() {
     FullyQualifiedInfo qualifiedInfo = getQualifiedInfo();
     List<HaxeModel> result = null;
     if (hasWildcard()) {
@@ -93,6 +97,24 @@ public class HaxeImportModel implements HaxeExposableModel {
 
     return result != null ? exposeEnumValues(result) : Collections.emptyList();
   }
+
+  @NotNull
+  @Override
+  public List<HaxeModel> getExposedMembers() {
+    List<HaxeModel> exposed = cacheManager.getCachedValue(getBasePsi(), () -> {
+      List<HaxeModel> exposedMembers = getExposedMembersInternal();
+      PsiElement [] dependencies = new PsiElement[exposedMembers.size() + 1];
+      int i = 0;
+      dependencies[i++] = getBasePsi();
+      for (HaxeModel xMember : exposedMembers) {
+        dependencies[i++] = xMember.getBasePsi();
+      }
+      return new CachedValueProvider.Result<>(exposedMembers, dependencies);
+    });
+
+    return exposed;
+  }
+
 
   @NotNull
   private List<HaxeModel> exposeEnumValues(@NotNull List<HaxeModel> result) {

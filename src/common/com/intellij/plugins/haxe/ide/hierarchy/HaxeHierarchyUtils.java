@@ -31,6 +31,8 @@ import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.MethodSignatureUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
@@ -113,13 +115,18 @@ public class HaxeHierarchyUtils {
    */
   @NotNull
   public static List<HaxeClass> getClassList(@NotNull HaxeFile psiRoot) {
-    ArrayList<HaxeClass> classes = new ArrayList<>();
-    for (PsiElement child : psiRoot.getChildren()) {
-      if (child instanceof HaxeClass) {
-        classes.add((HaxeClass)child);
+    CachedValuesManager manager = CachedValuesManager.getManager(psiRoot.getProject());
+    ArrayList<HaxeClass> classList = manager.getCachedValue(psiRoot, () -> {
+      ArrayList<HaxeClass> classes = new ArrayList<>();
+      for (PsiElement child : psiRoot.getChildren()) {
+        if (child instanceof HaxeClass) {
+          classes.add((HaxeClass)child);
+        }
       }
-    }
-    return classes;
+      return new CachedValueProvider.Result<>(classes, psiRoot);
+    });
+
+    return classList;
   }
 
   /**
