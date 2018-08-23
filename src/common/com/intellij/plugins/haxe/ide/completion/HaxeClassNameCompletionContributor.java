@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +70,20 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
 
     extend(CompletionType.BASIC,
            isSimpleIdentifier.andNot(inImportOrUsing),
+           new CompletionProvider<CompletionParameters>() {
+             @Override
+             protected void addCompletions(@NotNull CompletionParameters parameters,
+                                           ProcessingContext context,
+                                           @NotNull CompletionResultSet result) {
+               final PsiFile file = parameters.getOriginalFile();
+
+               addVariantsFromIndex(result, file, null, CLASS_INSERT_HANDLER);
+               addVariantsFromImports(result, file);
+             }
+           });
+
+    extend(CompletionType.SMART,
+           inFunctionTypeTag,
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,

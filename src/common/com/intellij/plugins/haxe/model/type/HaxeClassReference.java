@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +18,29 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeClassReference {
-  final public String name;
-  @NotNull final public PsiElement elementContext;
-  final public HaxeClassModel clazz;
+  public final String name;
+  @NotNull
+  public final PsiElement elementContext;
+  public final HaxeClassModel clazz;
+
+  private static final Key<Pair<Integer, String>> CLASS_NAME_KEY = new Key<>("HAXE_CLASS_NAME");
+
+  public HaxeClassReference(@NotNull HaxeClassModel clazz, @NotNull PsiElement elementContext) {
+    this.name = getClassName(clazz);
+    this.elementContext = elementContext;
+    this.clazz = clazz;
+  }
 
   public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
     this.name = name;
@@ -34,10 +48,32 @@ public class HaxeClassReference {
     this.clazz = null;
   }
 
-  public HaxeClassReference(HaxeClassModel clazz, @NotNull PsiElement elementContext) {
-    this.name = clazz.getName();
-    this.elementContext = elementContext;
-    this.clazz = clazz;
+  private String getClassName(HaxeClassModel clazz) {
+    Pair<Integer, String> className = clazz.haxeClass.getUserData(CLASS_NAME_KEY);
+    if (className == null || className.first != clazz.haxeClass.hashCode()) {
+      className = new Pair<>(clazz.haxeClass.hashCode(), getClassNameInternal(clazz));
+      clazz.haxeClass.putUserData(CLASS_NAME_KEY, className);
+    }
+
+    return className.second;
+  }
+
+  private String getClassNameInternal(HaxeClassModel clazz) {
+    if (clazz.haxeClass instanceof HaxeAnonymousType) {
+      HaxeNamedComponent namedComponent = PsiTreeUtil.getParentOfType(clazz.haxeClass.getContext(), HaxeNamedComponent.class);
+      if (namedComponent instanceof HaxeTypedefDeclaration) {
+        final HaxeComponentName name = namedComponent.getComponentName();
+        if (name != null) {
+          return name.getText();
+        }
+      }
+      final String formattedClassText = clazz.haxeClass.getText()
+        .replaceAll("\\s{2,}+", " ")
+        .replaceAll("\\{\\s", "{");
+
+      return StringUtil.shortenTextWithEllipsis(formattedClassText,128,1);
+    }
+    return clazz.getName();
   }
 
   public HaxeClass getHaxeClass() {

@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +25,8 @@ import com.intellij.plugins.haxe.util.ThreadLocalCounter;
 import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiSubstitutor;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +48,7 @@ public class HaxeClassResolveResult implements Cloneable {
   @Nullable
   private final HaxeClass haxeClass;
   private final HaxeGenericSpecialization specialization;
-  private final List<HaxeClassResolveResult> functionTypes = new ArrayList<HaxeClassResolveResult>();
+  private final List<HaxeClassResolveResult> functionTypes = new ArrayList<>();
 
   private HaxeClassResolveResult(@Nullable HaxeClass aClass) {
     this(aClass, new HaxeGenericSpecialization());
@@ -95,10 +98,16 @@ public class HaxeClassResolveResult implements Cloneable {
         List<HaxeGenericListPart> genericListPartList = genericParam != null ?
                                                         genericParam.getGenericListPartList() :
                                                         Collections.<HaxeGenericListPart>emptyList();
+        List<HaxeGenericListPart> lazyGenericReferences = new SmartList<>();
         for (HaxeGenericListPart genericListPart : genericListPartList) {
           final HaxeComponentName componentName = genericListPart.getComponentName();
           final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
           if (specializedType != null) {
+            PsiElement referenceElement = specializedType.getReferenceExpression().resolve();
+            if(referenceElement instanceof HaxeGenericListPart && PsiTreeUtil.isAncestor(genericParam, referenceElement, true)) {
+              lazyGenericReferences.add(genericListPart);
+              continue;
+            }
             HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
             if (LOG.isDebugEnabled()) {
               LOG.debug(debugNestCountForCreate.toString() +
@@ -125,7 +134,20 @@ public class HaxeClassResolveResult implements Cloneable {
           }
         }
         // END constraint block.
-
+        if(!lazyGenericReferences.isEmpty()) {
+          for (HaxeGenericListPart genericListPart : lazyGenericReferences) {
+            final HaxeComponentName componentName = genericListPart.getComponentName();
+            final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
+            if(specializedType != null) {
+              String referencedGenericName = specializedType.getReferenceExpression().getText();
+              HaxeClassResolveResult referencedSpecialization = resolveResult.specialization.get(aClass, referencedGenericName);
+              if(referencedSpecialization == null) {
+                referencedSpecialization = HaxeClassResolveResult.create(null, specialization);
+              }
+              resolveResult.specialization.put(aClass, componentName.getName(), referencedSpecialization);
+            }
+          }
+        }
         // Load the specialization with sub-class parameters.
         try {
           List<HaxeType> superclasses = new ArrayList<HaxeType>(aClass.getHaxeExtendsList());
@@ -176,18 +198,23 @@ public class HaxeClassResolveResult implements Cloneable {
   @Nullable
   private static HaxeType getTypeOfGenericListPart(HaxeGenericListPart genericListPart) {
     final HaxeTypeListPart typeListPart = genericListPart.getTypeListPart();
-    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
-    final HaxeTypeOrAnonymous typeOrAnonymous = ((typeOrAnonymousList != null) ? typeOrAnonymousList.get(0) : null);
+    final HaxeTypeOrAnonymous typeOrAnonymous = ((typeListPart != null) ? typeListPart.getTypeOrAnonymous() : null);
     return ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
   }
 
   @Nullable
-  private static HaxeType getTypeOfTypeListPart(HaxeTypeListPart typeListPart) {
-    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = ((typeListPart != null) ? typeListPart.getTypeOrAnonymousList() : null);
-    final HaxeTypeOrAnonymous typeOrAnonymous =
-      (((typeOrAnonymousList != null) && (typeOrAnonymousList.size() > 0)) ? typeOrAnonymousList.get(0) : null);
-    final HaxeType type = ((typeOrAnonymous != null) ? typeOrAnonymous.getType() : null);
-    return type;
+  private static PsiElement getTypeOfTypeListPart(HaxeTypeListPart typeListPart) {
+    if (typeListPart.getFunctionType() != null) return null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeListPart.getTypeOrAnonymous();
+    if(typeOrAnonymous != null) {
+      if(typeOrAnonymous.getType() != null) {
+        return typeOrAnonymous.getType();
+      } else {
+        return typeOrAnonymous.getAnonymousType();
+      }
+    }
+
+    return null;
   }
 
   public List<HaxeClassResolveResult> getFunctionTypes() {
@@ -242,7 +269,7 @@ public class HaxeClassResolveResult implements Cloneable {
     }
     List<PsiElement> instantiationParams = new ArrayList<PsiElement>();
     for (HaxeTypeListPart part : typeList.getTypeListPartList()) {
-      HaxeType type = getTypeOfTypeListPart(part);
+      final PsiElement type = getTypeOfTypeListPart(part);
       final String name = type != null ? type.getText() : null;
 
       HaxeClassResolveResult resolvedParam = name != null ? innerSpecialization.get(null, name) : null;
@@ -263,7 +290,7 @@ public class HaxeClassResolveResult implements Cloneable {
     List<PsiElement> specializedTypes = new ArrayList<PsiElement>();
     final HaxeTypeList typeList = param.getTypeList();
     for (int i = 0; i < typeList.getTypeListPartList().size(); i++) {
-      final HaxeType specializedType = getTypeOfTypeListPart(typeList.getTypeListPartList().get(i));
+      final PsiElement specializedType = getTypeOfTypeListPart(typeList.getTypeListPartList().get(i));
       specializedTypes.add(specializedType);  // OK to be null
     }
     specializeByParameters(specializedTypes);

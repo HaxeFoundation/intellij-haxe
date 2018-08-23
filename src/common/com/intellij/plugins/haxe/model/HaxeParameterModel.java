@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
@@ -26,46 +27,36 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiParameter;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
-public class HaxeParameterModel extends HaxeMemberModel {
-
-  final private HaxeParameter parameter;
-  final private HaxeMemberModel memberModel;
-  final private boolean optional;
+public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel {
+  private static final Key<HaxeMemberModel> PARAMETER_MEMBER_MODEL_KEY = new Key<>("HAXE_PARAMETER_MEMBER_MODEL");
 
   public HaxeParameterModel(HaxeParameter parameter) {
     super(parameter);
+  }
 
-    this.parameter = parameter;
-    this.optional = UsefulPsiTreeUtil.getToken(parameter, "?") != null;
+  public HaxeParameter getParameterPsi() {
+    return (HaxeParameter)basePsi;
+  }
 
-    final PsiMember parentPsi = PsiTreeUtil.getParentOfType(parameter, HaxeEnumValueDeclaration.class, HaxeMethod.class);
-    if (parentPsi instanceof HaxeMethod) {
-      memberModel = ((HaxeMethod)parentPsi).getModel();
-    }
-    else if (parentPsi instanceof HaxeEnumValueDeclaration) {
-      memberModel = new HaxeFieldModel((HaxePsiField)parentPsi);
-    }
-    else {
-      memberModel = null;
-    }
+  @Override
+  public String getName() {
+    return getParameterPsi().getName();
   }
 
   public PsiElement getContextElement() {
-    return getNameOrBasePsi();
+    return getBasePsi();
   }
 
   public PsiElement getOptionalPsi() {
-    return UsefulPsiTreeUtil.getToken(parameter, "?");
+    return getParameterPsi().getOptionalMark();
   }
 
   public boolean hasOptionalPsi() {
-    return this.optional;
+    return getOptionalPsi() != null;
   }
 
   public boolean isOptional() {
@@ -77,11 +68,11 @@ public class HaxeParameterModel extends HaxeMemberModel {
   }
 
   public HaxeVarInit getVarInitPsi() {
-    return UsefulPsiTreeUtil.getChild(parameter, HaxeVarInit.class);
+    return getParameterPsi().getVarInit();
   }
 
   public HaxeTypeTag getTypeTagPsi() {
-    return parameter.getTypeTag();
+    return getParameterPsi().getTypeTag();
   }
 
   public ResultHolder getType() {
@@ -97,12 +88,20 @@ public class HaxeParameterModel extends HaxeMemberModel {
     return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
   }
 
-  public PsiParameter getParameter() {
-    return parameter;
-  }
-
   public HaxeMemberModel getMemberModel() {
-    return memberModel;
+    HaxeMemberModel model = getBasePsi().getUserData(PARAMETER_MEMBER_MODEL_KEY);
+    if (model == null) {
+      final PsiMember parentPsi = PsiTreeUtil.getParentOfType(getBasePsi(), HaxeEnumValueDeclaration.class, HaxeMethod.class);
+      if (parentPsi instanceof HaxeMethod) {
+        model = ((HaxeMethod)parentPsi).getModel();
+      } else if (parentPsi instanceof HaxeEnumValueDeclaration) {
+        model = new HaxeFieldModel((HaxePsiField)parentPsi);
+      }
+      if (model != null) {
+        getBasePsi().putUserData(PARAMETER_MEMBER_MODEL_KEY, model);
+      }
+    }
+    return model;
   }
 
   public String getPresentableText() {
@@ -115,23 +114,24 @@ public class HaxeParameterModel extends HaxeMemberModel {
 
   @Override
   public HaxeComponentName getNamePsi() {
-    return parameter.getComponentName();
+    return getParameterPsi().getComponentName();
   }
 
   @Override
+  @NotNull
   public HaxeDocumentModel getDocument() {
-    return memberModel.getDocument();
+    return getMemberModel().getDocument();
   }
 
   @Override
   public HaxeClassModel getDeclaringClass() {
-    return memberModel.getDeclaringClass();
+    return getMemberModel().getDeclaringClass();
   }
 
   @Override
   public ResultHolder getResultType() {
-    final HaxeTypeTag typeTag = parameter.getTypeTag();
-    final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeTag typeTag = getTypeTagPsi();
+    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
   }
 
@@ -152,8 +152,7 @@ public class HaxeParameterModel extends HaxeMemberModel {
       if (prePsi != null && prePsi.getText().equals(",")) {
         range = range.union(prePsi.getTextRange());
         stripSpaces = StripSpaces.BEFORE;
-      }
-      else if (nextPsi != null && nextPsi.getText().equals(",")) {
+      } else if (nextPsi != null && nextPsi.getText().equals(",")) {
         range = range.union(nextPsi.getTextRange());
         stripSpaces = StripSpaces.AFTER;
       }

@@ -17,7 +17,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeAbstractBody;
 import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements Hax
 
   @Override
   public HaxeEnumValueModel getValue(@NotNull String name) {
-    HaxeVarDeclaration value = getValueDeclarationsStream()
+    HaxeFieldDeclaration value = getValueDeclarationsStream()
       .filter(declaration -> name.equals(declaration.getName()))
       .filter(HaxeAbstractEnumUtil::couldBeAbstractEnumField)
       .findFirst().orElse(null);
@@ -52,9 +52,9 @@ public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements Hax
       .map(model -> (HaxeEnumValueModel)model.getModel());
   }
 
-  private Stream<HaxeVarDeclaration> getValueDeclarationsStream() {
+  private Stream<HaxeFieldDeclaration> getValueDeclarationsStream() {
     final HaxeAbstractBody body = getAbstractClassBody();
 
-    return body != null ? body.getVarDeclarationList().stream() : Stream.empty();
+    return body != null ? body.getFieldDeclarationList().stream() : Stream.empty();
   }
 }

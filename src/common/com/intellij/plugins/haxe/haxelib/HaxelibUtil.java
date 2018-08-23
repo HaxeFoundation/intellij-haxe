@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2018 Eric Bishton
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +49,8 @@ import java.util.*;
  * Various utilities to work with haxe libraries.
  */
 public class HaxelibUtil {
+  static public final String LOCAL_REPO = ".haxelib";
+
   private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   static { LOG.setLevel(Level.DEBUG); } // Remove when finished debugging.
 
@@ -63,8 +66,8 @@ public class HaxelibUtil {
    * @param sdk
    * @return
    */
+  @Nullable
   public static VirtualFile getLibraryBasePath(@NotNull final Sdk sdk) {
-
     VirtualFile rootDirectory = sdk.getUserData(HaxelibRootKey);
     if (null == rootDirectory) {
       List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, "config");
@@ -86,6 +89,10 @@ public class HaxelibUtil {
     LocalFileSystem lfs = LocalFileSystem.getInstance();
 
     VirtualFile haxelibRoot = getLibraryBasePath(sdk);
+    if(haxelibRoot == null) {
+      LOG.debug("Haxe libraries base path was not found for current project sdk");
+      return null;
+    }
     String rootName = haxelibRoot.getPath();
 
     // Forking 'haxelib path' is slow, so we will do what it does without forking.

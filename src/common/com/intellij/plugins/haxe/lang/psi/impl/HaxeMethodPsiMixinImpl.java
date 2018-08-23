@@ -3,6 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 
 /**
@@ -83,13 +82,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return _model;
   }
 
-  @Nullable
-  @Override
-  public List<HaxeDeclarationAttribute> getDeclarationAttributeList() {
-    // Not all function types have one of these...  If they do, the
-    // subclass (via the generator) will override this method.
-    return null;
-  }
 
 
   @Nullable
@@ -270,7 +262,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     HaxeTypeParam               param   = null;
     final HaxeTypeTag           tag     = (HaxeTypeTag) findChildByType(HaxeTokenTypes.TYPE_TAG);
     if (tag != null) {
-      final HaxeTypeOrAnonymous toa     = getFirstItem(tag.getTypeOrAnonymousList());
+      final HaxeTypeOrAnonymous toa     = tag.getTypeOrAnonymous();
       final HaxeType            type    = (toa != null) ? toa.getType() : null;
       param                             = (type != null) ? type.getTypeParam() : null;// XXX: Java<->Haxe list & type inversion -- See BNF.
     }

@@ -13,8 +13,9 @@ Haxe File
         HaxePsiToken:{('{')
         ANONYMOUS_TYPE_BODY
           INTERFACE_BODY
-            VAR_DECLARATION
-              HaxePsiToken:var('var')
+            FIELD_DECLARATION
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('id')
@@ -26,8 +27,9 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('String')
               HaxePsiToken:;(';')
-            VAR_DECLARATION
-              HaxePsiToken:var('var')
+            FIELD_DECLARATION
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('title')
@@ -39,8 +41,9 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('String')
               HaxePsiToken:;(';')
-            VAR_DECLARATION
-              HaxePsiToken:var('var')
+            FIELD_DECLARATION
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('height')
@@ -52,8 +55,9 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('Int')
               HaxePsiToken:;(';')
-            VAR_DECLARATION
-              HaxePsiToken:var('var')
+            FIELD_DECLARATION
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('width')
@@ -73,13 +77,13 @@ Haxe File
         HaxePsiToken:ID('Test')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:private('private')
-        DECLARATION_ATTRIBUTE
+      FIELD_DECLARATION
+        FIELD_MODIFIER
+          HaxePsiToken:private('private')
+        FIELD_MODIFIER
           HaxePsiToken:static('static')
-        HaxePsiToken:var('var')
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('COLLECTION')

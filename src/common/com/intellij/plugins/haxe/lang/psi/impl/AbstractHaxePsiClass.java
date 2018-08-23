@@ -189,7 +189,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public List<HaxeVarDeclaration> getVarDeclarations() {
+  public List<HaxeFieldDeclaration> getFieldDeclarations() {
     return HaxeResolveUtil.getClassVarDeclarations(this);
   }
 

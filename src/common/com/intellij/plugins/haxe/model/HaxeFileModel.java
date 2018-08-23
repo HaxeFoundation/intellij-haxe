@@ -16,6 +16,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
@@ -32,9 +33,10 @@ import java.util.stream.Stream;
 
 public class HaxeFileModel implements HaxeExposableModel {
 
+  protected static final Key<HaxeFileModel> HAXE_FILE_MODEL_KEY = new Key<>("HAXE_FILE_MODEL");
   private final HaxeFile file;
 
-  public HaxeFileModel(@NotNull HaxeFile file) {
+  protected HaxeFileModel(@NotNull HaxeFile file) {
     this.file = file;
   }
 
@@ -43,8 +45,13 @@ public class HaxeFileModel implements HaxeExposableModel {
     if (element == null) return null;
 
     final PsiFile file = element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
-    if (file != null) {
-      return new HaxeFileModel((HaxeFile)file);
+    if (file instanceof HaxeFile) {
+      HaxeFileModel model = file.getUserData(HAXE_FILE_MODEL_KEY);
+      if (model == null) {
+        model = new HaxeFileModel((HaxeFile)file);
+        file.putUserData(HAXE_FILE_MODEL_KEY, model);
+      }
+      return model;
     }
     return null;
   }

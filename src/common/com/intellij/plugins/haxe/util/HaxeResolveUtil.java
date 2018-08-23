@@ -45,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 /**
  * @author: Fedor.Korotkov
  */
@@ -284,7 +282,7 @@ public class HaxeResolveUtil {
     } else if (type == HaxeComponentType.ENUM) {
       body = PsiTreeUtil.getChildOfType(haxeClass, HaxeEnumBody.class);
     } else if (haxeClass instanceof HaxeTypedefDeclaration) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
+      final HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
       if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
         HaxeAnonymousType anonymous = typeOrAnonymous.getAnonymousType();
         if (anonymous != null) {
@@ -299,11 +297,14 @@ public class HaxeResolveUtil {
 
     final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
     if (haxeClass instanceof HaxeAnonymousType) {
-      final HaxeAnonymousTypeFieldList typeFieldList = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getAnonymousTypeFieldList();
-      if (typeFieldList != null) {
-        result.addAll(typeFieldList.getAnonymousTypeFieldList());
+      final HaxeAnonymousTypeBody anonymousTypeBody = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody();
+      if (anonymousTypeBody != null) {
+        final HaxeAnonymousTypeFieldList typeFieldList = anonymousTypeBody.getAnonymousTypeFieldList();
+        if (typeFieldList != null) {
+          result.addAll(typeFieldList.getAnonymousTypeFieldList());
+        }
+        body = anonymousTypeBody.getInterfaceBody();
       }
-      body = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody().getInterfaceBody();
     }
     if (body == null) {
       return result;
@@ -317,31 +318,26 @@ public class HaxeResolveUtil {
     return result;
   }
 
-  public static List<HaxeVarDeclaration> getClassVarDeclarations(HaxeClass haxeClass) {
+  public static List<HaxeFieldDeclaration> getClassVarDeclarations(HaxeClass haxeClass) {
     PsiElement body = null;
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
     if (type == HaxeComponentType.CLASS) {
       body = PsiTreeUtil.getChildOfAnyType(haxeClass, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
     }
 
-    final List<HaxeVarDeclaration> result = new ArrayList<HaxeVarDeclaration>();
+    final List<HaxeFieldDeclaration> result = new ArrayList<>();
 
     if (body == null) {
       return result;
     }
 
-    final HaxeVarDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeVarDeclaration.class);
+    final HaxeFieldDeclaration[] variables = PsiTreeUtil.getChildrenOfType(body, HaxeFieldDeclaration.class);
 
     if (variables == null) {
       return result;
     }
     Collections.addAll(result, variables);
     return result;
-  }
-
-  @NotNull
-  public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element) {
-    return getHaxeClassResolveResult(element, new HaxeGenericSpecialization());
   }
 
   private static ThreadLocal<Stack<PsiElement>> resolveStack = new ThreadLocal<Stack<PsiElement>>() {
@@ -352,10 +348,19 @@ public class HaxeResolveUtil {
   };
 
   @NotNull
+  public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element) {
+    return getHaxeClassResolveResult(element, null);
+  }
+
+  @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element,
-                                                                 @NotNull HaxeGenericSpecialization specialization) {
+                                                                 @Nullable HaxeGenericSpecialization specialization) {
     if (element == null || element instanceof PsiPackage) {
       return HaxeClassResolveResult.EMPTY;
+    }
+
+    if (specialization == null) {
+      specialization = new HaxeGenericSpecialization();
     }
 
     final Stack<PsiElement> stack = resolveStack.get();
@@ -378,7 +383,7 @@ public class HaxeResolveUtil {
       }
       if (element instanceof HaxeClass) {
         final HaxeClass haxeClass = (HaxeClass)element;
-        return HaxeClassResolveResult.create(haxeClass);
+        return HaxeClassResolveResult.create(haxeClass, specialization);
       }
       if (element instanceof HaxeForStatement) {
         final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
@@ -451,7 +456,7 @@ public class HaxeResolveUtil {
   public static HaxeClassResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                                 HaxeGenericSpecialization specialization) {
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = (typeOrAnonymous != null) ? typeOrAnonymous.getType() :
                           ((element instanceof HaxeType) ? (HaxeType)element : null);
 
@@ -473,7 +478,7 @@ public class HaxeResolveUtil {
     }
 
     if (typeTag != null) {
-      return tryResolveFunctionType(getFirstItem(typeTag.getFunctionTypeList()), specialization);
+      return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
     }
 
     return HaxeClassResolveResult.EMPTY;
@@ -484,20 +489,11 @@ public class HaxeResolveUtil {
     if (functionType == null) {
       return HaxeClassResolveResult.EMPTY;
     }
-    final HaxeTypeOrAnonymous returnTypeOrAnonymous =
-      functionType.getTypeOrAnonymousList().get(functionType.getTypeOrAnonymousList().size() - 1);
-    final HaxeClassResolveResult result = tryResolveClassByTypeTag(returnTypeOrAnonymous.getType(), specialization);
-    while (functionType != null) {
-      // todo: anonymous types :(
-      final List<HaxeTypeOrAnonymous> typeList = functionType.getTypeOrAnonymousList();
-      Collections.reverse(typeList);
-      for (HaxeTypeOrAnonymous typeOrAnonymous : typeList) {
-        result.getFunctionTypes().add(tryResolveClassByTypeTag(typeOrAnonymous.getType(), specialization));
-      }
-      functionType = functionType.getFunctionType();
-    }
-    Collections.reverse(result.getFunctionTypes());
-    return result;
+
+    final HaxeFunctionReturnType returnType = functionType.getFunctionReturnType();
+    if (returnType == null || returnType.getTypeOrAnonymous() == null) { return HaxeClassResolveResult.EMPTY; }
+    // TODO Stub classes must be introduced in the near future to cover cases where Function is a return type, not a class type or anonymous structure.
+    return tryResolveClassByTypeTag(returnType.getTypeOrAnonymous().getType(), specialization);
   }
 
   @NotNull
@@ -705,21 +701,17 @@ public class HaxeResolveUtil {
     return null;
   }
 
-  public static Set<IElementType> getDeclarationTypes(@Nullable HaxeDeclarationAttribute[] attributeList) {
+  public static Set<IElementType> getDeclarationTypes(@Nullable HaxePsiModifier[] attributeList) {
     return attributeList == null ? Collections.<IElementType>emptySet() : getDeclarationTypes(Arrays.asList(attributeList));
   }
 
-  public static Set<IElementType> getDeclarationTypes(@Nullable List<HaxeDeclarationAttribute> attributeList) {
+  public static Set<IElementType> getDeclarationTypes(@Nullable List<? extends HaxePsiModifier> attributeList) {
     if (attributeList == null || attributeList.isEmpty()) {
       return Collections.emptySet();
     }
     final Set<IElementType> resultSet = new THashSet<IElementType>();
-    for (HaxeDeclarationAttribute attribute : attributeList) {
+    for (HaxePsiModifier attribute : attributeList) {
       PsiElement result = attribute.getFirstChild();
-      final HaxeAccess access = attribute.getAccess();
-      if (access != null) {
-        result = access.getFirstChild();
-      }
       if (result instanceof LeafPsiElement) {
         resultSet.add(((LeafPsiElement)result).getElementType());
       }

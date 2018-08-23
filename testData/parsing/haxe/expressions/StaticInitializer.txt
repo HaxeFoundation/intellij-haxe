@@ -9,13 +9,13 @@ Haxe File
         HaxePsiToken:ID('Test')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:private('private')
-        DECLARATION_ATTRIBUTE
+      FIELD_DECLARATION
+        FIELD_MODIFIER
+          HaxePsiToken:private('private')
+        FIELD_MODIFIER
           HaxePsiToken:static('static')
-        HaxePsiToken:var('var')
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('VAR')

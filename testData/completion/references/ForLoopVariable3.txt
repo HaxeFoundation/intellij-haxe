@@ -1,4 +1,4 @@
-BASIC 3 INCLUDES
+:INCLUDE
 index
 inept
 inverse

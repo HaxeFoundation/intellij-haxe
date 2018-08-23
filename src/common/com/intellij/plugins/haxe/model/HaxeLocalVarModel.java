@@ -3,6 +3,7 @@
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +19,14 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class HaxeLocalVarModel extends HaxeMemberModel {
 
@@ -36,14 +38,9 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
   }
 
   @Override
-  public HaxeClassModel getDeclaringClass() {
-    final HaxeClass hClass = (HaxeClass)(element).getContainingClass();
-    return hClass != null ? hClass.getModel() : null;
-  }
-  @Override
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = element.getTypeTag();
-    final HaxeTypeOrAnonymous type = typeTag != null ? getFirstItem(typeTag.getTypeOrAnonymousList()) : null;
+    final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
 
   }

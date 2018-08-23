@@ -18,15 +18,10 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
+import java.util.Set;
 
 public class HaxeTypeCompatible {
   static public boolean canApplyBinaryOperator(SpecificTypeReference left, SpecificTypeReference right, String operator) {
@@ -41,8 +36,7 @@ public class HaxeTypeCompatible {
   static public boolean canAssignToFrom(ResultHolder to, ResultHolder from) {
     if (to.isUnknown()) {
       to.setType(from.getType().withoutConstantValue());
-    }
-    else if (from.isUnknown()) {
+    } else if (from.isUnknown()) {
       from.setType(to.getType().withoutConstantValue());
     }
     return canAssignToFrom(to.getType(), from.getType());
@@ -70,11 +64,11 @@ public class HaxeTypeCompatible {
     @NotNull SpecificFunctionReference to,
     @NotNull SpecificFunctionReference from
   ) {
-    if (to.params.size() != from.params.size()) return false;
-    for (int n = 0; n < to.params.size(); n++) {
-      if (!to.params.get(n).canAssign(from.params.get(n))) return false;
+    if (to.arguments.size() != from.arguments.size()) return false;
+    for (int n = 0; n < to.arguments.size(); n++) {
+      if (!to.arguments.get(n).canAssign(from.arguments.get(n))) return false;
     }
-    return to.retval.canAssign(from.retval);
+    return to.returnValue.canAssign(from.returnValue);
   }
 
   static private boolean canAssignToFromType(
@@ -89,70 +83,30 @@ public class HaxeTypeCompatible {
       return true;
     }
 
-    // @TODO: A first tdd-dummy approach
-    if (to.clazz.equals(from.clazz)) {
-      if (to.specifics.length == from.specifics.length) {
-        int specificsLength = to.specifics.length;
+    if (to.getHaxeClassReference().equals(from.getHaxeClassReference())) {
+      if (to.getSpecifics().length == from.getSpecifics().length) {
+        int specificsLength = to.getSpecifics().length;
         for (int n = 0; n < specificsLength; n++) {
-          if (!canAssignToFrom(to.specifics[n], from.specifics[n])) {
+          if (!canAssignToFrom(to.getSpecifics()[n], from.getSpecifics()[n])) {
             return false;
           }
         }
         return true;
       }
       // issue #388: allow `public var m:Map<String, String> = new Map();`
-      else if(from.specifics.length == 0) {
+      else if(from.getSpecifics().length == 0) {
         return true;
       }
     }
 
-    if (to.toStringWithoutConstant().equals(from.toStringWithoutConstant())) {
-      return true;
+    Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes();
+    for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
+      if (compatibleType.toStringWithoutConstant().equals(from.toStringWithoutConstant())) return true;
     }
 
-    // Check from abstracts
-    HaxeClass thisClassPsi = to.clazz.getHaxeClass();
-    if (thisClassPsi != null) {
-      HaxeClassModel thisClass = thisClassPsi.getModel();
-      for (HaxeType type : thisClass.getAbstractFromList()) {
-        if (HaxeTypeResolver.getTypeFromType(type).toStringWithoutConstant().equals(from.toStringWithoutConstant())) {
-          return true;
-        }
-      }
-    }
-
-    // Check to abstracts
-    HaxeClass thatClassPsi = from.clazz.getHaxeClass();
-    if (thatClassPsi != null) {
-      HaxeClassModel thatClass = thatClassPsi.getModel();
-
-      if (thatClass.isAbstract()) {
-
-        // Check if this is required!
-        HaxeTypeOrAnonymous underlyingAbstractType = thatClass.getUnderlyingType();
-        if (underlyingAbstractType != null) {
-          ResultHolder thatUnderlying = HaxeTypeResolver.getTypeFromTypeOrAnonymous(underlyingAbstractType);
-          if (to.toStringWithoutConstant().equals(thatUnderlying.toStringWithoutConstant())) {
-            return true;
-          }
-        }
-
-        for (HaxeType type : thatClass.getAbstractToList()) {
-          if (to.canAssign(HaxeTypeResolver.getTypeFromType(type))) {
-            return true;
-          }
-        }
-      }
-    }
-
-    // check interface/class type overrides
-    HaxeClass baseClass = to.clazz.getHaxeClass();
-    HaxeClass derivedClass = from.clazz.getHaxeClass();
-    if (baseClass != null && derivedClass != null) {
-      final HashSet<HaxeClass> set = HaxeResolveUtil.getBaseClassesSet(derivedClass, new HashSet<HaxeClass>());
-      if(set.contains(baseClass)) {
-        return true;
-      }
+    compatibleTypes = from.getInferTypes();
+    for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
+      if (compatibleType.toStringWithoutConstant().equals(to.toStringWithoutConstant())) return true;
     }
 
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());

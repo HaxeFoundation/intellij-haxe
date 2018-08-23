@@ -19,8 +19,8 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.LiteralTextEscaper;
@@ -52,8 +52,8 @@ public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements Haxe
   public PsiLanguageInjectionHost updateText(@NotNull String text) {
     ASTNode node = getNode();
     ASTNode parent = node.getTreeParent();
-    final HaxeVarDeclaration varDeclarationPart = HaxeElementGenerator.createVarDeclaration(getProject(), "a=" + text);
-    final HaxeVarInit varInit = varDeclarationPart.getVarInit();
+    final HaxeFieldDeclaration fieldDeclaration = HaxeElementGenerator.createVarDeclaration(getProject(), "a=" + text);
+    final HaxeVarInit varInit = fieldDeclaration.getVarInit();
     final ASTNode outerNode = varInit == null ? null : varInit.getNode();
     assert outerNode != null;
     parent.replaceChild(node, outerNode);

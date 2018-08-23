@@ -10,8 +10,9 @@ Haxe File
         HaxePsiToken:{('{')
         ANONYMOUS_TYPE_BODY
           INTERFACE_BODY
-            VAR_DECLARATION
-              HaxePsiToken:var('var')
+            FIELD_DECLARATION
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('x')
@@ -23,8 +24,9 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('Int')
               HaxePsiToken:;(';')
-            VAR_DECLARATION
-              HaxePsiToken:var('var')
+            FIELD_DECLARATION
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
               COMPONENT_NAME
                 IDENTIFIER
                   HaxePsiToken:ID('y')
@@ -44,7 +46,7 @@ Haxe File
         HaxePsiToken:ID('Points')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

@@ -8,10 +8,10 @@ Haxe File
         HaxePsiToken:ID('ExternDecl')
     HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
-      EXTERN_FUNCTION_DECLARATION
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
           HaxePsiToken:inline('inline')
         HaxePsiToken:function('function')
         COMPONENT_NAME

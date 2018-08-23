@@ -1,7 +1,5 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2018-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.psi;
+package com.intellij.plugins.haxe.lang.parser.declarations;
 
-import org.jetbrains.annotations.Nullable;
+public class FunctionTypeSyntaxTest extends DeclarationTestBase {
+  public FunctionTypeSyntaxTest() {
+    super("function/functionTypes");
+  }
 
-import java.util.List;
 
-/**
- * @author: Fedor.Korotkov
- */
-public interface HaxeComponentWithDeclarationList extends HaxeComponent {
-  @Nullable
-  List<HaxeDeclarationAttribute> getDeclarationAttributeList();
+  public void testOldFunctionTypeSyntax() throws Throwable {
+    doTest(true);
+  }
+
+  public void testNewFunctionTypeSyntax() throws Throwable {
+    doTest(true);
+  }
 }

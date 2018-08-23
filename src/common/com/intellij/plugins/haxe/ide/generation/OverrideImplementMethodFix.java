@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +21,8 @@ package com.intellij.plugins.haxe.ide.generation;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeDeclarationAttribute;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiClass;
@@ -51,11 +52,11 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     if (!isInterfaceElement && override && !element.isOverride()) {
       result.append("override ");
     }
-    final HaxeDeclarationAttribute[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxeDeclarationAttribute.class);
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
     if (declarationAttributeList != null) {
-      result.append(StringUtil.join(declarationAttributeList, new Function<HaxeDeclarationAttribute, String>() {
+      result.append(StringUtil.join(declarationAttributeList, new Function<HaxePsiModifier, String>() {
         @Override
-        public String fun(HaxeDeclarationAttribute attribute) {
+        public String fun(HaxePsiModifier attribute) {
           return attribute.getText();
         }
       }, " "));
@@ -67,8 +68,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     if (componentType == HaxeComponentType.FIELD) {
       result.append("var ");
       result.append(element.getName());
-    }
-    else {
+    } else {
       result.append("function ");
       result.append(element.getName());
       result.append(" (");
@@ -76,9 +76,9 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(")");
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
-    if ((typeTag != null) && (!typeTag.getTypeOrAnonymousList().isEmpty())) {
+    if (typeTag != null && typeTag.getTypeOrAnonymous() != null) {
       result.append(":");
-      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymousList().get(0).getType(), specializations));
+      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymous().getType(), specializations));
     }
     result.append(componentType == HaxeComponentType.FIELD ? ";" : "{\n}");
     return result.toString();

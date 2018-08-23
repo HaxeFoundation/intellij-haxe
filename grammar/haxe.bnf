@@ -128,6 +128,7 @@
       kTHROW ="throw"
 
       kVAR="var"
+      kFINAL="final"
       kSTATIC="static"
       kPUBLIC="public"
       kPRIVATE="private"
@@ -141,7 +142,7 @@
       kTYPEDEF="typedef"
 
       kEXTERN="extern"
-      kFINAL="@:final"
+      kFINAL_META="@:final"
       kHACK="@:hack"
       kNATIVE="@:native"
       kMACRO="@:macro"
@@ -171,7 +172,8 @@
       kTRY="try"
       kCATCH="catch"
       tWILDCARD=".*"
-
+      space="regexp:\s+"
+      id="regexp:\p{Alpha}+"
     ]
     extends(".*(Expression|Literal)")="expression"
     /* extends(".*Statement")="statement"
@@ -228,7 +230,7 @@ bitmapMeta ::= '@:bitmap' '(' stringLiteralExpression ')'
 nsMeta ::= '@:ns' '(' stringLiteralExpression ')'
 getterMeta ::= '@:getter' '(' referenceExpression ')'
 setterMeta ::= '@:setter' '(' referenceExpression ')'
-overloadMeta ::= '@:overload' '(' anonymousFunctionDeclaration ')'
+overloadMeta ::= '@:overload' '(' localFunctionDeclaration ')'
 customMeta ::= MACRO_ID ('(' expressionList? ')')?
 metaMeta ::= '@:meta' ('(' ID '(' metaPartList? ')' ')')?
 private metaPartList ::= metaKeyValue (',' metaKeyValue)*
@@ -312,7 +314,7 @@ typedefDeclaration ::= macroClassList? externOrPrivate? 'typedef' componentName 
 externClassDeclaration ::= macroClassList? externAndMaybePrivate 'class' componentName genericParam? inheritList? '{' externClassDeclarationBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= externClassDeclarationBodyPart*
-private externClassDeclarationBodyPart ::= varDeclaration | externFunctionDeclaration {recoverWhile="extern_class_body_part_recover"}
+private externClassDeclarationBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !(pptoken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
 externInterfaceDeclaration ::= macroClassList? externAndMaybePrivate? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
@@ -326,16 +328,16 @@ underlyingType ::= '(' typeWrapper ')'
 abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? underlyingType? ((identifier) type)* '{' abstractBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 abstractBody ::= abstractBodyPart*  {extends="classBody"}
-private abstractBodyPart ::= varDeclaration | functionDeclarationWithAttributes | functionPrototypeDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
+private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
 
 classBody ::= classBodyPart*
-private classBodyPart ::= varDeclaration | functionDeclarationWithAttributes {recoverWhile="class_body_part_recover"}
-private class_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}' | 'macro')
+private classBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
+private class_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}' | 'macro')
 
 interfaceDeclaration ::= macroClassList? privateKeyWord? 'interface' componentName genericParam? inheritList? '{' interfaceBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= interfaceBodyPart*
-private interfaceBodyPart ::= varDeclaration | functionPrototypeDeclarationWithAttributes {recoverWhile="interface_body_part_recover"}
+private interfaceBodyPart ::= fieldDeclaration | methodDeclaration {recoverWhile="interface_body_part_recover"}
 private interface_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
 
 enumDeclaration ::= macroClassList? externOrPrivate? 'enum' componentName genericParam? '{' enumBody '}'
@@ -346,8 +348,9 @@ enumBody ::= enumValueDeclaration*
  *  declarations
  */
 
-access ::= 'public' | 'private'
-declarationAttribute ::= 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | access
+methodModifier ::= 'final' | 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
+fieldModifier ::= 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
+mutabilityModifier ::= 'final' | 'var'
 
 enumValueDeclaration ::= componentName genericParam? enumConstructorParameters? typeTag? ';'
 {recoverWhile="enum_value_declaration_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField" methods=[returnType="typeTag"]}
@@ -356,9 +359,8 @@ private enum_value_declaration_recovery ::= !(ID | '}')
 
 private enumConstructorParameters ::= parenthesizedParameterList
 
-varDeclaration ::= (macroMember | declarationAttribute)* 'var' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
+fieldDeclaration ::= (macroMember | fieldModifier)* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-
 
 localVarDeclarationList ::= 'var' localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
 localVarDeclaration ::= componentName propertyDeclaration? typeTag? varInit?
@@ -377,33 +379,45 @@ private functionCommonBody ::= blockStatement
                              | forStatement
                              | whileStatement
                              | doWhileStatement
-                             | expression
+                             | expression ';'
+                             | ';'
 
-constructorId ::= 'new' {elementType="identifier"}
-constructorName ::= constructorId {elementType="componentName"}
+private lambdaBody ::= blockStatement
+                       | returnStatement
+                       | throwStatement
+                       | ifStatement
+                       | forStatement
+                       | whileStatement
+                       | doWhileStatement
+                       | expression
 
 private localFunctionDeclarationAttribute ::= 'inline';
 
-// XXX: EMB - Not sure why we need all three of these.  They are increasingly similar.
-externFunctionDeclaration                  ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ((functionCommonBody <<semicolonUnlessPrecededByStatement>>) | ';')
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionDeclarationWithAttributes          ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody <<semicolonUnlessPrecededByStatement>>
-{pin=8 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-functionPrototypeDeclarationWithAttributes ::= (functionMacroMember | declarationAttribute)* 'function' (constructorName | componentName) genericParam? parenthesizedParameterList typeTag? 'untyped'? ';'
-{pin=8 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-localFunctionDeclaration ::= localFunctionDeclarationAttribute? 'function' componentName? genericParam? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody
+methodDeclaration ::= (functionMacroMember | methodModifier)* methodHeader 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
-anonymousFunctionDeclaration ::= 'function' parenthesizedParameterList typeTag? 'untyped'? '{' '}' {pin=2}
-/* TODO: Should anonymousFunctionDeclaration extend and implement HaxeMethod as well?? */
+private methodHeader ::= 'function' methodDeclarator typeTag?
+private methodDeclarator ::= componentName genericParam? parenthesizedParameterList
+
+constructorDeclaration ::= (functionMacroMember | methodModifier)* constructorHeader 'untyped'? functionCommonBody {pin=2 elementType="methodDeclaration"}
+private constructorHeader ::= 'function' constructorDeclarator typeTag? {elementType="methodHeader"}
+private constructorDeclarator ::= constructorName genericParam? parenthesizedParameterList {elementType="methodDeclarator"}
+constructorId ::= 'new' {elementType="identifier"}
+constructorName ::= constructorId {elementType="componentName"}
+
+localFunctionDeclaration ::= localFunctionDeclarationAttribute? localFunctionHeader 'untyped'? functionCommonBody
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
+private localFunctionHeader ::= 'function' localFunctionDeclarator typeTag?
+private localFunctionDeclarator ::= componentName? genericParam? parenthesizedParameterList
+
 private arrowFunctionParameterList ::= openParameterList | parenthesizedParameterList
-private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' functionCommonBody
+private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' lambdaBody {pin=3}
 
 /*
  *
  */
 
 varInit ::= '=' expression {pin=1}
-parameter ::= '?'? componentName typeTag? varInit?
+parameter ::= optionalMark? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 
 // An open parameter can't have all of the type and init info.  Plus, it makes the parser *very* *very* slow in some circumstances.
@@ -413,7 +427,7 @@ parameterList ::= (parameter (',' parameter)*)? {recoverWhile="parameterListReco
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
-private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? 'untyped'? functionCommonBody {pin=2}
+private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? 'untyped'? lambdaBody {pin=2}
 functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
 
 arrayLiteral ::= '[' (expressionList ','?)? ']'
@@ -421,20 +435,23 @@ arrayLiteral ::= '[' (expressionList ','?)? ']'
 mapLiteral ::= '[' (mapInitializerStatement | mapInitializerExpressionList) ']'
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
+optionalMark ::= '?'
+functionType ::= newFunctionType | oldFunctionType
+functionReturnType ::= typeWrapper
 
-private functionTypeWrapper ::= functionTypeOrWrapper functionType*
-private functionTypeOrWrapper ::= '?'? typeOrAnonymous | '(' functionTypeWrapper ')'
-left functionType ::= '->' '?'? typeOrAnonymous
+private typeWrapper ::= functionType | typeOrAnonymous
 
-private typeWrapper::= functionTypeWrapper
+private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=3}
+private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]
+functionArgument ::= optionalFunctionTypeWithoutName | namedTypeOrAnonymous | namedFunctionType
+private namedTypeOrAnonymous ::= [optionalMark] [componentName ':'] typeOrAnonymous
+private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
+private optionalFunctionTypeWithoutName ::= optionalMark '(' functionType ')' {pin=3}
 
-// EMB: To replace the above four lines.  See issue #575. //////////////////////////////////
-//functionArgument ::=  (typeOrAnonymous | ('(' functionType ')'))
-//private functionOptionalArgument ::= '?'? functionArgument
-//functionType ::= functionOptionalArgument '->' (functionOptionalArgument '->')* functionArgument {pin=2 recoverWhile="functionTypeRecovery"}
-//functionTypeRecovery ::= !('}' | ';' | '>' | '=')
-//
-//private typeWrapper ::= functionType | typeOrAnonymous
+private oldFunctionType ::= oldFunctionTypeArgumentsList functionReturnType {pin=2}
+private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
+oldFunctionTypeArgument ::= optionalMark? ('(' functionType ')' | typeOrAnonymous) {elementType="functionArgument" pin(".*")=3}
+
 // /////////////////////////////////////////////////////////////////////////////////////////
 /*
  * Haxe and Java have this backward from each other.
@@ -598,7 +615,7 @@ private value ::= macroClassList? (('untyped' expression)
                                                    | tryStatement
                                                    | switchStatement
                                                    | throwStatement
-                                                   | varDeclaration)
+                                                   | localVarDeclarationList)
 {pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
@@ -680,19 +697,20 @@ private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 extendsDeclaration ::= 'extends' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 implementsDeclaration ::= 'implements' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 
-anonymousType ::= '{' anonymousTypeBody '}'
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+anonymousType ::= anonymousTypeWithEmptyBody | regularAnonymousType
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
+private regularAnonymousType ::= '{' anonymousTypeBody? '}' {pin=2}
 
 anonymousTypeBody ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBody
 private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (',' interfaceBody)?
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBody)?
 
-typeExtendsList ::= '>' type (',' '>' type)*
+typeExtendsList ::= '>' type (',' '>' type)* {pin=1}
 
-anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)*
-
+anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)* {recoverWhile="object_literal_part_recover" pin=1}
 anonymousTypeField ::= "?"? componentName typeTag
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 // Do NOT genericize objectLiteral by making objectLiteralElementList optional.  Doing so
 // makes blockStatement be overridden by objectLiteral in return statements.

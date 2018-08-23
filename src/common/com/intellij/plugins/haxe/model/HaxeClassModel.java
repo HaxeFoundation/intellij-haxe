@@ -125,10 +125,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
     HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
     if (underlyingType != null) {
-      List<HaxeTypeOrAnonymous> list = underlyingType.getTypeOrAnonymousList();
-      if (!list.isEmpty()) {
-        return list.get(0);
-      }
+      return underlyingType.getTypeOrAnonymous();
 
       // TODO: What about function types?
     }
@@ -227,7 +224,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     HaxePsiCompositeElement body = getBodyPsi();
     if (body != null) {
       for (PsiElement element : body.getChildren()) {
-        if (element instanceof HaxeMethod || element instanceof HaxeVarDeclaration) {
+        if (element instanceof HaxeMethod || element instanceof HaxeFieldDeclaration) {
           HaxeMemberModel model = HaxeMemberModel.fromPsi(element);
           if (model != null) {
             members.add(model);
@@ -240,7 +237,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public HaxeFieldModel getField(String name) {
     HaxePsiField field = (HaxePsiField)haxeClass.findHaxeFieldByName(name);
-    if (field instanceof HaxeVarDeclaration || field instanceof HaxeAnonymousTypeField || field instanceof HaxeEnumValueDeclaration) {
+    if (field instanceof HaxeFieldDeclaration || field instanceof HaxeAnonymousTypeField || field instanceof HaxeEnumValueDeclaration) {
       return new HaxeFieldModel(field);
     }
     return null;
@@ -332,7 +329,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(haxeClass, isEnum() ? HaxeEnumBody.class : HaxeClassBody.class);
 
     if (body != null) {
-      return PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)
+      return PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)
         .stream()
         .map(HaxeFieldModel::new)
         .collect(Collectors.toList());
@@ -416,12 +413,12 @@ public class HaxeClassModel implements HaxeExposableModel {
     if (isClass()) {
       HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
       if (body != null) {
-        for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeMethod.class)) {
+        for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeMethod.class)) {
           if (!(declaration instanceof PsiMember)) continue;
-          if (declaration instanceof HaxeVarDeclaration) {
-            HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)declaration;
+          if (declaration instanceof HaxeFieldDeclaration) {
+            HaxeFieldDeclaration varDeclaration = (HaxeFieldDeclaration)declaration;
             if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
-              out.add(new HaxeFieldModel((HaxeVarDeclaration)declaration));
+              out.add(new HaxeFieldModel((HaxeFieldDeclaration)declaration));
             }
           } else {
             HaxeMethod method = (HaxeMethod)declaration;

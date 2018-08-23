@@ -19,7 +19,12 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class HaxeAbstractClassModel extends HaxeClassModel {
+
+  public static final String FORWARD = "@:forward";
+
   public HaxeAbstractClassModel(@NotNull HaxeAbstractClassDeclaration haxeClass) {
     super(haxeClass);
   }
@@ -31,13 +36,14 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
   public boolean hasForwards() {
-    return hasMeta("@:forward");
+    return hasMeta(FORWARD);
   }
 
   public HaxeClass getUnderlyingClass() {
     HaxeUnderlyingType underlyingTypePsi = getAbstractClass().getUnderlyingType();
     if (underlyingTypePsi == null) return null;
-    final HaxeType underlyingType = underlyingTypePsi.getTypeOrAnonymousList().get(0).getType();
+    HaxeTypeOrAnonymous anonymous = underlyingTypePsi.getTypeOrAnonymous();
+    final HaxeType underlyingType = anonymous != null ? anonymous.getType() : null;
     if (underlyingType != null) {
       final HaxeClassResolveResult result = underlyingType.getReferenceExpression().resolveHaxeClass();
       return result.getHaxeClass();
@@ -52,5 +58,20 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
 
   protected HaxeAbstractBody getAbstractClassBody() {
     return getAbstractClass().getAbstractBody();
+  }
+
+  public boolean isForwarded(String name) {
+    final HaxeMacroClass forwardMeta = getMeta(FORWARD);
+    if (forwardMeta != null) {
+      final HaxeCustomMeta customMeta = forwardMeta.getCustomMeta();
+      final HaxeExpressionList expressionList = customMeta.getExpressionList();
+      if (expressionList == null) return true;
+      final List<HaxeExpression> list = expressionList.getExpressionList();
+      if (list.isEmpty()) return true;
+      for (HaxeExpression expression : list) {
+        if (expression.getText().equals(name)) return true;
+      }
+    }
+    return false;
   }
 }

@@ -82,7 +82,6 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   public String toString() {
     String out = getTokenType().toString();
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      // Unit tests don't want the extra data.
       out += " " + getDebugName();
     }
     return out;
@@ -105,10 +104,10 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     final boolean isBlock = this instanceof HaxeBlockStatement || this instanceof HaxeSwitchCaseBlock;
     final PsiElement stopper = isBlock ? lastParent : null;
     final List<PsiElement> result = new ArrayList<PsiElement>();
-    addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeVarDeclaration.class));
+    addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFieldDeclaration.class));
     addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclarationList.class, stopper));
 
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFunctionDeclarationWithAttributes.class));
+    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeMethodDeclaration.class));
     addDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclaration.class, stopper));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeClassDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeExternClassDeclaration.class));
@@ -135,7 +134,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
 
     if (this instanceof HaxeCatchStatement) {
       final HaxeParameter catchParameter = PsiTreeUtil.getChildOfType(this, HaxeParameter.class);
-      if(catchParameter != null) {
+      if (catchParameter != null) {
         result.add(catchParameter);
       }
     }
@@ -151,7 +150,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     Arrays.stream(items).forEach(list -> result.addAll(list.getLocalVarDeclarationList()));
   }
 
-  private static void addVarDeclarations(@NotNull List<PsiElement> result, @Nullable HaxeVarDeclaration[] items) {
+  private static void addVarDeclarations(@NotNull List<PsiElement> result, @Nullable HaxeFieldDeclaration[] items) {
     if (items == null) {
       return;
     }
@@ -177,8 +176,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   @Nullable
   @Override
   public HaxeModifierList getModifierList() {
-    HaxeModifierList list = (HaxeModifierList) this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
+    HaxeModifierList list = (HaxeModifierList)this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
     return list;
   }
-
 }

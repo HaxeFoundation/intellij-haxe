@@ -43,7 +43,7 @@ public class HaxeTargetElementEvaluator extends TargetElementEvaluatorEx2 {
         boolean isInNewExpression = PsiTreeUtil.getParentOfType(ref.getElement(), HaxeNewExpression.class) != null;
         if (isInNewExpression) {
           HaxeClassModel classModel = ((HaxeClass)refElement).getModel();
-          return classModel.hasConstructor() ? classModel.getConstructor().getBasePsi() : null;
+          return classModel.hasConstructor() ? classModel.getConstructorSelf().getBasePsi() : null;
         }
       }
     }

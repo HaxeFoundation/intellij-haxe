@@ -9,15 +9,15 @@ Haxe File
         HaxePsiToken:ID('FinalMetaOnProperty')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
+      FIELD_DECLARATION
         FINAL_META
           HaxePsiToken:@:final('@:final')
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+        FIELD_MODIFIER
+          HaxePsiToken:public('public')
+        FIELD_MODIFIER
           HaxePsiToken:static('static')
-        HaxePsiToken:var('var')
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('SOME_STRING')

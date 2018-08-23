@@ -14,7 +14,7 @@ if [ -f ~/Tools/ideaIU-${ideaVersion}.tar.gz ];
 then
     cp ~/Tools/ideaIU-${ideaVersion}.tar.gz .
 else
-    wget http://download.jetbrains.com/idea/ideaIU-${ideaVersion}.tar.gz && mkdir -p ~/Tools && cp ideaIU-${ideaVersion}.tar.gz ~/Tools/ideaIU-${ideaVersion}.tar.gz
+    wget --quiet http://download.jetbrains.com/idea/ideaIU-${ideaVersion}.tar.gz && mkdir -p ~/Tools && cp ideaIU-${ideaVersion}.tar.gz ~/Tools/ideaIU-${ideaVersion}.tar.gz
 fi
 
 # Unzip IDEA

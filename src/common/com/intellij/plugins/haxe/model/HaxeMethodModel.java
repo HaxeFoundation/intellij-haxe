@@ -22,7 +22,11 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
+import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +77,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public List<HaxeParameterModel> getParametersWithContext(HaxeMethodContext context) {
     List<HaxeParameterModel> params = getParameters();
     if (context.isExtensionMethod()) {
-      params = new ArrayList<HaxeParameterModel>(params);
+      params = new ArrayList<>(params);
       params.remove(0);
     }
     return params;
@@ -87,16 +91,6 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public PsiElement getReturnTypeTagOrNameOrBasePsi() {
     HaxeTypeTag psi = getReturnTypeTagPsi();
     return (psi != null) ? psi : getNameOrBasePsi();
-  }
-
-  private HaxeClassModel _declaringClass = null;
-
-  public HaxeClassModel getDeclaringClass() {
-    if (_declaringClass == null) {
-      HaxeClass aClass = (HaxeClass)this.haxeMethod.getContainingClass();
-      _declaringClass = (aClass != null) ? aClass.getModel() : null;
-    }
-    return _declaringClass;
   }
 
   public String getFullName() {
@@ -149,9 +143,11 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
-    LinkedList<ResultHolder> args = new LinkedList<ResultHolder>();
-    for (HaxeParameterModel param : this.getParameters()) {
-      args.add(param.getType(resolver));
+    LinkedList<Argument> args = new LinkedList<>();
+    List<HaxeParameterModel> parameters = this.getParameters();
+    for (int i = 0; i < parameters.size(); i++) {
+      HaxeParameterModel param = parameters.get(i);
+      args.add(new Argument(i, param.isOptional(), param.getType(resolver), param.getName()));
     }
     return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);
   }
@@ -169,13 +165,12 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   @Override
   public List<HaxeModel> getExposedMembers() {
     return null;
-  };
+  }
 
   @Nullable
   @Override
   public HaxeExposableModel getExhibitor() {
     return getDeclaringClass();
   }
-
 }
 

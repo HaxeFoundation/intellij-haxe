@@ -29,7 +29,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.FunctionalExpressionSearch;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +76,7 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
     if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
     if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL_META)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
     final Collection<HaxeClass> subclasses = getSubclasses(theHaxeClass);
 
@@ -94,13 +93,10 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
     }
 
     final PsiMethod existingMethod = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getMethod(theHaxeClass, false);
-    if (existingMethod != null) {
-      FunctionalExpressionSearch.search(existingMethod).forEach(new Processor<PsiFunctionalExpression>() {
-        @Override
-        public boolean process(PsiFunctionalExpression expression) {
-          descriptors.add(new HaxeMethodHierarchyNodeDescriptor(myProject, descriptor, expression, false, HaxeMethodHierarchyTreeStructure.this));
-          return true;
-        }
+    if (existingMethod != null && !existingMethod.hasModifierProperty(HaxePsiModifier.FINAL)) {
+      FunctionalExpressionSearch.search(existingMethod).forEach(expression -> {
+        descriptors.add(new HaxeMethodHierarchyNodeDescriptor(myProject, descriptor, expression, false, HaxeMethodHierarchyTreeStructure.this));
+        return true;
       });
     }
 

@@ -20,9 +20,8 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
-import com.intellij.psi.PsiElement;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,8 +88,7 @@ public class HaxePresentableUtil {
   public static String buildTypeText(HaxeNamedComponent element,
                                      @Nullable HaxeTypeListPart typeTag,
                                      HaxeGenericSpecialization specializations) {
-    final List<HaxeTypeOrAnonymous> haxeTypeOrAnonymousList = typeTag != null ? typeTag.getTypeOrAnonymousList() : null;
-    final HaxeTypeOrAnonymous typeOrAnonymous = ContainerUtil.getFirstItem(haxeTypeOrAnonymousList);
+    final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     if (typeOrAnonymous == null) {
       return "";
     }
@@ -108,22 +106,19 @@ public class HaxePresentableUtil {
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {
-    if (typeTag != null)
-    {
-      final List<HaxeFunctionType> haxefunctionTypeList = typeTag.getFunctionTypeList();
-      final HaxeFunctionType haxeFunctionType = haxefunctionTypeList.isEmpty() ? null :
-                                                haxefunctionTypeList.get(0).getFunctionType();
+    if (typeTag != null) {
+      final HaxeFunctionType haxeFunctionType = typeTag.getFunctionType();
       if (haxeFunctionType != null) {
         return buildTypeText(element, haxeFunctionType, specialization);
       }
 
-      final List<HaxeTypeOrAnonymous> haxeTypeOrAnonymousList = typeTag.getTypeOrAnonymousList();
-      if (!haxeTypeOrAnonymousList.isEmpty()) {
-        final HaxeAnonymousType anonymousType = haxeTypeOrAnonymousList.get(0).getAnonymousType();
+      final HaxeTypeOrAnonymous haxeTypeOrAnonymous = typeTag.getTypeOrAnonymous();
+      if (haxeTypeOrAnonymous != null) {
+        final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous.getAnonymousType();
         if (anonymousType != null) {
           return anonymousType.getText();
         }
-        final HaxeType haxeType = haxeTypeOrAnonymousList.get(0).getType();
+        final HaxeType haxeType = haxeTypeOrAnonymous.getType();
         if (haxeType != null) {
           return buildTypeText(element, haxeType, specialization);
         }
@@ -139,16 +134,82 @@ public class HaxePresentableUtil {
       return "";
     }
 
-    final List<HaxeTypeOrAnonymous> typeOrAnonymousList = functionType.getTypeOrAnonymousList();
 
-    if (typeOrAnonymousList.size() == 2) {
-      return buildTypeText(element, typeOrAnonymousList.get(0).getType(), specialization) +
-             "->" +
-             buildTypeText(element, typeOrAnonymousList.get(1).getType(), specialization);
+    final List<HaxeFunctionArgument> arguments = functionType.getFunctionArgumentList();
+    StringBuilder builder = new StringBuilder();
+    builder.append("(");
+
+    if (arguments.isEmpty()) {
+      builder.append(SpecificTypeReference.VOID);
+    } else {
+      for (int i = 0; i < arguments.size(); i++) {
+        if (i > 0) {
+          builder.append(", ");
+        }
+        HaxeFunctionArgument argument = arguments.get(i);
+        builder.append(buildTypeText(element, argument, specialization));
+      }
     }
-    return buildTypeText(element, functionType.getFunctionType(), specialization) +
-           "->" +
-           buildTypeText(element, typeOrAnonymousList.get(0).getType(), specialization);
+    builder
+      .append(")")
+      .append(" -> ")
+      .append(buildTypeText(element, functionType.getFunctionReturnType(), specialization));
+
+    return builder.toString();
+  }
+
+  private static String buildTypeText(HaxeNamedComponent element, HaxeFunctionReturnType type, HaxeGenericSpecialization specialization) {
+    if (type == null) return SpecificTypeReference.UNKNOWN;
+
+    if (type.getTypeOrAnonymous() != null) {
+      return buildTypeText(element, type.getTypeOrAnonymous().getType(), specialization);
+    } else if (type.getFunctionType() != null) {
+      return buildTypeText(element, type.getFunctionType(), specialization);
+    }
+
+    return SpecificTypeReference.UNKNOWN;
+  }
+
+  private static String buildTypeText(HaxeNamedComponent element, HaxeFunctionArgument argument, HaxeGenericSpecialization specialization) {
+    if (argument == null) return SpecificTypeReference.UNKNOWN;
+
+    StringBuilder builder = new StringBuilder();
+    if (argument.getOptionalMark() != null) {
+      builder.append("?");
+    }
+    if (argument.getComponentName() != null) {
+      builder
+        .append(argument.getComponentName().getIdentifier().getText())
+        .append(":");
+    }
+
+    HaxeTypeOrAnonymous typeOrAnonymous = argument.getTypeOrAnonymous();
+
+    if (typeOrAnonymous != null) {
+      builder.append(buildTypeText(element, typeOrAnonymous, specialization));
+    } else if (argument.getFunctionType() != null) {
+      builder.append(buildTypeText(element, argument.getFunctionType(), specialization));
+    } else {
+      builder.append(SpecificTypeReference.UNKNOWN);
+    }
+    return builder.toString();
+  }
+
+  private static String buildTypeText(HaxeNamedComponent element,
+                                      HaxeTypeOrAnonymous type,
+                                      HaxeGenericSpecialization specialization) {
+    if (type.getType() != null) {
+      return buildTypeText(element, type.getType(), specialization);
+    } else if (type.getAnonymousType() != null) {
+      return buildTypeText(element, type.getAnonymousType(), specialization);
+    }
+
+    return SpecificTypeReference.UNKNOWN;
+  }
+
+  private static String buildTypeText(HaxeNamedComponent element, HaxeAnonymousType type, HaxeGenericSpecialization specialization) {
+    //UNIMPLEMENTED
+    return "<{anonymous type}>";
   }
 
   public static String buildTypeText(HaxeNamedComponent element, @Nullable HaxeType type) {
@@ -164,8 +225,7 @@ public class HaxePresentableUtil {
     if (specializations.containsKey(element, typeText)) {
       final HaxeClass haxeClass = specializations.get(element, typeText).getHaxeClass();
       result.append(haxeClass == null ? typeText : haxeClass.getName());
-    }
-    else {
+    } else {
       result.append(typeText);
     }
     final HaxeTypeParam typeParam = type.getTypeParam();
@@ -180,7 +240,7 @@ public class HaxePresentableUtil {
   }
 
   public static String asNullable(String type) {
-    return "Null<"+type+">";
+    return "Null<" + type + ">";
   }
 
   public static String unknownType() {

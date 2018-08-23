@@ -28,11 +28,11 @@ import com.intellij.plugins.haxe.build.FieldWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodContext;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeModifierType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -86,20 +86,21 @@ public class HaxeLookupElement extends LookupElement {
     String presentableText = myComponentNamePresentation.getPresentableText();
 
     // Check for members: methods and fields
-    HaxeMemberModel member = HaxeMemberModel.fromPsi(myComponentName);
+    HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(myComponentName);
 
-    if (member != null) {
-      presentableText = member.getPresentableText(context);
+    if (model != null) {
+      // TODO: Specialization support required
+      presentableText = model.getPresentableText(context);
 
       // Check deprecated modifiers
-      if (member.getModifiers().hasModifier(HaxeModifierType.DEPRECATED)) {
+      if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {
         presentation.setStrikeout(true);
       }
 
       // Check for non-inherited members to highlight them as intellij-java does
       // @TODO: Self members should be displayed first!
       if (leftReference != null) {
-        if (member.getDeclaringClass().getPsi() == leftReference.getHaxeClass()) {
+        if (model.getDeclaringClass().getPsi() == leftReference.getHaxeClass()) {
           presentation.setItemTextBold(true);
         }
       }
@@ -115,7 +116,7 @@ public class HaxeLookupElement extends LookupElement {
 
   @Override
   public void handleInsert(InsertionContext context) {
-    HaxeMemberModel memberModel = HaxeMemberModel.fromPsi(myComponentName);
+    HaxeBaseMemberModel memberModel = HaxeBaseMemberModel.fromPsi(myComponentName);
     boolean hasParams = false;
     boolean isMethod = false;
     if (memberModel != null) {

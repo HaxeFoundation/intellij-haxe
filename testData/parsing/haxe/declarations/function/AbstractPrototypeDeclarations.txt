@@ -31,10 +31,9 @@ Haxe File
       HaxePsiToken:)(')')
     HaxePsiToken:{('{')
     ABSTRACT_BODY
-      FUNCTION_PROTOTYPE_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -42,7 +41,8 @@ Haxe File
         HaxePsiToken:(('(')
         PARAMETER_LIST
           PARAMETER
-            HaxePsiToken:?('?')
+            OPTIONAL_MARK
+              HaxePsiToken:?('?')
             COMPONENT_NAME
               IDENTIFIER
                 HaxePsiToken:ID('length')
@@ -55,7 +55,8 @@ Haxe File
                       HaxePsiToken:ID('Int')
           HaxePsiToken:,(',')
           PARAMETER
-            HaxePsiToken:?('?')
+            OPTIONAL_MARK
+              HaxePsiToken:?('?')
             COMPONENT_NAME
               IDENTIFIER
                 HaxePsiToken:ID('fixed')

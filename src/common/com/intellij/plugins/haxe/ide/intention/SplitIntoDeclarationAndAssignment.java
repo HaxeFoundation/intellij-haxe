@@ -76,7 +76,7 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
       text += " " + typeTag.getText();
     }
     text += ";";
-    HaxeVarDeclaration varDeclaration = HaxeElementGenerator.createVarDeclaration(project, text);
+    HaxeFieldDeclaration varDeclaration = HaxeElementGenerator.createVarDeclaration(project, text);
     text = name + varInit.getText();
 
     varDeclaration.getNode().addLeaf(HaxeTokenTypes.OSEMI, "\n", null);

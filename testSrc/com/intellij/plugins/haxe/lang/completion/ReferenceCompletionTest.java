@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,6 +200,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   public void testAutodetectMethod2() throws Throwable {
+    myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
     doTestInclude();
   }
 
@@ -246,6 +248,41 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
+  public void testAnonymousChain() throws Throwable {
+    doTestInclude();
+  }
+
+  public void testAnonymousGenericChain() throws Throwable {
+    myFixture.configureByFiles("std/String.hx");
+    doTestInclude();
+  }
+
+  public void testAnonymousIterator() throws Throwable {
+    myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
+    doTestInclude();
+  }
+
+  public void testGenericInMap() throws Throwable {
+    myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
+    doTestInclude();
+  }
+
+  public void testGenericAnonymousFieldInMap() throws Throwable {
+    myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
+    doTestInclude();
+  }
+
+  public void testGenericToGenericReference() throws Throwable {
+    myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
+    doTestInclude();
+  }
+
+  // FIXME Generic params declared by methods must be considered to make this test works.
+  //public void testGenericToGenericInnerReference() throws Throwable {
+  //  myFixture.configureByFiles("std/String.hx", "std/StdTypes.hx");
+  //  doTestInclude();
+  //}
+
   public void testImportGenericSubType() throws Throwable {
     myFixture.configureByFiles("ImportGenericSubType.hx", "generic1/ClassWithGenericSubClass.hx", "std/StdTypes.hx");
     doTestVariantsInner("ImportGenericSubType.txt");
@@ -287,6 +324,14 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 
   public void testAbstractForward3() throws Throwable {
     doTestInclude("com/util/UnderlyingType.hx");
+  }
+
+  public void testAbstractForward4() throws Throwable {
+    doTestInclude("std/Array.hx");
+  }
+
+  public void testAbstractForward5() throws Throwable {
+    doTestInclude("std/Array.hx");
   }
 
   //public void testUsingStringTools() throws Throwable {
@@ -335,7 +380,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   public void testForLoopVariable3() throws Throwable {
-    doTest();
+    doTestInclude("std/StdTypes.hx", "std/Array.hx");
   }
 
   public void testForLoopVariable4() throws Throwable {

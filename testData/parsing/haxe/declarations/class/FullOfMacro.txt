@@ -137,15 +137,16 @@ Haxe File
         HaxePsiToken:ID('FullOfMacro')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
+      FIELD_DECLARATION
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@customUser')
-        HaxePsiToken:var('var')
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('_value')
         HaxePsiToken:;(';')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         GETTER_META
           HaxePsiToken:@:getter('@:getter')
           HaxePsiToken:(('(')
@@ -170,7 +171,7 @@ Haxe File
                 HaxePsiToken:ID('_value')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         SETTER_META
           HaxePsiToken:@:setter('@:setter')
           HaxePsiToken:(('(')
@@ -202,11 +203,11 @@ Haxe File
                 HaxePsiToken:ID('value')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         OVERLOAD_META
           HaxePsiToken:@:overload('@:overload')
           HaxePsiToken:(('(')
-          ANONYMOUS_FUNCTION_DECLARATION
+          LOCAL_FUNCTION_DECLARATION
             HaxePsiToken:function('function')
             HaxePsiToken:(('(')
             PARAMETER_LIST
@@ -245,8 +246,9 @@ Haxe File
                     HaxePsiToken:.('.')
                     IDENTIFIER
                       HaxePsiToken:ID('JQuery')
-            HaxePsiToken:{('{')
-            HaxePsiToken:}('}')
+            BLOCK_STATEMENT
+              HaxePsiToken:{('{')
+              HaxePsiToken:}('}')
           HaxePsiToken:)(')')
         HaxePsiToken:function('function')
         COMPONENT_NAME

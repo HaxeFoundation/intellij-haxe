@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,7 +119,7 @@ public class HaxePackageModel implements HaxeExposableModel {
   @Nullable
   public HaxeFileModel getFileModel(String fileName) {
     final HaxeFile file = getFile(fileName);
-    return file != null ? new HaxeFileModel(file) : null;
+    return file != null ? HaxeFileModel.fromElement(file) : null;
   }
 
   protected HaxeFile getFile(String fileName) {

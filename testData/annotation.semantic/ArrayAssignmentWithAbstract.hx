@@ -1,6 +1,6 @@
 package;
 
-abstract W (Int) from Int {
+abstract W (Int) from Int to Int {
     @:to inline public function toString():String return '$this';
 }
 
