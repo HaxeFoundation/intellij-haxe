@@ -128,11 +128,11 @@ public class HaxeAstUtil {
   public static boolean isNumber(@Nullable ASTNode t) {
     if (t != null) {
       String text = t.getText();
-      // Optimization: If it doesn't start with '+', '-', or digit, it's not a number (ignoring 'Nan' and Infinity).
+      // Optimization: If it doesn't start with '+', '-', '.', or digit, it's not a number (ignoring 'Nan' and Infinity).
       // Using the Float class to detect numbers is fairly expensive.  Before this optimization, about 2/3 of the
       // time we spent evaluating a conditional expression was spent in isFloat().
       char firstChar = text.charAt(0);
-      if (Character.isDigit(firstChar) || '+' == firstChar || '-' == firstChar) {
+      if (Character.isDigit(firstChar) || '.' == firstChar || '-' == firstChar || '+' == firstChar) {
         return isInteger(text) || isFloat(text);
       }
     }
