@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="hxcpp-debugger:git" type="Haxe">
+    <CLASSES>
+      <root url="file://D:/Tools/haxelib/hxcpp-debugger/git" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://D:/Tools/haxelib/hxcpp-debugger/git" />
+    </SOURCES>
+  </library>
+</component>
