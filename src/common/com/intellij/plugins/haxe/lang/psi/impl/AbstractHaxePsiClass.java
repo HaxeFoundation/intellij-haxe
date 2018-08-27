@@ -3,7 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -212,6 +212,17 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
         return name.equals(component.getName());
       }
     });
+  }
+
+  /** Optimized path to replace findHaxeMethod and findHaxeField when used together. */
+  @Override
+  public HaxeNamedComponent findHaxeMemberByName(@NotNull final String name) {
+    return ContainerUtil.find(HaxeResolveUtil.findNamedSubComponents(this),
+                              component -> {
+      HaxeComponentType type = HaxeComponentType.typeOf(component);
+      return ((type == HaxeComponentType.FIELD || type == HaxeComponentType.METHOD)
+              && name.equals(component.getName()));
+                              });
   }
 
   @Nullable

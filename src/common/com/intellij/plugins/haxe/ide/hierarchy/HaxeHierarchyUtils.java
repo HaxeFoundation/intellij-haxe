@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +31,8 @@ import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.MethodSignatureUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
@@ -37,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ebishton on 9/4/14.
@@ -97,16 +101,32 @@ public class HaxeHierarchyUtils {
    * @param psiRoot - File to search.
    * @return An array of found classes, or an empty array if none.
    */
-  public static HaxeClass[] getClassList(@NotNull HaxeFile psiRoot) {
+  public static HaxeClass[] getClassArray(@NotNull HaxeFile psiRoot) {
+    List<HaxeClass> list = getClassList(psiRoot);
+    HaxeClass[] targetArray = new HaxeClass[list.size()];
+    return (list.toArray(targetArray));
+  }
 
-    ArrayList<HaxeClass> classes = new ArrayList<HaxeClass>();
-    for (PsiElement child : psiRoot.getChildren()) {
-      if (child instanceof HaxeClass) {
-        classes.add((HaxeClass)child);
+  /**
+   * Retrieve the list of classes implemented in the given File.
+   *
+   * @param psiRoot - File to search.
+   * @return A List of found classes, or an empty array if none.
+   */
+  @NotNull
+  public static List<HaxeClass> getClassList(@NotNull HaxeFile psiRoot) {
+    CachedValuesManager manager = CachedValuesManager.getManager(psiRoot.getProject());
+    ArrayList<HaxeClass> classList = manager.getCachedValue(psiRoot, () -> {
+      ArrayList<HaxeClass> classes = new ArrayList<>();
+      for (PsiElement child : psiRoot.getChildren()) {
+        if (child instanceof HaxeClass) {
+          classes.add((HaxeClass)child);
+        }
       }
-    }
-    HaxeClass[] return_type = {};
-    return (classes.toArray(return_type));
+      return new CachedValueProvider.Result<>(classes, psiRoot);
+    });
+
+    return classList;
   }
 
   /**

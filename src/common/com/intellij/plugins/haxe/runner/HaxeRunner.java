@@ -111,6 +111,10 @@ public class HaxeRunner extends DefaultProgramRunner {
       return null;
     }
 
+    if(settings.getHaxeTarget() == HaxeTarget.INTERP) {
+      return null;
+    }
+
     if (settings.getHaxeTarget() != HaxeTarget.NEKO) {
       throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", settings.getHaxeTarget()));
     }

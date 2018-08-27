@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -295,7 +296,7 @@ public class HaxelibClasspathUtils {
     List<String> classpathUrls = new ArrayList<String>(strings.size());
 
     for (String string : strings) {
-      if (!string.startsWith("-L") && !string.startsWith("-D")) {
+      if (isClassPathLine(string)) {
         VirtualFile file = LocalFileFinder.findFile(string);
         if (file != null) {
           classpathUrls.add(file.getUrl());
@@ -318,7 +319,7 @@ public class HaxelibClasspathUtils {
     HaxeClasspath classpath = new HaxeClasspath(strings.size());
 
     for (String string : strings) {
-      if (!string.startsWith("-L") && !string.startsWith("-D")) {
+      if (isClassPathLine(string)) {
         VirtualFile file = LocalFileFinder.findFile(string);
         if (file != null) {
           // There are no duplicates in the return from haxelib, so no need to check contains().
@@ -328,6 +329,26 @@ public class HaxelibClasspathUtils {
     }
 
     return classpath;
+  }
+
+  /**
+   * Local classpaths of specified libraries and their dependencies.
+   */
+  public static Set<String> getHaxelibLibrariesClasspaths(@NotNull Sdk sdk, String... libNames) {
+    Set<String> result = new HashSet<>();
+
+    ArrayList<String> args = new ArrayList<>();
+    args.add("path");
+    Collections.addAll(args, libNames);
+
+    List<String> out = HaxelibCommandUtils.issueHaxelibCommand(sdk, args.toArray(new String[0]));
+    for(String line:out) {
+      if(!isClassPathLine(line)) {
+        continue;
+      }
+      result.add(line);
+    }
+    return result;
   }
 
   /**
@@ -560,4 +581,7 @@ public class HaxelibClasspathUtils {
     return lambda.found;
   }
 
+  private static boolean isClassPathLine(String haxelibResponseLine) {
+    return !haxelibResponseLine.startsWith("-") && !haxelibResponseLine.startsWith("Error:");
+  }
 }
