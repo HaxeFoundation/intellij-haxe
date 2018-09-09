@@ -84,7 +84,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(";");
     } else {
       result.append("{\n");
-      if(addOverride) {
+      if(addOverride || element.isOverride()) {
         if(type != null && !type.equals("Void")) {
           result.append("return ");
         }
