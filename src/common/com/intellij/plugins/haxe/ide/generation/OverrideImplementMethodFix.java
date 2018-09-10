@@ -49,7 +49,8 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     final PsiClass containingClass = element instanceof PsiMember ? ((PsiMember)element).getContainingClass() : null;
     final boolean isInterfaceElement = containingClass != null && containingClass.isInterface();
 
-    if (!isInterfaceElement && override && !element.isOverride()) {
+    boolean addOverride = !isInterfaceElement && override && !element.isOverride();
+    if (addOverride) {
       result.append("override ");
     }
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
@@ -70,17 +71,36 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(element.getName());
     } else {
       result.append("function ");
-      result.append(element.getName());
-      result.append(" (");
-      result.append(HaxePresentableUtil.getPresentableParameterList(element, specializations));
-      result.append(")");
+      appendMethodNameAndParameters(result, element, true);
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
+    String type = null;
     if (typeTag != null && typeTag.getTypeOrAnonymous() != null) {
       result.append(":");
-      result.append(HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymous().getType(), specializations));
+      type = HaxePresentableUtil.buildTypeText(element, typeTag.getTypeOrAnonymous().getType(), specializations);
+      result.append(type);
     }
-    result.append(componentType == HaxeComponentType.FIELD ? ";" : "{\n}");
+    if(componentType == HaxeComponentType.FIELD) {
+      result.append(";");
+    } else {
+      result.append("{\n");
+      if(addOverride || element.isOverride()) {
+        if(type != null && !type.equals("Void")) {
+          result.append("return ");
+        }
+        result.append("super.");
+        appendMethodNameAndParameters(result, element, false);
+        result.append(";\n");
+      }
+      result.append("}");
+    }
     return result.toString();
+  }
+
+  private void appendMethodNameAndParameters(StringBuilder buf, HaxeNamedComponent element, boolean addParametersTypes) {
+    buf.append(element.getName());
+    buf.append(" (");
+    buf.append(HaxePresentableUtil.getPresentableParameterList(element, specializations, addParametersTypes));
+    buf.append(")");
   }
 }

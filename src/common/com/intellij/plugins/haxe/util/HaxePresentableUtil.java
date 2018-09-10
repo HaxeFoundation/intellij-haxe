@@ -59,11 +59,11 @@ public class HaxePresentableUtil {
 
   @NotNull
   public static String getPresentableParameterList(HaxeNamedComponent element) {
-    return getPresentableParameterList(element, new HaxeGenericSpecialization());
+    return getPresentableParameterList(element, new HaxeGenericSpecialization(), true);
   }
 
   @NotNull
-  public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericSpecialization specialization) {
+  public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericSpecialization specialization, boolean addTypes) {
     final StringBuilder result = new StringBuilder();
     final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterListPsiMixinImpl.class);
     if (parameterList == null) {
@@ -73,7 +73,7 @@ public class HaxePresentableUtil {
     for (int i = 0, size = list.size(); i < size; i++) {
       HaxeParameter parameter = list.get(i);
       result.append(parameter.getName());
-      if (parameter.getTypeTag() != null) {
+      if (addTypes && parameter.getTypeTag() != null) {
         result.append(":");
         result.append(buildTypeText(parameter, parameter.getTypeTag(), specialization));
       }
