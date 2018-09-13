@@ -101,6 +101,7 @@
         <li>Add Null&lt;T&gt; support</li>
         <li>Add proper from-to declaration support, types infer and compatibility checks</li>
         <li>Fix referenced var-init support check</li>
+        <li>Automatically change references when moving a class across packages</li>
       </ul>
       <p>1.0.2 (HaxeFoundation release)</p>
       <ul>

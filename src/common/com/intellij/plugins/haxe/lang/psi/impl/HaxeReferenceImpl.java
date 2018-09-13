@@ -545,7 +545,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   private void handleClassMovement(PsiClass element) {
     String thisFqn = getQualifiedName();
-    //This is reference is not a fully qualified name. Nothing to do.
+    //This reference is not a fully qualified name. Nothing to do.
     if(!thisFqn.contains(".")) {
       return;
     }
