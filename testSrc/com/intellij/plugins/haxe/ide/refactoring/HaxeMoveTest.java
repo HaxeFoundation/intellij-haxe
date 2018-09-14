@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +23,8 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtilCore;
@@ -106,5 +109,28 @@ public class HaxeMoveTest extends MultiFileTestCase {
 
   public void testMovePackage() throws Exception {
     doTest("util", "foo");
+  }
+
+  public void testMoveClass() throws Exception {
+    final String testHx = "pack1/Moved.hx";
+    final String targetDirName = "pack2";
+    doTest((rootDir, rootAfter) -> {
+      final VirtualFile src = VfsUtil.findRelativeFile(testHx, rootDir);
+      assertNotNull("Class pack1.Moved not found", src);
+      PsiElement file = myPsiManager.findFile(src);
+      assertNotNull("Psi for " + testHx + " not found", file);
+      PsiElement cls = file.getNode().getPsi(HaxeFile.class).findChildByClass(HaxeClassDeclaration.class);
+
+      PsiPackage newParentPackage = JavaPsiFacade.getInstance(myPsiManager.getProject()).findPackage(targetDirName);
+      assertNotNull(newParentPackage);
+
+      ArrayList<PsiElement> list = new ArrayList<>();
+      list.add(cls);
+      new MoveClassesOrPackagesProcessor(myProject, PsiUtilCore.toPsiElementArray(list),
+                                         new SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage),
+                                                                             newParentPackage.getDirectories()[0]),
+                                         true, true, null).run();
+      FileDocumentManager.getInstance().saveAllDocuments();
+    });
   }
 }
