@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Fixed searching of interface implementations and inheritance hierarchy</li>
         <li>Added find usages support for constructors <a href="https://github.com/HaxeFoundation/intellij-haxe/issues/530">#530</a></li>
         <li>Fixed find usages support for properties</li>
         <li>Add completion dropdown when ':' is typed and a type is expected.</li>
