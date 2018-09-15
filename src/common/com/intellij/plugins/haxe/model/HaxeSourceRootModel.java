@@ -21,6 +21,7 @@ import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.indexing.IndexingDataKeys;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeSourceRootModel {
@@ -49,6 +50,9 @@ public class HaxeSourceRootModel {
     VirtualFile virtualFile = file.getVirtualFile();
     if (virtualFile == null) {
       virtualFile = file.getOriginalElement().getContainingFile().getVirtualFile();
+    }
+    if (virtualFile == null) {
+      virtualFile = file.getUserData(IndexingDataKeys.VIRTUAL_FILE);
     }
 
     return virtualFile != null && (virtualFile.getCanonicalPath() + '/').startsWith(root.getCanonicalPath() + '/');
