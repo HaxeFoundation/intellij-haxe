@@ -121,14 +121,12 @@ public class HaxeMoveTest extends MultiFileTestCase {
       assertNotNull("Psi for " + testHx + " not found", file);
       PsiElement cls = file.getNode().getPsi(HaxeFile.class).findChildByClass(HaxeClassDeclaration.class);
 
-      PsiPackage newParentPackage = JavaPsiFacade.getInstance(myPsiManager.getProject()).findPackage(targetDirName);
-      assertNotNull(newParentPackage);
+      PackageWrapper pack = new PackageWrapper(myPsiManager, targetDirName);
 
       ArrayList<PsiElement> list = new ArrayList<>();
       list.add(cls);
       new MoveClassesOrPackagesProcessor(myProject, PsiUtilCore.toPsiElementArray(list),
-                                         new SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage),
-                                                                             newParentPackage.getDirectories()[0]),
+                                         new SingleSourceRootMoveDestination(pack, pack.getDirectories()[0]),
                                          true, true, null).run();
       FileDocumentManager.getInstance().saveAllDocuments();
     });
