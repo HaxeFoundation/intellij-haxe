@@ -118,13 +118,21 @@ public class HaxeMoveTest extends MultiFileTestCase {
     doTest((rootDir, rootAfter) -> {
       final VirtualFile src = VfsUtil.findRelativeFile(testHx, rootDir);
       assertNotNull("Class pack1.Moved not found", src);
+
+      VirtualFile targetDir = VfsUtil.findRelativeFile(targetDirName, rootDir);
+      if(targetDir == null) {
+        targetDir = rootDir.createChildDirectory(this, targetDirName);
+      }
+      String sourceDirAfter = src.getParent().getName();
+      if(VfsUtil.findRelativeFile(sourceDirAfter, rootAfter) == null) {
+        rootAfter.createChildDirectory(this, sourceDirAfter);
+      }
+
       PsiElement file = myPsiManager.findFile(src);
       assertNotNull("Psi for " + testHx + " not found", file);
       PsiElement cls = file.getNode().getPsi(HaxeFile.class).findChildByClass(HaxeClassDeclaration.class);
 
       PackageWrapper pack = new PackageWrapper(myPsiManager, targetDirName);
-      VirtualFile targetDir = VfsUtil.findRelativeFile(targetDirName, rootDir);
-      assertNotNull(targetDir);
       PsiDirectoryImpl dir = new PsiDirectoryImpl(myPsiManager, targetDir);
 
       ArrayList<PsiElement> list = new ArrayList<>();
