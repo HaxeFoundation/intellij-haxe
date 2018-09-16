@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.file.PsiDirectoryImpl;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.refactoring.MultiFileTestCase;
 import com.intellij.refactoring.PackageWrapper;
@@ -122,11 +123,14 @@ public class HaxeMoveTest extends MultiFileTestCase {
       PsiElement cls = file.getNode().getPsi(HaxeFile.class).findChildByClass(HaxeClassDeclaration.class);
 
       PackageWrapper pack = new PackageWrapper(myPsiManager, targetDirName);
+      VirtualFile targetDir = VfsUtil.findRelativeFile(targetDirName, rootDir);
+      assertNotNull(targetDir);
+      PsiDirectoryImpl dir = new PsiDirectoryImpl(myPsiManager, targetDir);
 
       ArrayList<PsiElement> list = new ArrayList<>();
       list.add(cls);
       new MoveClassesOrPackagesProcessor(myProject, PsiUtilCore.toPsiElementArray(list),
-                                         new SingleSourceRootMoveDestination(pack, pack.getDirectories()[0]),
+                                         new SingleSourceRootMoveDestination(pack, dir),
                                          true, true, null).run();
       FileDocumentManager.getInstance().saveAllDocuments();
     });
