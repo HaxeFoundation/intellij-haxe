@@ -113,13 +113,10 @@ public class HaxeFieldModel extends HaxeMemberModel {
     if (!isProperty()) return true;
     HaxeAccessorType setter = getSetterType();
     HaxeAccessorType getter = getGetterType();
-    if (setter == HaxeAccessorType.NULL || setter == HaxeAccessorType.DEFAULT) {
-      return true;
-    } else if (setter == HaxeAccessorType.NEVER &&
-               (getter == HaxeAccessorType.DEFAULT || getter == HaxeAccessorType.NULL)) {
-      return true;
-    }
-    return false;
+    return getter == HaxeAccessorType.DEFAULT ||
+           getter == HaxeAccessorType.NULL ||
+           setter == HaxeAccessorType.DEFAULT ||
+           setter == HaxeAccessorType.NULL;
   }
 
   public boolean hasInitializer() {
