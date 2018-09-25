@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Inspections for non-haxe files disabled.</li>
         <li>Fixed recognizing type of "this" expression.</li>
         <li>Fixed bug when physical variables were marked as not real.</li>
         <li>Fixed searching of interface implementations and inheritance hierarchy</li>
