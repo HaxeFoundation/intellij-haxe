@@ -181,7 +181,7 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
-      return SpecificHaxeClassReference.primitive(ancestor.getQualifiedName(), element).createHolder();
+      return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(model, element)).createHolder();
     }
 
     if (element instanceof HaxeIdentifier) {

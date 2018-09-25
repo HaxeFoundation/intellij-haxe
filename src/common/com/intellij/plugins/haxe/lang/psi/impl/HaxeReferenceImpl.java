@@ -4,6 +4,7 @@
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -532,7 +533,24 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private void bindToClass(PsiClass element) {
-    handleElementRename(element.getName());
+    String ref = getReferenceName();
+    //The name was not changed. Are we moving a class to another package?
+    if(element instanceof HaxeClassDeclaration && ref != null && ref.equals(element.getName())) {
+      handleClassMovement(element);
+    //rename
+    } else {
+      handleElementRename(element.getName());
+    }
+  }
+
+  private void handleClassMovement(PsiClass element) {
+    String thisFqn = getQualifiedName();
+    //This reference is not a fully qualified name. Nothing to do.
+    if(!thisFqn.contains(".")) {
+      return;
+    }
+    String newFqn = ((HaxeClassDeclaration)element).getModel().haxeClass.getQualifiedName();
+    updateFullyQualifiedReference(newFqn);
   }
 
   private void bindToPackage(PsiPackage element) {
