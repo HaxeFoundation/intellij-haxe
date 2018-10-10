@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Added support of read/write access separation for "find usages".</li>
         <li>Inspections for non-haxe files disabled.</li>
         <li>Fixed recognizing type of "this" expression.</li>
         <li>Fixed bug when physical variables were marked as not real.</li>
