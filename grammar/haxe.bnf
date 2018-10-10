@@ -325,8 +325,9 @@ classDeclaration ::= macroClassList? privateKeyWord? 'class' componentName gener
 
 //'from' | 'to'
 underlyingType ::= '(' typeWrapper ')'
-abstractClassDeclaration ::= macroClassList? privateKeyWord? 'abstract' componentName genericParam? underlyingType? ((identifier) type)* '{' abstractBody '}'
+abstractClassDeclaration ::= macroClassList? privateKeyWord? abstractClassType componentName genericParam? underlyingType? ((identifier) type)* '{' abstractBody '}'
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+abstractClassType ::= ('enum' 'abstract' | 'abstract')
 abstractBody ::= abstractBodyPart*  {extends="classBody"}
 private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
 
