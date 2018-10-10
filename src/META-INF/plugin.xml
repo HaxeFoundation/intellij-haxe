@@ -1017,6 +1017,7 @@
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
+    <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
   </extensions>
 
   <module-components>
