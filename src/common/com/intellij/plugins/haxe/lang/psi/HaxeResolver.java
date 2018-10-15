@@ -31,14 +31,10 @@ import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
@@ -141,8 +137,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
 
-      LogResolution(reference, "failed after exhausting all options.");
-
       if (PsiNameHelper.getInstance(reference.getProject()).isQualifiedName(reference.getText())) {
         List<HaxeModel> resolvedPackage =
           HaxeProjectModel.fromElement(reference).resolve(new FullyQualifiedInfo(reference.getText()), reference.getResolveScope());
@@ -153,6 +147,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
+    LogResolution(reference, "failed after exhausting all options.");
     return result == null ? ContainerUtil.emptyList() : result;
   }
 
@@ -315,9 +310,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    * Test if the leftReference is a class name (either locally or in a super-class),
    * and if so, find the named field/method declared inside of it.
    *
-   * @param leftReference - a potential class name.
-   * @param helperName    - the field/method to find.
-   * @return the name of the found field/method.  null if not found.
+   * If the leftReference is to a file, and helperName is a class, we return the name
+   * of that class.
+   *
+   * @param leftReference - a potential class/file name.
+   * @param helperName    - the field/method/class to find.
+   * @return the name of the found field/method/class.  null if not found.
    */
   @Nullable
   private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
@@ -334,15 +332,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       componentName = componentDeclaration == null ? null : componentDeclaration.getComponentName();
     } else {
       // try to find component at abstract forwarding underlying class
-      leftResultClass = leftReference.resolveHaxeClass().getHaxeClass();
+      HaxeClassResolveResult resolveResult = leftReference.resolveHaxeClass();
+      leftResultClass = resolveResult.getHaxeClass();
       if (LOG.isTraceEnabled()) {
         String resultClassName = leftResultClass != null ? leftResultClass.getText() : null;
-        if (LOG.isTraceEnabled()) {
-          LOG.trace(traceMsg("Found abstract left result:" + (resultClassName != null ? resultClassName : "<no text>")));
-        }
+        LOG.trace(traceMsg("Found abstract left result:" + (resultClassName != null ? resultClassName : "<no text>")));
       }
       if (leftResultClass != null) {
         HaxeClassModel model = leftResultClass.getModel();
+
+        if(model.isTypedef()) {
+          // Resolve to the underlying type.  This is important for Null<T> and it's ilk.
+          HaxeClassResolveResult result = fullyResolveTypedef(leftResultClass, resolveResult.getSpecialization());
+          if (null != result.getHaxeClass()) {
+            model = result.getHaxeClass().getModel();
+          }
+        }
+
         HaxeMemberModel member = model.getMember(helperName);
         if (member != null) return member.getNamePsi();
 
@@ -366,6 +372,36 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Found component name " + (ctext != null ? ctext : "<no text>")));
     }
     return componentName;
+  }
+
+  @NotNull
+  private static HaxeClassResolveResult fullyResolveTypedef(@Nullable HaxeClass typedef, @Nullable HaxeGenericSpecialization specialization) {
+    if (null == typedef) return HaxeClassResolveResult.EMPTY;
+
+    HashSet<String> recursionGuard = new HashSet<>(); // Track which typedefs we've already resolved so we don't end up in an infinite loop.
+
+    HaxeClassResolveResult result = HaxeClassResolveResult.EMPTY;
+    HaxeClassModel model = typedef.getModel();
+    while (null != model && model.isTypedef() && !recursionGuard.contains(model.getName())) {
+      recursionGuard.add(model.getName());
+
+      final HaxeTypeOrAnonymous toa = model.getUnderlyingType();
+      final HaxeType type = toa.getType();
+      if (null == type) {
+        // Anonymous structure
+        result = HaxeClassResolveResult.create(toa.getAnonymousType(), specialization);
+        break;
+      }
+
+      // If the reference is to a type parameter, resolve that instead.
+      HaxeClassResolveResult nakedResult = specialization.get(type, type.getReferenceExpression().getIdentifier().getText());
+      if (null == nakedResult) {
+        nakedResult = type.getReferenceExpression().resolveHaxeClass();
+      }
+      result = HaxeClassResolveResult.create(nakedResult.getHaxeClass(), specialization);
+      model = null != result.getHaxeClass() ? result.getHaxeClass().getModel() : null;
+    }
+    return result;
   }
 
   private static List<? extends PsiElement> asList(@Nullable PsiElement element) {

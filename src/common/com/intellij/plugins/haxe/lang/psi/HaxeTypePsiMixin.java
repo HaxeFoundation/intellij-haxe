@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +19,12 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiType;
-import com.intellij.psi.PsiTypeParameterListOwner;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by ebishton on 10/9/14.
  */
-public interface HaxeTypePsiMixin extends HaxePsiCompositeElement, PsiTypeParameterListOwner {
+public interface HaxeTypePsiMixin extends HaxePsiCompositeElement { //, PsiTypeParameterListOwner {
 
   /**
    * Gets the (Java) PsiType (Actually the HaxePsiTypeAdapter) that

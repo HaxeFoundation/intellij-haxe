@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,11 +109,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public String toStringWithoutConstant() {
     StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
-    if (getSpecifics().length > 0) {
+    ResultHolder [] specifics = getSpecifics();
+    if (null != specifics && getSpecifics().length > 0) {
       out.append("<");
-      for (int n = 0; n < getSpecifics().length; n++) {
+      for (int n = 0; n < specifics.length; n++) {
         if (n > 0) out.append(", ");
-        out.append(getSpecifics()[n].toStringWithoutConstant());
+        ResultHolder specific = specifics[n];
+        out.append(specific == null ? UNKNOWN : specific.toStringWithoutConstant());
       }
       out.append(">");
     }
@@ -153,7 +156,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       for (int n = 0; n < params.size(); n++) {
         HaxeGenericParamModel paramModel = params.get(n);
         ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
-        resolver.resolvers.put(paramModel.getName(), specific);
+        resolver.add(paramModel.getName(), specific);
       }
     }
     return resolver;
@@ -161,7 +164,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Nullable
   @Override
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver) {
     if (this.isDynamic()) return this.withoutConstantValue().createHolder();
 
     if (name == null) {
@@ -171,15 +174,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (aClass == null) {
       return null;
     }
-    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
     AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name);
     if (method != null) {
       if (context.root == method) return null;
-      return HaxeTypeResolver.getMethodFunctionType(method, getGenericResolver());
+      return HaxeTypeResolver.getMethodFunctionType(method, resolver);
     }
+    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
     if (field != null) {
       if (context.root == field) return null;
-      return HaxeTypeResolver.getFieldOrMethodReturnType(field, getGenericResolver());
+      return HaxeTypeResolver.getFieldOrMethodReturnType(field, resolver);
     }
     return null;
   }
@@ -308,6 +311,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public static SpecificHaxeClassReference propagateGenericsToType(@Nullable SpecificHaxeClassReference type,
                                                              HaxeGenericResolver genericResolver) {
     if (type == null) return null;
+    if (genericResolver == null) return type;
+
     if (type.canBeTypeVariable()) {
       String typeVariableName = type.getHaxeClassReference().name;
       ResultHolder possibleValue = genericResolver.resolve(typeVariableName);

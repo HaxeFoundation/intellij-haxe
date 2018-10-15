@@ -162,7 +162,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public boolean resolveIsStaticExtension() {
     // @TODO: DIRTY HACK! to avoid rewriting all the code!
     HaxeResolver.INSTANCE.resolve(this, true);
-    return HaxeResolver.isExtension.get();
+    return null != HaxeResolver.isExtension ? HaxeResolver.isExtension.get() : false;
   }
 
   @NotNull

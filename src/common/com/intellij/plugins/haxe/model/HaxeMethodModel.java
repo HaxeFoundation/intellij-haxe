@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,9 +36,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
-  private HaxeMethodPsiMixin haxeMethod;
+  private HaxeMethod haxeMethod;
 
-  public HaxeMethodModel(HaxeMethodPsiMixin haxeMethod) {
+  public HaxeMethodModel(HaxeMethod haxeMethod) {
     super(haxeMethod);
     this.haxeMethod = haxeMethod;
   }
@@ -171,6 +171,19 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   @Override
   public HaxeExposableModel getExhibitor() {
     return getDeclaringClass();
+  }
+
+  @Nullable
+  public List<HaxeGenericParamModel> getGenericParams() {
+    final List<HaxeGenericParamModel> out = new ArrayList<>();
+    if (haxeMethod.getGenericParam() != null) {
+      int index = 0;
+      for (HaxeGenericListPart part : haxeMethod.getGenericParam().getGenericListPartList()) {
+        out.add(new HaxeGenericParamModel(part, index));
+        index++;
+      }
+    }
+    return out;
   }
 }
 

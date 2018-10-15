@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,48 +73,48 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   //
   // ParameterListOwner methods.
   //
-
-  @Override
-  public boolean hasTypeParameters() {
-    return myType.hasTypeParameters();
-  }
-
-  @Nullable
-  @Override
-  public PsiTypeParameterList getTypeParameterList() {
-    return myType.getTypeParameterList();
-  }
-
-  @NotNull
-  @Override
-  public PsiTypeParameter[] getTypeParameters() {
-    return myType.getTypeParameters();
-  }
+  //
+  //@Override
+  //public boolean hasTypeParameters() {
+  //  return myType.hasTypeParameters();
+  //}
+  //
+  //@Nullable
+  //@Override
+  //public PsiTypeParameterList getTypeParameterList() {
+  //  return myType.getTypeParameterList();
+  //}
+  //
+  //@NotNull
+  //@Override
+  //public PsiTypeParameter[] getTypeParameters() {
+  //  return myType.getTypeParameters();
+  //}
 
   //
   // PsiMember methods.
   //
-
-  @Nullable
-  @Override
-  public PsiClass getContainingClass() {
-    return myType.getContainingClass();
-  }
-
   //
-  // PsiModifierListOwner methods.
+  //@Nullable
+  //@Override
+  //public PsiClass getContainingClass() {
+  //  return myType.getContainingClass();
+  //}
   //
-
-  @Nullable
-  @Override
-  public PsiModifierList getModifierList() {
-    return myType.getModifierList();
-  }
-
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    return myType.hasModifierProperty(name);
-  }
+  ////
+  //// PsiModifierListOwner methods.
+  ////
+  //
+  //@Nullable
+  //@Override
+  //public PsiModifierList getModifierList() {
+  //  return myType.getModifierList();
+  //}
+  //
+  //@Override
+  //public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name) {
+  //  return myType.hasModifierProperty(name);
+  //}
 
 
   //

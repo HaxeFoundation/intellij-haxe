@@ -35,9 +35,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
-import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
@@ -119,7 +117,7 @@ class TypeTagChecker {
       return abstractEnumFieldInitType;
     }
     // fallback to simple init expression
-    return HaxeTypeResolver.getPsiElementType(init.getExpression());
+    return HaxeTypeResolver.getPsiElementType(init.getExpression(), new HaxeGenericResolver()); // TODO: Need to initialize resolver??
   }
 }
 
@@ -756,7 +754,20 @@ class PackageChecker {
 class MethodBodyChecker {
   public static void check(HaxeMethod psi, AnnotationHolder holder) {
     final HaxeMethodModel method = psi.getModel();
-    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder);
+    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, generateConstraintResolver(method));
+  }
+
+  @NotNull
+  private static HaxeGenericResolver generateConstraintResolver(HaxeMethodModel method) {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    for (HaxeGenericParamModel param : method.getGenericParams()) {
+      ResultHolder constraint = param.getConstraint(resolver);
+      if (null == constraint.getType()) {
+        constraint = new ResultHolder(SpecificHaxeClassReference.getDynamic(param.getPsi()));
+      }
+      resolver.add(param.getName(), constraint);
+    }
+    return resolver;
   }
 }
 

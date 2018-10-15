@@ -254,7 +254,7 @@ public class HaxeClassResolveResult implements Cloneable {
   }
 
   /**
-   * Creates a resolved parameter list that can be used with specializedByParameters() when resolving
+   * Creates a resolved parameter list that can be used with specializeByParameters() when resolving
    * subclasses.
    *
    * @param targetParam - the haxe class that is being resolved
