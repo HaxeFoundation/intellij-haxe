@@ -15,24 +15,26 @@
  */
 package com.intellij.plugins.haxe;
 
-import com.vdurmont.semver4j.Semver;
+import com.intellij.util.text.SemVer;
 
 public enum HaxeLanguageLevel {
-  HAXE_3(new Semver("3.4.0"), HaxeBundle.message("haxe.language.level.3")),
-  HAXE_4(new Semver("4.0.0"), HaxeBundle.message("haxe.language.level.4"));
+  HAXE_3(SemVer.parseFromText("3.4.0"), HaxeBundle.message("haxe.language.level.3")),
+  HAXE_4(SemVer.parseFromText("4.0.0"), HaxeBundle.message("haxe.language.level.4"));
 
-  private final Semver version;
+  private final SemVer version;
   private final String presentableText;
 
-  HaxeLanguageLevel(Semver version, String presentableText) {
+  HaxeLanguageLevel(SemVer version, String presentableText) {
     this.version = version;
     this.presentableText = presentableText;
   }
 
   public static HaxeLanguageLevel fromVersionString(String string) {
-    Semver version = new Semver(string).withClearedSuffixAndBuild();
-    for (HaxeLanguageLevel level : values()) {
-      if (level.version.getMajor().equals(version.getMajor()) && level.version.getMinor().equals(version.getMinor())) return level;
+    SemVer version = SemVer.parseFromText(string);
+    if (version != null) {
+      for (HaxeLanguageLevel level : values()) {
+        if (level.version.getMajor() == version.getMajor() && level.version.getMinor() == version.getMinor()) return level;
+      }
     }
     return HAXE_3;
   }
