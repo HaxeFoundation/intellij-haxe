@@ -4,6 +4,7 @@
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
  * Copyright 2018 Aleksandr Kuzmenko
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +45,6 @@ import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlDocument;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -414,7 +412,7 @@ public class HaxelibClasspathUtils {
       commandLineArguments.add("display");
       commandLineArguments.add("flash");
 
-      List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments,
+      List<String> strings = HaxelibCommandUtils.getProcessOutput(commandLineArguments,
                                                                   dir,
                                                                   HaxeSdkUtilBase.getSdkData(sdk));
       String s = Joiner.on("\n").join(strings);
