@@ -82,6 +82,8 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Fixed endless hang of hxml completion contributor.</li>
+        <li>Fixed version recognizing for Haxe 4+ sdk.</li>
         <li>Inspections for non-haxe files disabled.</li>
         <li>Fixed recognizing type of "this" expression.</li>
         <li>Fixed bug when physical variables were marked as not real.</li>
