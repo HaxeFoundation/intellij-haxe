@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +34,7 @@ import java.util.List;
  */
 public class HXMLDefineCompletionContributor extends CompletionContributor {
   public HXMLDefineCompletionContributor() {
-    final List<HXMLCompletionItem> defines = HaxeHelpCache.getInstance().getDefines();
+    final List<HaxeCompletionDefine> defines = HaxeHelpCache.getInstance().getDefines();
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.VALUE).withParent(HXMLDefine.class),
            new CompletionProvider<CompletionParameters>() {
              @Override
@@ -41,7 +42,7 @@ public class HXMLDefineCompletionContributor extends CompletionContributor {
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
                for (int i = 0; i < defines.size(); i++) {
-                 HXMLCompletionItem completionItem = defines.get(i);
+                 HaxeCompletionDefine completionItem = defines.get(i);
                  result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
                }
              }

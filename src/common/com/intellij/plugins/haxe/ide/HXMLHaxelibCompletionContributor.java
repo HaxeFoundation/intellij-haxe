@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +23,6 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
-import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
     availableHaxelibs = haxelibCache.getAvailableHaxelibs();
     localHaxelibs = haxelibCache.getLocalHaxelibs();
 
-    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),
+    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE_TOKEN).withSuperParent(2, psiElement(HXMLTypes.LIB)).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,

@@ -1,7 +1,5 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
- * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +15,25 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-/**
- * Created by as3boyan on 25.11.14.
- */
-public class HXMLCompletionItem {
-  public String name;
-  public String description;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import org.jetbrains.annotations.NotNull;
 
-  public HXMLCompletionItem(String name, String description, String presentableText) {
-    this.name = name;
-    this.description = description;
-    this.presentableText = presentableText;
-  }
+public class HaxeCompletionItem {
+  @NotNull public final String name;
+  @NotNull public final String description;
 
-  public String presentableText = null;
+  private LookupElement myLookupElement;
 
-  public HXMLCompletionItem(String name, String description) {
+  public HaxeCompletionItem(@NotNull String name, @NotNull String description) {
     this.name = name;
     this.description = description;
   }
 
-  public HXMLCompletionItem(String name) {
-    this.name = name;
-    this.description = "";
+  public LookupElement getLookupElement() {
+    if (myLookupElement == null) {
+      myLookupElement = LookupElementBuilder.create(name).withTailText(" " + description, true);
+    }
+    return myLookupElement;
   }
 }

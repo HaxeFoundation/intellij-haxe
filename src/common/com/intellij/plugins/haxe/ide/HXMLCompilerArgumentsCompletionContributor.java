@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +20,13 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.plugins.haxe.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
+import com.intellij.plugins.haxe.haxelib.HaxelibSdkUtils;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
@@ -36,110 +39,78 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.intellij.plugins.haxe.HaxeLanguageLevel.HAXE_4;
+
 /**
  * Created by as3boyan on 10.08.14.
  */
 public class HXMLCompilerArgumentsCompletionContributor extends CompletionContributor {
 
-  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS = null;
-  public static List<HXMLCompletionItem> COMPILER_ARGUMENTS2 = null;
-  public static final Pattern PATTERN = Pattern.compile("-([a-z-_0-9]+)[\\s](<[^>]+>)?[^:]+:[\\t\\s]+([^\\r\\n]+)");
-  public static final Pattern PATTERN2 = Pattern.compile("--([a-z-_0-9]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
+  private static List<HXMLCompletionArgument> arguments = null;
+  private static HaxeLanguageLevel level = null;
 
-  private void getCompilerArguments() {
-    List<HXMLCompletionItem> compilerArguments = new ArrayList<HXMLCompletionItem>();
-    List<HXMLCompletionItem> compilerArguments2 = new ArrayList<HXMLCompletionItem>();
-    ArrayList<String> commandLine = new ArrayList<String>();
-    List<String> strings = getStrings(commandLine);
+  private static final Pattern PATTERN_HAXE3 = Pattern.compile("^\\s*(?<keys>-+([a-z\\-A-Z_0-9]+))\\s*(?<options>(\\[[^]]+]|(<[^>]+>))*)\\s*:\\s*(?<description>[^\\r\\n]+)");
+  private static final Pattern PATTERN_HAXE4 = Pattern.compile("^\\s*(?<keys>((-{1,2})([a-z\\-A-Z_0-9]+)(, )?)+)(?<options>(\\s*(\\[.+]|<[^>]+>))*)\\s+(?<description>[^\\r\\n]+)");
 
-    Matcher matcher;
-    for (int i = 0; i < strings.size(); i++) {
-      String text = strings.get(i);
-      matcher = PATTERN2.matcher(text);
+  private List<HXMLCompletionArgument> getCompilerArguments() {
+    HaxeLanguageLevel sdkLevel = HaxelibSdkUtils.getLanguageLevel(HaxelibCache.getHaxeModule());
 
+    if (level == null || !level.equals(sdkLevel)) {
+      level = sdkLevel;
+      arguments = null;
+    }
+
+    if (arguments != null) return arguments;
+
+    final List<String> strings = getCompilerHelpLines();
+    arguments = new ArrayList<>();
+
+    Pattern pattern = PATTERN_HAXE3;
+
+    if (level == HAXE_4) pattern = PATTERN_HAXE4;
+
+    for (String text : strings) {
+      Matcher matcher = pattern.matcher(text);
       if (matcher.find()) {
-        String group = matcher.group(1);
+        String keys = matcher.group("keys");
+        String options = StringUtil.trim(matcher.group("options"));
+        String description = StringUtil.trim(matcher.group("description"));
 
-        if (!compilerArguments2.contains(group)) {
-          compilerArguments2.add(new HXMLCompletionItem(group, matcher.group(2)));
-        }
-      }
-      else
-      {
-        matcher = PATTERN.matcher(text);
-
-        if (matcher.find()) {
-          String group = matcher.group(1);
-
-          if (!compilerArguments.contains(group)) {
-            String description = matcher.group(3);
-            String group2 = matcher.group(2);
-            if (group2 != null) {
-              group2 = group + " " + group2;
-            }
-            compilerArguments.add(new HXMLCompletionItem(group, description, group2));
-          }
+        for (String key : keys.split(", ")) {
+          boolean isDoubleDash = key.startsWith("--");
+          arguments.add(new HXMLCompletionArgument(isDoubleDash, key.substring(isDoubleDash ? 2 : 1).trim(), description, options));
         }
       }
     }
-
-    if (!compilerArguments.contains("D")) {
-      compilerArguments.add(new HXMLCompletionItem("D"));
-    }
-
-    COMPILER_ARGUMENTS = compilerArguments;
-    COMPILER_ARGUMENTS2 = compilerArguments2;
+    return arguments;
   }
 
-  private List<String> getStrings(ArrayList<String> commandLine) {
+  private List<String> getCompilerHelpLines() {
     Module module = HaxelibCache.getHaxeModule();
+
+    List<String> commandLine = new ArrayList<>();
     commandLine.add(HaxeHelpUtil.getHaxePath(module));
     commandLine.add("--help");
 
-    List<String> strings = HaxelibCommandUtils.getProcessStderr(commandLine, HaxeSdkUtilBase.getSdkData(module));
-    if (strings.size() > 0) {
-      strings.remove(0);
+    List<String> result = HaxelibCommandUtils.getProcessOutput(commandLine, HaxeSdkUtilBase.getSdkData(module));
+    if (result.size() > 0) {
+      result.remove(0);
     }
-    return strings;
+    return result;
   }
 
   public HXMLCompilerArgumentsCompletionContributor() {
-    if (COMPILER_ARGUMENTS == null) {
-      getCompilerArguments();
-    }
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.OPTION).withLanguage(HXMLLanguage.INSTANCE),
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY_TOKEN).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet set) {
-
-
-               //String[] compilerArguments;
-
-
-               //compilerArguments = new String[]{
-               //  "lib",
-               //  "D",
-               //  "cp",
-               //  "main",
-               //  "dce
-               //};
-
                String text = parameters.getPosition().getText();
-
-               if (text.startsWith("--")) {
-                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS2) {
-                   set.addElement(LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true));
-                 }
-               }
-               else {
-                 for (HXMLCompletionItem argument : COMPILER_ARGUMENTS) {
-                   LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(argument.name).withTailText(" " + argument.description, true);
-                   if (argument.presentableText != null) {
-                     lookupElementBuilder = lookupElementBuilder.withPresentableText(argument.presentableText);
-                   }
-                   set.addElement(lookupElementBuilder);
+               boolean doubleDash = text.startsWith("--");
+               for (HXMLCompletionArgument argument : getCompilerArguments()) {
+                 if (argument.doubleDash == doubleDash) {
+                   set.addElement(argument.getLookupElement());
                  }
                }
              }
@@ -147,3 +118,4 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
     );
   }
 }
+

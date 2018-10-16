@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +33,14 @@ import java.util.List;
  */
 public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
   public HaxeMetaTagsCompletionContributor() {
-    final List<HXMLCompletionItem> metaTags = HaxeHelpCache.getInstance().getMetaTags();
+    final List<HaxeCompletionMeta> metaTags = HaxeHelpCache.getInstance().getMetaTags();
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.MACRO_ID), new CompletionProvider<CompletionParameters>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         for (int i = 0; i < metaTags.size(); i++) {
-          HXMLCompletionItem completionItem = metaTags.get(i);
+          HaxeCompletionMeta completionItem = metaTags.get(i);
           result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
         }
       }

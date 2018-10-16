@@ -23,7 +23,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
-import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
+import com.intellij.plugins.haxe.ide.HaxeCompletionDefine;
+import com.intellij.plugins.haxe.ide.HaxeCompletionMeta;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,20 +40,20 @@ public class HaxeHelpCache {
   public static final Pattern META_TAG_PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
   public static final Pattern DEFINE_PATTERN = Pattern.compile("([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]([^\\r\\n]+)");
 
-  public List<HXMLCompletionItem> getMetaTags() {
+  public List<HaxeCompletionMeta> getMetaTags() {
     return metaTags;
   }
-  public List<HXMLCompletionItem> getDefines() {
+  public List<HaxeCompletionDefine> getDefines() {
     return defines;
   }
 
-  private static List<HXMLCompletionItem> metaTags;
-  private static List<HXMLCompletionItem> defines;
+  private static List<HaxeCompletionMeta> metaTags;
+  private static List<HaxeCompletionDefine> defines;
 
   public HaxeHelpCache() {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      metaTags = Collections.EMPTY_LIST;
-      defines = Collections.EMPTY_LIST;
+      metaTags = Collections.emptyList();
+      defines = Collections.emptyList();
       return;
     }
 
@@ -76,16 +77,16 @@ public class HaxeHelpCache {
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-metas");
 
-    List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
+    List<String> strings = HaxelibCommandUtils.getProcessOutput(commandLineArguments, haxeSdkData);
 
-    metaTags = new ArrayList<HXMLCompletionItem>();
+    metaTags = new ArrayList<>();
 
     for (int i = 0, size = strings.size(); i < size; i++) {
       String string = strings.get(i);
       Matcher matcher = META_TAG_PATTERN.matcher(string);
 
       if (matcher.find()) {
-        metaTags.add(new HXMLCompletionItem(matcher.group(1), matcher.group(2)));
+        metaTags.add(new HaxeCompletionMeta(matcher.group(1), matcher.group(2)));
       }
     }
 
@@ -93,16 +94,16 @@ public class HaxeHelpCache {
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-defines");
 
-    strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
+    strings = HaxelibCommandUtils.getProcessOutput(commandLineArguments, haxeSdkData);
 
-    defines = new ArrayList<HXMLCompletionItem>();
+    defines = new ArrayList<>();
 
     for (int i = 0; i < strings.size(); i++) {
       String string = strings.get(i);
       Matcher matcher = DEFINE_PATTERN.matcher(string);
 
       if (matcher.find()) {
-        defines.add(new HXMLCompletionItem(matcher.group(1), matcher.group(2)));
+        defines.add(new HaxeCompletionDefine(matcher.group(1), matcher.group(2)));
       }
     }
   }
