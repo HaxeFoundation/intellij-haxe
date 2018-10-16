@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +26,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.plugins.haxe.HaxeLanguageLevel;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,6 +94,17 @@ public class HaxelibSdkUtils {
     return sdk;
   }
 
+  public static HaxeLanguageLevel getLanguageLevel(@NotNull Project project) {
+    return getLanguageLevel(lookupSdk(project));
+  }
+
+  public static HaxeLanguageLevel getLanguageLevel(@NotNull Module module) {
+    return getLanguageLevel(lookupSdk(module));
+  }
+
+  public static HaxeLanguageLevel getLanguageLevel(@NotNull Sdk sdk) {
+    return HaxeLanguageLevel.fromVersionString(sdk.getVersionString());
+  }
 
   @NotNull
   public static Sdk getDefaultSDK(String errorMessage) {
