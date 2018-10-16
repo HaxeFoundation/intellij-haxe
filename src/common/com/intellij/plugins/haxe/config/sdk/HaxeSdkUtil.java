@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +27,6 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
@@ -42,7 +41,7 @@ import java.util.regex.Pattern;
 
 public class HaxeSdkUtil extends HaxeSdkUtilBase {
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
-  private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
+  private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+([-\\w\\d.]+)?)");
 
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
@@ -54,7 +53,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
 
     final GeneralCommandLine command = new GeneralCommandLine();
     command.setExePath(exePath);
-    command.addParameter("-help");
+    command.addParameter("-version");
     command.setWorkDirectory(path);
 
     try {
@@ -68,7 +67,8 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
         return null;
       }
 
-      final String outputString = output.getStderr();
+      String outputString = output.getStderr();
+      if (outputString.isEmpty()) outputString = output.getStdout();
 
       String haxeVersion = "NA";
       final Matcher matcher = VERSION_MATCHER.matcher(outputString);
