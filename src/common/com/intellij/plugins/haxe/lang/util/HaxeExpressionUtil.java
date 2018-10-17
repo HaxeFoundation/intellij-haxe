@@ -19,13 +19,14 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxePsiUtil {
+public class HaxeExpressionUtil {
   @Nullable
   public static IElementType getOperationType(@NotNull HaxeExpression expression) {
     final ASTNode token = expression.getNode().findChildByType(HaxeTokenTypeSets.UNARY_OPERATORS);
@@ -35,18 +36,10 @@ public class HaxePsiUtil {
 
   public static boolean isIncrementDecrementOperation(@Nullable PsiElement element) {
     if (element instanceof HaxePrefixExpression) {
-      final IElementType operationType = HaxePsiUtil.getOperationType((HaxePrefixExpression)element);
+      final IElementType operationType = HaxeExpressionUtil.getOperationType((HaxePrefixExpression)element);
       return HaxeTokenTypeSets.UNARY_READ_WRITE_OPERATORS.contains(operationType);
     }
     else return element instanceof HaxeSuffixExpression;
-  }
-
-  @Nullable
-  public static PsiElement skipParenthesizedExprUp(@Nullable PsiElement parent) {
-    while (parent instanceof HaxeParenthesizedExpression) {
-      parent = parent.getParent();
-    }
-    return parent;
   }
 
   public static boolean isOnAssignmentLeftHand(@NotNull HaxeExpression expr) {
@@ -57,7 +50,7 @@ public class HaxePsiUtil {
 
   public static boolean isAccessedForWriting(@NotNull HaxeExpression expr) {
     if (isOnAssignmentLeftHand(expr)) return true;
-    final PsiElement parent = skipParenthesizedExprUp(expr.getParent());
+    final PsiElement parent = UsefulPsiTreeUtil.skipParenthesizedExprUp(expr.getParent());
     return isIncrementDecrementOperation(parent);
   }
 

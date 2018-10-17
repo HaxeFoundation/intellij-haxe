@@ -17,7 +17,7 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.highlighting.ReadWriteAccessDetector;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.util.HaxePsiUtil;
+import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +50,8 @@ public class HaxeReadWriteAccessDetector extends ReadWriteAccessDetector {
     }
     final HaxeExpression expr = (HaxeExpression)expression;
 
-    boolean readAccess = HaxePsiUtil.isAccessedForReading(expr);
-    boolean writeAccess = HaxePsiUtil.isAccessedForWriting(expr);
+    boolean readAccess = HaxeExpressionUtil.isAccessedForReading(expr);
+    boolean writeAccess = HaxeExpressionUtil.isAccessedForWriting(expr);
     if (writeAccess && readAccess) {
       return Access.ReadWrite;
     }
