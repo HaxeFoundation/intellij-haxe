@@ -26,6 +26,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeParenthesizedExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
@@ -285,4 +286,11 @@ public class UsefulPsiTreeUtil {
     return sibling;
   }
 
+  @Nullable
+  public static PsiElement skipParenthesizedExprUp(@Nullable PsiElement parent) {
+    while (parent instanceof HaxeParenthesizedExpression) {
+      parent = parent.getParent();
+    }
+    return parent;
+  }
 }

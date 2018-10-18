@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Added support of read/write access separation for "find usages".</li>
         <li>Added support of haxe 4 syntax "enum abstract"</li>
         <li>Inspections for non-haxe files disabled.</li>
         <li>Fixed recognizing type of "this" expression.</li>
@@ -1018,6 +1019,7 @@
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
+    <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
   </extensions>
 
   <module-components>
