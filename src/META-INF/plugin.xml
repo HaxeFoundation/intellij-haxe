@@ -86,6 +86,8 @@
         <li>Now propagates type parameters (generics) properly through typedefs.</li>
         <li>Now resolves types when used with array access (e.g. `map[0].length` no longer marked as errors).</li>
         <li>Now infers types of methods without specific typing (e.g. `map.get(0).length` no longer marked as errors).</li>
+        <li>Added support of read/write access separation for "find usages".</li>
+        <li>Added support of haxe 4 syntax "enum abstract"</li>
         <li>Inspections for non-haxe files disabled.</li>
         <li>Fixed recognizing type of "this" expression.</li>
         <li>Fixed bug when physical variables were marked as not real.</li>
@@ -1021,6 +1023,7 @@
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
+    <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
   </extensions>
 
   <module-components>

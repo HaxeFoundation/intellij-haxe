@@ -223,6 +223,7 @@ public class HaxelibUtil {
       entries.forEachLibrary(new Processor<Library>() {
         @Override
         public boolean process(Library library) {
+          if (library == null || library.getName() == null) return true;
           HaxeLibraryReference ref = HaxeLibraryReference.create(module, library.getName());
           if (null != ref) {
             moduleLibs.add(ref);
@@ -260,6 +261,8 @@ public class HaxelibUtil {
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
       String name = library.getName();
+      if (name == null) continue;
+
       boolean isManaged = HaxelibNameUtil.isManagedLibrary(name);
       if (filterManagedLibs && isManaged) continue;
       if (filterUnmanagedLibs && !isManaged) continue;
