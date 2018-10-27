@@ -36,6 +36,14 @@ public class HaxeGenericResolver {
     return specificType;
   }
 
+  @NotNull
+  public HaxeGenericResolver addAll(@Nullable HaxeGenericResolver parentResolver) {
+    if (null != parentResolver) {
+      this.resolvers.putAll(parentResolver.resolvers);
+    }
+    return this;
+  }
+
   @Nullable
   public ResultHolder resolve(String name) {
     return resolvers.get(name);
