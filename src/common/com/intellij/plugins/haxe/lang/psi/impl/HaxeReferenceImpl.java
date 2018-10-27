@@ -31,6 +31,8 @@ import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -111,7 +113,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       expression = ((HaxeCallExpression)this).getExpression();
     } else if (this instanceof HaxeNewExpression) {
       HaxeNewExpression newExpression = (HaxeNewExpression)this;
-      HaxeClass haxeClass = (HaxeClass)newExpression.getType().getReferenceExpression().resolve();
+      PsiElement resolved = newExpression.getType().getReferenceExpression().resolve();
+      HaxeClass haxeClass;
+      if (resolved instanceof HaxeClass) {
+        haxeClass = (HaxeClass) resolved;
+      } else {
+        SpecificHaxeClassReference typeReference = SpecificTypeReference.getUnknown(newExpression);
+        haxeClass = null != typeReference ? typeReference.getHaxeClass() : null;
+      }
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(haxeClass);
       result.specializeByParameters(newExpression.getType().getTypeParam());
       return result.getSpecialization();
