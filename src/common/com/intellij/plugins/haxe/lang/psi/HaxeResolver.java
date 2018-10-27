@@ -53,7 +53,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   public static final HaxeResolver INSTANCE = new HaxeResolver();
 
-  public static ThreadLocal<Boolean> isExtension = new ThreadLocal<>();
+  public static ThreadLocal<Boolean> isExtension = new ThreadLocal<>().withInitial(()->new Boolean(false));
 
   private static boolean reportCacheMetrics = false;   // Should always be false when checked in.
   private static AtomicInteger dumbRequests = new AtomicInteger(0);
