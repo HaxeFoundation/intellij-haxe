@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +54,7 @@ public class HaxeClassResolveResult implements Cloneable {
     this(aClass, new HaxeGenericSpecialization());
   }
 
-  private HaxeClassResolveResult(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
+  private HaxeClassResolveResult(@Nullable HaxeClass aClass, @NotNull HaxeGenericSpecialization specialization) {
     haxeClass = aClass;
     this.specialization = specialization;
   }
@@ -75,6 +75,9 @@ public class HaxeClassResolveResult implements Cloneable {
     if (aClass == null) {
       return new HaxeClassResolveResult(null);
     }
+    if (specialization == null) {
+      specialization = new HaxeGenericSpecialization(); // Better than chasing @NotNull all over the code base.
+    }
     try {
       debugNestCountForCreate.increment();
       if (LOG.isDebugEnabled()) {
@@ -82,7 +85,7 @@ public class HaxeClassResolveResult implements Cloneable {
                   "Resolving class " +
                   aClass.getName() +
                   " using specialization " +
-                  (specialization == null ? "<none>" : specialization.debugDump("  ")));
+                  specialization.debugDump("  "));
       }
       HaxeClassResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
 
