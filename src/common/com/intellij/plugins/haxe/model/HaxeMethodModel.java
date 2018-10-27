@@ -22,13 +22,11 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -184,6 +182,27 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
       }
     }
     return out;
+  }
+
+  /**
+   * Get a generic resolver for *this* method.  Does NOT include parent entries.
+   * @param parentResolver - To resolve parent names to type constraints.
+   * @return A resolver that has all of the types that this method declares/uses.
+   */
+  @NotNull
+  public HaxeGenericResolver getGenericResolver(HaxeGenericResolver parentResolver) {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    if (haxeMethod.getGenericParam() != null) {
+      for (HaxeGenericListPart part : haxeMethod.getGenericParam().getGenericListPartList()) {
+        HaxeGenericParamModel model = new HaxeGenericParamModel(part, 0);
+        ResultHolder constraint = model.getConstraint(parentResolver);
+        if (null == constraint) {
+          constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
+        }
+        resolver.add(model.getName(), constraint );
+      }
+    }
+    return resolver;
   }
 }
 

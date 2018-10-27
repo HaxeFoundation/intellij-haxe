@@ -117,7 +117,7 @@ class TypeTagChecker {
       return abstractEnumFieldInitType;
     }
     // fallback to simple init expression
-    return HaxeTypeResolver.getPsiElementType(init.getExpression(), new HaxeGenericResolver()); // TODO: Need to initialize resolver??
+    return HaxeTypeResolver.getPsiElementType(init.getExpression(), HaxeGenericResolverUtil.generateResolverFromScopeParents(init));
   }
 }
 

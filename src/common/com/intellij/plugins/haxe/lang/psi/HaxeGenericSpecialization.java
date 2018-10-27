@@ -116,6 +116,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     return map.containsKey(getGenericKey(element, genericName));
   }
 
+  @NotNull
   public HaxeGenericSpecialization filterInnerKeys() {
     HaxeGenericSpecialization filtered = new HaxeGenericSpecialization();
     for (String key : map.keySet()) {

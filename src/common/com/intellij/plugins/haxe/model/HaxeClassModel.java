@@ -402,6 +402,21 @@ public class HaxeClassModel implements HaxeExposableModel {
     return out;
   }
 
+  /**
+   * @return a generic resolver with Unknown or constrained types.
+   */
+  @NotNull
+  public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
+    if (getPsi().getGenericParam() != null) {
+      HaxeClassResolveResult result = HaxeClassResolveResult.create(getPsi(),
+                                      parentResolver == null ? HaxeGenericSpecialization.EMPTY
+                                                             : HaxeGenericSpecialization.fromGenericResolver(null, parentResolver));
+      HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(getPsi());
+      return resolver;
+    }
+    return new HaxeGenericResolver();
+  }
+
   public void addField(String name, SpecificTypeReference type) {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic var " + name + ":" + type.toStringWithoutConstant() + ";\n");
   }

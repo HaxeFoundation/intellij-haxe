@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -249,7 +250,8 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
       final ResultHolder parameterType = parameter.getResultHolder();
       // TODO: Probably should be using a correct specialization here, instead of a blank resolver.
-      final ResultHolder argumentType = HaxeTypeResolver.getPsiElementType(argument, new HaxeGenericResolver());
+      final ResultHolder argumentType = HaxeTypeResolver.getPsiElementType(argument,
+                                            HaxeGenericResolverUtil.generateResolverFromScopeParents(argument));
 
       if (parameterType.canAssign(argumentType)) {
         if (argumentIndex == currentArgumentIndex) return parameterIndex;
