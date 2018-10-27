@@ -249,7 +249,6 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       final HaxeExpression argument = arguments.get(argumentIndex);
 
       final ResultHolder parameterType = parameter.getResultHolder();
-      // TODO: Probably should be using a correct specialization here, instead of a blank resolver.
       final ResultHolder argumentType = HaxeTypeResolver.getPsiElementType(argument,
                                             HaxeGenericResolverUtil.generateResolverFromScopeParents(argument));
 
