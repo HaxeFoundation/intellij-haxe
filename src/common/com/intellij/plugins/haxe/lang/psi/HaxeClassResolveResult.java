@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.ThreadLocalCounter;
@@ -253,6 +254,8 @@ public class HaxeClassResolveResult implements Cloneable {
     }
     if (element instanceof HaxeNewExpression) {
       specializeByParameters(((HaxeNewExpression)element).getType().getTypeParam());
+    } else if (element instanceof HaxeMapLiteral || element instanceof HaxeArrayLiteral) {
+      specializeByTypeInference(element);
     }
   }
 
@@ -319,6 +322,17 @@ public class HaxeClassResolveResult implements Cloneable {
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug(specialization.debugDump());
+    }
+  }
+
+  public void specializeByTypeInference(PsiElement element) {
+    HaxeGenericResolver resolver = specialization != null ? specialization.toGenericResolver(element) : new HaxeGenericResolver();
+    HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(this.getHaxeClass(), null), resolver);
+    if (null != evaluated.result) {
+      SpecificHaxeClassReference classType = evaluated.result.getClassType();
+      if (null != classType) {
+        softMerge(HaxeGenericSpecialization.fromGenericResolver(classType.getHaxeClass(), classType.getGenericResolver()));
+      }
     }
   }
 

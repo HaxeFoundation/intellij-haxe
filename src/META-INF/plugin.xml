@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Now infers generic types from map and array literals. (e.g. ["this" => "yours"] is Map<String,String>).</li>
         <li>Now resolves typedefs to underlying types. (e.g. `var v:Null<String>` is resolved as a `String` type.)</li>
         <li>Now propagates type parameters (generics) properly through typedefs.</li>
         <li>Now resolves types when used with array access (e.g. `map[0].length` no longer marked as errors).</li>

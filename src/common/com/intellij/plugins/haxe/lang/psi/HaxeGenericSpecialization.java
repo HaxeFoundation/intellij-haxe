@@ -97,10 +97,15 @@ public class HaxeGenericSpecialization implements Cloneable {
     if (null != resolver) {
       for (String name : resolver.names()) {
         ResultHolder holder = resolver.resolve(name);
-        PsiElement held = holder.getElementContext();
-        if (held instanceof HaxeClass) {
+        PsiElement context = holder.getElementContext();
+        if (context instanceof HaxeClass) {
           HaxeClassResolveResult resolved =
-            HaxeClassResolveResult.create((HaxeClass)held, fromGenericResolver(held, holder.getClassType().getGenericResolver()));
+            HaxeClassResolveResult.create((HaxeClass)context, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
+          specialization.put(element, name, resolved);
+        } else if (holder.getClassType() != null) {
+          HaxeClass clazz = holder.getClassType().getHaxeClass();
+          HaxeClassResolveResult resolved =
+            HaxeClassResolveResult.create(clazz, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
           specialization.put(element, name, resolved);
         }
       }
