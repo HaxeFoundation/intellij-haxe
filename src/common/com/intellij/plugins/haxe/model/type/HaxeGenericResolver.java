@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +18,68 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class HaxeGenericResolver {
-  final public Map<String, ResultHolder> resolvers;
+  // This must remain ordered, thus the LinkedHashMap.
+  final private LinkedHashMap<String, ResultHolder> resolvers;
 
   public HaxeGenericResolver() {
-    this.resolvers = new HashMap<String, ResultHolder>();
+    this.resolvers = new LinkedHashMap<String, ResultHolder>();
+  }
+
+  public ResultHolder add(@NotNull String name, @NotNull ResultHolder specificType) {
+    resolvers.put(name, specificType);
+    return specificType;
+  }
+
+  @NotNull
+  public HaxeGenericResolver addAll(@Nullable HaxeGenericResolver parentResolver) {
+    if (null != parentResolver) {
+      this.resolvers.putAll(parentResolver.resolvers);
+    }
+    return this;
   }
 
   @Nullable
   public ResultHolder resolve(String name) {
     return resolvers.get(name);
+  }
+
+  /**
+   * @return The names of all generics in this resolver in order of their adding.
+   */
+  @NotNull
+  public String[] names() {
+    String[] names = new String[resolvers.size()];
+    int i = 0;
+    for (String name : resolvers.keySet()) {
+      names[i++] = name;
+    }
+    return names;
+  }
+
+  /**
+   * @return All specific generic types in this resolver in the order of their adding.
+   */
+  @NotNull
+  public ResultHolder[] getSpecifics() {
+    if (resolvers.isEmpty()) return ResultHolder.EMPTY;
+    ResultHolder results[] = new ResultHolder[resolvers.size()];
+    int i = 0;
+    for (ResultHolder result : resolvers.values()) {
+      results[i++] = result;
+    }
+    return results;
+  }
+
+  /**
+   * @return whether or not this resolver has any entries.
+   */
+  public boolean isEmpty() {
+    return resolvers.isEmpty();
   }
 }

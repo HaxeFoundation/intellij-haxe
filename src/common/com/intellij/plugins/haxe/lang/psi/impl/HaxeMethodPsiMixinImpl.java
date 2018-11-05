@@ -4,6 +4,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,13 +48,15 @@ import java.util.List;
  */
 public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeMethodPsiMixin {
 
+  // TODO: Merge this PsiMixin class(and interface) with HaxeMethod.  There is no reason to keep both, or that this be named 'mixin'.
+
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodPsiMixinImpl");
   static {
     LOG.info("Loaded HaxeMethodPsiMixinImpl");
     LOG.setLevel(Level.DEBUG);
   }
 
-  public HaxeMethodPsiMixinImpl(ASTNode node) {
+  protected HaxeMethodPsiMixinImpl(ASTNode node) {
     super(node);
   }
 
@@ -78,11 +81,11 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   private HaxeMethodModel _model = null;
   public HaxeMethodModel getModel() {
-    if (_model == null) _model = new HaxeMethodModel(this);
+    if (_model == null) {
+      _model = new HaxeMethodModel((HaxeMethod)this);
+    }
     return _model;
   }
-
-
 
   @Nullable
   public HaxeReturnStatement getReturnStatement() {
@@ -345,4 +348,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     }
     return super.getUseScope();
   }
+
+  @Nullable
+  public abstract HaxeGenericParam getGenericParam();
 }

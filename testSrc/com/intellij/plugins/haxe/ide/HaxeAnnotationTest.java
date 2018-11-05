@@ -54,6 +54,13 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     }
   }
 
+  private void doUnresolvedSymbolTest(String... additionalPaths) throws Exception {
+    final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
+    myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
+  }
+
   public void testIDEA_100331() throws Throwable {
     doTest("test/TArray.hx");
   }
@@ -85,4 +92,36 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
   }
 
+
+  public void testValueTypeUnresolvedOnDynamicMap() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+  }
+
+  public void testValueTypeKnownFromTypeTagOnMapAccess() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+  }
+
+  public void testValueTypeKnownOnMapAccess() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+  }
+
+  public void testValueTypeInferredOnMapAccess() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+  }
+
+  public void testInferredTypeOnArrayAccess() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+  }
+
+  public void testKnownTypeOnArrayAccess() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+  }
+
+  public void testKnownTypeFromTypeTagOnArrayAccess() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+  }
+
+  public void testDynamicArrayCantBeAccessed() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+  }
 }

@@ -31,6 +31,8 @@ import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -111,7 +113,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       expression = ((HaxeCallExpression)this).getExpression();
     } else if (this instanceof HaxeNewExpression) {
       HaxeNewExpression newExpression = (HaxeNewExpression)this;
-      HaxeClass haxeClass = (HaxeClass)newExpression.getType().getReferenceExpression().resolve();
+      PsiElement resolved = newExpression.getType().getReferenceExpression().resolve();
+      HaxeClass haxeClass;
+      if (resolved instanceof HaxeClass) {
+        haxeClass = (HaxeClass) resolved;
+      } else {
+        SpecificHaxeClassReference typeReference = SpecificTypeReference.getUnknown(newExpression);
+        haxeClass = null != typeReference ? typeReference.getHaxeClass() : null;
+      }
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(haxeClass);
       result.specializeByParameters(newExpression.getType().getTypeParam());
       return result.getSpecialization();
@@ -162,7 +171,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public boolean resolveIsStaticExtension() {
     // @TODO: DIRTY HACK! to avoid rewriting all the code!
     HaxeResolver.INSTANCE.resolve(this, true);
-    return HaxeResolver.isExtension.get();
+    return null != HaxeResolver.isExtension ? HaxeResolver.isExtension.get() : false;
   }
 
   @NotNull
@@ -986,16 +995,24 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   //  return qualifier instanceof PsiExpression ? (PsiExpression)qualifier : null;
   //}
 
+  public String toDebugString() {
+    String ss = super.toString();
+    // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
+    String clazzName = this.getClass().getSimpleName();
+    String text = getCanonicalText();
+    ss += ":" + defaultIfEmpty(text, "<no text>");
+    ss += ":" + defaultIfEmpty(clazzName, "<anonymous>");
+    return ss;
+  }
+
   @Override
   public String toString() {
-    String ss = super.toString();
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
-      String clazzName = this.getClass().getSimpleName();
-      String text = getCanonicalText();
-      ss += ":" + defaultIfEmpty(text, "<no text>");
-      ss += ":" + defaultIfEmpty(clazzName, "<anonymous>");
+      return toDebugString();
     }
+
+    // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
+    String ss = super.toString();
     return ss;
   }
 

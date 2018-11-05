@@ -150,9 +150,11 @@ public class UsefulPsiTreeUtil {
 
   @Nullable
   public static PsiElement getParentOfType(@Nullable PsiElement element, @NotNull Class<? extends PsiElement> aClass) {
-    if (element == null)
+    if (element == null || element instanceof PsiFile)
       return null;
 
+    // Don't start with the passed element.
+    element = element.getParent();
     while (element != null && !(element instanceof PsiFile)) {
       if (aClass.isInstance(element)) {
         return element;
