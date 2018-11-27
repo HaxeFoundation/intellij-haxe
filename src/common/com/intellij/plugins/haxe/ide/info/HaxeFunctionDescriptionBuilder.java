@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +44,10 @@ class HaxeFunctionDescriptionBuilder {
   @Nullable
   static HaxeFunctionDescription buildForConstructor(final HaxeNewExpression expression) {
     final HaxeGenericSpecialization specialization = expression.getSpecialization();
-    final HaxeClass haxeClass = (HaxeClass)expression.getType().getReferenceExpression().resolve();
+    final PsiElement resolved = (HaxeClass)expression.getType().getReferenceExpression().resolve();
 
-    if (haxeClass != null) {
+    if (resolved instanceof HaxeClass) {
+      final HaxeClass haxeClass = (HaxeClass)resolved;
       final PsiMethod[] constructors = haxeClass.getConstructors();
       if (constructors.length > 0) {
         final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(haxeClass, specialization);
