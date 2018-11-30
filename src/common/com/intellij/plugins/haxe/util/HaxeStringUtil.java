@@ -19,6 +19,8 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.util.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,6 +30,9 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeStringUtil {
+  public static final String EMPTY_STRING = "";
+  public static final String ELLIPSES = "...";
+
   /**
    * @see com.intellij.openapi.util.text.StringUtil#getWordsWithOffset
    */
@@ -132,6 +137,35 @@ public class HaxeStringUtil {
     return builder.toString();
   }
 
+  /**
+   * Fast splitting.  This outperforms String.split() by a factor of 3x and
+   * StringTokenizer-based solutions by ~2x.  Particularly when used with
+   * regex meta characters (e.g. ".$|()[{^?*+\\").
+   *
+   * Successive split characters will add empty strings to the output list.
+   *
+   * @param s String to parse
+   * @param c Character to split on.
+   * @return A List containing the constituent strings.
+   */
+  @NotNull
+  public static List<String> split(String s, char c) {
+    ArrayList<String> list = new ArrayList<>();
+
+    int len = s.length();
+    int current = 0;
+    int index = 0;
+    while (current < len &&  -1 != (index = s.indexOf(c, current))) {
+      list.add(s.substring(current, index));
+      current = index + 1;
+    }
+    if (current < len) {
+      list.add(s.substring(current));
+    }
+    return list;
+  }
+
+
   public static String stripPrefix(String s, String prefix) {
     if (null == s) return null;
     if (null == prefix) return s;
@@ -160,6 +194,38 @@ public class HaxeStringUtil {
       return s.substring(0, pos).trim();
     }
     return s;
+  }
+
+  /**
+   * Shorten a string to a maximum of n characters.
+   *
+   * @param s - string to limit.
+   * @param len - maximum length of string, may be longer that s.length().
+   * @return a new String of the maximum length, or s, if it is shorter than len.
+   */
+  @Nullable
+  public static String clip(@Nullable String s, int len) {
+    if (len <=0)  return EMPTY_STRING;
+    if (null == s || s.length() <= len) return s;
+
+    return s.substring(0, len);
+  }
+
+  /**
+   * Shorten a string to a maximum of n characters, using a trailing ellipses to
+   * denote truncation.  If the requested length is less than the ELLIPSES length (3),
+   * then the shortened string has no ellipses appended.
+   *
+   * @param s - string to limit.
+   * @param len - maximum length of string, may be longer than s.len().
+   * @return a new String of the maximum length, or s, if it is shorter than len.
+   */
+  @Nullable
+  public static String elide(@Nullable String s, int len) {
+    if (len <= ELLIPSES.length()) return clip(s, len);
+    if (null == s || s.length() <= len) return s;
+
+    return s.substring(0, len - ELLIPSES.length()) + ELLIPSES;
   }
 
 }

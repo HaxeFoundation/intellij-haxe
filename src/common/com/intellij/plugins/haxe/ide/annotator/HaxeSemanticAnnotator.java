@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2017-2018 Ilya Malanin
  * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
+import com.intellij.plugins.haxe.ide.quickfix.HaxeSwitchMutabilityModifier;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
@@ -34,9 +35,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
-import com.intellij.plugins.haxe.model.type.HaxeTypeCompatible;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.PsiFileUtils;
@@ -47,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 
 public class HaxeSemanticAnnotator implements Annotator {
   @Override
@@ -64,8 +63,8 @@ public class HaxeSemanticAnnotator implements Annotator {
       ClassChecker.check((HaxeClass)element, holder);
     } else if (element instanceof HaxeType) {
       TypeChecker.check((HaxeType)element, holder);
-    } else if (element instanceof HaxeVarDeclaration) {
-      FieldChecker.check((HaxeVarDeclaration)element, holder);
+    } else if (element instanceof HaxeFieldDeclaration) {
+      FieldChecker.check((HaxeFieldDeclaration)element, holder);
     } else if (element instanceof HaxeLocalVarDeclaration) {
       LocalVarChecker.check((HaxeLocalVarDeclaration)element, holder);
     } else if (element instanceof HaxeStringLiteralExpression) {
@@ -89,7 +88,10 @@ class TypeTagChecker {
     if (!type1.canAssign(type2)) {
       // @TODO: Move to bundle
       Annotation annotation =
-        holder.createErrorAnnotation(erroredElement, "Incompatible type " + type1 + " can't be assigned from " + type2);
+        holder.createErrorAnnotation(erroredElement, "Incompatible type " +
+                                                     type1.toStringWithoutConstant() +
+                                                     " can't be assigned from " +
+                                                     type2.toStringWithoutConstant());
       annotation.registerFix(new HaxeFixer("Change type") {
         @Override
         public void run() {
@@ -115,7 +117,7 @@ class TypeTagChecker {
       return abstractEnumFieldInitType;
     }
     // fallback to simple init expression
-    return HaxeTypeResolver.getPsiElementType(init);
+    return HaxeTypeResolver.getPsiElementType(init.getExpression(), HaxeGenericResolverUtil.generateResolverFromScopeParents(init));
   }
 }
 
@@ -129,11 +131,20 @@ class LocalVarChecker {
 }
 
 class FieldChecker {
-  public static void check(final HaxeVarDeclaration var, final AnnotationHolder holder) {
+  public static void check(final HaxeFieldDeclaration var, final AnnotationHolder holder) {
     HaxeFieldModel field = new HaxeFieldModel(var);
     if (field.isProperty()) {
       checkProperty(field, holder);
+    } else {
+      if (field.isFinal() && !field.hasInitializer()) {
+        if (field.isStatic()) {
+          holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.static.var.init", field.getName()));
+        } else if (!isFieldInitializedInTheConstructor(field)) {
+          holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.var.init", field.getName()));
+        }
+      }
     }
+
     if (field.hasInitializer() && field.hasTypeTag()) {
       TypeTagChecker.check(field.getBasePsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
     }
@@ -167,6 +178,19 @@ class FieldChecker {
     }
   }
 
+  private static boolean isFieldInitializedInTheConstructor(HaxeFieldModel field) {
+    HaxeClassModel declaringClass = field.getDeclaringClass();
+    if (declaringClass == null) return false;
+    HaxeMethodModel constructor = declaringClass.getConstructor();
+    if (constructor == null) return false;
+    PsiElement body = constructor.getBodyPsi();
+    if (body == null) return false;
+
+    final InitVariableVisitor visitor = new InitVariableVisitor(field.getName());
+    body.accept(visitor);
+    return visitor.result;
+  }
+
   private static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
     final HaxeDocumentModel document = field.getDocument();
 
@@ -178,9 +202,11 @@ class FieldChecker {
       holder.createErrorAnnotation(field.getSetterPsi(), "Invalid setter accessor");
     }
 
-    checkPropertyAccessorMethods(field, holder);
-
-    if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
+    if (field.isFinal()) {
+      holder
+        .createErrorAnnotation(field.getBasePsi(), HaxeBundle.message("haxe.semantic.property.cant.be.final"))
+        .registerFix(new HaxeSwitchMutabilityModifier((HaxeFieldDeclaration)field.getBasePsi()));
+    } else if (field.isProperty() && !field.isRealVar() && field.hasInitializer()) {
       final HaxeVarInit psi = field.getInitializerPsi();
       Annotation annotation = holder.createErrorAnnotation(
         field.getInitializerPsi(),
@@ -195,7 +221,7 @@ class FieldChecker {
       annotation.registerFix(new HaxeFixer("Add @:isVar") {
         @Override
         public void run() {
-          field.getModifiers().addModifier(HaxeModifierType.IS_VAR);
+          field.getModifiers().addModifier(IS_VAR);
         }
       });
       if (field.getSetterPsi() != null) {
@@ -207,6 +233,7 @@ class FieldChecker {
         });
       }
     }
+    checkPropertyAccessorMethods(field, holder);
   }
 
   private static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
@@ -272,8 +299,8 @@ class ClassChecker {
   }
 
   static private void checkDuplicatedFields(final HaxeClassModel clazz, final AnnotationHolder holder) {
-    Map<String, HaxeMemberModel> map = new HashMap<String, HaxeMemberModel>();
-    Set<HaxeMemberModel> repeatedMembers = new HashSet<HaxeMemberModel>();
+    Map<String, HaxeMemberModel> map = new HashMap<>();
+    Set<HaxeMemberModel> repeatedMembers = new HashSet<>();
     for (HaxeMemberModel member : clazz.getMembersSelf()) {
       final String memberName = member.getName();
       HaxeMemberModel repeatedMember = map.get(memberName);
@@ -331,7 +358,7 @@ class ClassChecker {
         return true;
       }
       if (haxeClass instanceof HaxeTypedefDeclaration) {
-        HaxeTypeOrAnonymous anonOrType = getFirstItem(((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymousList());
+        HaxeTypeOrAnonymous anonOrType = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
         if (anonOrType != null) {
           return anonOrType.getAnonymousType() != null;
         }
@@ -371,7 +398,7 @@ class ClassChecker {
           final PsiMethod psiMethod = ContainerUtil.find(methods, new Condition<PsiMethod>() {
             @Override
             public boolean value(PsiMethod method) {
-              return !(method instanceof HaxeFunctionPrototypeDeclarationWithAttributes);
+              return method instanceof HaxeMethod;
             }
           });
 
@@ -441,7 +468,7 @@ class MethodChecker {
       }
       for (final HaxeParameterModel param : currentMethod.getParameters()) {
         if (param.getTypeTagPsi() == null) {
-          holder.createErrorAnnotation(param.getNameOrBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
+          holder.createErrorAnnotation(param.getBasePsi(), HaxeBundle.message("haxe.semantic.type.required"));
         }
       }
     }
@@ -475,39 +502,37 @@ class MethodChecker {
 
       if (argumentNames.containsKey(paramName)) {
         // @TODO: Move to bundle
-        holder.createWarningAnnotation(param.getNameOrBasePsi(), "Repeated argument name '" + paramName + "'");
+        holder.createWarningAnnotation(param.getNamePsi(), "Repeated argument name '" + paramName + "'");
         holder.createWarningAnnotation(argumentNames.get(paramName), "Repeated argument name '" + paramName + "'");
       } else {
-        argumentNames.put(paramName, param.getNameOrBasePsi());
+        argumentNames.put(paramName, param.getNamePsi());
       }
     }
   }
 
+  private static final String[] OVERRIDE_FORBIDDEN_MODIFIERS = {FINAL, FINAL_META, INLINE, STATIC};
   private static void checkOverride(final HaxeMethod methodPsi, final AnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
     final HaxeClassModel parentClass = (currentClass != null) ? currentClass.getParentClass() : null;
-    final HaxeMethodModel parentMethod =
-      ((parentClass != null) && parentClass != null) ? parentClass.getMethod(currentMethod.getName()) : null;
+    final HaxeMethodModel parentMethod = parentClass != null ? parentClass.getMethod(currentMethod.getName()) : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 
     boolean requiredOverride = false;
 
     if (currentMethod.isConstructor()) {
-      requiredOverride = false;
-      if (currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+      if (currentModifiers.hasModifier(STATIC)) {
         // @TODO: Move to bundle
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Constructor can't be static").registerFix(
-          new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.STATIC)
+          new HaxeModifierRemoveFixer(currentModifiers, STATIC)
         );
       }
     } else if (currentMethod.isStaticInit()) {
-      requiredOverride = false;
-      if (!currentModifiers.hasModifier(HaxeModifierType.STATIC)) {
+      if (!currentModifiers.hasModifier(STATIC)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "__init__ must be static").registerFix(
-          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.STATIC)
+          new HaxeModifierAddFixer(currentModifiers, STATIC)
         );
       }
     } else if (parentMethod != null) {
@@ -517,19 +542,19 @@ class MethodChecker {
       } else {
         requiredOverride = true;
 
-        if (parentModifiers.hasAnyModifier(HaxeModifierType.INLINE, HaxeModifierType.STATIC, HaxeModifierType.FINAL)) {
+        if (parentModifiers.hasAnyModifier(OVERRIDE_FORBIDDEN_MODIFIERS)) {
           Annotation annotation =
             holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Can't override static, inline or final methods");
-          for (HaxeModifierType mod : new HaxeModifierType[]{HaxeModifierType.FINAL, HaxeModifierType.INLINE, HaxeModifierType.STATIC}) {
-            if (parentModifiers.hasModifier(mod)) {
+          for (String modifier : OVERRIDE_FORBIDDEN_MODIFIERS) {
+            if (parentModifiers.hasModifier(modifier)) {
               annotation.registerFix(
-                new HaxeModifierRemoveFixer(parentModifiers, mod, "Remove " + mod.s + " from " + parentMethod.getFullName())
+                new HaxeModifierRemoveFixer(parentModifiers, modifier, "Remove " + modifier + " from " + parentMethod.getFullName())
               );
             }
           }
         }
 
-        if (currentModifiers.getVisibility().hasLowerVisibilityThan(parentModifiers.getVisibility())) {
+        if (HaxePsiModifier.hasLowerVisibilityThan(currentModifiers.getVisibility(), parentModifiers.getVisibility())) {
           Annotation annotation = holder.createErrorAnnotation(
             currentMethod.getNameOrBasePsi(),
             "Field " +
@@ -545,14 +570,14 @@ class MethodChecker {
     }
 
     //System.out.println(aClass);
-    if (currentModifiers.hasModifier(HaxeModifierType.OVERRIDE) && !requiredOverride) {
-      holder.createErrorAnnotation(currentModifiers.getModifierPsi(HaxeModifierType.OVERRIDE), "Overriding nothing").registerFix(
-        new HaxeModifierRemoveFixer(currentModifiers, HaxeModifierType.OVERRIDE)
+    if (currentModifiers.hasModifier(OVERRIDE) && !requiredOverride) {
+      holder.createErrorAnnotation(currentModifiers.getModifierPsi(OVERRIDE), "Overriding nothing").registerFix(
+        new HaxeModifierRemoveFixer(currentModifiers, OVERRIDE)
       );
     } else if (requiredOverride) {
-      if (!currentModifiers.hasModifier(HaxeModifierType.OVERRIDE)) {
+      if (!currentModifiers.hasModifier(OVERRIDE)) {
         holder.createErrorAnnotation(currentMethod.getNameOrBasePsi(), "Must override").registerFix(
-          new HaxeModifierAddFixer(currentModifiers, HaxeModifierType.OVERRIDE)
+          new HaxeModifierAddFixer(currentModifiers, OVERRIDE)
         );
       } else {
         // It is rightly overriden. Now check the signature.
@@ -729,7 +754,20 @@ class PackageChecker {
 class MethodBodyChecker {
   public static void check(HaxeMethod psi, AnnotationHolder holder) {
     final HaxeMethodModel method = psi.getModel();
-    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder);
+    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, generateConstraintResolver(method));
+  }
+
+  @NotNull
+  private static HaxeGenericResolver generateConstraintResolver(HaxeMethodModel method) {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    for (HaxeGenericParamModel param : method.getGenericParams()) {
+      ResultHolder constraint = param.getConstraint(resolver);
+      if (null == constraint.getType()) {
+        constraint = new ResultHolder(SpecificHaxeClassReference.getDynamic(param.getPsi()));
+      }
+      resolver.add(param.getName(), constraint);
+    }
+    return resolver;
   }
 }
 
@@ -743,5 +781,42 @@ class StringChecker {
   private static boolean isSingleQuotesRequired(HaxeStringLiteralExpression psi) {
     return (psi.getLongTemplateEntryList().size() > 0 || psi.getShortTemplateEntryList().size() > 0) &&
            psi.getFirstChild().textContains('"');
+  }
+}
+
+class InitVariableVisitor extends HaxeVisitor {
+  public boolean result = false;
+
+  private final String fieldName;
+
+  InitVariableVisitor(String fieldName) {
+    this.fieldName = fieldName;
+  }
+
+  @Override
+  public void visitElement(PsiElement element) {
+    super.visitElement(element);
+    if (result) return;
+    if (element instanceof HaxeIdentifier || element instanceof HaxePsiToken || element instanceof HaxeStringLiteralExpression) return;
+    element.acceptChildren(this);
+  }
+
+  @Override
+  public void visitAssignExpression(@NotNull HaxeAssignExpression o) {
+    HaxeExpression expression = (o.getExpressionList()).get(0);
+    if (expression instanceof HaxeReferenceExpression) {
+      final HaxeReferenceExpression reference = (HaxeReferenceExpression)expression;
+      final HaxeIdentifier identifier = reference.getIdentifier();
+
+      if (identifier.getText().equals(fieldName)) {
+        PsiElement firstChild = reference.getFirstChild();
+        if (firstChild instanceof HaxeThisExpression || firstChild == identifier) {
+          this.result = true;
+          return;
+        }
+      }
+    }
+
+    super.visitAssignExpression(o);
   }
 }

@@ -22,6 +22,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.FileASTNode;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
@@ -65,7 +66,7 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
   @Nullable
   @Override
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull final InspectionManager manager, final boolean isOnTheFly) {
-
+    if (!(file instanceof HaxeFile)) return null;
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
     final ProblemReporter reporter = new ProblemReporter() {
       @Override

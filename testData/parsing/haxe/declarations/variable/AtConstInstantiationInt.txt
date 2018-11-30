@@ -6,11 +6,10 @@ Haxe File
         HaxePsiToken:ID('AtConstTest')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -60,11 +59,10 @@ Haxe File
       HaxePsiToken:>('>')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -102,10 +100,9 @@ Haxe File
             HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// <---- Original errors on '<' and ';'')
           HaxePsiToken:}('}')
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER

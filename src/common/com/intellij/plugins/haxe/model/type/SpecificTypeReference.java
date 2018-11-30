@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Eric Bishton
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,90 +19,107 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class SpecificTypeReference {
+  public static final String VOID = "Void";
+  public static final String BOOL = "Bool";
+  public static final String INT = "Int";
+  public static final String FLOAT = "Float";
+  public static final String STRING = "String";
+  public static final String ARRAY = "Array";
+  public static final String DYNAMIC = "Dynamic";
+  public static final String UNKNOWN = "Unknown";
+  public static final String ITERATOR = "Iterator";
+  public static final String INVALID = "@@Invalid";
+  public static final String MAP = "Map";
+
   final protected PsiElement context;
 
   public SpecificTypeReference(@NotNull PsiElement context) {
     this.context = context;
   }
 
-  static public SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
-    return SpecificHaxeClassReference
-      .withGenerics(new HaxeClassReference("Array", elementType.getElementContext()), new ResultHolder[]{elementType}, null);
+  public static SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
+    final PsiElement context = elementType.getElementContext();
+    final HaxeClassReference classReference = getStdClassReference(ARRAY, context);
+    return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{elementType}, null);
   }
 
-  static public SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
-    return SpecificHaxeClassReference
-      .withGenerics(new HaxeClassReference("Map", keyType.getElementContext()), new ResultHolder[]{keyType, valueType}, null);
+  public static SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
+    final PsiElement context = keyType.getElementContext();
+    final HaxeClassReference classReference = getStdClassReference(MAP, context);
+    return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{keyType, valueType}, null);
+  }
+
+  public static SpecificHaxeClassReference getVoid(@NotNull PsiElement context) {
+    return primitive(VOID, context);
+  }
+
+  public static SpecificHaxeClassReference getBool(@NotNull PsiElement context) {
+    return primitive(BOOL, context);
+  }
+
+  public static SpecificHaxeClassReference getInt(@NotNull PsiElement context) {
+    return primitive(INT, context);
+  }
+
+  public static SpecificHaxeClassReference getInt(@NotNull PsiElement context, int value) {
+    return primitive(INT, context, value);
+  }
+
+  public static SpecificHaxeClassReference getDynamic(@NotNull PsiElement context) {
+    return primitive(DYNAMIC, context);
+  }
+
+  public static SpecificHaxeClassReference getUnknown(@NotNull PsiElement context) {
+    return primitive(UNKNOWN, context);
+  }
+
+  public static SpecificHaxeClassReference getInvalid(@NotNull PsiElement context) {
+    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(INVALID, context));
+  }
+
+  public static SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
+    final PsiElement context = type.getElementContext();
+    final HaxeClassReference classReference = getStdClassReference(ITERATOR, context);
+    return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{type.createHolder()});
+  }
+
+  public static SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
+    return SpecificHaxeClassReference.withoutGenerics(getStdClassReference(name, context));
+  }
+
+  public static SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context, Object constant) {
+    return SpecificHaxeClassReference.withoutGenerics(getStdClassReference(name, context), constant);
   }
 
   public SpecificTypeReference withRangeConstraint(HaxeRange range) {
     return this;
   }
 
-  static public SpecificHaxeClassReference getVoid(@NotNull PsiElement context) {
-    return primitive("Void", context);
-  }
-
-  static public SpecificHaxeClassReference getBool(@NotNull PsiElement context) {
-    return primitive("Bool", context);
-  }
-
-  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context) {
-    return primitive("Int", context);
-  }
-
-  static public SpecificHaxeClassReference getInt(@NotNull PsiElement context, int value) {
-    return primitive("Int", context, value);
-  }
-
-  static public SpecificHaxeClassReference getDynamic(@NotNull PsiElement context) {
-    return primitive("Dynamic", context);
-  }
-
-  static public SpecificHaxeClassReference getUnknown(@NotNull PsiElement context) {
-    return primitive("Unknown", context);
-  }
-
-  static public SpecificHaxeClassReference getInvalid(@NotNull PsiElement context) {
-    return primitive("@@Invalid", context);
-  }
-
-  static public SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
-    return SpecificHaxeClassReference.withGenerics(new HaxeClassReference("Iterator", type.getElementContext()),
-                                                   new ResultHolder[]{type.createHolder()});
-  }
-
-  static public SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
-    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context));
-  }
-
-  static public SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context, Object constant) {
-    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(name, context), constant);
-  }
-
   final public boolean isUnknown() {
-    return this.toStringWithoutConstant().equals("Unknown");
+    return this.toStringWithoutConstant().equals(UNKNOWN);
   }
 
   final public boolean isDynamic() {
-    return this.toStringWithoutConstant().equals("Dynamic");
+    return this.toStringWithoutConstant().equals(DYNAMIC);
   }
 
   final public boolean isInvalid() {
-    return this.toStringWithoutConstant().equals("@@Invalid");
+    return this.toStringWithoutConstant().equals(INVALID);
   }
 
   final public boolean isVoid() {
-    return this.toStringWithoutConstant().equals("Void");
+    return this.toStringWithoutConstant().equals(VOID);
   }
 
   final public boolean isInt() {
-    return this.toStringWithoutConstant().equals("Int");
+    return this.toStringWithoutConstant().equals(INT);
   }
 
   final public boolean isNumeric() {
@@ -109,28 +127,28 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isBool() {
-    return this.toStringWithoutConstant().equals("Bool");
+    return this.toStringWithoutConstant().equals(BOOL);
   }
 
   final public boolean isFloat() {
-    return this.toStringWithoutConstant().equals("Float");
+    return this.toStringWithoutConstant().equals(FLOAT);
   }
 
   final public boolean isString() {
-    return this.toStringWithoutConstant().equals("String");
+    return this.toStringWithoutConstant().equals(STRING);
   }
 
   final public boolean isArray() {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
-      return reference.clazz.getName().equals("Array");
+      return reference.getHaxeClassReference().getName().equals(ARRAY);
     }
     return false;
   }
 
   final public ResultHolder getArrayElementType() {
     if (isArray()) {
-      final ResultHolder[] specifics = ((SpecificHaxeClassReference)this).specifics;
+      final ResultHolder[] specifics = ((SpecificHaxeClassReference)this).getSpecifics();
       if (specifics.length >= 1) return specifics[0];
     }
     return getUnknown(context).createHolder();
@@ -146,9 +164,6 @@ public abstract class SpecificTypeReference {
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
 
-  //public void mutateConstantValue(Object constantValue) {
-//
-  //}
   final public SpecificTypeReference withoutConstantValue() {
     return withConstantValue(null);
   }
@@ -191,7 +206,7 @@ public abstract class SpecificTypeReference {
   }
 
   @Nullable
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver) {
     return null;
   }
 
@@ -205,5 +220,24 @@ public abstract class SpecificTypeReference {
 
   public ResultHolder createHolder() {
     return new ResultHolder(this);
+  }
+
+  public abstract boolean canBeTypeVariable();
+
+  @NotNull
+  private static HaxeClassReference getStdClassReference(String className, PsiElement context) {
+    final HaxeClassModel model = getStdTypeModel(className, context);
+    HaxeClassReference classReference;
+    if (model != null) {
+      classReference = new HaxeClassReference(model, context);
+    } else {
+      classReference = new HaxeClassReference(className, context);
+    }
+    return classReference;
+  }
+
+  @Nullable
+  private static HaxeClassModel getStdTypeModel(String name, PsiElement context) {
+    return HaxeProjectModel.fromElement(context).getStdPackage().getClassModel(name);
   }
 }

@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,20 +32,20 @@ public class HaxeFieldModel extends HaxeMemberModel {
     super(element);
   }
 
-  private HaxeClassModel _declaringClass = null;
-
-  public HaxeClassModel getDeclaringClass() {
-    if (_declaringClass == null) {
-      HaxeClass aClass = (HaxeClass)getPsiField().getContainingClass();
-      _declaringClass = (aClass != null) ? aClass.getModel() : null;
+  @Override
+  public boolean isFinal() {
+    HaxeFieldDeclaration fieldDeclaration = ObjectUtils.tryCast(getBasePsi(), HaxeFieldDeclaration.class);
+    if (fieldDeclaration != null) {
+      final PsiElement mutabilityPsi = fieldDeclaration.getMutabilityModifier().getFirstChild();
+      return mutabilityPsi.getText().equals(HaxePsiModifier.FINAL);
     }
-    return _declaringClass;
+    return false;
   }
 
   @Nullable
   public HaxePropertyDeclaration getPropertyDeclarationPsi() {
     final PsiElement basePsi = getBasePsi();
-    return basePsi instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)basePsi).getPropertyDeclaration() : null;
+    return basePsi instanceof HaxeFieldDeclaration ? ((HaxeFieldDeclaration)basePsi).getPropertyDeclaration() : null;
   }
 
   @Nullable
@@ -108,17 +109,14 @@ public class HaxeFieldModel extends HaxeMemberModel {
   }
 
   public boolean isRealVar() {
-    if (this.getModifiers().hasModifier(HaxeModifierType.IS_VAR)) return true;
+    if (this.getModifiers().hasModifier(HaxePsiModifier.IS_VAR)) return true;
     if (!isProperty()) return true;
     HaxeAccessorType setter = getSetterType();
     HaxeAccessorType getter = getGetterType();
-    if (setter == HaxeAccessorType.NULL || setter == HaxeAccessorType.DEFAULT) {
-      return true;
-    } else if (setter == HaxeAccessorType.NEVER &&
-               (getter == HaxeAccessorType.DEFAULT || getter == HaxeAccessorType.NULL)) {
-      return true;
-    }
-    return false;
+    return getter == HaxeAccessorType.DEFAULT ||
+           getter == HaxeAccessorType.NULL ||
+           setter == HaxeAccessorType.DEFAULT ||
+           setter == HaxeAccessorType.NULL;
   }
 
   public boolean hasInitializer() {
@@ -128,7 +126,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
   @Nullable
   public HaxeVarInit getInitializerPsi() {
     final PsiElement basePsi = getBasePsi();
-    return basePsi instanceof HaxeVarDeclaration ? ((HaxeVarDeclaration)basePsi).getVarInit() : null;
+    return basePsi instanceof HaxeFieldDeclaration ? ((HaxeFieldDeclaration)basePsi).getVarInit() : null;
   }
 
   public boolean hasTypeTag() {
@@ -140,8 +138,8 @@ public class HaxeFieldModel extends HaxeMemberModel {
     if (basePsi instanceof HaxeAnonymousTypeField) {
       return ((HaxeAnonymousTypeField)basePsi).getTypeTag();
     }
-    if (basePsi instanceof HaxeVarDeclaration) {
-      return ((HaxeVarDeclaration)basePsi).getTypeTag();
+    if (basePsi instanceof HaxeFieldDeclaration) {
+      return ((HaxeFieldDeclaration)basePsi).getTypeTag();
     }
 
     return null;

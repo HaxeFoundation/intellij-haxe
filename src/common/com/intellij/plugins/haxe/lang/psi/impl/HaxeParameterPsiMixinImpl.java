@@ -189,7 +189,4 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     return getModifierList().hasModifierProperty(name);
   }
 
-
-
-
 }

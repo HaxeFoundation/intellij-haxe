@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +17,11 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
-import org.apache.commons.lang.StringUtils;
+import com.intellij.util.indexing.IndexingDataKeys;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeSourceRootModel {
@@ -49,6 +51,9 @@ public class HaxeSourceRootModel {
     if (virtualFile == null) {
       virtualFile = file.getOriginalElement().getContainingFile().getVirtualFile();
     }
+    if (virtualFile == null) {
+      virtualFile = file.getUserData(IndexingDataKeys.VIRTUAL_FILE);
+    }
 
     return virtualFile != null && (virtualFile.getCanonicalPath() + '/').startsWith(root.getCanonicalPath() + '/');
   }
@@ -59,7 +64,7 @@ public class HaxeSourceRootModel {
 
     if ((packagePath == null) || packagePath.isEmpty()) return directory;
     PsiDirectory current = directory;
-    for (String part : StringUtils.split(packagePath, '.')) {
+    for (String part : HaxeStringUtil.split(packagePath, '.')) {
       if (current == null) break;
       current = current.findSubdirectory(part);
     }

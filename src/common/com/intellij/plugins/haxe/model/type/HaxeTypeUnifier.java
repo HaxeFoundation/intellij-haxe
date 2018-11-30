@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,20 +56,32 @@ public class HaxeTypeUnifier {
   }
 
   @NotNull
-  static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a, SpecificFunctionReference b, @NotNull PsiElement context) {
-    final List<ResultHolder> pa = a.getParameters();
-    final List<ResultHolder> pb = b.getParameters();
-    //if (pa.size() != pb.size()) throw new HaxeCannotUnifyException();
+  static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a,
+                                                     SpecificFunctionReference b,
+                                                     @NotNull PsiElement context) {
+    final List<Argument> pa = a.getArguments();
+    final List<Argument> pb = b.getArguments();
     if (pa.size() != pb.size()) return SpecificTypeReference.getInvalid(a.getElementContext());
+    final ArrayList<Argument> arguments = new ArrayList<>();
+
     int size = pa.size();
-    final ArrayList<ResultHolder> params = new ArrayList<ResultHolder>();
     for (int n = 0; n < size; n++) {
-      final ResultHolder param = unify(pa.get(n), pb.get(n));
-      if (param.getType().isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
-      params.add(param);
+      final Argument unifiedArgument = unify(pa.get(n), pb.get(n));
+      if (unifiedArgument.isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
+      arguments.add(unifiedArgument);
     }
-    final ResultHolder retval = unify(a.getReturnType(), b.getReturnType());
-    return new SpecificFunctionReference(params, retval, null, context);
+    final ResultHolder returnValue = unify(a.getReturnType(), b.getReturnType());
+    return new SpecificFunctionReference(arguments, returnValue, null, context);
+  }
+
+  @NotNull
+  private static Argument unify(Argument a, Argument b) {
+    if (a.isOptional() != b.isOptional()) {
+      ResultHolder invalidType = SpecificTypeReference.getInvalid(a.getType().getElementContext()).createHolder();
+      return new Argument(a.getIndex(), a.isOptional(), invalidType, a.getName());
+    }
+
+    return new Argument(a.getIndex(), a.isOptional(), unify(a.getType(), b.getType()), a.getName());
   }
 
   @NotNull

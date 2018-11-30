@@ -43,8 +43,8 @@ public class HaxeElementGenerator {
 
   public static PsiElement createExpressionFromText(Project myProject, String text) {
     PsiElement fromText = createStatementFromText(myProject, "var test = " + text + ";");
-    if (fromText instanceof HaxeVarDeclaration) {
-      HaxeVarDeclaration declarationPart = ((HaxeVarDeclaration)fromText);
+    if (fromText instanceof HaxeFieldDeclaration) {
+      HaxeFieldDeclaration declarationPart = ((HaxeFieldDeclaration)fromText);
       HaxeVarInit varInit = declarationPart.getVarInit();
       return varInit != null ? varInit.getExpression() : null;
     }
@@ -55,17 +55,17 @@ public class HaxeElementGenerator {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapStatement(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    final HaxeFunctionDeclarationWithAttributes mainMethod =
-      (HaxeFunctionDeclarationWithAttributes)haxeClass.getHaxeMethods().iterator().next();
+    final HaxeMethodDeclaration mainMethod =
+      (HaxeMethodDeclaration)haxeClass.getHaxeMethods().iterator().next();
     final HaxeBlockStatement statement = mainMethod.getBlockStatement();
     assert statement != null;
     return statement.getChildren()[0];
   }
-  public static HaxeVarDeclaration createVarDeclaration(Project myProject, String text) {
+  public static HaxeFieldDeclaration createVarDeclaration(Project myProject, String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return haxeClass.getVarDeclarations().iterator().next();
+    return haxeClass.getFieldDeclarations().iterator().next();
   }
 
   // XXX: Eventually, this ordering should come from the class order in
@@ -143,18 +143,11 @@ public class HaxeElementGenerator {
     return codeFragment;
   }
 
-  public static HaxeFunctionPrototypeDeclarationWithAttributes createFunctionPrototypeDeclarationWithAttributes(Project myProject,
-                                                                                                                String text) {
+  public static HaxeMethodDeclaration createMethodDeclaration(Project myProject,
+                                                              String text) {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapInterfaceFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return (HaxeFunctionPrototypeDeclarationWithAttributes)haxeClass.getHaxeMethods().iterator().next();
-  }
-
-  public static HaxeFunctionDeclarationWithAttributes createFunctionDeclarationWithAttributes(Project myProject, String text) {
-    final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
-    assert haxeClass != null;
-    return (HaxeFunctionDeclarationWithAttributes)haxeClass.getHaxeMethods().iterator().next();
+    return (HaxeMethodDeclaration)haxeClass.getHaxeMethods().iterator().next();
   }
 }

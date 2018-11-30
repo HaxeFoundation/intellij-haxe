@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,13 @@ public class HaxeAstUtil {
   public static boolean isNumber(@Nullable ASTNode t) {
     if (t != null) {
       String text = t.getText();
-      return isInteger(text) || isFloat(text);
+      // Optimization: If it doesn't start with '+', '-', '.', or digit, it's not a number (ignoring 'Nan' and Infinity).
+      // Using the Float class to detect numbers is fairly expensive.  Before this optimization, about 2/3 of the
+      // time we spent evaluating a conditional expression was spent in isFloat().
+      char firstChar = text.charAt(0);
+      if (Character.isDigit(firstChar) || '.' == firstChar || '-' == firstChar || '+' == firstChar) {
+        return isInteger(text) || isFloat(text);
+      }
     }
     return false;
   }

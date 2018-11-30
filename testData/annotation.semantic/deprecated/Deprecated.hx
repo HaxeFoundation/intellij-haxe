@@ -38,4 +38,7 @@ class Deprecated {
   @:deprecated
   public function method():String {
   }
+
+  public function new() {
+  }
 }

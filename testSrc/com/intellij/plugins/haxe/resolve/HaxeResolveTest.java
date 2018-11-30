@@ -65,8 +65,8 @@ public class HaxeResolveTest extends MultiFileTestCase {
         PsiElement file2 = myPsiManager.findFile(externEnumFile);
 
         HaxeFile haxeFile = (HaxeFile)file;
-        HaxeFunctionDeclarationWithAttributes functionDeclarationWithAttributes =
-          (HaxeFunctionDeclarationWithAttributes)haxeFile.getClasses()[0].findMethodsByName("test", true)[0];
+        HaxeMethodDeclaration functionDeclarationWithAttributes =
+          (HaxeMethodDeclaration)haxeFile.getClasses()[0].findMethodsByName("test", true)[0];
 
         assertNotNull(functionDeclarationWithAttributes);
 

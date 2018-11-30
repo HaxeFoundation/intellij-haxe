@@ -22,9 +22,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionDeclarationWithAttributes;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionPrototypeDeclarationWithAttributes;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringBundle;
@@ -54,8 +53,7 @@ public class HaxePushDownHandler extends JavaPushDownHandler {
         return;
       }
 
-      if (element instanceof HaxeClassDeclaration || element instanceof HaxeVarDeclaration || element instanceof HaxeFunctionDeclarationWithAttributes
-        || element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
+      if (element instanceof HaxeClassDeclaration || element instanceof HaxeFieldDeclaration || element instanceof HaxeMethod) {
         //if (element instanceof JspClass) {
         //  RefactoringMessageUtil.showNotSupportedForJspClassesError(project, editor, REFACTORING_NAME, HelpID.MEMBERS_PUSH_DOWN);
         //  return;
@@ -75,14 +73,11 @@ public class HaxePushDownHandler extends JavaPushDownHandler {
     PsiElement aMember = null;
     if (element instanceof HaxeClassDeclaration) {
       aClass = (HaxeClassDeclaration) element;
-    } else if (element instanceof HaxeFunctionDeclarationWithAttributes) {
-      aClass = ((HaxeFunctionDeclarationWithAttributes) element).getContainingClass();
+    } else if (element instanceof HaxeMethod) {
+      aClass = ((HaxeMethod) element).getContainingClass();
       aMember = element;
-    } else if (element instanceof HaxeFunctionPrototypeDeclarationWithAttributes) {
-      aClass = ((HaxeFunctionPrototypeDeclarationWithAttributes) element).getContainingClass();
-      aMember = element;
-    } else if (element instanceof HaxeVarDeclaration) {
-      aClass = ((HaxeVarDeclaration)element).getContainingClass();
+    } else if (element instanceof HaxeFieldDeclaration) {
+      aClass = ((HaxeFieldDeclaration)element).getContainingClass();
       aMember = element;
     }
     else {

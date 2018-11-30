@@ -16,14 +16,17 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface HaxeModel {
   String getName();
+
   PsiElement getBasePsi();
+
   @Nullable
   HaxeExposableModel getExhibitor();
+
   @Nullable
   FullyQualifiedInfo getQualifiedInfo();
+
 }

@@ -1,9 +1,11 @@
 class A extends B {
 
     override public function a():Void {
+        super.a();
     }
 
     override public function d() {
+        super.d();
     }
 }
 

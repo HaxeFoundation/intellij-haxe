@@ -22,7 +22,6 @@ package com.intellij.plugins.haxe.ide.annotator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeModifierType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import gnu.trove.THashSet;
@@ -68,7 +67,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   }
 
   @Override
-  public void visitFunctionDeclarationWithAttributes(@NotNull HaxeFunctionDeclarationWithAttributes functionDeclaration) {
+  public void visitMethodDeclaration(@NotNull HaxeMethodDeclaration functionDeclaration) {
     List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
     for (HaxeCustomMeta meta : metas) {
       if (isDeprecatedMeta(meta)) {
@@ -76,7 +75,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
       }
     }
 
-    super.visitFunctionDeclarationWithAttributes(functionDeclaration);
+    super.visitMethod(functionDeclaration);
   }
 
   @Override
@@ -86,8 +85,8 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
       HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)child;
       final PsiElement reference = referenceExpression.resolve();
 
-      if (reference instanceof HaxeFunctionDeclarationWithAttributes) {
-        final HaxeFunctionDeclarationWithAttributes functionDeclaration = (HaxeFunctionDeclarationWithAttributes)reference;
+      if (reference instanceof HaxeMethodDeclaration) {
+        final HaxeMethodDeclaration functionDeclaration = (HaxeMethodDeclaration)reference;
         final List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
         for (HaxeCustomMeta meta : metas) {
           if (isDeprecatedMeta(meta)) {
@@ -101,15 +100,15 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   }
 
   @Override
-  public void visitVarDeclaration(@NotNull HaxeVarDeclaration varDeclaration) {
+  public void visitFieldDeclaration(@NotNull HaxeFieldDeclaration varDeclaration) {
     List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
     for (HaxeCustomMeta meta : metas) {
       if (isDeprecatedMeta(meta)) {
-        handleDeprecatedVarDeclaration(varDeclaration);
+        handleDeprecatedFieldDeclaration(varDeclaration);
       }
     }
 
-    super.visitVarDeclaration(varDeclaration);
+    super.visitFieldDeclaration(varDeclaration);
   }
 
   @Override
@@ -121,20 +120,20 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
   }
 
-  protected void handleDeprecatedFunctionDeclaration(HaxeFunctionDeclarationWithAttributes functionDeclaration) {
+  protected void handleDeprecatedFunctionDeclaration(HaxeMethodDeclaration functionDeclaration) {
   }
 
   protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {
   }
 
-  protected void handleDeprecatedVarDeclaration(HaxeVarDeclaration varDeclaration) {
+  protected void handleDeprecatedFieldDeclaration(HaxeFieldDeclaration varDeclaration) {
   }
 
   private void checkDeprecatedVarCall(HaxeReferenceExpression referenceExpression) {
     PsiElement reference = referenceExpression.resolve();
 
-    if (reference instanceof HaxeVarDeclaration) {
-      HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)reference;
+    if (reference instanceof HaxeFieldDeclaration) {
+      HaxeFieldDeclaration varDeclaration = (HaxeFieldDeclaration)reference;
 
       List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
       for (HaxeCustomMeta meta : metas) {
@@ -147,6 +146,6 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   private boolean isDeprecatedMeta(@NotNull HaxeCustomMeta meta) {
     String metaText = meta.getText();
-    return metaText != null && metaText.startsWith(HaxeModifierType.DEPRECATED.s);
+    return metaText != null && metaText.startsWith(HaxePsiModifier.DEPRECATED);
   }
 }

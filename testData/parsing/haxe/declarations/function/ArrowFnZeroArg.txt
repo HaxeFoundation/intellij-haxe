@@ -6,11 +6,10 @@ Haxe File
         HaxePsiToken:ID('ArrowFunctionSyntaxTest')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
-        DECLARATION_ATTRIBUTE
-          ACCESS
-            HaxePsiToken:public('public')
-        DECLARATION_ATTRIBUTE
+      METHOD_DECLARATION
+        METHOD_MODIFIER
+          HaxePsiToken:public('public')
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -31,17 +30,19 @@ Haxe File
               TYPE_TAG
                 HaxePsiToken::(':')
                 FUNCTION_TYPE
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Void')
+                  FUNCTION_ARGUMENT
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Void')
                   HaxePsiToken:->('->')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('Int')
+                  FUNCTION_RETURN_TYPE
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Int')
             HaxePsiToken:;(';')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION

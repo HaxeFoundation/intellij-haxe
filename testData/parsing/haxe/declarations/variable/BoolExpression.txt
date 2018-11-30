@@ -6,8 +6,9 @@ Haxe File
         HaxePsiToken:ID('Test')
     HaxePsiToken:{('{')
     CLASS_BODY
-      VAR_DECLARATION
-        HaxePsiToken:var('var')
+      FIELD_DECLARATION
+        MUTABILITY_MODIFIER
+          HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('foo')

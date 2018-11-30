@@ -8,8 +8,8 @@ GrammarKitVersion="1.2.0"
         cp ~/Tools/GrammarKit-${GrammarKitVersion}.zip . &&
         cp ~/Tools/light-psi-all-${GrammarKitVersion}.jar .
     else
-        `wget -O GrammarKit-${GrammarKitVersion}.zip https://github.com/JetBrains/Grammar-Kit/releases/download/${GrammarKitVersion}/GrammarKit.zip`&&
-        `wget -O light-psi-all-${GrammarKitVersion}.jar https://github.com/JetBrains/Grammar-Kit/releases/download/${GrammarKitVersion}/light-psi-all.jar` &&
+        `wget --quiet -O GrammarKit-${GrammarKitVersion}.zip https://github.com/JetBrains/Grammar-Kit/releases/download/${GrammarKitVersion}/GrammarKit.zip`&&
+        `wget --quiet -O light-psi-all-${GrammarKitVersion}.jar https://github.com/JetBrains/Grammar-Kit/releases/download/${GrammarKitVersion}/light-psi-all.jar` &&
 
         #Cache file locally except for Travis build which creates a new VM every time
         if [ "${TRAVIS}" != true ]; then

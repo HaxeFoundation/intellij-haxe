@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +19,9 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
@@ -32,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.intellij.plugins.haxe.HaxeComponentType.*;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
@@ -87,11 +90,11 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isClass() {
-    return !this.isAbstract() && (HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.CLASS);
+    return !this.isAbstract() && (typeOf(haxeClass) == CLASS);
   }
 
   public boolean isInterface() {
-    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.INTERFACE;
+    return typeOf(haxeClass) == INTERFACE;
   }
 
   public boolean isEnum() {
@@ -99,7 +102,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isTypedef() {
-    return HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.TYPEDEF;
+    return typeOf(haxeClass) == TYPEDEF;
   }
 
   public boolean isAbstract() {
@@ -117,17 +120,19 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @Nullable
   public HaxeTypeOrAnonymous getUnderlyingType() {
-    if (!isAbstract()) return null;
-    HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
-    HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
-    if (underlyingType != null) {
-      List<HaxeTypeOrAnonymous> list = underlyingType.getTypeOrAnonymousList();
-      if (!list.isEmpty()) {
-        return list.get(0);
+    if (isAbstract()) {
+      HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
+      HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
+      if (underlyingType != null) {
+        return underlyingType.getTypeOrAnonymous();
       }
-
-      // TODO: What about function types?
+    } else if(isTypedef()) {
+      HaxeTypedefDeclaration typedef = (HaxeTypedefDeclaration)haxeClass;
+      return typedef.getTypeOrAnonymous();
     }
+
+    // TODO: What about function types?
+
     return null;
   }
 
@@ -203,9 +208,11 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public HaxeMemberModel getMember(String name) {
     if (name == null) return null;
-    final HaxeMethodModel method = getMethod(name);
-    final HaxeFieldModel field = getField(name);
-    return (method != null) ? method : field;
+    HaxeNamedComponent component = haxeClass.findHaxeMemberByName(name);
+    if (component != null) {
+      return HaxeMemberModel.fromPsi(component);
+    }
+    return null;
   }
 
   public List<HaxeMemberModel> getMembers() {
@@ -221,7 +228,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     HaxePsiCompositeElement body = getBodyPsi();
     if (body != null) {
       for (PsiElement element : body.getChildren()) {
-        if (element instanceof HaxeMethod || element instanceof HaxeVarDeclaration) {
+        if (element instanceof HaxeMethod || element instanceof HaxeFieldDeclaration) {
           HaxeMemberModel model = HaxeMemberModel.fromPsi(element);
           if (model != null) {
             members.add(model);
@@ -234,7 +241,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public HaxeFieldModel getField(String name) {
     HaxePsiField field = (HaxePsiField)haxeClass.findHaxeFieldByName(name);
-    if (field instanceof HaxeVarDeclaration || field instanceof HaxeAnonymousTypeField || field instanceof HaxeEnumValueDeclaration) {
+    if (field instanceof HaxeFieldDeclaration || field instanceof HaxeAnonymousTypeField || field instanceof HaxeEnumValueDeclaration) {
       return new HaxeFieldModel(field);
     }
     return null;
@@ -326,7 +333,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(haxeClass, isEnum() ? HaxeEnumBody.class : HaxeClassBody.class);
 
     if (body != null) {
-      return PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)
+      return PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)
         .stream()
         .map(HaxeFieldModel::new)
         .collect(Collectors.toList());
@@ -395,6 +402,21 @@ public class HaxeClassModel implements HaxeExposableModel {
     return out;
   }
 
+  /**
+   * @return a generic resolver with Unknown or constrained types.
+   */
+  @NotNull
+  public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
+    if (getPsi().getGenericParam() != null) {
+      HaxeClassResolveResult result = HaxeClassResolveResult.create(getPsi(),
+                                      parentResolver == null ? HaxeGenericSpecialization.EMPTY
+                                                             : HaxeGenericSpecialization.fromGenericResolver(null, parentResolver));
+      HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(getPsi());
+      return resolver;
+    }
+    return new HaxeGenericResolver();
+  }
+
   public void addField(String name, SpecificTypeReference type) {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic var " + name + ":" + type.toStringWithoutConstant() + ";\n");
   }
@@ -410,15 +432,15 @@ public class HaxeClassModel implements HaxeExposableModel {
     if (isClass()) {
       HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
       if (body != null) {
-        for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeVarDeclaration.class, HaxeMethod.class)) {
+        for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeMethod.class)) {
           if (!(declaration instanceof PsiMember)) continue;
-          if (declaration instanceof HaxeVarDeclaration) {
-            HaxeVarDeclaration varDeclaration = (HaxeVarDeclaration)declaration;
+          if (declaration instanceof HaxeFieldDeclaration) {
+            HaxeFieldDeclaration varDeclaration = (HaxeFieldDeclaration)declaration;
             if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
-              out.add(new HaxeFieldModel((HaxeVarDeclaration)declaration));
+              out.add(new HaxeFieldModel((HaxeFieldDeclaration)declaration));
             }
           } else {
-            HaxeMethod method = (HaxeMethod)declaration;
+            HaxeMethodDeclaration method = (HaxeMethodDeclaration)declaration;
             if (method.isStatic() && method.isPublic()) {
               out.add(new HaxeMethodModel(method));
             }
@@ -438,11 +460,15 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public static HaxeClassModel fromElement(PsiElement element) {
-    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    if (element == null) return null;
+
+    HaxeClass haxeClass = element instanceof HaxeClass
+                          ? (HaxeClass) element
+                          : PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+
     if (haxeClass != null) {
       return new HaxeClassModel(haxeClass);
     }
-
     return null;
   }
 

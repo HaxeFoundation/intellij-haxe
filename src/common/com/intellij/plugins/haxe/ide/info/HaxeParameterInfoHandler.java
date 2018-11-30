@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +25,8 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -246,7 +249,8 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       final HaxeExpression argument = arguments.get(argumentIndex);
 
       final ResultHolder parameterType = parameter.getResultHolder();
-      final ResultHolder argumentType = HaxeTypeResolver.getPsiElementType(argument);
+      final ResultHolder argumentType = HaxeTypeResolver.getPsiElementType(argument,
+                                            HaxeGenericResolverUtil.generateResolverFromScopeParents(argument));
 
       if (parameterType.canAssign(argumentType)) {
         if (argumentIndex == currentArgumentIndex) return parameterIndex;

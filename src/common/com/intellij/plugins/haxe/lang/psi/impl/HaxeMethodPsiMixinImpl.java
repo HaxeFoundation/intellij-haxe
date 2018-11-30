@@ -3,6 +3,8 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,13 +42,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
 public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeMethodPsiMixin {
+
+  // TODO: Merge this PsiMixin class(and interface) with HaxeMethod.  There is no reason to keep both, or that this be named 'mixin'.
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodPsiMixinImpl");
   static {
@@ -54,7 +56,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     LOG.setLevel(Level.DEBUG);
   }
 
-  public HaxeMethodPsiMixinImpl(ASTNode node) {
+  protected HaxeMethodPsiMixinImpl(ASTNode node) {
     super(node);
   }
 
@@ -79,18 +81,11 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   private HaxeMethodModel _model = null;
   public HaxeMethodModel getModel() {
-    if (_model == null) _model = new HaxeMethodModel(this);
+    if (_model == null) {
+      _model = new HaxeMethodModel((HaxeMethod)this);
+    }
     return _model;
   }
-
-  @Nullable
-  @Override
-  public List<HaxeDeclarationAttribute> getDeclarationAttributeList() {
-    // Not all function types have one of these...  If they do, the
-    // subclass (via the generator) will override this method.
-    return null;
-  }
-
 
   @Nullable
   public HaxeReturnStatement getReturnStatement() {
@@ -270,7 +265,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     HaxeTypeParam               param   = null;
     final HaxeTypeTag           tag     = (HaxeTypeTag) findChildByType(HaxeTokenTypes.TYPE_TAG);
     if (tag != null) {
-      final HaxeTypeOrAnonymous toa     = getFirstItem(tag.getTypeOrAnonymousList());
+      final HaxeTypeOrAnonymous toa     = tag.getTypeOrAnonymous();
       final HaxeType            type    = (toa != null) ? toa.getType() : null;
       param                             = (type != null) ? type.getTypeParam() : null;// XXX: Java<->Haxe list & type inversion -- See BNF.
     }
@@ -353,4 +348,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     }
     return super.getUseScope();
   }
+
+  @Nullable
+  public abstract HaxeGenericParam getGenericParam();
 }

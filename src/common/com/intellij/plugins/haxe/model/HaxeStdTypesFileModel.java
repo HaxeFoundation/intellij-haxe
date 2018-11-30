@@ -15,18 +15,29 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeStdTypesFileModel extends HaxeFileModel {
   public static final String STD_TYPES_HX = "StdTypes.hx";
+  private static final Key<HaxeStdTypesFileModel> HAXE_STD_FILE_MODEL_KEY = new Key<>("HAXE_STD_FILE_MODEL");
 
-  public HaxeStdTypesFileModel(@NotNull HaxeFile file) {
+  private HaxeStdTypesFileModel(@NotNull HaxeFile file) {
     super(file);
   }
 
   @Override
   protected boolean isReferencingCurrentFile(FullyQualifiedInfo info) {
     return (info.packagePath == null || info.packagePath.isEmpty()) && (info.fileName == null || info.fileName.isEmpty());
+  }
+
+  public static HaxeStdTypesFileModel fromFile(@NotNull HaxeFile file) {
+    HaxeStdTypesFileModel model = file.getUserData(HAXE_STD_FILE_MODEL_KEY);
+    if (model == null) {
+      model = new HaxeStdTypesFileModel(file);
+      file.putUserData(HAXE_STD_FILE_MODEL_KEY, model);
+    }
+    return model;
   }
 }

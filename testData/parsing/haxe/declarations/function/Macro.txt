@@ -6,11 +6,11 @@ Haxe File
         HaxePsiToken:ID('Macro')
     HaxePsiToken:{('{')
     CLASS_BODY
-      FUNCTION_DECLARATION_WITH_ATTRIBUTES
+      METHOD_DECLARATION
         HaxePsiToken:@:macro('@:macro')
         KEEP_META
           HaxePsiToken:@:keep('@:keep')
-        DECLARATION_ATTRIBUTE
+        METHOD_MODIFIER
           HaxePsiToken:static('static')
         HaxePsiToken:function('function')
         COMPONENT_NAME

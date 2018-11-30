@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,6 +121,30 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testAbstractAssignmentFromTo1() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testAbstractAssignmentFromTo2() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testAbstractAssignmentFromTo3() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testAbstractAssignmentFromTo4() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testAbstractAssignmentFromTo5() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testAbstractAssignmentFromTo6() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
   public void testNullFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -173,7 +198,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testSimpleAssignUnknownGeneric() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
   }
 
   public void testExtendsAnonymousType() throws Exception {
@@ -192,31 +217,43 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testFinalKeyword() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testStaticsInExtended() throws Exception {
     doTestNoFixWithoutWarnings();
   }
 
   public void testArrayAssignmentFromEmpty() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
   }
 
   public void testArrayAssignmentBadFunctionType() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
   }
 
   public void testArrayAssignmentWrongType() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
   }
 
   public void testArrayAssignmentBadArrowFunction() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
   }
 
   public void testArrayAssignmentWithAbstract() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
   }
 
   public void testArrayAssignmentWithArrowFunctions() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testNullTAssignment1() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNullTAssignment2() throws Exception {
     doTestNoFixWithWarnings();
   }
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +16,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
@@ -25,17 +27,16 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HaxeFileModel implements HaxeExposableModel {
 
+  protected static final Key<HaxeFileModel> HAXE_FILE_MODEL_KEY = new Key<>("HAXE_FILE_MODEL");
   private final HaxeFile file;
 
-  public HaxeFileModel(@NotNull HaxeFile file) {
+  protected HaxeFileModel(@NotNull HaxeFile file) {
     this.file = file;
   }
 
@@ -44,8 +45,13 @@ public class HaxeFileModel implements HaxeExposableModel {
     if (element == null) return null;
 
     final PsiFile file = element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
-    if (file != null) {
-      return new HaxeFileModel((HaxeFile)file);
+    if (file instanceof HaxeFile) {
+      HaxeFileModel model = file.getUserData(HAXE_FILE_MODEL_KEY);
+      if (model == null) {
+        model = new HaxeFileModel((HaxeFile)file);
+        file.putUserData(HAXE_FILE_MODEL_KEY, model);
+      }
+      return model;
     }
     return null;
   }
@@ -136,7 +142,16 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
 
   public List<HaxeClassModel> getClassModels() {
-    return getClassModelsStream().collect(Collectors.toList());
+    boolean COLLECT_USING_STREAMS = false;
+    if (COLLECT_USING_STREAMS) {
+      return getClassModelsStream().collect(Collectors.toList());
+    } else {
+      ArrayList<HaxeClassModel> list = new ArrayList<>();
+      for (HaxeClass element : file.getClassList()) {
+        list.add(element.getModel());
+      }
+      return list;
+    }
   }
 
   public Stream<HaxeClassModel> getClassModelsStream() {

@@ -4,6 +4,7 @@
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +23,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.HaxeLookupElement;
@@ -29,6 +31,8 @@ import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -52,6 +56,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   public static final String DOT = ".";
+  private static final Key<HaxeGenericSpecialization> SPECIALIZATION_KEY = new Key<>("HAXE_SPECIALIZATION_KEY");
 
   //static {
   //  LOG.setLevel(Level.TRACE);
@@ -102,14 +107,20 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Nullable
   public HaxeGenericSpecialization getSpecialization() {
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg(null));
     // CallExpressions need to resolve their child, rather than themselves.
     HaxeExpression expression = this;
     if (this instanceof HaxeCallExpression) {
       expression = ((HaxeCallExpression)this).getExpression();
     } else if (this instanceof HaxeNewExpression) {
       HaxeNewExpression newExpression = (HaxeNewExpression)this;
-      HaxeClass haxeClass = (HaxeClass)newExpression.getType().getReferenceExpression().resolve();
+      PsiElement resolved = newExpression.getType().getReferenceExpression().resolve();
+      HaxeClass haxeClass;
+      if (resolved instanceof HaxeClass) {
+        haxeClass = (HaxeClass) resolved;
+      } else {
+        SpecificHaxeClassReference typeReference = SpecificTypeReference.getUnknown(newExpression);
+        haxeClass = null != typeReference ? typeReference.getHaxeClass() : null;
+      }
       final HaxeClassResolveResult result = HaxeClassResolveResult.create(haxeClass);
       result.specializeByParameters(newExpression.getType().getTypeParam());
       return result.getSpecialization();
@@ -160,7 +171,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public boolean resolveIsStaticExtension() {
     // @TODO: DIRTY HACK! to avoid rewriting all the code!
     HaxeResolver.INSTANCE.resolve(this, true);
-    return HaxeResolver.isExtension.get();
+    return null != HaxeResolver.isExtension ? HaxeResolver.isExtension.get() : false;
   }
 
   @NotNull
@@ -201,18 +212,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // the resolveToParents logic (here, at least).
     //
 
-    // For the moment (while debugging the resolver) let's do this without caching.
-    boolean skipCachingForDebug = false;
-
-    // If we are in dumb mode (e.g. we are still indexing files and resolving may
-    // fail until the indices are complete), we don't want to cache the (likely incorrect)
-    // results.
-    boolean skipCaching = skipCachingForDebug || DumbService.isDumb(getProject());
-    List<? extends PsiElement> cachedNames
-      = skipCaching ? (HaxeResolver.INSTANCE).resolve(this, incompleteCode)
-                    : ResolveCache.getInstance(getProject())
-                        .resolveWithCaching(this, HaxeResolver.INSTANCE, true, incompleteCode);
-
+    List<? extends PsiElement> cachedNames =
+      (HaxeResolver.INSTANCE).resolve(this, incompleteCode);
 
     // CandidateInfo does some extra resolution work when checking validity, so
     // the results have to be turned into a CandidateInfoArray, and not just passed
@@ -383,7 +384,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             }
           }
         }
-
       }
       HaxeClassResolveResult resolveResult =
         HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
@@ -463,30 +463,58 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Packages don't ever resolve to classes. (And they don't have children!)
       return HaxeClassResolveResult.EMPTY;
     }
-    if (resolve != null) {
-      PsiElement parent = resolve.getParent();
-
-      if (parent != null) {
-        if (parent instanceof HaxeFunctionDeclarationWithAttributes || parent instanceof HaxeExternFunctionDeclaration) {
-          return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
-        }
-        HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(parent, HaxeTypeTag.class);
-
-        if (typeTag != null) {
-          HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(typeTag, HaxeFunctionType.class);
-          if (functionType != null) {
-            return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+    if (resolve instanceof HaxeAnonymousTypeField) {
+      HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
+      HaxeTypeTag typeTag = field.getTypeTag();
+      if (typeTag.getTypeOrAnonymous() != null) {
+        HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+        if (typeOrAnonymous != null) {
+          if (typeOrAnonymous.getAnonymousType() != null) {
+            return HaxeClassResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization().getInnerSpecialization(typeOrAnonymous));
+          } else {
+            HaxeType type = typeOrAnonymous.getType();
+            if (type != null) {
+              PsiElement resolvedType = type.getReferenceExpression().resolve();
+              if(resolvedType instanceof HaxeGenericListPart) {
+                final HaxeComponentName componentName = ((HaxeGenericListPart)resolvedType).getComponentName();
+                final HaxeGenericSpecialization specialization = getSpecialization();
+                if(specialization != null && componentName != null) {
+                  String genericName = componentName.getText();
+                  final HaxeClassResolveResult result = getSpecialization().get(resolve, genericName);
+                  if (result != null) {
+                    return result;
+                  }
+                }
+              }
+              if (resolvedType instanceof HaxeClass) {
+                return HaxeClassResolveResult.create((HaxeClass)resolvedType, getSpecialization());
+              }
+            }
           }
         }
       }
+      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
     }
 
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Trying class resolve with specialization."));
-    HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolve, tryGetLeftResolveResult(this).getSpecialization());
-    if (result.getHaxeClass() == null) {
-      result = HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
+    if (resolve instanceof HaxeGenericListPart) {
+      final HaxeComponentName componentName = ((HaxeGenericListPart)resolve).getComponentName();
+      if (componentName != null) {
+        HaxeGenericSpecialization innerSpecialization =
+          tryGetLeftResolveResult(this).getSpecialization();
+        String genericName = componentName.getText();
+        final HaxeClassResolveResult result = innerSpecialization.get(resolve, genericName);
+        if (result != null) {
+          return result;
+        }
+      }
     }
-    return result;
+    if (resolve != null) {
+      return HaxeResolveUtil.getHaxeClassResolveResult(resolve, getSpecialization());
+    }
+
+    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Trying class resolve by fully qualified name."));
+
+    return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
   }
 
   @Override
@@ -514,7 +542,24 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private void bindToClass(PsiClass element) {
-    handleElementRename(element.getName());
+    String ref = getReferenceName();
+    //The name was not changed. Are we moving a class to another package?
+    if(element instanceof HaxeClassDeclaration && ref != null && ref.equals(element.getName())) {
+      handleClassMovement(element);
+    //rename
+    } else {
+      handleElementRename(element.getName());
+    }
+  }
+
+  private void handleClassMovement(PsiClass element) {
+    String thisFqn = getQualifiedName();
+    //This reference is not a fully qualified name. Nothing to do.
+    if(!thisFqn.contains(".")) {
+      return;
+    }
+    String newFqn = ((HaxeClassDeclaration)element).getModel().haxeClass.getQualifiedName();
+    updateFullyQualifiedReference(newFqn);
   }
 
   private void bindToPackage(PsiPackage element) {
@@ -950,16 +995,24 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   //  return qualifier instanceof PsiExpression ? (PsiExpression)qualifier : null;
   //}
 
+  public String toDebugString() {
+    String ss = super.toString();
+    // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
+    String clazzName = this.getClass().getSimpleName();
+    String text = getCanonicalText();
+    ss += ":" + defaultIfEmpty(text, "<no text>");
+    ss += ":" + defaultIfEmpty(clazzName, "<anonymous>");
+    return ss;
+  }
+
   @Override
   public String toString() {
-    String ss = super.toString();
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
-      String clazzName = this.getClass().getSimpleName();
-      String text = getCanonicalText();
-      ss += ":" + defaultIfEmpty(text, "<no text>");
-      ss += ":" + defaultIfEmpty(clazzName, "<anonymous>");
+      return toDebugString();
     }
+
+    // Unit tests don't want the extra data.  (Maybe we should fix the goldens?)
+    String ss = super.toString();
     return ss;
   }
 

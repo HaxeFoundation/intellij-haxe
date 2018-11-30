@@ -36,4 +36,12 @@ public class EnumDeclarationTest extends DeclarationTestBase {
   public void testColor3() throws Throwable {
     doTest(true);
   }
+
+  public void testHttpCode() throws Throwable {
+    doTest(true);
+  }
+
+  public void testHttpCodeHx4() throws Throwable {
+    doTest(true);
+  }
 }

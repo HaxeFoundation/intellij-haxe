@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@ import com.intellij.ide.util.importProject.ModuleDescriptor;
 import com.intellij.ide.util.importProject.ModuleInsight;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
 import com.intellij.ide.util.projectWizard.importSources.DetectedSourceRoot;
+import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -29,17 +31,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeModuleInsight extends ModuleInsight {
-  public HaxeModuleInsight(@Nullable final ProgressIndicator progress,
-                           Set<String> existingModuleNames,
-                           Set<String> existingProjectLibraryNames) {
-    super(progress, existingModuleNames, existingProjectLibraryNames);
+  private final ProjectFromSourcesBuilder myBuilder;
+
+  HaxeModuleInsight(@Nullable final ProgressIndicator progress, ProjectFromSourcesBuilder builder) {
+    super(progress, builder.getExistingModuleNames(), builder.getExistingProjectLibraryNames());
+    myBuilder = builder;
   }
 
   @Override
@@ -68,5 +72,14 @@ public class HaxeModuleInsight extends ModuleInsight {
 
   @Override
   protected void scanLibraryForDeclaredPackages(File file, Consumer<String> result) throws IOException {
+  }
+
+  @Override
+  public void scanModules() {
+    File root = new File(myBuilder.getContext().getProjectFileDirectory());
+    ModuleDescriptor descriptor = createModuleDescriptor(root, this.getSourceRootsToScan());
+    List<ModuleDescriptor> list = new ArrayList<>();
+    list.add(descriptor);
+    addModules(list);
   }
 }

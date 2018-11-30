@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +37,14 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
   @NotNull
   @Override
   public List<HaxeType> getHaxeExtendsList() {
-    final HaxeTypeExtendsList typeExtendsList = getAnonymousTypeBody().getTypeExtendsList();
-    if (typeExtendsList != null) {
-      final List<HaxeType> typeList = typeExtendsList.getTypeList();
-      if (!typeList.isEmpty()) {
-        return  typeList;
+    final HaxeAnonymousTypeBody body = getAnonymousTypeBody();
+    if (body != null) {
+      final HaxeTypeExtendsList typeExtendsList = body.getTypeExtendsList();
+      if (typeExtendsList != null) {
+        final List<HaxeType> typeList = typeExtendsList.getTypeList();
+        if (!typeList.isEmpty()) {
+          return typeList;
+        }
       }
     }
     return super.getHaxeExtendsList();
