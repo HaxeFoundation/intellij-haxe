@@ -221,6 +221,10 @@ public interface HaxeTokenTypeSets {
     OPLUS_PLUS, OMINUS_MINUS, ONOT, OMINUS
   );
 
+  TokenSet UNARY_READ_WRITE_OPERATORS = TokenSet.create(
+    OPLUS_PLUS, OMINUS_MINUS
+  );
+
   TokenSet BITWISE_OPERATORS = TokenSet.create(
     OBIT_AND, OBIT_OR, OBIT_XOR,
     BIT_OPERATION

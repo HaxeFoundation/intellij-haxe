@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +28,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
  * Created by ebishton on 9/28/14.
  */
 public abstract class HaxeMethodImpl extends HaxeMethodPsiMixinImpl implements HaxeMethod {
-  public HaxeMethodImpl(ASTNode node) {
+  protected HaxeMethodImpl(ASTNode node) {
     super(node);
   }
 }

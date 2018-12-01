@@ -19,7 +19,6 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
@@ -121,14 +120,19 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @Nullable
   public HaxeTypeOrAnonymous getUnderlyingType() {
-    if (!isAbstract()) return null;
-    HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
-    HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
-    if (underlyingType != null) {
-      return underlyingType.getTypeOrAnonymous();
-
-      // TODO: What about function types?
+    if (isAbstract()) {
+      HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
+      HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
+      if (underlyingType != null) {
+        return underlyingType.getTypeOrAnonymous();
+      }
+    } else if(isTypedef()) {
+      HaxeTypedefDeclaration typedef = (HaxeTypedefDeclaration)haxeClass;
+      return typedef.getTypeOrAnonymous();
     }
+
+    // TODO: What about function types?
+
     return null;
   }
 
@@ -398,6 +402,21 @@ public class HaxeClassModel implements HaxeExposableModel {
     return out;
   }
 
+  /**
+   * @return a generic resolver with Unknown or constrained types.
+   */
+  @NotNull
+  public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
+    if (getPsi().getGenericParam() != null) {
+      HaxeClassResolveResult result = HaxeClassResolveResult.create(getPsi(),
+                                      parentResolver == null ? HaxeGenericSpecialization.EMPTY
+                                                             : HaxeGenericSpecialization.fromGenericResolver(null, parentResolver));
+      HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(getPsi());
+      return resolver;
+    }
+    return new HaxeGenericResolver();
+  }
+
   public void addField(String name, SpecificTypeReference type) {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic var " + name + ":" + type.toStringWithoutConstant() + ";\n");
   }
@@ -421,7 +440,7 @@ public class HaxeClassModel implements HaxeExposableModel {
               out.add(new HaxeFieldModel((HaxeFieldDeclaration)declaration));
             }
           } else {
-            HaxeMethod method = (HaxeMethod)declaration;
+            HaxeMethodDeclaration method = (HaxeMethodDeclaration)declaration;
             if (method.isStatic() && method.isPublic()) {
               out.add(new HaxeMethodModel(method));
             }
@@ -441,11 +460,15 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public static HaxeClassModel fromElement(PsiElement element) {
-    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    if (element == null) return null;
+
+    HaxeClass haxeClass = element instanceof HaxeClass
+                          ? (HaxeClass) element
+                          : PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+
     if (haxeClass != null) {
       return new HaxeClassModel(haxeClass);
     }
-
     return null;
   }
 

@@ -1088,7 +1088,8 @@ Haxe File
       MACRO_CLASS
         CUSTOM_META
           HaxePsiToken:MACRO_ID('@:coreType')
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Kilometer')
@@ -1174,7 +1175,8 @@ Haxe File
           HaxePsiToken:}('}')
     HaxePsiToken:}('}')
   ABSTRACT_CLASS_DECLARATION
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Void')
@@ -1184,7 +1186,8 @@ Haxe File
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type with no relations')
   ABSTRACT_CLASS_DECLARATION
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Int')
@@ -1200,7 +1203,8 @@ Haxe File
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type which implicit casts to Float')
   ABSTRACT_CLASS_DECLARATION
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('UInt')
@@ -1222,7 +1226,8 @@ Haxe File
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value types which auto-casts to and from Int')
   ABSTRACT_CLASS_DECLARATION
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('EnumFlags')
@@ -1254,7 +1259,8 @@ Haxe File
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on Int')
   ABSTRACT_CLASS_DECLARATION
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Vector')
@@ -1289,7 +1295,8 @@ Haxe File
     HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on VectorData<T>')
   ABSTRACT_CLASS_DECLARATION
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('StringSplitter')
@@ -1410,7 +1417,8 @@ Haxe File
           HaxePsiToken:}('}')
     HaxePsiToken:}('}')
   ABSTRACT_CLASS_DECLARATION
-    HaxePsiToken:abstract('abstract')
+    ABSTRACT_CLASS_TYPE
+      HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('MyInt')

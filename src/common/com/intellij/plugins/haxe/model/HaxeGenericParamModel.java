@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +18,11 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeGenericListPart;
-import com.intellij.plugins.haxe.lang.psi.HaxeGenericParam;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.type.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeGenericParamModel {
   final private HaxeGenericListPart part;
@@ -42,5 +45,34 @@ public class HaxeGenericParamModel {
 
   public HaxeGenericListPart getPsi() { return part; }
 
-  //public List<Object> getConstraints() { }
+  @Nullable
+  public ResultHolder getConstraint(@Nullable HaxeGenericResolver resolver) {
+    if (null == resolver) {
+      resolver = new HaxeGenericResolver();
+    }
+
+    HaxeTypeListPart constraint = part.getTypeListPart();
+    if (null != constraint) {
+      HaxeTypeOrAnonymous toa = constraint.getTypeOrAnonymous();
+      if (null != toa.getType()) {
+        HaxeReferenceExpression reference = toa.getType().getReferenceExpression();
+        if (null != reference) {
+
+          ResultHolder result =
+            HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(part, null), resolver).result;
+          return result;
+        }
+        else {
+
+          // TODO: Deal with function return types.
+
+        }
+      }
+      else {
+        // Anonymous struct for a constraint.
+        // TODO: Turn the anonymous structure into a ResolveResult.
+      }
+    }
+    return null;
+  }
 }

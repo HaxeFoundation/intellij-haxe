@@ -2,7 +2,7 @@
   ~ Copyright 2000-2013 JetBrains s.r.o.
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
-  ~ Copyright 2017 Eric Bishton
+  ~ Copyright 2017-2018 Eric Bishton
   ~ Copyright 2017-2018 Ilya Malanin
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,6 +82,14 @@
       <p/>
       <p>Unreleased changes</p>
       <ul>
+        <li>Now infers generic types from map and array literals. (e.g. ["this" => "yours"] is Map<String,String>).</li>
+        <li>Now resolves typedefs to underlying types. (e.g. `var v:Null<String>` is resolved as a `String` type.)</li>
+        <li>Now propagates type parameters (generics) properly through typedefs.</li>
+        <li>Now resolves types when used with array access (e.g. `map[0].length` no longer marked as errors).</li>
+        <li>Now infers types of methods without specific typing (e.g. `map.get(0).length` no longer marked as errors).</li>
+        <li>Added support of read/write access separation for "find usages".</li>
+        <li>Added support of haxe 4 syntax "enum abstract"</li>
+        <li>Inspections for non-haxe files disabled.</li>
         <li>Fixed recognizing type of "this" expression.</li>
         <li>Fixed bug when physical variables were marked as not real.</li>
         <li>Fixed searching of interface implementations and inheritance hierarchy</li>
@@ -1016,6 +1024,7 @@
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
+    <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
   </extensions>
 
   <module-components>
