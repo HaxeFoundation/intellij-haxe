@@ -1,14 +1,11 @@
 Recent contributors
 -----------------------------------
- - artem pecheny <pecheny@gmail.com>
- - as3boyan <denis.flash.as3@gmail.com>
- - David Nemcok <nemcok.david@gmail.com>
+ - Alexander Kuzmenko <alex@stablex.ru>
  - Eric Bishton <ebishton@ix.netcom.com>
- - EricBishton <ebishton.ix.netcom.com>
  - EricBishton <ebishton@ix.netcom.com>
- - Eric Bishton <EricBishton@users.noreply.github.com>
+ - Eric Bishton <eric@bishtonsoftware.com>
  - GitHub <noreply@github.com>
- - Jens Fischer <jensfischer95@gmail.com>
+ - Ilya Malanin <loremipsum.inside@gmail.com>
  - m0rkeulv <github@m0rkeulv.net>
  - mayakwd <loremipsum.inside@gmail.com>
  - Slava Buynov <slavab@playtika.com>
@@ -17,6 +14,7 @@ Recent contributors
 All contributors
 -----------------------------------
 - Alexander Doroshko <alexander.doroshko@jetbrains.com>
+- Alexander Kuzmenko <alex@stablex.ru>
 - Alexey Kudravtsev <cdr@intellij.com>
 - anna <Anna.Kozlova@jetbrains.com>
 - artem pecheny <pecheny@gmail.com>
@@ -42,6 +40,7 @@ All contributors
 - Eric Bishton <ebishton@ix.netcom.com>
 - EricBishton <ebishton.ix.netcom.com>
 - EricBishton <ebishton@ix.netcom.com>
+- Eric Bishton <eric@bishtonsoftware.com>
 - Eric Bishton <EricBishton@users.noreply.github.com>
 - Eugene Zhuravlev <jeka@intellij.com>
 - Evgeny Pasynkov <Evgeny.Pasynkov@jetbrains.com>
@@ -59,6 +58,7 @@ All contributors
 - Ilya Kuzmichev <deadbabe@gmail.com>
 - Ilya Kuzmichev <IlyaK@playtika.by>
 - Ilya Kuzmichev <ilyak@playtika.com>
+- Ilya Malanin <loremipsum.inside@gmail.com>
 - impaler <user123@server.fake>
 - isBatak <ivicabatinic123@gmail.com>
 - Jens Fischer <jensfischer95@gmail.com>

@@ -75,6 +75,7 @@ your development environment.  Much more detail is provided there for command li
 - Ant
 - Oracle JDK 8 or OpenJDK 8
 - Make
+- wget
 - A bash compatible shell
 
 ### Build command
