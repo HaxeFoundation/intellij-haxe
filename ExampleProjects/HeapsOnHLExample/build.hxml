@@ -10,3 +10,4 @@
 # Hashlink
 -hl Export/hl/bin/MyApp.hl
 -lib hlsdl
+# -lib hldx
