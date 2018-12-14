@@ -1,0 +1,12 @@
+-v
+-cp src
+#-D analyzer-optimize
+-main Main
+
+# Heaps
+-D resourcePath="res"
+-lib heaps
+
+# Hashlink
+-hl Export/hl/bin/MyApp.hl
+-lib hlsdl
