@@ -45,5 +45,5 @@ submit a PR will *all* of the .idea files, but *NONE* of Export/... files
 
 Note: If you do try to check in any changes, many of the files 
 in this directory will be ignored due to the rules in .gitignore in the root
-directory of this repo.  You must use `git add -f ExampleProjects/HxcppDebugging/*`
+directory of this repo.  You must use `git add -f ExampleProjects/HeapsOnHLExample/*`
 to override.
