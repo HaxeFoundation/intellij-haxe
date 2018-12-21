@@ -1,0 +1,42 @@
+version: "{build}"
+
+clone_folder: C:\projects\intellij-haxe
+
+environment:
+    global:
+        HAXE_VERSION: 3.4.7
+        HAXE_ROOT: C:\projects\haxe
+        HAXELIB_ROOT: C:\projects\haxelib
+    matrix:
+        - IDEA_VERSION: 2016.3.8
+        - IDEA_VERSION: 2017.2.7
+        - IDEA_VERSION: 2017.3.5
+        - IDEA_VERSION: 2018.1.3
+
+install:
+    # disable windows update service
+    - ps: Set-Service wuauserv -StartupType Manual
+    - cinst haxe --version=%HAXE_VERSION%
+    - RefreshEnv
+    - haxe -version
+    - mkdir "%HAXELIB_ROOT%"
+    - haxelib setup "%HAXELIB_ROOT%"
+
+build_script:
+    - gradlew.bat buildPlugin verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=%IDEA_VERSION%
+
+artifacts:
+    path: intellij-haxe-*.jar
+    name: intellij-haxe.jar
+
+test_script:
+    - gradlew.bat test -PgenerateHxcppDebugger=false -PtargetVersion=%IDEA_VERSION%
+
+after_test:
+    # upload test results via rest-api
+    - ps: |
+          $wc = New-Object 'System.Net.WebClient'
+          Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |
+          Foreach-Object {
+              $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))
+          }

@@ -9,17 +9,12 @@ if [[ $# -eq 0 ]] ; then
     exit 1
 fi
 
-./fetchIdea.sh "$1"
-./fetchGrammarKit.sh
 
 # Run the tests
-ant -f build-test.xml -Dversion="$1" $2
+./gradlew clean test -PgenerateHxcppDebugger=false -PtargetVersion="$1" $2
 
 # Was our build successful?
 stat=$?
-
-ant -f build-test.xml -q clean
-rm -rf idea-IU
 
 # Return the build status
 exit ${stat}

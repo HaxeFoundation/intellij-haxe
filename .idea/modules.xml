@@ -2,11 +2,18 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
-      <module fileurl="file://$PROJECT_DIR$/hxcpp-debugger-protocol/hxcpp-debugger-protocol.iml" filepath="$PROJECT_DIR$/hxcpp-debugger-protocol/hxcpp-debugger-protocol.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/common.iml" filepath="$PROJECT_DIR$/.idea/modules/common/common.iml" group="common" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/common_main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/common_main.iml" group="common" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/common_test.iml" filepath="$PROJECT_DIR$/.idea/modules/common/common_test.iml" group="common" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hxcpp-debugger-protocol/hxcpp-debugger-protocol.iml" filepath="$PROJECT_DIR$/.idea/modules/hxcpp-debugger-protocol/hxcpp-debugger-protocol.iml" group="hxcpp-debugger-protocol" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hxcpp-debugger-protocol/hxcpp-debugger-protocol_main.iml" filepath="$PROJECT_DIR$/.idea/modules/hxcpp-debugger-protocol/hxcpp-debugger-protocol_main.iml" group="hxcpp-debugger-protocol" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hxcpp-debugger-protocol/hxcpp-debugger-protocol_test.iml" filepath="$PROJECT_DIR$/.idea/modules/hxcpp-debugger-protocol/hxcpp-debugger-protocol_test.iml" group="hxcpp-debugger-protocol" />
       <module fileurl="file://$PROJECT_DIR$/intellij-haxe.iml" filepath="$PROJECT_DIR$/intellij-haxe.iml" />
-      <module fileurl="file://$PROJECT_DIR$/jps-plugin/jps-plugin.iml" filepath="$PROJECT_DIR$/jps-plugin/jps-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/intellij-haxe_main.iml" filepath="$PROJECT_DIR$/.idea/modules/intellij-haxe_main.iml" group="intellij-haxe" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/intellij-haxe_test.iml" filepath="$PROJECT_DIR$/.idea/modules/intellij-haxe_test.iml" group="intellij-haxe" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jps-plugin/jps-plugin.iml" filepath="$PROJECT_DIR$/.idea/modules/jps-plugin/jps-plugin.iml" group="jps-plugin" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jps-plugin/jps-plugin_main.iml" filepath="$PROJECT_DIR$/.idea/modules/jps-plugin/jps-plugin_main.iml" group="jps-plugin" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jps-plugin/jps-plugin_test.iml" filepath="$PROJECT_DIR$/.idea/modules/jps-plugin/jps-plugin_test.iml" group="jps-plugin" />
     </modules>
   </component>
 </project>
-
