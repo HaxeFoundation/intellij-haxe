@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +34,8 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   public HaxeGenerateActionTest() {
     if (!IdeaTarget.IS_VERSION_18_COMPATIBLE) {
-      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", null);
-      init.invoke(null,null);
+      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", (Class<?>)null);
+      init.invoke(null,(Object)null);
     }
   }
 
