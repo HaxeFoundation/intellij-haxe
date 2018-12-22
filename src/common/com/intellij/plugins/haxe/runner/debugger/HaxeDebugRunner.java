@@ -160,7 +160,8 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
     else if (settings.isUseOpenFLToBuild()) {
       OpenFLTarget target = settings.getOpenFLTarget();
-      if (target == OpenFLTarget.FLASH) {
+      if ((target == OpenFLTarget.FLASH) ||
+          (target == OpenFLTarget.AIR)) {
         flashDebug = true;
       }
       else if ((target == OpenFLTarget.IOS) ||
