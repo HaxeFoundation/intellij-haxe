@@ -35,10 +35,6 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
   protected HaxeCodeInsightFixtureTestCase() {
     super();
     HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
-    if (!IdeaTarget.IS_VERSION_18_COMPATIBLE) {
-      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", (Class<?>)null);
-      init.invoke(null,(Object)null);
-    }
   }
 
   @Override

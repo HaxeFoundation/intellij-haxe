@@ -31,13 +31,6 @@ import org.jetbrains.annotations.NotNull;
  * @author: Fedor.Korotkov
  */
 public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
-  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
-  public HaxeGenerateActionTest() {
-    if (!IdeaTarget.IS_VERSION_18_COMPATIBLE) {
-      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", (Class<?>)null);
-      init.invoke(null,(Object)null);
-    }
-  }
 
   @NotNull
   @Override
