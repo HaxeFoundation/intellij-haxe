@@ -89,24 +89,21 @@ public class HaxePackageModel implements HaxeExposableModel {
   public HaxePackageModel getChild(@NotNull String name) {
     if (name.isEmpty()) {
       return this;
-    } else if (name.indexOf('.') >= 0) {
-      String[] packages = StringUtils.split(name, '.');
-      HaxePackageModel result = this;
-      for (String packageName : packages) {
-        if (result == null) return null;
-        result = result.getChild(packageName);
-      }
+    }
 
-      return result;
-    } else {
+    int index = name.indexOf('.');
+    if (-1 == index) {
       PsiDirectory directory = root.access(path.isEmpty() ? name : path + '.' + name);
       if (directory != null) {
         return new HaxePackageModel(root, name, this);
       }
+      return null;
     }
 
-    return null;
+    HaxePackageModel child = new HaxePackageModel(root, name.substring(0,index), this);
+    return child.getChild(name.substring(index+1));
   }
+
 
   @NotNull
   public List<HaxePackageModel> getChildren() {

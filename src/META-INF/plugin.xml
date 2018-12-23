@@ -2,7 +2,7 @@
   ~ Copyright 2000-2013 JetBrains s.r.o.
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
-  ~ Copyright 2017 Eric Bishton
+  ~ Copyright 2017-2018 Eric Bishton
   ~ Copyright 2017-2018 Ilya Malanin
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,33 +74,54 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>1.0.2@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>1.1@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
-      <p>Unreleased changes</p>
+      <p>Unreleased Changes:</p>
       <ul>
-        <li>Added find usages support for constructors <a href="https://github.com/HaxeFoundation/intellij-haxe/issues/530">#530</a></li>
-        <li>Fixed find usages support for properties</li>
+        <li>Allow AIR targets to be debugged using the flash system. (Issue #849)</li>
+      </ul>
+      <p>1.1 (HaxeFoundation release)</p>
+      <ul>
+        <li>Added support of haxe 4 syntax "enum abstract".</li>
+        <li>Add support of <a href="https://github.com/HaxeFoundation/haxe/pull/6596">final syntax</a> introduced in Haxe 4.</li>
+        <li>Add support of <a href="https://github.com/HaxeFoundation/haxe-evolution/blob/master/proposals/0003-new-function-type.md">new function types syntax</a> introduced in Haxe 4.</li>
+        <li>Increased responsiveness in UI, annotations, and other operations that look up type information by a factor of 10.</li>
+        <li>Now infers generic types from map and array literals. (e.g. ["this" => "yours"] is Map<String,String>).</li>
+        <li>Now resolves typedefs to underlying types. (e.g. `var v:Null<String>` is resolved as a `String` type.)</li>
+        <li>Now propagates type parameters (generics) properly through typedefs.</li>
+        <li>Now resolves types when used with array access (e.g. `map[0].length` no longer marked as errors).</li>
+        <li>Now infers types of methods without specific typing (e.g. `map.get(0).length` no longer marked as errors).</li>
+        <li>Added support of read/write access separation for "find usages".</li>
+        <li>Inspections for non-haxe files disabled. (Issue #875)</li>
+        <li>Fixed recognizing type of "this" expression.</li>
+        <li>Fixed bug when physical variables were marked as not real.</li>
+        <li>Fixed searching of interface implementations and inheritance hierarchy.</li>
+        <li>Added find usages support for constructors. <a href="https://github.com/HaxeFoundation/intellij-haxe/issues/530">(Issue #530)</a></li>
+        <li>Fixed find usages support for properties.</li>
         <li>Add completion dropdown when ':' is typed and a type is expected.</li>
-        <li>Add support of <a href="https://github.com/HaxeFoundation/haxe/pull/6596">final syntax</a> introduced in Haxe 4</li>
-        <li>Add support of <a href="https://github.com/HaxeFoundation/haxe-evolution/blob/master/proposals/0003-new-function-type.md">new function types syntax</a> introduced in Haxe 4</li>
-        <li>Fix of support of explicit abstract forwards. Now fields and methods that has not been forwarded will not be resolved as valid.</li>
-        <li>Fixed recognition of standard types</li>
-        <li>Fixed NPE that occurred if current project sdk was not properly configured</li>
-        <li>Fix indents for anonymous structures fields and extends list</li>
-        <li>Fix indents for fat arrow expressions</li>
-        <li>Fix parsing of anonymous type with empty body</li>
-        <li>Add anonymous types in anonymous types support</li>
-        <li>Add anonymous structures names support</li>
-        <li>Added chained anonymous fields recognition</li>
-        <li>Add proper generics propagation for anonymous structures, typedefs and classes</li>
-        <li>Add generic constraint support</li>
-        <li>Add Null&lt;T&gt; support</li>
-        <li>Add proper from-to declaration support, types infer and compatibility checks</li>
-        <li>Fix referenced var-init support check</li>
+        <li>Fix of support of explicit abstract forwards. Now fields and methods that have not been forwarded will not be resolved as valid.</li>
+        <li>Fixed recognition of standard types.</li>
+        <li>Fixed NPE that occurred if current project sdk was not properly configured.</li>
+        <li>Fix indents for anonymous structures fields and extends list.</li>
+        <li>Fix indents for fat arrow expressions.</li>
+        <li>Fix parsing of anonymous type with empty body.</li>
+        <li>Add anonymous types in anonymous types support.</li>
+        <li>Add anonymous structures names support.</li>
+        <li>Added chained anonymous fields recognition.</li>
+        <li>Add proper generics propagation for anonymous structures, typedefs and classes.</li>
+        <li>Add generic constraint support.</li>
+        <li>Add Null&lt;T&gt; support.</li>
+        <li>Add proper from-to declaration support, types infer and compatibility checks.</li>
+        <li>Fix referenced var-init support check.</li>
+        <li>Automatically change references when moving a class across packages.</li>
+        <li>Add super() call when generating override methods.</li>
+        <li>Generate module and automatically set up SDK, libraries, and run configurations on "Import project from sources."</li>
+        <li>Create "Hello World" example as initial content for new projects.</li>
+        <li>Auto-open Main.hx when creating a new module.</li>
       </ul>
       <p>1.0.2 (HaxeFoundation release)</p>
       <ul>
@@ -816,7 +837,6 @@
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <compileServer.plugin classpath="haxe-jps-plugin.jar;haxe-common.jar"/>
-    <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
@@ -1013,6 +1033,7 @@
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
+    <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
   </extensions>
 
   <module-components>

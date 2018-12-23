@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.ThreadLocalCounter;
@@ -54,7 +55,7 @@ public class HaxeClassResolveResult implements Cloneable {
     this(aClass, new HaxeGenericSpecialization());
   }
 
-  private HaxeClassResolveResult(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
+  private HaxeClassResolveResult(@Nullable HaxeClass aClass, @NotNull HaxeGenericSpecialization specialization) {
     haxeClass = aClass;
     this.specialization = specialization;
   }
@@ -75,6 +76,9 @@ public class HaxeClassResolveResult implements Cloneable {
     if (aClass == null) {
       return new HaxeClassResolveResult(null);
     }
+    if (specialization == null) {
+      specialization = new HaxeGenericSpecialization(); // Better than chasing @NotNull all over the code base.
+    }
     try {
       debugNestCountForCreate.increment();
       if (LOG.isDebugEnabled()) {
@@ -82,7 +86,7 @@ public class HaxeClassResolveResult implements Cloneable {
                   "Resolving class " +
                   aClass.getName() +
                   " using specialization " +
-                  (specialization == null ? "<none>" : specialization.debugDump("  ")));
+                  specialization.debugDump("  "));
       }
       HaxeClassResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
 
@@ -250,11 +254,13 @@ public class HaxeClassResolveResult implements Cloneable {
     }
     if (element instanceof HaxeNewExpression) {
       specializeByParameters(((HaxeNewExpression)element).getType().getTypeParam());
+    } else if (element instanceof HaxeMapLiteral || element instanceof HaxeArrayLiteral) {
+      specializeByTypeInference(element);
     }
   }
 
   /**
-   * Creates a resolved parameter list that can be used with specializedByParameters() when resolving
+   * Creates a resolved parameter list that can be used with specializeByParameters() when resolving
    * subclasses.
    *
    * @param targetParam - the haxe class that is being resolved
@@ -316,6 +322,17 @@ public class HaxeClassResolveResult implements Cloneable {
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug(specialization.debugDump());
+    }
+  }
+
+  public void specializeByTypeInference(PsiElement element) {
+    HaxeGenericResolver resolver = specialization != null ? specialization.toGenericResolver(element) : new HaxeGenericResolver();
+    HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(this.getHaxeClass(), null), resolver);
+    if (null != evaluated.result) {
+      SpecificHaxeClassReference classType = evaluated.result.getClassType();
+      if (null != classType) {
+        softMerge(HaxeGenericSpecialization.fromGenericResolver(classType.getHaxeClass(), classType.getGenericResolver()));
+      }
     }
   }
 

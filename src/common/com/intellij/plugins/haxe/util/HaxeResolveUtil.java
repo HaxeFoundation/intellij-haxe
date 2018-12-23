@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2018 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -423,6 +424,11 @@ public class HaxeResolveUtil {
         return result;
       }
 
+      result = tryResolveClassByInferringMethodReturnType(element, specialization);
+      if (result.getHaxeClass() != null) {
+        return result;
+      }
+
       result = HaxeAbstractEnumUtil.resolveFieldType(element);
       if (result != null) {
         return result;
@@ -481,6 +487,40 @@ public class HaxeResolveUtil {
       return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
     }
 
+    return HaxeClassResolveResult.EMPTY;
+  }
+
+  @NotNull
+  public static HaxeClassResolveResult tryResolveClassByInferringMethodReturnType(@Nullable PsiElement element,
+                                                                                  HaxeGenericSpecialization specialization) {
+    if (null == element) {
+      return HaxeClassResolveResult.EMPTY;
+    }
+
+    if (element instanceof HaxeMethodDeclaration) {
+      HaxeMethodDeclaration method = (HaxeMethodDeclaration)element;
+      HaxeMethodModel model = new HaxeMethodModel(method);
+
+      HaxeGenericResolver resolver = specialization.toGenericResolver(element);
+
+      ResultHolder result = model.getReturnType(resolver);
+      if (null != result) {
+        SpecificTypeReference typeRef = result.getType();
+        if (typeRef instanceof SpecificHaxeClassReference) {
+          SpecificHaxeClassReference hcRef = (SpecificHaxeClassReference)typeRef;
+          HaxeClass haxeClass = hcRef.getHaxeClass();
+          HaxeGenericSpecialization resultSpecialization = haxeClass != null
+              ? HaxeGenericSpecialization.fromGenericResolver(haxeClass, hcRef.getGenericResolver())
+              : null;
+
+          return HaxeClassResolveResult.create(haxeClass, resultSpecialization);
+        } else {
+          // It's a function return type.
+          // TODO: Implement function return types.
+          LOG.warn("Function return types not implemented in the resolver yet.");
+        }
+      }
+    }
     return HaxeClassResolveResult.EMPTY;
   }
 

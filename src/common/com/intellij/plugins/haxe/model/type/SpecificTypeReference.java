@@ -206,7 +206,7 @@ public abstract class SpecificTypeReference {
   }
 
   @Nullable
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context) {
+  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver) {
     return null;
   }
 

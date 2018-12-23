@@ -405,7 +405,7 @@ applying your changes against the master branch.
 6. Create a pull request, and wait for comments.
 7. If you get comments that require changes, address those and return to step 2.
 8. When you get an “OK to merge,” or "approved," message from anyone on the team: Eric, @EricBishton; Ilya Malanin, @Mayakwd; Boyan, @as3boyan;
-or Ilya Kuzmenko, @EliasKu (others as they become regular contributors,) go ahead
+or Ilya Kuzmichev, @EliasKu (others as they become regular contributors,) go ahead
 and merge your changes to master.  A clean merge requires no further testing,
 as Travis-ci will do it for you.  However any build break must be addressed immediately.  A build
 that has conflicts requires manual resolution and must be re-tested locally prior to push.  For regular

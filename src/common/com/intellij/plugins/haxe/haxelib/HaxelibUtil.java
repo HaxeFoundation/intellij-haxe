@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2018 Eric Bishton
+ * Copyright 2018 Aleksandr Kuzmenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +49,8 @@ import java.util.*;
  * Various utilities to work with haxe libraries.
  */
 public class HaxelibUtil {
+  static public final String LOCAL_REPO = ".haxelib";
+
   private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   static { LOG.setLevel(Level.DEBUG); } // Remove when finished debugging.
 
@@ -220,6 +223,7 @@ public class HaxelibUtil {
       entries.forEachLibrary(new Processor<Library>() {
         @Override
         public boolean process(Library library) {
+          if (library == null || library.getName() == null) return true;
           HaxeLibraryReference ref = HaxeLibraryReference.create(module, library.getName());
           if (null != ref) {
             moduleLibs.add(ref);
@@ -257,6 +261,8 @@ public class HaxelibUtil {
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
       String name = library.getName();
+      if (name == null) continue;
+
       boolean isManaged = HaxelibNameUtil.isManagedLibrary(name);
       if (filterManagedLibs && isManaged) continue;
       if (filterUnmanagedLibs && !isManaged) continue;
