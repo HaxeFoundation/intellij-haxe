@@ -18,7 +18,7 @@
 
 plugins {
     id 'de.undercouch.download' version '3.3.0'
-    id 'org.jetbrains.intellij' version '0.3.1'
+    id 'org.jetbrains.intellij' version '0.3.12'
 }
 
 
@@ -101,6 +101,8 @@ idea.module { generatedSourceDirs += file('gen') }
 
 
 dependencies {
+    compile 'com.google.guava:guava:27.0.1-jre'
+    
     compile project(':jps-plugin')
     compile project(':common')
     compile project(':hxcpp-debugger-protocol')
