@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +35,6 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
   protected HaxeCodeInsightFixtureTestCase() {
     super();
     HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
-    if (!IdeaTarget.IS_VERSION_18_COMPATIBLE) {
-      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", null);
-      init.invoke(null,null);
-    }
   }
 
   @Override

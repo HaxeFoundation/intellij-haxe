@@ -109,7 +109,7 @@ public class HaxeImportModel implements HaxeExposableModel {
       for (HaxeModel xMember : exposedMembers) {
         dependencies[i++] = xMember.getBasePsi();
       }
-      return new CachedValueProvider.Result<>(exposedMembers, dependencies);
+      return new CachedValueProvider.Result<>(exposedMembers, (Object[])dependencies);
     });
 
     return exposed;

@@ -1,5 +1,6 @@
 /*
  * Copyright 2018 Aleksandr Kuzmenko
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +27,7 @@ import com.intellij.plugins.haxe.hxml.psi.*;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.tree.IElementType;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.io.FileNotFoundException;
 import java.nio.file.Paths;
 import java.util.*;

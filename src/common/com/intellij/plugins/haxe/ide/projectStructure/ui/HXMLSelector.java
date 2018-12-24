@@ -1,5 +1,6 @@
 /*
  * Copyright 2018 Aleksandr Kuzmenko
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 package com.intellij.plugins.haxe.ide.projectStructure.ui;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Vector;
 
