@@ -80,6 +80,10 @@
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>Unreleased Changes:</p>
+      <ul>
+        <li>Allow AIR targets to be debugged using the flash system. (Issue #849)</li>
+      </ul>
       <p>1.1 (HaxeFoundation release)</p>
       <ul>
         <li>Added support of haxe 4 syntax "enum abstract".</li>

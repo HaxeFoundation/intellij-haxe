@@ -73,8 +73,6 @@ your development environment.  Much more detail is provided there for command li
 
 ### Dependencies
 - Oracle JDK 8 or OpenJDK 8
-- Make
-- wget
 - A windows command prompt or bash compatible shell
 
 ### Build command
