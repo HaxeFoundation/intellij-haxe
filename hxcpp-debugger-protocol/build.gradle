@@ -1,0 +1,124 @@
+/*
+ * Copyright 2018-2018 m0rkeulv
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Source generation tested and working with Haxe Compiler 3.4.7
+ */
+
+runIde.enabled = false
+patchPluginXml.enabled = false
+verifyPlugin.enabled = false
+prepareSandbox.enabled = false
+
+shouldGenerateSources()
+
+ext.hxcppSrcFolder = "src"
+sourceSets.main.java.srcDirs = ["$hxcppGeneratedFolder" ]
+
+// helping intellij detecting source directories
+idea.module { generatedSourceDirs += file('gen/src') }
+idea.module { sourceDirs += file('src/JavaProtocol/src') }
+
+task installHxJava(group: "hxcpp") {
+    doLast {
+        exec {
+            commandLine 'haxelib', 'install', 'hxjava', "$hxjavaVersion" , "$haxeLibChangeVersion"
+            if(!logger.isDebugEnabled())standardOutput = new ByteArrayOutputStream() // avoid to much output (loads of empty lines on install)
+        }
+    }
+}
+task installHxcppDebugger(group: "hxcpp") {
+    doLast {
+        exec {
+            commandLine 'haxelib', 'git', 'hxcpp-debugger', "$hxcppDebuggerGit", "$hxcppDebuggerBranch", "$haxeLibChangeVersion"
+            if(!logger.isDebugEnabled())standardOutput = new ByteArrayOutputStream() // avoid to much output (loads of empty lines on install)
+        }
+    }
+}
+
+task generateDebuggerJavaSource(type: Exec, group: "hxcpp") {
+    dependsOn('installHxJava')
+    dependsOn('installHxcppDebugger')
+
+    inputs.file "${hxcppSrcFolder}/JavaProtocol.hx"
+    outputs.upToDateWhen { file('gen/src').exists() }
+
+    workingDir 'src/main/haxe/'
+    commandLine 'haxe', '-cp', '..', '-java', '../../../gen/', '-main', 'JavaProtocol',
+            '-lib', "hxcpp-debugger:git:$hxcppDebuggerGit#$hxcppDebuggerBranch",
+            '-lib', "hxjava:$hxjavaVersion"
+}
+
+clean.dependsOn('cleanGenerated')
+task cleanGenerated(type: Delete, group: 'hxcpp') {
+    delete 'gen/'
+}
+
+
+installHxJava.onlyIf { ext.generateHxcppDebugger }
+installHxcppDebugger.onlyIf { ext.generateHxcppDebugger }
+generateDebuggerJavaSource.onlyIf { ext.generateHxcppDebugger }
+
+compileJava.dependsOn('generateDebuggerJavaSource')
+
+
+
+private boolean shouldGenerateSources() {
+    if (!project.hasProperty('generateHxcppDebugger') || project.property('generateHxcppDebugger') != "true") {
+        configureFallback()
+    } else {
+        def haxeVersion = getHaxeVersion()
+        if(haxeVersion == null) {
+            configureFallback()
+            print("Haxe not found")
+            println("- generate debugger protocol disabled")
+        } else {
+            configureGenerated()
+            print("Haxe found: " + haxeVersion)
+            println("- generate debugger protocol enabled")
+        }
+    }
+}
+
+private String getHaxeVersion() {
+    def so = new ByteArrayOutputStream()
+    def eo = new ByteArrayOutputStream()
+    try {
+        exec {
+            commandLine 'haxe', '-version'
+            standardOutput = so
+            errorOutput = eo
+        }
+        //haxe(3.4.7) returns version in error output for some reason
+        return eo.toString()
+    }
+    catch (Exception e) {
+        return null
+    } finally {
+        so.close()
+        eo.close()
+    }
+}
+
+private void configureGenerated() {
+    ext.generateHxcppDebugger = true
+    ext.hxcppGeneratedFolder = 'gen/src'
+}
+
+private void configureFallback() {
+    ext.generateHxcppDebugger = false
+    ext.hxcppGeneratedFolder = "src/JavaProtocol/src"
+}
