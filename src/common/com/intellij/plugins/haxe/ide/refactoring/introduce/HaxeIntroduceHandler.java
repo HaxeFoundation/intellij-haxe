@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,13 +65,14 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     PsiElement anchor = occurrences.get(0);
     next:
     do {
-      final HaxeBlockStatement block = PsiTreeUtil.getParentOfType(anchor, HaxeBlockStatement.class);
+      final PsiElement block = PsiTreeUtil.getParentOfType(anchor, HaxeBlockStatement.class, HaxeClassBody.class);
 
       int minOffset = Integer.MAX_VALUE;
       for (PsiElement element : occurrences) {
         minOffset = Math.min(minOffset, element.getTextOffset());
         if (!PsiTreeUtil.isAncestor(block, element, true)) {
           anchor = block;
+          if (anchor == null) return null;
           continue next;
         }
       }
@@ -205,6 +207,9 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       }
       elementAtCaret = elementAtCaret.getParent();
     }
+    if (expressions.size() == 0) {
+      return false;
+    }
     if (expressions.size() == 1 || ApplicationManager.getApplication().isUnitTestMode()) {
       operation.setElement(expressions.get(0));
       performActionOnElement(operation);
@@ -319,15 +324,23 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     if (expression instanceof HaxeCallExpression) {
       final HaxeExpression callee = ((HaxeCallExpression)expression).getExpression();
       text = callee.getText();
+    } else if (expression instanceof HaxeRegularExpression) {
+      text = "REGEX";
+    } else if (expression instanceof HaxeLiteralExpression) {
+      text = "CONST_" + expression.getText().toUpperCase();
     }
 
     if (text != null) {
       candidates.addAll(HaxeNameSuggesterUtil.generateNames(text));
     }
+    if (candidates.isEmpty()) {
+      candidates.add("x");
+    }
 
     // todo: add suggestions
 
     final Set<String> usedNames = HaxeRefactoringUtil.collectUsedNames(expression);
+    usedNames.addAll(HaxeRefactoringUtil.collectKeywords());
     final Collection<String> result = new ArrayList<String>();
 
     for (String candidate : candidates) {
@@ -365,17 +378,25 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
 
   protected void performInplaceIntroduce(HaxeIntroduceOperation operation) {
     final PsiElement statement = performRefactoring(operation);
-    final HaxeComponent target = PsiTreeUtil.findChildOfType(statement, HaxeComponent.class);
+    final HaxeComponent target = statement instanceof HaxeComponent ? (HaxeComponent)statement : PsiTreeUtil.findChildOfType(statement, HaxeComponent.class);
     if (target == null) {
       return;
     }
+
+    final LinkedHashSet<String> names = new LinkedHashSet<>();
+    if (operation.getName() != null) {
+      names.add(operation.getName());
+    } else {
+      names.addAll(operation.getSuggestedNames());
+    }
+
     final List<PsiElement> occurrences = operation.getOccurrences();
     final PsiElement occurrence = HaxeRefactoringUtil.findOccurrenceUnderCaret(occurrences, operation.getEditor());
     final PsiElement elementForCaret = occurrence != null ? occurrence : target;
     operation.getEditor().getCaretModel().moveToOffset(elementForCaret.getTextRange().getStartOffset());
     final InplaceVariableIntroducer<PsiElement> introducer =
       new HaxeInplaceVariableIntroducer(target.getComponentName(), operation, occurrences);
-    introducer.performInplaceRefactoring(new LinkedHashSet<String>(operation.getSuggestedNames()));
+    introducer.performInplaceRefactoring(names);
   }
 
   @Nullable
@@ -397,7 +418,8 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     final HaxeExpression initializer = operation.getInitializer();
     InitializerTextBuilder builder = new InitializerTextBuilder();
     initializer.accept(builder);
-    String assignmentText = "var " + operation.getName() + " = " + builder.result() + ";";
+    String suffix = builder.result() != null && builder.result().endsWith(";") ? "" : ";";
+    String assignmentText = "var " + operation.getName() + " = " + builder.result() + suffix;
     PsiElement anchor = operation.isReplaceAll()
                         ? findAnchor(operation.getOccurrences())
                         : findAnchor(initializer);
@@ -412,7 +434,8 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   private PsiElement performReplace(@NotNull final PsiElement declaration, final HaxeIntroduceOperation operation) {
     final HaxeExpression expression = operation.getInitializer();
     final Project project = operation.getProject();
-    return new WriteCommandAction<PsiElement>(project, expression.getContainingFile()) {
+
+    new WriteCommandAction<PsiElement>(project, expression.getContainingFile()) {
       protected void run(final Result<PsiElement> result) throws Throwable {
         final PsiElement createdDeclaration = addDeclaration(operation, declaration);
         result.setResult(createdDeclaration);
@@ -420,7 +443,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
           modifyDeclaration(createdDeclaration);
         }
 
-        PsiElement newExpression = createExpression(project, operation.getName());
+        PsiElement newExpression = createExpression(project, operation);
 
         if (operation.isReplaceAll()) {
           List<PsiElement> newOccurrences = new ArrayList<PsiElement>();
@@ -440,6 +463,22 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
         postRefactoring(operation.getElement());
       }
     }.execute().getResultObject();
+
+    // We have added the new declaration, but the new element gets invalidated by
+    // the reformatting that is triggered at the end of the write action (the execute above).
+    // The element that was added has been orphaned and no longer contains any file information.
+    // Therefore, we will have to resolve to finding the new declaration -- and the best way to
+    // do that is to resolve().  (Another way to do it would be to look up the element by
+    // offset within the file -- to do so, we would have to capture the position immediately
+    // after the declaration was added.)
+    if (operation.getOccurrences().size() > 0) {
+      PsiElement added = operation.getOccurrences().get(0);
+      if (added != null) {
+        PsiElement resolved = added.getReference().resolve();
+        return resolved;
+      }
+    }
+    return null;
   }
 
   protected void modifyDeclaration(@NotNull PsiElement declaration) {
@@ -449,13 +488,40 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   }
 
   @Nullable
-  protected HaxeReference createExpression(Project project, String name) {
-    return HaxeElementGenerator.createReferenceFromText(project, name);
+  protected HaxeReference createExpression(Project project, @NotNull HaxeIntroduceOperation operation) {
+    return HaxeElementGenerator.createReferenceFromText(project, operation.getName());
   }
 
   @Nullable
   protected PsiElement replaceExpression(PsiElement expression, PsiElement newExpression, HaxeIntroduceOperation operation) {
-    return expression.replace(newExpression);
+
+    PsiElement nextToken = findNextToken(expression, operation);
+    String nextText = null != nextToken ? nextToken.getText() : "";
+
+    PsiElement insertedElement = expression.replace(newExpression);
+
+    // If the element we are replacing ended with a semi-colon or was a block statement, the new expression should end with a colon.
+    String elementText = operation.getElement().getText();
+    char lastChar = elementText.charAt(elementText.length()-1);
+    if (lastChar == ';' || (lastChar == '}' && !";".equals(nextText)) ) {
+      insertedElement.addAfter(HaxeElementGenerator.createEmptyStatement(expression.getProject()), expression);
+    }
+
+    return insertedElement;
+  }
+
+  // Lifted from CE platform/lang-api/src/com/intellij/codeInsight/completion/util/ParenthesesInsertHandler.java
+  private PsiElement findNextToken(PsiElement expression, HaxeIntroduceOperation operation) {
+    final PsiFile file = operation.getFile();
+    PsiElement element = file.findElementAt(expression.getTextRange().getEndOffset());
+
+    if (element instanceof PsiWhiteSpace) {
+      if (element.getText().contains("\n")) {
+        return null;
+      }
+      element = file.findElementAt(element.getTextRange().getEndOffset());
+    }
+    return element;
   }
 
 

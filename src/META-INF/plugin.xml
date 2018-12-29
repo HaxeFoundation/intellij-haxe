@@ -74,7 +74,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>1.1@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>POST.1.1.develop.@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
@@ -82,6 +82,14 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Fix Extract Variable and Extract Constant refactorings (Issue #844):
+          <ul>
+            <li>Fixed infinite loop when extracting multiple occurrences.</li>
+            <li>Avoid keywords when making name suggestions.</li>
+            <li>Fix multi-select for custom names in all occurrences.</li>
+            <li>Fix semi-colon insertion/detection.</li>
+          </ul>
+        </li>
         <li>Allow AIR targets to be debugged using the flash system. (Issue #849)</li>
       </ul>
       <p>1.1 (HaxeFoundation release)</p>
