@@ -415,9 +415,10 @@ class ClassChecker {
 
   private static void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {
     for (HaxeClassReferenceModel interfaze : clazz.getImplementingInterfaces()) {
-      if (interfaze.getHaxeClass() == null || !interfaze.getHaxeClass().isInterface()) {
-        // @TODO: Move to bundle
-        holder.createErrorAnnotation(interfaze.getPsi(), "Not an interface");
+      HaxeClassModel interfazeClass = interfaze.getHaxeClass();
+      boolean isDynamic = null != interfazeClass ? SpecificHaxeClassReference.withoutGenerics(interfazeClass.getReference()).isDynamic() : false;
+      if (interfazeClass == null || !(interfazeClass.isInterface() || isDynamic) ) {
+        holder.createErrorAnnotation(interfaze.getPsi(), HaxeBundle.message("haxe.semantic.interface.error.message"));
       }
     }
   }
