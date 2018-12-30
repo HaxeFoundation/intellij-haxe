@@ -1,5 +1,6 @@
 /*
  * Copyright 2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +41,11 @@ public class HaxeFoldingSettings implements PersistentStateComponent<HaxeFolding
    * @see HaxeFoldingOptionsProvider
    **/
 
+  private boolean myCollapseFlashDevelopStyleRegions;
+  private boolean myCollapseHaxePluginStyleRegions;
+  private boolean myCollapseCSharpStyleRegions;
+  private boolean myCollapseUnusedConditionallyCompiledCode;
+
   public static HaxeFoldingSettings getInstance() {
     return ServiceManager.getService(HaxeFoldingSettings.class);
   }
@@ -52,5 +58,33 @@ public class HaxeFoldingSettings implements PersistentStateComponent<HaxeFolding
   @Override
   public void loadState(@NotNull final HaxeFoldingSettings state) {
     XmlSerializerUtil.copyBean(state, this);
+  }
+
+  public boolean isCollapseFlashDevelopStyleRegions() {
+    return myCollapseFlashDevelopStyleRegions;
+  }
+  public void setCollapseFlashDevelopStyleRegions(final boolean value) {
+    myCollapseFlashDevelopStyleRegions = value;
+  }
+
+  public boolean isCollapseHaxePluginStyleRegions() {
+    return myCollapseHaxePluginStyleRegions;
+  }
+  public void setCollapseHaxePluginStyleRegions(final boolean value) {
+    myCollapseHaxePluginStyleRegions = value;
+  }
+
+  public boolean isCollapseCSharpStyleRegions() {
+    return myCollapseCSharpStyleRegions;
+  }
+  public void setCollapseCSharpStyleRegions(final boolean value) {
+    myCollapseCSharpStyleRegions = value;
+  }
+
+  public boolean isCollapseUnusedConditionallyCompiledCode() {
+    return myCollapseUnusedConditionallyCompiledCode;
+  }
+  public void setCollapseUnusedConditionallyCompiledCode(final boolean value) {
+    myCollapseUnusedConditionallyCompiledCode = value;
   }
 }

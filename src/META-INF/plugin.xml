@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Auto-close regions and conditionally (un)compiled code, and add checkboxes to the Settings panel for folding.</li>
         <li>Allow AIR targets to be debugged using the flash system. (Issue #849)</li>
       </ul>
       <p>1.1 (HaxeFoundation release)</p>
