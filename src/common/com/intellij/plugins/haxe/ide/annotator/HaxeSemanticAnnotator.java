@@ -602,11 +602,11 @@ class MethodChecker {
         }
 
         if (HaxePsiModifier.hasLowerVisibilityThan(currentModifiers.getVisibility(), parentModifiers.getVisibility())) {
-          Annotation annotation = holder.createErrorAnnotation(
+          Annotation annotation = holder.createWarningAnnotation(
             currentMethod.getNameOrBasePsi(),
             "Field " +
             currentMethod.getName() +
-            " has less visibility (public/private) than superclass one"
+            " has less visibility (public/private) than superclass one."
           );
           annotation.registerFix(
             new HaxeModifierReplaceVisibilityFixer(currentModifiers, parentModifiers.getVisibility(), "Change current method visibility"));
