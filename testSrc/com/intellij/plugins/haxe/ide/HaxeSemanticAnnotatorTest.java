@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,6 +188,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   public void testOverrideSignature4() throws Exception {
     doTest("Remove argument");
+  }
+
+  public void testOverrideSignature5() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
   }
 
   public void testImplementSignature() throws Exception {

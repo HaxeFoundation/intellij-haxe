@@ -719,7 +719,7 @@ class MethodChecker {
 
     ResultHolder currentResult = currentMethod.getResultType();
     ResultHolder parentResult = parentMethod.getResultType();
-    if (!currentResult.canAssign(parentResult)) {
+    if (!parentResult.canAssign(currentResult)) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       holder.createErrorAnnotation(psi, "Not compatible return type " + currentResult + " != " + parentResult);
     }
