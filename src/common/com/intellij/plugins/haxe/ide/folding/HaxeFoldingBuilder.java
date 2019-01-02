@@ -47,7 +47,7 @@ import static com.intellij.psi.TokenType.WHITE_SPACE;
 
 public class HaxeFoldingBuilder implements FoldingBuilder {
 
-  private static final Key<Boolean> REGION_DEFINITION_KEY = new Key<>("HaxeRegionDefinition");
+  private static final Key<RegionDefinition> REGION_DEFINITION_KEY = new Key<>("HaxeRegionDefinition");
 
   private static final String PLACEHOLDER_TEXT = "...";
 
@@ -402,7 +402,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
   private static FoldingDescriptor buildRegionFolding(final RegionMarker start, final RegionMarker end) {
     TextRange range = new TextRange(start.node.getStartOffset(), end.node.getTextRange().getEndOffset());
-    start.node.putUserData(REGION_DEFINITION_KEY, true);
+    start.node.putUserData(REGION_DEFINITION_KEY, start.region);
     return new FoldingDescriptor(start.node, range) {
       @Nullable
       @Override
@@ -417,7 +417,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     TextRange range = new TextRange(start.node.getStartOffset(), end.node.getTextRange().getStartOffset());
 
     final String placeholder = getCCPlaceholder(start.node);
-
+    start.node.putUserData(REGION_DEFINITION_KEY, start.region);
     return new FoldingDescriptor(start.node, range) {
       @Nullable
       @Override
@@ -476,7 +476,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     final PsiElement psiElement = node.getPsi();
 
     final CodeFoldingSettings settings = CodeFoldingSettings.getInstance();
-    //final HaxeFoldingSettings haxeSettings = HaxeFoldingSettings.getInstance();
+    final HaxeFoldingSettings haxeSettings = HaxeFoldingSettings.getInstance();
 
     if (psiElement instanceof HaxeImportStatement || psiElement instanceof HaxeUsingStatement) {
       return settings.COLLAPSE_IMPORTS;
@@ -484,10 +484,41 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
     if (isDocComment(node) && !hasRegionMarker(node)) return settings.COLLAPSE_DOC_COMMENTS;
 
+    RegionDefinition regionType = node.getUserData(REGION_DEFINITION_KEY);
+    if (regionType == C_SHARP_STYLE) return haxeSettings.isCollapseCSharpStyleRegions();
+    if (regionType == FD_STYLE) return haxeSettings.isCollapseFlashDevelopStyleRegions();
+    if (regionType == PLUGIN_STYLE) return haxeSettings.isCollapseHaxePluginStyleRegions();
+    if (regionType == CC_REGION) {
+      return haxeSettings.isCollapseUnusedConditionallyCompiledCode()
+          && isUnusedCCRegion(node);
+    }
+
     return false;
   }
 
   private boolean hasRegionMarker(@NotNull ASTNode node) {
     return node.getUserData(REGION_DEFINITION_KEY) != null;
+  }
+
+  private boolean isUnusedCCRegion(ASTNode node) {
+    // This works because unused regions only contain PPEXPRESSION and PPBODY element types.
+    // There is always at least one PPBODY element in any unused section, even if it is whitespace.
+
+    if (null == node) {
+      return false;
+    }
+    // Sections start with a PsiComment for the marker (#if/#else/#elseif/#end),
+    // followed by a set of PsiComment(PPEXPRESSION), and finally, a PsiComment(PPBODY)
+    // when the section is unused.
+    if (!ONLY_CC_DIRECTIVES.contains(node.getElementType())) {
+      return false;
+    }
+
+    node = node.getTreeNext();
+    while (PPEXPRESSION == node.getElementType()) {
+      node = node.getTreeNext();
+    }
+    return node.getElementType() == PPBODY;
+
   }
 }
