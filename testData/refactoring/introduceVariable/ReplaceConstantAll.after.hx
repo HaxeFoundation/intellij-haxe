@@ -1,14 +1,14 @@
 package;
 class Test {
-    var TRUE = true;
+    var true1 = true;
 
     function new() {
-        var myVal = TRUE;
-        var val2 = TRUE;
-        var val3 = TRUE;
+        var myVal = true1;
+        var val2 = true1;
+        var val3 = true1;
     }
 
     function another() {
-        var tryme = TRUE;
+        var tryme = true1;
     }
 }

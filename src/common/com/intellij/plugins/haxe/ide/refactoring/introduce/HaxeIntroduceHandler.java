@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,13 @@ package com.intellij.plugins.haxe.ide.refactoring.introduce;
 import com.intellij.codeInsight.CodeInsightUtilCore;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.codeInsight.template.impl.TemplateState;
+import com.intellij.injected.editor.EditorWindow;
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -34,10 +37,12 @@ import com.intellij.openapi.util.Pass;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringUtil;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.IntroduceTargetChooser;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -45,6 +50,7 @@ import com.intellij.refactoring.introduce.inplace.InplaceVariableIntroducer;
 import com.intellij.refactoring.introduce.inplace.OccurrencesChooser;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.util.Function;
+import org.intellij.lang.regexp.RegExpFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,14 +135,6 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     if (selectionModel.hasSelection()) {
       element1 = file.findElementAt(selectionModel.getSelectionStart());
       element2 = file.findElementAt(selectionModel.getSelectionEnd() - 1);
-      if (element1 instanceof PsiWhiteSpace) {
-        int startOffset = element1.getTextRange().getEndOffset();
-        element1 = file.findElementAt(startOffset);
-      }
-      if (element2 instanceof PsiWhiteSpace) {
-        int endOffset = element2.getTextRange().getStartOffset();
-        element2 = file.findElementAt(endOffset - 1);
-      }
     }
     else {
       if (smartIntroduce(operation)) {
@@ -150,6 +148,16 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
         element2 = file.findElementAt(document.getLineEndOffset(lineNumber) - 1);
       }
     }
+    if (element1 instanceof PsiWhiteSpace) {
+      int startOffset = element1.getTextRange().getEndOffset();
+      element1 = file.findElementAt(startOffset);
+    }
+    if (element2 instanceof PsiWhiteSpace) {
+      int endOffset = element2.getTextRange().getStartOffset();
+      element2 = file.findElementAt(endOffset - 1);
+    }
+
+
     final Project project = operation.getProject();
     if (element1 == null || element2 == null) {
       showCannotPerformError(project, editor);
@@ -157,7 +165,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     }
 
     element1 = HaxeRefactoringUtil.getSelectedExpression(project, file, element1, element2);
-    if (element1 == null) {
+    if (element1 == null || shouldExclude(element1)) {
       showCannotPerformError(project, editor);
       return;
     }
@@ -167,6 +175,12 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     }
     operation.setElement(element1);
     performActionOnElement(operation);
+  }
+
+  private boolean elementIsSemicolon(PsiElement element) {
+    ASTNode node = null == element ? null : element.getNode();
+    IElementType type = null == node ? null : node.getElementType();
+    return HaxeTokenTypes.OSEMI.equals(type);
   }
 
   protected boolean checkIntroduceContext(PsiFile file, Editor editor, PsiElement element) {
@@ -188,7 +202,10 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   }
 
   protected boolean isValidIntroduceContext(PsiElement element) {
-    return PsiTreeUtil.getParentOfType(element, HaxeParameterList.class) == null;
+    if (PsiTreeUtil.getParentOfType(element, HaxeParameterList.class) != null) return false;
+    if (element instanceof HaxeFatArrowExpression) return false;
+
+    return true;
   }
 
   private boolean smartIntroduce(final HaxeIntroduceOperation operation) {
@@ -202,10 +219,13 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       if (elementAtCaret instanceof HaxeFile) {
         break;
       }
-      if (elementAtCaret instanceof HaxeExpression) {
+      if (elementAtCaret instanceof HaxeExpression && !shouldExclude(elementAtCaret)) {
         expressions.add((HaxeExpression)elementAtCaret);
       }
       elementAtCaret = elementAtCaret.getParent();
+      if (elementAtCaret instanceof RegExpFile) {
+        elementAtCaret = elementAtCaret.getContext();
+      }
     }
     if (expressions.size() == 0) {
       return false;
@@ -233,6 +253,28 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       );
       return true;
     }
+    return false;
+  }
+
+  private boolean shouldExclude(PsiElement element) {
+    if (null == element) {
+      return true;
+    }
+
+    // Fat arrow expressions are not allowed outside of a map, so make no sense to turn into
+    // separate variables.
+    if (element instanceof HaxeFatArrowExpression) {
+      return true;
+    }
+
+    // A reference expression is normally a target, but if that reference is for a type declaration
+    // (for instance, the type tag on a var declaration or in a TypeCheckExpression), then that element
+    // would not make a valid expression.  (e.g. `int i = Float;`)
+    PsiElement parent = element.getParent();
+    if (parent instanceof HaxeType) {
+      return true;
+    }
+
     return false;
   }
 
@@ -287,7 +329,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     if (operation.getName() == null) {
       final Collection<String> suggestedNames = operation.getSuggestedNames();
       if (suggestedNames.size() > 0) {
-        operation.setName(suggestedNames.iterator().next());
+        operation.autoSelectName();
       }
       else {
         operation.setName("x");
@@ -319,40 +361,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   }
 
   protected Collection<String> getSuggestedNames(final HaxeExpression expression) {
-    Collection<String> candidates = new LinkedHashSet<String>();
-    String text = expression.getText();
-    if (expression instanceof HaxeCallExpression) {
-      final HaxeExpression callee = ((HaxeCallExpression)expression).getExpression();
-      text = callee.getText();
-    } else if (expression instanceof HaxeRegularExpression) {
-      text = "REGEX";
-    } else if (expression instanceof HaxeLiteralExpression) {
-      text = "CONST_" + expression.getText().toUpperCase();
-    }
-
-    if (text != null) {
-      candidates.addAll(HaxeNameSuggesterUtil.generateNames(text));
-    }
-    if (candidates.isEmpty()) {
-      candidates.add("x");
-    }
-
-    // todo: add suggestions
-
-    final Set<String> usedNames = HaxeRefactoringUtil.collectUsedNames(expression);
-    usedNames.addAll(HaxeRefactoringUtil.collectKeywords());
-    final Collection<String> result = new ArrayList<String>();
-
-    for (String candidate : candidates) {
-      int index = 0;
-      String suffix = "";
-      while (usedNames.contains(candidate + suffix)) {
-        suffix = Integer.toString(++index);
-      }
-      result.add(candidate + suffix);
-    }
-
-    return result;
+    return HaxeNameSuggesterUtil.getSuggestedNames(expression, false);
   }
 
   protected void performIntroduceWithDialog(HaxeIntroduceOperation operation) {
@@ -384,7 +393,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     }
 
     final LinkedHashSet<String> names = new LinkedHashSet<>();
-    if (operation.getName() != null) {
+    if (operation.getName() != null && !operation.isNameAutoSelected()) {
       names.add(operation.getName());
     } else {
       names.addAll(operation.getSuggestedNames());
@@ -393,6 +402,20 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     final List<PsiElement> occurrences = operation.getOccurrences();
     final PsiElement occurrence = HaxeRefactoringUtil.findOccurrenceUnderCaret(occurrences, operation.getEditor());
     final PsiElement elementForCaret = occurrence != null ? occurrence : target;
+
+    // The editor can get swapped if the initial element that we are moving was in an embedded file
+    // (for instance, when the caret is in a regular expression, thus a dummy REGEXP_FILE).  In this
+    // case, when we move the parent element, the operation's file and editor are the parent, not the
+    // embedded file. If we continue the renaming process in the original embedded editor, then elements
+    // are not found in it, and the process aborts.
+    if (elementForCaret.getContainingFile() != operation.getFile() && operation.getEditor() instanceof EditorWindow) {
+      EditorWindow editorWindow = ((EditorWindow)operation.getEditor());
+      Editor parentEditor = editorWindow.getDelegate();
+
+      operation.updateEditor(parentEditor);
+      operation.updateFile(elementForCaret.getContainingFile());
+    }
+
     operation.getEditor().getCaretModel().moveToOffset(elementForCaret.getTextRange().getStartOffset());
     final InplaceVariableIntroducer<PsiElement> introducer =
       new HaxeInplaceVariableIntroducer(target.getComponentName(), operation, occurrences);
@@ -402,28 +425,45 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   @Nullable
   protected PsiElement performRefactoring(HaxeIntroduceOperation operation) {
     PsiElement declaration = createDeclaration(operation);
-    if (declaration == null) {
+    if (declaration == null || declaration instanceof PsiErrorElement) {
       showCannotPerformError(operation.getProject(), operation.getEditor());
       return null;
     }
 
     declaration = performReplace(declaration, operation);
-    declaration = CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(declaration);
+    if (null != declaration) {
+      declaration = CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(declaration);
+    }
     return declaration;
   }
 
   @Nullable
   public PsiElement createDeclaration(HaxeIntroduceOperation operation) {
-    final Project project = operation.getProject();
-    final HaxeExpression initializer = operation.getInitializer();
+    HaxeExpression initializer = operation.getInitializer();
+    String typeText = "";
+    if (initializer instanceof HaxeTypeCheckExpr) {
+      typeText = toTypeText(((HaxeTypeCheckExpr)initializer).getTypeOrAnonymous());
+      initializer = ((HaxeTypeCheckExpr)initializer).getExpression();
+    }
     InitializerTextBuilder builder = new InitializerTextBuilder();
     initializer.accept(builder);
     String suffix = builder.result() != null && builder.result().endsWith(";") ? "" : ";";
-    String assignmentText = "var " + operation.getName() + " = " + builder.result() + suffix;
+    String assignmentText = "var " + operation.getName() + typeText + " = " + builder.result() + suffix;
     PsiElement anchor = operation.isReplaceAll()
                         ? findAnchor(operation.getOccurrences())
                         : findAnchor(initializer);
-    return createDeclaration(project, assignmentText, anchor);
+    return createDeclaration(operation.getProject(), assignmentText, anchor);
+  }
+
+  @NotNull
+  private String toTypeText(HaxeTypeOrAnonymous toa) {
+    String ret = null;
+    if (null != toa.getAnonymousType()) {
+      ret = toa.getAnonymousType().toString();
+    } else if (null != toa.getType()) {
+      ret = toa.getType().getText();
+    }
+    return ret == null || ret.isEmpty() ? "" : ":" + ret;
   }
 
   @Nullable
@@ -444,6 +484,10 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
         }
 
         PsiElement newExpression = createExpression(project, operation);
+        if (null == newExpression) {
+          Logger.getInstance(this.getClass()).warn("Could not create replaceable expression for '" + operation.getName() + "'.");
+          return;
+        }
 
         if (operation.isReplaceAll()) {
           List<PsiElement> newOccurrences = new ArrayList<PsiElement>();

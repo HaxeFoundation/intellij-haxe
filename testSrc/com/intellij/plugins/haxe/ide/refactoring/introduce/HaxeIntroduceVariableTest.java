@@ -109,4 +109,32 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   public void testExtractFloat() throws Throwable {
     doTestInplace(null, true, null);
   }
+
+  public void testExtractAnonymousStructure() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractVariableDeclaration() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractMapLiteral() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractMapLiteralWithFunction() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractArrayLiteral() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractArrayComprehension() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractRegex2() throws Throwable {
+    doTestInplace(null, true, null);
+  }
 }

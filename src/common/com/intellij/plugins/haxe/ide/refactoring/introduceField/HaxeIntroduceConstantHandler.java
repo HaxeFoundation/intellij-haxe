@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClassBody;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.PsiWhiteSpace;
@@ -32,6 +34,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -119,5 +122,10 @@ public class HaxeIntroduceConstantHandler extends HaxeIntroduceHandler {
   @Override
   protected HaxeFieldDeclaration createDeclaration(Project project, String text, PsiElement anchor) {
     return HaxeElementGenerator.createVarDeclaration(project, text);
+  }
+
+  @Override
+  protected Collection<String> getSuggestedNames(HaxeExpression expression) {
+    return HaxeNameSuggesterUtil.getSuggestedNames(expression, true);
   }
 }

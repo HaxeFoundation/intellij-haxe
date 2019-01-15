@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,17 @@ public interface HaxeTokenTypeSets {
     OPEN_QUOTE,
     CLOSING_QUOTE,
     REGULAR_STRING_PART
+  );
+
+  TokenSet KEYWORD_CONSTANTS = TokenSet.create(
+    KFALSE,
+    KTRUE,
+    KNULL
+  );
+
+  TokenSet PSEUDO_KEYWORDS = TokenSet.create(
+    KTO,
+    KFROM
   );
 
   TokenSet KEYWORDS = TokenSet.create(
