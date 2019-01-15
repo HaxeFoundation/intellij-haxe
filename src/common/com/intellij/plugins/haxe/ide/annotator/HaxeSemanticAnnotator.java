@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,9 +69,57 @@ public class HaxeSemanticAnnotator implements Annotator {
       LocalVarChecker.check((HaxeLocalVarDeclaration)element, holder);
     } else if (element instanceof HaxeStringLiteralExpression) {
       StringChecker.check((HaxeStringLiteralExpression)element, holder);
+    } else if (element instanceof HaxeTypeCheckExpr) {
+      TypeCheckExpressionChecker.check((HaxeTypeCheckExpr)element, holder);
+    }
+
+  }
+}
+
+class TypeCheckExpressionChecker {
+  public static void check(
+    final HaxeTypeCheckExpr expr,
+    final AnnotationHolder holder
+  ) {
+    final PsiElement[] children = expr.getChildren();
+    if (children.length == 2) {
+      final HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expr);
+      final ResultHolder statementResult = HaxeTypeResolver.getPsiElementType(children[0], expr, resolver);
+      ResultHolder assertionResult = SpecificTypeReference.getUnknown(expr).createHolder();
+      if (children[1] instanceof HaxeTypeOrAnonymous) {
+        assertionResult = HaxeTypeResolver.getTypeFromTypeOrAnonymous((HaxeTypeOrAnonymous)children[1]);
+        ResultHolder resolveResult = resolver.resolve(assertionResult.getType().toStringWithoutConstant());
+        if (null != resolveResult) {
+          assertionResult = resolveResult;
+        }
+      }
+      if (!assertionResult.canAssign(statementResult)) {
+        final HaxeDocumentModel document = HaxeDocumentModel.fromElement(expr);
+        Annotation annotation = holder.createErrorAnnotation(children[0],
+                                                             "Statement of type '" +
+                                                             statementResult.getType().toStringWithoutConstant() +
+                                                             "' does not unify with asserted type '" +
+                                                             assertionResult.getType().toStringWithoutConstant() +
+                                                             ".'");
+        annotation.registerFix(new HaxeFixer("Remove type check") {
+          @Override
+          public void run() {
+            document.replaceElementText(expr, children[0].getText());
+          }
+        });
+        annotation.registerFix(new HaxeFixer("Change type check to " + statementResult.toStringWithoutConstant()) {
+          @Override
+          public void run( ) {
+            document.replaceElementText(children[1], statementResult.toStringWithoutConstant());
+          }
+        });
+        // TODO: Add type conversion fixers. (eg. Wrap with Std.int(), wrap with Std.toString())
+      }
     }
   }
 }
+
+
 
 class TypeTagChecker {
   public static void check(
