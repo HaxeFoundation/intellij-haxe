@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Check type of type check statements (e.g. `(myExpression : Float)`) and warn.  Add quick fixes.</li>
         <li>Auto-close regions and conditionally (un)compiled code, and add checkboxes to the Settings panel for folding.</li>
         <li>Fix Extract Variable and Extract Constant refactorings (Issue #844):
           <ul>
@@ -89,6 +90,7 @@
             <li>Avoid keywords when making name suggestions.</li>
             <li>Fix multi-select for custom names in all occurrences.</li>
             <li>Fix semi-colon insertion/detection.</li>
+            <li>Suggest variable names based upon expression type.</li>
           </ul>
         </li>
         <li>Allow AIR targets to be debugged using the flash system. (Issue #849)</li>
