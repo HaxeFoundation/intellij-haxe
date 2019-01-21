@@ -60,9 +60,10 @@ public class HaxeIntroduceOperation {
 
   public void setName(@Nullable String name) {
     myName = name;
+    nameWasAutoSelectedFromSuggestions = false;
   }
 
-  public void autoSelectName() {
+  public void suggestName() {
     assert null == myName : "Name has already been assigned.";
 
     if (null != mySuggestedNames && !mySuggestedNames.isEmpty()) {
@@ -71,7 +72,7 @@ public class HaxeIntroduceOperation {
     }
   }
 
-  public boolean isNameAutoSelected() {
+  public boolean isNameSuggested() {
     return nameWasAutoSelectedFromSuggestions;
   }
 

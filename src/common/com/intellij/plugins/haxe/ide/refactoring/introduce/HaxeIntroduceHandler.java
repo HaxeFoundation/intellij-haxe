@@ -329,7 +329,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     if (operation.getName() == null) {
       final Collection<String> suggestedNames = operation.getSuggestedNames();
       if (suggestedNames.size() > 0) {
-        operation.autoSelectName();
+        operation.suggestName();
       }
       else {
         operation.setName("x");
@@ -393,7 +393,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     }
 
     final LinkedHashSet<String> names = new LinkedHashSet<>();
-    if (operation.getName() != null && !operation.isNameAutoSelected()) {
+    if (operation.getName() != null && !operation.isNameSuggested()) {
       names.add(operation.getName());
     } else {
       names.addAll(operation.getSuggestedNames());
