@@ -48,20 +48,6 @@ public class HaxeNameSuggesterUtil {
     // Note: decapitalize only changes the first letter to lower case, but won't do if the second letter is also uppercase.
     name = StringUtil.decapitalize(deleteNonLetterFromString(StringUtil.unquoteString(name.replace('.', '_'))));
 
-    //if (name.startsWith("get") && name.length() > 3) {
-    //  name = name.substring(3);
-    //}
-    //else if (name.startsWith("is") && name.length() > 2) {
-    //  name = name.substring(2);
-    //}
-    //while (name.startsWith("_") && name.length() > 1) {
-    //  name = name.substring(1);
-    //}
-    //while (name.endsWith("_") && name.length() > 1) {
-    //  name = name.substring(0, name.length() - 1);
-    //}
-    //return name;
-
     StringBuilder prepped = new StringBuilder();
     int startPos = 0;
     int endPos = name.length() - 1;
@@ -110,7 +96,7 @@ public class HaxeNameSuggesterUtil {
     ResultHolder typeResult = HaxeTypeResolver.getPsiElementType(expression, new HaxeGenericResolver());
     SpecificTypeReference type = typeResult.getType();
 
-    if (type.isDynamic()) { return "dyn"; }
+    if (type.isDynamic()) { return "obj"; }
     if (type.isVoid()) { return "v"; }
     if (type.isInt()) { return "i"; }
     if (type.isBool()) { return "b"; }
@@ -138,36 +124,30 @@ public class HaxeNameSuggesterUtil {
     if (expression instanceof HaxePrefixExpression) {  // Wraps statements, like HaxeIfStatement
       return "expr";
     }
-    if (expression instanceof HaxeSwitchCaseExpression) {
-      return "switchResult";
+    if (expression instanceof HaxeSwitchCaseExpression
+        || expression instanceof HaxeCallExpression
+        || expression instanceof HaxeLogicAndExpression
+        || expression instanceof HaxeLogicOrExpression
+        || expression instanceof HaxeCompareExpression
+        || expression instanceof HaxeTernaryExpression) {
+      return "result";
     }
     if (expression instanceof HaxeBitwiseExpression
         || expression instanceof HaxeShiftExpression) {
       return "bitResult";
-    }
-    if (expression instanceof HaxeLogicAndExpression
-        || expression instanceof HaxeLogicOrExpression
-        || expression instanceof HaxeCompareExpression) {
-      return "logicalResult";
     }
     if (expression instanceof HaxeSuperExpression) {
       return "mysuper";
     }
     if (expression instanceof HaxeFatArrowExpression
         || expression instanceof HaxeFunctionLiteral) {
-      return "lambda";
+      return "func";
     }
     if (expression instanceof HaxeStringLiteralExpression) {
       return "str";
     }
-    if (expression instanceof HaxeCallExpression) {
-      return "functionResult";
-    }
     if (expression instanceof HaxeThisExpression) {
       return "myself";
-    }
-    if (expression instanceof HaxeTernaryExpression) {
-      return "ternaryResult";
     }
     if (expression instanceof HaxeIteratorExpression) {
       return "iter";
