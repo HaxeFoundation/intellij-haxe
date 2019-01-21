@@ -97,7 +97,7 @@ public interface HaxeTokenTypeSets {
     KNULL
   );
 
-  TokenSet PSEUDO_KEYWORDS = TokenSet.create(
+  TokenSet SOFT_KEYWORDS = TokenSet.create(
     KTO,
     KFROM
   );

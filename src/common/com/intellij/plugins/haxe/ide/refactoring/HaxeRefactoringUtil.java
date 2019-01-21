@@ -58,7 +58,7 @@ public class HaxeRefactoringUtil {
 
   public static Set<String> collectKeywords() {
     THashSet<String> words = new THashSet<>(ContainerUtil.map(HaxeTokenTypeSets.KEYWORDS.getTypes(), (IElementType k)->k.toString()));
-    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.PSEUDO_KEYWORDS.getTypes(), (IElementType k)->k.toString()));
+    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.SOFT_KEYWORDS.getTypes(), (IElementType k)->k.toString()));
     words.addAll(ContainerUtil.map(HaxeTokenTypeSets.KEYWORD_CONSTANTS.getTypes(), (IElementType k)->k.toString()));
     return words;
   }
