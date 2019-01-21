@@ -165,7 +165,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     }
 
     element1 = HaxeRefactoringUtil.getSelectedExpression(project, file, element1, element2);
-    if (element1 == null || shouldExclude(element1)) {
+    if (!isValidForExtraction(element1)) {
       showCannotPerformError(project, editor);
       return;
     }
@@ -219,7 +219,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       if (elementAtCaret instanceof HaxeFile) {
         break;
       }
-      if (elementAtCaret instanceof HaxeExpression && !shouldExclude(elementAtCaret)) {
+      if (elementAtCaret instanceof HaxeExpression && isValidForExtraction(elementAtCaret)) {
         expressions.add((HaxeExpression)elementAtCaret);
       }
       elementAtCaret = elementAtCaret.getParent();
@@ -256,15 +256,15 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     return false;
   }
 
-  private boolean shouldExclude(PsiElement element) {
+  private boolean isValidForExtraction(PsiElement element) {
     if (null == element) {
-      return true;
+      return false;
     }
 
     // Fat arrow expressions are not allowed outside of a map, so make no sense to turn into
     // separate variables.
     if (element instanceof HaxeFatArrowExpression) {
-      return true;
+      return false;
     }
 
     // A reference expression is normally a target, but if that reference is for a type declaration
@@ -272,10 +272,10 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     // would not make a valid expression.  (e.g. `int i = Float;`)
     PsiElement parent = element.getParent();
     if (parent instanceof HaxeType) {
-      return true;
+      return false;
     }
 
-    return false;
+    return true;
   }
 
   private void performActionOnElement(HaxeIntroduceOperation operation) {
