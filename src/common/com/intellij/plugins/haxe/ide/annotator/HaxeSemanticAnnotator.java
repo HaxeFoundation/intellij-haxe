@@ -96,18 +96,16 @@ class TypeCheckExpressionChecker {
       if (!assertionResult.canAssign(statementResult)) {
         final HaxeDocumentModel document = HaxeDocumentModel.fromElement(expr);
         Annotation annotation = holder.createErrorAnnotation(children[0],
-                                                             "Statement of type '" +
-                                                             statementResult.getType().toStringWithoutConstant() +
-                                                             "' does not unify with asserted type '" +
-                                                             assertionResult.getType().toStringWithoutConstant() +
-                                                             ".'");
-        annotation.registerFix(new HaxeFixer("Remove type check") {
+                                                             HaxeBundle.message("haxe.semantic.statement.does.not.unify.with.asserted.type",
+                                                                                statementResult.getType().toStringWithoutConstant(),
+                                                                                assertionResult.getType().toStringWithoutConstant()));
+        annotation.registerFix(new HaxeFixer(HaxeBundle.message("remove.type.check")) {
           @Override
           public void run() {
             document.replaceElementText(expr, children[0].getText());
           }
         });
-        annotation.registerFix(new HaxeFixer("Change type check to " + statementResult.toStringWithoutConstant()) {
+        annotation.registerFix(new HaxeFixer(HaxeBundle.message("change.type.check.to.0", statementResult.toStringWithoutConstant())) {
           @Override
           public void run( ) {
             document.replaceElementText(children[1], statementResult.toStringWithoutConstant());
