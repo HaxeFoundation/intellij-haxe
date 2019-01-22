@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -787,6 +787,32 @@ public class HaxeExpressionEvaluator {
         ).createHolder();
       }
     }
+
+    if (element instanceof HaxeTypeCheckExpr) {
+      PsiElement[] children = element.getChildren();
+      if (children.length == 2) {
+        SpecificTypeReference statementType = handle(children[0], context, resolver).getType();
+        SpecificTypeReference assertedType = SpecificTypeReference.getUnknown(children[1]);
+        if (children[1] instanceof HaxeTypeOrAnonymous) {
+          HaxeTypeOrAnonymous toa = ((HaxeTypeCheckExpr)element).getTypeOrAnonymous();
+          if (toa != null ) {
+            assertedType = HaxeTypeResolver.getTypeFromTypeOrAnonymous(toa).getType();
+          }
+        }
+        // When we have proper unification (not failing to dynamic), then we should be checking if the
+        // values unify.
+        //SpecificTypeReference unified = HaxeTypeUnifier.unify(statementType, assertedType, element);
+        //if (!unified.canAssign(statementType)) {
+        if (!assertedType.canAssign(statementType)) {
+          Annotation annotation = context.addError(element, "Statement of type '" + statementType.getElementContext().getText() + "' does not unify with asserted type '" + assertedType.getElementContext().getText() + ".'");
+          // TODO: Develop some fixers.
+          // annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
+        }
+
+        return statementType.createHolder();
+      }
+    }
+
 
     LOG.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getDynamic(element).createHolder();

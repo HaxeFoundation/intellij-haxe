@@ -1,5 +1,6 @@
 /*
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,5 +67,10 @@ public class HaxeExpressionUtil {
     final ASTNode token = element.getAssignOperation().getNode().findChildByType(HaxeTokenTypeSets.ASSIGN_OPERATORS);
     if (token != null) return token.getElementType();
     return null;
+  }
+
+  public static boolean isArrayExpression(HaxeExpression expr) {
+    return expr instanceof HaxeArrayLiteral
+           || expr instanceof HaxeArrayAccessExpression;
   }
 }

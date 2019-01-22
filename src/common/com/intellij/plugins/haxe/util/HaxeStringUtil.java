@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,4 +228,21 @@ public class HaxeStringUtil {
     return s.substring(0, len - ELLIPSES.length()) + ELLIPSES;
   }
 
+
+  /**
+   * Gets a version of the given string with a lower-cased first character.
+   * @param s - string to change.
+   */
+  @Nullable
+  public static String toLowerFirst(@Nullable String s) {
+    if (null == s) return null;
+    if (s.isEmpty()) return s;
+    if (!Character.isUpperCase(s.charAt(0))) return s;
+    char lower = Character.toLowerCase(s.charAt(0));
+    StringBuilder builder = new StringBuilder(lower);
+    if (s.length() > 1) {
+      builder.append(s.substring(1));
+    }
+    return builder.toString();
+  }
 }

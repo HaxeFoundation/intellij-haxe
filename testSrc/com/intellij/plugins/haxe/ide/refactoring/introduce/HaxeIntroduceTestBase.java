@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,15 +59,19 @@ public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCa
   }
 
   protected void doTest(@Nullable Consumer<HaxeIntroduceOperation> customization, boolean replaceAll) {
+    doTest(customization, replaceAll, "foo", false);
+  }
+
+  protected void doTest(@Nullable Consumer<HaxeIntroduceOperation> customization, boolean replaceAll, String newname, boolean inPlace) {
     String testName = getTestName(true);
     testName = convertStringFirstLetterToUppercase(testName);
     myFixture.configureByFile(testName + ".hx");
     boolean inplaceEnabled = myFixture.getEditor().getSettings().isVariableInplaceRenameEnabled();
     try {
-      myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(false);
+      myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(inPlace);
       HaxeIntroduceHandler handler = createHandler();
       final HaxeIntroduceOperation operation =
-        new HaxeIntroduceOperation(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "foo");
+        new HaxeIntroduceOperation(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), newname);
       operation.setReplaceAll(replaceAll);
       if (customization != null) {
         customization.consume(operation);
@@ -85,26 +90,10 @@ public abstract class HaxeIntroduceTestBase extends HaxeCodeInsightFixtureTestCa
   }
 
   protected void doTestInplace(@Nullable Consumer<HaxeIntroduceOperation> customization) {
-    String name = getTestName(true);
-    name = convertStringFirstLetterToUppercase(name);
-    myFixture.configureByFile(name + ".hx");
-    final boolean enabled = myFixture.getEditor().getSettings().isVariableInplaceRenameEnabled();
-    TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
-    myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(true);
+    doTestInplace(customization, true, "a");
+  }
 
-    HaxeIntroduceHandler handler = createHandler();
-    final HaxeIntroduceOperation introduceOperation =
-      new HaxeIntroduceOperation(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "a");
-    introduceOperation.setReplaceAll(true);
-    if (customization != null) {
-      customization.consume(introduceOperation);
-    }
-    handler.performAction(introduceOperation);
-
-    TemplateState state = TemplateManagerImpl.getTemplateState(myFixture.getEditor());
-    assert state != null;
-    state.gotoEnd(false);
-    myFixture.checkResultByFile(name + ".after.hx", true);
-    myFixture.getEditor().getSettings().setVariableInplaceRenameEnabled(enabled);
+  protected void doTestInplace(@Nullable Consumer<HaxeIntroduceOperation> customization, boolean replaceAll, String newname) {
+    doTest(customization, replaceAll, newname, true);
   }
 }

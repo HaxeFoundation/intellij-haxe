@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,5 +64,77 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
 
   public void testSuggestName2() throws Throwable {
     doTestSuggestions(HaxeCallExpression.class, "test1");
+  }
+
+  public void testReplaceConstant() throws Throwable {
+    doTestInplace(null, false, null);
+  }
+
+  public void testReplaceConstantAll() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractRegex() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractThis() throws Throwable {
+    doTestInplace(null, false, null);
+  }
+
+  public void testExtractString() throws Throwable {
+    doTestInplace(null, false, null);
+  }
+
+  public void testExtractCall() throws Throwable {
+    doTestInplace(null, true, "pi");
+  }
+
+  public void testExtractAnonymousFunction() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractNamedFunction() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractArrowFunctionWithCurlyBrackets() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractSimpleArrowFunction() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractFloat() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractAnonymousStructure() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractVariableDeclaration() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractMapLiteral() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractMapLiteralWithFunction() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractArrayLiteral() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractArrayComprehension() throws Throwable {
+    doTestInplace(null, true, null);
+  }
+
+  public void testExtractRegex2() throws Throwable {
+    doTestInplace(null, true, null);
   }
 }
