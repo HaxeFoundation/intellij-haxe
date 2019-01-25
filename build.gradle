@@ -1,5 +1,6 @@
 /*
  * Copyright 2018-2018 m0rkeulv
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,9 +102,13 @@ idea.module { generatedSourceDirs += file('gen') }
 
 
 dependencies {
-    
-    compile project(':jps-plugin')
+
+    compile files('gen') {
+        builtBy 'generateSources'
+    }
+
     compile project(':common')
+    compile project(':jps-plugin')
     compile project(':hxcpp-debugger-protocol')
 
     compileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
@@ -353,14 +358,15 @@ private void generateRunConfigurations() {
 
 
     createGradleRunConfiguration('Run IDE (default)', 'runIde', '', '-Didea.is.internal=true')
-    createGradleRunConfiguration('Run Tests (default)', 'clean test', '', '')
+    createGradleRunConfiguration('Run IDE (default) - Suppress ProcessCanceledExceptions', 'runIde', '', '-Didea.is.internal=true -Didea.ProcessCanceledException=disabled')
+    createGradleRunConfiguration('Run Tests (default)', 'test', '', '')
 
     createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
 
 
-    createGradleRunConfiguration('Run Tests 2018', 'clean test', "-PtargetVersion=$latest2018Version", '')
-    createGradleRunConfiguration('Run Tests 2017', 'clean test', "-PtargetVersion=$latest2017Version", '')
-    createGradleRunConfiguration('Run Tests 2016', 'clean test', "-PtargetVersion=$latest2016Version", '')
+    createGradleRunConfiguration('Run Tests 2018', 'test', "-PtargetVersion=$latest2018Version", '')
+    createGradleRunConfiguration('Run Tests 2017', 'test', "-PtargetVersion=$latest2017Version", '')
+    createGradleRunConfiguration('Run Tests 2016', 'test', "-PtargetVersion=$latest2016Version", '')
 
     createGradleRunConfiguration('Run IDE 2018',
                                  'runIde',

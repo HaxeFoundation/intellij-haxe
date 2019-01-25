@@ -35,7 +35,7 @@ Install the following plugins [from Intellij IDEA plugin manager](https://www.je
 #### Required
 - Plugin DevKit
 - UI Designer
-- gradle Support
+- Gradle Support
 - Grammar-Kit (for bnf compilation) version 1.2.0. (Later versions are not backward compatible with IDEA 14.)
 
 #### Testing
@@ -68,14 +68,22 @@ add the following lines to the end of the
 Sometimes, when testing, the secondary instance of IDEA (running the plugin you're debugging) won't turn
 on the PSI viewer when that property is actually set.  You can always enable it by adding
   `-Didea.is.internal=true`
-to the "VM Options" field in the 'Run->Edit Configurations...' dialog.
+to the "VM Options" field in the 'Run->Edit Configurations...' dialog.  
+
+Note that when you first open the project (and have the Gradle plugin installed), or if you specifically run 
+```
+gradlew regenerateRunConfigurations
+```
+several run configurations will be created for you, with this option already set. (See the 'Gradle Builds' section below.)   
 
 #### Disable ProcessCanceledExceptions
 
-Eventually, you may run into the frustrating situation where your stepping takes longer than
+Eventually, you may run into the frustrating situation where your stepping through sources takes longer than
 IDEA's timeout and will try to cancel the process you're debugging.  This can be disabled by adding
   `-Didea.ProcessCanceledException=disabled`
 to the same "VM Options" field.
+
+Again, the `regenerateRunConfigurations` Gradle task will create a run configuration with this set as well.
 
 See [JetBrains' documentation for the 'idea.properties' file.](https://www.jetbrains.com/help/idea/2017.1/file-idea-properties.html) for
 other goodies and their suggested methods for modifying properties.
@@ -87,7 +95,7 @@ isn't one already in place.  (Don't worry, when you are running or debugging, th
 enabled in the test instance of Idea that is launched.)
 
 ### Steps to configure a IntelliJ Platform Plugin SDK:
-> This step should no longer be necessary when using gradle to build and run Ide and tests.
+> This step should no longer be necessary when using Gradle to build and run Ide and tests.
 > The gradle-intellij-plugin should configure all necessary dependencies for you
 - Open Module Settings
 - SDKs -> + button -> IntelliJ Platform Plugin SDK -> Choose a folder with IntelliJ Ultimate(!) or *.App on Mac
@@ -119,8 +127,10 @@ a moving target, as we attempt to keep up with the development community.
 We do NOT expect contributors to keep up to date with EAP releases, nor does 
 the team support them (though the plugin may work, and will usually install).
 
-*IDEA releases 2016 and later require JDK 8.  That build environment has
-been successfully used for this plugin, targeting Java6 for builds prior to 2016.x.*
+*IDEA releases 2016 and later require JDK 8.  Later JDKs can be used as the
+primary development environment if you so choose, but **they are not allowed
+as a target environment, nor can any language features later that Java8 be used
+in source code targeted for release as part of this plugin**.*
 
 #### Gradle Builds
 
@@ -147,16 +157,18 @@ To remove compiled code and generated sources.
 ```
 gradlew clean 
 ```
+- *Note: The Build->Clean menu item that appears when the Android plugin is installed will NOT call `gradlew clean`.
+You must use the Gradle task to remove build artifacts.*
 
 As mentioned above it is possible to build and test the plugin without the needed to install IDEA.
 If you want to test the plugin in intelliJ simply run the command below and it should start a session 
-with the IDEA version that you provide
+with the IDEA version that you provide:
 ```
 gradlew runIde -PtargetVersion=<IDEA_VERSION>
 ```
 
 
-To verify that your changes does not break any other features you should run the test suite and verify IDEA can read the plugin
+To verify that your changes do not break any other features you should run the test suite and verify IDEA can read the plugin
 ```
 ./gradlew test verifyPlugin
 ```
@@ -177,25 +189,32 @@ You should find the option to do this under : Build -> Build tools -> Gradle -> 
 
 ![gradle delegate](./doc/idea_gradle_delegate.png)
 
+- *Note: For some users, delegating the build jobs to Gradle will cause a build started via the
+"Build->(Re)Build Project..." menu items to fail.  For these users, not delegating may allow the
+build to succeed.  In any case, running the build via the Gradle panel as stated below always works.*
 
-The Gradle Project panel might be a bit overwhelming for those who are not used to Gradle
-There are 4 gradle tasks that you will probably use frequently and that is worth mentioning
-all these tasks  can be found under project root (intellij-haxe)
+- *Note 2: When the Android plugin is enabled, errors are displayed by some versions of IDEA stating that some builds cannot
+be run and/or incompatible (Android-Gradle vs Java-Gradle projects).  These messages may be eliminated
+by not using the Android plugin.  If this is not possible, the error messages can be ignored.*
 
-- build - *Will build the plugin and create a plugin Jar in the root of the project*
-- test - *will build and run all tests in IDEA and show you the results in the test panel*
-- clean - *will remove all compiled and generated code*
-- runIde - *will build the plugin, prepare an sandbox and start an instance of IDEA with your plugin*
+The Gradle Project panel might be a bit overwhelming for those who are not used to Gradle.
+There are 4 Gradle tasks that you will probably use frequently and that is worth mentioning
+all these tasks  can be found under project root (intellij-haxe):
 
-You can chose between run and debug by right clicking on the task you want to execute 
+- build - *Will build the plugin and create a plugin Jar in the root of the project.*
+- test - *Will build and run all tests in IDEA and show you the results in the test panel.*
+- clean - *Will remove all compiled and generated code.*
+- runIde - *Will build the plugin, prepare an sandbox and start an instance of IDEA with your plugin.*
+
+You can chose between run and debug by right clicking on the task you want to execute: 
 ![gradle panel](./doc/idea_gradle_panel.png)
 
 ###### Syntax Errors
-Its recommended to build the project first before you start writing code as some parts of the project 
-uses generated code and you may experience syntax errors in your code editor, the code will however
+We recommended that you build the project first before you start writing code as some parts of the project 
+use generated code and you may experience syntax errors in your code editor; the code will however
 build just fine as these sources are generated when the project is built.
  
-If you just want to generate the nessesary sources you can run the `generateSources` gradle task.
+If you just want to generate the nessesary sources you can run the `generateSources` Gradle task.
 
 ## Debugging
 -------
@@ -218,7 +237,7 @@ likely won't be much more help than the decompiled class files.)
 ## Testing
 _______
 
-Testing can be performed on the command line via gradle, or within the IDE itself.  To
+Testing can be performed on the command line via Gradle, or within the IDE itself.  To
 test on the command line, the command is:
 
 ```
@@ -230,13 +249,13 @@ delegate run and build actions to Gradle as explained under [IDEA builds](#IDEA-
 
  
 The requirements for testing the plugin are the same as for building the plugin.
-You can run tests within IDEA from the gradle pane as well, with the output being
+You can run tests within IDEA from the Gradle pane as well, with the output being
 identical to that from the command line.
 
 
 ## Build troubleshooting
-Once in a while you might experience that your build/run/debug/test task fails and the error reported seems to be related to gradle.
-This can sometimes happen when you have multiple gradle targets open at the same time. Check your debug and run panels and try to close
+Once in a while you might experience that your build/run/debug/test task fails and the error reported seems to be related to Gradle.
+This can sometimes happen when you have multiple Gradle targets open at the same time. Check your debug and run panels and try to close
 any extra tabs that might be open.
 
 ![gradle panel](./doc/idea_gradle_action_tabs.png)
@@ -245,7 +264,7 @@ any extra tabs that might be open.
 ______________________
 
 If you change the haxe.bnf or hxml.bnf files, you no longer have to (re)generate
-the parsing files; that is now done through gradle, and gradle will look for changes
+the parsing files; that is now done through Gradle, and Gradle will look for changes
 before every build, incremental or full.  (It will only rebuild the
 files if they are out of date.)
 
@@ -280,22 +299,22 @@ Goals:
 
 #### Where we are working:
 
-- Future work will take place on the HaxeFoundation/intellij-haxe/master branch (really, using short-lived 
+- Future work will take place on the HaxeFoundation/intellij-haxe/develop branch (really, using short-lived 
 local branches off of that).
 
 #### Where we will release:
 
 - Releases will (usually, simultaneously) occur on the HaxeFoundation/intellij-haxe repo, 
-jetbrains/intellij-haxe repo, and the IDEA plugin repository.  Releases will be made 
+and the IDEA plugin repository.  Releases will be made 
 through the github release mechanism.  Binary output (e.g. intellij-haxe.jar) is no longer
 kept in the source tree in the repository.
 
 #### How we will release:
 
 - When appropriate (there are changes that merit a new version), we will update the 
-release notes, commit, tag the build, and create a pull request to JetBrains.  Updating
-the release notes primarily means adding release notes to src/META-INF/plugin.xml, and
-echoing them to CHANGELOG.md.
+release notes, commit, tag the build, and create a release on the HaxeFoundation/intellij-haxe 
+GitHub repository.  Updating the release notes primarily means adding release notes to 
+src/META-INF/plugin.xml, and echoing them to CHANGELOG.md.
 - A github "release" will be created on the HaxeFoundation/intellij-haxe repository.  Binary (.jar) files 
 for all currently built Idea target versions of the plugin will be added to the release.
 - The released plugin (.jar files)  will be uploaded to the JetBrains IntelliJ IDEA plugin 
@@ -304,10 +323,10 @@ repository.
 #### Release environments:
 
 - Haxe Foundation releases will be built and smoke tested for the following environments:  
-   OS: Linux(Ubuntu14.04), OSX, Windows  
+   OS: Linux(Latest Ubuntu LTS), macOS(OSX), Windows  
    JVM: Sun Java 1.8 compilers  
-   IDEA versions: 2016.3.7, 2017.1.5, 2017.2.6, 2017.3.3.
-- JetBrains releases will be copies of the Haxe Foundation releases.  
+   IDEA versions: 2016.3.7, 2017.1.5, 2017.2.6, 2017.3.3, 2018.1.3.
+- JetBrains repository versions will be copies of the Haxe Foundation releases.  
 
 #### Who will test:
 
@@ -317,10 +336,9 @@ repository.
 
 #### Unit tests:
 
-- Unit tests will be run and must pass with every commit.  We are using Travis-ci to 
+- Unit tests will be run and must pass with every commit.  We are using Travis-CI and AppVeyor to 
   automate this process.  No merge will be considered or approved unless it passes 
-  unit tests cleanly.  (Note: There are no automated Windows continuous integration builds.  We
-  would like to add this functionality.  Any volunteers?)
+  unit tests cleanly.
 
 #### Release Timing
 
@@ -333,6 +351,7 @@ Once we have a stable code base and would like to create a release, you should g
 the current primary developers.  Once you have agreement on the release number, this is the process:
 
 1. Make sure that all relevant outstanding pull requests have been merged into the master branch.
+(Generally speaking, pull all changes from the develop branch.)
 
 2. Review the git change log and make sure that all relevant updates are reflected in the plugin's 
 change log.  The change log appears in two places: src/META-INF/plugin.xml and CHANGELOG.md.  The 
@@ -343,17 +362,17 @@ then copy the relevant section to CHANGELOG.md.
 
 3. Update the CONTRIBUTORS.md file: `./update_contributors.sh` in the project root.
 
-3. Commit the change logs, merge them into master, and then pull the master branch locally so that you
+4. Commit the change logs, merge them into master, and then pull the master branch locally so that you
 can test and tag it.
 
-4. Build *each* of the releases: For each release, run make (or your local equivalent) 
+5. Build *each* of the releases: For each release, run the Gradle build task (or your local equivalent) 
     - `./gradlew buildPlugin -PtargetVersion=2016.3.5`
     - `./gradlew buildPlugin -PtargetVersion=2017.2`
     - `./gradlew buildPlugin -PtargetVersion=2017.3`
     - `./gradlew buildPlugin -PtargetVersion=2018.1`
 
-5. Smoke test *each* of the releases.  A smoke test includes loading the releases in a primary instance of IDEA and verifying 
-basic functionality:  
+6. Smoke test *each* of the releases.  A smoke test includes installing the releases in a primary *(NOT debug)* 
+instance of IDEA and verifying basic functionality:  
     - Reload a project
     - Compile a project
     - Show class hierarchy
@@ -365,14 +384,14 @@ basic functionality:
     - Start the debugger
     - Run the project
 
-5. Run the unit tests on all versions:
+7. Run the unit tests on all versions:
     - `./gradlew test -PtargetVersion=2016.3.5`, etc.
     
-4. Tag the commit using the agreed upon release number: `git tag -a 0.9.5 -m "Release 0.9.5"`
+8. Tag the commit using the agreed upon release number: `git tag -a 0.9.5 -m "Release 0.9.5"`
 
-5. Push the release back up to master: `git push origin master; git push --tags origin master`
+9. Push the release back up to master: `git push origin master; git push --tags origin master`
 
-6. Create a release on github, using the tag you just created:
+10. Create a release on github, using the tag you just created:
     - [https://github.com/HaxeFoundation/intellij-haxe/releases](https://github.com/HaxeFoundation/intellij-haxe/releases)
     - Sign in and draft a new release, using the tag you just added. 
     - Upload all of the release jars to the release.
@@ -380,10 +399,7 @@ basic functionality:
     - Mark it as pre-release if appropriate.
     - Submit
 
-7. Create a Pull Request to pull all of the current changes up to the JetBrains/intellij-haxe/master
-repository.  Add shoutouts to @as3Boyan and @EBatTiVo to the pull request.
-
-8. Upload the jars to the IDEA plugin repository 
+12. Upload the jars to the IDEA plugin repository 
 [https://plugins.jetbrains.com/plugin/6873?pr=idea](https://plugins.jetbrains.com/plugin/6873?pr=idea)
 
 ### Code Review and Commit Process
@@ -393,26 +409,27 @@ git practice of creating short-lived work branches, and then creating pull reque
   
 Here’s how:
 
-1. Create a new (or use an existing) branch for any work that you do.  The critical thing here is not
- to do your work directly on the master branch.
+1. Create a new (or use an existing) branch for any work that you do.  The base branch for
+ new changes should always be 'develop'.  The critical thing here is not
+ to do your work directly on the stable, master, or develop branches.
 2. Make and test your changes.
 3. Create unit tests for your changes.  (See the testSrc and testData directories for examples.)
 4. Update src/META-INF/plugin.xml with the change description in the top (Usually "Unreleased changes"
 section).
-5. When your work is complete, merge current sources from master up to your branch, re-test locally,
-then push your branch to HaxeFoundation/intellij-haxe.  Travis-ci will automatically start a build and test cycle
-applying your changes against the master branch.
-6. Create a pull request, and wait for comments.
+5. When your work is complete, merge current sources from the develop branch up to your branch, re-test locally,
+then push your branch to HaxeFoundation/intellij-haxe.  Travis-CI will automatically start a build and test cycle
+applying your changes against the develop branch.
+6. Create a pull request (against the develop branch, not master), and wait for comments.
 7. If you get comments that require changes, address those and return to step 2.
-8. When you get an “OK to merge,” or "approved," message from anyone on the team: Eric, @EricBishton; Ilya Malanin, @Mayakwd; Boyan, @as3boyan;
-or Ilya Kuzmichev, @EliasKu (others as they become regular contributors,) go ahead
-and merge your changes to master.  A clean merge requires no further testing,
-as Travis-ci will do it for you.  However any build break must be addressed immediately.  A build
+8. When you get an “OK to merge,” or "approved," message from anyone on the team: 
+Eric, @EricBishton; Ilya Malanin, @Mayakwd; (others as they become regular contributors,) go ahead
+and merge your changes to develop.  A clean merge requires no further testing,
+as Travis-CI will do it for you.  However any build break must be addressed immediately.  A build
 that has conflicts requires manual resolution and must be re-tested locally prior to push.  For regular
 team members, the original requester will be the person to merge since they are best suited to address
 conflicts.  Merges from occasional contributors will be merged by a team member as time and
 resource becomes available.
-9. Check the Travis-ci output (https://travis-ci.org/HaxeFoundation/intellij-haxe/builds) to ensure that
+9. Check the Travis-CI output (https://travis-ci.org/HaxeFoundation/intellij-haxe/builds) to ensure that
 everything built correctly. 
 
 
