@@ -57,6 +57,10 @@ public class ResultHolder {
     return type.isUnknown();
   }
 
+  public boolean isVoid() {
+    return type.isVoid();
+  }
+
   public boolean isDynamic() {
     return type.isDynamic();
   }

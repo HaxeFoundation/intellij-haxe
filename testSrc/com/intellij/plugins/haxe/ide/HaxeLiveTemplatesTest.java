@@ -43,18 +43,7 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    setTestStyleSettings();
-  }
-
-  private void setTestStyleSettings() {
-    Project project = getProject();
-    CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
-    assertNotNull(currSettings);
-    CodeStyleSettings tempSettings = currSettings.clone();
-    CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.HAXE_FILE_TYPE);
-    indentOptions.INDENT_SIZE = 2;
-    assertNotNull(indentOptions);
-    CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);
+    setTestStyleSettings(2);
   }
 
   public static void expandTemplate(final Editor editor) {

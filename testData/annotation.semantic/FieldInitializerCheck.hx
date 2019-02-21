@@ -9,7 +9,7 @@ class FieldInitializerCheck {
   var ok1:IBar = new Bar2();
   var ok2:IBar = new Bar();
   var ok3:Bar = new Bar2();
-  <error descr="Incompatible type Bar2 can't be assigned from Bar">var fail1:Bar2 = new Bar();</error>
-  <error descr="Incompatible type Bar2 can't be assigned from Bar3">var fail2:Bar2 = new Bar3();</error>
-  <error descr="Incompatible type IBar can't be assigned from Bar5">var fail3:IBar = new Bar5();</error>
+  <error descr="Incompatible type: Bar should be Bar2">var fail1:Bar2 = new Bar();</error>
+  <error descr="Incompatible type: Bar3 should be Bar2">var fail2:Bar2 = new Bar3();</error>
+  <error descr="Incompatible type: Bar5 should be IBar">var fail3:IBar = new Bar5();</error>
 }

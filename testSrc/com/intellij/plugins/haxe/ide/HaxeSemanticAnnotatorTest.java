@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
@@ -29,8 +30,15 @@ import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    setTestStyleSettings(2);
+  }
+
   @Override
   protected String getBasePath() {
     return "/annotation.semantic/";
@@ -54,7 +62,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(String... filters) throws Exception {
     doTestNoFixWithoutWarnings();
-    for (final IntentionAction action : myFixture.getAvailableIntentions()) {
+
+    List<IntentionAction> intentions = myFixture.getAvailableIntentions();
+    for (final IntentionAction action : intentions) {
       if (Arrays.asList(filters).contains(action.getText())) {
         System.out.println("Applying intent " + action.getText());
         myFixture.launchAction(action);
@@ -79,11 +89,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testChangeArgumentType() throws Exception {
-    doTest("Change type");
+    doTest(HaxeBundle.message("haxe.quickfix.change.variable.type"));
   }
 
   public void testRemoveArgumentInit() throws Exception {
-    doTest("Remove init");
+    doTest(HaxeBundle.message("haxe.quickfix.remove.initializer"));
   }
 
   public void testInterfaceMethodsShouldHaveTypeTags() throws Exception {
@@ -261,4 +271,131 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testNullTAssignment2() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+
+  // var a:Int = 10/2;
+  public void testInitializeIntWithFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignFloatToInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+  // var a:Int = "3.1416";
+  public void testInitializeFloatWithString() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignStringToFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+  // var a:Int = (10.0 : Float);
+  public void testInitializeIntWithTypeCheckFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignTypeCheckFloatToInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+  // var a:Int = (10 : Float);
+  public void testInitializeIntWithIntTypeCheckedToFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignIntWithIntTypeCheckedToFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+  // var a:String = 3.1416;
+  public void testInitializeStringWithFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignFloatToString() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+  // var a:String = 10;
+  public void testInitializeStringWithInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignIntToString() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+  // var a:Float = 100;
+  public void testInitializeFloatWithInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignIntToFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+  // var f:Float = 100; i:Int = (f);
+  public void testInitializeIntWithParenthesizedFloat() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignParenthesizedFloatToInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+
+// NOT Working yet.
+  // var c:Int = {x:1, y:2};
+  //public void testInitializeIntWithAnonymousStruct() throws Exception {
+  //  doTestNoFixWithWarnings("std/StdTypes.hx");
+  //}
+  //
+  //public void testAssignAnonymousStructToInt() throws Exception {
+  //  doTestNoFixWithWarnings("std/StdTypes.hx");
+  //}
+
+
+  // typedef Pt = {x:Int; y:Int;}; var c:Int = new Pt();
+  public void testInitializeIntWithTypedef() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignTypedefToInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  // class Point {...}; var c:Int = new Point(1,2);
+  public void testInitializeIntWithClass() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testAssignClassToInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+// NOT working yet.
+  // class Test{ var somevar; function new() { somevar = 3.1; }
+  //public void testUnknownClassVariable() throws Exception {
+  //  doTestNoFixWithWarnings("std/StdTypes.hx");
+  //}
+
+  // class Test{ var somevar:Int; function new() { somevar = 3; }
+  public void testAssignFloatToTypedClassVarDeclaration() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  // class Test{ var somevar = 10; function new() {somevar = 3.1;} }
+  public void testAssignFloatToInferredClassVarInt() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
 }

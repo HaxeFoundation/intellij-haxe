@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.ide.annotator;
 
+import com.intellij.codeInsight.daemon.impl.HighlightRangeExtension;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -26,15 +27,13 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
 import com.intellij.plugins.haxe.ide.quickfix.HaxeSwitchMutabilityModifier;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
+import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -47,14 +46,23 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
+import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.*;
 
-public class HaxeSemanticAnnotator implements Annotator {
+public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension {
+
   @Override
-  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    analyzeSingle(element, holder);
+  public boolean isForceHighlightParents(@NotNull PsiFile file) {
+    // XXX: Maybe more complex logic will be required if we only want this to be true when
+    // doing semantic annotations.
+    return (file.getLanguage().isKindOf(HaxeLanguage.INSTANCE));
   }
 
-  private static void analyzeSingle(final PsiElement element, AnnotationHolder holder) {
+  @Override
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    analyzeSingle(element, new HaxeAnnotationHolder(holder));
+  }
+
+  private static void analyzeSingle(final PsiElement element, HaxeAnnotationHolder holder) {
     if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element, holder);
     } else if (element instanceof HaxeMethod) {
@@ -71,15 +79,16 @@ public class HaxeSemanticAnnotator implements Annotator {
       StringChecker.check((HaxeStringLiteralExpression)element, holder);
     } else if (element instanceof HaxeTypeCheckExpr) {
       TypeCheckExpressionChecker.check((HaxeTypeCheckExpr)element, holder);
+    } else if (element instanceof HaxeAssignExpression) {
+      AssignExpressionChecker.check((HaxeAssignExpression)element, holder);
     }
-
   }
 }
 
 class TypeCheckExpressionChecker {
   public static void check(
     final HaxeTypeCheckExpr expr,
-    final AnnotationHolder holder
+    final HaxeAnnotationHolder holder
   ) {
     final PsiElement[] children = expr.getChildren();
     if (children.length == 2) {
@@ -99,13 +108,13 @@ class TypeCheckExpressionChecker {
                                                              HaxeBundle.message("haxe.semantic.statement.does.not.unify.with.asserted.type",
                                                                                 statementResult.getType().toStringWithoutConstant(),
                                                                                 assertionResult.getType().toStringWithoutConstant()));
-        annotation.registerFix(new HaxeFixer(HaxeBundle.message("remove.type.check")) {
+        annotation.registerFix(new HaxeFixer(HaxeBundle.message("haxe.quickfix.remove.type.check")) {
           @Override
           public void run() {
             document.replaceElementText(expr, children[0].getText());
           }
         });
-        annotation.registerFix(new HaxeFixer(HaxeBundle.message("change.type.check.to.0", statementResult.toStringWithoutConstant())) {
+        annotation.registerFix(new HaxeFixer(HaxeBundle.message("haxe.quickfix.change.type.check.to.0", statementResult.toStringWithoutConstant())) {
           @Override
           public void run( ) {
             document.replaceElementText(children[1], statementResult.toStringWithoutConstant());
@@ -125,34 +134,23 @@ class TypeTagChecker {
     final HaxeTypeTag tag,
     final HaxeVarInit initExpression,
     boolean requireConstant,
-    final AnnotationHolder holder
+    final HaxeAnnotationHolder holder
   ) {
-    final ResultHolder type1 = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
-    final ResultHolder type2 = getTypeFromVarInit(initExpression);
+    final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
+    final ResultHolder initType = getTypeFromVarInit(initExpression);
 
-    final HaxeDocumentModel document = HaxeDocumentModel.fromElement(tag);
-    if (!type1.canAssign(type2)) {
-      // @TODO: Move to bundle
-      Annotation annotation =
-        holder.createErrorAnnotation(erroredElement, "Incompatible type " +
-                                                     type1.toStringWithoutConstant() +
-                                                     " can't be assigned from " +
-                                                     type2.toStringWithoutConstant());
-      annotation.registerFix(new HaxeFixer("Change type") {
-        @Override
-        public void run() {
-          document.replaceElementText(tag, ":" + type2.toStringWithoutConstant());
-        }
-      });
-      annotation.registerFix(new HaxeFixer("Remove init") {
-        @Override
-        public void run() {
-          document.replaceElementText(initExpression, "", StripSpaces.BEFORE);
-        }
-      });
-    } else if (requireConstant && type2.getType().getConstant() == null) {
-      // TODO: Move to bundle
-      holder.createErrorAnnotation(erroredElement, "Parameter default type should be constant but was " + type2);
+    if (!varType.canAssign(initType)) {
+
+      holder.addAnnotation(typeMismatch(erroredElement, initType.toStringWithoutConstant(),
+                                        varType.toStringWithoutConstant())
+        .withFix(new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.change.variable.type"), tag, initType.getClassType()))
+        .withFix(new HaxeRemoveElementFixer(HaxeBundle.message("haxe.quickfix.remove.initializer"), initExpression))
+        .withFixes(HaxeExpressionConversionFixer.createStdTypeFixers(initExpression.getExpression(),
+                                                                     initType.getType(), varType.getType()))
+      );
+
+    } else if (requireConstant && initType.getType().getConstant() == null) {
+      holder.createErrorAnnotation(erroredElement, HaxeBundle.message("haxe.semantic.parameter.default.type.should.be.constant", initType));
     }
   }
 
@@ -163,12 +161,12 @@ class TypeTagChecker {
       return abstractEnumFieldInitType;
     }
     // fallback to simple init expression
-    return HaxeTypeResolver.getPsiElementType(init.getExpression(), HaxeGenericResolverUtil.generateResolverFromScopeParents(init));
+    return HaxeTypeResolver.getPsiElementType(init.getExpression(), init, HaxeGenericResolverUtil.generateResolverFromScopeParents(init));
   }
 }
 
 class LocalVarChecker {
-  public static void check(final HaxeLocalVarDeclaration var, final AnnotationHolder holder) {
+  public static void check(final HaxeLocalVarDeclaration var, final HaxeAnnotationHolder holder) {
     HaxeLocalVarModel local = new HaxeLocalVarModel(var);
     if (local.hasInitializer() && local.hasTypeTag()) {
       TypeTagChecker.check(local.getBasePsi(), local.getTypeTagPsi(), local.getInitializerPsi(), false, holder);
@@ -177,7 +175,7 @@ class LocalVarChecker {
 }
 
 class FieldChecker {
-  public static void check(final HaxeFieldDeclaration var, final AnnotationHolder holder) {
+  public static void check(final HaxeFieldDeclaration var, final HaxeAnnotationHolder holder) {
     HaxeFieldModel field = new HaxeFieldModel(var);
     if (field.isProperty()) {
       checkProperty(field, holder);
@@ -237,7 +235,7 @@ class FieldChecker {
     return visitor.result;
   }
 
-  private static void checkProperty(final HaxeFieldModel field, final AnnotationHolder holder) {
+  private static void checkProperty(final HaxeFieldModel field, final HaxeAnnotationHolder holder) {
     final HaxeDocumentModel document = field.getDocument();
 
     if (field.getGetterPsi() != null && !field.getGetterType().isValidGetter()) {
@@ -282,7 +280,7 @@ class FieldChecker {
     checkPropertyAccessorMethods(field, holder);
   }
 
-  private static void checkPropertyAccessorMethods(final HaxeFieldModel field, final AnnotationHolder holder) {
+  private static void checkPropertyAccessorMethods(final HaxeFieldModel field, final HaxeAnnotationHolder holder) {
     if (field.getDeclaringClass().isInterface()) {
       return;
     }
@@ -312,11 +310,11 @@ class FieldChecker {
 }
 
 class TypeChecker {
-  static public void check(final HaxeType type, final AnnotationHolder holder) {
+  static public void check(final HaxeType type, final HaxeAnnotationHolder holder) {
     check(type.getReferenceExpression().getIdentifier(), holder);
   }
 
-  static public void check(final PsiIdentifier identifier, final AnnotationHolder holder) {
+  static public void check(final PsiIdentifier identifier, final HaxeAnnotationHolder holder) {
     if (identifier == null) return;
     final String typeName = identifier.getText();
     if (!HaxeClassModel.isValidClassName(typeName)) {
@@ -335,7 +333,7 @@ class TypeChecker {
 }
 
 class ClassChecker {
-  static public void check(final HaxeClass clazzPsi, final AnnotationHolder holder) {
+  static public void check(final HaxeClass clazzPsi, final HaxeAnnotationHolder holder) {
     HaxeClassModel clazz = clazzPsi.getModel();
     checkDuplicatedFields(clazz, holder);
     checkClassName(clazz, holder);
@@ -344,7 +342,7 @@ class ClassChecker {
     checkInterfacesMethods(clazz, holder);
   }
 
-  static private void checkDuplicatedFields(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  static private void checkDuplicatedFields(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
     Map<String, HaxeMemberModel> map = new HashMap<>();
     Set<HaxeMemberModel> repeatedMembers = new HashSet<>();
     for (HaxeMemberModel member : clazz.getMembersSelf()) {
@@ -366,11 +364,11 @@ class ClassChecker {
     //Duplicate class field declaration
   }
 
-  static private void checkClassName(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  static private void checkClassName(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
     TypeChecker.check(clazz.getNamePsi(), holder);
   }
 
-  private static void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  private static void checkExtends(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
     HaxeClassModel reference = clazz.getParentClass();
     if (reference != null) {
       if (isAnonymousType(clazz)) {
@@ -413,7 +411,7 @@ class ClassChecker {
     return false;
   }
 
-  private static void checkInterfaces(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  private static void checkInterfaces(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
     for (HaxeClassReferenceModel interfaze : clazz.getImplementingInterfaces()) {
       HaxeClassModel interfazeClass = interfaze.getHaxeClass();
       boolean isDynamic = null != interfazeClass ? SpecificHaxeClassReference.withoutGenerics(interfazeClass.getReference()).isDynamic() : false;
@@ -423,7 +421,7 @@ class ClassChecker {
     }
   }
 
-  private static void checkInterfacesMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  private static void checkInterfacesMethods(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
     for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
       checkInterfaceMethods(clazz, reference, holder);
     }
@@ -432,7 +430,7 @@ class ClassChecker {
   private static void checkInterfaceMethods(
     final HaxeClassModel clazz,
     final HaxeClassReferenceModel intReference,
-    final AnnotationHolder holder
+    final HaxeAnnotationHolder holder
   ) {
     final List<HaxeMethodModel> missingMethods = new ArrayList<HaxeMethodModel>();
     final List<String> missingMethodsNames = new ArrayList<String>();
@@ -496,7 +494,7 @@ class ClassChecker {
 }
 
 class MethodChecker {
-  static public void check(final HaxeMethod methodPsi, final AnnotationHolder holder) {
+  static public void check(final HaxeMethod methodPsi, final HaxeAnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
@@ -507,7 +505,7 @@ class MethodChecker {
     //currentMethod.getBodyPsi()
   }
 
-  private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
+  private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final HaxeAnnotationHolder holder) {
     HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     if (currentClass.isExtern() || currentClass.isInterface()) {
       if (currentMethod.getReturnTypeTagPsi() == null && !currentMethod.isConstructor()) {
@@ -521,7 +519,7 @@ class MethodChecker {
     }
   }
 
-  private static void checkMethodArguments(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
+  private static void checkMethodArguments(final HaxeMethodModel currentMethod, final HaxeAnnotationHolder holder) {
     boolean hasOptional = false;
     HashMap<String, PsiElement> argumentNames = new HashMap<String, PsiElement>();
     for (final HaxeParameterModel param : currentMethod.getParameters()) {
@@ -558,7 +556,7 @@ class MethodChecker {
   }
 
   private static final String[] OVERRIDE_FORBIDDEN_MODIFIERS = {FINAL, FINAL_META, INLINE, STATIC};
-  private static void checkOverride(final HaxeMethod methodPsi, final AnnotationHolder holder) {
+  private static void checkOverride(final HaxeMethod methodPsi, final HaxeAnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
@@ -636,7 +634,7 @@ class MethodChecker {
   static void checkMethodsSignatureCompatibility(
     @NotNull final HaxeMethodModel currentMethod,
     @NotNull final HaxeMethodModel parentMethod,
-    final AnnotationHolder holder
+    final HaxeAnnotationHolder holder
   ) {
     final HaxeDocumentModel document = currentMethod.getDocument();
 
@@ -753,7 +751,7 @@ class MethodChecker {
 }
 
 class PackageChecker {
-  static public void check(final HaxePackageStatement element, final AnnotationHolder holder) {
+  static public void check(final HaxePackageStatement element, final HaxeAnnotationHolder holder) {
     final HaxeReferenceExpression expression = element.getReferenceExpression();
     String packageName = (expression != null) ? expression.getText() : "";
     PsiDirectory fileDirectory = element.getContainingFile().getParent();
@@ -799,7 +797,7 @@ class PackageChecker {
 }
 
 class MethodBodyChecker {
-  public static void check(HaxeMethod psi, AnnotationHolder holder) {
+  public static void check(HaxeMethod psi, HaxeAnnotationHolder holder) {
     final HaxeMethodModel method = psi.getModel();
     HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, generateConstraintResolver(method));
   }
@@ -819,7 +817,7 @@ class MethodBodyChecker {
 }
 
 class StringChecker {
-  public static void check(HaxeStringLiteralExpression psi, AnnotationHolder holder) {
+  public static void check(HaxeStringLiteralExpression psi, HaxeAnnotationHolder holder) {
     if (isSingleQuotesRequired(psi)) {
       holder.createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
     }
@@ -866,4 +864,25 @@ class InitVariableVisitor extends HaxeVisitor {
 
     super.visitAssignExpression(o);
   }
+}
+
+class AssignExpressionChecker {
+  public static void check(HaxeAssignExpression psi, HaxeAnnotationHolder holder) {
+    // TODO: Think about how to use models to do this instead. :/
+    PsiElement[] children = psi.getChildren();
+    PsiElement lhs = children[0];
+    // PsiElement assignOperation = children[1];
+    PsiElement rhs = children[2];
+
+    HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(psi);
+    ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, resolver);
+    ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, resolver);
+
+    if (!lhsType.canAssign(rhsType)) {
+      HaxeAnnotation anno = typeMismatch(rhs, rhsType.toStringWithoutConstant(), lhsType.toStringWithoutConstant())
+        .withFixes(HaxeExpressionConversionFixer.createStdTypeFixers(rhs, rhsType.getType(), lhsType.getType()));
+      holder.addAnnotation(anno);
+    }
+  }
+
 }

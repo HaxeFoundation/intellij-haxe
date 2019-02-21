@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +21,23 @@ package com.intellij.plugins.haxe.model.fixer;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeTypeTagChangeFixer extends HaxeFixer {
   private HaxeTypeTag typeTag;
   private SpecificTypeReference result;
 
-  public HaxeTypeTagChangeFixer(HaxeTypeTag typeTag, SpecificTypeReference result) {
-    super("HaxeTypeTagChangeFixer");
+  public HaxeTypeTagChangeFixer(@Nullable String text,
+                                @NotNull HaxeTypeTag typeTag,
+                                @NotNull SpecificTypeReference result) {
+    super(text == null ? "HaxeTypeTagChangeFixer" : text);
     this.typeTag = typeTag;
     this.result = result;
+  }
+
+  public HaxeTypeTagChangeFixer(HaxeTypeTag typeTag, SpecificTypeReference result) {
+    this(null, typeTag, result);
   }
 
   @Override
