@@ -360,6 +360,7 @@ private void generateRunConfigurations() {
     createGradleRunConfiguration('Run IDE (default)', 'runIde', '', '-Didea.is.internal=true')
     createGradleRunConfiguration('Run IDE (default) - Suppress ProcessCanceledExceptions', 'runIde', '', '-Didea.is.internal=true -Didea.ProcessCanceledException=disabled')
     createGradleRunConfiguration('Run Tests (default)', 'test', '', '')
+    createGradleRunConfiguration('Run Single Test (default)', 'test', '', '--tests "{replace this with FQDN of test suite or single test}"')
 
     createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
 

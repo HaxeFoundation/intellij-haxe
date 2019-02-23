@@ -6,7 +6,7 @@ Support for version 13.1 been removed as of release 0.9.8.* &nbsp; Support for v
 14 and 15 are stopped as of release 0.11.2.
 
 ## Reporting errors  
-------------------
+___________________
 
 Things that will help us fix your bug:
 
@@ -23,7 +23,7 @@ can reproduce the issue.
  If it does, add your example to the discussion.
 
 ## Development Environment
--------------------------
+__________________________
 
 You will need the release version of Intellij IDEA Ultimate 2016.1 or later to develop the plugin.
 *There are reports that you can develop with IDEA Community Edition, though extended functionality such as
@@ -115,7 +115,7 @@ particularly if you see ClassNotFound exceptions when attempting to run the plug
 - [How to build a completion contributor for HXML.](https://www.youtube.com/watch?v=UBxuj2ToizY)  
 
 ## Building
-----------
+___________
 
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
@@ -131,6 +131,10 @@ the team support them (though the plugin may work, and will usually install).
 primary development environment if you so choose, but **they are not allowed
 as a target environment, nor can any language features later that Java8 be used
 in source code targeted for release as part of this plugin**.*
+
+JetBrains JRE's are recommended (and default in the project files).  You can
+install them following the instructions 
+[at JetBrains' web site.](https://intellij-support.jetbrains.com/hc/en-us/articles/206544879-Selecting-the-JDK-version-the-IDE-will-run-under)
 
 #### Gradle Builds
 
@@ -197,6 +201,13 @@ build to succeed.  In any case, running the build via the Gradle panel as stated
 be run and/or incompatible (Android-Gradle vs Java-Gradle projects).  These messages may be eliminated
 by not using the Android plugin.  If this is not possible, the error messages can be ignored.*
 
+- *Note 3: There is a bug in most 2018.x versions where the Gradle task will not actually be
+run when using the "Build" menu commands.  Instead a JetBrains compile task will be run with its output
+placed in a different place (and it will likely not succeed).  However, that will not be used when the "Run" menu commands are used
+unless you are NOT delegating the build/run commands.  When you start a run or debug session using the
+Gradle tasks (e.g. "Run->Debug RunIde"), Gradle will build and run the appropriate target in its own
+output directories.
+
 The Gradle Project panel might be a bit overwhelming for those who are not used to Gradle.
 There are 4 Gradle tasks that you will probably use frequently and that is worth mentioning
 all these tasks  can be found under project root (intellij-haxe):
@@ -217,7 +228,7 @@ build just fine as these sources are generated when the project is built.
 If you just want to generate the nessesary sources you can run the `generateSources` Gradle task.
 
 ## Debugging
--------
+_______
 
 When debugging, a secondary instance of IDEA starts up and loads the plugin.  At that
 point, the original instance of IDEA is in debug mode and has all of the normal java
@@ -244,13 +255,38 @@ test on the command line, the command is:
 ./gradlew test -PtargetVersion=<IDEA_VERSION>
 ```
 
-If you have trouble running tests from within the IDE make sure you have configured the IDE to 
-delegate run and build actions to Gradle as explained under [IDEA builds](#IDEA-builds)
-
- 
 The requirements for testing the plugin are the same as for building the plugin.
 You can run tests within IDEA from the Gradle pane as well, with the output being
 identical to that from the command line.
+
+If you have trouble running tests from within the IDE make sure you have configured the IDE to 
+delegate run and build actions to Gradle as explained under [IDEA builds](#IDEA-builds)
+
+
+### Running individual tests from within IDEA
+
+When the Gradle `regenerateRunConfigurations` task is run, several test configurations are created 
+which will run the unit tests via Gradle.  There are four configurations that run all of the unit tests, and one,
+labeled 'Run Single Test' that will run a single test.  You must configure the test manually, because (on 2018.x versions) IDEA's
+feature to run a single test will not use Gradle.
+
+To edit the configuration, open the "Run->Edit Configurations..." dialog, select the 'Run Single Test' configuration
+and edit the string in the "Arguments" field from
+```
+    --tests "{replace this with FQDN of test suite or single test}"
+```
+to something like this to run a test suite
+```
+    --tests "com.intellij.plugins.haxe.ide.HaxeSemanticAnnotatorTest"
+```
+or something like this to run a single test
+```
+    --tests "com.intellij.plugins.haxe.ide.HaxeSemanticAnnotatorTest.testRemoveOverride"
+```
+Using globbing characters works, too...
+```
+    --tests "**.HaxeSemanticAnnotatorTest"
+```
 
 
 ## Build troubleshooting
