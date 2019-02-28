@@ -19,11 +19,15 @@
 package com.intellij.plugins.haxe;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.build.ClassWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
@@ -68,4 +72,18 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
     return annotator.newInstance();
   }
 
+  public void setTestStyleSettings() {
+    setTestStyleSettings(2);
+  }
+
+  public void setTestStyleSettings(int indent) {
+    Project project = getProject();
+    CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
+    assertNotNull(currSettings);
+    CodeStyleSettings tempSettings = currSettings.clone();
+    CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.HAXE_FILE_TYPE);
+    indentOptions.INDENT_SIZE = indent;
+    assertNotNull(indentOptions);
+    CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);
+  }
 }

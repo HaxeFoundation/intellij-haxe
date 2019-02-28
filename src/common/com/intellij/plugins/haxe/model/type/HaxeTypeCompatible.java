@@ -68,7 +68,9 @@ public class HaxeTypeCompatible {
     for (int n = 0; n < to.arguments.size(); n++) {
       if (!to.arguments.get(n).canAssign(from.arguments.get(n))) return false;
     }
-    return to.returnValue.canAssign(from.returnValue);
+    // Void return on the to just means that the value isn't used/cared about. See
+    // the Haxe manual, section 3.5.4 at https://haxe.org/manual/type-system-unification-function-return.html
+    return to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue);
   }
 
   static private boolean canAssignToFromType(

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +19,40 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.util.HaxeCharUtils;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeDocumentModel {
   private Document document;
+  private PsiFile file;
 
-  public HaxeDocumentModel(Document document) {
+  public HaxeDocumentModel(Document document, PsiFile file) {
     this.document = document;
+    this.file = file;
   }
 
-  public HaxeDocumentModel(PsiElement aElementInDocument) {
-    this(PsiDocumentManager.getInstance(aElementInDocument.getProject()).getDocument(aElementInDocument.getContainingFile()));
+  public HaxeDocumentModel(@NotNull PsiElement aElementInDocument) {
+    this(PsiDocumentManager.getInstance(aElementInDocument.getProject()).getDocument(aElementInDocument.getContainingFile()),
+         aElementInDocument.getContainingFile());
   }
 
-  static public HaxeDocumentModel fromElement(PsiElement aElementInDocument) {
+  static public HaxeDocumentModel fromElement(@NotNull PsiElement aElementInDocument) {
     return new HaxeDocumentModel(aElementInDocument);
+  }
+
+  public Document getDocument() {
+    return document;
+  }
+
+  public PsiFile getFile() {
+    return file;
   }
 
   public void replaceElementText(final PsiElement element, final String text) {
@@ -58,7 +75,7 @@ public class HaxeDocumentModel {
     String documentText = document.getText();
 
     if (strips.after) {
-      while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
+     while (end < documentText.length() && HaxeCharUtils.isSpace(documentText.charAt(end))) {
         end++;
       }
     }
@@ -67,7 +84,7 @@ public class HaxeDocumentModel {
         start--;
       }
     }
-    document.replaceString(start, end, text);
+    replaceAndFormat(new TextRange(start, end), text);
   }
 
   public void wrapElement(final PsiElement element, final String before, final String after) {
@@ -83,12 +100,47 @@ public class HaxeDocumentModel {
   public void addTextBeforeElement(final PsiElement element, final String text) {
     if (element == null) return;
     TextRange range = element.getTextRange();
-    document.replaceString(range.getStartOffset(), range.getStartOffset(), text);
+    replaceAndFormat(range, text);
   }
 
   public void addTextAfterElement(final PsiElement element, final String text) {
     if (element == null) return;
     TextRange range = element.getTextRange();
-    document.replaceString(range.getEndOffset(), range.getEndOffset(), text);
+    replaceAndFormat(range, text);
+  }
+
+  /**
+   * Replace the text within the given range and reformat it according to the user's
+   * code style/formatting rules.
+   *
+   * NOTE: The PSI may be entirely invalidated and re-created by this call.
+   *
+   * @param range Range of text or PsiElements to replace.
+   * @param text Replacement text (may be null).
+   */
+  public void replaceAndFormat(@NotNull final TextRange range, @Nullable String text) {
+    if (null == text) {
+      text = "";
+    }
+
+    // Mark the beginning and end so that we have the proper range after adding text.
+    // Greedy means that the text immediately added at the beginning/end of the marker are included.
+    RangeMarker marker = document.createRangeMarker(range);
+    marker.setGreedyToLeft(true);
+    marker.setGreedyToRight(true);
+
+    try {
+
+      document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
+
+      //PsiDocumentManager.getInstance(file.getProject()).commitDocument(document); // force update PSI.
+
+      if (marker.isValid()) { // If the range wasn't reduced to zero.
+        CodeStyleManager.getInstance(file.getProject()).reformatText(file, marker.getStartOffset(), marker.getEndOffset());
+      }
+    }
+    finally {
+      marker.dispose();
+    }
   }
 }

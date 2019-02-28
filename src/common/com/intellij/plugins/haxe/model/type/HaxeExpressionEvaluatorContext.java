@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,8 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotation;
+import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotationHolder;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
@@ -102,6 +105,15 @@ public class HaxeExpressionEvaluatorContext {
 
   public ResultHolder get(String key) {
     return this.scope.get(key);
+  }
+
+  @NotNull
+  public Annotation addError(HaxeAnnotation annotation, HaxeFixer... fixers) {
+    if (holder == null || annotation == null) return createDummyAnnotation();
+    for (HaxeFixer fixer : fixers) {
+      annotation.withFix(fixer);
+    }
+    return new HaxeAnnotationHolder(holder).addAnnotation(annotation);
   }
 
   @NotNull
