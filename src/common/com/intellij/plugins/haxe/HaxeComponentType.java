@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,8 +199,12 @@ public enum HaxeComponentType {
       return null;
     }
     switch (type) {
-      case TYPEDEF:
       case CLASS:
+            if (element instanceof HaxeGenericListPart) {
+              return ((HaxeGenericListPart)element).getName();
+            }
+            return ((HaxeClass) element).getQualifiedName();
+      case TYPEDEF:
       case ENUM:
       case INTERFACE:
             return ((HaxeClass) element).getQualifiedName();

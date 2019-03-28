@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Fixed ClassCastException when Refactor->Rename was used on generic type names.</li>
         <li>Better detection of types inferred after declaration (monomorphs).</li>
         <li>Fixed type detection for expressions in parenthesis.</li>
         <li>Detect simple type mismatches in declarations and assignments.  Add quick fixes for them.</li>
