@@ -18,7 +18,12 @@
  */
 package com.intellij.plugins.haxe.actions;
 
+import com.intellij.openapi.editor.CaretState;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.util.ArrayUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -30,7 +35,59 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void doTest(String newName, String... additionalFiles) {
-    myFixture.testRename(getTestName(false) + ".hx", getTestName(false) + "After.hx", newName, additionalFiles);
+    myFixture.testRename(getSourceFileName(), getResultFileName(), newName, additionalFiles);
+  }
+
+  public void doTestOnNthSelection(int n, String newName, String... additionalFiles) {
+    // One-based, for humans. :)
+    assertTrue(n > 0);
+
+    myFixture.configureByFiles(ArrayUtil.reverseArray(ArrayUtil.append(additionalFiles, getTruncatedSourceFileName())));
+
+    // Extract the caret info, and then reset it to just the selection/position requested.
+    List<CaretState> carets = myFixture.getEditor().getCaretModel().getCaretsAndSelections();
+    assertNotEmpty(carets);  // No carets/selections in the source file.
+    assertTrue(carets.size() >= n);
+
+    List<CaretState> useCaret = new ArrayList<CaretState>(1);
+    useCaret.add(carets.get(n-1));
+    myFixture.getEditor().getCaretModel().setCaretsAndSelections(useCaret);
+
+    myFixture.testRename(getTruncatedResultFileName(), newName);
+  }
+
+  private String toSourceName(String name) {
+    return name + ".hx";
+  }
+
+  private String toResultName(String name) {
+    return name + "After.hx";
+  }
+
+  private String getSourceFileName() {
+    return toSourceName(getTestName(false));
+  }
+
+  private String getResultFileName() {
+    return toResultName(getTestName(false));
+  }
+
+  private String getTruncatedSourceFileName() {
+    return toSourceName(getTruncatedTestName());
+  }
+
+  private String getTruncatedResultFileName() {
+    return toResultName(getTruncatedTestName());
+  }
+
+  private String getTruncatedTestName() {
+    String testName = getTestName(false);
+
+    int i = testName.length() - 1;
+    for (; i > 0 && Character.isDigit(testName.charAt(i)); --i)
+      ;
+
+    return testName.substring(0, i + 1);
   }
 
   public void testLocalVariable1() throws Throwable {
@@ -71,5 +128,21 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
 
   public void testRenameGenericParam() throws Throwable {
     doTest("P");
+  }
+
+  public void testDoNotRenameConstructor1() throws Throwable {
+    doTestOnNthSelection(1,"After");
+  }
+
+  public void testDoNotRenameConstructor2() throws Throwable {
+    doTestOnNthSelection(2,"After");
+  }
+
+  public void testDoNotRenameConstructor3() throws Throwable {
+    doTestOnNthSelection(3,"After");
+  }
+
+  public void testDoNotRenameConstructorName() throws Throwable {
+    doTest("foo");
   }
 }
