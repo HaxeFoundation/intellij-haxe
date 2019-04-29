@@ -82,6 +82,8 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Fixed constructor being renamed when a class is renamed (refactored).  (Issue #776, #785)</li>
+        <li>Fixed ClassCastException when Refactor->Rename was used on generic type names.</li>
         <li>Better detection of types inferred after declaration (monomorphs).</li>
         <li>Fixed type detection for expressions in parenthesis.</li>
         <li>Detect simple type mismatches in declarations and assignments.  Add quick fixes for them.</li>
@@ -919,6 +921,11 @@
     <copyPastePostProcessor implementation="com.intellij.plugins.haxe.editor.HaxeReferenceCopyPasteProcessor"/>
 
     <moveFileHandler implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler"/>
+
+    <!-- This is "first" to ensure that it is used instead of the Java and default renamers. This is generally discouraged, but the
+         pre-existing renamers will take over if they are found first, and our extensions won't be used. -->
+    <renamePsiElementProcessor order="first" implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeRenameProcessor"/>
+    <!-- =============================================================================================== -->
 
     <codeInsight.lineMarkerProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLineMarkerProvider"/>
     <codeInsight.gotoSuper language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeGotoSuperHandler"/>

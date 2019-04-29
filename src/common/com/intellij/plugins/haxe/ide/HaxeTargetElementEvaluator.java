@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,8 @@ public class HaxeTargetElementEvaluator extends TargetElementEvaluatorEx2 {
         boolean isInNewExpression = PsiTreeUtil.getParentOfType(ref.getElement(), HaxeNewExpression.class) != null;
         if (isInNewExpression) {
           HaxeClassModel classModel = ((HaxeClass)refElement).getModel();
-          return classModel.hasConstructor() ? classModel.getConstructorSelf().getBasePsi() : null;
+          HaxeMethodModel constructor = classModel.getConstructorSelf();
+          return null != constructor ? constructor.getBasePsi() : null;
         }
       }
     }
