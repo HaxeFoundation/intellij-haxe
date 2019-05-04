@@ -256,8 +256,35 @@ task generateIdeaSdkIdentifer(group: 'generate') {
   }
 }
 
+task generateVersionSpecificSources(group: 'generate') {
+  // TODO: Make this generic.  Maybe use a lookup table of Map<outputFileName, Map<version->template>>?
+  doFirst {
+    Properties properties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+    int codeline = Integer.parseInt(properties.getProperty("idea.sdk.codeline"))
+
+    String srcPrefix = "${haxePluginDir}/src/common"
+    String relativePath = "com/intellij/plugins/haxe/ide/index"
+    String templatePath = String.join("/", srcPrefix, relativePath)
+    String outputDir = String.join("/", "${generatedSrcDir}", relativePath)
+
+    String fileName = "HaxeInheritanceDefinitionsSearchExecutor.java"
+    String templateExtension = (codeline >= 182) ? "182" : "161"
+    String templateFile = String.join(".", fileName, templateExtension)
+    copy {
+      file(outputDir).mkdirs()
+      from(String.join("/", templatePath, templateFile)) {
+          filter(ReplaceTokens, tokens: properties)
+      }
+      into outputDir
+      rename(templateFile, fileName)
+    }
+  }
+}
+
+
 task generateSources(group: 'generate') {
     dependsOn 'generateIdeaSdkIdentifer'
+    dependsOn 'generateVersionSpecificSources'
     dependsOn 'generateHaxeParser'
     dependsOn 'generateHxmlParser'
 }

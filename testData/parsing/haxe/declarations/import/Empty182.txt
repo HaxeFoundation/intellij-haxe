@@ -1,0 +1,5 @@
+Haxe File
+  IMPORT_STATEMENT
+    HaxePsiToken:import('import')
+    PsiErrorElement:ID expected
+      <empty list>

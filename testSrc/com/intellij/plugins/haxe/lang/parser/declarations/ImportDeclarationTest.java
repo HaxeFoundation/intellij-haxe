@@ -17,13 +17,22 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import com.intellij.plugins.haxe.build.IdeaSDKIdentifier;
+
 public class ImportDeclarationTest extends DeclarationTestBase {
   public ImportDeclarationTest() {
     super("import");
   }
 
   public void testEmpty() throws Throwable {
-    doTest(true);
+    if (IdeaSDKIdentifier.BUILD_CODELINE < 182)
+      doTest(true);
+    assertEmpty("");
+  }
+
+  public void testEmpty182() throws Throwable {
+    if (IdeaSDKIdentifier.BUILD_CODELINE >= 182)
+      doTest(true);
   }
 
   public void testMulti() throws Throwable {
