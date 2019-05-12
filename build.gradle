@@ -91,6 +91,13 @@ test.dependsOn('setupTools')
 if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
 
 
+// Sources that contain templates to be generated.
+sourceSets {
+    templates {
+    }
+}
+sourceSets.templates.resources.srcDir 'src/common'
+
 sourceSets.main.java.srcDirs = ['src/common', 'src/icons', 'gen']
 sourceSets.main.resources.srcDir 'resources'
 
@@ -242,6 +249,9 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 task generateIdeaSdkIdentifer(group: 'generate') {
   doFirst {
     copy {
@@ -257,30 +267,150 @@ task generateIdeaSdkIdentifer(group: 'generate') {
 }
 
 task generateVersionSpecificSources(group: 'generate') {
-  // TODO: Make this generic.  Maybe use a lookup table of Map<outputFileName, Map<version->template>>?
-  doFirst {
+    doFirst {
+        Pattern templatePattern = Pattern.compile("(.*\\.java)\\.\\d\\d\\d\$")
+
+        //println "Template source files: " + sourceSets.templates.allSource.size()
+        FileCollection templateFiles = sourceSets.templates.allSource.filter { File f ->
+            f.name.matches(templatePattern)
+        }
+        println "Templates found: " + templateFiles.size()
+        templateFiles.each { File f ->
+            println f.name
+        }
+        String currentTemplateName = null
+        ArrayList<String> relatedTemplates = null
+        templateFiles.sort().each { f ->
+            String fileName = normalizePath(f.path)
+            Matcher parsed = templatePattern.matcher(fileName)
+            if (parsed.matches()) {
+              String nextTemplateName = parsed.group(1)
+              if (nextTemplateName != null && currentTemplateName.equals(nextTemplateName)) {
+                relatedTemplates.add(fileName)
+              }
+              else {
+                if (null != relatedTemplates) {
+                  doGenerateFromTemplate(relatedTemplates)
+                }
+                currentTemplateName = nextTemplateName
+                relatedTemplates = new ArrayList<String>()
+                relatedTemplates.add(fileName)
+              }
+            } else {
+                println "File '" + f.path + "' didn't match the pattern."
+            }
+        }
+        if (null != relatedTemplates) {
+            doGenerateFromTemplate(relatedTemplates)
+        }
+    }
+}
+
+void doGenerateFromTemplate(ArrayList<String> templateFiles) {
+    String templateFile = selectProperTemplate(templateFiles)
+    if (null == templateFile) {
+        throw new GradleException("Error trying to generate from templates -- no appropriate template found for" + templateFiles.first() + ".")
+    }
+
+    Map<String, String> names = splitTemplateName(templateFile)
+
+    String pathSep = getSeparator()
+    String templateFileName = names.get("templateName")
+    String outputDir = String.join(pathSep, normalizePath("${generatedSrcDir}"), names.get("packagePath"))
+    String outputFileName = names.get("javaFileName")
+    Properties properties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+    copy {
+        file(outputDir).mkdirs()
+        from(templateFile) {
+            filter(ReplaceTokens, tokens: properties)
+        }
+        into outputDir
+        rename(templateFileName, outputFileName)
+    }
+}
+
+Map<String, String> splitTemplateName(String template) {
+    String PACKAGE_BASE_NAME = "com"
+    String PACKAGE_ROOT = "/" + PACKAGE_BASE_NAME + "/"
+    //String fullName = String.join("/","${haxePluginDir}", template)
+    String fullName = normalizePath(template)
+    if (!fullName.contains(PACKAGE_ROOT)) {
+        throw new GradleException("Cannot find /com/ in template file name")
+    }
+
+    boolean foundPackageRoot = false;
+    ArrayList<String> prefixPathParts = new ArrayList<>()
+    ArrayList<String> packagePathParts = new ArrayList<>()
+    String[] pathParts = fullName.split("/")
+    String fileName = pathParts.last()
+    pathParts = pathParts.dropRight(1)
+    pathParts.each{ pathPart ->
+        if (!foundPackageRoot) {
+            if (PACKAGE_BASE_NAME.equals(pathPart)) {
+                foundPackageRoot = true
+                packagePathParts.add(pathPart)
+            }
+            else {
+                prefixPathParts.add(pathPart)
+            }
+        }
+        else {
+            packagePathParts.add(pathPart)
+        }
+    }
+    String pathSep = getSeparator()
+    HashMap<String, String> output = new HashMap<String, String>()
+    output.put("templatePrefix", String.join(pathSep, prefixPathParts))
+    output.put("packagePath", String.join(pathSep, packagePathParts))
+    output.put("templateName", fileName)
+    output.put("javaFileName", String.join(".", fileName.split("\\.").dropRight(1)))
+    return output
+}
+
+String getSeparator() {
+    //return System.getProperty("file.separator")
+    return "/"
+}
+
+String normalizePath(String path) {
+    // Replace backslash with forward slash.
+    String s = path.replaceAll("\\\\", "/")
+    return s.replaceAll("//", "/")
+}
+
+String selectProperTemplate(List<String> templateFiles) {
+    // TODO: Figure out a way to get the properties ONCE (e.g. not in this method) and re-use them.
     Properties properties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
     int codeline = Integer.parseInt(properties.getProperty("idea.sdk.codeline"))
 
-    String srcPrefix = "${haxePluginDir}/src/common"
-    String relativePath = "com/intellij/plugins/haxe/ide/index"
-    String templatePath = String.join("/", srcPrefix, relativePath)
-    String outputDir = String.join("/", "${generatedSrcDir}", relativePath)
-
-    String fileName = "HaxeInheritanceDefinitionsSearchExecutor.java"
-    String templateExtension = (codeline >= 182) ? "182" : "161"
-    String templateFile = String.join(".", fileName, templateExtension)
-    copy {
-      file(outputDir).mkdirs()
-      from(String.join("/", templatePath, templateFile)) {
-          filter(ReplaceTokens, tokens: properties)
-      }
-      into outputDir
-      rename(templateFile, fileName)
+    String templateToUse = null
+    int currentValue = 0
+    templateFiles.sort().each{ template ->
+        int templateVersion = extractTemplateVersionId(template)
+        currentValue = isHigherButLessThan(templateVersion, currentValue, codeline)
+        if (currentValue == templateVersion) {
+            templateToUse = template
+        }
     }
-  }
+    return templateToUse
 }
 
+int extractTemplateVersionId(String fileName) {
+    String name = lastPart("/", fileName)
+    String version = lastPart("\\.", name)
+    return Integer.parseInt(version)
+}
+
+String lastPart(String regexSep, String toSplit) {
+  return toSplit.split(regexSep).last()
+}
+
+int isHigherButLessThan(int value, int current, int max) {
+  if (value > max) return current
+  if (value == max) return max
+  if (value > current) return value
+  return current
+}
 
 task generateSources(group: 'generate') {
     dependsOn 'generateIdeaSdkIdentifer'
