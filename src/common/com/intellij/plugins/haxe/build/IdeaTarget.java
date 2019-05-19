@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,11 @@ public class IdeaTarget {
   // When writing code using these constants, always use the most generic
   // of the compatibility strings possible.
   //
+
+  public static final boolean IS_VERSION_19_3_COMPATIBLE = (SDK_CODELINE >= 193);
+  public static final boolean IS_VERSION_19_2_COMPATIBLE = (SDK_CODELINE >= 192);
+  public static final boolean IS_VERSION_19_1_COMPATIBLE = (SDK_CODELINE >= 191);
+  public static final boolean IS_VERSION_19_COMPATIBLE = (IS_VERSION_19_1_COMPATIBLE || IS_VERSION_19_2_COMPATIBLE || IS_VERSION_19_3_COMPATIBLE);
 
   public static final boolean IS_VERSION_18_3_COMPATIBLE = (SDK_CODELINE >= 183);
   public static final boolean IS_VERSION_18_2_COMPATIBLE = (SDK_CODELINE >= 182);
