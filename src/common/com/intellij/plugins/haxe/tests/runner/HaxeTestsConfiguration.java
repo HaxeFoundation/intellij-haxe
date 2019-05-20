@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2015 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +21,6 @@ package com.intellij.plugins.haxe.tests.runner;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configuration.EmptyRunProfileState;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -31,7 +31,6 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.plugins.haxe.runner.HaxeApplicationModuleBasedConfiguration;
 import com.intellij.plugins.haxe.tests.runner.ui.HaxeTestConfigurationEditorForm;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
@@ -41,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class HaxeTestsConfiguration extends ModuleBasedConfiguration<HaxeApplicationModuleBasedConfiguration>
+public class HaxeTestsConfiguration extends HaxeTestsConfigurationBase
   implements RunConfigurationWithSuppressedDefaultRunAction {
 
   private String myRunnerClass;
@@ -49,7 +48,7 @@ public class HaxeTestsConfiguration extends ModuleBasedConfiguration<HaxeApplica
   public HaxeTestsConfiguration(String name,
                                 Project configurationModule,
                                 HaxeTestsRunConfigurationType configurationType) {
-    super(name, new HaxeApplicationModuleBasedConfiguration(configurationModule), configurationType.getConfigurationFactories()[0]);
+    super(name, configurationModule, configurationType);
   }
 
   @Override

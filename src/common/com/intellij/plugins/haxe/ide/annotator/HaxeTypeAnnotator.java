@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +43,8 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     assert myHolder == null;
-    myHolder = holder;
     try {
+      myHolder = new HaxeAnnotationHolder(holder);
       element.accept(this);
     }
     finally {

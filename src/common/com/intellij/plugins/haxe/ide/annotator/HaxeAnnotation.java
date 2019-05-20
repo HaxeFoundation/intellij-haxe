@@ -46,6 +46,26 @@ public class HaxeAnnotation /* extends Annotation -- can't, it's final :( */ {
     this.tooltip = tooltip;
   }
 
+  public HighlightSeverity getSeverity() {
+    return severity;
+  }
+
+  public TextRange getRange() {
+    return range;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public String getTooltip() {
+    return tooltip;
+  }
+
+  public List<IntentionAction> getFixes() {
+    return intentions;
+  }
+
   public HaxeAnnotation withFix(HaxeFixer action) {
     intentions.add(action);
     return this;

@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.DefinitionsScopedSearch;
-import com.intellij.psi.search.searches.DefinitionsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
@@ -41,13 +40,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author: Fedor.Korotkov
+ * Workhorse class for HaxeInheritanceDefnitionsSearchExecutor.  This class, by
+ * all rights, should be (and used to be!) that class.  However, we now have wrappers
+ * to deal with the changed signature of {@link QueryExecutorBase#processQuery(Object, Processor)}.
  */
-public class HaxeInheritanceDefinitionsSearchExecutor extends QueryExecutorBase<PsiElement, PsiElement> {
-
-  public HaxeInheritanceDefinitionsSearchExecutor() {
-    super(true); // Wrap in a read action.
-  }
+public class HaxeInheritanceDefinitionsSearcher  {
 
   public static List<HaxeClass> getItemsByQName(final HaxeClass haxeClass) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
@@ -60,12 +57,8 @@ public class HaxeInheritanceDefinitionsSearchExecutor extends QueryExecutorBase<
     return result;
   }
 
-  @Override
-  public void processQuery(@NotNull PsiElement queryParameters, @NotNull Processor<PsiElement> consumer) {
-    processQueryInternal(queryParameters, consumer);
-  }
-
-  private boolean processQueryInternal(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
+  /** Package access.  This should only be called from HaxeInheritanceDefinitionsSearchExecutor. */
+  static boolean processQueryInternal(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
     final PsiElement queryParametersParent = queryParameters.getParent();
     HaxeNamedComponent haxeNamedComponent;
     if (queryParameters instanceof HaxeClass) {
@@ -101,7 +94,7 @@ public class HaxeInheritanceDefinitionsSearchExecutor extends QueryExecutorBase<
 
   }
 
-  private boolean processInheritors(final String qName, final PsiElement context, final Processor<PsiElement> consumer) {
+  static private boolean processInheritors(final String qName, final PsiElement context, final Processor<? super PsiElement> consumer) {
     final Set<String> namesSet = new THashSet<String>();
     final LinkedList<String> namesQueue = new LinkedList<String>();
     namesQueue.add(qName);

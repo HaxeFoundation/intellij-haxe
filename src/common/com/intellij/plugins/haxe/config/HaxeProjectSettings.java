@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,7 @@ import java.util.Set;
 @State(
   name = "HaxeProjectSettings",
   storages = {
-    @Storage(file = StoragePathMacros.PROJECT_FILE),
-    @Storage(file = StoragePathMacros.PROJECT_CONFIG_DIR + "/haxe.xml", scheme = StorageScheme.DIRECTORY_BASED)
+    @Storage("/haxe.xml")
   }
 )
 public class HaxeProjectSettings implements PersistentStateComponent<Element>, HaxeTrackedModifiable {

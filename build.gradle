@@ -71,6 +71,7 @@ allprojects {
 
     apply plugin: 'idea'
     apply plugin: 'org.jetbrains.intellij'
+    apply from: "${haxePluginDir}/template.gradle"
 
     intellij {
         type = 'IU'
@@ -90,6 +91,13 @@ test.dependsOn('setupTools')
 
 if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
 
+
+// Sources that contain templates to be generated.
+sourceSets {
+    templates {
+    }
+}
+sourceSets.templates.resources.srcDir 'src/common'
 
 sourceSets.main.java.srcDirs = ['src/common', 'src/icons', 'gen']
 sourceSets.main.resources.srcDir 'resources'
@@ -258,6 +266,8 @@ task generateIdeaSdkIdentifer(group: 'generate') {
 
 task generateSources(group: 'generate') {
     dependsOn 'generateIdeaSdkIdentifer'
+    // See template.gradle for generateVersionSpecificSources task.
+    dependsOn 'generateVersionSpecificSources'
     dependsOn 'generateHaxeParser'
     dependsOn 'generateHxmlParser'
 }
@@ -281,6 +291,8 @@ Properties findSdkValuesAndProperties(File buildFile) {
     // Lookup table for properties files.  Add new versions here.
     def propertiesFile = ""
     switch (Integer.valueOf(codeLine, 10)) {
+        case 192: propertiesFile = "idea_v19.properties"; break
+        case 191: propertiesFile = "idea_v19.properties"; break
         case 183: propertiesFile = "idea_v18.properties"; break
         case 182: propertiesFile = "idea_v18.properties"; break
         case 181: propertiesFile = "idea_v18.properties"; break
@@ -291,6 +303,8 @@ Properties findSdkValuesAndProperties(File buildFile) {
         case 162: propertiesFile = "idea_v16.properties"; break
         case 161: propertiesFile = "idea_v16.properties"; break
         case 145: propertiesFile = "idea_v16.properties"; break
+        default:
+            throw new GradleException("Could not determine correct properties file for code line " + codeLine + ".")
     }
     def properties = new Properties()
     if (0 != propertiesFile.size()) {

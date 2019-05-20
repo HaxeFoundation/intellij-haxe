@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +27,9 @@ import com.intellij.codeInsight.daemon.impl.PsiElementListNavigator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor;
+import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearcher;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -72,7 +72,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(supers.toArray(new HaxeClass[supers.size()]));
 
-    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(haxeClass);
+    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQName(haxeClass);
     final List<HaxeNamedComponent> subItems = new ArrayList<>();
     for (HaxeClass subClass : subClasses) {
       subItems.addAll(HaxeResolveUtil.getNamedSubComponents(subClass));

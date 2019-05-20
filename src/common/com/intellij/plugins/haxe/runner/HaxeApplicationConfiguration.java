@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class HaxeApplicationConfiguration extends ModuleBasedConfiguration<HaxeApplicationModuleBasedConfiguration>
+public class HaxeApplicationConfiguration extends HaxeApplicationConfigurationBase
   implements RunConfigurationWithSuppressedDefaultRunAction {
   private boolean customFileToLaunch = false;
   private String customFileToLaunchPath = "";
