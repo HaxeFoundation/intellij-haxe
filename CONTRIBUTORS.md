@@ -2,14 +2,13 @@ Recent contributors
 -----------------------------------
  - Alexander Kuzmenko <alex@stablex.ru>
  - Eric Bishton <ebishton@ix.netcom.com>
- - EricBishton <ebishton@ix.netcom.com>
  - Eric Bishton <eric@bishtonsoftware.com>
+ - EricBishton <ebishton@ix.netcom.com>
  - GitHub <noreply@github.com>
  - Ilya Malanin <loremipsum.inside@gmail.com>
  - m0rkeulv <github@m0rkeulv.net>
  - mayakwd <loremipsum.inside@gmail.com>
- - Slava Buynov <slavab@playtika.com>
- - The Codacy Badger <badger@codacy.com>
+ - unknown <github@m0rkeulv.net>
 
 All contributors
 -----------------------------------
@@ -19,7 +18,6 @@ All contributors
 - anna <Anna.Kozlova@jetbrains.com>
 - artem pecheny <pecheny@gmail.com>
 - as3boyan <denis.flash.as3@gmail.com>
-- AS3Boyan <denis.flash.as3@gmail.com>
 - bjitivo <bji@tivo.com>
 - Bruno Garcia <b@aduros.com>
 - Bryan Ischo <bryan@ischo.com>
@@ -33,15 +31,15 @@ All contributors
 - Dmitry Jemerov <yole@jetbrains.com>
 - Dmitry Lomov <dmitry.lomov@jetbrains.com>
 - EBatTiVo <ebishton@tivo.com>
-- eliasku <deadbabe@gmail.com>
 - Elias Ku <deadbabe@gmail.com>
+- eliasku <deadbabe@gmail.com>
 - Eric B <ebishton@tivo.com>
 - Eric Bishton <ebishton@Erics-MacBook-Pro.local>
 - Eric Bishton <ebishton@ix.netcom.com>
-- EricBishton <ebishton.ix.netcom.com>
-- EricBishton <ebishton@ix.netcom.com>
 - Eric Bishton <eric@bishtonsoftware.com>
 - Eric Bishton <EricBishton@users.noreply.github.com>
+- EricBishton <ebishton.ix.netcom.com>
+- EricBishton <ebishton@ix.netcom.com>
 - Eugene Zhuravlev <jeka@intellij.com>
 - Evgeny Pasynkov <Evgeny.Pasynkov@jetbrains.com>
 - Evgeny Zakrevsky <evgeny.zakrevsky@jetbrains.com>
@@ -62,13 +60,14 @@ All contributors
 - impaler <user123@server.fake>
 - isBatak <ivicabatinic123@gmail.com>
 - Jens Fischer <jensfischer95@gmail.com>
-- Jérémy Faivre <jeremy.faivre@gmail.com>
 - jeremyfa <jeremy.faivre@gmail.com>
-- kirill.safonov <kirill.safonov@jetbrains.com>
+- Jérémy Faivre <jeremy.faivre@gmail.com>
 - Kirill Safonov <kirill.safonov@jetbrains.com>
+- kirill.safonov <kirill.safonov@jetbrains.com>
 - m0rkeulv <github@m0rkeulv.net>
-- Maxim.Mossienko <Maxim.Mossienko@jetbrains.com>
+- m0rkeulv <github@morkeulv.net>
 - Maxim Shafirov <max@jetbrains.com>
+- Maxim.Mossienko <Maxim.Mossienko@jetbrains.com>
 - mayakwd <loremipsum.inside@gmail.com>
 - nik <Nikolay.Chashnikov@jetbrains.com>
 - Oleg Sukhodolsky <oleg.sukhodolsky@jetbrains.com>
@@ -83,12 +82,13 @@ All contributors
 - The Codacy Badger <badger@codacy.com>
 - Tim Hepner <tim@hepners.net>
 - Todd Brannam <tbrannam@casualpenguin.com>
-- Usievaład Čorny <anibyl@riseup.net>
+- unknown <github@m0rkeulv.net>
 - Usievaład Kimajeŭ <usievalad@gmail.com>
+- Usievaład Čorny <anibyl@riseup.net>
 - Vassiliy Kudryashov <Vassiliy.Kudryashov@jetbrains.com>
 - vaukalak <lahmataja.pa4vara@gmia>
-- vladimir.krivosheev <vladimir.krivosheev@jetbrains.com>
 - Vladimir Krivosheev <vladimir.krivosheev@jetbrains.com>
+- vladimir.krivosheev <vladimir.krivosheev@jetbrains.com>
 - winmain <d.winmain@gmail.com>
-- Yannick Dominguez <yannick.dominguez@gmail.com>
 - yannick <yannnick.dominguez@gmail.com>
+- Yannick Dominguez <yannick.dominguez@gmail.com>

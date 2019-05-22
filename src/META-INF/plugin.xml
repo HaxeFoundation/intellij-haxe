@@ -74,14 +74,15 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>POST.1.1.develop.@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>1.2@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
-      <p>Unreleased Changes:</p>
+      <p>1.2 (HaxeFoundation release)</p>
       <ul>
+        <li>Update builds for 2019.1 and 2018.x versions.</li>
         <li>Fix completion on abstracts using generic underlying types (e.g. abstract MyClass<T>(T) {}) (Issue #772)</li>
         <li>Fix completion through abstracts.</li>
         <li>Resolve fields and methods through abstracts.</li>
@@ -91,6 +92,8 @@
         <li>No longer display type mismatch errors when using abstracts with (varying) generic type parameters.  (e.g. Null<String>, Null<Test>)</li>
         <li>Better detection of types inferred after declaration (monomorphs).</li>
         <li>Fixed type detection for expressions in parenthesis.</li>
+        <li>Downgrade visibility (public/private) incompatibility to a warning.</li>
+        <li>Allow "Dynamic" as an interface type.</li>
         <li>Detect simple type mismatches in declarations and assignments.  Add quick fixes for them.</li>
         <li>Check type of type check statements (e.g. `(myExpression : Float)`) and warn.  Add quick fixes.</li>
         <li>Auto-close regions and conditionally (un)compiled code, and add checkboxes to the Settings panel for folding.</li>
