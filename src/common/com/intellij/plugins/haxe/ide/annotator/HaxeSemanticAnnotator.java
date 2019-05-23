@@ -155,13 +155,15 @@ class TypeTagChecker {
   }
 
   @NotNull
-  private static ResultHolder getTypeFromVarInit(HaxeVarInit init) {
+  private static ResultHolder getTypeFromVarInit(@NotNull HaxeVarInit init) {
     final ResultHolder abstractEnumFieldInitType = HaxeAbstractEnumUtil.getStaticMemberExpression(init.getExpression());
     if (abstractEnumFieldInitType != null) {
       return abstractEnumFieldInitType;
     }
     // fallback to simple init expression
-    return HaxeTypeResolver.getPsiElementType(init.getExpression(), init, HaxeGenericResolverUtil.generateResolverFromScopeParents(init));
+    HaxeExpression initExpression = init.getExpression();
+    return null != initExpression ? HaxeTypeResolver.getPsiElementType(initExpression, init, HaxeGenericResolverUtil.generateResolverFromScopeParents(init))
+                                  : SpecificTypeReference.getInvalid(init).createHolder();
   }
 }
 
