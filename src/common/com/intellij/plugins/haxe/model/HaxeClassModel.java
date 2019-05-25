@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -388,6 +388,12 @@ public class HaxeClassModel implements HaxeExposableModel {
         classType.getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
+
+    // TODO: Add types from @:from and @:to methods, including inferred method types.
+  }
+
+  public boolean hasGenericParams() {
+    return getPsi().getGenericParam() != null;
   }
 
   public List<HaxeGenericParamModel> getGenericParams() {

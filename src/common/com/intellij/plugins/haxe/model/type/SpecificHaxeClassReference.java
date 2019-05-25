@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,24 +188,51 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   Set<SpecificHaxeClassReference> getCompatibleTypes() {
-    Set<SpecificHaxeClassReference> result = context.getUserData(COMPATIBLE_TYPES_KEY);
-    if (result == null) {
+    HaxeClassModel model = getHaxeClassModel();
+    if (null == model || !model.hasGenericParams()) {
+      // If we want to cache all results, then we need a better caching mechanism.
+      // This breaks for generic types.  The first check of the generic sets up
+      // the compatible types, and then all other instances are checked against that set.
+      // So, this fails because the cached types for Null<T> are Null<String> and String:
+      //  class Test{
+      //    var x:Null<String> = null;
+      //    var y:Null<Test> = null;
+      //    function new() {
+      //      x = "New String";
+      //      y = this; // <<< ERROR SomethingElse should be Null<SomethingElse>.
+      //    }
+      //  }
+      Set<SpecificHaxeClassReference> result = context.getUserData(COMPATIBLE_TYPES_KEY);
+      if (result == null) {
+        processedElements.get().clear();
+        result = getCompatibleTypesInternal();
+        result.add(this);
+        context.putUserData(COMPATIBLE_TYPES_KEY, result);
+      }
+      return result;
+    } else {
       processedElements.get().clear();
-      result = getCompatibleTypesInternal();
+      Set<SpecificHaxeClassReference>result = getCompatibleTypesInternal();
       result.add(this);
-      context.putUserData(COMPATIBLE_TYPES_KEY, result);
+      return result;
     }
-    return result;
   }
 
   Set<SpecificHaxeClassReference> getInferTypes() {
-    Set<SpecificHaxeClassReference> result = context.getUserData(INFER_TYPES_KEY);
-    if (result == null) {
+    HaxeClassModel model = getHaxeClassModel();
+    if (null == model || !model.hasGenericParams()) {
+      // Breaks on generics.  See note on getCompatibleTypes.
+      Set<SpecificHaxeClassReference> result = context.getUserData(INFER_TYPES_KEY);
+      if (result == null) {
+        processedElements.get().clear();
+        result = getInferTypesInternal();
+        context.putUserData(INFER_TYPES_KEY, result);
+      }
+      return result;
+    } else {
       processedElements.get().clear();
-      result = getInferTypesInternal();
-      context.putUserData(INFER_TYPES_KEY, result);
+      return getInferTypesInternal();
     }
-    return result;
   }
 
   private Set<SpecificHaxeClassReference> getCompatibleTypesInternal() {

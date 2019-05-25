@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(getAnnotatorBasedInspection());
-    myFixture.testHighlighting(true, false, true);
+    myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }
 
   private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
@@ -398,4 +398,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings("std/StdTypes.hx");
   }
 
+  public void testNoErrorOnMultipleNullT() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
 }
