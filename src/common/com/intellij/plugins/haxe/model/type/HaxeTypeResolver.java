@@ -345,12 +345,12 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getPsiElementType(PsiElement element, HaxeGenericResolver resolver) {
+  static public ResultHolder getPsiElementType(@NotNull PsiElement element, HaxeGenericResolver resolver) {
     return getPsiElementType(element, (PsiElement)null, resolver);
   }
 
   @NotNull
-  static public ResultHolder getPsiElementType(PsiElement element, @Nullable PsiElement resolveContext, HaxeGenericResolver resolver) {
+  static public ResultHolder getPsiElementType(@NotNull PsiElement element, @Nullable PsiElement resolveContext, HaxeGenericResolver resolver) {
     if (element == resolveContext) return SpecificTypeReference.getInvalid(element).createHolder();
     if (element instanceof HaxeReferenceExpression) {
       PsiElement targetElement = ((HaxeReferenceExpression)element).resolve();
@@ -397,7 +397,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public HaxeExpressionEvaluatorContext getPsiElementType(PsiElement element, @Nullable AnnotationHolder holder,
+  static public HaxeExpressionEvaluatorContext getPsiElementType(@NotNull PsiElement element, @Nullable AnnotationHolder holder,
                                                                  HaxeGenericResolver resolver) {
     return evaluateFunction(new HaxeExpressionEvaluatorContext(element, holder), resolver);
   }
