@@ -4,6 +4,7 @@
     <li>Update builds for 2019.1 and 2018.x versions.</li>
     <li>Fixed constructor being renamed when a class is renamed (refactored).  (Issue #776, #785)</li>
     <li>Fixed ClassCastException when Refactor->Rename was used on generic type names.</li>
+    <li>No longer display type mismatch errors when using abstracts with (varying) generic type parameters.  (e.g. Null<String>, Null<Test>)</li>
     <li>Better detection of types inferred after declaration (monomorphs).</li>
     <li>Fixed type detection for expressions in parenthesis.</li>
     <li>Downgrade visibility (public/private) incompatibility to a warning.</li>
