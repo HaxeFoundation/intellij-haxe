@@ -210,13 +210,17 @@ task copyJar() {
 
 test {
     useJUnit()
-    jvmArgs = [
-            "-Didea.home.path=${ideaTargetDir}",
-            "-Xbootclasspath/a:${ideaTargetDir}/lib/boot.jar",
-            "-Dfile.encoding=UTF-8",
-            "-ea",
-            "-Didea.launcher.bin.path=${ideaTargetDir}/bin"
+    allJvmArgs = [
+      "-Didea.home.path=${ideaTargetDir}",
+      "-Xbootclasspath/a:${ideaTargetDir}/lib/boot.jar",
+      "-Dfile.encoding=UTF-8",
+      "-ea",
+      "-Didea.launcher.bin.path=${ideaTargetDir}/bin"
     ]
+    if (ideaVersion.matches(~/2017\.(1|2).*/)) {
+        // Project leak detection is not right in 2017.1&2.x
+        allJvmArgs += ["-Didea.log.leaked.projects.in.tests=false"]
+    }
 }
 
 clean.dependsOn('cleanGenerated')
