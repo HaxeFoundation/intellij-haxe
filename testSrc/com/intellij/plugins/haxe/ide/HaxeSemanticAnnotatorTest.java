@@ -44,24 +44,23 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     return "/annotation.semantic/";
   }
 
-  private void doTestNoFix(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings, String... additionalFiles) throws Exception {
+  private void doTestInternal(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings, String... additionalFiles) throws Exception {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
-    final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
-    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
+    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
     myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }
 
   private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
-    doTestNoFix(true, false, false, additionalFiles);
+    doTestInternal(true, false, false, additionalFiles);
   }
 
   private void doTestNoFixWithoutWarnings(String... additionalFiles) throws Exception {
-    doTestNoFix(false, false, false, additionalFiles);
+    doTestInternal(false, false, false, additionalFiles);
   }
 
   private void doTest(String... filters) throws Exception {
-    doTestNoFixWithoutWarnings();
+    doTestInternal(false, false, false);
 
     List<IntentionAction> intentions = myFixture.getAvailableIntentions();
     for (final IntentionAction action : intentions) {
