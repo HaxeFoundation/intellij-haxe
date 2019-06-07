@@ -82,6 +82,8 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Resolve fields and methods through abstracts.</li>
+        <li>Haxe 4: Special rules to resolve Null<T> as abstract.</li>
         <li>Fixed constructor being renamed when a class is renamed (refactored).  (Issue #776, #785)</li>
         <li>Fixed ClassCastException when Refactor->Rename was used on generic type names.</li>
         <li>No longer display type mismatch errors when using abstracts with (varying) generic type parameters.  (e.g. Null<String>, Null<Test>)</li>

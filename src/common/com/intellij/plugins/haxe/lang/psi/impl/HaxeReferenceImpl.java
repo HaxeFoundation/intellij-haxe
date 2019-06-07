@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  * Copyright 2018 Aleksandr Kuzmenko
  *
@@ -22,7 +22,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,7 +34,6 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.JavaSourceUtil;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
@@ -60,7 +58,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   //static {
   //  LOG.setLevel(Level.TRACE);
-  //}  // TODO: Pull this out after debugging.
+  //}  // Pull this out after debugging.
 
   public HaxeReferenceImpl(ASTNode node) {
     super(node);
@@ -837,7 +835,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (haxeClass == null || !haxeClass.isAbstract()) return;
 
     final HaxeAbstractClassModel model = (HaxeAbstractClassModel)haxeClass.getModel();
-    final HaxeClass underlyingClass = model.getUnderlyingClass();
+    final HaxeClass underlyingClass = model.getUnderlyingClass(model.getGenericResolver(null));
     if (underlyingClass != null) {
       addClassVariants(suggestedVariants, underlyingClass, true);
     }
@@ -873,7 +871,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (isAbstractForward) {
       final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
-        HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass);
+        HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass, null);  // TODO: Need a resolver here??
       if (forwardingHaxeNamedComponents != null) {
         for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
           final boolean needFilter = filterByAccess && !namedComponent.isPublic();

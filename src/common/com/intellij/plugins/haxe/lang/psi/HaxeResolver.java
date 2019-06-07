@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameHelper;
@@ -342,7 +343,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         HaxeClassModel model = leftResultClass.getModel();
 
         if(model.isTypedef()) {
-          // Resolve to the underlying type.  This is important for Null<T> and it's ilk.
+          // Resolve to the underlying type.
           HaxeClassResolveResult result = fullyResolveTypedef(leftResultClass, resolveResult.getSpecialization());
           if (null != result.getHaxeClass()) {
             model = result.getHaxeClass().getModel();
@@ -353,8 +354,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if (member != null) return member.getNamePsi();
 
         if (model.isAbstract() && ((HaxeAbstractClassModel)model).hasForwards()) {
+          HaxeGenericResolver resolver = resolveResult.getSpecialization().toGenericResolver(leftResultClass);
           final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
-            HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass);
+            HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass, resolver);
           if (forwardingHaxeNamedComponents != null) {
             for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
               final HaxeComponentName forwardingComponentName = namedComponent.getComponentName();
@@ -428,7 +430,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (leftClass.isAbstract()) {
         HaxeAbstractClassModel model = (HaxeAbstractClassModel)leftClass.getModel();
         if (model.isForwarded(reference.getReferenceName())) {
-          final HaxeClass underlyingClass = model.getUnderlyingClass();
+          final HaxeClass underlyingClass = model.getUnderlyingClass(reference.getSpecialization().toGenericResolver(leftClass));
           if (underlyingClass != null) {
             member = underlyingClass.getModel().getMember(reference.getReferenceName());
             if (member != null) {

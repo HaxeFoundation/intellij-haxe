@@ -1,5 +1,6 @@
 /*
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +17,17 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class HaxeAbstractClassModel extends HaxeClassModel {
+  private static final Logger LOG = Logger.getLogger("#HaxeAbstractClassModel");
 
   public static final String FORWARD = "@:forward";
 
@@ -39,9 +45,26 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     return hasMeta(FORWARD);
   }
 
-  public HaxeClass getUnderlyingClass() {
+  public HaxeClass getUnderlyingClass(@Nullable final HaxeGenericResolver resolver) {
     HaxeUnderlyingType underlyingTypePsi = getAbstractClass().getUnderlyingType();
-    if (underlyingTypePsi == null) return null;
+    if (underlyingTypePsi == null) {
+      // Null is a special type with no declared underlying class, but the generic
+      // declares the underlying type.  (e.g. Underlying class for "Null<String>" is "String").
+      if ("Null".equals(getName()) && isCoreType()) {
+        if (null == resolver) {
+          LOG.warning("Can't find underlying class for Null<> because there is no resolver/specialization.");
+          return null;
+        }
+        List<HaxeGenericParamModel> params = getGenericParams();
+        if (!params.isEmpty()) {
+          ResultHolder result = resolver.resolve(params.get(0).getName());
+          SpecificHaxeClassReference ref = null != result ? result.getClassType() : null;
+          HaxeClass underlyingClass = ref != null ? ref.getHaxeClass() : null;
+          return underlyingClass;
+        }
+      }
+      return null;
+    }
     HaxeTypeOrAnonymous anonymous = underlyingTypePsi.getTypeOrAnonymous();
     final HaxeType underlyingType = anonymous != null ? anonymous.getType() : null;
     if (underlyingType != null) {
