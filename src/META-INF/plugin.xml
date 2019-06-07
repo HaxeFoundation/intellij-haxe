@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Fix completion through abstracts.</li>
         <li>Resolve fields and methods through abstracts.</li>
         <li>Haxe 4: Special rules to resolve Null<T> as abstract.</li>
         <li>Fixed constructor being renamed when a class is renamed (refactored).  (Issue #776, #785)</li>
