@@ -124,4 +124,20 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   public void testDynamicArrayCantBeAccessed() throws Exception {
     doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
   }
+
+  public void testMethodAccessThroughNullable() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+  }
+
+  public void testVarAccessThroughNullable() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+  }
+
+  public void testMethodAccessThroughAbstract() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+  }
+
+  public void testMethodAccessThroughAbstractAndNull() throws Exception {
+    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+  }
 }

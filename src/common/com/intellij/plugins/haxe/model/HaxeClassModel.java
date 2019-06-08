@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
@@ -107,6 +106,10 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public boolean isAbstract() {
     return haxeClass instanceof HaxeAbstractClassDeclaration;
+  }
+
+  public boolean isCoreType() {
+    return hasMeta("@:coreType");
   }
 
   public boolean hasMeta(@NotNull String name) {
@@ -396,6 +399,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     return getPsi().getGenericParam() != null;
   }
 
+  @NotNull
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
     if (getPsi().getGenericParam() != null) {

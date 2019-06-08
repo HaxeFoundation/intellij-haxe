@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -220,21 +220,32 @@ public class HaxeResolveUtil {
     return findNamedSubComponents(true, rootHaxeClasses);
   }
 
+  private static void addNotNullComponents(@NotNull List<HaxeNamedComponent> collection, @Nullable List<HaxeNamedComponent> possibles) {
+    if (null == possibles) return;
+    for (HaxeNamedComponent component : possibles) {
+      if (component.getName() != null) {
+        collection.add(component);
+      }
+    }
+  }
+
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @NotNull HaxeClass... rootHaxeClasses) {
-    final List<HaxeNamedComponent> unfilteredResult = new ArrayList<HaxeNamedComponent>();
-    final LinkedList<HaxeClass> classes = new LinkedList<HaxeClass>();
-    final HashSet<HaxeClass> processed = new HashSet<HaxeClass>();
+    final List<HaxeNamedComponent> unfilteredResult = new ArrayList<>();
+    final LinkedList<HaxeClass> classes = new LinkedList<>();
+    final HashSet<HaxeClass> processed = new HashSet<>();
     classes.addAll(Arrays.asList(rootHaxeClasses));
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
-      for (HaxeNamedComponent namedComponent : getNamedSubComponents(haxeClass)) {
-        if (namedComponent.getName() != null) {
-          unfilteredResult.add(namedComponent);
-        }
+
+      addNotNullComponents(unfilteredResult, getNamedSubComponents(haxeClass));
+      if (haxeClass.isAbstract()) {
+        HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(haxeClass);
+        List<HaxeNamedComponent> subComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass, resolver);
+        addNotNullComponents(unfilteredResult, subComponents);
       }
 
-      List<HaxeType> baseTypes = new ArrayList<HaxeType>();
+      List<HaxeType> baseTypes = new ArrayList<>();
       baseTypes.addAll(haxeClass.getHaxeExtendsList());
       baseTypes.addAll(haxeClass.getHaxeImplementsList());
       List<HaxeClass> baseClasses = tyrResolveClassesByQName(baseTypes);
@@ -248,7 +259,7 @@ public class HaxeResolveUtil {
       return unfilteredResult;
     }
 
-    return new ArrayList<HaxeNamedComponent>(namedComponentToMap(unfilteredResult).values());
+    return new ArrayList<>(namedComponentToMap(unfilteredResult).values());
   }
 
   public static Map<String, HaxeNamedComponent> namedComponentToMap(List<HaxeNamedComponent> unfilteredResult) {
