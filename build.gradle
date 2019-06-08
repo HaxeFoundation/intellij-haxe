@@ -183,12 +183,8 @@ task patchCustomTags() {
 }
 
 jar {
-    if(jarNametruncateMinor) {
-        // remove minor version digit from jar name (ex. 2017.2.3 -> 2017.2)
-        baseName = "intellij-haxe-${ideaVersion.replaceAll('(\\d{4}\\.\\d)(\\.\\d)?','$1')}"
-    }else {
-        baseName = "intellij-haxe-${ideaVersion}"
-    }
+    def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+    baseName = "intellij-haxe-" + props.getProperty("idea.version");
     include('**/*').includeEmptyDirs(false)
     // include submodules
     from(project(':jps-plugin').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
