@@ -202,7 +202,7 @@ jar.finalizedBy('copyJar')
 task copyJar() {
     doLast {
         copy {
-            from("${haxePluginDir}/build/libs/").include("*")
+            from("${haxePluginDir}/build/libs/").include(jar.archiveName)
             into("${rootDir}/")
         }
     }
