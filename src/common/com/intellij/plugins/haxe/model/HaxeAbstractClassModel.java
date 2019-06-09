@@ -57,10 +57,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
         }
         List<HaxeGenericParamModel> params = getGenericParams();
         if (!params.isEmpty()) {
-          ResultHolder result = resolver.resolve(params.get(0).getName());
-          SpecificHaxeClassReference ref = null != result ? result.getClassType() : null;
-          HaxeClass underlyingClass = ref != null ? ref.getHaxeClass() : null;
-          return underlyingClass;
+          return resolveGeneric(params.get(0).getName(), resolver);
         }
       }
       return null;
@@ -68,11 +65,22 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     HaxeTypeOrAnonymous anonymous = underlyingTypePsi.getTypeOrAnonymous();
     final HaxeType underlyingType = anonymous != null ? anonymous.getType() : null;
     if (underlyingType != null) {
-      final HaxeClassResolveResult result = underlyingType.getReferenceExpression().resolveHaxeClass();
-      return result.getHaxeClass();
+      HaxeReferenceExpression referenceExpression = underlyingType.getReferenceExpression();
+      final HaxeClassResolveResult result = referenceExpression.resolveHaxeClass();
+      HaxeClass resultClass = result.getHaxeClass();
+      return null != resultClass ? resultClass : resolveGeneric(referenceExpression.getIdentifier().getText(), resolver);
     }
 
     return null;
+  }
+
+  @Nullable
+  private HaxeClass resolveGeneric(@Nullable String name, @Nullable HaxeGenericResolver resolver) {
+    if (null == name || null == resolver) return null;
+    ResultHolder result = resolver.resolve(name);
+    SpecificHaxeClassReference ref = null != result ? result.getClassType() : null;
+    HaxeClass underlyingClass = ref != null ? ref.getHaxeClass() : null;
+    return underlyingClass;
   }
 
   public HaxeAbstractClassDeclaration getAbstractClass() {
