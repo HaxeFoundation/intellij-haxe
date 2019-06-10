@@ -82,6 +82,7 @@
       <p/>
       <p>Unreleased Changes:</p>
       <ul>
+        <li>Fix completion on abstracts using generic underlying types (e.g. abstract MyClass<T>(T) {}) (Issue #772)</li>
         <li>Fix completion through abstracts.</li>
         <li>Resolve fields and methods through abstracts.</li>
         <li>Haxe 4: Special rules to resolve Null<T> as abstract.</li>

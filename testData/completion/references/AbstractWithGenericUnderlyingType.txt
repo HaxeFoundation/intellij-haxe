@@ -1,0 +1,7 @@
+:INCLUDE
+extraFunctionality
+charAt
+length
+
+:EXCLUDE
+new

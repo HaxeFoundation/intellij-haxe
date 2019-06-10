@@ -339,6 +339,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude("std/StdTypes.hx", "std/String.hx");
   }
 
+  public void testAbstractWithGenericUnderlyingType() throws Throwable {
+    // Issue #772
+    doTestInclude("std/StdTypes.hx", "std/String.hx");
+  }
+
   //public void testUsingStringTools() throws Throwable {
   //  myFixture.configureByFiles("UsingStringTools.hx", "std/StringTools.hx", "std/String.hx", "std/StdTypes.hx");
   //  doTestVariantsInner("UsingStringTools.txt");
