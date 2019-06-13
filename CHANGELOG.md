@@ -2,6 +2,10 @@
   <p>1.2 (HaxeFoundation release)</p>
   <ul>
     <li>Update builds for 2019.1 and 2018.x versions.</li>
+    <li>Fix completion on abstracts using generic underlying types (e.g. abstract MyClass<T>(T) {}) (Issue #772)</li>
+    <li>Fix completion through abstracts.</li>
+    <li>Resolve fields and methods through abstracts.</li>
+    <li>Haxe 4: Special rules to resolve Null<T> as abstract.</li>
     <li>Fixed constructor being renamed when a class is renamed (refactored).  (Issue #776, #785)</li>
     <li>Fixed ClassCastException when Refactor->Rename was used on generic type names.</li>
     <li>No longer display type mismatch errors when using abstracts with (varying) generic type parameters.  (e.g. Null<String>, Null<Test>)</li>
