@@ -87,7 +87,7 @@ allprojects {
 apply from: 'dependencies/tools.gradle'
 
 build.dependsOn('setupTools')
-test.dependsOn('setupTools','jar','copyJar')
+test.dependsOn('setupTools')
 
 
 if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
@@ -184,25 +184,25 @@ task patchCustomTags() {
 }
 
 jar {
-    doLast {
-        def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
-        baseName = "intellij-haxe-" + props.getProperty("idea.version");
-        include('**/*').includeEmptyDirs(false)
-        // include submodules
-        from(project(':jps-plugin').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
-        from(project(':common').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
-        from(project(':hxcpp-debugger-protocol').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
+    baseName = "intellij-haxe"
+    include('**/*').includeEmptyDirs(false)
+    // include submodules
+    from(project(':jps-plugin').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
+    from(project(':common').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
+    from(project(':hxcpp-debugger-protocol').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
 
-        from(zipTree("${ideaTargetDir}/lib/forms_rt.jar")).include('com/intellij/uiDesigner/core/*.class')
-    }
+    from(zipTree("${ideaTargetDir}/lib/forms_rt.jar")).include('com/intellij/uiDesigner/core/*.class')
 }
 jar.finalizedBy('copyJar')
 
 task copyJar() {
     doLast {
+        def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+        def jarName = "intellij-haxe-" + props.getProperty("idea.version") + ".jar"
         copy {
             from("${haxePluginDir}/build/libs/").include(jar.archiveName)
             into("${rootDir}/")
+            rename({jarName})
         }
     }
 }
