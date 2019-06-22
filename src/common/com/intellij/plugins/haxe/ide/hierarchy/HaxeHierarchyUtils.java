@@ -50,10 +50,10 @@ import java.util.List;
 public class HaxeHierarchyUtils {
   private static final Logger LOG = Logger.getInstance("#com.intellij.ide.hierarchy.HaxeHierarchyUtils");
 
-  static
-  {
-    LOG.setLevel(Level.DEBUG);
-  }
+  //static
+  //{
+  //  LOG.setLevel(Level.DEBUG);
+  //}
 
   private HaxeHierarchyUtils() {
     throw new NotImplementedException("Static use only.");

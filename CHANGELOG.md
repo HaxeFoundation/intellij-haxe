@@ -1,4 +1,32 @@
 # Changelog
+  <p>1.2 (HaxeFoundation release)</p>
+  <ul>
+    <li>Update builds for 2019.1 and 2018.x versions.</li>
+    <li>Fix completion on abstracts using generic underlying types (e.g. abstract MyClass&lt;T&gt;(T) {}) (Issue #772)</li>
+    <li>Fix completion through abstracts.</li>
+    <li>Resolve fields and methods through abstracts.</li>
+    <li>Haxe 4: Special rules to resolve Null&lt;T&gt; as abstract.</li>
+    <li>Fixed constructor being renamed when a class is renamed (refactored).  (Issue #776, #785)</li>
+    <li>Fixed ClassCastException when Refactor-&gt;Rename was used on generic type names.</li>
+    <li>No longer display type mismatch errors when using abstracts with (varying) generic type parameters.  (e.g. Null&lt;String&gt;, Null&lt;Test&gt;)</li>
+    <li>Better detection of types inferred after declaration (monomorphs).</li>
+    <li>Fixed type detection for expressions in parenthesis.</li>
+    <li>Downgrade visibility (public/private) incompatibility to a warning.</li>
+    <li>Allow "Dynamic" as an interface type.</li>
+    <li>Detect simple type mismatches in declarations and assignments.  Add quick fixes for them.</li>
+    <li>Check type of type check statements (e.g. `(myExpression : Float)`) and warn.  Add quick fixes.</li>
+    <li>Auto-close regions and conditionally (un)compiled code, and add checkboxes to the Settings panel for folding.</li>
+    <li>Fix Extract Variable and Extract Constant refactorings (Issue #844):
+      <ul>
+        <li>Fixed infinite loop when extracting multiple occurrences.</li>
+        <li>Avoid keywords when making name suggestions.</li>
+        <li>Fix multi-select for custom names in all occurrences.</li>
+        <li>Fix semi-colon insertion/detection.</li>
+        <li>Suggest variable names based upon expression type.</li>
+      </ul>
+    </li>
+    <li>Allow AIR targets to be debugged using the flash system. (Issue #849)</li>
+  </ul>
   <p>1.1 (HaxeFoundation release)</p>
   <ul>
     <li>Added support of haxe 4 syntax "enum abstract".</li>

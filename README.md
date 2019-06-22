@@ -1,8 +1,8 @@
-Haxe plugin for Intellij IDEA
+Haxe plugin for Intellij IDEA and Android Studio
 ======================================
 
-This plugin allows you to develop [Haxe](http://haxe.org/) programs with [Intellij IDEA](http://www.jetbrains.com/idea).
-It requires Intellij IDEA Ultimate or Community Edition, versions 2016.x, 2017.x, and 2018.x.
+This plugin allows you to develop multi-platform programs using the [Haxe](http://haxe.org/) language with [Intellij IDEA](http://www.jetbrains.com/idea), [Android Studio](https://developer.android.com/studio/) and other IntelliJ IDEA-based IDEs by JetBrains.
+It requires Intellij IDEA Ultimate or Community Edition, versions 2016.1 through 2019.1, or Android Studio versions 2.2 through 3.4. 
 
 #### Technical Support
 Support for this plugin is available through the project's home page: [http://intellij-haxe.org](http://intellij-haxe.org), or
@@ -10,8 +10,8 @@ the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](h
 
 #### Past Versions Announcement
 
-Very, very few users are continuing to use this plugin with IDEA versions 14.x and 15.x.  Plugin version 0.11.2 was the last
-version published that supported these environments.  (If you and/or your business need these or previous versions supported, then
+Very, very few users are continuing to use this plugin with older versions of IDEA.  Plugin version 0.11.2 was the last
+version published that supported IDEA 15.x and previous.  (If you and/or your business need these or previous versions supported, then
 [contact the project maintainers](http://intellij-haxe.org/contact) at the project page ([http://intellij-haxe.org](http://intellij-haxe.org)) and continuing support
 can be arranged.) 
 
@@ -47,7 +47,7 @@ If you already have a project open in IDEA:
 ### To manually install the latest or a previous Github release
 
 Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/HaxeFoundation/intellij-haxe/releases).
-More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-14.1.1.jar`)
+More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-2016.1.jar`)
 Make sure that you pick the proper one for your release.  A message should pop up and warn you if a release is incompatible.
 
 If you do not yet have a project open in IDEA (and after first-time setup):
@@ -59,8 +59,8 @@ If you do not yet have a project open in IDEA (and after first-time setup):
 If you already have a project open IDEA:
 - Open the Settings dialog (File->Settings...)
 - Highlight "Plugins" in the leftmost column
-- Click “Install plugin from disk...”
-- Select the “intellij-haxe.jar” file you downloaded
+- Click “Install plugin from disk...”.  On 2019.x versions or later, click on the settings (gear) icon to see the "Install from disk..." menu item.
+- Select the `intellij-haxe-<version>.jar` file you downloaded
 - Allow IDEA to restart and initialize the plugin.
 
 Build
@@ -68,7 +68,7 @@ Build
 Note that installation as described above installs a fully built version of the plugin (the .jar file).  Most users do not have to
 build the product for themselves.  This section is for those who like to dig a little deeper.
 
-This describes the command line build on a Linux platform. To build from within Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
+This describes the command line build.  To build from within Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
 your development environment.  Much more detail is provided there for command line build options as well.
 
 ### Dependencies
@@ -82,7 +82,7 @@ Windows
 ```
 gradlew.bat clean build verifyPlugin -PtargetVersion=<IDEA_VERSION>
 ```
-Mac/linux
+Mac/Linux
 ```
 ./gradlew clean build verifyPlugin -PtargetVersion=<IDEA_VERSION>
 ```
@@ -115,7 +115,7 @@ Windows
 ```
 gradlew.bat test -PtargetVersion=<IDEA_VERSION>
 ```
-Mac/linux
+Mac/Linux
 ```
 ./gradlew test -PtargetVersion=<IDEA_VERSION>
 ```
