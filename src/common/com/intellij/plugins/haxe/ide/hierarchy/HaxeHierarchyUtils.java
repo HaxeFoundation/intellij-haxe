@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,10 @@ import java.util.List;
 public class HaxeHierarchyUtils {
   private static final Logger LOG = Logger.getInstance("#com.intellij.ide.hierarchy.HaxeHierarchyUtils");
 
-  static
-  {
-    LOG.setLevel(Level.DEBUG);
-  }
+  //static
+  //{
+  //  LOG.setLevel(Level.DEBUG);
+  //}
 
   private HaxeHierarchyUtils() {
     throw new NotImplementedException("Static use only.");
@@ -164,9 +164,9 @@ public class HaxeHierarchyUtils {
         return null;
       }
 
-      final PsiElement targetElement = TargetElementUtilBase.findTargetElement(editor, TargetElementUtilBase.ELEMENT_NAME_ACCEPTED |
-                                                                                       TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
-                                                                                       TargetElementUtilBase.LOOKUP_ITEM_ACCEPTED);
+      final PsiElement targetElement = TargetElementUtil.findTargetElement(editor, TargetElementUtil.ELEMENT_NAME_ACCEPTED |
+                                                                                   TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
+                                                                                   TargetElementUtil.LOOKUP_ITEM_ACCEPTED);
       if (LOG.isDebugEnabled()) {
         LOG.debug("target element " + targetElement);
       }
@@ -334,10 +334,10 @@ public class HaxeHierarchyUtils {
       return null;
     }
 
-    final PsiElement targetElement = TargetElementUtilBase.findTargetElement(editor,
-                                                                             TargetElementUtilBase.ELEMENT_NAME_ACCEPTED |
-                                                                             TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
-                                                                             TargetElementUtilBase.LOOKUP_ITEM_ACCEPTED);
+    final PsiElement targetElement = TargetElementUtil.findTargetElement(editor,
+                                                                             TargetElementUtil.ELEMENT_NAME_ACCEPTED |
+                                                                             TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
+                                                                             TargetElementUtil.LOOKUP_ITEM_ACCEPTED);
     if (LOG.isDebugEnabled()) {
       LOG.debug("target element " + targetElement);
     }
@@ -418,9 +418,4 @@ public class HaxeHierarchyUtils {
            || method.isConstructor()
            || method.hasModifierProperty(PsiModifier.STATIC);
   }
-
-
-
-
-
 } // END class HaxeHierarchyUtils

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +21,7 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor;
+import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearcher;
 import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
@@ -138,7 +139,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   }
 
   private static List<HaxeClass> getSubTypes(HaxeClass theClass) {
-    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearchExecutor.getItemsByQName(theClass);
+    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQName(theClass);
     return subClasses;
   }
 }

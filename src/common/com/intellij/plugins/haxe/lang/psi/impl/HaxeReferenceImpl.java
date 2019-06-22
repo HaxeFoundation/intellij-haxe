@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  * Copyright 2018 Aleksandr Kuzmenko
  *
@@ -22,7 +22,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -31,11 +30,11 @@ import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.impl.source.tree.JavaSourceUtil;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.infos.CandidateInfo;
@@ -60,7 +59,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   //static {
   //  LOG.setLevel(Level.TRACE);
-  //}  // TODO: Pull this out after debugging.
+  //}  // Pull this out after debugging.
 
   public HaxeReferenceImpl(ASTNode node) {
     super(node);
@@ -669,10 +668,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
-    // TODO: This should use getName() instead of getQualifiedName(), but it isn't implemented properly and getName() NPEs.
     HaxeClassResolveResult result = null;
     HaxeClass haxeClass = null;
     String name = null;
+    HaxeGenericResolver resolver = null;
     if (leftReference != null) {
       result = leftReference.resolveHaxeClass();
       if (result != HaxeClassResolveResult.EMPTY) {
@@ -680,6 +679,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         if (haxeClass != null) {
           name = haxeClass.getName();
         }
+        resolver = result.getSpecialization().toGenericResolver(haxeClass);
       }
     }
 
@@ -711,7 +711,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
 
-        addClassNonStaticMembersVariants(suggestedVariants, haxeClass,
+        addClassNonStaticMembersVariants(suggestedVariants, haxeClass, resolver,
                                          !(isThis || isSuper));
         addUsingVariants(suggestedVariants, suggestedVariantsExtensions, haxeClass, this);
       }
@@ -719,7 +719,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (leftReference == null) {
         final boolean isElementInForwardMeta = HaxeAbstractForwardUtil.isElementInForwardMeta(this);
         if (isElementInForwardMeta) {
-          addAbstractUnderlyingClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class));
+          addAbstractUnderlyingClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), resolver);
         } else {
           PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
           addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false);
@@ -833,11 +833,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private static void addAbstractUnderlyingClassVariants(Set<HaxeComponentName> suggestedVariants,
-                                                         @Nullable HaxeClass haxeClass) {
+                                                         @Nullable HaxeClass haxeClass, @Nullable HaxeGenericResolver resolver) {
     if (haxeClass == null || !haxeClass.isAbstract()) return;
 
     final HaxeAbstractClassModel model = (HaxeAbstractClassModel)haxeClass.getModel();
-    final HaxeClass underlyingClass = model.getUnderlyingClass();
+    final HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
     if (underlyingClass != null) {
       addClassVariants(suggestedVariants, underlyingClass, true);
     }
@@ -858,8 +858,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     suggestedVariants.addAll(staticMembers);
   }
 
-  private static void addClassNonStaticMembersVariants(Set<HaxeComponentName> suggestedVariants,
+  private void addClassNonStaticMembersVariants(Set<HaxeComponentName> suggestedVariants,
                                                        @Nullable HaxeClass haxeClass,
+                                                       @Nullable HaxeGenericResolver resolver,
                                                        boolean filterByAccess) {
     if (haxeClass == null) {
       return;
@@ -873,7 +874,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (isAbstractForward) {
       final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
-        HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass);
+        HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass, resolver);
       if (forwardingHaxeNamedComponents != null) {
         for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
           final boolean needFilter = filterByAccess && !namedComponent.isPublic();

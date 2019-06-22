@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -332,6 +333,15 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 
   public void testAbstractForward5() throws Throwable {
     doTestInclude("std/Array.hx");
+  }
+
+  public void testAbstractViaNull() throws Throwable {
+    doTestInclude("std/StdTypes.hx", "std/String.hx");
+  }
+
+  public void testAbstractWithGenericUnderlyingType() throws Throwable {
+    // Issue #772
+    doTestInclude("std/StdTypes.hx", "std/String.hx");
   }
 
   //public void testUsingStringTools() throws Throwable {

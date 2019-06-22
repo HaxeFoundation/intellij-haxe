@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +19,15 @@
 package com.intellij.plugins.haxe;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.build.ClassWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
@@ -34,10 +39,6 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
   protected HaxeCodeInsightFixtureTestCase() {
     super();
     HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
-    if (!IdeaTarget.IS_VERSION_18_COMPATIBLE) {
-      MethodWrapper<Void> init = new MethodWrapper<>(PlatformTestCase.class, "initPlatformLangPrefix", null);
-      init.invoke(null,null);
-    }
   }
 
   @Override
@@ -71,4 +72,18 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
     return annotator.newInstance();
   }
 
+  public void setTestStyleSettings() {
+    setTestStyleSettings(2);
+  }
+
+  public void setTestStyleSettings(int indent) {
+    Project project = getProject();
+    CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
+    assertNotNull(currSettings);
+    CodeStyleSettings tempSettings = currSettings.clone();
+    CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.HAXE_FILE_TYPE);
+    indentOptions.INDENT_SIZE = indent;
+    assertNotNull(indentOptions);
+    CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);
+  }
 }

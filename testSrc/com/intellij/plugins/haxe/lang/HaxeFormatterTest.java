@@ -48,7 +48,8 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     setTestStyleSettings();
   }
 
-  private void setTestStyleSettings() {
+  @Override
+  public void setTestStyleSettings() {
     Project project = getProject();
     CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
     assertNotNull(currSettings);

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +21,13 @@ package com.intellij.plugins.haxe.ide.refactoring;
 import com.intellij.codeInsight.PsiEquivalenceUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.ComponentNameScopeProcessor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveState;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
@@ -51,6 +54,13 @@ public class HaxeRefactoringUtil {
         return componentName.getName();
       }
     }));
+  }
+
+  public static Set<String> collectKeywords() {
+    THashSet<String> words = new THashSet<>(ContainerUtil.map(HaxeTokenTypeSets.KEYWORDS.getTypes(), (IElementType k)->k.toString()));
+    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.SOFT_KEYWORDS.getTypes(), (IElementType k)->k.toString()));
+    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.KEYWORD_CONSTANTS.getTypes(), (IElementType k)->k.toString()));
+    return words;
   }
 
   @Nullable

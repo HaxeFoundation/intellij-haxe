@@ -3,6 +3,7 @@
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,11 +45,11 @@ public class HaxeAbstractForwardUtil {
   }
 
   @Nullable
-  public static List<HaxeNamedComponent> findAbstractForwardingNamedSubComponents(@Nullable HaxeClass clazz) {
+  public static List<HaxeNamedComponent> findAbstractForwardingNamedSubComponents(@Nullable HaxeClass clazz, @Nullable HaxeGenericResolver resolver) {
     final List<String> forwardingFieldsNames = getAbstractForwardingFieldsNames(clazz);
     if (forwardingFieldsNames != null && clazz instanceof HaxeAbstractClassDeclaration) {
       final HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)clazz.getModel();
-      final HaxeClass underlyingClass = abstractClassModel.getUnderlyingClass();
+      final HaxeClass underlyingClass = abstractClassModel.getUnderlyingClass(resolver);
       if (underlyingClass != null) {
         if (forwardingFieldsNames.isEmpty()) {
           return HaxeResolveUtil.findNamedSubComponents(underlyingClass);

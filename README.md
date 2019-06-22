@@ -1,8 +1,8 @@
-Haxe plugin for Intellij IDEA
+Haxe plugin for Intellij IDEA and Android Studio
 ======================================
 
-This plugin allows you to develop [Haxe](http://haxe.org/) programs with [Intellij IDEA](http://www.jetbrains.com/idea).
-It requires Intellij IDEA Ultimate or Community Edition, versions 2016.x, 2017.x, and 2018.x.
+This plugin allows you to develop multi-platform programs using the [Haxe](http://haxe.org/) language with [Intellij IDEA](http://www.jetbrains.com/idea), [Android Studio](https://developer.android.com/studio/) and other IntelliJ IDEA-based IDEs by JetBrains.
+It requires Intellij IDEA Ultimate or Community Edition, versions 2016.1 through 2019.1, or Android Studio versions 2.2 through 3.4. 
 
 #### Technical Support
 Support for this plugin is available through the project's home page: [http://intellij-haxe.org](http://intellij-haxe.org), or
@@ -10,8 +10,8 @@ the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](h
 
 #### Past Versions Announcement
 
-Very, very few users are continuing to use this plugin with IDEA versions 14.x and 15.x.  Plugin version 0.11.2 was the last
-version published that supported these environments.  (If you and/or your business need these or previous versions supported, then
+Very, very few users are continuing to use this plugin with older versions of IDEA.  Plugin version 0.11.2 was the last
+version published that supported IDEA 15.x and previous.  (If you and/or your business need these or previous versions supported, then
 [contact the project maintainers](http://intellij-haxe.org/contact) at the project page ([http://intellij-haxe.org](http://intellij-haxe.org)) and continuing support
 can be arranged.) 
 
@@ -47,7 +47,7 @@ If you already have a project open in IDEA:
 ### To manually install the latest or a previous Github release
 
 Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/HaxeFoundation/intellij-haxe/releases).
-More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-14.1.1.jar`)
+More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-2016.1.jar`)
 Make sure that you pick the proper one for your release.  A message should pop up and warn you if a release is incompatible.
 
 If you do not yet have a project open in IDEA (and after first-time setup):
@@ -59,8 +59,8 @@ If you do not yet have a project open in IDEA (and after first-time setup):
 If you already have a project open IDEA:
 - Open the Settings dialog (File->Settings...)
 - Highlight "Plugins" in the leftmost column
-- Click “Install plugin from disk...”
-- Select the “intellij-haxe.jar” file you downloaded
+- Click “Install plugin from disk...”.  On 2019.x versions or later, click on the settings (gear) icon to see the "Install from disk..." menu item.
+- Select the `intellij-haxe-<version>.jar` file you downloaded
 - Allow IDEA to restart and initialize the plugin.
 
 Build
@@ -68,31 +68,40 @@ Build
 Note that installation as described above installs a fully built version of the plugin (the .jar file).  Most users do not have to
 build the product for themselves.  This section is for those who like to dig a little deeper.
 
-This describes the command line build on a Linux platform. To build from within Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
+This describes the command line build.  To build from within Intellij IDEA itself, see the [contributing](CONTRIBUTING.md) document to setup
 your development environment.  Much more detail is provided there for command line build options as well.
 
 ### Dependencies
-- Ant
 - Oracle JDK 8 or OpenJDK 8
-- Make
-- wget
-- A bash compatible shell
+- A windows command prompt or bash compatible shell
 
 ### Build command
+Use the command matching your system and replace `<IDEA_VERSION>` with desired version, ex. `2017.3.4`
+
+Windows
 ```
-make
+gradlew.bat clean build verifyPlugin -PtargetVersion=<IDEA_VERSION>
 ```
+Mac/Linux
+```
+./gradlew clean build verifyPlugin -PtargetVersion=<IDEA_VERSION>
+```
+
+>NOTE: You can run the build without tests by substituting `build` with `buildPlugin` on the lines above
 
 This will generate a `intelllij-haxe-<release>.jar` file at the root of the project that you can then install from disk
-(see “Install the latest or a previous Github release).  Note that the default make (see Makefile) will build the plugin for
-Idea 2017.3.3.  To override the default, set the IDEA_VERSION environment variable prior to executing make.
+(see “Install the latest or a previous Github release).
 
+Note that the gradle build configuration is set to use a default version when no version is provided(see gradle.properties)
+when developing in IDEA this version will be used. You may want to change `defaultIdeaVersion` to the version you are targeting.
+
+ex.
 ```
-IDEA_VERSION=2016.3.4 make
+defaultIdeaVersion=2017.3.4
 ```
 
-Note that building via make will download the requested version of IntelliJ Ultimate (to a temporary directory)
-every time a build is started.  This can be quite slow at times and prone to failure.  For repeated building and testing,
+Note that the first time you build the project Gradle will download the requested version of IntelliJ Ultimate and 
+any other other dependencies. This can be quite slow at times and prone to failure.  For repeated building and testing,
 we recommended that you set up your machine as described in the [contributing document](CONTRIBUTING.md). 
 
 Test
@@ -102,17 +111,15 @@ Test
 Same as for build.
 
 ### Test command
+Windows
 ```
-make test
+gradlew.bat test -PtargetVersion=<IDEA_VERSION>
 ```
-
-This will build and run the tests and display the JUnit report.  Again, you can override the Idea version
-being tested against by overriding IDEA_VERSION.
-
+Mac/Linux
 ```
-IDEA_VERSION=2016.3.4 make test
+./gradlew test -PtargetVersion=<IDEA_VERSION>
 ```
-
+This will build and run the tests and display the JUnit report.   
 
 Use the hxcpp debugger
 ----------------------

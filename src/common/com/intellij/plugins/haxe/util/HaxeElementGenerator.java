@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +120,14 @@ public class HaxeElementGenerator {
   public static HaxeImportStatement createImportStatementFromPath(Project myProject, String path) {
     final PsiFile dummyFile = createDummyFile(myProject, "import " + path + ";");
     return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatement.class);
+  }
+
+  @Nullable
+  public static HaxePsiToken createEmptyStatement(Project myProject) {
+    final HaxeImportStatement importStatement = createImportStatementFromPath(myProject, "Std");
+    PsiElement last = importStatement.getLastChild();
+    assert last instanceof HaxePsiToken;
+    return last instanceof HaxePsiToken ? (HaxePsiToken)last : null;
   }
 
   @Nullable

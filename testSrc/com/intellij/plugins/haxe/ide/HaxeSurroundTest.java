@@ -44,17 +44,6 @@ public class HaxeSurroundTest extends HaxeCodeInsightFixtureTestCase {
     setTestStyleSettings();
   }
 
-  private void setTestStyleSettings() {
-    Project project = getProject();
-    CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
-    assertNotNull(currSettings);
-    CodeStyleSettings tempSettings = currSettings.clone();
-    CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.HAXE_FILE_TYPE);
-    indentOptions.INDENT_SIZE = 2;
-    assertNotNull(indentOptions);
-    CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);
-  }
-
   protected void doTest(final Surrounder surrounder) throws Exception {
     myFixture.configureByFile(getTestName(false) + ".hx");
 

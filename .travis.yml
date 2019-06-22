@@ -1,29 +1,43 @@
 sudo: required
 language: java
-jdk:
-- oraclejdk8
-before_script:
-- sudo apt-get -qq update
-- sudo apt-get install ant-optional -y
-- sudo add-apt-repository ppa:eyecreate/haxe -y
-- sudo apt-get update
-- sudo apt-get install haxe -y
-- mkdir ~/haxelib
-- haxelib setup ~/haxelib
-- haxelib install hxjava
-- haxelib git debugger https://github.com/TiVo/debugger.git
-- mkdir build
-- mkdir report
-script: make ANT_TARGET=$ANT_TARGET test
+install:
+  - true
 env:
-    - IDEA_VERSION=2016.3.8 ANT_TARGET=test
-    - IDEA_VERSION=2017.2.7 ANT_TARGET=test
-    - IDEA_VERSION=2017.3.5 ANT_TARGET=test
-    - IDEA_VERSION=2018.1.6 ANT_TARGET=test
+  - IDEA_VERSION=2016.3.8
+  - IDEA_VERSION=2017.3.5
+  - IDEA_VERSION=2018.2.8
+  - IDEA_VERSION=2019.1.1
+os:
+  - linux
+  - osx
+
+osx_image: xcode9.3
+
+before_script: |
+  #Linux
+  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      sudo apt-get -qq update
+      sudo add-apt-repository ppa:haxe/releases -y
+      sudo apt-get update
+      sudo apt-get install haxe -y
+      mkdir ~/haxelib
+      haxelib setup ~/haxelib
+  fi
+
+  #OSX
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update
+      brew install haxe
+      mkdir ~/haxelib
+      haxelib setup ~/haxelib
+  fi
+
+script:
+- ./gradlew clean Build verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=$IDEA_VERSION -PdevBuild=$DEV_BUILD
+
 
 notifications:
-  email: false
-
+email: false
 jobs:
   include:
     - if: branch = develop AND type = push

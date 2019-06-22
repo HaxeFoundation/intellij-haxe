@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
@@ -107,6 +106,10 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public boolean isAbstract() {
     return haxeClass instanceof HaxeAbstractClassDeclaration;
+  }
+
+  public boolean isCoreType() {
+    return hasMeta("@:coreType");
   }
 
   public boolean hasMeta(@NotNull String name) {
@@ -388,8 +391,15 @@ public class HaxeClassModel implements HaxeExposableModel {
         classType.getHaxeClassModel().writeCompatibleTypes(output);
       }
     }
+
+    // TODO: Add types from @:from and @:to methods, including inferred method types.
   }
 
+  public boolean hasGenericParams() {
+    return getPsi().getGenericParam() != null;
+  }
+
+  @NotNull
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
     if (getPsi().getGenericParam() != null) {

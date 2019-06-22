@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -201,13 +203,13 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeIdentifier) {
-      //PsiReference reference = element.getReference();
+      // If it has already been seen, then use whatever type is already known.
       ResultHolder holder = context.get(element.getText());
 
       if (holder == null) {
-        context.addError(element, "Unknown variable", new HaxeCreateLocalVariableFixer(element.getText(), element));
+        // context.addError(element, "Unknown variable", new HaxeCreateLocalVariableFixer(element.getText(), element));
 
-        return SpecificTypeReference.getDynamic(element).createHolder();
+        return SpecificTypeReference.getUnknown(element).createHolder();
       }
 
       return holder;
@@ -267,6 +269,7 @@ public class HaxeExpressionEvaluator {
 
         if (leftResult.isUnknown()) {
           leftResult.setType(rightResult.getType());
+          context.setLocalWhereDefined(left.getText(), leftResult);
         }
         leftResult.removeConstant();
 
@@ -275,11 +278,14 @@ public class HaxeExpressionEvaluator {
 
         //leftValue.mutateConstantValue(null);
         if (!leftResult.canAssign(rightResult)) {
-          context.addError(element, "Can't assign " + rightValue + " to " + leftValue, new HaxeCastFixer(right, rightValue, leftValue));
+          context.addError(HaxeStandardAnnotation.typeMismatch(right, rightValue.toStringWithoutConstant(), leftValue.toStringWithoutConstant())
+                             .withFix(new HaxeCastFixer(right, rightValue, leftValue))
+                             .withFixes(HaxeExpressionConversionFixer.createStdTypeFixers(right, rightValue, leftValue))
+          );
         }
 
         if (leftResult.isImmutable()) {
-          context.addError(element, "Trying to change an immutable value");
+          context.addError(element, HaxeBundle.message("haxe.semantic.trying.to.change.an.immutable.value"));
         }
 
         return rightResult;
@@ -331,7 +337,7 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeReferenceExpression) {
       PsiElement[] children = element.getChildren();
       ResultHolder typeHolder = handle(children[0], context, resolver);
-      boolean resolved = true;
+      boolean resolved = !typeHolder.getType().isUnknown();
       for (int n = 1; n < children.length; n++) {
         String accessName = children[n].getText();
         if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
@@ -359,7 +365,8 @@ public class HaxeExpressionEvaluator {
         }
       }
 
-      // @TODO: this should be innecessary when code is working right!
+      // If we aren't walking the body, then we might not have seen the reference.  In that
+      // case, the type is still unknown.  Let's see if the resolver can figure it out.
       if (!resolved) {
         PsiReference reference = element.getReference();
         if (reference != null) {
@@ -787,6 +794,32 @@ public class HaxeExpressionEvaluator {
         ).createHolder();
       }
     }
+
+    if (element instanceof HaxeTypeCheckExpr) {
+      PsiElement[] children = element.getChildren();
+      if (children.length == 2) {
+        SpecificTypeReference statementType = handle(children[0], context, resolver).getType();
+        SpecificTypeReference assertedType = SpecificTypeReference.getUnknown(children[1]);
+        if (children[1] instanceof HaxeTypeOrAnonymous) {
+          HaxeTypeOrAnonymous toa = ((HaxeTypeCheckExpr)element).getTypeOrAnonymous();
+          if (toa != null ) {
+            assertedType = HaxeTypeResolver.getTypeFromTypeOrAnonymous(toa).getType();
+          }
+        }
+        // When we have proper unification (not failing to dynamic), then we should be checking if the
+        // values unify.
+        //SpecificTypeReference unified = HaxeTypeUnifier.unify(statementType, assertedType, element);
+        //if (!unified.canAssign(statementType)) {
+        if (!assertedType.canAssign(statementType)) {
+          Annotation annotation = context.addError(element, "Statement of type '" + statementType.getElementContext().getText() + "' does not unify with asserted type '" + assertedType.getElementContext().getText() + ".'");
+          // TODO: Develop some fixers.
+          // annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
+        }
+
+        return statementType.createHolder();
+      }
+    }
+
 
     LOG.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getDynamic(element).createHolder();

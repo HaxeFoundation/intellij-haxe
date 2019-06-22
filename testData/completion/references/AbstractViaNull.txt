@@ -1,0 +1,16 @@
+:INCLUDE
+doubleLength
+charAt
+length
+toUpperCase
+toLowerCase
+charCodeAt
+indexOf
+lastIndexOf
+split
+substr
+toString
+
+:EXCLUDE
+new
+halfLength

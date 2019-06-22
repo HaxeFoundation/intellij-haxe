@@ -1,0 +1,434 @@
+/*
+ * Copyright 2018-2018 m0rkeulv
+ * Copyright 2019 Eric Bishton
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+plugins {
+    id 'de.undercouch.download' version '3.3.0'
+    id 'org.jetbrains.intellij' version '0.3.12'
+}
+
+
+if (!project.hasProperty('targetVersion')) {
+    ext.ideaVersion = "${defaultIdeaVersion}"
+    println '-------------------------------------------------------'
+    println "No target version selected, using default ($ext.ideaVersion)"
+    println 'to specify build target use -PtargetVersion=<version>'
+    println 'Ex:'
+    println 'gradlew buildPlugin -PtargetVersion=2017.2.2'
+    println 'If you\'re running "gradle clean," just ignore this warning.'
+    println '-------------------------------------------------------'
+} else {
+    ext.ideaVersion = project.property('targetVersion')
+}
+println "Target set to IDEA ${ideaVersion}"
+
+allprojects {
+    repositories { mavenCentral() }
+
+    ext {
+        // modules
+        haxeCommonDir = "${rootDir}/common"
+        haxePluginDir = "${rootDir}"
+
+        // generated sources
+        generatedSrcDir = "${haxePluginDir}/gen/"
+
+        // dependencies
+        dependenciesDir = "${rootDir}/dependencies"
+        downloadsDir = "${dependenciesDir}/downloads"
+        toolDir = "${dependenciesDir}/tools"
+        ideaBaseDir = "${rootDir}/idea-IU"
+        ideaTargetDir = "${ideaBaseDir}/ideaIU-${ideaVersion}"
+
+        //Note: path is system directory separator sensitive, file.absolutePath solves this for us
+        grammarHaxe = file("${haxePluginDir}/grammar/haxe.bnf").absolutePath
+        grammarHxml = file("${haxePluginDir}/grammar/hxml.bnf").absolutePath
+
+        flexDownloadFile = "idea-flex-${ideaVersion}.skeleton"
+        flexTargetFile = "idea-flex.skeleton"
+
+        grammarKitDownloadFile = "GrammarKit-${grammarKitVersion}.zip"
+        grammarKitTargetFile = "grammar-kit.jar"
+
+        psiDownloadFile = "light-psi-all-${grammarKitVersion}.jar"
+        psiTargetFile = "light-psi-all.jar"
+    }
+
+    apply plugin: 'idea'
+    apply plugin: 'org.jetbrains.intellij'
+    apply from: "${haxePluginDir}/template.gradle"
+
+    intellij {
+        type = 'IU'
+        version = "IU-${ideaVersion}"
+        pluginName = "intellij-haxe-${ideaVersion}"
+        ideaDependencyCachePath "${ideaBaseDir}"
+        // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
+        updateSinceUntilBuild false
+    }
+}
+
+//Download build tools
+apply from: 'dependencies/tools.gradle'
+
+build.dependsOn('setupTools')
+test.dependsOn('setupTools')
+
+
+if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
+
+
+// Sources that contain templates to be generated.
+sourceSets {
+    templates {
+    }
+}
+sourceSets.templates.resources.srcDir 'src/common'
+
+sourceSets.main.java.srcDirs = ['src/common', 'src/icons', 'gen']
+sourceSets.main.resources.srcDir 'resources'
+
+sourceSets.test.java.srcDir 'testSrc'
+sourceSets.test.resources.srcDir 'testData'
+
+
+idea.module { generatedSourceDirs += file('gen') }
+
+
+dependencies {
+
+    compile files('gen') {
+        builtBy 'generateSources'
+    }
+
+    compile project(':common')
+    compile project(':jps-plugin')
+    compile project(':hxcpp-debugger-protocol')
+
+    compileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
+    compileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
+    compileOnly files("${ideaTargetDir}/lib/openapi.jar")
+    compileOnly files("${ideaTargetDir}/lib/util.jar")
+
+
+    testCompileOnly project(':jps-plugin')
+    testCompileOnly project(':common')
+    testCompileOnly project(':hxcpp-debugger-protocol')
+
+
+    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
+    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
+    testCompileOnly files("${ideaTargetDir}/lib/openapi.jar")
+    testCompileOnly files("${ideaTargetDir}/lib/util.jar")
+
+}
+
+runIde {
+    jbreVersion 'jbrex8u152b1248.6'
+}
+
+compileJava {
+    dependsOn 'generateSources'
+}
+
+processResources {
+    from('src/common') {
+        includeEmptyDirs = false
+        include '**/*.properties'
+//        include 'META-INF/*.xml'
+    }
+}
+
+patchPluginXml {
+    pluginXmlFiles = [
+            'src/META-INF/plugin.xml',
+            'src/META-INF/debugger-support.xml',
+            'src/META-INF/flex-debugger-support.xml'
+    ]
+}
+
+patchPluginXml.finalizedBy('patchCustomTags')
+task patchCustomTags() {
+    doFirst {
+        file(patchPluginXml.destinationDir.toString() + '/plugin.xml')
+                .renameTo(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+    }
+    doLast {
+        copy {
+            def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+            from(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+            filter(ReplaceTokens, tokens: props)
+            into patchPluginXml.destinationDir.toString()
+            rename('plugin.xml.partial', 'plugin.xml')
+        }
+
+    }
+    doLast {
+        delete file(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
+    }
+}
+
+jar {
+    baseName = "intellij-haxe"
+    include('**/*').includeEmptyDirs(false)
+    // include submodules
+    from(project(':jps-plugin').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
+    from(project(':common').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
+    from(project(':hxcpp-debugger-protocol').sourceSets.main.output).include('**/*').includeEmptyDirs(false)
+
+    from(zipTree("${ideaTargetDir}/lib/forms_rt.jar")).include('com/intellij/uiDesigner/core/*.class')
+}
+jar.finalizedBy('copyJar')
+
+task copyJar() {
+    doLast {
+        def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+        def jarName = "intellij-haxe-" + props.getProperty("idea.version") + ".jar"
+        copy {
+            from("${haxePluginDir}/build/libs/").include(jar.archiveName)
+            into("${rootDir}/")
+            rename({jarName})
+        }
+    }
+}
+
+test {
+    useJUnit()
+    allJvmArgs = [
+      "-Didea.home.path=${ideaTargetDir}",
+      "-Xbootclasspath/a:${ideaTargetDir}/lib/boot.jar",
+      "-Dfile.encoding=UTF-8",
+      "-ea",
+      "-Didea.launcher.bin.path=${ideaTargetDir}/bin"
+    ]
+    if (ideaVersion.matches(~/2017\.(1|2).*/)) {
+        // Project leak detection is not right in 2017.1&2.x
+        allJvmArgs += ["-Didea.log.leaked.projects.in.tests=false"]
+    }
+}
+
+clean.dependsOn('cleanGenerated')
+task cleanGenerated(type: Delete, group: 'generate') {
+    outputs.upToDateWhen { !file("$generatedSrcDir").exists() }
+    delete "$generatedSrcDir"
+}
+
+task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
+    workingDir = "${toolDir}"
+    main '-jar'
+    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarHaxe}"]
+
+    inputs.file "${grammarHaxe}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang").exists() }
+}
+
+
+task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
+    workingDir = "${toolDir}"
+    main '-jar'
+    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarHxml}"]
+
+    inputs.file "${grammarHxml}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml").exists() }
+}
+
+
+import groovy.xml.MarkupBuilder
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+task generateIdeaSdkIdentifer(group: 'generate') {
+  doFirst {
+    copy {
+      file("${generatedSrcDir}/com/intellij/plugins/haxe/build/").mkdirs()
+      Properties properties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+      from("${haxePluginDir}/src/common/com/intellij/plugins/haxe/build/IdeaSDKIdentifier.java.template") {
+        filter(ReplaceTokens, tokens: properties)
+      }
+      into "${generatedSrcDir}/com/intellij/plugins/haxe/build/"
+      rename('IdeaSDKIdentifier.java.template', 'IdeaSDKIdentifier.java')
+    }
+  }
+}
+
+task generateSources(group: 'generate') {
+    dependsOn 'generateIdeaSdkIdentifer'
+    // See template.gradle for generateVersionSpecificSources task.
+    dependsOn 'generateVersionSpecificSources'
+    dependsOn 'generateHaxeParser'
+    dependsOn 'generateHxmlParser'
+}
+
+Properties findSdkValuesAndProperties(File buildFile) {
+    def buildId = buildFile.getText()
+    def typeSep = buildId.indexOf("-")
+    def clSep = buildId.indexOf(".", typeSep + 1)
+    def bldSep = buildId.indexOf(".", clSep + 1)
+
+    String buildType = buildId.substring(0, typeSep)
+    String codeLine = buildId.substring(typeSep + 1, clSep)
+    String buildNumber = (bldSep >= 0 ? buildId.substring(clSep + 1, bldSep) : buildId.substring(clSep + 1))
+    String patchNumber = (bldSep >= 0 ? buildId.substring(bldSep + 1) : 0)
+
+    ext.ideaSdkType = buildType
+    ext.ideaSdkCodeline = codeLine
+    ext.ideaSdkBuildNumber = buildNumber
+    ext.ideaSdkPatchNumber = patchNumber
+
+    // Lookup table for properties files.  Add new versions here.
+    def propertiesFile = ""
+    switch (Integer.valueOf(codeLine, 10)) {
+        case 192: propertiesFile = "idea_v19.properties"; break
+        case 191: propertiesFile = "idea_v19.properties"; break
+        case 183: propertiesFile = "idea_v18.properties"; break
+        case 182: propertiesFile = "idea_v18.properties"; break
+        case 181: propertiesFile = "idea_v18.properties"; break
+        case 173: propertiesFile = "idea_v17.3.properties"; break
+        case 172: propertiesFile = "idea_v17.properties"; break
+        case 171: propertiesFile = "idea_v17.properties"; break
+        case 163: propertiesFile = "idea_v16.properties"; break
+        case 162: propertiesFile = "idea_v16.properties"; break
+        case 161: propertiesFile = "idea_v16.properties"; break
+        case 145: propertiesFile = "idea_v16.properties"; break
+        default:
+            throw new GradleException("Could not determine correct properties file for code line " + codeLine + ".")
+    }
+    def properties = new Properties()
+    if (0 != propertiesFile.size()) {
+        file("${rootDir}/properties/" + propertiesFile).withInputStream { properties.load(it) }
+    } else {
+        println "WARNING!: No Properties file found"
+    }
+    properties.setProperty('idea.sdk.version', "$ideaVersion")
+    properties.setProperty('idea.sdk.type', buildType)
+    properties.setProperty('idea.sdk.codeline', codeLine)
+    properties.setProperty('idea.sdk.build.number', buildNumber)
+    properties.setProperty('idea.sdk.patch.number', patchNumber)
+    properties.setProperty('replace.with.plugin.autogen.warning', "${pluginAutogenWarning}")
+    properties.setProperty('plugin.dev.version', project.hasProperty('devBuild') ? "${project.devBuild}" : '')
+
+    return properties
+}
+
+tasks.withType(Test) {
+    // force all tests to run every time
+    dependsOn "cleanTest"
+
+    // output summary and any failed or skipped tests
+
+    // from https://stackoverflow.com/questions/3963708/gradle-how-to-display-test-results-in-the-console-in-real-time
+    testLogging {
+        events TestLogEvent.FAILED,
+                TestLogEvent.SKIPPED
+
+        exceptionFormat TestExceptionFormat.FULL
+        showExceptions true
+        showCauses true
+        showStackTraces true
+
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                def startItem = '|  ', endItem = '  |'
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+            }
+        }
+    }
+}
+
+
+task checkForMissingRunConfigurations() {
+    def runConfigurationsDir = new File(".idea/runConfigurations")
+    if (!runConfigurationsDir.exists()) {
+        generateRunConfigurations()
+    }
+}
+
+task regenerateRunConfigurations() {
+    doLast {
+        generateRunConfigurations()
+    }
+}
+
+private void generateRunConfigurations() {
+
+
+
+    createGradleRunConfiguration('Run IDE (default)', 'runIde', '', '-Didea.is.internal=true')
+    createGradleRunConfiguration('Run IDE (default) - Suppress ProcessCanceledExceptions', 'runIde', '', '-Didea.is.internal=true -Didea.ProcessCanceledException=disabled')
+    createGradleRunConfiguration('Run Tests (default)', 'test', '', '')
+    createGradleRunConfiguration('Run Single Test (default)', 'test', '', '--tests "{replace this with FQDN of test suite or single test}"')
+
+    createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
+
+
+    createGradleRunConfiguration('Run Tests 2018', 'test', "-PtargetVersion=$latest2018Version", '')
+    createGradleRunConfiguration('Run Tests 2017', 'test', "-PtargetVersion=$latest2017Version", '')
+    createGradleRunConfiguration('Run Tests 2016', 'test', "-PtargetVersion=$latest2016Version", '')
+
+    createGradleRunConfiguration('Run IDE 2018',
+                                 'runIde',
+                                 "-PtargetVersion=$latest2018Version",
+                                 ' -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
+    createGradleRunConfiguration('Run IDE 2017',
+                                 'runIde',
+                                 "-PtargetVersion=$latest2017Version",
+                                 '-DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
+    createGradleRunConfiguration('Run IDE 2016',
+                                 'runIde',
+                                 "-PtargetVersion=$latest2016Version",
+                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -ea -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
+
+
+
+}
+
+// create IDEA run configurations from Gradle JavaExec tasks
+private void createGradleRunConfiguration(String configName, String taskList,String scriptParams, String vmOptions) {
+
+
+    def runConfigurationsDir = new File(".idea/runConfigurations")
+    runConfigurationsDir.mkdirs()
+
+    def writer = new FileWriter(new File(runConfigurationsDir, "${configName.replaceAll("\\s", "_")}.xml"))
+    def xml = new MarkupBuilder(writer)
+
+    xml.component(name: "ProjectRunConfigurationManager") {
+        configuration(default: 'false', name: configName, type: "GradleRunConfiguration", factoryName: "Gradle") {
+            ExternalSystemSettings() {
+                option(name: 'executionName')
+                option(name: 'externalProjectPath', value: '$PROJECT_DIR$')
+                option(name: 'externalSystemIdString', value: "GRADLE")
+                option(name: 'scriptParameters', value: scriptParams)
+                option(name: 'taskNames') {
+                    list() {
+                        for (String task : taskList.split('\\s')) {
+                            option(value: task)
+                        }
+                    }
+                }
+                option(name: 'vmOptions', value: vmOptions)
+            }
+        }
+    }
+}

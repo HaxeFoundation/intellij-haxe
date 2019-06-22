@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -139,9 +139,17 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isArray() {
+    return isNamedType(ARRAY);
+  }
+
+  final public boolean isMap() {
+    return isNamedType(MAP);
+  }
+
+  private boolean isNamedType(String typeName) {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
-      return reference.getHaxeClassReference().getName().equals(ARRAY);
+      return reference.getHaxeClassReference().getName().equals(typeName);
     }
     return false;
   }

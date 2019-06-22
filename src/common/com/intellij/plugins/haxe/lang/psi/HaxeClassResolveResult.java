@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -244,6 +244,7 @@ public class HaxeClassResolveResult implements Cloneable {
     return haxeClass;
   }
 
+  @NotNull
   public HaxeGenericSpecialization getSpecialization() {
     return specialization;
   }
