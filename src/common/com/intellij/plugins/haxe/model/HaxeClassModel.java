@@ -145,7 +145,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     List<HaxeType> types = new LinkedList<HaxeType>();
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("to")) {
-        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingNoSpaces(id);
+        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
         if (sibling instanceof HaxeType) {
           types.add((HaxeType)sibling);
         }
@@ -160,7 +160,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     List<HaxeType> types = new LinkedList<HaxeType>();
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("from")) {
-        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingNoSpaces(id);
+        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
         if (sibling instanceof HaxeType) {
           types.add((HaxeType)sibling);
         }
