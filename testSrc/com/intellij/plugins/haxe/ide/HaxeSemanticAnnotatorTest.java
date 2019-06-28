@@ -400,4 +400,16 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testNoErrorOnMultipleNullT() throws Exception {
     doTestNoFixWithWarnings("std/StdTypes.hx");
   }
+
+  public void testNoIncompatibleTypeErrorOnMap() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+  }
+
+  public void testNoIncompatibleTypeErrorOnChainedMaps() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+  }
+
+  public void testEitherTypeTest() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/String.hx", "std/EitherType.hx");
+  }
 }

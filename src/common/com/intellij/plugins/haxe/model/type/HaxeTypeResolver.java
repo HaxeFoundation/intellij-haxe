@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class HaxeTypeResolver {
   static private ResultHolder getFieldType(AbstractHaxeNamedComponent comp, HaxeGenericResolver resolver) {
     //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
-    final ResultHolder abstractEnumType = HaxeAbstractEnumUtil.getFieldType(comp);
+    final ResultHolder abstractEnumType = HaxeAbstractEnumUtil.getFieldType(comp, resolver);
     if (abstractEnumType != null) {
       return abstractEnumType;
     }

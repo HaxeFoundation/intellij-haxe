@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,6 +75,17 @@ public class HaxeGenericResolver {
       results[i++] = result;
     }
     return results;
+  }
+
+  @NotNull
+  public ResultHolder[] getSpecificsFor(@Nullable HaxeClassReference clazz) {
+    return getSpecificsFor(clazz != null ? clazz.getHaxeClass() : null);
+  }
+
+  @NotNull
+  public ResultHolder[] getSpecificsFor(@Nullable HaxeClass hc) {
+    if (null == hc) return ResultHolder.EMPTY;
+    return HaxeTypeResolver.resolveParametersToTypes(hc, this);
   }
 
   /**

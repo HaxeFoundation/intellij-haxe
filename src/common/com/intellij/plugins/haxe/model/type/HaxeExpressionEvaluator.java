@@ -199,7 +199,8 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
-      return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(model, element), resolver.getSpecifics()).createHolder();
+      ResultHolder[] specifics =  HaxeTypeResolver.resolveParametersToTypes(model.haxeClass, resolver);
+      return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(model, element), specifics).createHolder();
     }
 
     if (element instanceof HaxeIdentifier) {
@@ -372,7 +373,7 @@ public class HaxeExpressionEvaluator {
         if (reference != null) {
           PsiElement subelement = reference.resolve();
           if (subelement instanceof AbstractHaxeNamedComponent) {
-            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement);
+            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
           }
         }
       }

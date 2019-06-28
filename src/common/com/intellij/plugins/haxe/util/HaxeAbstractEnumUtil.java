@@ -3,6 +3,7 @@
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +20,12 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeClassReference;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Extensions for resolving and analyzing Haxe @:enum abstract type
@@ -62,10 +59,13 @@ public class HaxeAbstractEnumUtil {
   }
 
   @Nullable
-  public static ResultHolder getFieldType(@Nullable PsiElement element) {
+  public static ResultHolder getFieldType(@Nullable PsiElement element, @Nullable HaxeGenericResolver resolver) {
     final HaxeClass cls = getFieldClass(element);
     if (cls != null && element != null) {
-      ResultHolder result = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(cls.getModel(), element)));
+      HaxeClassReference reference = new HaxeClassReference(cls.getModel(), element);
+      ResultHolder[] specifics = null != resolver ? resolver.getSpecificsFor(cls) : ResultHolder.EMPTY;
+      ResultHolder result = new ResultHolder(SpecificHaxeClassReference.withGenerics(reference, specifics));
+
       if (element instanceof HaxeFieldDeclaration) {
         final HaxeVarInit init = ((HaxeFieldDeclaration)element).getVarInit();
         if (init != null && init.getExpression() != null) {
@@ -78,8 +78,8 @@ public class HaxeAbstractEnumUtil {
   }
 
   @Nullable
-  @Contract("null -> null")
-  public static ResultHolder getStaticMemberExpression(@Nullable PsiElement expression) {
+  @Contract("null,null -> null")
+  public static ResultHolder getStaticMemberExpression(@Nullable PsiElement expression, HaxeGenericResolver resolver) {
     if (expression != null) {
       final PsiElement containerElement = expression.getFirstChild();
       final PsiElement memberElement = expression.getLastChild();
@@ -89,7 +89,7 @@ public class HaxeAbstractEnumUtil {
         if (isAbstractEnum(leftClass)) {
           final HaxeNamedComponent enumField = leftClass.findHaxeFieldByName(memberElement.getText());
           if (enumField != null) {
-            ResultHolder result = getFieldType(enumField);
+            ResultHolder result = getFieldType(enumField, resolver);
             if (result != null) {
               return result;
             }
