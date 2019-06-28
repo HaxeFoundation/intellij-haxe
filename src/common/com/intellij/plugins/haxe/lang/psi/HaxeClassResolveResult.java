@@ -249,6 +249,11 @@ public class HaxeClassResolveResult implements Cloneable {
     return specialization;
   }
 
+  @NotNull
+  public HaxeGenericResolver getGenericResolver() {
+    return specialization.toGenericResolver(haxeClass);
+  }
+
   public void specialize(@Nullable PsiElement element) {
     if (element == null || haxeClass == null || !haxeClass.isGeneric()) {
       return;
