@@ -369,7 +369,24 @@ public class HaxeClassResolveResult implements Cloneable {
   }
 
   public String toString() {
-    return null == haxeClass ? "<null haxeClass>" : haxeClass.getName();
+    StringBuilder builder = new StringBuilder();
+    builder.append(null == haxeClass ? "<null haxeClass>" : haxeClass.getName());
+    if (null != haxeClass && haxeClass.isGeneric() && null != specialization) {
+      ResultHolder specifics[] = HaxeTypeResolver.resolveParametersToTypes(haxeClass, specialization.toGenericResolver(haxeClass));
+      builder.append('<');
+      boolean first = true;
+      for(ResultHolder holder : specifics) {
+        if (!first) {
+          builder.append(',');
+        } else {
+          first = false;
+        }
+        SpecificHaxeClassReference ref = holder.getClassType();
+        builder.append(ref == null ? "'unknown'" : ref.toStringWithConstant());
+      }
+      builder.append('>');
+    }
+    return builder.toString();
   }
 
   public JavaResolveResult toJavaResolveResult() {
