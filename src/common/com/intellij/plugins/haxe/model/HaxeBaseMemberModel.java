@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
       }
       return new HaxeFieldModel((HaxeFieldDeclaration)element);
     }
-    if (element instanceof HaxeAnonymousTypeField) return new HaxeFieldModel((HaxeAnonymousTypeField)element);
     if (element instanceof HaxeEnumValueDeclaration) return new HaxeEnumValueModel((HaxeEnumValueDeclaration)element);
     if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);
     if (element instanceof HaxeAnonymousTypeField) return new HaxeAnonymousTypeFieldModel((HaxeAnonymousTypeField)element);
