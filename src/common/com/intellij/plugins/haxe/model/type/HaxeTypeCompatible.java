@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +30,13 @@ public class HaxeTypeCompatible {
     return true;
   }
 
-  static public boolean canAssignToFrom(SpecificTypeReference to, ResultHolder from) {
+  static public boolean canAssignToFrom(@Nullable SpecificTypeReference to, @Nullable ResultHolder from) {
+    if (null == to || null == from) return false;
     return canAssignToFrom(to, from.getType());
   }
 
-  static public boolean canAssignToFrom(ResultHolder to, ResultHolder from) {
+  static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
+    if (null == to || null == from) return false;
     if (to.isUnknown()) {
       to.setType(from.getType().withoutConstantValue());
     } else if (from.isUnknown()) {
