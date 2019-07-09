@@ -87,6 +87,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return (aClass != null) ? aClass.getModel() : null;
   }
 
+  @Nullable
+  public String getClassName() {
+    return this.getHaxeClassReference().getName();
+  }
+
   public SpecificHaxeClassReference withConstantValue(Object constantValue) {
     return new SpecificHaxeClassReference(getHaxeClassReference(), getSpecifics().clone(), constantValue, null, context);
   }
@@ -351,15 +356,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       }
     }
     for (ResultHolder specific : type.getSpecifics()) {
-      if (specific.canBeTypeVariable()) {
-        final SpecificHaxeClassReference classType = specific.getClassType();
-        if(classType != null) {
-          String typeVariableName = classType.getHaxeClassReference().name;
-          ResultHolder possibleValue = genericResolver.resolve(typeVariableName);
-          if (possibleValue != null) {
-            specific.setType(possibleValue.getType());
-          }
-        }
+      final SpecificHaxeClassReference classType = propagateGenericsToType(specific.getClassType(), genericResolver);
+      if (null != classType) {
+        specific.setType(classType);
       }
     }
     return type;
