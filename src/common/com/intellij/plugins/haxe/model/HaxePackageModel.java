@@ -125,9 +125,23 @@ public class HaxePackageModel implements HaxeExposableModel {
   protected HaxeFile getFile(String fileName) {
     PsiDirectory directory = root.access(path);
     if (directory != null && directory.isValid()) {
-      PsiFile file = directory.findFile(fileName + ".hx");
-      if (file != null && file.isValid() && file instanceof HaxeFile) {
-        return (HaxeFile)file;
+      PsiFile file;
+      try {
+        String fName = fileName + ".hx";
+        //TODO @ Eric.  What could be the source of a request for "Unknown.hx" ?
+        if(fName.equals("Unknown.hx")){
+          return null;
+        }
+        //file = directory.findFile(fileName + ".hx");
+        file = directory.findFile(fName);
+        if (file != null && file.isValid() && file instanceof HaxeFile) {
+          return (HaxeFile)file;
+        }
+      } catch(Exception e){
+        //System.out.println("-----------------------------------");
+        //System.out.println(fileName + ".hx");
+        //System.out.println("-----------------------------------");
+        System.out.println(Arrays.toString(e.getStackTrace()));
       }
     }
 

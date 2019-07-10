@@ -430,11 +430,14 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (leftClass.isAbstract()) {
         HaxeAbstractClassModel model = (HaxeAbstractClassModel)leftClass.getModel();
         if (model.isForwarded(reference.getReferenceName())) {
-          final HaxeClass underlyingClass = model.getUnderlyingClass(reference.getSpecialization().toGenericResolver(leftClass));
-          if (underlyingClass != null) {
-            member = underlyingClass.getModel().getMember(reference.getReferenceName());
-            if (member != null) {
-              return asList(member.getNamePsi());
+          HaxeGenericSpecialization specialization = reference.getSpecialization();
+          if(specialization !=null){
+            final HaxeClass underlyingClass = model.getUnderlyingClass(specialization.toGenericResolver(leftClass));
+            if (underlyingClass != null) {
+              member = underlyingClass.getModel().getMember(reference.getReferenceName());
+              if (member != null) {
+                return asList(member.getNamePsi());
+              }
             }
           }
         }
