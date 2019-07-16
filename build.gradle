@@ -140,6 +140,9 @@ dependencies {
 
 runIde {
     jbreVersion 'jbrex8u152b1248.6'
+
+    /* Propagate VM options from gradle command line through to the plugin. */
+    systemProperties = System.getProperties()
 }
 
 compileJava {
