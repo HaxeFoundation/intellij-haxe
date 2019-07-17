@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypedefDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
@@ -341,7 +342,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public static SpecificHaxeClassReference propagateGenericsToType(@Nullable SpecificHaxeClassReference type,
-                                                             HaxeGenericResolver genericResolver) {
+                                                             @Nullable HaxeGenericResolver genericResolver) {
     if (type == null) return null;
     if (genericResolver == null) return type;
 
@@ -378,5 +379,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   @NotNull
   ResultHolder[] getSpecifics() {
     return specifics;
+  }
+
+  @NotNull
+  public HaxeClassResolveResult asResolveResult() {
+    HaxeClass clazz = getHaxeClass();
+    return HaxeClassResolveResult.create(clazz, getGenericResolver().getSpecialization(clazz));
   }
 }
