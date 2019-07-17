@@ -187,7 +187,7 @@ public class HaxeExpressionEvaluator {
           if (type != null) {
             HaxeClass aClass = HaxeResolveUtil.tryResolveClassByQName(type);
             if (aClass != null) {
-              ResultHolder[] specifics =  HaxeTypeResolver.resolveParametersToTypes(aClass, resolver);
+              ResultHolder[] specifics =  HaxeTypeResolver.resolveDeclarationParametersToTypes(aClass, resolver);
               return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(aClass.getModel(), element), specifics, element).createHolder();
             }
           } else { // Anonymous type
@@ -199,7 +199,7 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
-      ResultHolder[] specifics =  HaxeTypeResolver.resolveParametersToTypes(model.haxeClass, resolver);
+      ResultHolder[] specifics =  HaxeTypeResolver.resolveDeclarationParametersToTypes(model.haxeClass, resolver);
       return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(model, element), specifics).createHolder();
     }
 

@@ -133,8 +133,21 @@ public class HaxeTypeResolver {
     return SpecificTypeReference.getUnknown(comp).createHolder();
   }
 
+  /**
+   * Resolves declaration (NOT reference) parameters to types.
+   *
+   * @param comp Declaration with parameters to resolve
+   * @param resolver Resolver from a *reference* with instance parameters to apply to the declaration.
+   * @return A list of specific resolved types matching the parameters of the declaration.
+   */
   @NotNull
-  static public ResultHolder[] resolveParametersToTypes(@NotNull HaxeNamedComponent comp, HaxeGenericResolver resolver) {
+  static public ResultHolder[] resolveDeclarationParametersToTypes(@NotNull HaxeNamedComponent comp, HaxeGenericResolver resolver) {
+    return resolveDeclarationParametersToTypes(comp, resolver, true);
+  }
+  @NotNull
+  static public ResultHolder[] resolveDeclarationParametersToTypes(@NotNull HaxeNamedComponent comp,
+                                                                   HaxeGenericResolver resolver,
+                                                                   boolean resolveElementTypes) {
 
     List<HaxeGenericParamModel> genericParams = null;
 
@@ -165,7 +178,7 @@ public class HaxeTypeResolver {
         if (null != resolver) {
           resolved = resolver.resolve(param.getName());  // Null if no name match.
         }
-        if (null == resolved) {
+        if (null == resolved && resolveElementTypes) {
             resolved = getPsiElementType(param.getPsi(), comp, resolver);
         }
         ResultHolder result = resolved != null ? resolved
