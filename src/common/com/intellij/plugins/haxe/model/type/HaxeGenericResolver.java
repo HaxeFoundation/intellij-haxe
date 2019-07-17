@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +50,12 @@ public class HaxeGenericResolver {
   @Nullable
   public ResultHolder resolve(String name) {
     return resolvers.get(name);
+  }
+
+  @Nullable
+  public ResultHolder resolve(ResultHolder resultHolder) {
+    if (null == resultHolder ) return null;
+    return resolve(resultHolder.getType().toStringWithoutConstant());
   }
 
   /**
@@ -94,5 +102,10 @@ public class HaxeGenericResolver {
    */
   public boolean isEmpty() {
     return resolvers.isEmpty();
+  }
+
+  @NotNull
+  public HaxeGenericSpecialization getSpecialization(@Nullable PsiElement element) {
+    return HaxeGenericSpecialization.fromGenericResolver(element, this);
   }
 }
