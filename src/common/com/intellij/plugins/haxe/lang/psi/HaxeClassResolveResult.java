@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -372,7 +373,7 @@ public class HaxeClassResolveResult implements Cloneable {
     StringBuilder builder = new StringBuilder();
     builder.append(null == haxeClass ? "<null haxeClass>" : haxeClass.getName());
     if (null != haxeClass && haxeClass.isGeneric() && null != specialization) {
-      ResultHolder specifics[] = HaxeTypeResolver.resolveParametersToTypes(haxeClass, specialization.toGenericResolver(haxeClass));
+      ResultHolder specifics[] = HaxeTypeResolver.resolveDeclarationParametersToTypes(haxeClass, specialization.toGenericResolver(haxeClass), false);
       builder.append('<');
       boolean first = true;
       for(ResultHolder holder : specifics) {

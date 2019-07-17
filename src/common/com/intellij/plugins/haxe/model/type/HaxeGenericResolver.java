@@ -85,7 +85,8 @@ public class HaxeGenericResolver {
   @NotNull
   public ResultHolder[] getSpecificsFor(@Nullable HaxeClass hc) {
     if (null == hc) return ResultHolder.EMPTY;
-    return HaxeTypeResolver.resolveParametersToTypes(hc, this);
+
+    return HaxeTypeResolver.resolveDeclarationParametersToTypes(hc, this);
   }
 
   /**
