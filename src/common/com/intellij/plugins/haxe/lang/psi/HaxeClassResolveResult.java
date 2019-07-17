@@ -274,6 +274,19 @@ public class HaxeClassResolveResult implements Cloneable {
     return specialization.toGenericResolver(haxeClass);
   }
 
+  @NotNull
+  public SpecificHaxeClassReference getSpecificClassReference(@NotNull PsiElement context, @Nullable HaxeGenericResolver resolver) {
+    HaxeClassModel clazz = null != haxeClass ? haxeClass.getModel()
+                                             : SpecificHaxeClassReference.getUnknown(context).getHaxeClassModel();
+    HaxeClassReference classReference = null != clazz ? new HaxeClassReference(clazz, context)
+                                        : new HaxeClassReference(SpecificHaxeClassReference.UNKNOWN, context);
+    HaxeClass clazzPsi = null != clazz ? clazz.getPsi() : null;
+
+    softMerge(HaxeGenericSpecialization.fromGenericResolver(clazzPsi, resolver));
+    HaxeGenericResolver newResolver = getGenericResolver();
+    return SpecificHaxeClassReference.withGenerics(classReference, newResolver.getSpecificsFor(clazzPsi));
+  }
+
   public void specialize(@Nullable PsiElement element) {
     if (element == null || haxeClass == null || !haxeClass.isGeneric()) {
       return;
