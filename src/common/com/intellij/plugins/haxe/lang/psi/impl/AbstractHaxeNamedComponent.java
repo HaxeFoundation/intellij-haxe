@@ -131,7 +131,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
           final ResultHolder resultType = model.getResultType();
           if (resultType != null) {
             result.append(":");
-            result.append(model.getResultType().toString());
+            result.append(resultType.toString());
           }
         }
 
