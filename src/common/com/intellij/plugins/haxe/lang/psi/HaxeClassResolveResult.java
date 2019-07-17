@@ -19,12 +19,14 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.ThreadLocalCounter;
 import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiSubstitutor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.SmartList;
@@ -72,6 +74,7 @@ public class HaxeClassResolveResult implements Cloneable {
   }
 
   private static ThreadLocalCounter debugNestCountForCreate = new ThreadLocalCounter("debugNestCountForCreate");
+  private static ThreadLocal<HashSet<HaxeClass>> resolvesInProcess = new ThreadLocal<>().withInitial(()->new HashSet<HaxeClass>());
   @NotNull
   public static HaxeClassResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
     if (aClass == null) {
@@ -81,6 +84,11 @@ public class HaxeClassResolveResult implements Cloneable {
       specialization = new HaxeGenericSpecialization(); // Better than chasing @NotNull all over the code base.
     }
     try {
+      if (resolvesInProcess.get().contains(aClass)) {
+        return HaxeClassResolveResult.EMPTY;
+      }
+      resolvesInProcess.get().add(aClass);
+
       debugNestCountForCreate.increment();
       if (LOG.isDebugEnabled()) {
         LOG.debug(debugNestCountForCreate +
@@ -89,88 +97,27 @@ public class HaxeClassResolveResult implements Cloneable {
                   " using specialization " +
                   specialization.debugDump("  "));
       }
-      HaxeClassResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
+      HaxeClassResolveResult resolveResult = getResult(aClass, specialization);
 
-      if (resolveResult == null) {
-        resolveResult = new HaxeClassResolveResult(aClass);
-        HaxeClassResolveCache.getInstance(aClass.getProject()).put(aClass, resolveResult);
+      // Load the specialization with sub-class parameters.
+      try {
+        List<HaxeType> superclasses = new ArrayList<HaxeType>(aClass.getHaxeExtendsList());
+        superclasses.addAll(aClass.getHaxeImplementsList());
 
-        // This block of code loads the specialization with the type _constraint_, not the target types.
-        // The constraints are used by the completion engine to create suggestions for parameterized types.
-        // Most everything else uses the specialization to figure out the real types for generics.
-        // FIXME: Constraints should be a separate value in the specialization tuple.
-        final HaxeGenericParam genericParam = aClass.getGenericParam();
-        List<HaxeGenericListPart> genericListPartList = genericParam != null ?
-                                                        genericParam.getGenericListPartList() :
-                                                        Collections.<HaxeGenericListPart>emptyList();
-        List<HaxeGenericListPart> lazyGenericReferences = new SmartList<>();
-        for (HaxeGenericListPart genericListPart : genericListPartList) {
-          final HaxeComponentName componentName = genericListPart.getComponentName();
-          final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
-          if (specializedType != null) {
-            PsiElement referenceElement = specializedType.getReferenceExpression().resolve();
-            if(referenceElement instanceof HaxeGenericListPart && PsiTreeUtil.isAncestor(genericParam, referenceElement, true)) {
-              lazyGenericReferences.add(genericListPart);
-              continue;
-            }
-            HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(debugNestCountForCreate.toString() +
-                        "  Adding specialization for " +
-                        aClass.getName() +
-                        "<" +
-                        componentName.getName() +
-                        "> -> " +
-                        specializedTypeResult.debugDump("    "));
-            }
-            resolveResult.specialization.put(aClass,
-                                             componentName.getName(),
-                                             specializedTypeResult);
-          }
-          else {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(debugNestCountForCreate +
-                        "  Not adding specialization for " +
-                        aClass.getName() +
-                        "<" +
-                        componentName.getName() +
-                        ">. No specialized type found.");
-            }
-          }
-        }
-        // END constraint block.
-        if(!lazyGenericReferences.isEmpty()) {
-          for (HaxeGenericListPart genericListPart : lazyGenericReferences) {
-            final HaxeComponentName componentName = genericListPart.getComponentName();
-            final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
-            if(specializedType != null) {
-              String referencedGenericName = specializedType.getReferenceExpression().getText();
-              HaxeClassResolveResult referencedSpecialization = resolveResult.specialization.get(aClass, referencedGenericName);
-              if(referencedSpecialization == null) {
-                referencedSpecialization = HaxeClassResolveResult.create(null, specialization);
-              }
-              resolveResult.specialization.put(aClass, componentName.getName(), referencedSpecialization);
-            }
-          }
-        }
-        // Load the specialization with sub-class parameters.
-        try {
-          List<HaxeType> superclasses = new ArrayList<HaxeType>(aClass.getHaxeExtendsList());
-          superclasses.addAll(aClass.getHaxeImplementsList());
+        final HaxeGenericSpecialization innerSpecialization = specialization.getInnerSpecialization(aClass);
+        for (HaxeType haxeType : superclasses) {
+          // For each of our superclasses, resolve the specialization *WITHOUT* resolving all of their superclasses.
+          // The purpose here is to create a specialization with the mapping of names to real types before going down
+          // the superclass chain.  (e.g. turn 'extends<T>' into 'extends<String>')
+          final HaxeClass superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
+          final HaxeClassResolveResult superResult = new HaxeClassResolveResult(superclass, innerSpecialization);
+          superResult.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
 
-          final HaxeGenericSpecialization innerSpecialization = specialization.getInnerSpecialization(aClass);
-          for (HaxeType haxeType : superclasses) {
-            // For each of our superclasses, resolve the specialization *WITHOUT* resolving all of their superclasses.
-            // The purpose here is to create a specialization with the mapping of names to real types before going down
-            // the superclass chain.  (e.g. turn 'extends<T>' into 'extends<String>')
-            final HaxeClass superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
-            final HaxeClassResolveResult superResult = new HaxeClassResolveResult(superclass, innerSpecialization);
-            superResult.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
+          // Now keep only the specializations that weren't inner.
+          HaxeGenericSpecialization filteredSpecialization = superResult.specialization.filterInnerKeys();
 
-            // Now keep only the specializations that weren't inner.
-            HaxeGenericSpecialization filteredSpecialization = superResult.specialization.filterInnerKeys();
-
-            // Now that we have a specialization with real types, we can let the superclass be resolved.
+          // Now that we have a specialization with real types, we can let the superclass be resolved.
+          if (!PsiManager.getInstance(aClass.getProject()).areElementsEquivalent(superclass,aClass)) {
             final HaxeClassResolveResult result = create(superclass, filteredSpecialization);
             result.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
             if (LOG.isDebugEnabled()) {
@@ -185,18 +132,90 @@ public class HaxeClassResolveResult implements Cloneable {
             resolveResult.merge(result.getSpecialization());
           }
         }
-        catch (StackOverflowError e) {
-          // TODO: Need to handle recursion in HaxeClass.getHaxeExtendsList().
-          LOG.warn("Stack Overflow trying to resolve " + aClass.getName());
-          throw e;
-        }
+      }
+      catch (StackOverflowError e) {
+        LOG.error("Stack Overflow trying to resolve " + aClass.getName());
+        throw e;
       }
 
-      final HaxeClassResolveResult clone = resolveResult.clone();
-      clone.softMerge(specialization);
-      return clone;
+      resolveResult.softMerge(specialization);
+      return resolveResult;
     } finally {
       debugNestCountForCreate.decrement();
+      resolvesInProcess.get().remove(aClass);
+    }
+  }
+
+  private static HaxeClassResolveResult getResult(@NotNull HaxeClass aClass, HaxeGenericSpecialization specialization) {
+    HaxeClassResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
+
+    if (resolveResult == null) {
+      resolveResult = new HaxeClassResolveResult(aClass);
+      loadResultWithConstraints(resolveResult, aClass, specialization);
+      HaxeClassResolveCache.getInstance(aClass.getProject()).put(aClass, resolveResult);
+    }
+    return resolveResult.clone();
+  }
+
+  private static void loadResultWithConstraints(HaxeClassResolveResult resolveResult,
+                                                @Nullable HaxeClass aClass,
+                                                HaxeGenericSpecialization specialization) {
+    // This block of code loads the specialization with the type _constraint_, not the target types.
+    // The constraints are used by the completion engine to create suggestions for parameterized types.
+    // Most everything else uses the specialization to figure out the real types for generics.
+    // FIXME: Constraints should be a separate value in the specialization tuple.
+    final HaxeGenericParam genericParam = aClass.getGenericParam();
+    List<HaxeGenericListPart> genericListPartList = genericParam != null ?
+                                                    genericParam.getGenericListPartList() :
+                                                    Collections.<HaxeGenericListPart>emptyList();
+    List<HaxeGenericListPart> lazyGenericReferences = new SmartList<>();
+    for (HaxeGenericListPart genericListPart : genericListPartList) {
+      final HaxeComponentName componentName = genericListPart.getComponentName();
+      final HaxeType constrainedType = getTypeOfGenericListPart(genericListPart);
+      if (constrainedType != null) {
+        PsiElement referenceElement = constrainedType.getReferenceExpression().resolve();
+        if(referenceElement instanceof HaxeGenericListPart && PsiTreeUtil.isAncestor(genericParam, referenceElement, true)) {
+          lazyGenericReferences.add(genericListPart);
+          continue;
+        }
+        HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(constrainedType, specialization);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(debugNestCountForCreate.toString() +
+                    "  Adding constraint for " +
+                    aClass.getName() +
+                    "<" +
+                    componentName.getName() +
+                    "> -> " +
+                    specializedTypeResult.debugDump("    "));
+        }
+        resolveResult.specialization.put(aClass,
+                                         componentName.getName(),
+                                         specializedTypeResult);
+      }
+      else {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(debugNestCountForCreate +
+                    "  Not adding constraint for " +
+                    aClass.getName() +
+                    "<" +
+                    componentName.getName() +
+                    ">. No constraint type found.");
+        }
+      }
+    }
+    if(!lazyGenericReferences.isEmpty()) {
+      for (HaxeGenericListPart genericListPart : lazyGenericReferences) {
+        final HaxeComponentName componentName = genericListPart.getComponentName();
+        final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
+        if(specializedType != null) {
+          String referencedGenericName = specializedType.getReferenceExpression().getText();
+          HaxeClassResolveResult referencedSpecialization = resolveResult.specialization.get(aClass, referencedGenericName);
+          if(referencedSpecialization == null) {
+            referencedSpecialization = HaxeClassResolveResult.create(null, specialization);
+          }
+          resolveResult.specialization.put(aClass, componentName.getName(), referencedSpecialization);
+        }
+      }
     }
   }
 
