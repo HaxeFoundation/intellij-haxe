@@ -40,6 +40,11 @@ public class HaxeDebugLogger extends org.apache.log4j.Logger {
   private static final HaxeDebugLoggerManager manager = new HaxeDebugLoggerManager();
   private static final String FQCN = HaxeDebugLogger.class.getName();
 
+  @FunctionalInterface
+  public static interface LogComputable {
+    public abstract Object computeMessage();
+  }
+
   public static interface Factory extends LoggerFactory {
     public HaxeDebugLogger makeNewRootLoggerInstance();
   }
@@ -153,6 +158,60 @@ public class HaxeDebugLogger extends org.apache.log4j.Logger {
 
   public static void configure(String name, Level lvl) {
     manager.getLogConfiguration().addConfiguration(name, lvl);
+  }
+
+  public void fatal(LogComputable c) {
+    super.fatal(c.computeMessage());
+  }
+
+  public void error(LogComputable c) {
+    super.error(c.computeMessage());
+  }
+
+  public void warn(LogComputable c) {
+    super.warn(c.computeMessage());
+  }
+
+  /**
+   * Checks if informational messages are enabled *before* computing the message.
+   * Use this when your message computation is complex and you don't want to pay
+   * the cost of computation if the message won't be displayed.
+   *
+   * @param c - a closure that computes a message.  toString() will be
+   *          called on the returned object.
+   */
+  public void info(LogComputable c) {
+    if (isInfoEnabled()) {
+      super.info(c.computeMessage());
+    }
+  }
+
+  /**
+   * Checks if debug messages are enabled *before* computing the message.
+   * Use this when your message computation is complex and you don't want to
+   * pay the cost of computation if the message won't be displayed.
+   *
+   * @param c - a closure that computes a message.  toString() will be
+   *          called on the returned object.
+   */
+  public void debug(LogComputable c) {
+    if (isDebugEnabled()) {
+      super.debug(c.computeMessage());
+    }
+  }
+
+  /**
+   * Checks if trace is enabled *before* computing the message.  Use this
+   * when your message computation is complex and you don't want to pay
+   * the cost of computation if the message won't be displayed.
+   *
+   * @param c - a closure that computes a message.  toString() will be
+   *          called on the returned object.
+   */
+  public void trace(LogComputable c) {
+    if (isTraceEnabled()) {
+      traceAs(getCallingStackFrame(), c.computeMessage(), null);
+    }
   }
 
   @Override
