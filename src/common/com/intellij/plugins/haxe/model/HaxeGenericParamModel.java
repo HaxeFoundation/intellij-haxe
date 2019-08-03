@@ -78,4 +78,8 @@ public class HaxeGenericParamModel {
     }
     return null;
   }
+
+  public String toString() {
+    return name;
+  }
 }
