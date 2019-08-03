@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,7 +150,7 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static PsiElement getParentOfType(@Nullable PsiElement element, @NotNull Class<? extends PsiElement> aClass) {
+  public static <T> T getParentOfType(@Nullable PsiElement element, @NotNull Class<? extends T> aClass) {
     if (element == null || element instanceof PsiFile)
       return null;
 
@@ -157,7 +158,8 @@ public class UsefulPsiTreeUtil {
     element = element.getParent();
     while (element != null && !(element instanceof PsiFile)) {
       if (aClass.isInstance(element)) {
-        return element;
+        //noinspection unchecked
+        return (T)element;
       }
       element = element.getParent();
     }
