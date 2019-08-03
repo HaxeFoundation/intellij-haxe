@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -60,8 +61,14 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   }
 
   public String getDebugName() {
-    String name = getName();
-    String text = getText();
+    String name = null;
+    String text = null;
+    try {
+      text = getText();
+      name = getName();
+    } catch (ProcessCanceledException e) {
+      // ignore it.
+    }
     StringBuilder sb = new StringBuilder();
     if (null != name) {
       sb.append('\'');
@@ -77,6 +84,10 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       sb.append('"');
     }
     return sb.toString();
+  }
+
+  public String toDebugString() {
+    return getTokenType().toString() + getDebugName();
   }
 
   public String toString() {
