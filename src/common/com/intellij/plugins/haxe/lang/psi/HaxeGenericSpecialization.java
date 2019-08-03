@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import gnu.trove.THashMap;
@@ -73,26 +73,27 @@ public class HaxeGenericSpecialization implements Cloneable {
      *
      * A third would be to remove HaxeGenericResolver altogether and make the models use this class.
      */
-    if (null != element) {
-      return getInnerSpecialization(element).toGenericResolver(null);
+    if (null == element) {
+      element = SpecificTypeReference.UNKNOWN_CONTEXT;
     }
 
+    Map<String, HaxeClassResolveResult> innerMap = getMapWithInnerSpecializations(element);
+
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    for (String key : map.keySet()) {
-      // Get and convert the resolveResults into ResultHolders,
-      HaxeClass parameterClass = map.get(key).getHaxeClass();
-      HaxeClassModel model = HaxeClassModel.fromElement(parameterClass);
-      if (null != parameterClass && null != model) {
-        HaxeClassReference reference = new HaxeClassReference(model, parameterClass);
-        ResultHolder holder = SpecificHaxeClassReference.withoutGenerics(reference).createHolder();
-        resolver.add(key, holder);
-      } // TODO: else create a reference to Dynamic or Any??
+    for (String key : innerMap.keySet()) {
+      HaxeClassResolveResult resolveResult = innerMap.get(key);
+      HaxeClass resolveClass = resolveResult.getHaxeClass();
+      if (null == resolveClass) {
+        resolveClass = SpecificHaxeClassReference.getUnknown(element).getHaxeClass();
+      }
+      ResultHolder resultHolder = resolveResult.getSpecificClassReference(resolveClass, null).createHolder();
+      resolver.add(key, resultHolder);
     }
     return resolver;
   }
 
   @NotNull
-  public static HaxeGenericSpecialization fromGenericResolver(@NotNull PsiElement element, @Nullable HaxeGenericResolver resolver) {
+  public static HaxeGenericSpecialization fromGenericResolver(@Nullable PsiElement element, @Nullable HaxeGenericResolver resolver) {
     HaxeGenericSpecialization specialization = new HaxeGenericSpecialization();
     if (null != resolver) {
       for (String name : resolver.names()) {
@@ -113,11 +114,11 @@ public class HaxeGenericSpecialization implements Cloneable {
     return specialization;
   }
 
-  public void put(PsiElement element, String genericName, HaxeClassResolveResult resolveResult) {
+  public void put(@Nullable PsiElement element, @NotNull String genericName, @Nullable HaxeClassResolveResult resolveResult) {
     map.put(getGenericKey(element, genericName), resolveResult);
   }
 
-  public boolean containsKey(@Nullable PsiElement element, String genericName) {
+  public boolean containsKey(@Nullable PsiElement element, @NotNull String genericName) {
     return map.containsKey(getGenericKey(element, genericName));
   }
 
@@ -137,18 +138,30 @@ public class HaxeGenericSpecialization implements Cloneable {
   }
 
   @NotNull
-  public HaxeGenericSpecialization getInnerSpecialization(PsiElement element) {
+  public HaxeGenericSpecialization getInnerSpecialization(@Nullable PsiElement element) {
+    final Map<String, HaxeClassResolveResult> result = getMapWithInnerSpecializations(element);
+    return new HaxeGenericSpecialization(result);
+  }
+
+  @NotNull
+  private Map<String, HaxeClassResolveResult> getMapWithInnerSpecializations(@Nullable PsiElement element) {
+    // We are no longer removing fully-qualified entries for the element.  Rather,
+    // we are duplicating them without the FQDN in the key so that pieces of the
+    // code that do not have FQDN info can continue to match (which is what we
+    // always did before).  Now, newer code that always carries the FQDN can also match
+    // after an inner specialization is requested.
+
     final String prefixToRemove = getGenericKey(element, "");
-    final Map<String, HaxeClassResolveResult> result = new THashMap<String, HaxeClassResolveResult>();
+    final Map<String, HaxeClassResolveResult> result = new THashMap<>();
     for (String key : map.keySet()) {
       final HaxeClassResolveResult value = map.get(key);
-      String newKey = key;
-      if (newKey.startsWith(prefixToRemove)) {
-        newKey = newKey.substring(prefixToRemove.length());
+      if (key.startsWith(prefixToRemove)) {
+        String newKey = key.substring(prefixToRemove.length());
+        result.put(newKey, value);
       }
-      result.put(newKey, value);
+      result.put(key, value);
     }
-    return new HaxeGenericSpecialization(result);
+    return result;
   }
 
   public static String getGenericKey(@Nullable PsiElement element, @NotNull String genericName) {
@@ -160,8 +173,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     else if (namedComponent != null) {
       HaxeClass haxeClass = PsiTreeUtil.getParentOfType(namedComponent, HaxeClass.class);
       if (haxeClass instanceof HaxeAnonymousType) {
-        // class -> typeOrAnonymous -> anonymous
-        final PsiElement parent = haxeClass.getParent().getParent();
+        final PsiElement parent = HaxeResolveUtil.findTypeParameterContributor(haxeClass);
         haxeClass = parent instanceof HaxeClass ? (HaxeClass)parent : haxeClass;
       }
       if (haxeClass != null) {

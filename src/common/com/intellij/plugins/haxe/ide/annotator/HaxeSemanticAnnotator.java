@@ -35,13 +35,12 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.PsiFileUtils;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -668,21 +667,27 @@ class MethodChecker {
       );
     }
 
+    HaxeGenericResolver scopeResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(currentMethod.getBasePsi());
+
     for (int n = 0; n < minParameters; n++) {
       final HaxeParameterModel currentParam = currentParameters.get(n);
       final HaxeParameterModel parentParam = parentParameters.get(n);
-      if (!HaxeTypeCompatible.canAssignToFrom(currentParam.getType(), parentParam.getType())) {
-        holder.createErrorAnnotation(
-          currentParam.getBasePsi(),
-          "Type " + currentParam.getType() + " is not compatible with " + parentParam.getType()).registerFix
-          (
-            new HaxeFixer("Change type") {
-              @Override
-              public void run() {
-                document.replaceElementText(currentParam.getTypeTagPsi(), parentParam.getTypeTagPsi().getText());
-              }
-            }
-          );
+
+      // We cannot simply check that the two types are the same when they have type arguments;
+      // the arguments may not resolve to the same thing.  So, we need to resolve the element
+      // in the super-class before we can check assignment compatibility.
+      SpecificHaxeClassReference resolvedParent = resolveSuperclassElement(scopeResolver, currentParam, parentParam);
+
+      // Order of assignment compatibility is to parent, from subclass.
+      ResultHolder currentParamType = currentParam.getType(scopeResolver);
+      ResultHolder parentParamType = parentParam.getType(null == resolvedParent ? scopeResolver : resolvedParent.getGenericResolver());
+      if (!HaxeTypeCompatible.canAssignToFrom(parentParamType, currentParamType)) {
+        HaxeAnnotation annotation =
+          typeMismatch(currentParam.getBasePsi(), currentParamType.toString(), parentParamType.toString())
+          .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), ()->{
+            document.replaceElementText(currentParam.getTypeTagPsi(), parentParam.getTypeTagPsi().getText());
+          }));
+        holder.addAnnotation(annotation);
       }
 
       if (currentParam.hasOptionalPsi() != parentParam.hasOptionalPsi()) {
@@ -722,10 +727,44 @@ class MethodChecker {
 
     ResultHolder currentResult = currentMethod.getResultType();
     ResultHolder parentResult = parentMethod.getResultType();
-    if (!parentResult.canAssign(currentResult)) {
+
+    // Again, the super-class may resolve with different/incompatible type arguments.
+    SpecificHaxeClassReference resolvedParent = resolveSuperclassElement(scopeResolver, currentMethod, parentMethod);
+
+    SpecificTypeReference parentType = (resolvedParent != null ? resolvedParent : parentResult.getType());
+    // Order of assignment compatibility is to parent, from subclass.
+    if (!HaxeTypeCompatible.canAssignToFrom(parentType, currentResult.getType())) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
-      holder.createErrorAnnotation(psi, "Not compatible return type " + currentResult + " != " + parentResult);
+      HaxeAnnotation annotation =
+        returnTypeMismatch(psi, currentResult.getType().toStringWithoutConstant(), parentType.toStringWithConstant())
+          .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), ()->{
+            document.replaceElementText(currentResult.getElementContext(), parentResult.toStringWithoutConstant());
+          }));
+      holder.addAnnotation(annotation);
     }
+  }
+
+  @Nullable
+  private static SpecificHaxeClassReference resolveSuperclassElement(HaxeGenericResolver scopeResolver,
+                                                                     HaxeModel currentElement,
+                                                                     HaxeModel parentParam) {
+    HaxeGenericSpecialization scopeSpecialization = HaxeGenericSpecialization.fromGenericResolver(currentElement.getBasePsi(), scopeResolver);
+    HaxeClassResolveResult superclassResult = HaxeResolveUtil.getSuperclassResolveResult(parentParam.getBasePsi(),
+                                                                                         currentElement.getBasePsi(),
+                                                                                         scopeSpecialization);
+    if (superclassResult == HaxeClassResolveResult.EMPTY) {
+      // TODO: Create Unresolved annotation??
+      HaxeDebugLogger.getLogger().warn("Couldn't resolve a parameter type from a subclass for " + currentElement.getName());
+    }
+
+    SpecificHaxeClassReference resolvedParent = null;
+    HaxeGenericResolver superResolver = superclassResult.getGenericResolver();
+    HaxeClass superClass = superclassResult.getHaxeClass();
+    if (null != superClass) {
+      HaxeClassReference superclassReference = new HaxeClassReference(superClass.getModel(), currentElement.getBasePsi());
+      resolvedParent = SpecificHaxeClassReference.withGenerics(superclassReference, superResolver.getSpecificsFor(superClass));
+    }
+    return resolvedParent;
   }
 
   // Fast check without annotations
@@ -874,14 +913,14 @@ class InitVariableVisitor extends HaxeVisitor {
 class AssignExpressionChecker {
   public static void check(HaxeAssignExpression psi, HaxeAnnotationHolder holder) {
     // TODO: Think about how to use models to do this instead. :/
-    PsiElement[] children = psi.getChildren();
-    PsiElement lhs = children[0];
-    // PsiElement assignOperation = children[1];
-    PsiElement rhs = children[2];
+    PsiElement lhs = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(psi);
+    PsiElement assignOperation = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(lhs);
+    PsiElement rhs = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(assignOperation);
 
-    HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(psi);
-    ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, resolver);
-    ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, resolver);
+    HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(lhs);
+    HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rhs);
+    ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, lhsResolver);
+    ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, rhsResolver);
 
     if (!lhsType.canAssign(rhsType)) {
       HaxeAnnotation anno = typeMismatch(rhs, rhsType.toStringWithoutConstant(), lhsType.toStringWithoutConstant())

@@ -19,15 +19,15 @@ abstract Map<K,V>(IMap<K,V> ) {
 
 @:dox(hide)
 @:deprecated
-typedef IMap<K, V> = constrainedIMap<K, V>;
+typedef IMap<K, V> = ConstrainedIMap<K, V>;
 
-
-interface constrainedIMap<K,V> {
+interface ConstrainedIMap<K,V> {
 	public function get(k:K):Null<V>;
 	public function set(k:K, v:V):Void;
 	public function exists(k:K):Bool;
 	public function remove(k:K):Bool;
 	public function keys():Iterator<K>;
+	public function keyValueIterator():KeyValueIterator<K, V>;
 	public function iterator():Iterator<V>;
 	public function toString():String;
 }

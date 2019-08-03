@@ -53,18 +53,17 @@ public class HaxeAbstractEnumUtil {
   }
 
   @Nullable
-  public static HaxeClassResolveResult resolveFieldType(@Nullable PsiElement element) {
-    final HaxeClass cls = getFieldClass(element);
-    return cls != null ? HaxeClassResolveResult.create(cls) : null;
+  public static HaxeClassResolveResult resolveFieldType(@Nullable PsiElement element, HaxeGenericSpecialization specialization) {
+    final HaxeGenericResolver resolver = null == specialization ? null : specialization.toGenericResolver(element);
+    final SpecificHaxeClassReference cls = getFieldClass(element, resolver);
+    return cls != null ? cls.asResolveResult() : null;
   }
 
   @Nullable
   public static ResultHolder getFieldType(@Nullable PsiElement element, @Nullable HaxeGenericResolver resolver) {
-    final HaxeClass cls = getFieldClass(element);
+    final SpecificHaxeClassReference cls = getFieldClass(element, resolver); // returns null if element is not an abstract field.
     if (cls != null && element != null) {
-      HaxeClassReference reference = new HaxeClassReference(cls.getModel(), element);
-      ResultHolder[] specifics = null != resolver ? resolver.getSpecificsFor(cls) : ResultHolder.EMPTY;
-      ResultHolder result = new ResultHolder(SpecificHaxeClassReference.withGenerics(reference, specifics));
+      ResultHolder result = new ResultHolder(cls);
 
       if (element instanceof HaxeFieldDeclaration) {
         final HaxeVarInit init = ((HaxeFieldDeclaration)element).getVarInit();
@@ -103,20 +102,23 @@ public class HaxeAbstractEnumUtil {
   /*** HELPERS ***/
 
   @Nullable
-  private static HaxeClass getFieldClass(@Nullable PsiElement element) {
-    final HaxeFieldDeclaration varDecl = element != null && (element instanceof HaxeFieldDeclaration) ?
+  private static SpecificHaxeClassReference getFieldClass(@Nullable PsiElement element, @Nullable HaxeGenericResolver resolver) {
+    final HaxeFieldDeclaration varDecl = (element instanceof HaxeFieldDeclaration) ?
                                        (HaxeFieldDeclaration)element : null;
     if (couldBeAbstractEnumField(varDecl)) {
       final HaxeAbstractClassDeclaration abstractEnumClass =
         PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
+      SpecificHaxeClassReference specificRef;
       if (isAbstractEnum(abstractEnumClass)) {
         if (varDecl.getTypeTag() == null) {
-          return abstractEnumClass;
+          HaxeClassReference enumReference = new HaxeClassReference(abstractEnumClass.getModel(), element);
+          ResultHolder[] specifics = resolver != null ? resolver.getSpecificsFor(enumReference) : ResultHolder.EMPTY;
+          specificRef = SpecificHaxeClassReference.withGenerics(enumReference, specifics);
+          return SpecificHaxeClassReference.propagateGenericsToType(specificRef, resolver);
         }
-      }
-      HaxeClassResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(varDecl, new HaxeGenericSpecialization());
-      if (result.getHaxeClass() != null) {
-        return result.getHaxeClass();
+        HaxeGenericSpecialization specialization = resolver != null ? resolver.getSpecialization(element) : HaxeGenericSpecialization.EMPTY;
+        HaxeClassResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(varDecl, specialization);
+        return result.getSpecificClassReference(element, resolver);  // Propagates generics internally.
       }
     }
     return null;

@@ -348,6 +348,9 @@ public class HaxeExpressionEvaluator {
             context.addError(element, "String must be a single UTF8 char");
           }
         } else {
+
+          // TODO: Yo! Eric!!  This needs to get fixed.  The resolver is coming back as Dynamic, when it should be String
+
           HaxeGenericResolver localResolver = null != typeHolder.getClassType()
                                               ? typeHolder.getClassType().getGenericResolver()
                                               : new HaxeGenericResolver();

@@ -3,7 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.InheritanceImplUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
@@ -81,9 +81,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
     if (name == null && this instanceof HaxeAnonymousType) {
       // restore name from parent
-      final PsiElement typedefDecl = getParent().getParent();
-      if (typedefDecl != null && typedefDecl instanceof HaxeTypedefDeclaration) {
-        name = ((HaxeTypedefDeclaration)typedefDecl).getName();
+      final HaxeTypedefDeclaration typedefDecl = UsefulPsiTreeUtil.getParentOfType(this, HaxeTypedefDeclaration.class);
+      if (null != typedefDecl) {
+        name = typedefDecl.getName();
       }
     }
 

@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +26,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeClassReference {
@@ -60,7 +60,7 @@ public class HaxeClassReference {
 
   private String getClassNameInternal(HaxeClassModel clazz) {
     if (clazz.haxeClass instanceof HaxeAnonymousType) {
-      HaxeNamedComponent namedComponent = PsiTreeUtil.getParentOfType(clazz.haxeClass.getContext(), HaxeNamedComponent.class);
+      HaxeNamedComponent namedComponent = HaxeResolveUtil.findTypeParameterContributor(clazz.getBasePsi());
       if (namedComponent instanceof HaxeTypedefDeclaration) {
         final HaxeComponentName name = namedComponent.getComponentName();
         if (name != null) {

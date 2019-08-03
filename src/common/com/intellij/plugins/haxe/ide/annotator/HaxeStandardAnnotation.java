@@ -33,4 +33,9 @@ public class HaxeStandardAnnotation {
     return new HaxeAnnotation(HighlightSeverity.ERROR, incompatibleElement.getTextRange(), message, null);
   }
 
+  public static HaxeAnnotation returnTypeMismatch(PsiElement incompatibleElement, String incompatibleType, String correctType) {
+    String message = HaxeBundle.message("haxe.semantic.incompatible.return.type.0.should.be.1", incompatibleType, correctType);
+    return new HaxeAnnotation(HighlightSeverity.ERROR, incompatibleElement.getTextRange(), message, null);
+  }
+
 }

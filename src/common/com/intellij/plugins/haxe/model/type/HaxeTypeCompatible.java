@@ -39,7 +39,8 @@ public class HaxeTypeCompatible {
     if (null == to || null == from) return false;
     if (to.isUnknown()) {
       to.setType(from.getType().withoutConstantValue());
-    } else if (from.isUnknown()) {
+    }
+    else if (from.isUnknown()) {
       from.setType(to.getType().withoutConstantValue());
     }
     return canAssignToFrom(to.getType(), from.getType());
@@ -80,6 +81,26 @@ public class HaxeTypeCompatible {
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
   ) {
+    if (canAssignToFromSpecificType(to, from)) return true;
+
+    Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes();
+    for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
+      if (canAssignToFromSpecificType(compatibleType, from)) return true;
+    }
+
+    compatibleTypes = from.getInferTypes();
+    for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
+      if (canAssignToFromSpecificType(to, compatibleType)) return true;
+    }
+
+    // Last ditch effort...
+    return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
+  }
+
+  static private boolean canAssignToFromSpecificType(
+    @NotNull SpecificHaxeClassReference to,
+    @NotNull SpecificHaxeClassReference from
+  ) {
     if (to.isDynamic() || from.isDynamic()) {
       return true;
     }
@@ -99,21 +120,10 @@ public class HaxeTypeCompatible {
         return true;
       }
       // issue #388: allow `public var m:Map<String, String> = new Map();`
-      else if(from.getSpecifics().length == 0) {
+      else if (from.getSpecifics().length == 0) {
         return true;
       }
     }
-
-    Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes();
-    for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
-      if (compatibleType.toStringWithoutConstant().equals(from.toStringWithoutConstant())) return true;
-    }
-
-    compatibleTypes = from.getInferTypes();
-    for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
-      if (compatibleType.toStringWithoutConstant().equals(to.toStringWithoutConstant())) return true;
-    }
-
-    return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
+    return false;
   }
 }
