@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
@@ -35,10 +36,12 @@ import java.util.List;
 
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
   private HaxeMethod haxeMethod;
+  private String name;
 
   public HaxeMethodModel(HaxeMethod haxeMethod) {
     super(haxeMethod);
     this.haxeMethod = haxeMethod;
+    this.name = getName();
   }
 
   @Override
@@ -157,7 +160,13 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   @Override
   public String toString() {
-    return "HaxeMethodModel(" + this.getName() + ", " + this.getParameters() + ")";
+    String parameters = null;
+    try {
+      parameters = this.getParameters().toString();
+    } catch (ProcessCanceledException e) {
+      parameters = "?";
+    }
+    return "HaxeMethodModel(" + this.name + ", " + parameters + ")";
   }
 
   @Override
