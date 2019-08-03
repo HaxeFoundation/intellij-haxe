@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +18,6 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.thoughtworks.xstream.converters.extended.StackTraceElementFactory;
 import org.apache.log4j.*;
 import org.apache.log4j.spi.LoggerFactory;
 import org.apache.log4j.spi.LoggerRepository;
@@ -226,6 +226,20 @@ public class HaxeDebugLogger extends org.apache.log4j.Logger {
 
   public void trace() {
     traceAs(getCallingStackFrame(), null, null);
+  }
+
+  /**
+   * Checks if trace is enabled *before* computing the message.  Use this
+   * when your message computation is complex and you don't want to pay
+   * the cost of computation if the message won't be displayed.
+   *
+   * @param c - a closure that computes a message.  toString() will be
+   *          called on the returned object.
+   */
+  public void traceAs(StackTraceElement frame, LogComputable c) {
+    if (isTraceEnabled()) {
+      traceAs(frame, c.computeMessage());
+    }
   }
 
   public void traceAs(StackTraceElement frame, Object message) {
