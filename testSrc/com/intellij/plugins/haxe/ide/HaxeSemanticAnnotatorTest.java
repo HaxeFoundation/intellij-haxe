@@ -398,7 +398,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNoErrorOnMultipleNullT() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/String.hx");
   }
 
   public void testNoIncompatibleTypeErrorOnMap() throws Exception {
@@ -412,4 +412,36 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testEitherTypeTest() throws Exception {
     doTestNoFixWithWarnings("std/StdTypes.hx", "std/String.hx", "std/EitherType.hx");
   }
+
+  public void testNoErrorWhenTypeParameterIsSelfClass() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testNoErrorAccessingParameterizedArray() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testNoErrorAccessingFieldsThroughParamaterizedMethods() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testNoErrorAssigningToParameterizedArrayElement() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+  }
+
+  public void testNoErrorAssigningParameterizedTypeDuringVarInit() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testNoErrorOnOverrideDefinition() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx");
+  }
+
+  public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Map.hx", "std/Class.hx");
+  }
+
+  //public void testAssignmentOfParameterizedType() throws Exception {
+  //  doTestNoFixWithWarnings();
+  //}
 }

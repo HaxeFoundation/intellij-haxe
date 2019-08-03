@@ -48,6 +48,9 @@ public class HaxeClassResolveResult implements Cloneable {
   // Remove when finished debugging.
   //static { LOG.setLevel(Level.DEBUG); }
 
+  private static ThreadLocalCounter debugNestCountForCreate = new ThreadLocalCounter("debugNestCountForCreate");
+  private static ThreadLocal<HashSet<HaxeClass>> resolvesInProcess = new ThreadLocal<>().withInitial(()->new HashSet<HaxeClass>());
+
   public static final HaxeClassResolveResult EMPTY = new HaxeClassResolveResult(null);
   @Nullable
   private final HaxeClass haxeClass;
@@ -73,8 +76,14 @@ public class HaxeClassResolveResult implements Cloneable {
     return create(aClass, new HaxeGenericSpecialization());
   }
 
-  private static ThreadLocalCounter debugNestCountForCreate = new ThreadLocalCounter("debugNestCountForCreate");
-  private static ThreadLocal<HashSet<HaxeClass>> resolvesInProcess = new ThreadLocal<>().withInitial(()->new HashSet<HaxeClass>());
+  /**
+   * Creates a new resolve result for the given class.  The specialization (if any) is used to
+   * resolve type parameters on the class.
+   *
+   * @param aClass - Class to wrap up and specialize.
+   * @param specialization - A set of type names and real types to map them to.
+   * @return A HaxeClassResolveResult for the class, with parameters fully typed, if possible.
+   */
   @NotNull
   public static HaxeClassResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
     if (aClass == null) {
@@ -355,7 +364,7 @@ public class HaxeClassResolveResult implements Cloneable {
 
       final PsiElement specializedType = typeList.get(i);
 
-      if (genericParamName == null || specializedType == null) continue;
+      if (genericParamName == null) continue;
       final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
       specialization.put(haxeClass, genericParamName, specializedTypeResult);
     }
@@ -391,7 +400,8 @@ public class HaxeClassResolveResult implements Cloneable {
       linePrefix="";
     }
     builder.append(linePrefix);
-    builder.append(null == haxeClass ? "<null haxeClass>" : haxeClass.getName());
+    builder.append(null == haxeClass ? "<null haxeClass>"
+                                     : null == haxeClass.getName() ? "<anonymous haxeClass>" : haxeClass.getName());
     builder.append(":\n");
     String prefix = linePrefix + "  ";
     builder.append(null == specialization ? "<null specialization>" : specialization.debugDump(prefix));
@@ -403,7 +413,8 @@ public class HaxeClassResolveResult implements Cloneable {
 
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append(null == haxeClass ? "<null haxeClass>" : haxeClass.getName());
+    builder.append(null == haxeClass ? "<null haxeClass>"
+                                     : null == haxeClass.getName() ? "<anonymous haxeClass>" : haxeClass.getName());
     if (null != haxeClass && haxeClass.isGeneric() && null != specialization) {
       ResultHolder specifics[] = HaxeTypeResolver.resolveDeclarationParametersToTypes(haxeClass, specialization.toGenericResolver(haxeClass), false);
       builder.append('<');

@@ -43,6 +43,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -284,22 +285,24 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   /** Replacement for instanceof that has better logging and is easier to step over :) */
+  @Contract("null->false")
   private boolean isType(Class clazz) {
     if (clazz.isInstance(this)) {
-      if (LOG.isTraceEnabled()) LOG.trace("Resolving " + this.getDebugName() + " as class type " + clazz.getName());
+      if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), "Resolving " + this.getDebugName() + " as class type " + clazz.getName());
       return true;
     }
-    if (LOG.isTraceEnabled()) LOG.trace(this.getDebugName() + " is not a " + clazz.getName());
+    if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), this.getDebugName() + " is not a " + clazz.getName());
     return false;
   }
 
   /** Replacement for instanceof that has better logging and is easier to step over :) */
+  @Contract("null,_->false")
   private boolean isType(Object o, Class clazz) {
     if (clazz.isInstance(o)) {
-      if (LOG.isTraceEnabled()) LOG.trace("Resolving " + o + " as class type " + clazz.getName());
+      if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), "Resolving " + o + " as class type " + clazz.getName());
       return true;
     }
-    if (LOG.isTraceEnabled()) LOG.trace(o + " is not a " + clazz.getName());
+    if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), o + " is not a " + clazz.getName());
     return false;
   }
 
@@ -485,11 +488,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (isType(resolve, HaxeAnonymousTypeField.class)) {
       HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
       HaxeTypeTag typeTag = field.getTypeTag();
-      if (typeTag.getTypeOrAnonymous() != null) {
+      if (null != typeTag && typeTag.getTypeOrAnonymous() != null) {
         HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
         if (typeOrAnonymous != null) {
           if (typeOrAnonymous.getAnonymousType() != null) {
-            return HaxeClassResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization().getInnerSpecialization(typeOrAnonymous));
+            return HaxeClassResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization());
           } else {
             HaxeType type = typeOrAnonymous.getType();
             if (type != null) {
@@ -499,7 +502,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                 final HaxeGenericSpecialization specialization = getSpecialization();
                 if(specialization != null && componentName != null) {
                   String genericName = componentName.getText();
-                  final HaxeClassResolveResult result = getSpecialization().get(resolve, genericName);
+                  final HaxeClassResolveResult result = specialization.get(resolve, genericName);
                   if (result != null) {
                     return result;
                   }
@@ -527,6 +530,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
       }
     }
+
+    if (isType(resolve, HaxeClass.class)) {
+      // Classes (particularly typedefs) that are already resolved should not be
+      // re-resolved to their component parts.
+      return HaxeClassResolveResult.create((HaxeClass)resolve, getSpecialization());
+    }
+
     if (resolve != null) {
       return HaxeResolveUtil.getHaxeClassResolveResult(resolve, getSpecialization());
     }

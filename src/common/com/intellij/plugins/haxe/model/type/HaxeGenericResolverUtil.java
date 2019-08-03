@@ -20,6 +20,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,22 @@ public class HaxeGenericResolverUtil {
     appendClassGenericResolver(element, resolver);
     appendMethodGenericResolver(element, resolver);
     appendStatementGenericResolver(HaxeResolveUtil.getLeftReference(element), resolver);
+    return resolver;
+  }
+
+  @Nullable
+  public static HaxeGenericResolver generateResolverForSupers(HaxeClassModel classModel) {
+    if (null == classModel) return null;
+    return generateResolverForSupers(classModel.getPsi());
+  }
+
+  @Nullable
+  public static HaxeGenericResolver generateResolverForSupers(HaxeClass clazz) {
+    if (null == clazz) return null;
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    for (PsiClass superClazz : clazz.getSupers()) {
+      appendClassGenericResolver(superClazz, resolver);
+    }
     return resolver;
   }
 

@@ -17,4 +17,5 @@ typedef Iterable<T> = {
 typedef KeyValueIterator<K,V> = Iterator<{key:K, value:V}>;
 typedef KeyValueIterable<K,V> = {
     function keyValueIterator():KeyValueIterator<K,V>;
-}extern interface ArrayAccess<T> { }
+}
+extern interface ArrayAccess<T> { }
