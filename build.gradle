@@ -19,7 +19,7 @@
 
 plugins {
     id 'de.undercouch.download' version '3.3.0'
-    id 'org.jetbrains.intellij' version '0.3.12'
+    id 'org.jetbrains.intellij' version '0.4.9'
 }
 
 
@@ -78,6 +78,8 @@ allprojects {
         version = "IU-${ideaVersion}"
         pluginName = "intellij-haxe-${ideaVersion}"
         ideaDependencyCachePath "${ideaBaseDir}"
+        // Specify the sandbox so that Gradle doesn't try to make it relative to each sub-project.
+        sandboxDirectory "${project.rootDir}/build/idea-sandbox"
         // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
         updateSinceUntilBuild false
     }
