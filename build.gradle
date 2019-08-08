@@ -69,11 +69,6 @@ allprojects {
         psiTargetFile = "light-psi-all.jar"
     }
 
-    File propertiesFile = file("${ideaTargetDir}/build.txt")
-    Properties buildProperties = propertiesFile.exists()
-                                    ? findSdkValuesAndProperties(propertiesFile)
-                                    : new Properties()
-
     apply plugin: 'idea'
     apply plugin: 'org.jetbrains.intellij'
     apply from: "${haxePluginDir}/template.gradle"
@@ -88,9 +83,10 @@ allprojects {
         // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
         updateSinceUntilBuild false
         // Include the "java" built-in plugin for 2019.2 and later builds.
-        String codeline = buildProperties.getProperty('idea.sdk.codeline')
-        if (null != codeline && codeline.toInteger() >= 192) {
-            plugins 'java' // 2019.2 + only.  Causes build errors on earlier versions.
+        String[] versionInfo = "${ideaVersion}".split("\\.")
+        if (versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2019 || (versionInfo[0].toInteger() == 2019 && versionInfo[1].toInteger() >= 2))) {
+            System.println("Including java plugin for version >= 2019.2")
+            plugins 'java'  // 2019.2 + only.  Causes build errors on earlier versions.
         }
     }
 }
