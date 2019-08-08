@@ -69,7 +69,10 @@ allprojects {
         psiTargetFile = "light-psi-all.jar"
     }
 
-    Properties buildProperties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+    File propertiesFile = file("${ideaTargetDir}/build.txt")
+    Properties buildProperties = propertiesFile.exists()
+                                    ? findSdkValuesAndProperties(propertiesFile)
+                                    : new Properties()
 
     apply plugin: 'idea'
     apply plugin: 'org.jetbrains.intellij'
@@ -85,7 +88,8 @@ allprojects {
         // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
         updateSinceUntilBuild false
         // Include the "java" built-in plugin for 2019.2 and later builds.
-        if (buildProperties.getProperty('idea.sdk.codeline').toInteger() >= 192) {
+        String codeline = buildProperties.getProperty('idea.sdk.codeline')
+        if (null != codeline && codeline.toInteger() >= 192) {
             plugins 'java' // 2019.2 + only.  Causes build errors on earlier versions.
         }
     }
