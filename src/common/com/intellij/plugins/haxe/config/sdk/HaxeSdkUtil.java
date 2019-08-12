@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +18,23 @@
  */
 package com.intellij.plugins.haxe.config.sdk;
 
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.CapturingProcessHandler;
-import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,35 +50,34 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       return null;
     }
 
-    final GeneralCommandLine command = new GeneralCommandLine();
-    command.setExePath(exePath);
-    command.addParameter("-help");
-    command.setWorkDirectory(path);
+    List<String> command = new ArrayList<>();
+    command.add(exePath);
+    command.add("-help");
 
     try {
-      final ProcessOutput output = new CapturingProcessHandler(
-        command.createProcess(),
-        Charset.defaultCharset(),
-        command.getCommandLineString()).runProcess();
+      VirtualFile dir = VirtualFileManager.getInstance().findFileByUrl(HaxeFileUtil.fixUrl(path));
+      List<String> output = new ArrayList<>();
+      int exitCode = HaxeProcessUtil.runProcess(command, true, dir, output, null, null, false);
 
-      if (output.getExitCode() != 0) {
-        LOG.error("Haxe compiler exited with invalid exit code: " + output.getExitCode());
+      if (exitCode != 0) {
+        LOG.error("Haxe compiler exited with invalid exit code: " + exitCode);
         return null;
       }
 
-      final String outputString = output.getStderr();
-
       String haxeVersion = "NA";
-      final Matcher matcher = VERSION_MATCHER.matcher(outputString);
-      if (matcher.find()) {
-        haxeVersion = matcher.group(1);
+      for (String s : output) {
+        final Matcher matcher = VERSION_MATCHER.matcher(s);
+        if (matcher.find()) {
+          haxeVersion = matcher.group(1);
+          break;
+        }
       }
       final HaxeSdkData haxeSdkData = new HaxeSdkData(path, haxeVersion);
       haxeSdkData.setHaxelibPath(getHaxelibPathByFolderPath(path));
       haxeSdkData.setNekoBinPath(suggestNekoBinPath(path));
       return haxeSdkData;
     }
-    catch (ExecutionException e) {
+    catch (Exception e) {
       LOG.info("Exception while executing the process:", e);
       return null;
     }
