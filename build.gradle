@@ -147,7 +147,7 @@ dependencies {
 }
 
 runIde {
-    jbrVersion '8u202b1483.37'
+    jbrVersion '8u152b1343.26'
 
     /* Propagate VM options from gradle command line through to the plugin. */
     systemProperties = System.getProperties()
