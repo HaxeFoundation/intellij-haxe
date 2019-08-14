@@ -32,9 +32,9 @@ import com.intellij.psi.LanguageInjector;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageManagerImpl;
 import com.intellij.testFramework.ParsingTestCase;
-import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 abstract public class HaxeParsingTestBase extends ParsingTestCase {
@@ -87,7 +87,7 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
     @NotNull
     @Override
     public List<? extends Class<? extends PsiElement>> elementsToInjectIn() {
-      return Lists.emptyList();
+      return new ArrayList<>();
     }
   }
 }
