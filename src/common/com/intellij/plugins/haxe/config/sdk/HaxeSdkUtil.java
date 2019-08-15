@@ -57,7 +57,8 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     try {
       VirtualFile dir = VirtualFileManager.getInstance().findFileByUrl(HaxeFileUtil.fixUrl(path));
       List<String> output = new ArrayList<>();
-      int exitCode = HaxeProcessUtil.runProcess(command, true, dir, output, null, null, false);
+      int exitCode = HaxeProcessUtil.runSynchronousProcessOnBackgroundThread(command, true, dir, output,
+                                                                             null, null, false);
 
       if (exitCode != 0) {
         LOG.error("Haxe compiler exited with invalid exit code: " + exitCode);

@@ -19,9 +19,9 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
-import com.intellij.util.ExceptionUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -121,14 +121,70 @@ public class HaxeProcessUtil {
    *
    * @return The exit status of the command.
    */
+  public static int runSynchronousProcessOnBackgroundThread(List<String> command,
+                                                            boolean mixedOutput,
+                                                            VirtualFile dir,
+                                               /*modifies*/ List<String> stdout,
+                                               /*modifies*/ List<String> stderr,
+                                                            HaxeDebugTimeLog timeLog,
+                                                            boolean interruptible) {
+    return runSynchronousProcessOnBackgroundThread(command, mixedOutput, dir,
+                                                   null, stdout, stderr, timeLog, interruptible);
+  }
+
+  /**
+   * Run a possibly interruptible process (without environment updates for the SDK).
+   * Checks whether the process/thread has been canceled (from within IDEA).
+   *
+   * @param command - Command and parameters.
+   * @param mixedOutput - include stderr in stdout output.
+   * @param dir - directory to run the command in.
+   * @param stdout - List to append output to.  Will not be cleared on start.
+   * @param stderr - List to append error output to. Will not be cleared on start.
+   * @param interruptible - Check for user cancellation while running.
+   *
+   * @return The exit status of the command.
+   */
   public static int runProcess(List<String> command,
                                boolean mixedOutput,
                                VirtualFile dir,
-    /*modifies*/ List<String> stdout,
-    /*modifies*/ List<String> stderr,
+                  /*modifies*/ List<String> stdout,
+                  /*modifies*/ List<String> stderr,
                                HaxeDebugTimeLog timeLog,
                                boolean interruptible) {
     return runProcess(command, mixedOutput, dir, null, stdout, stderr, timeLog, interruptible);
+  }
+
+  /**
+   * Run a possibly interruptible process with the Haxe SDK environment (if given).
+   * Checks whether the process/thread has been canceled (from within IDEA).
+   *
+   * @param command - Command and parameters.
+   * @param mixedOutput - include stderr in stdout output.
+   * @param dir - directory to run the command in.
+   * @param sdkData - sdk to use to set the command environment.
+   * @param stdout - List to append output to.  Will not be cleared on start.
+   * @param stderr - List to append error output to. Will not be cleared on start.
+   * @param interruptible - Check for user cancellation while running.
+   *
+   * @return The exit status of the command.
+   */
+  public static int runSynchronousProcessOnBackgroundThread(List<String> command,
+                                                 boolean mixedOutput,
+                                                 VirtualFile dir,
+                                                 HaxeSdkAdditionalDataBase sdkData,
+                                    /*modifies*/ List<String> stdout,
+                                    /*modifies*/ List<String> stderr,
+                                                 HaxeDebugTimeLog timeLog,
+                                                 boolean interruptible) {
+
+    if (null == command || command.isEmpty()) return -1;
+
+    return ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      ()->runProcess(command, mixedOutput, dir, sdkData, stdout, stderr, timeLog, interruptible),
+      command.get(0),
+      interruptible,
+      null);
   }
 
   /**
@@ -149,8 +205,8 @@ public class HaxeProcessUtil {
                                boolean mixedOutput,
                                VirtualFile dir,
                                HaxeSdkAdditionalDataBase sdkData,
-    /*modifies*/ List<String> stdout,
-    /*modifies*/ List<String> stderr,
+                  /*modifies*/ List<String> stdout,
+                  /*modifies*/ List<String> stderr,
                                HaxeDebugTimeLog timeLog,
                                boolean interruptible) {
     // Seems like a good idea to add this check, which was added to IDEA for 2019.2.
@@ -325,6 +381,13 @@ public class HaxeProcessUtil {
    * </ul></li></ul>
    *
    * @apiNote works only in internal mode with UI. Reports once per running session per stacktrace per cause.
+   *
+   * Why this matters:
+   *   Running on the EDT -- or in a WriteAction (which, by definition is on the EDT -- see JetBrains' threading
+   *                         model docs -- means that the process blocks the UI and *any other thread*
+   *                         waiting to start a WriteAction or ReadAction.
+   *   Running in a ReadAction  -- While multiple ReadActions can run simultaneously, any running ReadAction
+   *                               still blocks waiting WriteActions.
    */
   public static void checkEdtAndReadAction(@NotNull String processName) {
     Application application = ApplicationManager.getApplication();
@@ -338,8 +401,9 @@ public class HaxeProcessUtil {
     else if (application.isReadAccessAllowed()) {
       message = "Synchronous execution under ReadAction: ";
     }
-    if (message != null && REPORTED_EXECUTIONS.add(ExceptionUtil.currentStackTrace())) {
-      LOG.error(message + processName);
+    String callers = HaxeDebugUtil.printCallers(7);
+    if (message != null && REPORTED_EXECUTIONS.add(callers)) {
+      LOG.error(message +'\n' + callers + "...while running process: " + processName);
     }
   }
 }
