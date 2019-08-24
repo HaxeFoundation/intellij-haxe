@@ -82,6 +82,12 @@ allprojects {
         sandboxDirectory "${project.rootDir}/build/idea-sandbox"
         // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
         updateSinceUntilBuild false
+        // Include the "java" built-in plugin for 2019.2 and later builds.
+        String[] versionInfo = "${ideaVersion}".split("\\.")
+        if (versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2019 || (versionInfo[0].toInteger() == 2019 && versionInfo[1].toInteger() >= 2))) {
+            System.println("Including java plugin for version >= 2019.2")
+            plugins 'java'  // 2019.2 + only.  Causes build errors on earlier versions.
+        }
     }
 }
 
@@ -141,7 +147,7 @@ dependencies {
 }
 
 runIde {
-    jbreVersion 'jbrex8u152b1248.6'
+    jbrVersion '8u152b1343.26'
 
     /* Propagate VM options from gradle command line through to the plugin. */
     systemProperties = System.getProperties()
