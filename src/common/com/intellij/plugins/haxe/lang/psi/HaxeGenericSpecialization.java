@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author: Fedor.Korotkov
@@ -190,6 +191,19 @@ public class HaxeGenericSpecialization implements Cloneable {
     }
     result.append(genericName);
     return result.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    HaxeGenericSpecialization that = (HaxeGenericSpecialization)o;
+    return map.equals(that.map);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(map);
   }
 
   public String debugDump() {
