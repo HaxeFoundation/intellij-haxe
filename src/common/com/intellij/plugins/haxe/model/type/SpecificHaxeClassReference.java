@@ -131,17 +131,19 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public String toStringWithConstant() {
     String out = toStringWithoutConstant();
     if (getConstant() != null) {
-      switch (out) {
-        case SpecificTypeReference.INT:
-          out += CONSTANT_VALUE_DELIMITER + (int)HaxeTypeUtils.getDoubleValue(getConstant());
-          break;
-        case SpecificTypeReference.STRING:
-          out += CONSTANT_VALUE_DELIMITER + getConstant();
-          break;
-        default:
-          out += CONSTANT_VALUE_DELIMITER + getConstant();
-          break;
-      }
+      out += CONSTANT_VALUE_DELIMITER + getConstant().toString();
+
+      //switch (out) {
+      //  case SpecificTypeReference.INT:
+      //    out += CONSTANT_VALUE_DELIMITER + (int)HaxeTypeUtils.getDoubleValue(getConstant());
+      //    break;
+      //  case SpecificTypeReference.STRING:
+      //    out += CONSTANT_VALUE_DELIMITER + getConstant();
+      //    break;
+      //  default:
+      //    out += CONSTANT_VALUE_DELIMITER + getConstant();
+      //    break;
+      //}
     }
     if (getRangeConstraint() != null) {
       out += " [" + getRangeConstraint() + "]";
@@ -193,7 +195,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return null;
   }
 
-  Set<SpecificHaxeClassReference> getCompatibleTypes() {
+  public enum Compatibility {
+    ASSIGNABLE_TO,   // Assignable via @:to or "to <Type>" on an abstract.
+    ASSIGNABLE_FROM  // Assignable via @:from or "from <Type>" on an abstract.
+  }
+
+  Set<SpecificHaxeClassReference> getCompatibleTypes(Compatibility direction) {
     HaxeClassModel model = getHaxeClassModel();
     if (null == model || !model.hasGenericParams()) {
       // If we want to cache all results, then we need a better caching mechanism.
@@ -211,14 +218,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       Set<SpecificHaxeClassReference> result = context.getUserData(COMPATIBLE_TYPES_KEY);
       if (result == null) {
         processedElements.get().clear();
-        result = getCompatibleTypesInternal();
+        result = getCompatibleTypesInternal(direction);
         result.add(this);
         context.putUserData(COMPATIBLE_TYPES_KEY, result);
       }
       return result;
     } else {
       processedElements.get().clear();
-      Set<SpecificHaxeClassReference>result = getCompatibleTypesInternal();
+      Set<SpecificHaxeClassReference>result = getCompatibleTypesInternal(direction);
       result.add(this);
       return result;
     }
@@ -241,7 +248,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
   }
 
-  private Set<SpecificHaxeClassReference> getCompatibleTypesInternal() {
+  private Set<SpecificHaxeClassReference> getCompatibleTypesInternal(Compatibility direction) {
     final Stack<HaxeClass> stack = processedElements.get();
     final HaxeClassModel model = getHaxeClassModel();
     final HaxeGenericResolver genericResolver = getGenericResolver();
@@ -256,14 +263,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)model.haxeClass).getTargetClass(genericResolver);
         if (type != null) {
           list.add(type);
-          list.addAll(type.getCompatibleTypesInternal());
+          list.addAll(type.getCompatibleTypesInternal(direction));
         }
       } else
       for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
         SpecificHaxeClassReference type = propagateGenericsToType(extendsType, genericResolver);
         if (type != null) {
           if (model.isInterface()) list.add(type);
-          list.addAll(type.getCompatibleTypesInternal());
+          list.addAll(type.getCompatibleTypesInternal(direction));
         }
       }
 
@@ -272,15 +279,17 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         SpecificHaxeClassReference type = propagateGenericsToType(interfaceReference.getPsi(), genericResolver);
         if (type != null) {
           list.add(type);
-          list.addAll(type.getCompatibleTypesInternal());
+          list.addAll(type.getCompatibleTypesInternal(direction));
         }
       }
     } else {
-      for (HaxeType extendsType : model.getAbstractFromList()) {
+
+      List<HaxeType> typeList = direction == Compatibility.ASSIGNABLE_FROM ? model.getAbstractFromList() : model.getAbstractToList();
+      for (HaxeType extendsType : typeList) {
         SpecificHaxeClassReference type = propagateGenericsToType(extendsType, genericResolver);
         if (type != null) {
           list.add(type);
-          list.addAll(type.getCompatibleTypesInternal());
+          list.addAll(type.getCompatibleTypesInternal(direction));
         }
       }
     }
@@ -305,7 +314,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)model.haxeClass).getTargetClass(genericResolver);
         if (type != null) {
           list.add(type);
-          list.addAll(type.getCompatibleTypes());
+          list.addAll(type.getCompatibleTypes(Compatibility.ASSIGNABLE_FROM));
         }
       } else
       for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {

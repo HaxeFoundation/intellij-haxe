@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
@@ -136,6 +137,41 @@ public class HaxeClassModel implements HaxeExposableModel {
 
     // TODO: What about function types?
 
+    return null;
+  }
+
+  @Nullable
+  public SpecificHaxeClassReference getUnderlyingClassReference(HaxeGenericResolver resolver) {
+    if (!isAbstract()) return null;
+
+    PsiElement element = getBasePsi();
+    HaxeTypeOrAnonymous typeOrAnon = getUnderlyingType();
+    if (typeOrAnon != null) {
+      HaxeType type = typeOrAnon.getType();
+      if (type != null) {
+        HaxeClass aClass = HaxeResolveUtil.tryResolveClassByQName(type);
+        if (aClass != null) {
+          ResultHolder[] specifics =  HaxeTypeResolver.resolveDeclarationParametersToTypes(aClass, resolver);
+          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(aClass.getModel(), element), specifics, element);
+        }
+      } else { // Anonymous type
+        HaxeAnonymousType anon = typeOrAnon.getAnonymousType();
+        if (anon != null) {
+          // Anonymous types don't have parameters of their own, but when they are part of a typedef, they use the parameters from it.
+          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anon.getModel(), element), resolver.getSpecifics(), element);
+        }
+      }
+    } else {
+      // No typeOrAnon.  This must be Null<T>?
+      if ("Null".equals(getName())) {
+        List<HaxeGenericParamModel> typeParams = getGenericParams();
+        if (typeParams.size() == 1) {
+          HaxeGenericParamModel param = typeParams.get(0);
+          ResultHolder result = resolver.resolve(param.getName());
+          return result.getClassType();
+        }
+      }
+    }
     return null;
   }
 
@@ -379,7 +415,10 @@ public class HaxeClassModel implements HaxeExposableModel {
       final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
       SpecificHaxeClassReference classType = aTypeRef.getClassType();
       if (classType != null) {
-        classType.getHaxeClassModel().writeCompatibleTypes(output);
+        HaxeClassModel model = classType.getHaxeClassModel();
+        if (model != null) {
+          model.writeCompatibleTypes(output);
+        }
       }
     }
 
@@ -388,7 +427,10 @@ public class HaxeClassModel implements HaxeExposableModel {
       final ResultHolder aTypeRef = HaxeTypeResolver.getTypeFromType(type);
       SpecificHaxeClassReference classType = aTypeRef.getClassType();
       if (classType != null) {
-        classType.getHaxeClassModel().writeCompatibleTypes(output);
+        HaxeClassModel model = classType.getHaxeClassModel();
+        if (model != null) {
+          model.writeCompatibleTypes(output);
+        }
       }
     }
 

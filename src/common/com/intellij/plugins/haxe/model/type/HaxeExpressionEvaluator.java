@@ -181,22 +181,9 @@ public class HaxeExpressionEvaluator {
       if (ancestor == null) return SpecificTypeReference.getDynamic(element).createHolder();
       HaxeClassModel model = ancestor.getModel();
       if (model.isAbstract()) {
-        HaxeTypeOrAnonymous typeOrAnon = model.getUnderlyingType();
-        if (typeOrAnon != null) {
-          HaxeType type = typeOrAnon.getType();
-          if (type != null) {
-            HaxeClass aClass = HaxeResolveUtil.tryResolveClassByQName(type);
-            if (aClass != null) {
-              ResultHolder[] specifics =  HaxeTypeResolver.resolveDeclarationParametersToTypes(aClass, resolver);
-              return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(aClass.getModel(), element), specifics, element).createHolder();
-            }
-          } else { // Anonymous type
-            HaxeAnonymousType anon = typeOrAnon.getAnonymousType();
-            if (anon != null) {
-              // Anonymous types don't have parameters of their own, but when they are part of a typedef, they use the parameters from it.
-              return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anon.getModel(), element), resolver.getSpecifics(), element).createHolder();
-            }
-          }
+        SpecificHaxeClassReference reference = model.getUnderlyingClassReference(resolver);
+        if (null != reference) {
+          return reference.createHolder();
         }
       }
       ResultHolder[] specifics =  HaxeTypeResolver.resolveDeclarationParametersToTypes(model.haxeClass, resolver);
@@ -543,15 +530,21 @@ public class HaxeExpressionEvaluator {
       return holder;
     }
 
-    if (element instanceof PsiJavaToken) {
-      IElementType type = ((PsiJavaToken)element).getTokenType();
+    if (element instanceof HaxePsiToken) {
+      IElementType type = ((HaxePsiToken)element).getTokenType();
 
       if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
         return SpecificHaxeClassReference.primitive("Int", element, Long.decode(element.getText())).createHolder();
       } else if (type == HaxeTokenTypes.LITFLOAT) {
-        return SpecificHaxeClassReference.primitive("Float", element, Double.parseDouble(element.getText())).createHolder();
+        Float value = new Float(element.getText());
+        return SpecificHaxeClassReference.primitive("Float", element, Double.parseDouble(element.getText()))
+          .withConstantValue(value)
+          .createHolder();
       } else if (type == HaxeTokenTypes.KFALSE || type == HaxeTokenTypes.KTRUE) {
-        return SpecificHaxeClassReference.primitive("Bool", element, type == HaxeTokenTypes.KTRUE).createHolder();
+        Boolean value = type == HaxeTokenTypes.KTRUE;
+        return SpecificHaxeClassReference.primitive("Bool", element, type == HaxeTokenTypes.KTRUE)
+          .withConstantValue(value)
+          .createHolder();
       } else if (type == HaxeTokenTypes.KNULL) {
         return SpecificHaxeClassReference.primitive("Dynamic", element, HaxeNull.instance).createHolder();
       } else {
