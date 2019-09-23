@@ -619,7 +619,7 @@ public class HaxeResolveUtil {
       result.specialize(initExpression);
       return result;
     }
-    return getHaxeClassResolveResult(initExpression);
+    return getHaxeClassResolveResult(initExpression, specialization);
   }
 
   @NotNull
