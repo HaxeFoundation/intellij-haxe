@@ -78,7 +78,7 @@ public class HaxeExpressionEvaluator {
     }
     catch (Throwable t) {
       // XXX: Watch this.  If it happens a lot, then maybe we shouldn't log it unless in debug mode.
-      LOG.warn("Error evaluating expression type for element " + element.toString(), t);
+      LOG.warn("Error evaluating expression type for element " + (null == element ? "<null>" : element.toString()), t);
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
   }
