@@ -536,7 +536,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return HaxeClassResolveResult.create(enumDeclaration, getSpecialization());
     }
 
-    if (isType(resolve, HaxeClass.class)) {
+    if (isType(resolve, HaxeClass.class) || isType(resolve, HaxeFunctionLiteral.class)) {
       // Classes (particularly typedefs) that are already resolved should not be
       // re-resolved to their component parts.
       return HaxeClassResolveResult.create((HaxeClass)resolve, getSpecialization());

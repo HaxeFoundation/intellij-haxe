@@ -632,7 +632,7 @@ public class HaxeResolveUtil {
       return specialization.get(specializationContext, type.getText());
     }
 
-    if (haxeClass instanceof HaxeTypedefDeclaration) {
+    if (null != haxeClass && haxeClass.isGeneric()) {
       HaxeClassResolveResult temp = HaxeClassResolveResult.create(haxeClass, specialization);
       temp.specializeByParameters(type.getTypeParam());
       specialization = temp.getSpecialization();
@@ -661,7 +661,13 @@ public class HaxeResolveUtil {
     }
 
     if (typeTag != null) {
-      return tryResolveFunctionType(typeTag.getFunctionType(), specialization);
+      final HaxeFunctionType fnType = typeTag.getFunctionType();
+      final HaxeClass psiClass = HaxeResolveUtil.findClassByQName("haxe.Constraints.Function", element);
+      if (null != fnType && psiClass instanceof HaxeAbstractClassDeclaration) {
+        final HaxeClass fn = new HaxeSpecificFunction((HaxeAbstractClassDeclaration)psiClass,
+                                                      fnType, specialization);
+        return HaxeClassResolveResult.create(fn, specialization);
+      }
     }
 
     return HaxeClassResolveResult.EMPTY;

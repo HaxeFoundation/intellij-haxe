@@ -161,7 +161,7 @@ public class HaxeImportModel implements HaxeExposableModel {
       return (Objects.equals(getAliasName(), name)) ? members.get(0) : null;
     }
     return members.stream()
-      .filter(model -> model.getName().equals(name))
+      .filter(model -> name.equals(model.getName()))
       .findFirst()
       .orElse(null);
   }

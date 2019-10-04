@@ -38,6 +38,7 @@ public abstract class SpecificTypeReference {
   public static final String DYNAMIC = "Dynamic";
   public static final String UNKNOWN = "Unknown"; // TODO: Should NOT a legal type name.
   public static final String ITERATOR = "Iterator";
+  public static final String FUNCTION = "Function";
   public static final String INVALID = "@@Invalid";
   public static final String MAP = "Map";
   public static final String ANY = "Any"; // Specifically, the "Any" class; See <Haxe>/std/Any.hx.
@@ -101,6 +102,10 @@ public abstract class SpecificTypeReference {
     return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{type.createHolder()});
   }
 
+  public static SpecificHaxeClassReference getFunction(@NotNull PsiElement context) {
+    return primitive(FUNCTION, context);
+  }
+
   public static SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
     return SpecificHaxeClassReference.withoutGenerics(getStdClassReference(name, context));
   }
@@ -159,6 +164,10 @@ public abstract class SpecificTypeReference {
 
   final public boolean isAny() {
     return isNamedType(ANY);
+  }
+
+  final public boolean isFunction() {
+    return isNamedType(FUNCTION);
   }
 
   private boolean isNamedType(String typeName) {
@@ -228,6 +237,7 @@ public abstract class SpecificTypeReference {
     return toString();
   }
 
+  /** Get the return type of the named method or field in the class referenced by this object. */
   @Nullable
   public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver) {
     return null;

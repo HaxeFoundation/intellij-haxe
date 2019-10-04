@@ -276,6 +276,12 @@ public class HaxeExpressionUtil {
       return classification;
     }
 
+    if (is_type(expr, HaxeFunctionLiteral.class)) {
+      // Function literals are constants, they just don't necessarily return a
+      // constant when called.
+      return ConstantClass.FUNCTION;
+    }
+
     LOG.debug("Unexpected expression type being checked for constant-ness:" + expr);
     return ConstantClass.NOT_CONSTANT;
   }
@@ -351,7 +357,8 @@ public class HaxeExpressionUtil {
     REGEX,
     NULL,
     BOOLEAN,
-    ENUMERATION;
+    ENUMERATION,
+    FUNCTION;
 
     public boolean isCompatibleWith(ConstantClass right) {
       switch (this) {

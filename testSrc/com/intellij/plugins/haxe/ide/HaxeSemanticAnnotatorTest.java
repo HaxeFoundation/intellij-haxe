@@ -45,6 +45,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   private void doTestInternal(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings, String... additionalFiles) throws Exception {
+    myFixture.copyDirectoryToProject("std", "std"); // Pick up the entire Std directory.
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
@@ -112,7 +113,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNonConstantArgumentAbstractEnum() throws Exception {
-    doTestNoFixWithWarnings("test/SampleAbstractEnum.hx", "std/StdTypes.hx");
+    doTestNoFixWithWarnings("test/SampleAbstractEnum.hx");
   }
 
   public void testConstructorMustNotBeStatic() throws Exception {
@@ -132,27 +133,27 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testAbstractAssignmentFromTo1() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAbstractAssignmentFromTo2() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAbstractAssignmentFromTo3() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAbstractAssignmentFromTo4() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAbstractAssignmentFromTo5() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAbstractAssignmentFromTo6() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNullFunction() throws Exception {
@@ -200,7 +201,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testOverrideSignature5() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testImplementSignature() throws Exception {
@@ -212,7 +213,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testSimpleAssignUnknownGeneric() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testExtendsAnonymousType() throws Exception {
@@ -240,27 +241,27 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testArrayAssignmentFromEmpty() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testArrayAssignmentBadFunctionType() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testArrayAssignmentWrongType() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testArrayAssignmentBadArrowFunction() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testArrayAssignmentWithAbstract() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testArrayAssignmentWithArrowFunctions() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNullTAssignment1() throws Exception {
@@ -274,171 +275,171 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   // var a:Int = 10/2;
   public void testInitializeIntWithFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignFloatToInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
   // var a:Int = "3.1416";
   public void testInitializeFloatWithString() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignStringToFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
   // var a:Int = (10.0 : Float);
   public void testInitializeIntWithTypeCheckFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignTypeCheckFloatToInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
   // var a:Int = (10 : Float);
   public void testInitializeIntWithIntTypeCheckedToFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignIntWithIntTypeCheckedToFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
   // var a:String = 3.1416;
   public void testInitializeStringWithFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignFloatToString() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
   // var a:String = 10;
   public void testInitializeStringWithInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignIntToString() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
   // var a:Float = 100;
   public void testInitializeFloatWithInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignIntToFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
   // var f:Float = 100; i:Int = (f);
   public void testInitializeIntWithParenthesizedFloat() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignParenthesizedFloatToInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 
 // NOT Working yet.
   // var c:Int = {x:1, y:2};
   //public void testInitializeIntWithAnonymousStruct() throws Exception {
-  //  doTestNoFixWithWarnings("std/StdTypes.hx");
+  //  doTestNoFixWithWarnings();
   //}
   //
   //public void testAssignAnonymousStructToInt() throws Exception {
-  //  doTestNoFixWithWarnings("std/StdTypes.hx");
+  //  doTestNoFixWithWarnings();
   //}
 
 
   // typedef Pt = {x:Int; y:Int;}; var c:Int = new Pt();
   public void testInitializeIntWithTypedef() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignTypedefToInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   // class Point {...}; var c:Int = new Point(1,2);
   public void testInitializeIntWithClass() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testAssignClassToInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
 // NOT working yet.
   // class Test{ var somevar; function new() { somevar = 3.1; }
   //public void testUnknownClassVariable() throws Exception {
-  //  doTestNoFixWithWarnings("std/StdTypes.hx");
+  //  doTestNoFixWithWarnings();
   //}
 
   // class Test{ var somevar:Int; function new() { somevar = 3; }
   public void testAssignFloatToTypedClassVarDeclaration() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   // class Test{ var somevar = 10; function new() {somevar = 3.1;} }
   public void testAssignFloatToInferredClassVarInt() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnMultipleNullT() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/String.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoIncompatibleTypeErrorOnMap() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoIncompatibleTypeErrorOnChainedMaps() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testEitherTypeTest() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/String.hx", "std/EitherType.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorWhenTypeParameterIsSelfClass() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorAccessingParameterizedArray() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorAccessingFieldsThroughParamaterizedMethods() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorAssigningToParameterizedArrayElement() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Array.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorAssigningParameterizedTypeDuringVarInit() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnOverrideDefinition() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Map.hx", "std/Class.hx");
+    doTestNoFixWithWarnings();
   }
 
   //public void testAssignmentOfParameterizedType() throws Exception {
@@ -446,30 +447,38 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   //}
 
   public void testNoErrorOnOptionalParameterWithIntFieldConstant() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnOptionalParameterWithSimpleStringFieldConstant() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnOptionalParameterWithParenthesizedStringFieldConstant() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnOptionalParameterWithParenthesizedNumericFieldConstant() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testErrorOnOptionalParameterWithNonConstMethod() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnOptionalParameterWithDoublyReferencedVar() throws Exception {
-    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx");
+    doTestNoFixWithWarnings();
   }
 
   public void testNoErrorOnEnumConstant() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNoErrorOnOptionalNullFloatConstant() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNoErrorOnConstantFunctionType() throws Exception {
     doTestNoFixWithWarnings();
   }
 
