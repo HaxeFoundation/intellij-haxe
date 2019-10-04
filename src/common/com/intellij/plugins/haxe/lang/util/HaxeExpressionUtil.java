@@ -161,6 +161,9 @@ public class HaxeExpressionUtil {
     ||  is_type(expr, HaxeConstantExpression.class)) {
       PsiElement childElement = expr.getFirstChild();
       IElementType type = null != childElement ? childElement.getNode().getElementType() : null;
+      if (null == type) {  // Optimize failure case.
+        return ConstantClass.NOT_CONSTANT;
+      }
       if (type == HaxeTokenTypes.KTRUE
           ||  type == HaxeTokenTypes.KFALSE) {
         return ConstantClass.BOOLEAN;
