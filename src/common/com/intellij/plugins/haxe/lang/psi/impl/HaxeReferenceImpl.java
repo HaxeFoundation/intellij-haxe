@@ -531,6 +531,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
 
+    if (isType(resolve, HaxeEnumValueDeclaration.class)) {
+      final HaxeEnumDeclaration enumDeclaration = UsefulPsiTreeUtil.getParentOfType(resolve, HaxeEnumDeclaration.class);
+      return HaxeClassResolveResult.create(enumDeclaration, getSpecialization());
+    }
+
     if (isType(resolve, HaxeClass.class)) {
       // Classes (particularly typedefs) that are already resolved should not be
       // re-resolved to their component parts.

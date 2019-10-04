@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
@@ -414,14 +415,29 @@ public class HaxeTypeResolver {
     if (element == resolveContext) return SpecificTypeReference.getInvalid(element).createHolder();
     if (element instanceof HaxeReferenceExpression) {
       // First, try to resolve it to a class -- this deals with field-level specializations.
+      // This calls the old resolver which doesn't deal with expressions.
+      ResultHolder resultHolder = null;
       HaxeClassResolveResult result = ((HaxeReferenceExpression)element).resolveHaxeClass();
       if (null != result.getHaxeClass()) {
-        return new ResultHolder(result.getSpecificClassReference(element, result.getGenericResolver()));
+        resultHolder = new ResultHolder(result.getSpecificClassReference(element, result.getGenericResolver()));
       }
-      // If it doesn't resolve to a class, fall back to whatever *does* resolve to.
+      // If it doesn't resolve to a class, fall back to whatever *does* resolve to. This calls
+      // the newer resolve code (this class), which does deal with expressions properly.
       PsiElement targetElement = ((HaxeReferenceExpression)element).resolve();
-      if (targetElement instanceof HaxePsiField) {
-        return getTypeFromFieldDeclaration((HaxePsiField)targetElement, element, resolver);
+      if (null == resultHolder && targetElement instanceof HaxePsiField) {
+        resultHolder = getTypeFromFieldDeclaration((HaxePsiField)targetElement, element, resolver);
+      }
+
+      if (null != resultHolder) {
+        // If it's a constant, grab the constant value.
+        if (targetElement instanceof HaxePsiField) {
+          HaxeFieldModel model = new HaxeFieldModel((HaxePsiField)targetElement);
+          if (model.isConstant()) {
+            resultHolder = resultHolder.withConstantValue(
+              model.isEnumValue() ? model.getBasePsi() : model.getInitializerExpression());
+          }
+        }
+        return resultHolder;
       }
     }
     return getPsiElementType(element, (AnnotationHolder)null, resolver).result;

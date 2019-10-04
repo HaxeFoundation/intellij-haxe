@@ -88,6 +88,10 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     return hasModifier(HaxePsiModifier.STATIC);
   }
 
+  public boolean isInline() {
+    return hasModifier(INLINE);
+  }
+
   @NotNull
   public PsiElement getNameOrBasePsi() {
     PsiElement element = getNamePsi();

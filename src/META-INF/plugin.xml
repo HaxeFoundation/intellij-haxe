@@ -83,6 +83,14 @@
       <p/>
       <p>Unreleased Changes</p>
       <ul>
+        <li>Better constant detection and handling of default parameters for methods.</li>
+        <ul>
+          <li>Detect initialization calculations containing only constants as constant.</li>
+          <li>Detect several standard library functions as returning constants when their arguments are constant. (e.g. Std.int("1"))</li>
+          <li>Detect identifiers/constants referencing other constants as still constant.</li>
+          <li>Detect enums without parameters as constants.</li>
+          <li>Better flagging of errors when default parameters <i>are not</i> constants.</li>
+        </ul>
         <li>Much better handling of generics throughout, including type error checking code.</li>
         <li>Use type parameters from left-hand (e.g. left.right) expressions when resolving right-hand fields and method return types.</li>
       </ul>

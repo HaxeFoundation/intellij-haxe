@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +20,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -149,5 +151,37 @@ public class HaxeFieldModel extends HaxeMemberModel {
   @Override
   public HaxeExposableModel getExhibitor() {
     return getDeclaringClass();
+  }
+
+  /**
+   * Tells whether a field is a constant, according to the rules for default parameters.
+   *
+   * @return true, if the field is a constant; false, otherwise.
+   */
+  public boolean isConstant() {
+    if (isEnumValue()) {
+      HaxeEnumValueDeclaration enumValue = (HaxeEnumValueDeclaration)getBasePsi();
+      return null == enumValue.getParameterList();  // Only enums without arguments are considered constants.
+    }
+
+    return isStatic() && isInline() && HaxeExpressionUtil.isConstantExpression(getInitializerExpression());
+  }
+
+  public boolean isEnumValue() {
+    return getBasePsi() instanceof HaxeEnumValueDeclaration;
+  }
+
+  /**
+   * Gets the initializer expression for the field.
+   * @return
+   */
+  @Nullable
+  public HaxeExpression getInitializerExpression() {
+    HaxeVarInit initializer = getInitializerPsi();
+    if (null != initializer) {
+      HaxeExpression expression = initializer.getExpression();
+      return expression;
+    }
+    return null;
   }
 }

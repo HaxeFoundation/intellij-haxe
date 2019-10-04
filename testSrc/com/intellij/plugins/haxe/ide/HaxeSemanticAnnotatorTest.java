@@ -444,4 +444,33 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   //public void testAssignmentOfParameterizedType() throws Exception {
   //  doTestNoFixWithWarnings();
   //}
+
+  public void testNoErrorOnOptionalParameterWithIntFieldConstant() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx");
+  }
+
+  public void testNoErrorOnOptionalParameterWithSimpleStringFieldConstant() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+  }
+
+  public void testNoErrorOnOptionalParameterWithParenthesizedStringFieldConstant() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+  }
+
+  public void testNoErrorOnOptionalParameterWithParenthesizedNumericFieldConstant() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+  }
+
+  public void testErrorOnOptionalParameterWithNonConstMethod() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx", "std/String.hx");
+  }
+
+  public void testNoErrorOnOptionalParameterWithDoublyReferencedVar() throws Exception {
+    doTestNoFixWithWarnings("std/StdTypes.hx", "std/Std.hx");
+  }
+
+  public void testNoErrorOnEnumConstant() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
 }

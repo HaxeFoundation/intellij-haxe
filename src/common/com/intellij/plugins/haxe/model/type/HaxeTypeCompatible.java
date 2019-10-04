@@ -19,6 +19,8 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,15 +79,36 @@ public class HaxeTypeCompatible {
     return to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue);
   }
 
+  static private SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
+    if (ref.getHaxeClass() instanceof HaxeAbstractClassDeclaration && "Null".equals(ref.getClassName())) {
+      SpecificHaxeClassReference underlying = ref.getHaxeClassModel().getUnderlyingClassReference(ref.getGenericResolver());
+      if (null != underlying) {
+        ref = underlying;
+      }
+    }
+    return ref;
+  }
+
   static private boolean canAssignToFromType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
   ) {
+
+    // Null<T> is a special case.  It must act like a T in all ways.  Whereas,
+    // any other abstract must act like it hides its internal types.
+    to = getUnderlyingClassIfAbstractNull(to);
+    from = getUnderlyingClassIfAbstractNull(from);
+
     if (canAssignToFromSpecificType(to, from)) return true;
 
-    Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes();
+    Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(compatibleType, from)) return true;
+    }
+
+    compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
+    for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
+      if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
 
     compatibleTypes = from.getInferTypes();
