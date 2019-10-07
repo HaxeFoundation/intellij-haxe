@@ -170,6 +170,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return resolver;
   }
 
+  /** Get the return type of the named method or field in the class referenced by this object. */
   @Nullable
   @Override
   public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver) {

@@ -85,6 +85,7 @@
       <ul>
         <li>Better constant detection and handling of default parameters for methods.</li>
         <ul>
+          <li>Detect function type constants and report accordingly.</li>
           <li>Detect initialization calculations containing only constants as constant.</li>
           <li>Detect several standard library functions as returning constants when their arguments are constant. (e.g. Std.int("1"))</li>
           <li>Detect identifiers/constants referencing other constants as still constant.</li>

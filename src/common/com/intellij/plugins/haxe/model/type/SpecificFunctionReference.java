@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +19,27 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromTypeOrAnonymous;
 
 public class SpecificFunctionReference extends SpecificTypeReference {
   private static final String DELIMITER = "->";
+
+  public static class StdFunctionReference extends SpecificFunctionReference {
+    public StdFunctionReference(@NotNull PsiElement context) {
+      super(new ArrayList<Argument>(), SpecificTypeReference.getDynamic(context).createHolder(), null, context);
+    }
+  }
+
 
   final public List<Argument> arguments;
   final public ResultHolder returnValue;
@@ -43,6 +56,43 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     this.returnValue = returnValue;
     this.method = method;
   }
+
+  // This is an adapter to deal with the function-type mismatch between the old resolver
+  // and the models.
+  // TODO: Technical debt: Need to unify the resolver and the models.
+  public static SpecificFunctionReference create(HaxeSpecificFunction func) {
+    if (null == func) return null;
+
+    HaxeGenericSpecialization specialization = func.getSpecialization();
+    HaxeGenericResolver resolver = specialization.toGenericResolver(func);
+
+    LinkedList<Argument> args = new LinkedList<>();
+    List<HaxeFunctionArgument> arguments = func.getFunctionArgumentList();
+    for (int i = 0; i < arguments.size(); i++) {
+      HaxeFunctionArgument arg = arguments.get(i);
+      ResultHolder result = determineType(func, resolver, arg.getFunctionType(), arg.getTypeOrAnonymous());
+     args.add(new Argument(i, null != arg.getOptionalMark(), result, arg.getName()));
+    }
+
+    HaxeFunctionReturnType returnType = func.getFunctionReturnType();
+    ResultHolder returnResult = determineType(func, resolver, returnType.getFunctionType(), returnType.getTypeOrAnonymous());
+
+    return new SpecificFunctionReference(args, returnResult, null, func);
+  }
+
+  private static ResultHolder determineType(PsiElement context, HaxeGenericResolver resolver, HaxeFunctionType fnType, HaxeTypeOrAnonymous toa) {
+    ResultHolder fnResult;
+    if (null != toa) {
+      ResultHolder result = getTypeFromTypeOrAnonymous(toa);
+      if (null != result.getClassType()) {
+        return SpecificHaxeClassReference.propagateGenericsToType(result.getClassType(), resolver).createHolder();
+      }
+      return result;
+    }
+
+    return create(new HaxeSpecificFunction(fnType, resolver.getSpecialization(context))).createHolder();
+  }
+
 
   @Override
   public SpecificFunctionReference withConstantValue(Object constantValue) {
