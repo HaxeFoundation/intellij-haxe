@@ -10,6 +10,7 @@ Haxe File
 @:require(dep1, dep2, dep3)
 @:require(haxe_ver >= 3.2)
 @superClass("user name", {name:"user"})
+@:myMeta.HasADot("something")
       MACRO_CLASS
         SIMPLE_META
           KEEP_META
@@ -130,6 +131,16 @@ Haxe File
                   HaxePsiToken:REGULAR_STRING_PART('user')
                   HaxePsiToken:CLOSING_QUOTE('"')
               HaxePsiToken:}('}')
+          HaxePsiToken:)(')')
+      MACRO_CLASS
+        CUSTOM_META
+          HaxePsiToken:MACRO_ID('@:myMeta.HasADot')
+          HaxePsiToken:(('(')
+          EXPRESSION_LIST
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('something')
+              HaxePsiToken:CLOSING_QUOTE('"')
           HaxePsiToken:)(')')
     HaxePsiToken:class('class')
     COMPONENT_NAME
