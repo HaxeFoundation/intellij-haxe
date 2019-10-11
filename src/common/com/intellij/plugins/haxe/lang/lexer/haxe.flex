@@ -168,7 +168,9 @@ mDIGIT = [:digit:]
 ESCAPE_SEQUENCE=\\[^\r\n]
 
 IDENTIFIER="$"? {mLETTER} ({mDIGIT} | {mLETTER})*
-MACRO_IDENTIFIER="@" ":"? {IDENTIFIER}
+
+mMETA_PART = {mLETTER} ({mDIGIT} | {mLETTER})*
+MACRO_IDENTIFIER="@" ":"? {mMETA_PART} ("." {mMETA_PART})*
 
 C_STYLE_COMMENT=("/*"[^"*"]{COMMENT_TAIL})|"/*"
 DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?

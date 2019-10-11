@@ -8,6 +8,7 @@
 @:require(dep1, dep2, dep3)
 @:require(haxe_ver >= 3.2)
 @superClass("user name", {name:"user"})
+@:myMeta.HasADot("something")
 class FullOfMacro {
   @customUser
   var _value;
