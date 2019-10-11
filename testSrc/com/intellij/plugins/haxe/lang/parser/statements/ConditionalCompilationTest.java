@@ -36,6 +36,11 @@ public class ConditionalCompilationTest extends StatementTestBase {
     doTest(true);
   }
 
+  public void testDottedConditionalIdentifiers() throws Throwable {
+    setDefines("vm.neko,my.debug");
+    doTest(true);
+  }
+
   public void testConstantNotDefined() throws Throwable {
     doTest(true);
   }

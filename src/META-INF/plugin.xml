@@ -83,6 +83,8 @@
       <p/>
       <p>Unreleased Changes</p>
       <ul>
+        <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
+        <li>Haxe 4: Allow dotted meta names.</li>
         <li>Better constant detection and handling of default parameters for methods.</li>
         <ul>
           <li>Detect function type constants and report accordingly.</li>
