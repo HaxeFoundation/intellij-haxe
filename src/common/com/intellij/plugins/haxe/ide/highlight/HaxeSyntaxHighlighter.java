@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.ide.highlight;
 
+import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
@@ -73,6 +75,8 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
 
     fillMap(ATTRIBUTES, BAD_TOKENS, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
     fillMap(ATTRIBUTES, CONDITIONALLY_NOT_COMPILED, HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
+
+    ATTRIBUTES.put(GeneratedParserUtilBase.DUMMY_BLOCK, HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA);
   }
 
   @NotNull

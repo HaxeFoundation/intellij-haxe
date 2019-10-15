@@ -38,6 +38,7 @@ public class HaxeSyntaxHighlighterColors {
   public static final String HAXE_PARAMETER = "HAXE_PARAMETER";
   public static final String HAXE_DEFINED_VAR = "HAXE_DEFINED_VAR";
   public static final String HAXE_UNDEFINED_VAR = "HAXE_UNDEFINED_VAR";
+  public static final String HAXE_UNPARSEABLE_DATA = "HAXE_UNPARSEABLE_DATA";
 
   public static final TextAttributesKey LINE_COMMENT =
     createTextAttributesKey("HAXE_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
@@ -49,6 +50,7 @@ public class HaxeSyntaxHighlighterColors {
   public static final TextAttributesKey DEFINED_VAR = createTextAttributesKey("HAXE_DEFINED_VAR");
   public static final TextAttributesKey UNDEFINED_VAR = createTextAttributesKey("HAXE_UNDEFINED_VAR");
   public static final TextAttributesKey CONDITIONALLY_NOT_COMPILED = createTextAttributesKey("HAXE_CONDITIONALLY_NOT_COMPILED");
+  public static final TextAttributesKey UNPARSEABLE_DATA = createTextAttributesKey(HAXE_UNPARSEABLE_DATA);
 
   public static final TextAttributesKey KEYWORD =
     createTextAttributesKey("HAXE_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);

@@ -328,7 +328,7 @@ public class HaxeExpressionEvaluator {
       boolean resolved = !typeHolder.getType().isUnknown();
       for (int n = 1; n < children.length; n++) {
         String accessName = children[n].getText();
-        if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && accessName.equals("code")) {
+        if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && "code".equals(accessName)) {
           String str = (String)typeHolder.getType().getConstant();
           typeHolder = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
           if (str == null || str.length() != 1) {
