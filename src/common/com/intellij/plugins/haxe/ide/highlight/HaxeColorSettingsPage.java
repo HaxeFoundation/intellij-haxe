@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +34,8 @@ import java.util.Map;
 import static com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors.*;
 
 /**
+ * Color Settings page for Haxe: Settings->Editor->Color Scheme->Haxe
+ *
  * @author fedor.korotkov
  */
 public class HaxeColorSettingsPage implements ColorSettingsPage {
@@ -41,6 +44,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.block.comment"), BLOCK_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.doc.comment"), DOC_COMMENT),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation"), CONDITIONALLY_NOT_COMPILED),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.unparseable.data"), UNPARSEABLE_DATA),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation.defined.flag"), DEFINED_VAR),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation.undefined.flag"), UNDEFINED_VAR),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.keyword"), KEYWORD),
@@ -66,11 +70,15 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
 
   @NonNls private static final Map<String, TextAttributesKey> ourTags = new HashMap<String, TextAttributesKey>();
 
+  /* These strings define what token will be highlighted and selected when the code
+     screen is focused/clicked upon in the settings dialog.
+   */
   static {
     ourTags.put("parameter", PARAMETER);
     ourTags.put("local.variable", LOCAL_VARIABLE);
     ourTags.put("class", CLASS);
     ourTags.put("compilation", CONDITIONALLY_NOT_COMPILED);
+    ourTags.put("unparseable", UNPARSEABLE_DATA);
     ourTags.put("defined.flag", DEFINED_VAR);
     ourTags.put("undefined.flag", UNDEFINED_VAR);
     ourTags.put("interface", INTERFACE);
@@ -141,9 +149,12 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
            "    var <local.variable>reassignedValue</local.variable>:<class>Int</class> = <class>SomeClass</class>.<static.member.variable>staticField</static.member.variable>; \n" +
            "    <local.variable>reassignedValue</local.variable> ++; \n" +
            "    function localFunction() {\n" +
-           "      var <local.variable>a</local.variable>:<class>Int</class> = $$$;// bad character\n" +
+           "      var <local.variable>a</local.variable>:<class>Int</class> = \\?;// bad character `\\` \n" +
            "    };\n" +
            "  }\n" +
-           "}";
+           "}\n" +
+           "/* The next line is deliberately invalid syntax to show unparsable data. */\n" +
+           "<unparseable>var $.{}{}</unparseable>"
+           ;
   }
 }

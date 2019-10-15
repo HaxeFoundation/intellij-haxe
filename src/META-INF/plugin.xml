@@ -96,6 +96,7 @@
         </ul>
         <li>Much better handling of generics throughout, including type error checking code.</li>
         <li>Use type parameters from left-hand (e.g. left.right) expressions when resolving right-hand fields and method return types.</li>
+        <li>Color unparseable data when typing; shows developers where functionality is limited while code is invalid.</li>
       </ul>
       <p>1.2 (HaxeFoundation release)</p>
       <ul>

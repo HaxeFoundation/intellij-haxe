@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +23,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
@@ -91,6 +93,9 @@ public class HaxeColorAnnotator implements Annotator {
       }
       if (tt == HaxeTokenTypeSets.PPBODY) {
         holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
+      }
+      if (tt == GeneratedParserUtilBase.DUMMY_BLOCK) {
+        holder.createInfoAnnotation(node, "Unparseable data").setTextAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA);
       }
     }
   }
