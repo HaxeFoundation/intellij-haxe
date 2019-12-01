@@ -665,7 +665,7 @@ public class HaxeExpressionEvaluator {
               context.setLocal(argumentName, argumentType);
             }
             arguments.add(new Argument(i, parameter.getOptionalMark() != null, argumentType, argumentName));
-          }
+          } // TODO: Add Void if list.size() == 0
         }
         context.addLambda(context.createChild(function.getLastChild()));
         HaxeTypeTag tag = (function.getTypeTag());
@@ -696,8 +696,7 @@ public class HaxeExpressionEvaluator {
       finally {
         context.endScope();
       }
-
-      return new SpecificFunctionReference(arguments, returnType, null, function).createHolder();
+      return new SpecificFunctionReference(arguments, returnType, null, function, function).createHolder();
     }
 
     if (element instanceof HaxeIfStatement) {

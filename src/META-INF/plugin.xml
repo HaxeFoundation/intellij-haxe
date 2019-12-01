@@ -83,6 +83,7 @@
       <p/>
       <p>Unreleased Changes</p>
       <ul>
+        <li>Better handling of function types an mismatched assignments. (Issues 943, 773)</li>
         <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
         <li>Haxe 4: Allow dotted meta names.</li>
         <li>Better constant detection and handling of default parameters for methods.</li>

@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +17,12 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.HaxeNameUtils;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,12 +124,20 @@ public class HaxePackageModel implements HaxeExposableModel {
     return file != null ? HaxeFileModel.fromElement(file) : null;
   }
 
-  protected HaxeFile getFile(String fileName) {
-    PsiDirectory directory = root.access(path);
-    if (directory != null && directory.isValid()) {
-      PsiFile file = directory.findFile(fileName + ".hx");
-      if (file != null && file.isValid() && file instanceof HaxeFile) {
-        return (HaxeFile)file;
+  protected HaxeFile getFile(String filePath) {
+    List<String> parts = HaxeFileUtil.splitPath(filePath);
+    String fname = parts.get(parts.size() - 1);
+
+    if (null != fname && !fname.isEmpty()) {
+      String packagePath = HaxeFileUtil.joinPath(parts.subList(0, parts.size() - 1));
+      String accessPath = null != packagePath && !packagePath.isEmpty() ? HaxeFileUtil.joinPath(path, packagePath) : path;
+      PsiDirectory directory = root.access(accessPath);
+
+      if (directory != null && directory.isValid()) {
+        PsiFile file = directory.findFile(fname + ".hx");
+        if (file != null && file.isValid() && file instanceof HaxeFile) {
+          return (HaxeFile)file;
+        }
       }
     }
 
@@ -136,7 +146,8 @@ public class HaxePackageModel implements HaxeExposableModel {
 
   @Nullable
   public HaxeClassModel getClassModel(@NotNull String className) {
-    HaxeFileModel file = getFileModel(className);
+    String fileName = HaxeNameUtils.classNameToFileName(className);
+    HaxeFileModel file = getFileModel(fileName);
     if (file != null) {
       return file.getClassModel(className);
     }
@@ -151,9 +162,9 @@ public class HaxePackageModel implements HaxeExposableModel {
 
       return Arrays.stream(files)
         .filter(file -> file instanceof HaxeFile)
-        .map(file -> {
+        .flatMap(file -> {
           HaxeFileModel fileModel = HaxeFileModel.fromElement(file);
-          return fileModel != null ? fileModel.getMainClassModel() : null;
+          return fileModel != null ? fileModel.getExposedMembers().stream() : null;
         })
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

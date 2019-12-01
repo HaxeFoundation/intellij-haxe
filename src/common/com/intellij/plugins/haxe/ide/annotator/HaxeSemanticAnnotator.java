@@ -140,13 +140,16 @@ class TypeTagChecker {
 
     if (!varType.canAssign(initType)) {
 
-      holder.addAnnotation(typeMismatch(erroredElement, initType.toStringWithoutConstant(),
-                                        varType.toStringWithoutConstant())
-        .withFix(new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.change.variable.type"), tag, initType.getClassType()))
-        .withFix(new HaxeRemoveElementFixer(HaxeBundle.message("haxe.quickfix.remove.initializer"), initExpression))
+      HaxeAnnotation annotation = typeMismatch(erroredElement, initType.toStringWithoutConstant(),
+                                               varType.toStringWithoutConstant());
+      if (null != initType.getClassType()) {
+        annotation.withFix(new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.change.variable.type"), tag, initType.getClassType()));
+      }
+
+      annotation.withFix(new HaxeRemoveElementFixer(HaxeBundle.message("haxe.quickfix.remove.initializer"), initExpression))
         .withFixes(HaxeExpressionConversionFixer.createStdTypeFixers(initExpression.getExpression(),
-                                                                     initType.getType(), varType.getType()))
-      );
+                                                                     initType.getType(), varType.getType()));
+      holder.addAnnotation(annotation);
 
     } else if (requireConstant && initType.getType().getConstant() == null) {
       holder.createErrorAnnotation(erroredElement, HaxeBundle.message("haxe.semantic.parameter.default.type.should.be.constant", initType));
@@ -923,7 +926,7 @@ class AssignExpressionChecker {
     ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, rhsResolver);
 
     if (!lhsType.canAssign(rhsType)) {
-      HaxeAnnotation anno = typeMismatch(rhs, rhsType.toStringWithoutConstant(), lhsType.toStringWithoutConstant())
+      HaxeAnnotation anno = typeMismatch(rhs, rhsType.toPresentationString(), lhsType.toPresentationString())
         .withFixes(HaxeExpressionConversionFixer.createStdTypeFixers(rhs, rhsType.getType(), lhsType.getType()));
       holder.addAnnotation(anno);
     }

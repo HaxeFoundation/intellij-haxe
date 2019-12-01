@@ -62,7 +62,7 @@ public class HaxeTypeCompatible {
         return SpecificFunctionReference.create(func);
       }
       // The Function class unifies with (can be assigned to by) any function.
-      return new SpecificFunctionReference.StdFunctionReference(classReference);
+      return new SpecificFunctionReference.StdFunctionReference(ref.getElementContext());
     }
     return null;  // XXX: Should throw exception instead??
   }
@@ -98,14 +98,30 @@ public class HaxeTypeCompatible {
       return true;
     }
 
-    if (to.arguments.size() != from.arguments.size()) return false;
-    for (int n = 0; n < to.arguments.size(); n++) {
-      if (!to.arguments.get(n).canAssign(from.arguments.get(n))) return false;
+    int toArgSize = to.arguments.size();
+    int fromArgSize = from.arguments.size();
+    if (toArgSize == 1 && fromArgSize == 0){  // Single arg of Void is the same as no args.
+      if (!to.arguments.get(0).isVoid()) {
+        return false;
+      }
+    } else if (toArgSize == 0 && fromArgSize == 1) {
+      if (!from.arguments.get(0).isVoid()) {
+        return false;
+      }
+    } else {
+      if (toArgSize != fromArgSize) {
+        return false;
+      }
+      for (int n = 0; n < toArgSize; n++) {
+        if (!to.arguments.get(n).canAssign(from.arguments.get(n))) return false;
+      }
     }
     // Void return on the to just means that the value isn't used/cared about. See
     // the Haxe manual, section 3.5.4 at https://haxe.org/manual/type-system-unification-function-return.html
     return to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue);
   }
+
+
 
   static private SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
     if (ref.getHaxeClass() instanceof HaxeAbstractClassDeclaration && "Null".equals(ref.getClassName())) {

@@ -113,10 +113,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return constantValue;
   }
 
-  public String toStringWithoutConstant() {
+  public String toPresentationString() {
     StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
     ResultHolder [] specifics = getSpecifics();
-    if (null != specifics && getSpecifics().length > 0) {
+    if (specifics.length > 0) {
       out.append("<");
       for (int n = 0; n < specifics.length; n++) {
         if (n > 0) out.append(", ");
@@ -126,6 +126,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       out.append(">");
     }
     return out.toString();
+  }
+
+  public String toStringWithoutConstant() {
+    return toPresentationString();
   }
 
   public String toStringWithConstant() {

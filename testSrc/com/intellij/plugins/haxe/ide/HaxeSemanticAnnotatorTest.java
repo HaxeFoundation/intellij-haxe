@@ -482,4 +482,19 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testNoErrorOnInlineFunctionAssignment() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNoErrorOnFunctionAssignment() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNoErrorOnFunctionUnification() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testInferredFunctionTypeAssignment() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
