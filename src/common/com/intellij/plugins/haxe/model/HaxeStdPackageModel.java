@@ -27,6 +27,7 @@ public class HaxeStdPackageModel extends HaxePackageModel {
   }
 
   private HaxeFileModel getStdFileModel() {
+    // TODO: This is called by the resolver a LOT.  Cache the result and create a listener to invalidate.
     final HaxeFile file = getFile(STD_TYPES);
     if (file != null) {
       return HaxeStdTypesFileModel.fromFile(file);
