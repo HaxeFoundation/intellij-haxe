@@ -497,4 +497,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testInferredFunctionTypeAssignment() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testParameterizedFunctions() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
