@@ -83,6 +83,10 @@
       <p/>
       <p>Unreleased Changes</p>
       <ul>
+        <li>Fix not finding packages which begin with and underscore. (Issue 941)</li>
+        <li>Handle function-level type parameters during semantic checks. (Issue 973)</li>
+        <li>Don't use class type parameters when resolving static function parameters.</li>
+        <li>Better handling of function types an mismatched assignments. (Issues 943, 773)</li>
         <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
         <li>Haxe 4: Allow dotted meta names.</li>
         <li>Better constant detection and handling of default parameters for methods.</li>

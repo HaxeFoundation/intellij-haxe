@@ -45,16 +45,26 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   final public ResultHolder returnValue;
 
   @Nullable final public HaxeMethodModel method;
+  @Nullable final public Object constantValue;
 
   public SpecificFunctionReference(List<Argument> arguments,
                                    ResultHolder returnValue,
                                    @Nullable HaxeMethodModel method,
-                                   @NotNull PsiElement context) {
+                                   @NotNull PsiElement context,
+                                   @Nullable Object constantValue) {
     super(context);
 
     this.arguments = arguments;
     this.returnValue = returnValue;
     this.method = method;
+    this.constantValue = constantValue;
+  }
+
+  public SpecificFunctionReference(List<Argument> arguments,
+                                   ResultHolder returnValue,
+                                   @Nullable HaxeMethodModel method,
+                                   @NotNull PsiElement context) {
+    this(arguments, returnValue, method, context, null);
   }
 
   // This is an adapter to deal with the function-type mismatch between the old resolver
@@ -68,20 +78,27 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
     LinkedList<Argument> args = new LinkedList<>();
     List<HaxeFunctionArgument> arguments = func.getFunctionArgumentList();
-    for (int i = 0; i < arguments.size(); i++) {
-      HaxeFunctionArgument arg = arguments.get(i);
-      ResultHolder result = determineType(func, resolver, arg.getFunctionType(), arg.getTypeOrAnonymous());
-     args.add(new Argument(i, null != arg.getOptionalMark(), result, arg.getName()));
+    if (arguments.size() == 0) {
+      SpecificTypeReference voidArg = SpecificTypeReference.getVoid((func));
+      args.add(new Argument(0, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+    } else {
+      for (int i = 0; i < arguments.size(); i++) {
+        HaxeFunctionArgument arg = arguments.get(i);
+        ResultHolder result = determineType(func, resolver, arg.getFunctionType(), arg.getTypeOrAnonymous());
+        args.add(new Argument(i, null != arg.getOptionalMark(), result, arg.getName()));
+      }
     }
 
     HaxeFunctionReturnType returnType = func.getFunctionReturnType();
-    ResultHolder returnResult = determineType(func, resolver, returnType.getFunctionType(), returnType.getTypeOrAnonymous());
+    // TODO?: Infer the return type if there is no type tag?
+    ResultHolder returnResult = returnType != null
+                                ? determineType(func, resolver, returnType.getFunctionType(), returnType.getTypeOrAnonymous())
+                                : determineType(func, resolver, null, null);
 
     return new SpecificFunctionReference(args, returnResult, null, func);
   }
 
   private static ResultHolder determineType(PsiElement context, HaxeGenericResolver resolver, HaxeFunctionType fnType, HaxeTypeOrAnonymous toa) {
-    ResultHolder fnResult;
     if (null != toa) {
       ResultHolder result = getTypeFromTypeOrAnonymous(toa);
       if (null != result.getClassType()) {
@@ -89,14 +106,21 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       }
       return result;
     }
-
-    return create(new HaxeSpecificFunction(fnType, resolver.getSpecialization(context))).createHolder();
+    if (null != fnType) {
+      return create(new HaxeSpecificFunction(fnType, resolver.getSpecialization(context))).createHolder();
+    }
+    return SpecificTypeReference.getUnknown(context).createHolder();
   }
 
 
   @Override
   public SpecificFunctionReference withConstantValue(Object constantValue) {
-    return new SpecificFunctionReference(arguments, returnValue, method, context);
+    return new SpecificFunctionReference(arguments, returnValue, method, context, constantValue);
+  }
+
+  @Override
+  public Object getConstant() {
+    return constantValue;
   }
 
   public int getNonOptionalArgumentsCount() {
@@ -115,8 +139,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return returnValue;
   }
 
-  @Override
-  public String toString() {
+  public static String toFunctionDescription(boolean presentable, List<Argument> arguments, ResultHolder returnValue) {
     StringBuilder out = new StringBuilder();
 
     final boolean notSingleArgument = arguments.size() > 1;
@@ -126,17 +149,34 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       Argument argument = arguments.get(n);
       out.append(argument.toStringWithoutConstant());
     }
+    if (0 == arguments.size() && presentable) {
+      out.append("Void");
+    }
     if (notSingleArgument) out.append(')');
 
     out.append(DELIMITER);
-    out.append(returnValue.toStringWithoutConstant());
+    out.append(null != returnValue ? returnValue.toStringWithoutConstant() : "unknown");
 
     return out.toString();
   }
 
+  public String toPresentationString() {
+    return toFunctionDescription(true, arguments, returnValue);
+  }
+
+  @Override
+  public String toString() {
+    return toFunctionDescription(false, arguments, returnValue);
+  }
+
   @Override
   public String toStringWithoutConstant() {
-    return toString();
+    return toPresentationString();
+  }
+
+  @Override
+  public String toStringWithConstant() {
+    return toPresentationString(); // XXX: If there's an anonymous function, should we be adding it here?
   }
 
   @Override

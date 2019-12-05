@@ -338,9 +338,14 @@ public class HaxeExpressionEvaluator {
 
           // TODO: Yo! Eric!!  This needs to get fixed.  The resolver is coming back as Dynamic, when it should be String
 
-          HaxeGenericResolver localResolver = null != typeHolder.getClassType()
-                                              ? typeHolder.getClassType().getGenericResolver()
-                                              : new HaxeGenericResolver();
+          // Grab the types out of the original resolver (so we don't modify it), and overwrite them
+          // (by adding) with the class' resolver. That way, we get the combination of the two, and
+          // any parameters provided/set in the class will override any from the calling context.
+          HaxeGenericResolver localResolver = new HaxeGenericResolver();
+          localResolver.addAll(resolver);
+          if (null != typeHolder.getClassType()) {
+            localResolver.addAll(typeHolder.getClassType().getGenericResolver());
+          }
           ResultHolder access = typeHolder.getType().access(accessName, context, localResolver);
           if (access == null) {
             resolved = false;
@@ -665,7 +670,7 @@ public class HaxeExpressionEvaluator {
               context.setLocal(argumentName, argumentType);
             }
             arguments.add(new Argument(i, parameter.getOptionalMark() != null, argumentType, argumentName));
-          }
+          } // TODO: Add Void if list.size() == 0
         }
         context.addLambda(context.createChild(function.getLastChild()));
         HaxeTypeTag tag = (function.getTypeTag());
@@ -696,8 +701,7 @@ public class HaxeExpressionEvaluator {
       finally {
         context.endScope();
       }
-
-      return new SpecificFunctionReference(arguments, returnType, null, function).createHolder();
+      return new SpecificFunctionReference(arguments, returnType, null, function, function).createHolder();
     }
 
     if (element instanceof HaxeIfStatement) {

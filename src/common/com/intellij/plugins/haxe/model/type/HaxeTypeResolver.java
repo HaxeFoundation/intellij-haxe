@@ -418,7 +418,10 @@ public class HaxeTypeResolver {
       // This calls the old resolver which doesn't deal with expressions.
       ResultHolder resultHolder = null;
       HaxeClassResolveResult result = ((HaxeReferenceExpression)element).resolveHaxeClass();
-      if (null != result.getHaxeClass()) {
+      HaxeClass haxeClass = result.getHaxeClass();
+      if (haxeClass instanceof HaxeSpecificFunction) {
+        resultHolder = new ResultHolder(SpecificFunctionReference.create((HaxeSpecificFunction)haxeClass));
+      } else if (null != haxeClass) {
         resultHolder = new ResultHolder(result.getSpecificClassReference(element, result.getGenericResolver()));
       }
       // If it doesn't resolve to a class, fall back to whatever *does* resolve to. This calls

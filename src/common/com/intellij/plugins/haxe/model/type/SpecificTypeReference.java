@@ -103,7 +103,7 @@ public abstract class SpecificTypeReference {
   }
 
   public static SpecificHaxeClassReference getFunction(@NotNull PsiElement context) {
-    return primitive(FUNCTION, context);
+    return primitive("haxe.Constraints.Function", context);  // Not simply FUNCTION, because it's a class inside of the Constraints file.
   }
 
   public static SpecificHaxeClassReference primitive(String name, @NotNull PsiElement context) {
@@ -229,13 +229,13 @@ public abstract class SpecificTypeReference {
     return context;
   }
 
+  abstract public String toPresentationString();
+
   abstract public String toString();
 
   abstract public String toStringWithoutConstant();
 
-  public String toStringWithConstant() {
-    return toString();
-  }
+  abstract public String toStringWithConstant();
 
   /** Get the return type of the named method or field in the class referenced by this object. */
   @Nullable

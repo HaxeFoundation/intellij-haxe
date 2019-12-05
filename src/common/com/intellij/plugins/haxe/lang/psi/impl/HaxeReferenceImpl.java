@@ -542,6 +542,22 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return HaxeClassResolveResult.create((HaxeClass)resolve, getSpecialization());
     }
 
+    if (isType(resolve, HaxeMethod.class)) {
+      // If the resolved element is a method, but the reference's parent is not a call expression, then
+      // we want to return the method type, and not the method's return type.  (e.g. String->String->Void, rather than Void.)
+      List<PsiElement> typeList = UsefulPsiTreeUtil.getPathToParentOfType(this, HaxeCallExpression.class);
+      if (null == typeList || typeList.size() != 1) {
+
+        HaxeGenericSpecialization specialization = getSpecialization();
+        if (null == specialization) {
+          specialization = new HaxeGenericSpecialization();
+        }
+
+        final HaxeClass fn = new HaxeSpecificFunction((HaxeMethod)resolve, specialization);
+        return HaxeClassResolveResult.create(fn, specialization);
+      }
+    }
+
     if (resolve != null) {
       return HaxeResolveUtil.getHaxeClassResolveResult(resolve, getSpecialization());
     }
