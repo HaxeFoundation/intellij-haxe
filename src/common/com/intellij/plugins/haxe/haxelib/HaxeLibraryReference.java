@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,8 +180,11 @@ public class HaxeLibraryReference {
    * @param lib
    * @return
    */
-  public boolean matchesIdeaLib(Library lib) {
-    HaxeLibraryReference ref = HaxeLibraryReference.create(getOwner(), lib.getName());
+  public boolean matchesIdeaLib(@Nullable Library lib) {
+    if (null == lib) return false;
+    String name = lib.getName();
+    if (null == name) return false;
+    HaxeLibraryReference ref = HaxeLibraryReference.create(getOwner(), name);
     return this.equals(ref);
   }
 
@@ -190,7 +193,7 @@ public class HaxeLibraryReference {
    * @param o
    * @return
    */
-  public boolean matches(Object o) {
+  public boolean matches(@Nullable Object o) {
     if (this == o) return true;
     if (!(o instanceof HaxeLibraryReference)) return false;
 
@@ -208,7 +211,7 @@ public class HaxeLibraryReference {
    * the same library (following haxelib's rules -- see HaxelibSemVer), they are equal.
    */
   @Override
-  final public boolean equals(Object o) {
+  final public boolean equals(@Nullable Object o) {
     if (this == o) return true;
     if (!(o instanceof HaxeLibraryReference)) return false;
 
