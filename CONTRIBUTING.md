@@ -120,7 +120,7 @@ ___________
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
 by the plugin team.  At the time of this writing, that would be 2016.1.4, 
-2016.2.5, 2016.3.7, 2017.1.5, and 2017.2.6, and 2017.3.3.
+2016.2.5, 2016.3.7, 2017.1.5, and 2017.2.6, 2017.3.3, 2018.x, and 2019.1.
 As new versions are released this will continue to be
 a moving target, as we attempt to keep up with the development community.
 
