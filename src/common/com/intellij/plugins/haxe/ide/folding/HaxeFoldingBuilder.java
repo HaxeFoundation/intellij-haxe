@@ -36,7 +36,9 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -273,7 +275,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
   private static boolean isBodyBlock(IElementType elementType) {
-    return BODY_TYPES.contains(elementType);
+    return CLASS_BODY_TYPES.contains(elementType);
   }
 
   private static boolean isComment(IElementType elementType, ASTNode node) {

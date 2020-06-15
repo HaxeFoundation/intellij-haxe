@@ -1,6 +1,6 @@
 /*
  * Copyright 2018 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -29,8 +33,6 @@ import java.util.logging.Logger;
 public class HaxeAbstractClassModel extends HaxeClassModel {
   private static final Logger LOG = Logger.getLogger("#HaxeAbstractClassModel");
 
-  public static final String FORWARD = "@:forward";
-
   public HaxeAbstractClassModel(@NotNull HaxeAbstractClassDeclaration haxeClass) {
     super(haxeClass);
   }
@@ -42,7 +44,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
   public boolean hasForwards() {
-    return hasMeta(FORWARD);
+    return hasCompileTimeMeta(HaxeMeta.FORWARD);
   }
 
   public HaxeClass getUnderlyingClass(@Nullable final HaxeGenericResolver resolver) {
@@ -92,17 +94,22 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
   public boolean isForwarded(String name) {
-    final HaxeMacroClass forwardMeta = getMeta(FORWARD);
-    if (forwardMeta != null) {
-      final HaxeCustomMeta customMeta = forwardMeta.getCustomMeta();
-      final HaxeExpressionList expressionList = customMeta.getExpressionList();
-      if (expressionList == null) return true;
-      final List<HaxeExpression> list = expressionList.getExpressionList();
-      if (list.isEmpty()) return true;
-      for (HaxeExpression expression : list) {
-        if (expression.getText().equals(name)) return true;
+    if (null == name) return false;
+
+    boolean allEmpty = true;
+    HaxeMetadataList forwardMetaList = HaxeMetadataUtils.getMetadataList(getBasePsi(), HaxeMeta.COMPILE_TIME, HaxeMeta.FORWARD);
+    for (HaxeMeta forward : forwardMetaList) {
+      HaxeMetadataContent content = forward.getContent();
+      if (null != content) {
+        List<HaxeExpression> expressions = HaxeMetadataUtils.getCompileTimeExpressions(content);
+        for (HaxeExpression expression : expressions) {
+          allEmpty = false;
+          if (expression.getText().equals(name)) {
+            return true;
+          }
+        }
       }
     }
-    return false;
+    return allEmpty ? true : false;
   }
 }

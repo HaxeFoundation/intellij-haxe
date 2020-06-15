@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +19,11 @@
  */
 package com.intellij.plugins.haxe.ide.generation;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.HaxePropertyDeclaration;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
@@ -68,13 +73,13 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     HaxeFieldModel field = new HaxeFieldModel((HaxeFieldDeclaration)namedComponent);
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
-      HaxeNamedComponent getterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()));
+      HaxeNamedComponent getterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()), null);
       if (getterMethod == null) {
         GetterSetterMethodBuilder.buildGetter(result, field);
       }
     }
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
-      HaxeNamedComponent setterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(field.getName()));
+      HaxeNamedComponent setterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(field.getName()), null);
       if (setterMethod == null) {
         GetterSetterMethodBuilder.buildSetter(result, field);
       }
@@ -100,6 +105,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     if (propertyDeclaration != null) {
       HaxeFieldDeclaration varDeclaration = PsiTreeUtil.getParentOfType(namedComponent, HaxeFieldDeclaration.class, false);
       if (varDeclaration != null) {
+        HaxeMetadataUtils.copyMetadata(declaration, varDeclaration);
         varDeclaration.replace(declaration);
       }
     }

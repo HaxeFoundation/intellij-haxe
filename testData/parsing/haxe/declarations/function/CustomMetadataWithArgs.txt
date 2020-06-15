@@ -4,25 +4,64 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('EmptyCustomMacro')
-    HaxePsiToken:{('{')
     CLASS_BODY
-      METHOD_DECLARATION
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@CustomMacro')
+      HaxePsiToken:{('{')
+      PsiElement(EMBEDDED_META)
+        RUN_TIME_META
+          HaxePsiToken:@('@')
+          TYPE
+            HaxePsiToken:META_TYPE('CustomMacro')
           HaxePsiToken:(('(')
-          EXPRESSION_LIST
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('arg1')
-            HaxePsiToken:,(',')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('arg2')
-            HaxePsiToken:,(',')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('arg3')
+          CONTENT
+            PsiElement(RT_META_ARGS)
+              RUN_TIME_META_ARG
+                STRING_LITERAL_EXPRESSION
+                  HaxePsiToken:OPEN_QUOTE('"')
+                  HaxePsiToken:REGULAR_STRING_PART('arg1')
+                  HaxePsiToken:CLOSING_QUOTE('"')
+              HaxePsiToken:,(',')
+              RUN_TIME_META_ARG
+                CONSTANT_EXPRESSION
+                  HaxePsiToken:LITINT('2')
+              HaxePsiToken:,(',')
+              RUN_TIME_META_ARG
+                CONSTANT_EXPRESSION
+                  HaxePsiToken:LITFLOAT('54.3')
+              HaxePsiToken:,(',')
+              RUN_TIME_META_ARG
+                OBJECT_LITERAL
+                  HaxePsiToken:{('{')
+                  OBJECT_LITERAL_ELEMENT
+                    IDENTIFIER
+                      HaxePsiToken:ID('next')
+                    HaxePsiToken::(':')
+                    FUNCTION_LITERAL
+                      HaxePsiToken:(('(')
+                      PARAMETER_LIST
+                        <empty list>
+                      HaxePsiToken:)(')')
+                      HaxePsiToken:->('->')
+                      LITERAL_EXPRESSION
+                        HaxePsiToken:LITINT('0')
+                  HaxePsiToken:}('}')
           HaxePsiToken:)(')')
+      PsiElement(EMBEDDED_META)
+        RUN_TIME_META
+          HaxePsiToken:@('@')
+          TYPE
+            HaxePsiToken:META_TYPE('CustomMacro')
+          HaxePsiToken:(('(')
+          CONTENT
+            PsiElement(RT_META_ARGS)
+              PsiErrorElement:LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP, '[', false, null, true or '{' expected, got 'arg1'
+                HaxePsiToken:ID('arg1')
+              HaxePsiToken:,(',')
+              HaxePsiToken:ID('arg2')
+              HaxePsiToken:,(',')
+              HaxePsiToken:ID('arg3')
+          HaxePsiToken:)(')')
+      PsiComment(MSL_COMMENT)('// Should be an error on this line.')
+      METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')
@@ -36,4 +75,4 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

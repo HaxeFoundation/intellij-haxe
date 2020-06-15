@@ -7,11 +7,14 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('FinalMetaOnProperty')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('final')
       FIELD_DECLARATION
-        FINAL_META
-          HaxePsiToken:@:final('@:final')
         FIELD_MODIFIER
           HaxePsiToken:public('public')
         FIELD_MODIFIER
@@ -35,4 +38,4 @@ Haxe File
             HaxePsiToken:REGULAR_STRING_PART('some string')
             HaxePsiToken:CLOSING_QUOTE('"')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

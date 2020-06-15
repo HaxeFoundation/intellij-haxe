@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +34,7 @@ import java.util.List;
 public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
   public HaxeMetaTagsCompletionContributor() {
     final List<HXMLCompletionItem> metaTags = HaxeHelpCache.getInstance().getMetaTags();
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.MACRO_ID), new CompletionProvider<CompletionParameters>() {
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.META_ID), new CompletionProvider<CompletionParameters>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     ProcessingContext context,

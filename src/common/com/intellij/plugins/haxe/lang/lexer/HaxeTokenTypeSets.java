@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,8 @@ public interface HaxeTokenTypeSets {
     PPERROR,
     PPBODY,
     PPEXPRESSION,
-    CONDITIONAL_STATEMENT_ID
+    CONDITIONAL_STATEMENT_ID,
+    EMBEDDED_META
   );
 
   TokenSet ONLY_CC_DIRECTIVES = TokenSet.create(
@@ -145,29 +146,10 @@ public interface HaxeTokenTypeSets {
     PPERROR,
     PPIF,
     KEXTERN,
-    KFINAL_META,
-    KHACK,
-    KNATIVE,
-    KMACRO,
     KMACRO2,
-    KBUILD,
-    KAUTOBUILD,
-    KKEEP,
-    KREQUIRE,
-    KFAKEENUM,
-    KCOREAPI,
-    KBIND,
-    KBITMAP,
-    KNS,
-    KPROTECTED,
-    KGETTER,
-    KSETTER,
-    KDEBUG,
-    KNODEBUG,
-    KMETA,
     KUSING,
     KSUPER,
-    MACRO_ID,
+    META_ID,
     //KFROM,
     //KTO,
     KNEVER,
@@ -283,12 +265,21 @@ public interface HaxeTokenTypeSets {
     OGREATER
   );
 
-  TokenSet BODY_TYPES = TokenSet.create(
-    CLASS_BODY,
+  TokenSet CLASS_BODY_TYPES = TokenSet.create(
     ABSTRACT_BODY,
-    INTERFACE_BODY,
+    ANONYMOUS_TYPE_BODY,
+    CLASS_BODY,
     ENUM_BODY,
-    EXTERN_CLASS_DECLARATION_BODY
+    EXTERN_CLASS_DECLARATION_BODY,
+    INTERFACE_BODY
+  );
+
+  TokenSet CLASS_TYPES = TokenSet.create(
+    ABSTRACT_CLASS_DECLARATION,
+    CLASS_DECLARATION,
+    ENUM_DECLARATION,
+    EXTERN_CLASS_DECLARATION,
+    INTERFACE_DECLARATION
   );
 }
 

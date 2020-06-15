@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@
 package com.intellij.plugins.haxe.lang.lexer;
 
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataLanguage;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -26,5 +28,12 @@ public class HaxeElementType extends IElementType {
 
   public HaxeElementType(@NotNull @NonNls String debugName) {
     super(debugName, HaxeLanguage.INSTANCE);
+  }
+
+  public static IElementType createToken(String name) {
+    if ("EMBEDDED_META".equals(name)) {
+      return new HaxeEmbeddedElementType(name, HaxeMetadataLanguage.INSTANCE);
+    }
+    return new HaxeElementType(name);
   }
 }

@@ -4,13 +4,16 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('EmptyCustomMacro')
-    HaxePsiToken:{('{')
     CLASS_BODY
-      METHOD_DECLARATION
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@Ignore')
+      HaxePsiToken:{('{')
+      PsiElement(EMBEDDED_META)
+        RUN_TIME_META
+          HaxePsiToken:@('@')
+          TYPE
+            HaxePsiToken:META_TYPE('Ignore')
           HaxePsiToken:(('(')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')
@@ -24,4 +27,4 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

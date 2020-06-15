@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +18,15 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeCustomMeta;
-import com.intellij.plugins.haxe.lang.psi.HaxeFinalMeta;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.ModifierConstant;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataListOwner;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeModifiersModel {
   private PsiElement baseElement;
@@ -46,10 +49,19 @@ public class HaxeModifiersModel {
     return true;
   }
 
+  @Nullable
   public PsiElement getModifierPsi(@ModifierConstant String modifier) {
     PsiElement result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxePsiModifier.class, modifier);
-    if (result == null) result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeFinalMeta.class, modifier);
-    if (result == null) result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxeCustomMeta.class, modifier);
+
+    if (result == null && baseElement instanceof HaxeMetadataListOwner) {
+      HaxeMetadataList metas = ((HaxeMetadataListOwner)baseElement).getMetadataList(HaxeMeta.COMPILE_TIME);
+      for (HaxeMeta meta : metas) {
+        if (meta.isType(modifier)) {
+          result = meta.getContainer();
+          break;
+        }
+      }
+    }
 
     return result;
   }

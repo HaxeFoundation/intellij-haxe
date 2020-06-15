@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2019 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,8 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -107,14 +109,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isArrayAccessor() {
-    // Would be nice if this worked, but it won't until the lexer and/or parser stops using MACRO_ID:
-    //   return null != UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeArrayAccessMeta.class);
-    for (HaxeCustomMeta meta : UsefulPsiTreeUtil.getChildren(this.getMethodPsi(), HaxeCustomMeta.class)) {
-      if ("@:arrayAccess".equals(meta.getText())) {
-        return true;
-      }
-    }
-    return false;
+    return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS);
   }
 
   @Override
@@ -153,9 +148,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);
   }
 
-  public HaxeMethodModel getParentMethod() {
+  public HaxeMethodModel getParentMethod(@Nullable HaxeGenericResolver resolver) {
     final HaxeClassModel aClass = getDeclaringClass().getParentClass();
-    return (aClass != null) ? aClass.getMethod(this.getName()) : null;
+    return (aClass != null) ? aClass.getMethod(this.getName(), resolver) : null;
   }
 
   @Override

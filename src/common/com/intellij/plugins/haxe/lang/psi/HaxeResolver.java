@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2017-2019 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,12 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameHelper;
@@ -31,7 +35,7 @@ import com.intellij.psi.ResolveState;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.ArrayListSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,13 +58,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   public static final HaxeResolver INSTANCE = new HaxeResolver();
 
-  public static ThreadLocal<Boolean> isExtension = new ThreadLocal<>().withInitial(()->new Boolean(false));
+  public static ThreadLocal<Boolean> isExtension = ThreadLocal.withInitial(()->new Boolean(false));
+  public static ThreadLocal<Stack<String>> referencesProcessing = ThreadLocal.withInitial(()->new Stack<String>());
 
   private static boolean reportCacheMetrics = false;   // Should always be false when checked in.
   private static AtomicInteger dumbRequests = new AtomicInteger(0);
   private static AtomicInteger requests = new AtomicInteger(0);
   private static AtomicInteger resolves = new AtomicInteger(0);
   private final static int REPORT_FREQUENCY = 100;
+
+  public static final List<? extends PsiElement> EMPTY_LIST = Collections.emptyList();
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
@@ -100,14 +107,56 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("-----------------------------------------"));
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Resolving reference: " + reference.getText()));
+    Stack<String> stack = referencesProcessing.get();
+    boolean traceEnabled = LOG.isTraceEnabled();
+
+    String referenceText = reference.getText();
+    if (stack.contains(referenceText)) {
+      if (traceEnabled) {
+        LOG.trace(traceMsg("-----------------------------------------"));
+        LOG.trace(traceMsg("Skipping circular resolve for reference: " + referenceText));
+        LOG.trace(traceMsg("-----------------------------------------"));
+      }
+      return EMPTY_LIST;
+    }
+
+    stack.push(referenceText);
+    try {
+      if (traceEnabled) {
+        LOG.trace(traceMsg("-----------------------------------------"));
+        LOG.trace(traceMsg("Resolving reference: " + referenceText));
+      }
+
+      List<? extends PsiElement> foundElements = doResolveInner(reference, incompleteCode);
+
+      if (traceEnabled) {
+        LOG.trace(traceMsg("Finished reference:  " + referenceText));
+        LOG.trace(traceMsg("-----------------------------------------"));
+      }
+
+      return foundElements;
+    } finally {
+      stack.pop();
+    }
+  }
+
+  private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode) {
 
     isExtension.set(false);
 
     if (reportCacheMetrics) {
       resolves.incrementAndGet();
     }
+
+    // TODO: Optimization for literals needs vetting before making it available.
+    // Shortcut for literals -- optimization.
+    //if (reference instanceof HaxeLiteralExpression || reference instanceof HaxeConstantExpression) {
+    //  if (!(reference instanceof HaxeRegularExpression
+    //        || reference instanceof HaxeRegularExpressionLiteral
+    //        || reference instanceof HaxeStringLiteralExpression)) {
+    //    return EMPTY_LIST;
+    //  }
+    //}
 
     List<? extends PsiElement> result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
@@ -119,7 +168,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
       // try super field
       List<? extends PsiElement> superElements =
-        resolveByClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
+        resolveBySuperClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
       if (!superElements.isEmpty()) {
         LogResolution(reference, "via super field.");
         return superElements;
@@ -148,11 +197,34 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
+    if (result == null) result = checkIsForwardedName(reference);
 
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
     }
-    return result == null ? ContainerUtil.emptyList() : result;
+    return result == null ? EMPTY_LIST : result;
+  }
+
+  private List<? extends PsiElement> checkIsForwardedName(HaxeReference reference) {
+    List<? extends PsiElement> result = null;
+
+    HaxeMetadataCompileTimeMeta meta = UsefulPsiTreeUtil.getParentOfType(reference, HaxeMetadataCompileTimeMeta.class);
+    if (null != meta && HaxeMeta.FORWARD.matches(meta.getType())) {
+      PsiElement associatedElement = HaxeMetadataUtils.getAssociatedElement(meta);
+      if (null != associatedElement) {
+        if (associatedElement instanceof HaxeAbstractClassDeclaration) {
+          HaxeAbstractClassModel model = new HaxeAbstractClassModel((HaxeAbstractClassDeclaration)associatedElement);
+          HaxeGenericResolver resolver = model.getGenericResolver(null);
+          HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
+          result = resolveByClassAndSymbol(underlyingClass, resolver, reference);
+        }
+      }
+    }
+
+    if (null != result) {
+      LogResolution(reference, "via forwarded field name check.");
+    }
+    return result;
   }
 
   private List<? extends PsiElement> checkByTreeWalk(HaxeReference reference) {
@@ -220,7 +292,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
         final HaxeClass superClass = ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass();
         final HaxeNamedComponent constructor =
-          ((superClass == null) ? null : superClass.findHaxeMethodByName(HaxeTokenTypes.ONEW.toString()));
+          ((superClass == null) ? null : superClass.findHaxeMethodByName(HaxeTokenTypes.ONEW.toString(), null)); // Self only.
         LogResolution(reference, "because it's a super expression.");
         return asList(((constructor != null) ? constructor : superClass));
       }
@@ -276,7 +348,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       reference instanceof HaxeReferenceExpression ? ((HaxeReferenceExpression)reference).getIdentifier().getText() : reference.getText();
     HaxeClassResolveResult leftExpression = lefthandExpression.resolveHaxeClass();
     if (leftExpression.getHaxeClass() != null) {
-      HaxeMemberModel member = leftExpression.getHaxeClass().getModel().getMember(identifier);
+      HaxeMemberModel member = leftExpression.getHaxeClass().getModel().getMember(identifier, leftExpression.getGenericResolver());
       if (member != null) {
         return Collections.singletonList(member.getBasePsi());
       }
@@ -354,7 +426,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }
 
-        HaxeMemberModel member = model.getMember(helperName);
+        HaxeMemberModel member = model.getMember(helperName, resolveResult.getGenericResolver());
         if (member != null) return member.getNamePsi();
 
         if (model.isAbstract() && ((HaxeAbstractClassModel)model).hasForwards()) {
@@ -416,29 +488,81 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return element == null ? Collections.emptyList() : Collections.singletonList(element);
   }
 
+  private static HaxeGenericResolver getGenericResolver(@Nullable HaxeClass leftClass, @NotNull HaxeReference reference) {
+    HaxeGenericSpecialization specialization = reference.getSpecialization();
+    return null != specialization ? specialization.toGenericResolver(leftClass) : null;
+  }
+
+  private static List<? extends PsiElement> resolveBySuperClassAndSymbol(@Nullable HaxeClass leftClass,
+                                                                         @NotNull HaxeReference reference) {
+    HaxeGenericResolver baseResolver = getGenericResolver(leftClass, reference);
+    return resolveBySuperClassAndSymbol(leftClass, baseResolver, reference);
+  }
+
+
+  private static List<? extends PsiElement> resolveBySuperClassAndSymbol(@Nullable HaxeClass leftClass,
+                                                                         @Nullable HaxeGenericResolver resolver,
+                                                                         @NotNull HaxeReference reference ) {
+    if (null == leftClass) {
+      return EMPTY_LIST;
+    }
+
+    if (leftClass instanceof HaxeAbstractClassDeclaration) {
+
+      HaxeClassModel classModel = leftClass.getModel();
+      HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)classModel;
+      return resolveByClassAndSymbol(abstractClassModel.getUnderlyingClass(resolver), resolver, reference);
+
+    } else {
+
+      Set<HaxeType> superclasses = new ArrayListSet<>();
+      superclasses.addAll(leftClass.getHaxeExtendsList());
+      superclasses.addAll(leftClass.getHaxeImplementsList());
+
+      List<? extends PsiElement> result = EMPTY_LIST;
+      for (HaxeType sup : superclasses) {
+        HaxeReference superReference = sup.getReferenceExpression();
+        HaxeClassResolveResult superClassResult = superReference.resolveHaxeClass();
+        SpecificHaxeClassReference superClass = superClassResult.getSpecificClassReference(leftClass, resolver);
+        result = resolveByClassAndSymbol(superClass.getHaxeClass(), superClass.getGenericResolver(), reference);
+        if (null != result && !result.isEmpty()) {
+          break;
+        }
+      }
+      return result;
+    }
+  }
+
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClassResolveResult resolveResult,
                                                                     @NotNull HaxeReference reference) {
     if (resolveResult == null) {
       if (LOG.isDebugEnabled()) LogResolution(null, "(resolveByClassAndSymbol)");
     }
-    return resolveResult == null ? Collections.<PsiElement>emptyList() : resolveByClassAndSymbol(resolveResult.getHaxeClass(), reference);
+    return resolveResult == null ? Collections.<PsiElement>emptyList() : resolveByClassAndSymbol(resolveResult.getHaxeClass(),
+                                                                                                 resolveResult.getGenericResolver(),
+                                                                                                 reference);
   }
 
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass, @NotNull HaxeReference reference) {
+    HaxeGenericResolver resolver = getGenericResolver(leftClass, reference);
+    return resolveByClassAndSymbol(leftClass, resolver, reference);
+  }
+
+  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass,
+                                                                    @Nullable HaxeGenericResolver resolver,
+                                                                    @NotNull HaxeReference reference) {
     if (leftClass != null) {
       final HaxeClassModel classModel = leftClass.getModel();
-      HaxeMemberModel member = classModel.getMember(reference.getReferenceName());
+      HaxeMemberModel member = classModel.getMember(reference.getReferenceName(), resolver);
       if (member != null) return asList(member.getNamePsi());
 
       // if class is abstract try find in forwards
       if (leftClass.isAbstract()) {
         HaxeAbstractClassModel model = (HaxeAbstractClassModel)leftClass.getModel();
         if (model.isForwarded(reference.getReferenceName())) {
-          HaxeGenericSpecialization specialization = reference.getSpecialization();
-          HaxeGenericResolver resolver = specialization != null ? specialization.toGenericResolver(leftClass) : null;
           final HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
           if (underlyingClass != null) {
-            member = underlyingClass.getModel().getMember(reference.getReferenceName());
+            member = underlyingClass.getModel().getMember(reference.getReferenceName(), resolver);
             if (member != null) {
               return asList(member.getNamePsi());
             }
@@ -462,7 +586,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private String traceMsg(String msg) {
-    return HaxeDebugUtil.traceMessage(msg, 120);
+    return HaxeDebugUtil.traceThreadMessage(msg, 120);
   }
 
   private class ResolveScopeProcessor implements PsiScopeProcessor {

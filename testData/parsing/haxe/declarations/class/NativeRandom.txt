@@ -1,18 +1,19 @@
 Haxe File
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('final')
   EXTERN_CLASS_DECLARATION
-    PsiModifierList:@:final
-      MACRO_CLASS
-        SIMPLE_META
-          FINAL_META
-            HaxePsiToken:@:final('@:final')
-    EXTERN_KEY_WORD
-      HaxePsiToken:extern('extern ')
+    EXTERN_CLASS_MODIFIER_LIST
+      EXTERN_KEY_WORD
+        HaxePsiToken:extern('extern ')
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('NativeRandom')
-    HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -34,14 +35,25 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Int')
         HaxePsiToken:;(';')
-      METHOD_DECLARATION
-        HaxePsiToken:@:macro('@:macro')
-        REQUIRE_META
-          HaxePsiToken:@:require('@:require')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('macro')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('require')
           HaxePsiToken:(('(')
-          IDENTIFIER
-            HaxePsiToken:ID('something')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('something')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         METHOD_MODIFIER
@@ -88,17 +100,18 @@ Haxe File
                   HaxePsiToken:ID('n')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   EXTERN_CLASS_DECLARATION
-    PRIVATE_KEY_WORD
-      HaxePsiToken:private('private')
-    EXTERN_KEY_WORD
-      HaxePsiToken:extern('extern ')
+    EXTERN_CLASS_MODIFIER_LIST
+      CLASS_MODIFIER
+        PRIVATE_KEY_WORD
+          HaxePsiToken:private('private')
+      EXTERN_KEY_WORD
+        HaxePsiToken:extern('extern ')
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('RandomImpl')
-    HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')

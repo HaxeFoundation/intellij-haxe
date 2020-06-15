@@ -1,5 +1,5 @@
 class Getter1 {
-  @:isVar public static var bar(get, null):Int;
+    @:isVar public static var bar(get, null):Int;
     @:isVar public var foo(get, null):Int;
 
     static function get_bar():Int {

@@ -3,7 +3,7 @@
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeClassReference;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -86,7 +89,7 @@ public class HaxeAbstractEnumUtil {
       if (containerElement instanceof HaxeReference && memberElement instanceof HaxeIdentifier) {
         final HaxeClass leftClass = ((HaxeReference)containerElement).resolveHaxeClass().getHaxeClass();
         if (isAbstractEnum(leftClass)) {
-          final HaxeNamedComponent enumField = leftClass.findHaxeFieldByName(memberElement.getText());
+          final HaxeNamedComponent enumField = leftClass.findHaxeFieldByName(memberElement.getText(), resolver);
           if (enumField != null) {
             ResultHolder result = getFieldType(enumField, resolver);
             if (result != null) {

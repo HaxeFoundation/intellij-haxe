@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
   }
 
   private static final Class[] BODY_TYPES =
-    new Class[]{HaxeClassBody.class, HaxeEnumBody.class, HaxeExternClassDeclarationBody.class, HaxeAnonymousTypeBody.class};
+    new Class[]{HaxeClassBody.class, HaxeAbstractBody.class, HaxeEnumBody.class, HaxeExternClassDeclarationBody.class, HaxeAnonymousTypeBody.class};
   private static final Class[] MEMBER_TYPES =
     new Class[]{HaxeEnumValueDeclaration.class, HaxeMethod.class,
       HaxeFieldDeclaration.class};

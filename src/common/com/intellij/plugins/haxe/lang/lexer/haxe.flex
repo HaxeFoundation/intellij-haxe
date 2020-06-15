@@ -18,21 +18,25 @@ import com.intellij.openapi.project.Project;
 
     private static final class State {
         final int lBraceCount;
+        final int lParenCount;
         final int state;
 
-        public State(int state, int lBraceCount) {
+        public State(int state, int lBraceCount, int lParenCount) {
             this.state = state;
             this.lBraceCount = lBraceCount;
+            this.lParenCount = lParenCount;
         }
 
         @Override
         public String toString() {
-            return "yystate = " + state + (lBraceCount == 0 ? "" : "lBraceCount = " + lBraceCount);
+            return "yystate = " + state + (lBraceCount == 0 ? "" : " lBraceCount = " + lBraceCount)
+                                        + (lParenCount == 0 ? "" : " lParenCount = " + lParenCount);
         }
     }
 
     private final Stack<State> states = new Stack<State>();
     private int lBraceCount;
+    private int lParenCount;
 
     private int commentStart;
     private int commentDepth;
@@ -41,8 +45,9 @@ import com.intellij.openapi.project.Project;
     public HaxeConditionalCompilationLexerSupport ccsupport;
 
     private void pushState(int state) {
-        states.push(new State(yystate(), lBraceCount));
+        states.push(new State(yystate(), lBraceCount, lParenCount));
         lBraceCount = 0;
+        lParenCount = 0;
         yybegin(state);
     }
 
@@ -71,12 +76,16 @@ import com.intellij.openapi.project.Project;
         if(state == CC_BLOCK) {
           return "CC_BLOCK";
         }
+        if(state == METADATA) {
+          return "METADATA";
+        }
         return null;
     }
 
     private void popState() {
         State state = states.pop();
         lBraceCount = state.lBraceCount;
+        lParenCount = state.lParenCount;
         yybegin(state.state);
     }
 
@@ -158,7 +167,7 @@ import com.intellij.openapi.project.Project;
 %eof{
 %eof}
 
-%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL CC_STRING CC_APOS_STRING CC_BLOCK
+%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL CC_STRING CC_APOS_STRING CC_BLOCK METADATA
 
 WHITE_SPACE_CHAR=[\ \n\r\t\f]
 //WHITE_SPACE={WHITE_SPACE_CHAR}+
@@ -170,7 +179,12 @@ ESCAPE_SEQUENCE=\\[^\r\n]
 IDENTIFIER="$"? {mLETTER} ({mDIGIT} | {mLETTER})*
 
 mMETA_PART = {mLETTER} ({mDIGIT} | {mLETTER})*
-MACRO_IDENTIFIER="@" ":"? {mMETA_PART} ("." {mMETA_PART})*
+META_ID =  {mMETA_PART} ("." {mMETA_PART})*
+COMPILE_META_PREFIX="@:"
+RUNTIME_META_PREFIX="@"
+META=({RUNTIME_META_PREFIX} | {COMPILE_META_PREFIX}) {META_ID}
+META_WITH_ARGS={META} "("
+META_WITH_ARGS_END=")"
 
 C_STYLE_COMMENT=("/*"[^"*"]{COMMENT_TAIL})|"/*"
 DOC_COMMENT="/*""*"+("/"|([^"/""*"]{COMMENT_TAIL}))?
@@ -189,6 +203,7 @@ mREG_EXP = "~/" ([^"/"] | {ESCAPE_SEQUENCE})* "/" [igmsu]*
 
 mFLOAT_EXPONENT = [eE] [+-]? {mDIGIT}+
 mNUM_FLOAT = ( (({mDIGIT}* "." {mDIGIT}+) | ({mDIGIT}+ "." {mDIGIT}*)) {mFLOAT_EXPONENT}?) | ({mDIGIT}+ {mFLOAT_EXPONENT})
+
 
 /*
     Strings with templates
@@ -219,8 +234,8 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 %%
 
-<YYINITIAL, CC_BLOCK> "{"                 { return emitToken( PLCURLY); }
-<YYINITIAL, CC_BLOCK> "}"                 { return emitToken( PRCURLY); }
+<YYINITIAL, CC_BLOCK, METADATA> "{"       { return emitToken( PLCURLY); }
+<YYINITIAL, CC_BLOCK, METADATA> "}"       { return emitToken( PRCURLY); }
 <LONG_TEMPLATE_ENTRY> "{"                 { lBraceCount++; return emitToken( PLCURLY); }
 <LONG_TEMPLATE_ENTRY> "}"                 {
                                               if (lBraceCount == 0) {
@@ -231,7 +246,21 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
                                               return emitToken( PRCURLY);
                                           }
 
-<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> {
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY, METADATA> {META_WITH_ARGS}  { pushState(METADATA); return emitToken(META_WITH_ARGS);}
+<METADATA> "("                              { lParenCount++; return emitToken(PLPAREN); }
+<METADATA> {META_WITH_ARGS_END}             {
+                                                if (lParenCount == 0) {
+                                                  popState();
+                                                  return emitToken(META_WITH_ARGS_END);
+                                                }
+                                                lParenCount--;
+                                                return emitToken(PRPAREN);
+                                            }
+
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> "("   { return emitToken(PLPAREN); }
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> ")"   { return emitToken(PRPAREN); }
+
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY, METADATA> {
 
 {WHITE_SPACE_CHAR}+                       { return emitToken( com.intellij.psi.TokenType.WHITE_SPACE);}
 
@@ -243,7 +272,13 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 "..."                                     { return emitToken( OTRIPLE_DOT); }
 
-{mNUM_FLOAT} / [^"."]                     {  return emitToken( LITFLOAT); }
+// Detect the '...' in 'for (a in 0...10)' so that '0.' is not picked up as a float.
+// This rule must appear before the '{mNUM_FLOAT}' rule.
+// This is used instead of the lookahead '{mNUM_FLOAT} / [^"."]}' regexp because the
+// lookahead precludes proper detection at the end of the file/stream.
+{mNUM_INT} ".."                           {  yypushback(2); return emitToken( LITINT); }
+
+{mNUM_FLOAT}                              {  return emitToken( LITFLOAT); }
 {mNUM_OCT}                                {  return emitToken( LITOCT); }
 {mNUM_HEX}                                {  return emitToken( LITHEX); }
 {mNUM_INT}                                {  return emitToken( LITINT); }
@@ -305,42 +340,16 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 "extern" [\ ]+                                  {  return emitToken( KEXTERN);  }
 
-"@:final"                                 {  return emitToken( KFINAL_META);  }
-"@:hack"                                  {  return emitToken( KHACK);  }
-"@:native"                                {  return emitToken( KNATIVE);  }
-"@:macro"                                 {  return emitToken( KMACRO);  }
-"@:build"                                 {  return emitToken( KBUILD);  }
-"@:autoBuild"                             {  return emitToken( KAUTOBUILD);  }
-"@:keep"                                  {  return emitToken( KKEEP);  }
-"@:require"                               {  return emitToken( KREQUIRE);  }
-"@:fakeEnum"                              {  return emitToken( KFAKEENUM);  }
-"@:core_api"                              {  return emitToken( KCOREAPI);  }
-
-"@:bind"                                  {  return emitToken( KBIND);  }
-"@:bitmap"                                {  return emitToken( KBITMAP);  }
-"@:ns"                                    {  return emitToken( KNS);  }
-"@:protected"                             {  return emitToken( KPROTECTED);  }
-"@:getter"                                {  return emitToken( KGETTER);  }
-"@:setter"                                {  return emitToken( KSETTER);  }
-"@:debug"                                 {  return emitToken( KDEBUG);  }
-"@:nodebug"                               {  return emitToken( KNODEBUG);  }
-"@:meta"                                  {  return emitToken( KMETA);  }
-"@:overload"                              {  return emitToken( KOVERLOAD);  }
-
 "try"                                     {  return emitToken( KTRY);  }
 "catch"                                   {  return emitToken( KCATCH);  }
 
-
-{MACRO_IDENTIFIER}                        {  return emitToken( MACRO_ID); }
+{META}                                    {  return emitToken( META_ID); }
 {IDENTIFIER}                              {  return emitToken( ID); }
 
 "."                                       { return emitToken( ODOT); }
 
 "["                                       { return emitToken( PLBRACK); }
 "]"                                       { return emitToken( PRBRACK); }
-
-"("                                       { return emitToken( PLPAREN); }
-")"                                       { return emitToken( PRPAREN); }
 
 ":"                                       { return emitToken( OCOLON); }
 ";"                                       { return emitToken( OSEMI); }
@@ -407,7 +416,8 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 // "
 
-<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> \"   { pushState(QUO_STRING); return emitToken( OPEN_QUOTE); }
+
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY, METADATA> \"   { pushState(QUO_STRING); return emitToken( OPEN_QUOTE); }
 <QUO_STRING> \"                 { popState(); return emitToken( CLOSING_QUOTE); }
 <QUO_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
 
@@ -423,7 +433,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 // Support single quote strings: "'"
 
-<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
+<YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY, METADATA> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
 <APOS_STRING> \'                 { popState(); return emitToken( CLOSING_QUOTE); }
 <APOS_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
 
@@ -454,7 +464,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 {CONDITIONAL_IDENTIFIER}                  { return conditionAppend( ID ); }
 
-{mNUM_FLOAT} / [^"."]                     { return conditionAppend( LITFLOAT ); }
+{mNUM_FLOAT}                              { return conditionAppend( LITFLOAT ); }
 {mNUM_OCT}                                { return conditionAppend( LITOCT ); }
 {mNUM_HEX}                                { return conditionAppend( LITHEX ); }
 {mNUM_INT}                                { return conditionAppend( LITINT ); }
@@ -500,7 +510,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 {REGULAR_APOS_STRING_PART}                { return conditionAppend( REGULAR_STRING_PART ); }
 }
 
-<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY, CC_BLOCK> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
+<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY, CC_BLOCK, METADATA> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
 .                                                                       {
                                                                           yybegin(YYINITIAL);
                                                                           return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER );

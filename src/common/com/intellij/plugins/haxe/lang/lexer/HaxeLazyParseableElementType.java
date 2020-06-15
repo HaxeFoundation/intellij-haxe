@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.psi;
+package com.intellij.plugins.haxe.lang.lexer;
 
+import com.intellij.lang.Language;
+import com.intellij.psi.tree.IReparseableElementType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.stream.Stream;
-
-public interface HaxeMetaContainerElement extends HaxePsiCompositeElement {
-
-  boolean hasMeta(@NotNull String name);
-
-  @Nullable
-  HaxeMacroClass getMeta(@NotNull String name);
-
-  @NotNull
-  List<HaxeMacroClass> getMetaList();
-
-  @NotNull
-  Stream<HaxeMacroClass> getMetaStream();
+public class HaxeLazyParseableElementType extends IReparseableElementType {
+  public HaxeLazyParseableElementType(@NotNull String debugName,
+                                      @NotNull Language language) {
+    super(debugName, language);
+  }
 }

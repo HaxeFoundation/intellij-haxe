@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2017-2017 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,20 @@ import com.intellij.formatting.Block;
 import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.build.FieldWrapper;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
 
+import java.util.List;
+
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import static java.lang.Integer.max;
 
 /**
  * @author: Fedor.Korotkov
@@ -38,6 +45,18 @@ public class HaxeSpacingProcessor {
   private final ASTNode myNode;
   private final CommonCodeStyleSettings mySettings;
   private final HaxeCodeStyleSettings myHaxeCodeStyleSettings;
+
+  // This is a compatability wrapper for mySettings.BLANK_LINES_BEFORE_CLASS_END, which can
+  // go away when we no longer support 2018 versions of IDEA.
+  private static final FieldWrapper<Integer> BLANK_LINES_BEFORE_CLASS_END_WRAPPER
+        = IdeaTarget.IS_VERSION_18_3_COMPATIBLE
+        ? new FieldWrapper<>(CommonCodeStyleSettings.class, "BLANK_LINES_BEFORE_CLASS_END")
+        : null;
+  int getBlankLinesBeforeClassEnd() {
+    return null != BLANK_LINES_BEFORE_CLASS_END_WRAPPER
+      ? BLANK_LINES_BEFORE_CLASS_END_WRAPPER.get(mySettings)
+      : 0;
+  }
 
   public HaxeSpacingProcessor(ASTNode node, CommonCodeStyleSettings settings, HaxeCodeStyleSettings haxeCodeStyleSettings) {
     myNode = node;
@@ -55,11 +74,23 @@ public class HaxeSpacingProcessor {
     final ASTNode node1 = ((AbstractBlock)child1).getNode();
     final IElementType type1 = node1.getElementType();
     final ASTNode node2 = ((AbstractBlock)child2).getNode();
-    final IElementType type2 = node2.getElementType();
+    IElementType type2 = node2.getElementType();
     final ASTNode nodeNode1 = node1 == null ? null : node1.getFirstChildNode();
     final IElementType typeType1 = nodeNode1 == null ? null : nodeNode1.getElementType();
     final ASTNode nodeNode2 = node2 == null ? null : node2.getFirstChildNode();
     final IElementType typeType2 = nodeNode2 == null ? null : nodeNode2.getElementType();
+
+    // TODO: Add Metadata spacing rules AND associated UI.
+    //  (When looking for examples, Java code uses the word "Annotations".)
+
+    // TODO: Do this for comments, too??
+    // If type2 is metadata, then camouflage it as the type that follows it.
+    if(type2 == EMBEDDED_META) {
+      PsiElement element = HaxeMetadataUtils.getAssociatedElement(node2.getPsi());
+      if (null != element) {
+        type2 = element.getNode().getElementType();
+      }
+    }
 
     if (type1 == IMPORT_STATEMENT ||
         type1 == PACKAGE_STATEMENT ||
@@ -71,12 +102,49 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(false);
     }
 
-    if (type1 == CLASS_BODY || type1 == EXTERN_CLASS_DECLARATION_BODY || type1 == ENUM_BODY || type1 == INTERFACE_BODY || type1 == ABSTRACT_BODY) {
+    if (isClassDeclaration(elementType) && isClassBodyType(type2)) {
+      return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
+    }
+
+    if (isClassDeclaration(type1)) {
+      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_CLASS, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (isClassBodyType(type1)) {  // End of the class body. (After the right brace.)
       return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type2 == METHOD_DECLARATION && !ONLY_COMMENTS.contains(type1)) { // prevent excess linefeed between doctype and function
-      return Spacing.createSpacing(0, 0, 2, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    if (type1 == PLCURLY && isClassBodyType(elementType) && isFirstChild(child1)) {
+      int lineFeeds = max(1, (isFieldDeclaration(type2) ? mySettings.BLANK_LINES_AROUND_FIELD : mySettings.BLANK_LINES_AROUND_METHOD));
+      return Spacing.createSpacing(0, 0, lineFeeds, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (type2 == PRCURLY && isClassBodyType(elementType) && isLastChild(child2)) {
+      return Spacing.createSpacing(0, 0, max(1, getBlankLinesBeforeClassEnd()), mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (isMethodDeclaration(type1) && isMethodDeclaration(type2)) {
+      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (isMethodDeclaration(type1) && isFieldDeclaration(type2)) {
+      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (isFieldDeclaration(type1) && isFieldDeclaration(type2)) {
+      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_FIELD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (isFieldDeclaration(type1)&& isMethodDeclaration(type2)) {
+      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (DOC_COMMENT == type1) {
+      return Spacing.createSpacing(0,0,1,false, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (ONLY_COMMENTS.contains(type1) && (isMethodDeclaration(type2) || isFieldDeclaration(type2))) { // prevent excess linefeed between doctype and function
+      return Spacing.createSpacing(0, 0, 1, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (type2 == PLPAREN) {
@@ -138,11 +206,6 @@ public class HaxeSpacingProcessor {
       else if (FUNCTION_DEFINITION.contains(elementType)) {
         return setBraceSpace(mySettings.SPACE_BEFORE_METHOD_LBRACE, mySettings.METHOD_BRACE_STYLE, child1.getTextRange());
       }
-    }
-
-    if ((elementType == CLASS_DECLARATION || elementType == ENUM_DECLARATION || elementType == INTERFACE_DECLARATION) &&
-        type2 == PLCURLY) {
-      return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
     }
 
     if (type1 == PLPAREN || type2 == PRPAREN) {
@@ -309,18 +372,6 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_AROUND_ARROW);
     }
 
-    if (type1 == METHOD_DECLARATION && type2 == METHOD_DECLARATION) {
-      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
-    }
-
-    if (type1 == PLCURLY && (type2 == INTERFACE_BODY || type2 == CLASS_BODY || type2 == ENUM_BODY || type2 == ABSTRACT_CLASS_DECLARATION || type2 == ABSTRACT_BODY)) {
-      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_BEFORE_METHOD_BODY, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
-    }
-
-    if (type1 == METHOD_DECLARATION && type2 == PRCURLY) {
-      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
-    }
-
     return Spacing.createSpacing(0, 1, 0, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
 
@@ -346,5 +397,49 @@ public class HaxeSpacingProcessor {
                              braceStyleSetting == CommonCodeStyleSettings.NEXT_LINE_IF_WRAPPED ? 0 : 1;
       return Spacing.createSpacing(spaces, spaces, lineBreaks, false, 0);
     }
+  }
+
+  private Spacing setStatementSpacing(int minSpaces, int maxSpaces, int minLineFeeds, boolean keepLineBreaks, int keepBlankLines) {
+    int lineFeeds = 1 +  minLineFeeds;
+    return Spacing.createSpacing(minSpaces, maxSpaces, lineFeeds, keepLineBreaks, keepBlankLines);
+  }
+
+  private boolean isClassBodyType(IElementType type) {
+    return CLASS_BODY_TYPES.contains(type);
+  }
+
+  private boolean isClassDeclaration(IElementType type) {
+    return CLASS_TYPES.contains(type);
+  }
+
+  private boolean blockBeginsWith(Block block, IElementType type) {
+    if (null == block && null == type) return false;
+    List<Block> subBlocks = block.getSubBlocks();
+    if (!subBlocks.isEmpty()) {
+      Block first = subBlocks.get(0);
+      final ASTNode node = ((AbstractBlock)first).getNode();
+      return node.getElementType() == type;
+    }
+    return false;
+  }
+
+  private boolean isFirstChild(Block block) {
+    return ((AbstractBlock)block).getNode() == myNode.getFirstChildNode();
+  }
+
+  private boolean isLastChild(Block block) {
+    return ((AbstractBlock)block).getNode() == myNode.getLastChildNode();
+  }
+
+  private boolean isFieldDeclaration(IElementType type) {
+    // Sometimes, the field declaration rule gets matched as a LOCAL_VAR_DECLARATION_LIST (in its minimal form)
+    // during an incremental reparse, because the parser doesn't have the class vs. method context at that point.
+
+    return type == FIELD_DECLARATION
+        || type == LOCAL_VAR_DECLARATION_LIST;
+  }
+
+  private boolean isMethodDeclaration(IElementType type) {
+    return type == METHOD_DECLARATION;
   }
 }

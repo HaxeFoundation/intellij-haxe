@@ -7,8 +7,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('MapInitializerParsingIssue')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         FIELD_MODIFIER
           HaxePsiToken:private('private')
@@ -72,4 +72,4 @@ Haxe File
                   HaxePsiToken:CLOSING_QUOTE('"')
             HaxePsiToken:](']')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

@@ -7,8 +7,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('TestInit')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         FIELD_MODIFIER
           HaxePsiToken:private('private')
@@ -69,5 +69,5 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    PsiComment(MSL_COMMENT)('// <-- Used to show an error here.')
-    HaxePsiToken:}('}')
+      PsiComment(MSL_COMMENT)('// <-- Used to show an error here.')
+      HaxePsiToken:}('}')

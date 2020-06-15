@@ -30,8 +30,8 @@ Haxe File
                         HaxePsiToken:ID('T')
             HaxePsiToken:>('>')
       HaxePsiToken:)(')')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -77,4 +77,4 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Void')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

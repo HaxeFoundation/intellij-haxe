@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,14 @@
  */
 package com.intellij.plugins.haxe.lang.parser;
 
-import com.intellij.lang.*;
+import com.intellij.lang.ASTNode;
+import com.intellij.lang.PsiBuilder;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
+import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
-import com.intellij.util.diff.FlyweightCapableTreeStructure;
-import org.apache.log4j.Level;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class HaxeParserWrapper extends HaxeParser {
 
@@ -56,5 +50,15 @@ public class HaxeParserWrapper extends HaxeParser {
       return node;
     }
     return super.parse(t,b);
+  }
+
+  @Override
+  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
+    if (t == HaxeMetadataTokenTypes.CT_META_ARGS) {
+      return compileTimeMetaArgList(b, l + 1);
+    } else if (t == HaxeMetadataTokenTypes.RT_META_ARGS) {
+      return runTimeMetaArgList(b, l + 1);
+    }
+    return haxeFile(b, l + 1);
   }
 }

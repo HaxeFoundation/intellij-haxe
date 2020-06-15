@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
@@ -157,7 +156,7 @@ public class HaxeExpressionEvaluator {
       if (typeHolder.getType() instanceof SpecificHaxeClassReference) {
         final HaxeClassModel clazz = ((SpecificHaxeClassReference)typeHolder.getType()).getHaxeClassModel();
         if (clazz != null) {
-          HaxeMethodModel constructor = clazz.getConstructor();
+          HaxeMethodModel constructor = clazz.getConstructor(resolver);
           if (constructor == null) {
             context.addError(element, "Class " + clazz.getName() + " doesn't have a constructor", new HaxeFixer("Create constructor") {
               @Override
@@ -367,7 +366,11 @@ public class HaxeExpressionEvaluator {
         PsiReference reference = element.getReference();
         if (reference != null) {
           PsiElement subelement = reference.resolve();
-          if (subelement instanceof AbstractHaxeNamedComponent) {
+          if (subelement instanceof HaxeClass) {
+            typeHolder = SpecificHaxeClassReference.withGenerics(
+              new HaxeClassReference(((HaxeClass)subelement).getModel(), element), resolver.getSpecifics()).createHolder();
+          }
+          else if (subelement instanceof AbstractHaxeNamedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
           }
         }
@@ -585,7 +588,7 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getVoid(element);
       */
       final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeBaseMemberModel.fromPsi(element), HaxeMethodModel.class);
-      final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod() : null;
+      final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod(resolver) : null;
       if (parentMethod != null) {
         return parentMethod.getFunctionType().createHolder();
       }

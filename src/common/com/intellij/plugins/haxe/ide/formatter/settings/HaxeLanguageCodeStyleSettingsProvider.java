@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +128,8 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
   }
 
   public static final String SPACING_CODE_SAMPLE = "package;\n" +
+                                                   "@author(\"Penelope\")\n" +
+                                                   "@:final\n" +
                                                    "class Foo {\n" +
                                                    "    public var tmp:Array<Array<Int>>;\n" +
                                                    "    public function foo(x:Int, z) {\n" +
@@ -174,7 +177,8 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
                                                    "    }\n" +
                                                    "}\n";
 
-  public static final String WRAPPING_CODE_SAMPLE = "class Foo {\n" +
+  public static final String WRAPPING_CODE_SAMPLE = "@author(\"Penelope\") @:final\n" +
+                                                    "class Foo {\n" +
                                                     "    // function fBar (x,y);\n" +
                                                     "    function fOne(argA, argB, argC, argD, argE, argF, argG, argH) {\n" +
                                                     "        var numbers : Array<String> = ['one', 'two', 'three', 'four', 'five', 'six'];\n" +

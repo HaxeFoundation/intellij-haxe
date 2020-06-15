@@ -25,8 +25,8 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('T')
       HaxePsiToken:>('>')
-    HaxePsiToken:{('{')
     ENUM_BODY
+      HaxePsiToken:{('{')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
@@ -97,16 +97,20 @@ Haxe File
                     HaxePsiToken:>('>')
         HaxePsiToken:)(')')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Test')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('macro')
       METHOD_DECLARATION
-        HaxePsiToken:@:macro('@:macro')
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         METHOD_MODIFIER
@@ -172,14 +176,23 @@ Haxe File
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('meta')
+          HaxePsiToken:(('(')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('Inject')
+                  HaxePsiToken:(('(')
+                  HaxePsiToken:)(')')
+          HaxePsiToken:)(')')
       FIELD_DECLARATION
-        META_META
-          HaxePsiToken:@:meta('@:meta')
-          HaxePsiToken:(('(')
-          HaxePsiToken:ID('Inject')
-          HaxePsiToken:(('(')
-          HaxePsiToken:)(')')
-          HaxePsiToken:)(')')
         FIELD_MODIFIER
           HaxePsiToken:private('private')
         MUTABILITY_MODIFIER
@@ -1082,12 +1095,13 @@ Haxe File
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// 2')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('coreType')
   ABSTRACT_CLASS_DECLARATION
-    PsiModifierList:@:coreType
-      MACRO_CLASS
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:coreType')
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1099,8 +1113,8 @@ Haxe File
       REFERENCE_EXPRESSION
         IDENTIFIER
           HaxePsiToken:ID('Int')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -1113,14 +1127,14 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Main')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:static('static')
@@ -1173,17 +1187,16 @@ Haxe File
             HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// Kilometer should be Int')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   ABSTRACT_CLASS_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Void')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type with no relations')
   ABSTRACT_CLASS_DECLARATION
     ABSTRACT_CLASS_TYPE
@@ -1197,10 +1210,9 @@ Haxe File
       REFERENCE_EXPRESSION
         IDENTIFIER
           HaxePsiToken:ID('Float')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type which implicit casts to Float')
   ABSTRACT_CLASS_DECLARATION
     ABSTRACT_CLASS_TYPE
@@ -1220,10 +1232,9 @@ Haxe File
       REFERENCE_EXPRESSION
         IDENTIFIER
           HaxePsiToken:ID('Int')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value types which auto-casts to and from Int')
   ABSTRACT_CLASS_DECLARATION
     ABSTRACT_CLASS_TYPE
@@ -1253,10 +1264,9 @@ Haxe File
             IDENTIFIER
               HaxePsiToken:ID('Int')
       HaxePsiToken:)(')')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on Int')
   ABSTRACT_CLASS_DECLARATION
     ABSTRACT_CLASS_TYPE
@@ -1289,10 +1299,9 @@ Haxe File
                         HaxePsiToken:ID('T')
             HaxePsiToken:>('>')
       HaxePsiToken:)(')')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on VectorData<T>')
   ABSTRACT_CLASS_DECLARATION
     ABSTRACT_CLASS_TYPE
@@ -1318,8 +1327,8 @@ Haxe File
                         HaxePsiToken:ID('String')
             HaxePsiToken:>('>')
       HaxePsiToken:)(')')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:inline('inline')
@@ -1360,9 +1369,12 @@ Haxe File
             IDENTIFIER
               HaxePsiToken:ID('a')
         HaxePsiToken:;(';')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('from')
       METHOD_DECLARATION
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:from')
         METHOD_MODIFIER
           HaxePsiToken:static('static')
         METHOD_MODIFIER
@@ -1415,7 +1427,7 @@ Haxe File
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   ABSTRACT_CLASS_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
@@ -1442,23 +1454,28 @@ Haxe File
       REFERENCE_EXPRESSION
         IDENTIFIER
           HaxePsiToken:ID('Int')
-    HaxePsiToken:{('{')
-    PsiComment(MSL_COMMENT)('// MyInt + MyInt can be used as is, and returns a MyInt')
     ABSTRACT_BODY
-      METHOD_DECLARATION
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:op')
+      HaxePsiToken:{('{')
+      PsiComment(MSL_COMMENT)('// MyInt + MyInt can be used as is, and returns a MyInt')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('op')
           HaxePsiToken:(('(')
-          EXPRESSION_LIST
-            ADDITIVE_EXPRESSION
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('A')
-              HaxePsiToken:+('+')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('B')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                ADDITIVE_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('A')
+                  HaxePsiToken:+('+')
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('B')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:static('static')
         METHOD_MODIFIER
@@ -1503,22 +1520,30 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-      METHOD_DECLARATION
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:commutative')
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:op')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('commutative')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('op')
           HaxePsiToken:(('(')
-          EXPRESSION_LIST
-            MULTIPLICATIVE_EXPRESSION
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('A')
-              HaxePsiToken:*('*')
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('B')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                MULTIPLICATIVE_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('A')
+                  HaxePsiToken:*('*')
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('B')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:static('static')
         METHOD_MODIFIER
@@ -1631,4 +1656,4 @@ Haxe File
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

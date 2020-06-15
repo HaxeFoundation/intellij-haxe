@@ -2,7 +2,7 @@
   ~ Copyright 2000-2013 JetBrains s.r.o.
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
-  ~ Copyright 2017-2019 Eric Bishton
+  ~ Copyright 2017-2020 Eric Bishton
   ~ Copyright 2017-2018 Ilya Malanin
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 <!-- @replace.with.plugin.autogen.warning@ -->
 
 
-<idea-plugin version="2">
+<idea-plugin>
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Toolkit Support</name>
   <description>
@@ -75,7 +75,7 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>POST.1.2.develop@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>POST.1.2.develop.2@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
@@ -83,6 +83,20 @@
       <p/>
       <p>Unreleased Changes</p>
       <ul>
+        <li>Rewrite metadata handling:
+          <ul>
+            <li>Allow metadata at all positions.</li>
+            <li>Validate object syntax in compile-time metadata.</li>
+            <li>Parse code in run-time metadata, and highlight errors.</li>
+            <li>Check @forward(<names>) for existing method names.</li>
+            <li>Allow completion within parens.</li>
+            <li>Add UI to allow reformatting and color options.</li>
+          </ul>
+        </li>
+        <li>Fix several issues with type checking, particularly when generics are involved.</li>
+        <li>Allow non-standard orderings of class and method modifiers (e.g. final, private, extern) and warn on duplicates.</li>
+        <li>Recover from circular class dependencies.</li>
+        <li>Better error messages for a number of parsing errors.</li>
         <li>Fix not finding packages which begin with and underscore. (Issue 941)</li>
         <li>Handle function-level type parameters during semantic checks. (Issue 973)</li>
         <li>Don't use class type parameters when resolving static function parameters.</li>
@@ -907,9 +921,17 @@
     <!-- HXML BEGIN -->
     <fileTypeFactory implementation="com.intellij.plugins.haxe.hxml.HXMLFileTypeFactory"/>
     <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.hxml.HXMLParserDefinition"/>
-    <lang.syntaxHighlighterFactory key="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HXMLColorSettingsPage"/>
     <!-- HXML END -->
+
+    <!-- METADATA BEGIN -->
+    <!-- We're going to ride on Haxe's implementations for most things.  We just needed a new parser. -->
+    <lang.parserDefinition language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition"/>
+    <lang.formatter language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
+    <lang.rearranger language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.rearranger.HaxeRearrangerModel" />
+    <lang.ast.factory language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
+    <!-- METADATA END -->
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
 
@@ -925,7 +947,7 @@
                         serviceImplementation="com.intellij.plugins.haxe.lang.parser.HaxePsiBuilderFactoryImpl"/>
     -->
 
-    <lang.syntaxHighlighterFactory key="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
 
 
     <lang.braceMatcher language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>

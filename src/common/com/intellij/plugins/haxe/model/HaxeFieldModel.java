@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,12 +102,12 @@ public class HaxeFieldModel extends HaxeMemberModel {
 
   public HaxeMethodModel getGetterMethod() {
     if (getGetterType() != HaxeAccessorType.GET) return null;
-    return this.getDeclaringClass().getMethod("get_" + this.getName());
+    return this.getDeclaringClass().getMethod("get_" + this.getName(), null);
   }
 
   public HaxeMethodModel getSetterMethod() {
     if (getSetterType() != HaxeAccessorType.SET) return null;
-    return this.getDeclaringClass().getMethod("set_" + this.getName());
+    return this.getDeclaringClass().getMethod("set_" + this.getName(), null);
   }
 
   public boolean isRealVar() {

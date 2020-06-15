@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@
  */
 package com.intellij.plugins.haxe.ide.highlight;
 
-import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.lang.lexer.HaxeLexer;
+import com.intellij.plugins.haxe.lang.lexer.HaxeHighlightingLexer;
+import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +33,9 @@ import java.util.Map;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
+/**
+ * Highlights *lexer* tokens. (Not PSI elements!) It does not highlight parsed entities, per se.
+ */
 public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<IElementType, TextAttributesKey>();
   private Project myProject;
@@ -76,12 +79,18 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
     fillMap(ATTRIBUTES, BAD_TOKENS, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
     fillMap(ATTRIBUTES, CONDITIONALLY_NOT_COMPILED, HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
 
-    ATTRIBUTES.put(GeneratedParserUtilBase.DUMMY_BLOCK, HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA);
+    ATTRIBUTES.put(HaxeMetadataTokenTypes.CT_META_PREFIX,  HaxeSyntaxHighlighterColors.METADATA);
+    ATTRIBUTES.put(HaxeMetadataTokenTypes.RT_META_PREFIX, HaxeSyntaxHighlighterColors.METADATA);
+    ATTRIBUTES.put(HaxeMetadataTokenTypes.META_TYPE, HaxeSyntaxHighlighterColors.METADATA);
+    ATTRIBUTES.put(HaxeMetadataTokenTypes.PLPAREN, HaxeSyntaxHighlighterColors.METADATA);
+    ATTRIBUTES.put(HaxeMetadataTokenTypes.PRPAREN,  HaxeSyntaxHighlighterColors.METADATA);
+    ATTRIBUTES.put(HaxeMetadataTokenTypes.INVALID_META_CHARACTER, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
+    ATTRIBUTES.put(HaxeMetadataTokenTypes.EXTRA_DATA, HaxeSyntaxHighlighterColors.BLOCK_COMMENT);
   }
 
   @NotNull
   public Lexer getHighlightingLexer() {
-    return new HaxeLexer(myProject);
+    return new HaxeHighlightingLexer(myProject);
   }
 
   @NotNull
