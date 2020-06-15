@@ -45,14 +45,14 @@ jobs:
 #      haxelib setup ~/haxelib
 #  fi
 
-before_script:
-  #OSX
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update
-      brew install haxe
-      mkdir ~/haxelib
-      haxelib setup ~/haxelib
-  fi
+#before_script:
+#  #OSX
+#  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+#      brew update
+#      brew install haxe
+#      mkdir ~/haxelib
+#      haxelib setup ~/haxelib
+#  fi
 
 script:
   - ./gradlew clean Build verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=$IDEA_VERSION -PdevBuild=$DEV_BUILD
