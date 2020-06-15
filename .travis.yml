@@ -54,12 +54,12 @@ jobs:
 #      haxelib setup ~/haxelib
 #  fi
 
-script:
-  - ./gradlew clean Build verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=$IDEA_VERSION -PdevBuild=$DEV_BUILD
-
-
-notifications:
-  email: false
+#script:
+#  - ./gradlew clean Build verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=$IDEA_VERSION -PdevBuild=$DEV_BUILD
+#
+#
+#notifications:
+#  email: false
 
 # EMB: Commenting out to see if the default matrix starts working again.  Apparently matrix and jobs conflict.
 #jobs:
