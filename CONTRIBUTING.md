@@ -35,14 +35,14 @@ Install the following plugins [from Intellij IDEA plugin manager](https://www.je
 #### Required
 - Plugin DevKit
 - UI Designer
-- Gradle Support
-- Grammar-Kit (for bnf compilation) version 1.2.0. (Later versions are not backward compatible with IDEA 14.)
+- [Gradle](https://plugins.jetbrains.com/plugin/13112-gradle)
+- [Grammar-Kit](https://plugins.jetbrains.com/plugin/6606-grammar-kit) (for bnf compilation) version 1.2.0. (Later versions are not backward compatible with IDEA 14.)
 
 #### Testing
 - JUnit
 
 #### Optional, install if you want to modify lexer/parser:
-- JFlex (for lexer compilation)
+- [JFlex Support](https://plugins.jetbrains.com/plugin/263-jflex-support) (for lexer compilation)
 
 IntelliJ IDEA uses the Grammar-Kit plugin to generate its lexer and parser for Haxe and HXML.
 The grammar file for Haxe is [haxe.bnf](https://github.com/HaxeFoundation/intellij-haxe/blob/develop/grammar/haxe.bnf).
@@ -120,7 +120,7 @@ ___________
 Contributors are expected to have and build against each of the latest 
 sub-release of each major and minor version of IDEA that is supported 
 by the plugin team.  At the time of this writing, that would be 2016.1.4, 
-2016.2.5, 2016.3.7, 2017.1.5, and 2017.2.6, and 2017.3.3.
+2016.2.5, 2016.3.7, 2017.1.5, and 2017.2.6, 2017.3.3, 2018.x, and 2019.1.
 As new versions are released this will continue to be
 a moving target, as we attempt to keep up with the development community.
 

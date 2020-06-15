@@ -315,6 +315,9 @@ Properties findSdkValuesAndProperties(File buildFile) {
     // Lookup table for properties files.  Add new versions here.
     def propertiesFile = ""
     switch (Integer.valueOf(codeLine, 10)) {
+        case 195: propertiesFile = "idea_v19.properties"; break
+        case 194: propertiesFile = "idea_v19.properties"; break
+        case 193: propertiesFile = "idea_v19.properties"; break
         case 192: propertiesFile = "idea_v19.properties"; break
         case 191: propertiesFile = "idea_v19.properties"; break
         case 183: propertiesFile = "idea_v18.properties"; break
