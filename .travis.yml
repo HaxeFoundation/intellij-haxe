@@ -26,7 +26,7 @@ jobs:
     - os: osx
       osx_image: xcode9.3
       env: IDEA_VERSION=2019.2
-      jdk:
+      jdk: none
 #  exclude:
 #    - os: osx
 #      osx_image: ""
