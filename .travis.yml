@@ -16,6 +16,8 @@ os:
 #  - xcode9.3
 #  - ""
 jdk:
+  # Blank must come first, because it's the default used for included jobs (thus, osx!).
+  -
   - openjdk8
 
 # Excluding allows us to remove specific sets from the matrix.  In this case, it is imperative
@@ -26,16 +28,15 @@ jobs:
     - os: osx
       osx_image: xcode9.3
       env: IDEA_VERSION=2019.2
-      jdk: none
-#  exclude:
+  exclude:
 #    - os: osx
 #      osx_image: ""
 #    - os: osx
 #      jdk: openjdk8
 #    - os: linux
 #      osx_image: xcode9.3
-#    - os: linux
-#      jdk: ""
+    - os: linux
+      jdk: ""
 
 #before_script: |
 #  #Linux
