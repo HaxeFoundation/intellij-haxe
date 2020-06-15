@@ -23,10 +23,10 @@ jdk:
 # Excluding allows us to remove specific sets from the matrix.  In this case, it is imperative
 # that we do NOT include any jdk: for osx.  The secondary goal of removing xcode from linux
 # builds is mostly cosmetic.
-#matrix:
-#  exclude:
-#  - os: osx
-#    jdk: openjdk8
+matrix:
+  exclude:
+  - os: osx
+    jdk: openjdk8
 #  - os: osx
 #    osx_image:
 #  - os: linux
