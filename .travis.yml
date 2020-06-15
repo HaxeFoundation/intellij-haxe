@@ -54,9 +54,8 @@ jobs:
 #      haxelib setup ~/haxelib
 #  fi
 
-#script:
-#  - ./gradlew clean Build verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=$IDEA_VERSION -PdevBuild=$DEV_BUILD
-
+script:
+  - ./gradlew clean Build verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=$IDEA_VERSION -PdevBuild=$DEV_BUILD
 
 notifications:
   email: false
