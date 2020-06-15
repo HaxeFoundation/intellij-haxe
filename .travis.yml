@@ -29,22 +29,23 @@ jobs:
       jdk: openjdk8
     - os: osx
       osx_image: ""
-    - os: linux
-      osx_image: xcode11.5
-    - os: linux
-      jdk: ""
+#    - os: linux
+#      osx_image: xcode11.5
+#    - os: linux
+#      jdk: ""
 
-before_script: |
-  #Linux
-  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      sudo apt-get -qq update
-      sudo add-apt-repository ppa:haxe/releases -y
-      sudo apt-get update
-      sudo apt-get install haxe -y
-      mkdir ~/haxelib
-      haxelib setup ~/haxelib
-  fi
+#before_script: |
+#  #Linux
+#  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#      sudo apt-get -qq update
+#      sudo add-apt-repository ppa:haxe/releases -y
+#      sudo apt-get update
+#      sudo apt-get install haxe -y
+#      mkdir ~/haxelib
+#      haxelib setup ~/haxelib
+#  fi
 
+before_script:
   #OSX
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew update
