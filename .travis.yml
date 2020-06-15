@@ -25,7 +25,7 @@ jdk:
 # builds is mostly cosmetic.
 jobs:
   exclude:
-    - if os = osx
+    - if: os = osx
       jdk: openjdk8
 
 before_script: |
