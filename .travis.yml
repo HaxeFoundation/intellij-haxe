@@ -18,7 +18,7 @@ osx_image:
   - ""
 jdk:
   - if: os = linux
-  - openjdk8
+    openjdk8
 #  - ""
 
 # Excluding allows us to remove specific sets from the matrix.  In this case, it is imperative
