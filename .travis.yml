@@ -24,15 +24,16 @@ jdk:
 # that we do NOT include any jdk: for osx.  The secondary goal of removing xcode from linux
 # builds is mostly cosmetic.
 matrix:
+  include:
+    - os: osx
+      osx_image: xcode9.3
+    - os: linux
+      jdk: openjdk8
   exclude:
-  - os: osx
-    jdk: openjdk8
-#  - os: osx
-#    osx_image:
-#  - os: linux
-#    jdk:
-#  - os: linux
-#    osx_image: xcode9.3
+    - os: osx
+      jdk: openjdk8
+    - os: linux
+      osx_image: xcode9.3
 
 
 before_script: |
