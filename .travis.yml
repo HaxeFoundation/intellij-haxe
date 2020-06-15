@@ -25,9 +25,10 @@ jdk:
 # builds is mostly cosmetic.
 jobs:
   exclude:
-    - if os = osx AND jdk = openjdk8
-    - if os = linux AND osx_image = xcode9.3
-
+    - if jdk IS NOT blank
+      os: osx
+    - if osx_image IS NOT blank
+      os: linux
 
 before_script: |
   #Linux
