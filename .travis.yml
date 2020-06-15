@@ -9,25 +9,27 @@ env:
 #  - IDEA_VERSION=2019.1.3
 #  - IDEA_VERSION=2019.2
 os:
-  - osx
-#  - linux
+  - linux
 
 # Null (blank) options allow us to create a larger matrix, from which we can exclude invalid options.
-osx_image:
-  - xcode9.3
-  - ""
-jdk:
-  - if: os = linux
-    openjdk8
+#osx_image:
+#  - xcode9.3
 #  - ""
+jdk:
+  - openjdk8
 
 # Excluding allows us to remove specific sets from the matrix.  In this case, it is imperative
 # that we do NOT include any jdk: for osx.  The secondary goal of removing xcode from linux
 # builds is mostly cosmetic.
 jobs:
-  exclude:
+  include:
     - os: osx
-      osx_image: ""
+      osx_image: xcode9.3
+      env: IDEA_VERSION=2019.2
+      jdk: ""
+#  exclude:
+#    - os: osx
+#      osx_image: ""
 #    - os: osx
 #      jdk: openjdk8
 #    - os: linux
