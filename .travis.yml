@@ -15,7 +15,7 @@ os:
 # Null (blank) options allow us to create a larger matrix, from which we can exclude invalid options.
 osx_image:
   - ""
-  - xcode9.3
+  - xcode9.4
 jdk:
   - ""
   - openjdk8
@@ -30,7 +30,7 @@ jobs:
     - os: osx
       osx_image: ""
     - os: linux
-      osx_image: xcode9.3
+      osx_image: xcode9.4
     - os: linux
       jdk: ""
 
