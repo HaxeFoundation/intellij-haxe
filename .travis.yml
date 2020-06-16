@@ -34,26 +34,35 @@ jobs:
     - os: linux
       env: IDEA_VERSION=2019.1.3
       jdk: openjdk8
+    - os: linux
+      env: IDEA_VERSION=2018.2.8
+      jdk: opendjk8
+    - os: linux
+      env: IDEA_VERSION=2017.3.5
+      jdk: opendjk8
+    - os: linux
+      env: IDEA_VERSION=2016.3.8
+      jdk: opendjk8
 
-#before_script: |
-#  #Linux
-#  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-#      sudo apt-get -qq update
-#      sudo add-apt-repository ppa:haxe/releases -y
-#      sudo apt-get update
-#      sudo apt-get install haxe -y
-#      mkdir ~/haxelib
-#      haxelib setup ~/haxelib
-#  fi
 
-#before_script:
-#  #OSX
-#  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-#      brew update
-#      brew install haxe
-#      mkdir ~/haxelib
-#      haxelib setup ~/haxelib
-#  fi
+before_script: |
+  #Linux
+  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      sudo apt-get -qq update
+      sudo add-apt-repository ppa:haxe/releases -y
+      sudo apt-get update
+      sudo apt-get install haxe -y
+      mkdir ~/haxelib
+      haxelib setup ~/haxelib
+  fi
+
+  #OSX
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update
+      brew install haxe
+      mkdir ~/haxelib
+      haxelib setup ~/haxelib
+  fi
 
 script:
   - ./gradlew clean Build verifyPlugin -PgenerateHxcppDebugger=false -PtargetVersion=$IDEA_VERSION -PdevBuild=$DEV_BUILD
