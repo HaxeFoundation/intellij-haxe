@@ -576,6 +576,7 @@ left suffixExpression ::= suffixOperator
 private value ::= ('untyped' expression)
                 | 'macro' expression
                 | callFunctionLiteral
+                | immediateArrayAccess
                 | (literalExpression qualifiedReferenceTail?)
                 | callOrArrayAccess
                 | ifStatement
@@ -626,6 +627,7 @@ private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression 
 
 private callFunctionLiteral ::= functionLiteral callExpression
 private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression | parenthesizedExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
+private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 
 left callExpression ::= '(' expressionList? ')'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="function call"}

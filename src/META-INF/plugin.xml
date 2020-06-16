@@ -93,6 +93,7 @@
             <li>Add UI to allow reformatting and color options.</li>
           </ul>
         </li>
+        <li>Allow immediate array accesses on literal arrays. (e.g. var a=["1","2"][1];)</li>
         <li>Fix several issues with type checking, particularly when generics are involved.</li>
         <li>Allow non-standard orderings of class and method modifiers (e.g. final, private, extern) and warn on duplicates.</li>
         <li>Recover from circular class dependencies.</li>
