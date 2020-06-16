@@ -17,7 +17,7 @@ os:
 #  - ""
 jdk:
   # Blank must come first, because it's the default used for included jobs (thus, osx!).
-  -
+  - ""
   - openjdk8
 
 # Excluding allows us to remove specific sets from the matrix.  In this case, it is imperative
