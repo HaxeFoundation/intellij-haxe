@@ -36,13 +36,13 @@ jobs:
       jdk: openjdk8
     - os: linux
       env: IDEA_VERSION=2018.2.8
-      jdk: opendjk8
+      jdk: openjdk8
     - os: linux
       env: IDEA_VERSION=2017.3.5
-      jdk: opendjk8
+      jdk: openjdk8
     - os: linux
       env: IDEA_VERSION=2016.3.8
-      jdk: opendjk8
+      jdk: openjdk8
 
 
 before_script: |
