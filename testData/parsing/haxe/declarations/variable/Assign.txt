@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Assign')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
@@ -24,4 +24,4 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:LITINT('239')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

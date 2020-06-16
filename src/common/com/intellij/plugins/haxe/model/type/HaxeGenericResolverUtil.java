@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,18 +131,39 @@ public class HaxeGenericResolverUtil {
           if (null != expressionList) {
             int len = Math.min(expressionList.size(), methodParameters.size());
             for (int n = 0; n < len; n++) {
+
               ResultHolder paramType = methodParameters.get(n).getType();
               String paramName = paramType.getType().toStringWithoutConstant();
+              ResultHolder[] paramSpecifics = {};
+              if (null != paramType.getClassType()) {
+                paramSpecifics = paramType.getClassType().getSpecifics();
+              }
+
               ResultHolder resolverType = methodResolver.resolve(paramType);
-              // if NULL == resolverType, then the type name isn't in the resolver.
+              // if NULL == resolverType, then the type name isn't in the resolver -- but it might have generic args that need typing.
               // if NULL != resolverType and !isUnknown, then the type is already set.
               // if NULL != resolverType and isUnknown, then poke the type from the call site.
-              if (null != resolverType && resolverType.isUnknown()) {
+              if ((null != resolverType && resolverType.isUnknown()) || paramSpecifics.length > 0) {
                 HaxeExpression expression = expressionList.get(n);
 
                 HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(call, null);
                 HaxeExpressionEvaluator.evaluate(expression, evaluatorContext, resolver);
-                methodResolver.add(paramName, evaluatorContext.result);
+                if (null != resolverType && resolverType.isUnknown()) {
+                  methodResolver.add(paramName, evaluatorContext.result);
+                }
+                // If the type contains generic arguments, then evaluate those and see if they are in the resolver.
+                if (paramSpecifics.length > 0) {
+                  ResultHolder[] resolvedSpecifics = evaluatorContext.result.getClassType().getSpecifics();
+
+                  int numSpecifics = Math.min(paramSpecifics.length, resolvedSpecifics.length);
+                  for (int i = 0; i < numSpecifics; ++i) {
+                    String paramSpecificName = paramSpecifics[i].getType().toStringWithoutConstant();
+                    resolverType = methodResolver.resolve(paramSpecificName);
+                    if (null != resolverType && resolverType.isUnknown()) {
+                      methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                    }
+                  }
+                }
               }
             }
           }

@@ -18,7 +18,6 @@ Haxe File
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('BadBar')
-    HaxePsiToken:{('{')
     CLASS_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')

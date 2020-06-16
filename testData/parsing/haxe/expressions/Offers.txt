@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Offers')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -43,12 +43,12 @@ Haxe File
                       HaxePsiToken:ID('toString')
                   HaxePsiToken:(('(')
                   HaxePsiToken:)(')')
-                  PsiErrorElement:'&&', '(', '.', '...', <<, <additive expression>, <assign operation>, <bitwise expression>, <compare operation>, <multiplicative expression>, <suffix expression>, '=>', '?', '[' or '||' expected, got '\'
+                  PsiErrorElement:'&&', '(', '.', '...', <<, <expression>, <operation>, '=>', '?', '[' or '||' expected, got '\'
                     PsiElement(BAD_CHARACTER)('\')
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('n')
-          PsiErrorElement:'!', '(', '++', '-', '--', ';', '@:arrayAccess', '@:autoBuild', '@:bind', '@:bitmap', '@:build', '@:coreApi', '@:fakeEnum', '@:final', '@:hack', '@:jsRequire', '@:keep', '@:macro', '@:meta', '@:native', '@:ns', '@:require', '@:unreflective', ID, LITFLOAT, LITHEX, LITINT, LITOCT, MACRO_ID, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, inline, macro, new, null, return, super, switch, this, throw, true and ... expected, got '}'
+          PsiErrorElement:'!', '(', '++', '-', '--', ';', ID, LITFLOAT, LITHEX, LITINT, LITOCT, OPEN_QUOTE, REG_EXP, '[', break, cast, continue, do, false, for, function, if, inline, macro, new, null, return, super, switch, this, throw, true, try, untyped, var, while, '{' or '~' expected, got '}'
             HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
           HaxePsiToken:REGULAR_STRING_PART('\n')
           HaxePsiToken:REGULAR_STRING_PART('}')
@@ -69,4 +69,4 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

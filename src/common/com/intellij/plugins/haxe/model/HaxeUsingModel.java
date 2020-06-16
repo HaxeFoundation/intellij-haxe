@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,11 +84,11 @@ public class HaxeUsingModel implements HaxeModel {
     for (HaxeClassModel classModel : classes) {
       List<HaxeMethodModel> methods = null;
       if (name != null) {
-        HaxeMethodModel method = classModel.getMethod(name);
+        HaxeMethodModel method = classModel.getMethod(name, null);
         if (method != null) methods = Collections.singletonList(method);
       }
       else {
-        methods = classModel.getMethods();
+        methods = classModel.getMethods(null);
       }
 
       if (methods == null || methods.isEmpty()) continue;

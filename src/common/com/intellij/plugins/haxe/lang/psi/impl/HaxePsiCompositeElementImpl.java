@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,13 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataListOwner;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataListOwnerImpl;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
@@ -51,9 +56,13 @@ import java.util.List;
  * To work around that, this 'is-a' relationship is introduced :(
  */
 
-public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements HaxePsiCompositeElement, HaxeModifierListOwner {
+public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements HaxePsiCompositeElement, HaxeModifierListOwner,
+                                                                                 HaxeMetadataListOwner {
+  private HaxeMetadataListOwner metaImpl;
+
   public HaxePsiCompositeElementImpl(@NotNull ASTNode node) {
     super(node);
+    metaImpl = new HaxeMetadataListOwnerImpl(node);
   }
 
   public IElementType getTokenType() {
@@ -187,7 +196,19 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   @Nullable
   @Override
   public HaxeModifierList getModifierList() {
-    HaxeModifierList list = (HaxeModifierList)this.findChildByType(HaxeTokenTypes.MACRO_CLASS_LIST);
-    return list;
+    return null;  // This list is built in sub-classes.
+  }
+
+  // HaxeMetadataListOwner implementations
+
+  @Nullable
+  @Override
+  public HaxeMetadataList getMetadataList(@Nullable Class<? extends HaxeMeta> metadataType) {
+    return HaxeMetadataUtils.getMetadataList(this, metadataType);
+  }
+
+  @Override
+  public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
+    return HaxeMetadataUtils.hasMeta(this, metadataType, name);
   }
 }

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -52,7 +54,7 @@ public class HaxeSmartCompletionContributor extends CompletionContributor {
     final HaxeVarInit varInit = PsiTreeUtil.getParentOfType(element, HaxeVarInit.class);
     assert varInit != null;
     final HaxeClassResolveResult resolveResult =
-      HaxeResolveUtil.tryResolveClassByTypeTag(varInit.getParent(), HaxeGenericSpecialization.EMPTY);
+      HaxeResolveUtil.tryResolveClassByTypeTag(varInit.getParent(), HaxeGenericResolverUtil.generateResolverFromScopeParents(element).getSpecialization(element));
     final HaxeClass haxeClass = resolveResult.getHaxeClass();
     if (haxeClass instanceof HaxeEnumDeclaration) {
       final String className = haxeClass.getName();

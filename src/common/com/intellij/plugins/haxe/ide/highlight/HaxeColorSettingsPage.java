@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.unparseable.data"), UNPARSEABLE_DATA),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation.defined.flag"), DEFINED_VAR),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.conditional.compilation.undefined.flag"), UNDEFINED_VAR),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.metadata"), METADATA),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.keyword"), KEYWORD),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.number"), NUMBER),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.string"), STRING),
@@ -86,6 +87,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     ourTags.put("static.member.function", STATIC_MEMBER_FUNCTION);
     ourTags.put("instance.member.variable", INSTANCE_MEMBER_VARIABLE);
     ourTags.put("static.member.variable", STATIC_MEMBER_VARIABLE);
+    ourTags.put("metadata", METADATA);
   }
 
   @NotNull
@@ -135,6 +137,8 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
            "/**\n" +
            " Document comment\n" +
            "**/\n" +
+           "@author(\"Penelope\")\n" +
+           "@:final\n" +
            "class <class>SomeClass</class> implements <interface>IOther</interface> { // some comment\n" +
            "  private var <instance.member.variable>field</instance.member.variable> = null;\n" +
            "  private var <instance.member.variable>unusedField</instance.member.variable>:<class>Number</class> = 12345.67890;\n" +

@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,9 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -159,7 +161,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
         regionMarkers.add(matched);
       } else if (isDocComment(elementType)) {
         // If no special region were detected and comment is kind of documentation - we should create folding region
-        descriptors.add(buildDocCommentFolding(node));
+        descriptor = buildDocCommentFolding(node);
       }
     } else if (isCompilerConditional(elementType)) {
       RegionMarker matched = matchCCRegion(node);
@@ -273,7 +275,7 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
   private static boolean isBodyBlock(IElementType elementType) {
-    return BODY_TYPES.contains(elementType);
+    return CLASS_BODY_TYPES.contains(elementType);
   }
 
   private static boolean isComment(IElementType elementType, ASTNode node) {

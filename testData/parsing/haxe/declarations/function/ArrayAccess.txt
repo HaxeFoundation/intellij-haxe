@@ -30,11 +30,14 @@ Haxe File
                         HaxePsiToken:ID('T')
             HaxePsiToken:>('>')
       HaxePsiToken:)(')')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
+      HaxePsiToken:{('{')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('arrayAccess')
       METHOD_DECLARATION
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:arrayAccess')
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         METHOD_MODIFIER
@@ -99,4 +102,4 @@ Haxe File
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

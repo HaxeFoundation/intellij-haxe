@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +49,7 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
     HaxeClassModel clazz = haxeClass.getModel();
 
-    for (HaxeMethodModel method : clazz.getAncestorMethods()) {
+    for (HaxeMethodModel method : clazz.getAncestorMethods(null)) {
       // Only add methods that doesn't have @:final or static modifiers and also that are not constructors
       if (
         !method.getModifiers().hasAnyModifier(

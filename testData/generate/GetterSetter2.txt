@@ -1,5 +1,5 @@
 class GetterSetter2 {
-  @:isVar public static var sfoo(get, set):Int;
+    @:isVar public static var sfoo(get, set):Int;
     @:isVar public var foo(get, set):Int;
     @:isVar var bar(get, set):String;
 

@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2019 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,13 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExternClassDeclarationImpl;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NonNls;
@@ -34,7 +39,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget, HaxeMetaContainerElement {
+public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
   /** Non-existent (source) class that is used to mark untyped monomorphs and unconstrained type parameters. */
@@ -66,22 +71,22 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget, Hax
   boolean isInterface();
 
   @NotNull
-  List<HaxeMethod> getHaxeMethods();
+  List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver);
 
   @NotNull
-  List<HaxeNamedComponent> getHaxeFields();
+  List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver);
 
   @NotNull
-  List<HaxeFieldDeclaration> getFieldDeclarations();
+  List<HaxeFieldDeclaration> getFieldDeclarations(@Nullable HaxeGenericResolver resolver);
 
   @Nullable
-  HaxeNamedComponent findHaxeFieldByName(@NotNull final String name);
+  HaxeNamedComponent findHaxeFieldByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
 
   @Nullable
-  HaxeNamedComponent findHaxeMethodByName(@NotNull final String name);
+  HaxeNamedComponent findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
 
   @Nullable
-  HaxeNamedComponent findHaxeMemberByName(@NotNull final String name);
+  HaxeNamedComponent findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
 
   boolean isGeneric();
 
@@ -89,5 +94,17 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget, Hax
   HaxeGenericParam getGenericParam();
 
   @Nullable
-  HaxeNamedComponent findArrayAccessGetter();
+  HaxeNamedComponent findArrayAccessGetter(@Nullable HaxeGenericResolver resolver);
+
+  default boolean hasMeta(HaxeMetadataTypeName meta) {
+    return HaxeMetadataUtils.hasMeta(this, meta);
+  }
+
+  default boolean hasCompileTimeMeta(HaxeMetadataTypeName meta) {
+    return HaxeMetadataUtils.hasMeta(this, HaxeMetadataCompileTimeMeta.class, meta);
+  }
+
+  default HaxeMetadataList getCompileTimeMeta(HaxeMetadataTypeName meta) {
+    return HaxeMetadataUtils.getMetadataList(this, HaxeMetadataCompileTimeMeta.class, meta);
+  }
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,10 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -215,7 +218,7 @@ public class HaxeFileModel implements HaxeExposableModel {
       HaxeClassModel classModel = getClassModel(info.className);
       if (classModel != null) {
         if (info.memberName != null) {
-          return classModel.getMember(info.memberName);
+          return classModel.getMember(info.memberName, null);
         }
         return classModel;
       }

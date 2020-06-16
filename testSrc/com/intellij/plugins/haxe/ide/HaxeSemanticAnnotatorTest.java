@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testRemoveFinal() throws Exception {
-    doTest("Remove @:final from Base.test");
+    doTest("Remove final from Base.test");  // @:final, but the @: is no longer in the fix message.
   }
 
   public void testChangeArgumentType() throws Exception {
@@ -398,6 +398,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testMultipleClassModifiers() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testNoErrorOnMultipleNullT() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -423,6 +427,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNoErrorAccessingFieldsThroughParamaterizedMethods() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testNoErrorAssigningFromParameterizedFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
 
@@ -459,6 +467,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNoErrorOnOptionalParameterWithParenthesizedNumericFieldConstant() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testTypeErrorOnOptionalParameterWithParenthesizedNumericFieldConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 

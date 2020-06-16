@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,6 +167,21 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
+  public static PsiElement getParent(@Nullable PsiElement element, @NotNull IElementType elementType) {
+    if (element == null || element instanceof PsiFile)
+      return null;
+
+    element = element.getParent();
+    while (element != null && !(element instanceof PsiFile)) {
+      if (element.getNode().getElementType() == elementType) {
+        return element;
+      }
+      element = element.getParent();
+    }
+    return null;
+  }
+
+  @Nullable
   public static List<PsiElement> getPathToParentOfType(@Nullable PsiElement element,
                                                        @NotNull Class<? extends PsiElement> aClass) {
     if (element == null) return null;
@@ -224,6 +239,17 @@ public class UsefulPsiTreeUtil {
     if (element == null) return null;
     for (PsiElement psiElement : element.getChildren()) {
       if (clazz.isAssignableFrom(psiElement.getClass())) return (T)psiElement;
+    }
+    return null;
+  }
+
+  @Nullable
+  public static PsiElement getChild(@Nullable PsiElement element, @Nullable IElementType elementType) {
+    if (element == null || elementType == null) return null;
+    for (PsiElement child : element.getChildren()) {
+      if (child.getNode().getElementType() == elementType) {
+        return child;
+      }
     }
     return null;
   }

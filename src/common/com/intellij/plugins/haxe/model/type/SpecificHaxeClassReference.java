@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,12 +187,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (aClass == null) {
       return null;
     }
-    AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name);
+    AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name, resolver);
     if (method != null) {
       if (context.root == method) return null;
       return HaxeTypeResolver.getMethodFunctionType(method, resolver);
     }
-    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name);
+    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name, resolver);
     if (field != null) {
       if (context.root == field) return null;
       return HaxeTypeResolver.getFieldOrMethodReturnType(field, resolver);

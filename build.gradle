@@ -1,6 +1,6 @@
 /*
  * Copyright 2018-2018 m0rkeulv
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ allprojects {
         //Note: path is system directory separator sensitive, file.absolutePath solves this for us
         grammarHaxe = file("${haxePluginDir}/grammar/haxe.bnf").absolutePath
         grammarHxml = file("${haxePluginDir}/grammar/hxml.bnf").absolutePath
+        grammarMetadata = file("${haxePluginDir}/grammar/metadata.bnf").absolutePath
 
         flexDownloadFile = "idea-flex-${ideaVersion}.skeleton"
         flexTargetFile = "idea-flex.skeleton"
@@ -258,6 +259,14 @@ task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'genera
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml").exists() }
 }
 
+task generateMetadataParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
+    workingDir = "${toolDir}"
+    main '-jar'
+    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarMetadata}"]
+
+    inputs.file "${grammarMetadata}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/metadata").exists() }
+}
 
 import groovy.xml.MarkupBuilder
 import org.apache.tools.ant.filters.ReplaceTokens
@@ -284,6 +293,7 @@ task generateSources(group: 'generate') {
     dependsOn 'generateVersionSpecificSources'
     dependsOn 'generateHaxeParser'
     dependsOn 'generateHxmlParser'
+    dependsOn 'generateMetadataParser'
 }
 
 Properties findSdkValuesAndProperties(File buildFile) {

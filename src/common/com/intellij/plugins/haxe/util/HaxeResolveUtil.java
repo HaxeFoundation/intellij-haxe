@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2019 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -244,17 +244,18 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static HaxeNamedComponent findNamedSubComponent(@Nullable HaxeClass haxeClass, @NotNull final String name) {
+  public static HaxeNamedComponent findNamedSubComponent(@Nullable HaxeClass haxeClass, @NotNull final String name,
+                                                         @Nullable HaxeGenericResolver resolver) {
     if (haxeClass == null) {
       return null;
     }
-    final HaxeNamedComponent result = haxeClass.findHaxeMethodByName(name);
-    return result != null ? result : haxeClass.findHaxeFieldByName(name);
+    final HaxeNamedComponent result = haxeClass.findHaxeMethodByName(name, resolver);
+    return result != null ? result : haxeClass.findHaxeFieldByName(name, resolver);
   }
 
   @NotNull
-  public static List<HaxeNamedComponent> findNamedSubComponents(@NotNull HaxeClass... rootHaxeClasses) {
-    return findNamedSubComponents(true, rootHaxeClasses);
+  public static List<HaxeNamedComponent> findNamedSubComponents(@Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
+    return findNamedSubComponents(true, resolver, rootHaxeClasses);
   }
 
   private static void addNotNullComponents(@NotNull List<HaxeNamedComponent> collection, @Nullable List<HaxeNamedComponent> possibles) {
@@ -267,7 +268,7 @@ public class HaxeResolveUtil {
   }
 
   @NotNull
-  public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @NotNull HaxeClass... rootHaxeClasses) {
+  public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<>();
     final LinkedList<HaxeClass> classes = new LinkedList<>();
     final HashSet<HaxeClass> processed = new HashSet<>();
@@ -277,7 +278,9 @@ public class HaxeResolveUtil {
 
       addNotNullComponents(unfilteredResult, getNamedSubComponents(haxeClass));
       if (haxeClass.isAbstract()) {
-        HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(haxeClass);
+        if (null == resolver) {
+          resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(haxeClass);
+        }
         List<HaxeNamedComponent> subComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass, resolver);
         addNotNullComponents(unfilteredResult, subComponents);
       }
@@ -352,7 +355,7 @@ public class HaxeResolveUtil {
         if (typeFieldList != null) {
           result.addAll(typeFieldList.getAnonymousTypeFieldList());
         }
-        body = anonymousTypeBody.getInterfaceBody();
+        body = anonymousTypeBody;
       }
     }
     if (body == null) {
@@ -572,21 +575,25 @@ public class HaxeResolveUtil {
       if (expression instanceof HaxeReference) {
         final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
         final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+        final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
+        final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
         // try next
         HaxeClassResolveResult result =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("next"),
-                                    resolveResult.getSpecialization());
+          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null
+                                    : resolveResultHaxeClass.findHaxeMethodByName("next", resolver), resultSpecialization);
         if (result.getHaxeClass() != null) {
           return result;
         }
         // try iterator
         HaxeClassResolveResult iteratorResult =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator"),
-                                    resolveResult.getSpecialization().getInnerSpecialization(resolveResultHaxeClass));
+          getHaxeClassResolveResult(resolveResultHaxeClass == null
+                                    ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator", resolver),
+                                    resultSpecialization.getInnerSpecialization(resolveResultHaxeClass));
         HaxeClass iteratorResultHaxeClass = iteratorResult.getHaxeClass();
         // Now, look for iterator's next
         result =
-          getHaxeClassResolveResult(iteratorResultHaxeClass == null ? null : iteratorResultHaxeClass.findHaxeMethodByName("next"),
+          getHaxeClassResolveResult(iteratorResultHaxeClass == null
+                                    ? null : iteratorResultHaxeClass.findHaxeMethodByName("next", resolver),
                                     iteratorResult.getSpecialization());
 
         return result;

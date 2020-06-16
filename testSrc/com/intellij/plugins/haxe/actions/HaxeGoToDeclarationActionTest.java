@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.actions;
 
-import com.intellij.codeInsight.TargetElementUtilBase;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -42,7 +43,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     assertNotNull(files);
     final PsiFile myFile = files[0];
     assertNotNull(myFile);
-    final TargetElementUtilBase util = TargetElementUtilBase.getInstance();
+    final TargetElementUtil util = TargetElementUtil.getInstance();
     assertNotNull(util);
 
     final PsiReference found = myFile.findReferenceAt(myFixture.getCaretOffset());

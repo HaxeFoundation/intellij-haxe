@@ -30,35 +30,34 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Crazy')
-    HaxePsiToken:{('{')
-    PsiComment(#else)('#else')
-    PsiComment(PPBODY)('\n  ')
-    PsiComment(PPBODY)('interface')
-    PsiComment(PPBODY)(' ')
-    PsiComment(PPBODY)('Crazy')
-    PsiComment(PPBODY)(' ')
-    PsiComment(PPBODY)('{')
-    PsiComment(PPBODY)('\n  ')
-    PsiComment(#end)('#end')
-    PsiComment(MSL_COMMENT)('// yep')
     CLASS_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      PsiComment(#else)('#else')
+      PsiComment(PPBODY)('\n  ')
+      PsiComment(PPBODY)('interface')
+      PsiComment(PPBODY)(' ')
+      PsiComment(PPBODY)('Crazy')
+      PsiComment(PPBODY)(' ')
+      PsiComment(PPBODY)('{')
+      PsiComment(PPBODY)('\n  ')
+      PsiComment(#end)('#end')
+      PsiComment(MSL_COMMENT)('// yep')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('ConditionalCompilation')
-    HaxePsiToken:{('{')
-    PsiComment(#if)('#if')
-    PsiComment(PPEXPRESSION)(' ')
-    PsiComment(PPEXPRESSION)('!')
-    PsiComment(PPEXPRESSION)('my.debug')
-    PsiComment(PPBODY)(' ')
-    PsiComment(PPBODY)('inline')
-    PsiComment(PPBODY)(' ')
-    PsiComment(#end)('#end')
     CLASS_BODY
+      HaxePsiToken:{('{')
+      PsiComment(#if)('#if')
+      PsiComment(PPEXPRESSION)(' ')
+      PsiComment(PPEXPRESSION)('!')
+      PsiComment(PPEXPRESSION)('my.debug')
+      PsiComment(PPBODY)(' ')
+      PsiComment(PPBODY)('inline')
+      PsiComment(PPBODY)(' ')
+      PsiComment(#end)('#end')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -73,7 +72,7 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   PsiComment(#if)('#if')
   PsiComment(PPEXPRESSION)(' ')
   PsiComment(PPEXPRESSION)('(')
@@ -88,10 +87,9 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('FooNeko')
-    HaxePsiToken:{('{')
     CLASS_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// Only for "mydebug" mode on Neko')
   PsiComment(#end)('#end')
   PsiComment(#if)('#if')
@@ -151,8 +149,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('ConditionalCompilation')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -224,4 +222,4 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

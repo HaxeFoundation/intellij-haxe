@@ -30,6 +30,10 @@ public class ClassDeclarationTest extends DeclarationTestBase {
     doTest(true);
   }
 
+  public void testFinal() throws Throwable {
+    doTest(true);
+  }
+
   public void testImplements() throws Throwable {
     doTest(true);
   }
@@ -42,7 +46,7 @@ public class ClassDeclarationTest extends DeclarationTestBase {
     doTest(true);
   }
 
-  public void testConstraint() throws Throwable {
+    public void testConstraint() throws Throwable {
     doTest(true);
   }
 

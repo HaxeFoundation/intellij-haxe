@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('InternalAnonymousLocalFunctionDeclaration')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -48,4 +48,4 @@ Haxe File
                       HaxePsiToken:}('}')
           PsiComment(MSL_COMMENT)('// <<--- Error was at open parens')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

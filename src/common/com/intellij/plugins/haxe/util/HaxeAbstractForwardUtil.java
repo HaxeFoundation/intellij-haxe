@@ -3,7 +3,7 @@
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,24 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Extensions for resolving and analyzing @:forward abstract meta
@@ -35,13 +44,8 @@ import java.util.List;
 public class HaxeAbstractForwardUtil {
 
   public static boolean isElementInForwardMeta(@Nullable PsiElement element) {
-    if (element != null) {
-      if (element instanceof HaxeCustomMeta) {
-        return element.getText().contains("@:forward(");
-      }
-      return isElementInForwardMeta(element.getParent());
-    }
-    return false;
+    HaxeMeta meta = HaxeMetadataUtils.getEnclosingMeta(element);
+    return null != meta && meta.isCompileTimeMeta() && meta.isType(HaxeMeta.FORWARD);
   }
 
   @Nullable
@@ -52,11 +56,11 @@ public class HaxeAbstractForwardUtil {
       final HaxeClass underlyingClass = abstractClassModel.getUnderlyingClass(resolver);
       if (underlyingClass != null) {
         if (forwardingFieldsNames.isEmpty()) {
-          return HaxeResolveUtil.findNamedSubComponents(underlyingClass);
+          return HaxeResolveUtil.findNamedSubComponents(resolver, underlyingClass);
         }
         List<HaxeNamedComponent> haxeNamedComponentList = new ArrayList<>();
         for (String fieldName : forwardingFieldsNames) {
-          HaxeNamedComponent component = HaxeResolveUtil.findNamedSubComponent(underlyingClass, fieldName);
+          HaxeNamedComponent component = HaxeResolveUtil.findNamedSubComponent(underlyingClass, fieldName, resolver);
           if (component != null) {
             haxeNamedComponentList.add(component);
           }
@@ -70,23 +74,38 @@ public class HaxeAbstractForwardUtil {
   @Nullable
   public static List<String> getAbstractForwardingFieldsNames(@Nullable HaxeClass clazz) {
     if (clazz == null) return null;
-    List<String> forwardingFields = new LinkedList<>();
-    HaxeMacroClass meta = clazz.getMeta("@:forward");
-    if (meta != null) {
-      HaxeCustomMeta customMeta = meta.getCustomMeta();
-      if (customMeta != null) {
-        HaxeExpressionList expressions = customMeta.getExpressionList();
-        if (expressions != null) {
-          for (HaxeExpression expr : expressions.getExpressionList()) {
-            final String name = expr.getText();
-            if (name != null && !name.isEmpty() && !forwardingFields.contains(name)) {
-              forwardingFields.add(name);
-            }
-          }
-        }
-        return forwardingFields;
+    HaxeMetadataList forwardMetas = clazz.getCompileTimeMeta(HaxeMeta.FORWARD);
+    if (forwardMetas.isEmpty()) {
+      return null;
+    }
+
+    // We need to return an empty list if the meta exists, but has no names.
+    // This because an empty list is interpreted as "all" of the names. (In Haxe and in plugin code.)
+    List<String> forwardingFields = new ArrayList<>();
+    for (HaxeMeta meta: forwardMetas) {
+      HaxeMetadataContent content = meta.getContent();
+      if (null != content) {
+        forwardingFields.addAll(parseForwardingFieldsNames(content));
       }
     }
-    return null;
+    return forwardingFields;
   }
+
+  @NotNull
+  private static Set<String> parseForwardingFieldsNames(@NotNull HaxeMetadataContent content) {
+    Set<String> names = new HashSet<String>();
+    List<HaxeExpression> expressions = HaxeMetadataUtils.getCompileTimeExpressions(content);
+    for (HaxeExpression expression : expressions) {
+      addIfUnique(names, expression.getText());
+    }
+    return names;
+  }
+
+  private static void addIfUnique(Set<String> set, String name) {
+    if (null != name && !name.isEmpty() && !set.contains(name)) {
+      set.add(name);
+    }
+  }
+
+
 }

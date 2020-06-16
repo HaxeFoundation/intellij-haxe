@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.ASTFactory;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiTokenImpl;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.LazyParseableElement;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.PsiCommentImpl;
-import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.ILazyParseableElementType;
 import org.jetbrains.annotations.Nullable;
@@ -59,10 +59,14 @@ public class HaxeAstFactory extends ASTFactory {
   @Nullable
   @Override
   public LeafElement createLeaf(IElementType type, CharSequence text) {
-    if (HaxeTokenTypeSets.COMMENTS.contains(type)) {
+    if (HaxeTokenTypeSets.COMMENTS.contains(type) && !typeIsMeta(type)) {
       return new PsiCommentImpl(type, text);
     }
 
     return new HaxePsiTokenImpl(type, text);
+  }
+
+  private boolean typeIsMeta(IElementType type) {
+    return type == HaxeTokenTypes.EMBEDDED_META;
   }
 }
