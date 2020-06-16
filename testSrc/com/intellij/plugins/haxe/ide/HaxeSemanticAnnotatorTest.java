@@ -513,4 +513,13 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testParameterizedFunctions() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testImmediateStringArrayIndexing() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  //Issue #981
+  public void testAssignReflectionTypeToDynamic() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
