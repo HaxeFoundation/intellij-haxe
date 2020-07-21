@@ -20,7 +20,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -33,7 +34,8 @@ Haxe File
                   HaxePsiToken:CLOSING_QUOTE('"')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER

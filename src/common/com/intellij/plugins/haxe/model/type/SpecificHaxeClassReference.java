@@ -26,9 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypedefDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeClassReferenceModel;
-import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -263,6 +261,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
 
+    list.addAll(getCompatibleMapTypes(model, genericResolver));
+    // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
+    list.addAll(getCompatibleEnumTypes(model, genericResolver));
+
     if (!model.isAbstract()) {
       if (model.haxeClass instanceof HaxeTypedefDeclaration) {
         SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)model.haxeClass).getTargetClass(genericResolver);
@@ -296,6 +298,71 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           list.add(type);
           list.addAll(type.getCompatibleTypesInternal(direction));
         }
+      }
+    }
+
+    return list;
+  }
+
+  private Set<SpecificHaxeClassReference> getCompatibleMapTypes(HaxeClassModel model, HaxeGenericResolver resolver) {
+    // See note on SpecificTypeReference.getExpectedMapType().
+
+    final Set<SpecificHaxeClassReference> list = new HashSet<>();
+    if (null == model) return list;
+
+    final FullyQualifiedInfo fqInfo = model.getQualifiedInfo();
+    final String name = null != fqInfo ? fqInfo.getPresentableText() : model.getName();
+    ResultHolder[] specifics = resolver.getSpecifics();
+
+    if (specifics.length == 2) {
+      if (MAP.equals(name) || IMAP.equals(name)) {
+        list.add((SpecificHaxeClassReference)getExpectedMapType(specifics[0], specifics[1]));
+        list.add((getStdClass(MAP, this.context, specifics)));
+        list.add((getStdClass(IMAP, this.context, specifics)));
+      }
+      else if (ENUM_VALUE_MAP.equals(name) || OBJECT_MAP.equals(name)) {
+        list.add((getStdClass(MAP, this.context, specifics)));
+        list.add((getStdClass(IMAP, this.context, specifics)));
+      }
+    }
+    else if (specifics.length == 1) {
+      ResultHolder[] newSpecifics = null;
+
+      if (INT_MAP.equals(name)) {
+        newSpecifics = new ResultHolder[]{getInt(this.context).createHolder(), specifics[0]};
+      }
+      else if (STRING_MAP.equals(name)) {
+        newSpecifics = new ResultHolder[]{getString(this.context).createHolder(), specifics[0]};
+      }
+      if (null != newSpecifics) {
+        list.add(getStdClass(MAP, this.context, newSpecifics));
+        list.add(getStdClass(IMAP, this.context, newSpecifics));
+      }
+    }
+
+    return list;
+  }
+
+  private Set<SpecificHaxeClassReference> getCompatibleEnumTypes(HaxeClassModel model, HaxeGenericResolver resolver) {
+    final Set<SpecificHaxeClassReference> list = new HashSet<>();
+    if (null == model) return list;
+
+    // For enumName, add Enum<enumName>.
+    // TODO: FlatEnum
+    if (model instanceof HaxeEnumModel || (model.isEnum() && model.isAbstract())) {
+      SpecificHaxeClassReference ref = new SpecificHaxeClassReference(
+        model.getReference(), resolver.getSpecifics(), null, null, context);
+      list.add(SpecificHaxeClassReference.getEnum(context, ref));
+      list.add(SpecificHaxeClassReference.getEnumValue(context));
+    }
+
+    // For Enum<enumName>, add enumName.
+    else if (model.isAbstract() && "Enum".equals(model.getQualifiedInfo().getPresentableText())) {
+      ResultHolder[] specifics = resolver.getSpecifics();
+      if (specifics.length == 1) {
+        SpecificHaxeClassReference ref = specifics[0].getClassType();
+        list.add(ref);
+        list.add(SpecificHaxeClassReference.getEnumValue(context));
       }
     }
 

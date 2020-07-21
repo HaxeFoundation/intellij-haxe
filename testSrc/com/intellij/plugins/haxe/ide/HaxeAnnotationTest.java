@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +18,12 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.build.ClassWrapper;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.util.ArrayUtil;
 
 /**
@@ -36,9 +35,16 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     return "/annotation/";
   }
 
+  @Override
+  protected void setUp() throws Exception {
+    useHaxeToolkit();
+    super.setUp();
+  }
+
   private void doTest(String... additionalPaths) throws Exception {
     final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
+    myFixture.configureByFile(getTestName(false) + ".hx");
     final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
     try {
       LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
@@ -94,50 +100,50 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
 
 
   public void testValueTypeUnresolvedOnDynamicMap() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testValueTypeKnownFromTypeTagOnMapAccess() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testValueTypeKnownOnMapAccess() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testValueTypeInferredOnMapAccess() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/Map.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testInferredTypeOnArrayAccess() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testKnownTypeOnArrayAccess() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testKnownTypeFromTypeTagOnArrayAccess() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testDynamicArrayCantBeAccessed() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx", "std/Array.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testMethodAccessThroughNullable() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testVarAccessThroughNullable() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testMethodAccessThroughAbstract() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 
   public void testMethodAccessThroughAbstractAndNull() throws Exception {
-    doUnresolvedSymbolTest("std/StdTypes.hx", "std/String.hx");
+    doUnresolvedSymbolTest();
   }
 }

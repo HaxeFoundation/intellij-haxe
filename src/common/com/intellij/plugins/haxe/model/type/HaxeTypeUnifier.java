@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +51,9 @@ public class HaxeTypeUnifier {
     }
     if (a instanceof SpecificFunctionReference && b instanceof SpecificFunctionReference) {
       return unifyFunctions((SpecificFunctionReference)a, (SpecificFunctionReference)b, context);
+    }
+    if (a.isEnumValue() && b.isEnumValue()) {
+      return unifyEnumValues(a, b);
     }
 
     return SpecificTypeReference.getUnknown(a.getElementContext());
@@ -103,6 +107,33 @@ public class HaxeTypeUnifier {
     }
 
     // @TODO: Do a proper unification
+    return SpecificTypeReference.getDynamic(a.getElementContext());
+  }
+
+  @NotNull
+  static public SpecificTypeReference unifyEnumValues(SpecificTypeReference a, SpecificTypeReference b) {
+    if (a.isEnumValueClass()) {
+      if (b.isEnumValueClass()) {
+        return a;
+      }
+      else if (b instanceof SpecificEnumValueReference) {
+        return ((SpecificEnumValueReference)b).clone();
+      }
+    }
+    else if (a instanceof SpecificEnumValueReference) {
+      if (b.isEnumValueClass()) {
+        return ((SpecificEnumValueReference)a).clone();
+      }
+      else if (b instanceof SpecificEnumValueReference) {
+        ResultHolder atype = ((SpecificEnumValueReference)a).getType();
+        ResultHolder btype = ((SpecificEnumValueReference)b).getType();
+        SpecificHaxeClassReference aclass = atype.getClassType();
+        SpecificHaxeClassReference bclass = btype.getClassType();
+        if (null != aclass && null != bclass) {
+          return unifyTypes(aclass, bclass, a.getElementContext());
+        }
+      }
+    }
     return SpecificTypeReference.getDynamic(a.getElementContext());
   }
 

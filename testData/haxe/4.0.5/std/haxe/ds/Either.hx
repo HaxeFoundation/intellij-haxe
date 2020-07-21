@@ -1,7 +1,5 @@
-// Extracted from the Haxe 3.4.2 standard library, comments removed.
-// Original license is as follows.
 /*
- * Copyright (C)2005-2017 Haxe Foundation
+ * Copyright (C)2005-2019 Haxe Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,18 +19,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-extern class String {
-	var length(default,null) : Int;
-	function new(string:String) : Void;
-	function toUpperCase() : String;
-	function toLowerCase() : String;
-	function charAt(index : Int) : String;
-	function charCodeAt( index : Int) : Null<Int>;
-	function indexOf( str : String, ?startIndex : Int ) : Int;
-	function lastIndexOf( str : String, ?startIndex : Int ) : Int;
-	function split( delimiter : String ) : Array<String>;
-	function substr( pos : Int, ?len : Int ) : String;
-	function substring( startIndex : Int, ?endIndex : Int ) : String;
-	function toString() : String;
-	@:pure static function fromCharCode( code : Int ) : String;
+
+package haxe.ds;
+
+/**
+	Either represents values which are either of type `L` (Left) or type `R`
+	(Right).
+**/
+enum Either<L, R> {
+	Left(v:L);
+	Right(v:R);
 }

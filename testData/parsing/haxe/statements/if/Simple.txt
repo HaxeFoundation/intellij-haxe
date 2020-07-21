@@ -25,13 +25,15 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           IF_STATEMENT
-            HaxePsiToken:if('if')
-            HaxePsiToken:(('(')
-            LITERAL_EXPRESSION
-              HaxePsiToken:true('true')
-            HaxePsiToken:)(')')
-            BLOCK_STATEMENT
-              HaxePsiToken:{('{')
-              HaxePsiToken:}('}')
+            GUARD
+              HaxePsiToken:if('if')
+              HaxePsiToken:(('(')
+              LITERAL_EXPRESSION
+                HaxePsiToken:true('true')
+              HaxePsiToken:)(')')
+            GUARDED_STATEMENT
+              BLOCK_STATEMENT
+                HaxePsiToken:{('{')
+                HaxePsiToken:}('}')
           HaxePsiToken:}('}')
       HaxePsiToken:}('}')

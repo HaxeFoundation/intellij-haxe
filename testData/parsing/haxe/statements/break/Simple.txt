@@ -18,7 +18,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -43,20 +44,22 @@ Haxe File
             BLOCK_STATEMENT
               HaxePsiToken:{('{')
               IF_STATEMENT
-                HaxePsiToken:if('if')
-                HaxePsiToken:(('(')
-                COMPARE_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('i')
-                  COMPARE_OPERATION
-                    HaxePsiToken:==('==')
-                  LITERAL_EXPRESSION
-                    HaxePsiToken:LITINT('5')
-                HaxePsiToken:)(')')
-                BREAK_STATEMENT
-                  HaxePsiToken:break('break')
-                  HaxePsiToken:;(';')
+                GUARD
+                  HaxePsiToken:if('if')
+                  HaxePsiToken:(('(')
+                  COMPARE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('i')
+                    COMPARE_OPERATION
+                      HaxePsiToken:==('==')
+                    LITERAL_EXPRESSION
+                      HaxePsiToken:LITINT('5')
+                  HaxePsiToken:)(')')
+                GUARDED_STATEMENT
+                  BREAK_STATEMENT
+                    HaxePsiToken:break('break')
+                    HaxePsiToken:;(';')
               PREFIX_EXPRESSION
                 HaxePsiToken:++('++')
                 REFERENCE_EXPRESSION

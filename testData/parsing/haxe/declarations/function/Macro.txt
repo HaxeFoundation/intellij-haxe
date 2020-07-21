@@ -40,22 +40,24 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           IF_STATEMENT
-            HaxePsiToken:if('if')
-            HaxePsiToken:(('(')
-            COMPARE_EXPRESSION
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('n')
-              COMPARE_OPERATION
-                HaxePsiToken:<('<')
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITINT('2')
-            HaxePsiToken:)(')')
-            RETURN_STATEMENT
-              HaxePsiToken:return('return')
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITINT('1')
-              HaxePsiToken:;(';')
+            GUARD
+              HaxePsiToken:if('if')
+              HaxePsiToken:(('(')
+              COMPARE_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('n')
+                COMPARE_OPERATION
+                  HaxePsiToken:<('<')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:LITINT('2')
+              HaxePsiToken:)(')')
+            GUARDED_STATEMENT
+              RETURN_STATEMENT
+                HaxePsiToken:return('return')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:LITINT('1')
+                HaxePsiToken:;(';')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
             ADDITIVE_EXPRESSION

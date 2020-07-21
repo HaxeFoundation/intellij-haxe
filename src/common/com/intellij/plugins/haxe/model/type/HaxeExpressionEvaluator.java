@@ -41,6 +41,7 @@ import com.intellij.psi.tree.TokenSet;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
+import javax.jws.soap.SOAPBinding;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -86,10 +87,11 @@ public class HaxeExpressionEvaluator {
   static private ResultHolder _handle(final PsiElement element,
                                       final HaxeExpressionEvaluatorContext context,
                                       HaxeGenericResolver resolver) {
-    if (resolver == null) resolver = new HaxeGenericResolver();
     if (element == null) {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
+    if (resolver == null) resolver = new HaxeGenericResolver();
+
     LOG.debug("Handling element: " + element);
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
@@ -241,10 +243,12 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeLocalVarDeclarationList) {
+      // Var declaration list is a statement that returns a Void type, not the type of the local vars it creates.
+      // We still evaluate its sub-parts so that we can set the known value types of variables in the scope.
       for (HaxeLocalVarDeclaration part : ((HaxeLocalVarDeclarationList)element).getLocalVarDeclarationList()) {
         handle(part, context, resolver);
       }
-      return SpecificHaxeClassReference.getUnknown(element).createHolder();
+      return SpecificHaxeClassReference.getVoid(element).createHolder();
     }
 
     if (element instanceof HaxeAssignExpression) {
@@ -483,8 +487,14 @@ public class HaxeExpressionEvaluator {
       for (HaxeExpression ex : initializers) {
         HaxeFatArrowExpression fatArrow = (HaxeFatArrowExpression)ex;
         SpecificTypeReference keyType = handle(fatArrow.getFirstChild(), context, resolver).getType();
+        if (keyType instanceof SpecificEnumValueReference) {
+          keyType = ((SpecificEnumValueReference)keyType).getEnumClass();
+        }
         keyReferences.add(keyType);
         SpecificTypeReference valueType = handle(fatArrow.getLastChild(), context, resolver).getType();
+        if (valueType instanceof SpecificEnumValueReference) {
+          valueType = ((SpecificEnumValueReference)valueType).getEnumClass();
+        }
         valueReferences.add(valueType);
       }
 
@@ -708,44 +718,49 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeIfStatement) {
-      PsiElement[] children = element.getChildren();
-      if (children.length >= 1) {
-        SpecificTypeReference expr = handle(children[0], context, resolver).getType();
-        if (!SpecificTypeReference.getBool(element).canAssign(expr)) {
-          context.addError(
-            children[0],
-            "If expr " + expr + " should be bool",
-            new HaxeCastFixer(children[0], expr, SpecificHaxeClassReference.getBool(element))
-          );
-        }
+      HaxeIfStatement ifStatement = (HaxeIfStatement)element;
+      SpecificTypeReference guardExpr = handle(ifStatement.getGuard(), context, resolver).getType();
+      HaxeGuardedStatement guardedStatement = ifStatement.getGuardedStatement();
+      HaxeElseStatement elseStatement = ifStatement.getElseStatement();
 
-        if (expr.isConstant()) {
-          context.addWarning(children[0], "If expression constant");
-        }
+      PsiElement eTrue = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(guardedStatement);
+      PsiElement eFalse = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(elseStatement);
 
-        if (children.length < 2) return SpecificHaxeClassReference.getUnknown(element).createHolder();
-        PsiElement eTrue = null;
-        PsiElement eFalse = null;
-        eTrue = children[1];
-        if (children.length >= 3) {
-          eFalse = children[2];
-        }
-        SpecificTypeReference tTrue = null;
-        SpecificTypeReference tFalse = null;
-        if (eTrue != null) tTrue = handle(eTrue, context, resolver).getType();
-        if (eFalse != null) tFalse = handle(eFalse, context, resolver).getType();
-        if (expr.isConstant()) {
-          if (expr.getConstantAsBool()) {
-            if (tFalse != null) {
-              context.addUnreachable(eFalse);
-            }
-          } else {
-            if (tTrue != null) {
-              context.addUnreachable(eTrue);
-            }
+      SpecificTypeReference tTrue = null;
+      SpecificTypeReference tFalse = null;
+      if (eTrue != null) tTrue = handle(eTrue, context, resolver).getType();
+      if (eFalse != null) tFalse = handle(eFalse, context, resolver).getType();
+      if (guardExpr.isConstant()) {
+        if (guardExpr.getConstantAsBool()) {
+          if (tFalse != null) {
+            context.addUnreachable(eFalse);
+          }
+        } else {
+          if (tTrue != null) {
+            context.addUnreachable(eTrue);
           }
         }
-        return HaxeTypeUnifier.unify(tTrue, tFalse, element).createHolder();
+      }
+
+      // No 'else' clause means the if results in a Void type.
+      if (null == tFalse) tFalse = SpecificHaxeClassReference.getVoid(element);
+
+      return HaxeTypeUnifier.unify(tTrue, tFalse, element).createHolder();
+    }
+
+    if (element instanceof HaxeGuard) {  // Guard expression for if statement or switch case.
+      HaxeExpression guardExpression = ((HaxeGuard)element).getExpression();
+      SpecificTypeReference expr = handle(guardExpression, context, resolver).getType();
+      if (!SpecificTypeReference.getBool(element).canAssign(expr)) {
+        context.addError(
+          guardExpression,
+          "If expr " + expr + " should be bool",
+          new HaxeCastFixer(guardExpression, expr, SpecificHaxeClassReference.getBool(element))
+        );
+      }
+
+      if (expr.isConstant()) {
+        context.addWarning(guardExpression, "If expression constant");
       }
     }
 

@@ -1,9 +1,8 @@
 class Main {
  function test() {
-   if (a) a;
+     if (a) a;
 
-     if () {
-     }
+     if (false) {}
 
      if (a) {
 

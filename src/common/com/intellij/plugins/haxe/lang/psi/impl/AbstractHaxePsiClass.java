@@ -249,6 +249,11 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
+  public HaxeGenericResolver getMemberResolver(HaxeGenericResolver resolver) {
+    return resolver;
+  }
+
+  @Override
   public boolean isGeneric() {
     return getGenericParam() != null;
   }

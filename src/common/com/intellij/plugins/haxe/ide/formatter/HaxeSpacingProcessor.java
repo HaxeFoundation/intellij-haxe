@@ -64,6 +64,39 @@ public class HaxeSpacingProcessor {
     myHaxeCodeStyleSettings = haxeCodeStyleSettings;
   }
 
+  // Use this for debugging.  Beware: It is incredibly slow to log all of this.
+  private String composeSpacingData(Block child1, Block child2) {
+    final IElementType elementType = myNode.getElementType();
+    final IElementType parentType = myNode.getTreeParent() == null ? null : myNode.getTreeParent().getElementType();
+    final ASTNode node1 = ((AbstractBlock)child1).getNode();
+    final IElementType type1 = node1.getElementType();
+    final ASTNode node2 = ((AbstractBlock)child2).getNode();
+    IElementType type2 = node2.getElementType();
+    final ASTNode nodeNode1 = node1 == null ? null : node1.getFirstChildNode();
+    final IElementType typeType1 = nodeNode1 == null ? null : nodeNode1.getElementType();
+    final ASTNode nodeNode2 = node2 == null ? null : node2.getFirstChildNode();
+    final IElementType typeType2 = nodeNode2 == null ? null : nodeNode2.getElementType();
+
+    StringBuilder b = new StringBuilder();
+    b.append("MyNode:").append(myNode.toString());
+    b.append(" ElementType:").append(elementType);
+    b.append(" ParentType:").append(parentType);
+
+    b.append("\n Child1:");
+    b.append(" Node1:").append(node1);
+    b.append(" Type1:").append(type1);
+    b.append(" FirstChildNode:").append(nodeNode1);
+    b.append(" FirstChildType:").append(typeType1);
+
+    b.append("\n Child2:");
+    b.append(" Node2:").append(node2);
+    b.append(" Type2:").append(type2);
+    b.append(" FirstChildNode:").append(nodeNode2);
+    b.append(" FirstChildType:").append(typeType2);
+
+    return b.toString();
+  }
+
   public Spacing getSpacing(Block child1, Block child2) {
     if (!(child1 instanceof AbstractBlock) || !(child2 instanceof AbstractBlock)) {
       return null;
@@ -148,7 +181,7 @@ public class HaxeSpacingProcessor {
     }
 
     if (type2 == PLPAREN) {
-      if (elementType == IF_STATEMENT) {
+      if (elementType == GUARD) { // IF_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_IF_PARENTHESES);
       }
       else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
@@ -181,11 +214,13 @@ public class HaxeSpacingProcessor {
     //
     //Spacing before left braces
     //
-    if (type2 == BLOCK_STATEMENT) {
-      if (elementType == IF_STATEMENT && type1 != KELSE) {
+    if (elementType == IF_STATEMENT) {
+      if (type2 == GUARDED_STATEMENT && typeType2 == BLOCK_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_IF_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
-      else if (elementType == IF_STATEMENT && type1 == KELSE) {
+    }
+    if (type2 == BLOCK_STATEMENT) {
+      if (elementType == ELSE_STATEMENT) { // else if (elementType == IF_STATEMENT && type1 == KELSE) {
         return setBraceSpace(mySettings.SPACE_BEFORE_ELSE_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
       else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
@@ -209,7 +244,7 @@ public class HaxeSpacingProcessor {
     }
 
     if (type1 == PLPAREN || type2 == PRPAREN) {
-      if (elementType == IF_STATEMENT) {
+      if (elementType == GUARD) { // if (elementType == IF_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_IF_PARENTHESES);
       }
       else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
@@ -327,7 +362,7 @@ public class HaxeSpacingProcessor {
     //
     //Spacing before keyword (else, catch, etc)
     //
-    if (type2 == KELSE) {
+    if (type2 == ELSE_STATEMENT) {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_ELSE_KEYWORD, mySettings.ELSE_ON_NEW_LINE);
     }
     if (type2 == KWHILE) {
@@ -341,7 +376,7 @@ public class HaxeSpacingProcessor {
     //Other
     //
 
-    if (type1 == KELSE && type2 == IF_STATEMENT) {
+    if (type1 == KELSE && type2 == IF_STATEMENT) {  // Inside of ELSE_STATEMENT
       return Spacing.createSpacing(1, 1, mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +18,11 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxeCatchStatement;
-import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -72,4 +73,22 @@ public class HaxeStatementUtils {
     return PsiTreeUtil.getChildOfType(elem, HaxeCatchStatement.class);
   }
 
+  /**
+   * Retrieve the expression inside of the given (if) guard.
+   *
+   * @param element - Guarded element ("if" statement or switch block).
+   * @return - The HaxeExpression inside of the parenthesis, if the element is guarded. Will return null if the
+   *           element is not a guarded element, if it has no guard (switch case), if the guard is a set of empty
+   *           parens, or there is a parsing error between the parens.
+   */
+  @Nullable
+  public static HaxeExpression getGuardExpression(PsiElement element) {
+    HaxeGuard guard = null;
+    if (element instanceof HaxeIfStatement) {
+      guard = ((HaxeIfStatement)element).getGuard();
+    } else if (element instanceof HaxeSwitchCase) {
+      guard = ((HaxeSwitchCase)element).getGuard();
+    }
+    return null != guard ? guard.getExpression() : null;
+  }
 }

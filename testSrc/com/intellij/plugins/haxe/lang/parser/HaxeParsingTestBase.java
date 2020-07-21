@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,26 @@
 package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.LanguageASTFactory;
+import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.lang.injection.MultiHostRegistrar;
-import com.intellij.mock.MockDumbService;
+import com.intellij.mock.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.RegexLanguageInjector;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataLanguage;
+import com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.LanguageInjector;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageManagerImpl;
 import com.intellij.testFramework.ParsingTestCase;
+import com.intellij.testFramework.PlatformLiteFixture;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -39,13 +46,23 @@ import java.util.List;
 
 abstract public class HaxeParsingTestBase extends ParsingTestCase {
   public HaxeParsingTestBase(String... path) {
-    super(getPath(path), HaxeFileType.DEFAULT_EXTENSION, new HaxeParserDefinition());
+    super(getPath(path), HaxeFileType.DEFAULT_EXTENSION, new HaxeParserDefinition(), new HaxeMetadataParserDefinition());
   }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeLanguage.INSTANCE, new HaxeAstFactory());
+    HaxeAstFactory astFactory = new HaxeAstFactory();
+    addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeLanguage.INSTANCE, astFactory);
+    addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeMetadataLanguage.INSTANCE, astFactory);
+
+    // Get the metadata parser added because only the first language definition is added by the super.setUp call.
+    // This is basically what configureFromParserDefinition does, but without overriding the globals.
+    HaxeMetadataParserDefinition metaParser = new HaxeMetadataParserDefinition();
+    addExplicitExtension(LanguageParserDefinitions.INSTANCE, HaxeMetadataLanguage.INSTANCE, metaParser);
+    registerComponentInstance(((MockApplicationEx)ApplicationManager.getApplication()).getPicoContainer(), FileTypeManager.class,
+                              new MockFileTypeManager(new MockLanguageFileType(HaxeMetadataLanguage.INSTANCE, HaxeFileType.DEFAULT_EXTENSION)));
+
 
     // Work around @NotNull bug down in the test fixture.  Since no InjectedLanguageManager
     // was registered, null was passed to a @NotNull function.  This affected testSimple().

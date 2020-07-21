@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class HaxeNameUtils {
   public static boolean isValidClassNameChar(char c) {
     // TODO: Figure out if non-ascii chars are valid for class names.
     // TODO: Maybe make this faster by using a hash or lookup table.
-    return '_' == c || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    return '_' == c || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z' || (c >= '0' && c <= '9'));
   }
 
   public static boolean isValidIdentifierChar(char c) {

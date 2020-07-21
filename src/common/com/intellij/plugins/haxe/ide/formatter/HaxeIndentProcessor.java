@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,14 +104,15 @@ public class HaxeIndentProcessor {
     if (parentType == DO_WHILE_STATEMENT && prevSiblingType == KDO && elementType != BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if ((parentType == RETURN_STATEMENT || parentType == RETURN_STATEMENT_WITHOUT_SEMICOLON) &&
+    if (parentType == RETURN_STATEMENT &&
         prevSiblingType == KRETURN &&
         elementType != BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if (parentType == IF_STATEMENT &&
-        (prevSiblingType == PRPAREN || prevSiblingType == KELSE) &&
+    // IF_STATEMENT statement components
+    if ((parentType == GUARDED_STATEMENT || parentType == ELSE_STATEMENT) &&
         elementType != BLOCK_STATEMENT &&
+        elementType != KELSE &&
         elementType != IF_STATEMENT) {
       return Indent.getNormalIndent();
     }

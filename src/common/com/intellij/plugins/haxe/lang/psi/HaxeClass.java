@@ -19,7 +19,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
+import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExternClassDeclarationImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -42,15 +42,21 @@ import java.util.List;
 public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
-  /** Non-existent (source) class that is used to mark untyped monomorphs and unconstrained type parameters. */
-  HaxeClass UNKNOWN_CLASS = new HaxeExternClassDeclarationImpl(new HaxeDummyASTNode(SpecificTypeReference.UNKNOWN)) {
-    @SuppressWarnings({"ConstantConditions"})
-    @Nullable
-    @Override
-    public String getName() {
-      return SpecificTypeReference.UNKNOWN;
-    }
-  };
+  /**
+   * Create a Non-existent (source) class that is used to mark untyped monomorphs and unconstrained type parameters.
+   * @param node - The AST Node for which we are creating the class.
+   */
+  static HaxeClass createUnknownClass(ASTNode node) {
+    return new HaxeExternClassDeclarationImpl(node) {
+      @SuppressWarnings({"ConstantConditions"})
+      @Nullable
+      @Override
+      public String getName() {
+        return SpecificTypeReference.UNKNOWN;
+      }
+    };
+  }
+
 
   @NotNull
   @NonNls
@@ -87,6 +93,17 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
 
   @Nullable
   HaxeNamedComponent findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
+
+  /**
+   * Given the class resolver, return the resolver used with members.  In most cases, this is
+   * the resolver itself.  For abstracts and typedefs, this will be the resolver to use with underlying
+   * class members.
+   *
+   * @param resolver - Class resolver to use.
+   * @return the resolver to use when dealing with generic types/parameters on class members.
+   */
+  @Nullable
+  HaxeGenericResolver getMemberResolver(HaxeGenericResolver resolver);
 
   boolean isGeneric();
 

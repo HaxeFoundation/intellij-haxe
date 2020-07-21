@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,14 +19,14 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeOrAnonymous;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
-import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.FINAL;
 
 public class HaxeLocalVarModel extends HaxeMemberModel {
 
@@ -84,4 +84,13 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
     return null;
   }
 
+  private HaxeMutabilityModifier getMutabilityModifier() {
+    HaxeLocalVarDeclarationList declParent = UsefulPsiTreeUtil.getParentOfType(element, HaxeLocalVarDeclarationList.class);
+    return null != declParent ? declParent.getMutabilityModifier() : null;
+  }
+
+  @Override
+  public boolean isFinal() {
+    return FINAL.equals(getMutabilityModifier().getText()) || super.isFinal();
+  }
 }
