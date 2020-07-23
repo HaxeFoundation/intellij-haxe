@@ -139,7 +139,7 @@ public class HaxeNameSuggesterUtil {
     if (expression instanceof HaxeSuperExpression) {
       return "mysuper";
     }
-    if (expression instanceof HaxeFatArrowExpression
+    if (expression instanceof HaxeMapInitializerExpression
         || expression instanceof HaxeFunctionLiteral) {
       return "func";
     }

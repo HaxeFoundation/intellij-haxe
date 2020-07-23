@@ -70,14 +70,15 @@ Haxe File
               SWITCH_CASE
                 HaxePsiToken:case('case')
                 SWITCH_CASE_EXPR
-                  FAT_ARROW_EXPRESSION
+                  SWITCH_CASE_EXTRACTOR
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
                     HaxePsiToken:=>('=>')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('_')
+                    SWITCH_CASE_EXPR
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('_')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
                   CALL_EXPRESSION

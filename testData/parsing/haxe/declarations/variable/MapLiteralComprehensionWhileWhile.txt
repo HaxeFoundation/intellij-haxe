@@ -124,7 +124,7 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('i')
                       HaxePsiToken:)(')')
-                      FAT_ARROW_EXPRESSION
+                      MAP_INITIALIZER_EXPRESSION
                         ADDITIVE_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER

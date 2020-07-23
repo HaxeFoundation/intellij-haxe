@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,7 +203,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
 
   protected boolean isValidIntroduceContext(PsiElement element) {
     if (PsiTreeUtil.getParentOfType(element, HaxeParameterList.class) != null) return false;
-    if (element instanceof HaxeFatArrowExpression) return false;
+    if (element instanceof HaxeMapInitializerExpression) return false;
 
     return true;
   }
@@ -263,7 +263,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
 
     // Fat arrow expressions are not allowed outside of a map, so make no sense to turn into
     // separate variables.
-    if (element instanceof HaxeFatArrowExpression) {
+    if (element instanceof HaxeMapInitializerExpression) {
       return false;
     }
 

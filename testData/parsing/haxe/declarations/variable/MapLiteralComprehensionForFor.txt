@@ -101,7 +101,7 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('length')
                       HaxePsiToken:)(')')
-                      FAT_ARROW_EXPRESSION
+                      MAP_INITIALIZER_EXPRESSION
                         ADDITIVE_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER

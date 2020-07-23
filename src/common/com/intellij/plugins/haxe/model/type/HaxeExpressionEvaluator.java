@@ -463,7 +463,7 @@ public class HaxeExpressionEvaluator {
         HaxeExpression fatArrow = null;
         while (null != forStatement || null != whileStatement) {
           if (null != forStatement) {
-            fatArrow = forStatement.getMapInitializer();
+            fatArrow = forStatement.getMapInitializerExpression();
             whileStatement = forStatement.getMapInitializerWhileStatement();
             forStatement = forStatement.getMapInitializerForStatement();
           } else {
@@ -479,13 +479,13 @@ public class HaxeExpressionEvaluator {
                     new HaxeDebugUtil.InvalidValueException(element.toString() + '\n' + HaxeDebugUtil.elementLocation(element)));
         }
       } else {
-        initializers.addAll(listElement.getExpressionList());
+        initializers.addAll(listElement.getMapInitializerExpressionList());
       }
 
       ArrayList<SpecificTypeReference> keyReferences = new ArrayList<>(initializers.size());
       ArrayList<SpecificTypeReference> valueReferences = new ArrayList<>(initializers.size());
       for (HaxeExpression ex : initializers) {
-        HaxeFatArrowExpression fatArrow = (HaxeFatArrowExpression)ex;
+        HaxeMapInitializerExpression fatArrow = (HaxeMapInitializerExpression)ex;
         SpecificTypeReference keyType = handle(fatArrow.getFirstChild(), context, resolver).getType();
         if (keyType instanceof SpecificEnumValueReference) {
           keyType = ((SpecificEnumValueReference)keyType).getEnumClass();

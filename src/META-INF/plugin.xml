@@ -106,6 +106,7 @@
         <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
         <li>Haxe 4: Allow dotted meta names.</li>
         <li>Haxe 4: Allow 'final' on var declarations in switch cases.</li>
+        <li>Mark attempts to write to 'final' variables.</li>
         <li>Handle Map types as extended map types. (e.g. IntMap, StringMap, etc.)</li>
         <li>Better constant detection and handling of default parameters for methods.</li>
         <ul>
@@ -128,7 +129,7 @@
         <li>Better handling of missing bodies when using smart-enter.</li>
         <li>Properly handle generics on typedefs over generic types.</li>
         <li>Properly unify EnumValue with enum values.</li>
-        <li>Mark attempts to write to 'final' variables.</li>
+        <li>Fix indenting for map comprehensions.</li>
       </ul>
       <p>1.2 (HaxeFoundation release)</p>
       <ul>
