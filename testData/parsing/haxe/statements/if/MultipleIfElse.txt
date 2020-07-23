@@ -25,22 +25,7 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           IF_STATEMENT
-            HaxePsiToken:if('if')
-            HaxePsiToken:(('(')
-            COMPARE_EXPRESSION
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('v')
-              COMPARE_OPERATION
-                HaxePsiToken:==('==')
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITINT('0')
-            HaxePsiToken:)(')')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('e1')
-            HaxePsiToken:else('else')
-            IF_STATEMENT
+            GUARD
               HaxePsiToken:if('if')
               HaxePsiToken:(('(')
               COMPARE_EXPRESSION
@@ -49,49 +34,73 @@ Haxe File
                     HaxePsiToken:ID('v')
                 COMPARE_OPERATION
                   HaxePsiToken:==('==')
-                CALL_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('foo')
-                  HaxePsiToken:(('(')
-                  EXPRESSION_LIST
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('1')
-                  HaxePsiToken:)(')')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:LITINT('0')
               HaxePsiToken:)(')')
+            GUARDED_STATEMENT
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  HaxePsiToken:ID('e2')
+                  HaxePsiToken:ID('e1')
+            ELSE_STATEMENT
               HaxePsiToken:else('else')
               IF_STATEMENT
-                HaxePsiToken:if('if')
-                HaxePsiToken:(('(')
-                LOGIC_OR_EXPRESSION
+                GUARD
+                  HaxePsiToken:if('if')
+                  HaxePsiToken:(('(')
                   COMPARE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('v')
                     COMPARE_OPERATION
                       HaxePsiToken:==('==')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('65')
-                  HaxePsiToken:||('||')
-                  COMPARE_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('v')
-                    COMPARE_OPERATION
-                      HaxePsiToken:==('==')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('90')
-                HaxePsiToken:)(')')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('e3')
-                HaxePsiToken:else('else')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('e4')
-                HaxePsiToken:;(';')
+                    CALL_EXPRESSION
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('foo')
+                      HaxePsiToken:(('(')
+                      EXPRESSION_LIST
+                        LITERAL_EXPRESSION
+                          HaxePsiToken:LITINT('1')
+                      HaxePsiToken:)(')')
+                  HaxePsiToken:)(')')
+                GUARDED_STATEMENT
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('e2')
+                ELSE_STATEMENT
+                  HaxePsiToken:else('else')
+                  IF_STATEMENT
+                    GUARD
+                      HaxePsiToken:if('if')
+                      HaxePsiToken:(('(')
+                      LOGIC_OR_EXPRESSION
+                        COMPARE_EXPRESSION
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('v')
+                          COMPARE_OPERATION
+                            HaxePsiToken:==('==')
+                          LITERAL_EXPRESSION
+                            HaxePsiToken:LITINT('65')
+                        HaxePsiToken:||('||')
+                        COMPARE_EXPRESSION
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('v')
+                          COMPARE_OPERATION
+                            HaxePsiToken:==('==')
+                          LITERAL_EXPRESSION
+                            HaxePsiToken:LITINT('90')
+                      HaxePsiToken:)(')')
+                    GUARDED_STATEMENT
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('e3')
+                    ELSE_STATEMENT
+                      HaxePsiToken:else('else')
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('e4')
+                    HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       HaxePsiToken:}('}')

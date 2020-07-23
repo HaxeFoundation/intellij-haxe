@@ -19,47 +19,47 @@ Haxe File
           HaxePsiToken:{('{')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
-            PREFIX_EXPRESSION
-              SWITCH_STATEMENT
-                HaxePsiToken:switch('switch')
-                PARENTHESIZED_EXPRESSION
-                  HaxePsiToken:(('(')
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('obj')
-                  HaxePsiToken:)(')')
-                SWITCH_BLOCK
-                  HaxePsiToken:{('{')
-                  SWITCH_CASE
-                    HaxePsiToken:case('case')
+            SWITCH_STATEMENT
+              HaxePsiToken:switch('switch')
+              PARENTHESIZED_EXPRESSION
+                HaxePsiToken:(('(')
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('obj')
+                HaxePsiToken:)(')')
+              SWITCH_BLOCK
+                HaxePsiToken:{('{')
+                SWITCH_CASE
+                  HaxePsiToken:case('case')
+                  SWITCH_CASE_EXPR
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('0')
-                    HaxePsiToken::(':')
-                    SWITCH_CASE_BLOCK
-                      CAST_EXPRESSION
-                        HaxePsiToken:cast('cast')
-                        HaxePsiToken:(('(')
-                        OBJECT_LITERAL
-                          HaxePsiToken:{('{')
-                          HaxePsiToken:}('}')
-                        HaxePsiToken:,(',')
-                        TYPE_OR_ANONYMOUS
-                          TYPE
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('Test7')
-                        HaxePsiToken:)(')')
-                      HaxePsiToken:;(';')
-                  DEFAULT_CASE
-                    HaxePsiToken:default('default')
-                    HaxePsiToken::(':')
-                    SWITCH_CASE_BLOCK
-                      STRING_LITERAL_EXPRESSION
-                        HaxePsiToken:OPEN_QUOTE('"')
-                        HaxePsiToken:REGULAR_STRING_PART('NotZero')
-                        HaxePsiToken:CLOSING_QUOTE('"')
-                      HaxePsiToken:;(';')
-                  HaxePsiToken:}('}')
+                  HaxePsiToken::(':')
+                  SWITCH_CASE_BLOCK
+                    CAST_EXPRESSION
+                      HaxePsiToken:cast('cast')
+                      HaxePsiToken:(('(')
+                      OBJECT_LITERAL
+                        HaxePsiToken:{('{')
+                        HaxePsiToken:}('}')
+                      HaxePsiToken:,(',')
+                      TYPE_OR_ANONYMOUS
+                        TYPE
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('Test7')
+                      HaxePsiToken:)(')')
+                    HaxePsiToken:;(';')
+                DEFAULT_CASE
+                  HaxePsiToken:default('default')
+                  HaxePsiToken::(':')
+                  SWITCH_CASE_BLOCK
+                    STRING_LITERAL_EXPRESSION
+                      HaxePsiToken:OPEN_QUOTE('"')
+                      HaxePsiToken:REGULAR_STRING_PART('NotZero')
+                      HaxePsiToken:CLOSING_QUOTE('"')
+                    HaxePsiToken:;(';')
+                HaxePsiToken:}('}')
             HaxePsiToken:;(';')
           CALL_EXPRESSION
             REFERENCE_EXPRESSION

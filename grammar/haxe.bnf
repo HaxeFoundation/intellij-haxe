@@ -273,7 +273,7 @@ externClassDeclaration ::= externClassModifierList 'class' componentName generic
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= '{' externClassDeclarationBodyPart* '}'
 private externClassDeclarationBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="extern_class_body_part_recover"}
-private extern_class_body_part_recover ::= !(pptoken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+private extern_class_body_part_recover ::= !(pptoken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}')
 
 externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName genericParam? inheritList? interfaceBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -289,16 +289,16 @@ abstractClassType ::= 'enum'? 'abstract'
 abstractBody ::= '{' abstractBodyPart* '}' {extends="classBody"}
 private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
 
-classBody ::= '{' classBodyPart* '}'
+classBody ::= '{' classBodyPart* '}' {pin=1}
 private classBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
-private class_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}' | 'macro')
+private class_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}' | 'macro' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface')
 
 interfaceDeclaration ::= privateKeyWord? 'interface' componentName genericParam? inheritList? interfaceBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 interfaceBody ::= '{' interfaceBodyList? '}'
 private interfaceBodyList ::= interfaceBodyPart+
 private interfaceBodyPart ::= fieldDeclaration | methodDeclaration {recoverWhile="interface_body_part_recover"}
-private interface_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | '}')
+private interface_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface')
 
 enumDeclaration ::= externOrPrivate? 'enum' componentName genericParam? enumBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
@@ -315,17 +315,17 @@ mutabilityModifier ::= 'final' | 'var'
 enumValueDeclaration ::= componentName genericParam? enumConstructorParameters? typeTag? ';'
 {recoverWhile="enum_value_declaration_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField" methods=[returnType="typeTag"]}
 
-private enum_value_declaration_recovery ::= !(ID | '}')
+private enum_value_declaration_recovery ::= !(ID | '}' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface')
 
 private enumConstructorParameters ::= parenthesizedParameterList
 
 fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
-localVarDeclarationList ::= 'var' localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
+localVarDeclarationList ::= mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
 localVarDeclaration ::= componentName propertyDeclaration? typeTag? varInit?
 {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
+private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
@@ -343,6 +343,7 @@ private functionCommonBody ::= blockStatement
                              | ';'
 
 private lambdaBody ::= blockStatement
+                       | lamdaReturnStatement
                        | returnStatement
                        | throwStatement
                        | ifStatement
@@ -444,7 +445,8 @@ type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
 typeOrAnonymous ::= type | anonymousType
 
-blockStatement ::= '{' statementList? '}' {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
+// The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
+blockStatement ::= '{' !(objectLiteralElementList) statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
@@ -467,8 +469,6 @@ private notBlockStatement ::= ('untyped' statement ';'?)
                             | tryStatement
                             | expression
 
-ifStatement ::= 'if' '(' expression ')' statement ';'? ('else' statement ';'?)?
-
 forStatement ::= 'for' '(' componentName 'in' iterable')' statement ';'?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin"}
 // XXX: Somehow or another, forStatement must derive from AbstractHaxeNamedComponent, or variable resolution will break.
@@ -478,8 +478,12 @@ iterable ::= expression
 whileStatement ::= 'while' '(' expression ')' statement ';'?
 doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
 
-returnStatement ::= 'return' (objectLiteral | ("macro"? blockStatement) | expression )? ';'?
-returnStatementWithoutSemicolon ::= 'return' expression
+private returnValue ::= objectLiteral
+                      | ("macro"? statement)
+                      | expression
+                      | localVarDeclarationList   // Void value, so allowable, but not useful
+lamdaReturnStatement ::= 'return' (returnValue)? {extends="returnStatement"}
+returnStatement ::= 'return' (returnValue)? <<semicolonUnlessPrecededByStatement>>
 
 breakStatement ::= 'break' ';'
 continueStatement ::= 'continue' ';'
@@ -487,12 +491,20 @@ continueStatement ::= 'continue' ';'
 throwStatement ::= 'throw' expression ';'?
 
 switchStatement ::= 'switch' expression switchBlock
-switchBlock ::= '{'  switchCase* defaultCase? '}' {pin=1}
+switchBlock ::= '{' (switchCase | defaultCase)* '}'
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
-switchCase ::= ('case' switchCaseExpression (',' switchCaseExpression)* ':')+ switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
-switchCaseExpression ::= expression ('if' '(' expression ')')? {pin=1 extends="expression"}
+switchCase ::= 'case' switchCaseExpr (',' switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
+switchCaseExpr ::= (switchCaseExtractor | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
+switchCaseExtractor ::= expression '=>' switchCaseExpr {pin=2 extends="expression"}
+// This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.
+switchCaseCaptureVar ::= mutabilityModifier? componentName varInit? {extends="localVarDeclaration"}
 private switch_case_recover ::= !('case' | 'default' | '}' | ID)
-defaultCase::= 'default' ':' switchCaseBlock? {pin=1}
+defaultCase ::= 'default' ':' switchCaseBlock? {pin=1 extends="switchCase"}
+
+guard ::= 'if' '(' expression ')'
+guardedStatement ::= statement
+elseStatement ::= 'else' statement
+ifStatement ::= guard guardedStatement (';'? elseStatement)? ';'? {pin=2}
 
 tryStatement ::= 'try' statement ';'? catchStatement*
 catchStatement ::= 'catch' '(' parameter ')' statement ';'?
@@ -507,21 +519,19 @@ private mapInitializerStatement ::= mapInitializerForStatement
  * expressions
  */
 
+// Map initializer expressions are not part of the generalized expression type.
 mapInitializerExpressionList ::= mapInitializerExpression (',' mapInitializerExpression)* ','? {recoverWhile=expression_list_recover}
-mapInitializerExpression ::= iteratorExpressionWrapper fatArrowExpression {pin=2}
+mapInitializerExpression ::= expression fatArrowOperator expression {pin=2}
+private fatArrowOperator ::= '=>'
 
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
 expression ::= assignExpressionWrapper {recoverWhile="expression_recover" name="expression"}
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
 
-private assignExpressionWrapper ::= fatArrowExpressionWrapper assignExpression?
-left assignExpression ::= assignOperation fatArrowExpressionWrapper { pin=2 }
-
-private fatArrowExpressionWrapper ::= iteratorExpressionWrapper fatArrowExpression?
-private fatArrowOperator ::= '=>'
-left fatArrowExpression ::= fatArrowOperator iteratorExpressionWrapper {pin=2}
+private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression?
+left assignExpression ::= assignOperation iteratorExpressionWrapper { pin=2 }
 
 private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
 private iteratorOperator ::= '...'
@@ -586,7 +596,7 @@ private value ::= ('untyped' expression)
                 | tryStatement
                 | switchStatement
                 | throwStatement
-                | localVarDeclarationList
+                | localVarDeclaration
 {pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
@@ -610,7 +620,8 @@ stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry
 {pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 shortTemplateEntry ::= SHORT_TEMPLATE_ENTRY_START (thisExpression | referenceExpression) {pin=1}
-longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1}
+longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1 recoverWhile="long_template_entry_recover"}
+private long_template_entry_recover ::= !(';' | '"' | "'" | REGULAR_STRING_PART)
 
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
@@ -688,10 +699,11 @@ anonymousTypeField ::= "?"? componentName typeTag
 // Do NOT genericize objectLiteral by making objectLiteralElementList optional.  Doing so
 // makes blockStatement be overridden by objectLiteral in return statements.
 private emptyObjectLiteral ::= '{' '}' {name="Object Literal"}
-objectLiteral ::= ('{' objectLiteralElementList+ '}') | emptyObjectLiteral
+private nonEmptyObjectLiteral ::= '{' objectLiteralElementList '}' {pin=2}
+objectLiteral ::= nonEmptyObjectLiteral | emptyObjectLiteral
 
-private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* ','? {recoverWhile="object_literal_list_recover"}
+private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* ','? {pin=1 recoverWhile="object_literal_list_recover"}
 private object_literal_list_recover ::= !('}')
 
-objectLiteralElement ::= (identifier | stringLiteralExpression) ':' expression {recoverWhile="object_literal_part_recover"}
+objectLiteralElement ::= (identifier | stringLiteralExpression) ':' expression {pin=2 recoverWhile="object_literal_part_recover"}
 private object_literal_part_recover ::= !(',' | '}')

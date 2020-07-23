@@ -20,12 +20,14 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.ide.ui.EditorOptionsTopHitProvider;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
 
@@ -35,6 +37,7 @@ import java.util.List;
 public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   public void setUp() throws Exception {
+    useHaxeToolkit();
     super.setUp();
     setTestStyleSettings(2);
   }
@@ -45,7 +48,6 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   private void doTestInternal(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings, String... additionalFiles) throws Exception {
-    myFixture.copyDirectoryToProject("std", "std"); // Pick up the entire Std directory.
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
@@ -520,6 +522,18 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   //Issue #981
   public void testAssignReflectionTypeToDynamic() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testInitializeStringMapWithMapLiteral() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testInitializeIntMapWithMapLiteral() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testInitializeEnumMapWithMapLiteral() throws Exception {
     doTestNoFixWithWarnings();
   }
 }

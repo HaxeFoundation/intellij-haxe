@@ -19,12 +19,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
 /**
-        An abstract type that represents a Class.
+	An abstract type that represents an Enum type.
 
-        See `Type` for the Haxe Reflection API.
+	The corresponding enum instance type is `EnumValue`.
 
-        @see https://haxe.org/manual/types-class-instance.html
+	See `Type` for the Haxe Reflection API.
+
+	@see https://haxe.org/manual/types-enum-instance.html
 **/
-@:coreType @:runtimeValue abstract Class<T> {
-}
+@:coreType @:runtimeValue abstract Enum<T> {}

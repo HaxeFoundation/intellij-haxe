@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -84,7 +81,7 @@ public class HaxeTypeResolver {
       } else if (comp instanceof HaxeFunctionLiteral) {
         return getFunctionReturnType(comp, resolver);
       } else if (comp instanceof HaxeEnumValueDeclaration) {
-        return getEnumReturnType((HaxeEnumValueDeclaration)comp);
+        return getEnumReturnType((HaxeEnumValueDeclaration)comp, resolver);
       } else {
         return getFieldType(comp, resolver);
       }
@@ -95,8 +92,13 @@ public class HaxeTypeResolver {
     }
   }
 
-  private static ResultHolder getEnumReturnType(HaxeEnumValueDeclaration comp) {
-    return getTypeFromTypeTag(comp.getReturnType(), comp.getParent());
+  @Nullable
+  private static ResultHolder getEnumReturnType(HaxeEnumValueDeclaration comp, HaxeGenericResolver resolver) {
+    ResultHolder result = getTypeFromTypeTag(comp.getReturnType(), comp.getParent());
+    if (result.isUnknown()) {
+      result = new SpecificEnumValueReference(comp, comp.getParent(), resolver).createHolder();
+    }
+    return result;
   }
 
   @NotNull
@@ -438,6 +440,12 @@ public class HaxeTypeResolver {
           if (model.isConstant()) {
             resultHolder = resultHolder.withConstantValue(
               model.isEnumValue() ? model.getBasePsi() : model.getInitializerExpression());
+          }
+        }
+        if (targetElement instanceof HaxeLocalVarDeclaration) {
+          HaxeLocalVarModel model = new HaxeLocalVarModel((HaxeLocalVarDeclaration)targetElement);
+          if (model.isFinal()) {
+            resultHolder.disableMutating();
           }
         }
         return resultHolder;

@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,9 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeEnumDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -36,16 +38,27 @@ public abstract class SpecificTypeReference {
   public static final String STRING = "String";
   public static final String ARRAY = "Array";
   public static final String DYNAMIC = "Dynamic";
+  public static final String ENUM_VALUE = "EnumValue";
+  public static final String ENUM = "Enum";  // For Enum<EnumName>
+  public static final String FLAT_ENUM = "haxe.Constraints.FlatEnum";
   public static final String UNKNOWN = "Unknown"; // TODO: Should NOT a legal type name.
   public static final String ITERATOR = "Iterator";
   public static final String FUNCTION = "Function";
   public static final String INVALID = "@@Invalid";
-  public static final String MAP = "Map";
+  public static final String MAP = "haxe.ds.Map";
+  public static final String IMAP = "haxe.Constraints.IMap"; // Underlying interface for Map types.
+  public static final String INT_MAP = "haxe.ds.IntMap";
+  public static final String STRING_MAP = "haxe.ds.StringMap";
+  public static final String OBJECT_MAP = "haxe.ds.ObjectMap";
+  public static final String ENUM_VALUE_MAP = "haxe.ds.EnumValueMap";
   public static final String ANY = "Any"; // Specifically, the "Any" class; See <Haxe>/std/Any.hx.
 
   /** A context to use when there is none to be found.  Try very hard not to use this, please. */
   public static final PsiElement UNKNOWN_CONTEXT = new HaxePsiCompositeElementImpl(new HaxeDummyASTNode(UNKNOWN));
 
+  /**
+   * The context is a parent to be used in a treeWalkUp -- see {@link PsiElement#getContext()}.
+   */
   final protected PsiElement context;
 
   public SpecificTypeReference(@NotNull PsiElement context) {
@@ -59,9 +72,72 @@ public abstract class SpecificTypeReference {
   }
 
   public static SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
+    // The code for this function *should* be 'return getExpectedMapType(keyType, valueType);'.  It is not; because the compiler
+    // doesn't *really* map to the other types, though it is documented as such.  A 'trace' of an inferred type *will* output
+    // the expected target map type (StringMap, IntMap, etc.).  However, with any map of an inferred target type,
+    // the compiler still allows array access; it doesn't when the map type is specified.  So, to remain compatible,
+    // we have to leave them as Map objects internally and just allow assignment.
+
     final PsiElement context = keyType.getElementContext();
-    final HaxeClassReference classReference = getStdClassReference(MAP, context);
-    return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{keyType, valueType}, null);
+    final ResultHolder[] generics = new ResultHolder[]{keyType, valueType};
+    return getStdClass(MAP, context, generics);
+  }
+
+  public static SpecificTypeReference getExpectedMapType(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
+    // Maps are created as specific types, using these rules (from Map.hx constructor documentation):
+    //   [Map new()] becomes a constructor call to one of the specialization types in
+    //   the output. The rules for that are as follows:
+    //
+    //     1. if K is a `String`, `haxe.ds.StringMap` is used
+    //     2. if K is an `Int`, `haxe.ds.IntMap` is used
+    //     3. if K is an `EnumValue`, `haxe.ds.EnumValueMap` is used
+    //     4. if K is any other class or structure, `haxe.ds.ObjectMap` is used
+    //     5. if K is any other type, it causes a compile-time error
+
+    final PsiElement context = keyType.getElementContext();
+    final SpecificTypeReference keyTypeReference = keyType.getType();
+    String mapClass = MAP;
+    if (keyTypeReference.isString()) {
+      mapClass = STRING_MAP;
+    }
+    else if (keyTypeReference.isInt()) {
+      mapClass = INT_MAP;
+    }
+    else if (keyTypeReference.isEnumValue()       // For Map<EnumValue, ...>
+             ||  keyTypeReference.isEnumClass()) {    // For Map<Enum<name>, ...>
+      mapClass = ENUM_VALUE_MAP;
+    }
+    // TODO: Implement anonymous structures (HaxeObjectLiterals) in HaxeExpressionEvaluator.
+    //else if (keyTypeReference.isAnonymous()) {
+    //  mapClass = OBJECT_MAP;
+    //}
+    else {
+      SpecificHaxeClassReference keyClassReference = keyType.getClassType();
+      if (null != keyClassReference) {
+        HaxeClassModel classModel = keyClassReference.getHaxeClassModel();
+        if (null != classModel) {
+          HaxeClass modelPsi = classModel.getPsi();
+          if (modelPsi instanceof HaxeAnonymousType) {
+            mapClass = OBJECT_MAP;
+          }
+          else if (modelPsi instanceof HaxeEnumDeclaration) {
+            mapClass = ENUM_VALUE_MAP;
+          }
+        }
+      }
+    }
+
+    final ResultHolder[] generics = MAP.equals(mapClass) || ENUM_VALUE_MAP.equals(mapClass)
+                                    ? new ResultHolder[]{keyType, valueType}
+                                    : new ResultHolder[]{valueType};
+
+    return getStdClass(mapClass, context, generics);
+
+  }
+
+  public static SpecificHaxeClassReference getStdClass(@NotNull String mapClass, @NotNull PsiElement context, @NotNull ResultHolder[] specifics) {
+    final HaxeClassReference classReference = getStdClassReference(mapClass, context);
+    return SpecificHaxeClassReference.withGenerics(classReference, specifics, null);
   }
 
   public static SpecificHaxeClassReference getVoid(@NotNull PsiElement context) {
@@ -86,6 +162,21 @@ public abstract class SpecificTypeReference {
 
   public static SpecificHaxeClassReference getAny(@NotNull PsiElement context) {
     return primitive(ANY, context);
+  }
+
+  public static SpecificHaxeClassReference getString(@NotNull PsiElement context) {
+    HaxeClassReference ref = getStdClassReference(STRING, context);
+    return SpecificHaxeClassReference.withoutGenerics(ref);
+  }
+
+  public static SpecificHaxeClassReference getEnumValue(@NotNull PsiElement context) {
+    HaxeClassReference ref = getStdClassReference(ENUM_VALUE, context);
+    return SpecificHaxeClassReference.withoutGenerics(ref);
+  }
+
+  public static SpecificHaxeClassReference getEnum(@NotNull PsiElement context, @NotNull SpecificHaxeClassReference enumType) {
+    HaxeClassReference ref = getStdClassReference(ENUM, context);
+    return SpecificHaxeClassReference.withGenerics(ref, new ResultHolder[]{enumType.createHolder()});
   }
 
   public static SpecificHaxeClassReference getUnknown(@NotNull PsiElement context) {
@@ -159,7 +250,16 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isMap() {
-    return isNamedType(MAP);
+    if (this instanceof SpecificHaxeClassReference) {
+      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
+      String name = reference.getHaxeClassReference().getName();
+      return MAP.equals(name)
+        || INT_MAP.equals(name)
+        || OBJECT_MAP.equals(name)
+        || ENUM_VALUE_MAP.equals(name)
+        || STRING_MAP.equals(name);
+    }
+    return false;
   }
 
   final public boolean isAny() {
@@ -168,6 +268,20 @@ public abstract class SpecificTypeReference {
 
   final public boolean isFunction() {
     return isNamedType(FUNCTION);
+  }
+
+  /** Tell whether the class is the Enum<type> abstract class. */
+  final public boolean isEnumClass() {
+    return isNamedType(ENUM);
+  }
+
+  final public boolean isEnumValue() {
+    return (this instanceof SpecificEnumValueReference)
+        || isEnumValueClass();
+  }
+
+  final public boolean isEnumValueClass() {
+    return isNamedType(ENUM_VALUE);
   }
 
   private boolean isNamedType(String typeName) {
@@ -276,6 +390,6 @@ public abstract class SpecificTypeReference {
 
   @NotNull
   private static HaxeClassReference getUnknownClassReference(@NotNull PsiElement context) {
-    return new HaxeClassReference(HaxeClass.UNKNOWN_CLASS.getModel(), context);
+    return new HaxeClassReference(HaxeClass.createUnknownClass(context.getNode()).getModel(), context);
   }
 }

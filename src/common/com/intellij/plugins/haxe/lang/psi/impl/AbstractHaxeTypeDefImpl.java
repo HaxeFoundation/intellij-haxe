@@ -101,6 +101,12 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     return super.isInterface();
   }
 
+  @Override
+  public HaxeGenericResolver getMemberResolver(HaxeGenericResolver resolver) {
+    SpecificHaxeClassReference targetClass = getTargetClass(resolver);
+    return targetClass.getGenericResolver();
+  }
+
   @NotNull
   @Override
   public List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver) {

@@ -29,8 +29,9 @@ Haxe File
               HaxePsiToken:{('{')
               SWITCH_CASE
                 HaxePsiToken:case('case')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('0')
+                SWITCH_CASE_EXPR
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('0')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
                   CALL_EXPRESSION
@@ -42,15 +43,16 @@ Haxe File
                   HaxePsiToken:;(';')
               SWITCH_CASE
                 HaxePsiToken:case('case')
-                CALL_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('foo')
-                  HaxePsiToken:(('(')
-                  EXPRESSION_LIST
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('1')
-                  HaxePsiToken:)(')')
+                SWITCH_CASE_EXPR
+                  CALL_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('foo')
+                    HaxePsiToken:(('(')
+                    EXPRESSION_LIST
+                      LITERAL_EXPRESSION
+                        HaxePsiToken:LITINT('1')
+                    HaxePsiToken:)(')')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
                   BREAK_STATEMENT
@@ -58,11 +60,13 @@ Haxe File
                     HaxePsiToken:;(';')
               SWITCH_CASE
                 HaxePsiToken:case('case')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('65')
+                SWITCH_CASE_EXPR
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('65')
                 HaxePsiToken:,(',')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('90')
+                SWITCH_CASE_EXPR
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('90')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
                   CALL_EXPRESSION
@@ -74,9 +78,10 @@ Haxe File
                   HaxePsiToken:;(';')
               SWITCH_CASE
                 HaxePsiToken:case('case')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('bar')
+                SWITCH_CASE_EXPR
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('bar')
                 HaxePsiToken::(':')
               PsiComment(MSL_COMMENT)('//<– haxe plugin says 'or case expected, got default'')
               DEFAULT_CASE

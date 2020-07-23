@@ -156,25 +156,25 @@ Haxe File
           HaxePsiToken:{('{')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
-          HaxePsiToken:macro('macro ')
-          WHILE_STATEMENT
-            HaxePsiToken:while('while')
-            HaxePsiToken:(('(')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('$cond')
-            HaxePsiToken:)(')')
-            CALL_EXPRESSION
+            HaxePsiToken:macro('macro ')
+            WHILE_STATEMENT
+              HaxePsiToken:while('while')
+              HaxePsiToken:(('(')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  HaxePsiToken:ID('trace')
-              HaxePsiToken:(('(')
-              EXPRESSION_LIST
+                  HaxePsiToken:ID('$cond')
+              HaxePsiToken:)(')')
+              CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
-                    HaxePsiToken:ID('$e')
-              HaxePsiToken:)(')')
-            HaxePsiToken:;(';')
+                    HaxePsiToken:ID('trace')
+                HaxePsiToken:(('(')
+                EXPRESSION_LIST
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('$e')
+                HaxePsiToken:)(')')
+              HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       PsiElement(EMBEDDED_META)
         COMPILE_TIME_META
@@ -222,7 +222,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -267,7 +268,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -280,7 +282,8 @@ Haxe File
                   HaxePsiToken:CLOSING_QUOTE('"')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -362,7 +365,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -420,7 +424,8 @@ Haxe File
                   HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -440,45 +445,17 @@ Haxe File
                       HaxePsiToken:{('{')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        CALL_EXPRESSION
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('Leaf')
-                          HaxePsiToken:(('(')
-                          EXPRESSION_LIST
+                        SWITCH_CASE_EXPR
+                          CALL_EXPRESSION
                             REFERENCE_EXPRESSION
                               IDENTIFIER
-                                HaxePsiToken:ID('s')
-                          HaxePsiToken:)(')')
-                        HaxePsiToken::(':')
-                        SWITCH_CASE_BLOCK
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('s')
-                          HaxePsiToken:;(';')
-                      SWITCH_CASE
-                        HaxePsiToken:case('case')
-                        CALL_EXPRESSION
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('Node')
-                          HaxePsiToken:(('(')
-                          EXPRESSION_LIST
-                            CALL_EXPRESSION
+                                HaxePsiToken:ID('Leaf')
+                            HaxePsiToken:(('(')
+                            EXPRESSION_LIST
                               REFERENCE_EXPRESSION
                                 IDENTIFIER
-                                  HaxePsiToken:ID('Leaf')
-                              HaxePsiToken:(('(')
-                              EXPRESSION_LIST
-                                REFERENCE_EXPRESSION
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('s')
-                              HaxePsiToken:)(')')
-                            HaxePsiToken:,(',')
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                          HaxePsiToken:)(')')
+                                  HaxePsiToken:ID('s')
+                            HaxePsiToken:)(')')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           REFERENCE_EXPRESSION
@@ -487,9 +464,40 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('_')
+                        SWITCH_CASE_EXPR
+                          CALL_EXPRESSION
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Node')
+                            HaxePsiToken:(('(')
+                            EXPRESSION_LIST
+                              CALL_EXPRESSION
+                                REFERENCE_EXPRESSION
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('Leaf')
+                                HaxePsiToken:(('(')
+                                EXPRESSION_LIST
+                                  REFERENCE_EXPRESSION
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('s')
+                                HaxePsiToken:)(')')
+                              HaxePsiToken:,(',')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                            HaxePsiToken:)(')')
+                        HaxePsiToken::(':')
+                        SWITCH_CASE_BLOCK
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('s')
+                          HaxePsiToken:;(';')
+                      SWITCH_CASE
+                        HaxePsiToken:case('case')
+                        SWITCH_CASE_EXPR
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('_')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -511,7 +519,8 @@ Haxe File
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// foo')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -540,7 +549,8 @@ Haxe File
                   HaxePsiToken:}('}')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -560,26 +570,27 @@ Haxe File
                       HaxePsiToken:{('{')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        OBJECT_LITERAL
-                          HaxePsiToken:{('{')
-                          OBJECT_LITERAL_ELEMENT
-                            IDENTIFIER
-                              HaxePsiToken:ID('name')
-                            HaxePsiToken::(':')
-                            STRING_LITERAL_EXPRESSION
-                              HaxePsiToken:OPEN_QUOTE('"')
-                              HaxePsiToken:REGULAR_STRING_PART('haxe')
-                              HaxePsiToken:CLOSING_QUOTE('"')
-                          HaxePsiToken:,(',')
-                          OBJECT_LITERAL_ELEMENT
-                            IDENTIFIER
-                              HaxePsiToken:ID('rating')
-                            HaxePsiToken::(':')
-                            STRING_LITERAL_EXPRESSION
-                              HaxePsiToken:OPEN_QUOTE('"')
-                              HaxePsiToken:REGULAR_STRING_PART('poor')
-                              HaxePsiToken:CLOSING_QUOTE('"')
-                          HaxePsiToken:}('}')
+                        SWITCH_CASE_EXPR
+                          OBJECT_LITERAL
+                            HaxePsiToken:{('{')
+                            OBJECT_LITERAL_ELEMENT
+                              IDENTIFIER
+                                HaxePsiToken:ID('name')
+                              HaxePsiToken::(':')
+                              STRING_LITERAL_EXPRESSION
+                                HaxePsiToken:OPEN_QUOTE('"')
+                                HaxePsiToken:REGULAR_STRING_PART('haxe')
+                                HaxePsiToken:CLOSING_QUOTE('"')
+                            HaxePsiToken:,(',')
+                            OBJECT_LITERAL_ELEMENT
+                              IDENTIFIER
+                                HaxePsiToken:ID('rating')
+                              HaxePsiToken::(':')
+                              STRING_LITERAL_EXPRESSION
+                                HaxePsiToken:OPEN_QUOTE('"')
+                                HaxePsiToken:REGULAR_STRING_PART('poor')
+                                HaxePsiToken:CLOSING_QUOTE('"')
+                            HaxePsiToken:}('}')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           THROW_STATEMENT
@@ -589,25 +600,26 @@ Haxe File
                             HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        OBJECT_LITERAL
-                          HaxePsiToken:{('{')
-                          OBJECT_LITERAL_ELEMENT
-                            IDENTIFIER
-                              HaxePsiToken:ID('rating')
-                            HaxePsiToken::(':')
-                            STRING_LITERAL_EXPRESSION
-                              HaxePsiToken:OPEN_QUOTE('"')
-                              HaxePsiToken:REGULAR_STRING_PART('awesome')
-                              HaxePsiToken:CLOSING_QUOTE('"')
-                          HaxePsiToken:,(',')
-                          OBJECT_LITERAL_ELEMENT
-                            IDENTIFIER
-                              HaxePsiToken:ID('name')
-                            HaxePsiToken::(':')
-                            REFERENCE_EXPRESSION
+                        SWITCH_CASE_EXPR
+                          OBJECT_LITERAL
+                            HaxePsiToken:{('{')
+                            OBJECT_LITERAL_ELEMENT
                               IDENTIFIER
-                                HaxePsiToken:ID('n')
-                          HaxePsiToken:}('}')
+                                HaxePsiToken:ID('rating')
+                              HaxePsiToken::(':')
+                              STRING_LITERAL_EXPRESSION
+                                HaxePsiToken:OPEN_QUOTE('"')
+                                HaxePsiToken:REGULAR_STRING_PART('awesome')
+                                HaxePsiToken:CLOSING_QUOTE('"')
+                            HaxePsiToken:,(',')
+                            OBJECT_LITERAL_ELEMENT
+                              IDENTIFIER
+                                HaxePsiToken:ID('name')
+                              HaxePsiToken::(':')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('n')
+                            HaxePsiToken:}('}')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           REFERENCE_EXPRESSION
@@ -616,9 +628,10 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('_')
+                        SWITCH_CASE_EXPR
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('_')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -640,7 +653,8 @@ Haxe File
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// haxe')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -658,7 +672,8 @@ Haxe File
                   HaxePsiToken:](']')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -678,16 +693,17 @@ Haxe File
                       HaxePsiToken:{('{')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          EXPRESSION_LIST
-                            LITERAL_EXPRESSION
-                              HaxePsiToken:LITINT('2')
-                            HaxePsiToken:,(',')
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            EXPRESSION_LIST
+                              LITERAL_EXPRESSION
+                                HaxePsiToken:LITINT('2')
+                              HaxePsiToken:,(',')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -697,16 +713,17 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          EXPRESSION_LIST
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                            HaxePsiToken:,(',')
-                            LITERAL_EXPRESSION
-                              HaxePsiToken:LITINT('6')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            EXPRESSION_LIST
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                              HaxePsiToken:,(',')
+                              LITERAL_EXPRESSION
+                                HaxePsiToken:LITINT('6')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -716,9 +733,10 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -728,21 +746,22 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          EXPRESSION_LIST
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                            HaxePsiToken:,(',')
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                            HaxePsiToken:,(',')
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            EXPRESSION_LIST
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                              HaxePsiToken:,(',')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                              HaxePsiToken:,(',')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -752,9 +771,10 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('_')
+                        SWITCH_CASE_EXPR
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('_')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -776,7 +796,8 @@ Haxe File
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// 1')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -795,13 +816,14 @@ Haxe File
                       HaxePsiToken:{('{')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        BITWISE_EXPRESSION
-                          LITERAL_EXPRESSION
-                            HaxePsiToken:LITINT('4')
-                          BIT_OPERATION
-                            HaxePsiToken:|('|')
-                          LITERAL_EXPRESSION
-                            HaxePsiToken:LITINT('1')
+                        SWITCH_CASE_EXPR
+                          BITWISE_EXPRESSION
+                            LITERAL_EXPRESSION
+                              HaxePsiToken:LITINT('4')
+                            BIT_OPERATION
+                              HaxePsiToken:|('|')
+                            LITERAL_EXPRESSION
+                              HaxePsiToken:LITINT('1')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -811,13 +833,14 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        BITWISE_EXPRESSION
-                          LITERAL_EXPRESSION
-                            HaxePsiToken:LITINT('6')
-                          BIT_OPERATION
-                            HaxePsiToken:|('|')
-                          LITERAL_EXPRESSION
-                            HaxePsiToken:LITINT('7')
+                        SWITCH_CASE_EXPR
+                          BITWISE_EXPRESSION
+                            LITERAL_EXPRESSION
+                              HaxePsiToken:LITINT('6')
+                            BIT_OPERATION
+                              HaxePsiToken:|('|')
+                            LITERAL_EXPRESSION
+                              HaxePsiToken:LITINT('7')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -827,9 +850,10 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('_')
+                        SWITCH_CASE_EXPR
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('_')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -851,7 +875,8 @@ Haxe File
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// 1')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -869,7 +894,8 @@ Haxe File
                   HaxePsiToken:](']')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -889,7 +915,7 @@ Haxe File
                       HaxePsiToken:{('{')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        SWITCH_CASE_EXPRESSION
+                        SWITCH_CASE_EXPR
                           ARRAY_LITERAL
                             HaxePsiToken:[('[')
                             EXPRESSION_LIST
@@ -901,6 +927,7 @@ Haxe File
                                 IDENTIFIER
                                   HaxePsiToken:ID('b')
                             HaxePsiToken:](']')
+                        GUARD
                           HaxePsiToken:if('if')
                           HaxePsiToken:(('(')
                           COMPARE_EXPRESSION
@@ -932,17 +959,18 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          EXPRESSION_LIST
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('a')
-                            HaxePsiToken:,(',')
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('b')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            EXPRESSION_LIST
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('a')
+                              HaxePsiToken:,(',')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('b')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           ADDITIVE_EXPRESSION
@@ -962,9 +990,10 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('_')
+                        SWITCH_CASE_EXPR
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('_')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -986,7 +1015,8 @@ Haxe File
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// 6<=7')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -1014,20 +1044,21 @@ Haxe File
                       HaxePsiToken:{('{')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          EXPRESSION_LIST
-                            LITERAL_EXPRESSION
-                              HaxePsiToken:LITINT('1')
-                            HaxePsiToken:,(',')
-                            LITERAL_EXPRESSION
-                              HaxePsiToken:false('false')
-                            HaxePsiToken:,(',')
-                            STRING_LITERAL_EXPRESSION
-                              HaxePsiToken:OPEN_QUOTE('"')
-                              HaxePsiToken:REGULAR_STRING_PART('bar')
-                              HaxePsiToken:CLOSING_QUOTE('"')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            EXPRESSION_LIST
+                              LITERAL_EXPRESSION
+                                HaxePsiToken:LITINT('1')
+                              HaxePsiToken:,(',')
+                              LITERAL_EXPRESSION
+                                HaxePsiToken:false('false')
+                              HaxePsiToken:,(',')
+                              STRING_LITERAL_EXPRESSION
+                                HaxePsiToken:OPEN_QUOTE('"')
+                                HaxePsiToken:REGULAR_STRING_PART('bar')
+                                HaxePsiToken:CLOSING_QUOTE('"')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -1037,20 +1068,21 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          EXPRESSION_LIST
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                            HaxePsiToken:,(',')
-                            LITERAL_EXPRESSION
-                              HaxePsiToken:true('true')
-                            HaxePsiToken:,(',')
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            EXPRESSION_LIST
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                              HaxePsiToken:,(',')
+                              LITERAL_EXPRESSION
+                                HaxePsiToken:true('true')
+                              HaxePsiToken:,(',')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -1060,20 +1092,21 @@ Haxe File
                           HaxePsiToken:;(';')
                       SWITCH_CASE
                         HaxePsiToken:case('case')
-                        ARRAY_LITERAL
-                          HaxePsiToken:[('[')
-                          EXPRESSION_LIST
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                            HaxePsiToken:,(',')
-                            LITERAL_EXPRESSION
-                              HaxePsiToken:false('false')
-                            HaxePsiToken:,(',')
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
-                          HaxePsiToken:](']')
+                        SWITCH_CASE_EXPR
+                          ARRAY_LITERAL
+                            HaxePsiToken:[('[')
+                            EXPRESSION_LIST
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                              HaxePsiToken:,(',')
+                              LITERAL_EXPRESSION
+                                HaxePsiToken:false('false')
+                              HaxePsiToken:,(',')
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
+                            HaxePsiToken:](']')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
                           STRING_LITERAL_EXPRESSION
@@ -1149,7 +1182,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -1167,7 +1201,8 @@ Haxe File
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -1588,7 +1623,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER

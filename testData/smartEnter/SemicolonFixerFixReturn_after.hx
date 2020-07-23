@@ -1,5 +1,5 @@
 class Main {
   function test() {
-    return null;
+      return null;
   }
 }

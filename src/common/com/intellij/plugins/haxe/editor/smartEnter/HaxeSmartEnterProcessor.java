@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +86,9 @@ public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
         fixer.apply(editor, this, element);
 
         if (isUncommited(element.getProject())) {
-          reformat(element);
+          // We reformat the parent because we've probably added new elements, and reformatting the original
+          // (likely unchanged) element doesn't affect new elements.
+          reformat(element instanceof HaxeFile ? element : element.getParent());
           return skipEnter;
         }
       }

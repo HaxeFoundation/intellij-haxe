@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,7 +176,7 @@ public class HaxeTypeCompatible {
       return true;
     }
 
-    if (to.getHaxeClassReference().equals(from.getHaxeClassReference())) {
+    if (to.getHaxeClassReference().refersToSameClass(from.getHaxeClassReference())) {
       if (to.getSpecifics().length == from.getSpecifics().length) {
         int specificsLength = to.getSpecifics().length;
         for (int n = 0; n < specificsLength; n++) {

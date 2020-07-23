@@ -89,7 +89,7 @@
             <li>Validate object syntax in compile-time metadata.</li>
             <li>Parse code in run-time metadata, and highlight errors.</li>
             <li>Check @forward(<names>) for existing method names.</li>
-            <li>Allow completion within parens.</li>
+            <li>Allow completion within metadata parens.</li>
             <li>Add UI to allow reformatting and color options.</li>
           </ul>
         </li>
@@ -105,6 +105,9 @@
         <li>Fix crash when reading libraries if the library name was empty. (Issue 949)</li>
         <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
         <li>Haxe 4: Allow dotted meta names.</li>
+        <li>Haxe 4: Allow 'final' on var declarations in switch cases.</li>
+        <li>Mark attempts to write to 'final' variables.</li>
+        <li>Handle Map types as extended map types. (e.g. IntMap, StringMap, etc.)</li>
         <li>Better constant detection and handling of default parameters for methods.</li>
         <ul>
           <li>Detect function type constants and report accordingly.</li>
@@ -117,6 +120,16 @@
         <li>Much better handling of generics throughout, including type error checking code.</li>
         <li>Use type parameters from left-hand (e.g. left.right) expressions when resolving right-hand fields and method return types.</li>
         <li>Color unparseable data when typing; shows developers where functionality is limited while code is invalid.</li>
+        <li>Better handling/recovery of errors in String Interpolation. (e.g. '${expr}')</li>
+        <li>Allow/disallow variable declarations in various places.</li>
+        <li>Require semi-colon on return statements in non-lambda bodies.</li>
+        <li>Better recovery on class parsing errors.</li>
+        <li>Fix PsiInvalidElementAccessExceptions (Issue #953)</li>
+        <li>Upgrade smart-enter statement fixer for 'if' statements.</li>
+        <li>Better handling of missing bodies when using smart-enter.</li>
+        <li>Properly handle generics on typedefs over generic types.</li>
+        <li>Properly unify EnumValue with enum values.</li>
+        <li>Fix indenting for map comprehensions.</li>
       </ul>
       <p>1.2 (HaxeFoundation release)</p>
       <ul>

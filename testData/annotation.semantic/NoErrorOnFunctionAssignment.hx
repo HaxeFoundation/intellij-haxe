@@ -11,8 +11,8 @@ class TestIssue943_DifferentiateVarAndFunctionTypes {
 
     static public function voidStringAssignment() {
         var callback:Void->String;
-        callback = function():String { return "" };
-        callback = function() { return "" };  // With an inferred type.
+        callback = function():String { return ""<error descr="Missing semicolon."> </error>};
+        callback = function() { return ""<error descr="Missing semicolon."> </error>};  // With an inferred type.
         callback = ()->"";  // Arrow function.
     }
 }

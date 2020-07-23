@@ -22,7 +22,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -58,11 +59,28 @@ Haxe File
                 PARAMETER_LIST
                   <empty list>
                 HaxePsiToken:)(')')
-                RETURN_STATEMENT
+                LAMDA_RETURN_STATEMENT
                   HaxePsiToken:return('return')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('0')
               HaxePsiToken:)(')')
+          HaxePsiToken:;(';')
+          ASSIGN_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('f0_0')
+            ASSIGN_OPERATION
+              HaxePsiToken:=('=')
+            FUNCTION_LITERAL
+              HaxePsiToken:function('function')
+              HaxePsiToken:(('(')
+              PARAMETER_LIST
+                <empty list>
+              HaxePsiToken:)(')')
+              LAMDA_RETURN_STATEMENT
+                HaxePsiToken:return('return')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:LITINT('0')
           HaxePsiToken:;(';')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
@@ -78,11 +96,61 @@ Haxe File
                   <empty list>
                 HaxePsiToken:)(')')
                 HaxePsiToken:->('->')
-                RETURN_STATEMENT
+                LAMDA_RETURN_STATEMENT
                   HaxePsiToken:return('return')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('0')
               HaxePsiToken:)(')')
+          HaxePsiToken:;(';')
+          ASSIGN_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('f0_0')
+            ASSIGN_OPERATION
+              HaxePsiToken:=('=')
+            FUNCTION_LITERAL
+              HaxePsiToken:(('(')
+              PARAMETER_LIST
+                <empty list>
+              HaxePsiToken:)(')')
+              HaxePsiToken:->('->')
+              LAMDA_RETURN_STATEMENT
+                HaxePsiToken:return('return')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:LITINT('0')
+          HaxePsiToken:;(';')
+          ASSIGN_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('f0_0')
+            ASSIGN_OPERATION
+              HaxePsiToken:=('=')
+            PARENTHESIZED_EXPRESSION
+              HaxePsiToken:(('(')
+              FUNCTION_LITERAL
+                HaxePsiToken:(('(')
+                PARAMETER_LIST
+                  <empty list>
+                HaxePsiToken:)(')')
+                HaxePsiToken:->('->')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:LITINT('0')
+              HaxePsiToken:)(')')
+          HaxePsiToken:;(';')
+          ASSIGN_EXPRESSION
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('f0_0')
+            ASSIGN_OPERATION
+              HaxePsiToken:=('=')
+            FUNCTION_LITERAL
+              HaxePsiToken:(('(')
+              PARAMETER_LIST
+                <empty list>
+              HaxePsiToken:)(')')
+              HaxePsiToken:->('->')
+              LITERAL_EXPRESSION
+                HaxePsiToken:LITINT('0')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       HaxePsiToken:}('}')

@@ -32,9 +32,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.JavaSourceUtil;
@@ -351,7 +349,24 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     if (isType(HaxeMapLiteral.class)) {
-      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Map", this));
+      // Maps are created as specific types, using these rules (from Map.hx constructor documentation):
+      //   This becomes a constructor call to one of the specialization types in
+      //   the output. The rules for that are as follows:
+      //
+      //     1. if K is a `String`, `haxe.ds.StringMap` is used
+      //     2. if K is an `Int`, `haxe.ds.IntMap` is used
+      //     3. if K is an `EnumValue`, `haxe.ds.EnumValueMap` is used
+      //     4. if K is any other class or structure, `haxe.ds.ObjectMap` is used
+      //     5. if K is any other type, it causes a compile-time error
+      //
+      // Also, maps can be created via comprehensions, so if the expression is anything other than a FAT_ARROW,
+      // we will have to get the type of the statement.
+      HaxeMapLiteral haxeMapLiteral = (HaxeMapLiteral)this;
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(this, null);
+      HaxeExpressionEvaluator.evaluate(haxeMapLiteral, context, HaxeGenericResolverUtil.generateResolverFromScopeParents(this));
+
+      SpecificHaxeClassReference mapClass = context.result.getClassType();
+      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(mapClass.getClassName(), this));
     }
 
     if (isType(HaxeArrayLiteral.class)) {
@@ -476,8 +491,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
         // @:arrayAccess methods, such as in Map or openfl.Vector
-        return HaxeResolveUtil.getHaxeClassResolveResult(resolveResultHaxeClass.findArrayAccessGetter(resolveResult.getGenericResolver()),
-                                                         resolveResult.getSpecialization());
+        HaxeNamedComponent arrayAccessGetter = resolveResultHaxeClass.findArrayAccessGetter(resolveResult.getGenericResolver());
+        HaxeGenericResolver memberResolver = resolveResultHaxeClass.getMemberResolver(resolveResult.getGenericResolver());
+        HaxeGenericSpecialization memberSpecialization = HaxeGenericSpecialization.fromGenericResolver(arrayAccessGetter, memberResolver);
+        return HaxeResolveUtil.getHaxeClassResolveResult(arrayAccessGetter, memberSpecialization);
       }
     }
 

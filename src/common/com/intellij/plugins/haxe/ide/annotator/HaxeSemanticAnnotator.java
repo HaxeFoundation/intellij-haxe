@@ -975,6 +975,9 @@ class AssignExpressionChecker {
         .withFixes(HaxeExpressionConversionFixer.createStdTypeFixers(rhs, rhsType.getType(), lhsType.getType()));
       holder.addAnnotation(anno);
     }
+    if (lhsType.isImmutable()) {
+      // TODO: Think about providing a quick-fix for immutability; remember final markings come from metadata, too.
+      holder.createErrorAnnotation(psi, HaxeBundle.message("haxe.semantic.cannot.assign.value.to.final.variable"));
+    }
   }
-
 }

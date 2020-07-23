@@ -19,16 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
- // Comments elided.
-extern class Std {
-	public static function is( v : Dynamic, t : Dynamic ) : Bool;
-	public static function downcast<T:{},S:T>( value : T, c : Class<S> ) : S;
+typedef Map<K, V> = haxe.ds.Map<K, V>;
 
-	@:deprecated('Std.instance() is deprecated. Use Std.downcast() instead.')
-	public static function instance<T:{},S:T>( value : T, c : Class<S> ) : S;
-	public static function string( s : Dynamic ) : String;
-	public static function int( x : Float ) : Int;
-	public static function parseInt( x : String ) : Null<Int>;
-	public static function parseFloat( x : String ) : Float;
-	public static function random( x : Int ) : Int;
-}
+@:dox(hide)
+@:deprecated
+typedef IMap<K, V> = haxe.Constraints.IMap<K, V>;
