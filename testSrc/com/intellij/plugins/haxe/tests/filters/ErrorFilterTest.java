@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2015 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +24,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.tests.runner.filters.ErrorFilter;
 import org.junit.Test;
 
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 public class ErrorFilterTest {
@@ -36,9 +39,12 @@ public class ErrorFilterTest {
     ErrorFilter filter = createFilter();
     String fileName = "by/rovar/iso/model/CoordinatesDetectionTest.hx";
     Filter.Result result = filter.applyFilter(expression, expression.length());
-    assertEquals("ERR: ".length(), result.highlightStartOffset);
-    assertEquals("ERR: CoordinatesDetectionTest.hx:22".length(), result.highlightEndOffset);
-    HLInfo info = (HLInfo) result.hyperlinkInfo;
+    List<Filter.ResultItem> resultItems = result.getResultItems();
+    assertEquals(resultItems.size(), 1);
+    Filter.ResultItem item = resultItems.get(0);
+    assertEquals("ERR: ".length(), item.getHighlightStartOffset());
+    assertEquals("ERR: CoordinatesDetectionTest.hx:22".length(), item.getHighlightEndOffset());
+    HLInfo info = (HLInfo) item.getHyperlinkInfo();
     info.checkInfo(fileName, 22);
   }
 

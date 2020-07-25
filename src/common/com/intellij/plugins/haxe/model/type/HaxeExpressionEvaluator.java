@@ -41,7 +41,6 @@ import com.intellij.psi.tree.TokenSet;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
-import javax.jws.soap.SOAPBinding;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;

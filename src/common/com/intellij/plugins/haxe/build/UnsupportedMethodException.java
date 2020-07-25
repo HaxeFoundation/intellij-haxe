@@ -1,4 +1,6 @@
 /*
+ * Copyright 2020 EricBishton
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +18,7 @@ package com.intellij.plugins.haxe.build;
 /**
  * Created by ebishton on 1/17/16.
  */
-class UnsupportedMethodException extends UnsupportedOperationException {
+public class UnsupportedMethodException extends UnsupportedOperationException {
   public UnsupportedMethodException() {
     super();
   }
