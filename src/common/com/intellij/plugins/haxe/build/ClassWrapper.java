@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,9 @@
  */
 package com.intellij.plugins.haxe.build;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
@@ -31,7 +35,7 @@ import java.lang.reflect.InvocationTargetException;
  * Created by ebishton on 9/19/16.
  */
 public class ClassWrapper<T> {
-  private Class<T> myClass;
+  final private Class<T> myClass;
   private String myDebugName;
 
   /** Generally, className should be the fully qualified class name.  However,
@@ -61,17 +65,16 @@ public class ClassWrapper<T> {
     // XXX: Class may be an internal class.  Should we deal with that silently in
     //      this class, or expect a sub-class to do it?
 
-    if (null != myClass) {
-      myDebugName = myClass.getCanonicalName();
-    }
+    myDebugName = myClass.getCanonicalName();
   }
 
   /**
    * Wrap an inner class.
-   * @param klass
-   * @param innerClassName
+   *
+   * @param klass class containing an inner class that we want to wrap.
+   * @param innerClassName class we want to wrap.
    */
-  public ClassWrapper( Class klass, String innerClassName ) {
+  public ClassWrapper( Class<?> klass, String innerClassName ) {
     if (null == klass) {
       throw new UnsupportedClassException("NULL parent class.");
     }
@@ -111,29 +114,69 @@ public class ClassWrapper<T> {
   public T newInstance(Object... args) {
     T inst;
 
-    Class<?> argTypes[] = new Class<?>[args.length];
+    Class<?>[] argTypes = new Class<?>[args.length];
     for (int i=0; i< args.length; i++) {
-      argTypes[i] = args.getClass();
+      argTypes[i] = args[i].getClass();
     }
 
     try {
-      Constructor<T> ctor = myClass.getDeclaredConstructor(argTypes);
+      Constructor<T> ctor = findConstructor(argTypes);
       inst = ctor.newInstance(args);
     }
     catch (NoSuchMethodException e) {
-      throw new UnsupportedClassException("Could not find constructor for " + myDebugName + "(" + argTypes.toString() + ");", e);
+      throw new UnsupportedClassException("Could not find constructor for " + myDebugName + argsToString(argTypes), e);
     }
-    catch (IllegalAccessException e) {
-      throw new UnsupportedClassException("Cannot create instance of " + myDebugName + ";", e);
-    }
-    catch (InvocationTargetException e) {
-      throw new UnsupportedClassException("Cannot create instance of " + myDebugName + ";", e);
-    }
-    catch (InstantiationException e) {
+    catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
       throw new UnsupportedClassException("Cannot create instance of " + myDebugName + ";", e);
     }
 
     return inst;
+  }
+
+  private Constructor<T> findConstructor(@NotNull Class<?>... argTypes) throws NoSuchMethodException {
+    Constructor<?>[] constructors = myClass.getConstructors();
+    for (Constructor<?> constructor : constructors) {
+      Class<?>[] parameterTypes = constructor.getParameterTypes();
+      if (areArgsCompatible(parameterTypes, argTypes)) {
+        return (Constructor<T>)constructor;
+      }
+    }
+    throw new NoSuchMethodException(myClass.getName() + ".<init>" + argsToString(argTypes));
+  }
+
+  static private final Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[0];
+  private boolean areArgsCompatible(@Nullable Class<?>[] parameterTypes, @Nullable Class<?>[] argTypes) {
+    if (null == parameterTypes) {
+      parameterTypes = EMPTY_CLASS_ARRAY;
+    }
+    if (null == argTypes) {
+      argTypes = EMPTY_CLASS_ARRAY;
+    }
+
+    if (parameterTypes.length != argTypes.length) {
+      return false;
+    }
+
+    for (int i = 0; i < parameterTypes.length ; ++i) {
+      if (!parameterTypes[i].isAssignableFrom(argTypes[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @NotNull
+  private String argsToString(Class<?>[] argTypes) {
+    StringBuilder b = new StringBuilder("(");
+    for (int i = 0; i < argTypes.length; ++i) {
+      if (i > 0) {
+        b.append(", ");
+      }
+      Class<?> c = argTypes[i];
+      b.append(null == c ? "null" : c.getName());
+    }
+    b.append(")");
+    return b.toString();
   }
 
 }
