@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,35 +19,108 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromTypeOrAnonymous;
 
 public class SpecificFunctionReference extends SpecificTypeReference {
   private static final String DELIMITER = "->";
+
+  public static class StdFunctionReference extends SpecificFunctionReference {
+    public StdFunctionReference(@NotNull PsiElement context) {
+      super(new ArrayList<Argument>(), SpecificTypeReference.getDynamic(context).createHolder(), null, context);
+    }
+  }
+
 
   final public List<Argument> arguments;
   final public ResultHolder returnValue;
 
   @Nullable final public HaxeMethodModel method;
+  @Nullable final public Object constantValue;
 
   public SpecificFunctionReference(List<Argument> arguments,
                                    ResultHolder returnValue,
                                    @Nullable HaxeMethodModel method,
-                                   @NotNull PsiElement context) {
+                                   @NotNull PsiElement context,
+                                   @Nullable Object constantValue) {
     super(context);
 
     this.arguments = arguments;
     this.returnValue = returnValue;
     this.method = method;
+    this.constantValue = constantValue;
   }
+
+  public SpecificFunctionReference(List<Argument> arguments,
+                                   ResultHolder returnValue,
+                                   @Nullable HaxeMethodModel method,
+                                   @NotNull PsiElement context) {
+    this(arguments, returnValue, method, context, null);
+  }
+
+  // This is an adapter to deal with the function-type mismatch between the old resolver
+  // and the models.
+  // TODO: Technical debt: Need to unify the resolver and the models.
+  public static SpecificFunctionReference create(HaxeSpecificFunction func) {
+    if (null == func) return null;
+
+    HaxeGenericSpecialization specialization = func.getSpecialization();
+    HaxeGenericResolver resolver = specialization.toGenericResolver(func);
+
+    LinkedList<Argument> args = new LinkedList<>();
+    List<HaxeFunctionArgument> arguments = func.getFunctionArgumentList();
+    if (arguments.size() == 0) {
+      SpecificTypeReference voidArg = SpecificTypeReference.getVoid((func));
+      args.add(new Argument(0, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+    } else {
+      for (int i = 0; i < arguments.size(); i++) {
+        HaxeFunctionArgument arg = arguments.get(i);
+        ResultHolder result = determineType(func, resolver, arg.getFunctionType(), arg.getTypeOrAnonymous());
+        args.add(new Argument(i, null != arg.getOptionalMark(), result, arg.getName()));
+      }
+    }
+
+    HaxeFunctionReturnType returnType = func.getFunctionReturnType();
+    // TODO?: Infer the return type if there is no type tag?
+    ResultHolder returnResult = returnType != null
+                                ? determineType(func, resolver, returnType.getFunctionType(), returnType.getTypeOrAnonymous())
+                                : determineType(func, resolver, null, null);
+
+    return new SpecificFunctionReference(args, returnResult, null, func);
+  }
+
+  private static ResultHolder determineType(PsiElement context, HaxeGenericResolver resolver, HaxeFunctionType fnType, HaxeTypeOrAnonymous toa) {
+    if (null != toa) {
+      ResultHolder result = getTypeFromTypeOrAnonymous(toa);
+      if (null != result.getClassType()) {
+        return SpecificHaxeClassReference.propagateGenericsToType(result.getClassType(), resolver).createHolder();
+      }
+      return result;
+    }
+    if (null != fnType) {
+      return create(new HaxeSpecificFunction(fnType, resolver.getSpecialization(context))).createHolder();
+    }
+    return SpecificTypeReference.getUnknown(context).createHolder();
+  }
+
 
   @Override
   public SpecificFunctionReference withConstantValue(Object constantValue) {
-    return new SpecificFunctionReference(arguments, returnValue, method, context);
+    return new SpecificFunctionReference(arguments, returnValue, method, context, constantValue);
+  }
+
+  @Override
+  public Object getConstant() {
+    return constantValue;
   }
 
   public int getNonOptionalArgumentsCount() {
@@ -65,8 +139,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return returnValue;
   }
 
-  @Override
-  public String toString() {
+  public static String toFunctionDescription(boolean presentable, List<Argument> arguments, ResultHolder returnValue) {
     StringBuilder out = new StringBuilder();
 
     final boolean notSingleArgument = arguments.size() > 1;
@@ -76,17 +149,34 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       Argument argument = arguments.get(n);
       out.append(argument.toStringWithoutConstant());
     }
+    if (0 == arguments.size() && presentable) {
+      out.append("Void");
+    }
     if (notSingleArgument) out.append(')');
 
     out.append(DELIMITER);
-    out.append(returnValue.toStringWithoutConstant());
+    out.append(null != returnValue ? returnValue.toStringWithoutConstant() : "unknown");
 
     return out.toString();
   }
 
+  public String toPresentationString() {
+    return toFunctionDescription(true, arguments, returnValue);
+  }
+
+  @Override
+  public String toString() {
+    return toFunctionDescription(false, arguments, returnValue);
+  }
+
   @Override
   public String toStringWithoutConstant() {
-    return toString();
+    return toPresentationString();
+  }
+
+  @Override
+  public String toStringWithConstant() {
+    return toPresentationString(); // XXX: If there's an anonymous function, should we be adding it here?
   }
 
   @Override

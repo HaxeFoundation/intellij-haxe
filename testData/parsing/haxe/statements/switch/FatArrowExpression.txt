@@ -7,8 +7,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('FatArrowExpression')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -23,7 +23,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -40,7 +41,8 @@ Haxe File
                   HaxePsiToken:](']')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -67,14 +69,16 @@ Haxe File
               PsiComment(MSL_COMMENT)('// This should parse as a fatArrowExpression.')
               SWITCH_CASE
                 HaxePsiToken:case('case')
-                FAT_ARROW_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('b')
-                  HaxePsiToken:=>('=>')
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('_')
+                SWITCH_CASE_EXPR
+                  SWITCH_CASE_EXTRACTOR
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('b')
+                    HaxePsiToken:=>('=>')
+                    SWITCH_CASE_EXPR
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('_')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
                   CALL_EXPRESSION
@@ -90,4 +94,4 @@ Haxe File
                   HaxePsiToken:;(';')
               HaxePsiToken:}('}')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

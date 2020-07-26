@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +61,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
     configureByFile(getTestName(false) + ".hx");
 
     HaxeParameterInfoHandler parameterInfoHandler = new HaxeParameterInfoHandler();
-    MockCreateParameterInfoContext createContext = new MockCreateParameterInfoContext(myEditor, myFile);
+    MockCreateParameterInfoContext createContext = new MockCreateParameterInfoContext(getEditor(), getFile());
     PsiElement elt = parameterInfoHandler.findElementForParameterInfo(createContext);
     assertNotNull(elt);
     parameterInfoHandler.showParameterInfo(elt, createContext);
@@ -72,7 +73,7 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
     assertEquals(infoText, parameterInfoHandler.myParametersListPresentableText);
 
     // index check
-    MockUpdateParameterInfoContext updateContext = new MockUpdateParameterInfoContext(myEditor, myFile);
+    MockUpdateParameterInfoContext updateContext = new MockUpdateParameterInfoContext(getEditor(), getFile());
     final PsiElement element = parameterInfoHandler.findElementForUpdatingParameterInfo(updateContext);
     assertNotNull(element);
     updateContext.setParameterOwner(elt);

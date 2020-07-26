@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * Created by ebishton on 9/22/14.
  */
 public class HaxeDummyASTNode  extends LazyParseableElement {
-  HaxeDummyASTNode(String text) {
+  public HaxeDummyASTNode(String text) {
     super(TokenType.DUMMY_HOLDER, text);
   }
 

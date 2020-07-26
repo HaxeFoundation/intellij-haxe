@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +21,13 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeClassReference;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -96,41 +101,47 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     return super.isInterface();
   }
 
-  @NotNull
   @Override
-  public List<HaxeMethod> getHaxeMethods() {
-    final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
-    if (targetHaxeClass != null) {
-      return targetHaxeClass.getHaxeMethods();
-    }
-    return super.getHaxeMethods();
+  public HaxeGenericResolver getMemberResolver(HaxeGenericResolver resolver) {
+    SpecificHaxeClassReference targetClass = getTargetClass(resolver);
+    return targetClass.getGenericResolver();
   }
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getHaxeFields() {
+  public List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.getHaxeFields();
+      return targetHaxeClass.getHaxeMethods(resolver);
     }
-    return super.getHaxeFields();
+    return super.getHaxeMethods(resolver);
+  }
+
+  @NotNull
+  @Override
+  public List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver) {
+    final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
+    if (targetHaxeClass != null) {
+      return targetHaxeClass.getHaxeFields(resolver);
+    }
+    return super.getHaxeFields(resolver);
   }
 
   @Override
-  public HaxeNamedComponent findHaxeFieldByName(@NotNull String name) {
+  public HaxeNamedComponent findHaxeFieldByName(@NotNull String name, @Nullable HaxeGenericResolver resolver) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.findHaxeFieldByName(name);
+      return targetHaxeClass.findHaxeFieldByName(name, resolver);
     }
-    return super.findHaxeFieldByName(name);
+    return super.findHaxeFieldByName(name, resolver);
   }
 
   @Override
-  public HaxeNamedComponent findHaxeMethodByName(@NotNull String name) {
+  public HaxeNamedComponent findHaxeMethodByName(@NotNull String name, @Nullable HaxeGenericResolver resolver) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.findHaxeMethodByName(name);
+      return targetHaxeClass.findHaxeMethodByName(name, resolver);
     }
-    return super.findHaxeMethodByName(name);
+    return super.findHaxeMethodByName(name, resolver);
   }
 }

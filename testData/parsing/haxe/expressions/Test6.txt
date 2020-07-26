@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Test6')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -18,7 +18,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -45,7 +46,8 @@ Haxe File
                   HaxePsiToken:}('}')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -56,7 +58,8 @@ Haxe File
                   HaxePsiToken:REG_EXP('~/Hello/i')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -67,7 +70,8 @@ Haxe File
                   HaxePsiToken:REG_EXP('~/[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z][A-Z][A-Z]?/i')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -78,7 +82,8 @@ Haxe File
                   HaxePsiToken:REG_EXP('~/([A-Za-z]+) is ([0-9]+) years old/')
             HaxePsiToken:;(';')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -89,4 +94,4 @@ Haxe File
                   HaxePsiToken:REG_EXP('~/(.+)Test/ig')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

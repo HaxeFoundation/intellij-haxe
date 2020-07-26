@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +40,7 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String OVERRIDE = "override";
 
   @NonNls String FINAL_META = "@:final";
+  @NonNls String INLINE_META = "@:inline"; // HaxeMeta.INLINE
   @NonNls String IS_VAR = "@:isVar";
   @NonNls String KEEP = "@:keep";
   @NonNls String COREAPI = "@:coreApi";

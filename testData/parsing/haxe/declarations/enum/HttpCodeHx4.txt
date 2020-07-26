@@ -14,8 +14,8 @@ Haxe File
             IDENTIFIER
               HaxePsiToken:ID('Int')
       HaxePsiToken:)(')')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
@@ -38,4 +38,4 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:LITINT('404')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

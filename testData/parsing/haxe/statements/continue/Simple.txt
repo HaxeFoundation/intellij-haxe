@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Simple')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -18,7 +18,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -49,20 +50,22 @@ Haxe File
                     HaxePsiToken:ID('i')
               HaxePsiToken:;(';')
               IF_STATEMENT
-                HaxePsiToken:if('if')
-                HaxePsiToken:(('(')
-                COMPARE_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('i')
-                  COMPARE_OPERATION
-                    HaxePsiToken:<('<')
-                  LITERAL_EXPRESSION
-                    HaxePsiToken:LITINT('5')
-                HaxePsiToken:)(')')
-                CONTINUE_STATEMENT
-                  HaxePsiToken:continue('continue')
-                  HaxePsiToken:;(';')
+                GUARD
+                  HaxePsiToken:if('if')
+                  HaxePsiToken:(('(')
+                  COMPARE_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('i')
+                    COMPARE_OPERATION
+                      HaxePsiToken:<('<')
+                    LITERAL_EXPRESSION
+                      HaxePsiToken:LITINT('5')
+                  HaxePsiToken:)(')')
+                GUARDED_STATEMENT
+                  CONTINUE_STATEMENT
+                    HaxePsiToken:continue('continue')
+                    HaxePsiToken:;(';')
               PREFIX_EXPRESSION
                 HaxePsiToken:++('++')
                 REFERENCE_EXPRESSION
@@ -71,4 +74,4 @@ Haxe File
               HaxePsiToken:;(';')
               HaxePsiToken:}('}')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

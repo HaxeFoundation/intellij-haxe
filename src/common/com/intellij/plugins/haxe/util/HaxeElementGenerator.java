@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class HaxeElementGenerator {
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
     final HaxeMethodDeclaration mainMethod =
-      (HaxeMethodDeclaration)haxeClass.getHaxeMethods().iterator().next();
+      (HaxeMethodDeclaration)haxeClass.getHaxeMethods(null).iterator().next();
     final HaxeBlockStatement statement = mainMethod.getBlockStatement();
     assert statement != null;
     return statement.getChildren()[0];
@@ -66,7 +66,7 @@ public class HaxeElementGenerator {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return haxeClass.getFieldDeclarations().iterator().next();
+    return haxeClass.getFieldDeclarations(null).iterator().next();
   }
 
   // XXX: Eventually, this ordering should come from the class order in
@@ -89,7 +89,7 @@ public class HaxeElementGenerator {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return sortNamedSubComponents(HaxeResolveUtil.findNamedSubComponents(haxeClass));
+    return sortNamedSubComponents(HaxeResolveUtil.findNamedSubComponents(null, haxeClass));
   }
 
   @Nullable
@@ -157,6 +157,6 @@ public class HaxeElementGenerator {
     final PsiFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapInterfaceFunction(text).getFirst());
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(dummyFile, HaxeClass.class);
     assert haxeClass != null;
-    return (HaxeMethodDeclaration)haxeClass.getHaxeMethods().iterator().next();
+    return (HaxeMethodDeclaration)haxeClass.getHaxeMethods(null).iterator().next();
   }
 }

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +25,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -39,6 +41,7 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
 
   public void doTest() {
     myFixture.configureByFile(getTestName(false) + ".hx");
+    setTestStyleSettings(2);
     final List<SmartEnterProcessor> processors = SmartEnterProcessors.INSTANCE.forKey(HaxeLanguage.INSTANCE);
     new WriteCommandAction(myFixture.getProject()) {
       @Override
@@ -56,8 +59,19 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
-  public void testIfFixer() {
+  public void testPartialClassBody1() {
     doTest();
+  }
+
+  public void testPartialClassBody2() {
+    doTest();
+  }
+
+  public void testIfFixer() {
+    // Pre 18.3 versions don't format the code in the same way.  The spacing differs.
+    if (IdeaTarget.IS_VERSION_18_3_COMPATIBLE) {
+      doTest();
+    }
   }
 
   public void testSemicolonFixerFixReturn() {

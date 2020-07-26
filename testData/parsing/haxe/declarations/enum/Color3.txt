@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Color3')
-    HaxePsiToken:{('{')
     ENUM_BODY
+      HaxePsiToken:{('{')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
@@ -114,4 +114,4 @@ Haxe File
                       HaxePsiToken:ID('Color3')
         HaxePsiToken:)(')')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +29,7 @@ import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeParenthesizedExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
+import com.intellij.plugins.haxe.lang.util.HaxeAstUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -116,6 +118,24 @@ public class UsefulPsiTreeUtil {
     return result;
   }
 
+  @Nullable
+  public static ASTNode getNextSiblingOfType(@Nullable ASTNode sibling, IElementType... types) {
+    ASTNode next = sibling;
+    while (null != next && !HaxeAstUtil.isOfType(next, types)) {
+      next = next.getTreeNext();
+    }
+    return next;
+  }
+
+  @Nullable
+  public static ASTNode getPrevSiblingOfType(@Nullable ASTNode sibling, IElementType... types) {
+    ASTNode prev = sibling;
+    while (null != prev && !HaxeAstUtil.isOfType(prev, types)) {
+      prev = prev.getTreePrev();
+    }
+    return prev;
+  }
+
   public static boolean isWhitespaceOrComment(ASTNode node) {
     return isWhitespaceOrComment(node.getPsi());
   }
@@ -149,7 +169,7 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static PsiElement getParentOfType(@Nullable PsiElement element, @NotNull Class<? extends PsiElement> aClass) {
+  public static <T> T getParentOfType(@Nullable PsiElement element, @NotNull Class<? extends T> aClass) {
     if (element == null || element instanceof PsiFile)
       return null;
 
@@ -157,6 +177,22 @@ public class UsefulPsiTreeUtil {
     element = element.getParent();
     while (element != null && !(element instanceof PsiFile)) {
       if (aClass.isInstance(element)) {
+        //noinspection unchecked
+        return (T)element;
+      }
+      element = element.getParent();
+    }
+    return null;
+  }
+
+  @Nullable
+  public static PsiElement getParent(@Nullable PsiElement element, @NotNull IElementType elementType) {
+    if (element == null || element instanceof PsiFile)
+      return null;
+
+    element = element.getParent();
+    while (element != null && !(element instanceof PsiFile)) {
+      if (element.getNode().getElementType() == elementType) {
         return element;
       }
       element = element.getParent();
@@ -222,6 +258,17 @@ public class UsefulPsiTreeUtil {
     if (element == null) return null;
     for (PsiElement psiElement : element.getChildren()) {
       if (clazz.isAssignableFrom(psiElement.getClass())) return (T)psiElement;
+    }
+    return null;
+  }
+
+  @Nullable
+  public static PsiElement getChild(@Nullable PsiElement element, @Nullable IElementType elementType) {
+    if (element == null || elementType == null) return null;
+    for (PsiElement child : element.getChildren()) {
+      if (child.getNode().getElementType() == elementType) {
+        return child;
+      }
     }
     return null;
   }

@@ -46,7 +46,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author: Fedor.Korotkov
@@ -70,7 +69,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
   private static void collectClassMarkers(Collection<LineMarkerInfo> result, @NotNull HaxeClass haxeClass) {
     final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeExtendsList());
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
-    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(supers.toArray(new HaxeClass[supers.size()]));
+    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(null, supers.toArray(new HaxeClass[supers.size()]));
 
     final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQName(haxeClass);
     final List<HaxeNamedComponent> subItems = new ArrayList<>();

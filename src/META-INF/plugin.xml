@@ -2,7 +2,7 @@
   ~ Copyright 2000-2013 JetBrains s.r.o.
   ~ Copyright 2014-2014 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
-  ~ Copyright 2017-2019 Eric Bishton
+  ~ Copyright 2017-2020 Eric Bishton
   ~ Copyright 2017-2018 Ilya Malanin
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 <!-- @replace.with.plugin.autogen.warning@ -->
 
 
-<idea-plugin version="2">
+<idea-plugin>
   <id>com.intellij.plugins.haxe</id>
   <name>Haxe Toolkit Support</name>
   <description>
@@ -71,15 +71,66 @@
   <vendor>Haxe Community (Original sources provided by JetBrains.)</vendor>
   <idea-version since-build="@plugin.installable.since@" until-build="@plugin.installable.until@"/>
   <depends>com.intellij.modules.lang</depends>
+  <depends>com.intellij.modules.java</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>1.2@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>POST.1.2.develop.2@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>This jar is compatible with @plugin.compatibility.description@</p>
       <p>It was built using IDEA build @idea.sdk.version@</p>
       <p/>
+      <p>Unreleased Changes</p>
+      <ul>
+        <li>Rewrite metadata handling:
+          <ul>
+            <li>Allow metadata at all positions.</li>
+            <li>Validate object syntax in compile-time metadata.</li>
+            <li>Parse code in run-time metadata, and highlight errors.</li>
+            <li>Check @forward(<names>) for existing method names.</li>
+            <li>Allow completion within metadata parens.</li>
+            <li>Add UI to allow reformatting and color options.</li>
+          </ul>
+        </li>
+        <li>Allow immediate array accesses on literal arrays. (e.g. var a=["1","2"][1];)</li>
+        <li>Fix several issues with type checking, particularly when generics are involved.</li>
+        <li>Allow non-standard orderings of class and method modifiers (e.g. final, private, extern) and warn on duplicates.</li>
+        <li>Recover from circular class dependencies.</li>
+        <li>Better error messages for a number of parsing errors.</li>
+        <li>Fix not finding packages which begin with and underscore. (Issue 941)</li>
+        <li>Handle function-level type parameters during semantic checks. (Issue 973)</li>
+        <li>Don't use class type parameters when resolving static function parameters.</li>
+        <li>Better handling of function types an mismatched assignments. (Issues 943, 773)</li>
+        <li>Fix crash when reading libraries if the library name was empty. (Issue 949)</li>
+        <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
+        <li>Haxe 4: Allow dotted meta names.</li>
+        <li>Haxe 4: Allow 'final' on var declarations in switch cases.</li>
+        <li>Mark attempts to write to 'final' variables.</li>
+        <li>Handle Map types as extended map types. (e.g. IntMap, StringMap, etc.)</li>
+        <li>Better constant detection and handling of default parameters for methods.</li>
+        <ul>
+          <li>Detect function type constants and report accordingly.</li>
+          <li>Detect initialization calculations containing only constants as constant.</li>
+          <li>Detect several standard library functions as returning constants when their arguments are constant. (e.g. Std.int("1"))</li>
+          <li>Detect identifiers/constants referencing other constants as still constant.</li>
+          <li>Detect enums without parameters as constants.</li>
+          <li>Better flagging of errors when default parameters <i>are not</i> constants.</li>
+        </ul>
+        <li>Much better handling of generics throughout, including type error checking code.</li>
+        <li>Use type parameters from left-hand (e.g. left.right) expressions when resolving right-hand fields and method return types.</li>
+        <li>Color unparseable data when typing; shows developers where functionality is limited while code is invalid.</li>
+        <li>Better handling/recovery of errors in String Interpolation. (e.g. '${expr}')</li>
+        <li>Allow/disallow variable declarations in various places.</li>
+        <li>Require semi-colon on return statements in non-lambda bodies.</li>
+        <li>Better recovery on class parsing errors.</li>
+        <li>Fix PsiInvalidElementAccessExceptions (Issue #953)</li>
+        <li>Upgrade smart-enter statement fixer for 'if' statements.</li>
+        <li>Better handling of missing bodies when using smart-enter.</li>
+        <li>Properly handle generics on typedefs over generic types.</li>
+        <li>Properly unify EnumValue with enum values.</li>
+        <li>Fix indenting for map comprehensions.</li>
+      </ul>
       <p>1.2 (HaxeFoundation release)</p>
       <ul>
         <li>Update builds for 2019.1 and 2018.x versions.</li>
@@ -884,9 +935,17 @@
     <!-- HXML BEGIN -->
     <fileTypeFactory implementation="com.intellij.plugins.haxe.hxml.HXMLFileTypeFactory"/>
     <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.hxml.HXMLParserDefinition"/>
-    <lang.syntaxHighlighterFactory key="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HXMLColorSettingsPage"/>
     <!-- HXML END -->
+
+    <!-- METADATA BEGIN -->
+    <!-- We're going to ride on Haxe's implementations for most things.  We just needed a new parser. -->
+    <lang.parserDefinition language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition"/>
+    <lang.formatter language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
+    <lang.rearranger language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.rearranger.HaxeRearrangerModel" />
+    <lang.ast.factory language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
+    <!-- METADATA END -->
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
 
@@ -902,7 +961,7 @@
                         serviceImplementation="com.intellij.plugins.haxe.lang.parser.HaxePsiBuilderFactoryImpl"/>
     -->
 
-    <lang.syntaxHighlighterFactory key="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterFactory"/>
 
 
     <lang.braceMatcher language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeBraceMatcher"/>

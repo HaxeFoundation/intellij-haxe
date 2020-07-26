@@ -7,19 +7,19 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Test')
-    HaxePsiToken:{('{')
-    PsiComment(#if)('#if')
-    PsiComment(PPEXPRESSION)(' ')
-    PsiComment(PPEXPRESSION)('(')
-    PsiComment(PPEXPRESSION)('actuate')
-    PsiComment(PPEXPRESSION)(' ')
-    PsiComment(PPEXPRESSION)('<=')
-    PsiComment(PPEXPRESSION)(' ')
-    PsiComment(PPEXPRESSION)('"')
-    PsiComment(PPEXPRESSION)('1.8.7')
-    PsiComment(PPEXPRESSION)('"')
-    PsiComment(PPEXPRESSION)(')')
     CLASS_BODY
+      HaxePsiToken:{('{')
+      PsiComment(#if)('#if')
+      PsiComment(PPEXPRESSION)(' ')
+      PsiComment(PPEXPRESSION)('(')
+      PsiComment(PPEXPRESSION)('actuate')
+      PsiComment(PPEXPRESSION)(' ')
+      PsiComment(PPEXPRESSION)('<=')
+      PsiComment(PPEXPRESSION)(' ')
+      PsiComment(PPEXPRESSION)('"')
+      PsiComment(PPEXPRESSION)('1.8.7')
+      PsiComment(PPEXPRESSION)('"')
+      PsiComment(PPEXPRESSION)(')')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -32,5 +32,5 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    PsiComment(#end)('#end')
-    HaxePsiToken:}('}')
+      PsiComment(#end)('#end')
+      HaxePsiToken:}('}')

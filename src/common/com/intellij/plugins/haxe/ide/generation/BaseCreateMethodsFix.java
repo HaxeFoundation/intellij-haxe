@@ -3,6 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +58,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
         if (child.getTextOffset() > caretOffset) return;
         anchor = child;
       }
-      return;
+      if (null != anchor) return;
     }
     anchor = file.findElementAt(caretOffset);
   }

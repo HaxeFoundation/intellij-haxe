@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +32,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * HaxeParameterModels (parameter) appear in method and catch parameters -- not type parameters.
+ */
 public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel {
   private static final Key<HaxeMemberModel> PARAMETER_MEMBER_MODEL_KEY = new Key<>("HAXE_PARAMETER_MEMBER_MODEL");
 
@@ -75,17 +79,19 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     return getParameterPsi().getTypeTag();
   }
 
+  @NotNull
   public ResultHolder getType() {
-    return getType(null);
+    return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
   }
 
+  @NotNull
   public ResultHolder getType(@Nullable HaxeGenericResolver resolver) {
+    ResultHolder typeResult = getType();
     if (resolver != null) {
-      ResultHolder typeResult = getType(null);
       ResultHolder resolved = resolver.resolve(typeResult.getType().toStringWithoutConstant());
       if (resolved != null) return resolved;
     }
-    return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
+    return typeResult;
   }
 
   public HaxeMemberModel getMemberModel() {

@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +61,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
 
     final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeExtendsList());
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
-    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(false, supers.toArray(new HaxeClass[supers.size()]));
+    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(false, null, supers.toArray(new HaxeClass[supers.size()]));
 
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     if (type == HaxeComponentType.METHOD) {
@@ -71,7 +72,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
       PsiElementListNavigator.openTargets(
         editor,
         HaxeResolveUtil.getComponentNames(supers).toArray(new NavigatablePsiElement[supers.size()]),
-        DaemonBundle.message("navigation.title.subclass", namedComponent.getName(), supers.size()),
+        DaemonBundle.message("navigation.title.subclass", namedComponent.getName(), supers.size(), ":"),
         "Subclasses of " + namedComponent.getName(),
         new DefaultPsiElementCellRenderer()
       );

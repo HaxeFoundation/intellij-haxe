@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Value')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -37,30 +37,32 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           IF_STATEMENT
-            HaxePsiToken:if('if')
-            HaxePsiToken:(('(')
-            COMPARE_EXPRESSION
-              MULTIPLICATIVE_EXPRESSION
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('x')
-                HaxePsiToken:%('%')
+            GUARD
+              HaxePsiToken:if('if')
+              HaxePsiToken:(('(')
+              COMPARE_EXPRESSION
+                MULTIPLICATIVE_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('x')
+                  HaxePsiToken:%('%')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('2')
+                COMPARE_OPERATION
+                  HaxePsiToken:!=('!=')
                 LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('2')
-              COMPARE_OPERATION
-                HaxePsiToken:!=('!=')
-              LITERAL_EXPRESSION
-                HaxePsiToken:LITINT('0')
-            HaxePsiToken:)(')')
-            RETURN_STATEMENT
-              HaxePsiToken:return('return')
-              LITERAL_EXPRESSION
-                HaxePsiToken:true('true')
-              HaxePsiToken:;(';')
+                  HaxePsiToken:LITINT('0')
+              HaxePsiToken:)(')')
+            GUARDED_STATEMENT
+              RETURN_STATEMENT
+                HaxePsiToken:return('return')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:true('true')
+                HaxePsiToken:;(';')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
             LITERAL_EXPRESSION
               HaxePsiToken:false('false')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

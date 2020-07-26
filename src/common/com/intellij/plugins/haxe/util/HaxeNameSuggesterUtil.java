@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,7 +124,7 @@ public class HaxeNameSuggesterUtil {
     if (expression instanceof HaxePrefixExpression) {  // Wraps statements, like HaxeIfStatement
       return "expr";
     }
-    if (expression instanceof HaxeSwitchCaseExpression
+    if (expression instanceof HaxeSwitchCaseExpr
         || expression instanceof HaxeCallExpression
         || expression instanceof HaxeLogicAndExpression
         || expression instanceof HaxeLogicOrExpression
@@ -139,7 +139,7 @@ public class HaxeNameSuggesterUtil {
     if (expression instanceof HaxeSuperExpression) {
       return "mysuper";
     }
-    if (expression instanceof HaxeFatArrowExpression
+    if (expression instanceof HaxeMapInitializerExpression
         || expression instanceof HaxeFunctionLiteral) {
       return "func";
     }

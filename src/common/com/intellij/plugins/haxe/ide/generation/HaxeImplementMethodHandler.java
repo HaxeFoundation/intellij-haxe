@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +39,7 @@ public class HaxeImplementMethodHandler extends BaseHaxeGenerateHandler {
 
   @Override
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
-    for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(haxeClass)) {
+    for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(null, haxeClass)) {
       final boolean prototype = haxeNamedComponent instanceof HaxeMethod;
       final HaxeClass parentClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class, true);
       final boolean interfaceField = HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.FIELD &&

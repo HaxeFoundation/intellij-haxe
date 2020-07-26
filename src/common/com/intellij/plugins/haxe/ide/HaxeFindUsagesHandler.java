@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -176,9 +176,9 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
     HaxeMemberModel classField = null;
 
     if (StringUtils.startsWith(methodName, GETTER_PREFIX)) {
-      classField = declaringClass.getField(methodName.substring(GETTER_PREFIX.length()));
+      classField = declaringClass.getField(methodName.substring(GETTER_PREFIX.length()), null);
     } else if (StringUtils.startsWith(methodName, SETTER_PREFIX)) {
-      classField = declaringClass.getField(methodName.substring(SETTER_PREFIX.length()));
+      classField = declaringClass.getField(methodName.substring(SETTER_PREFIX.length()), null);
     }
     return classField == null ? null : new PsiElement[]{classField.getBasePsi()};
   }

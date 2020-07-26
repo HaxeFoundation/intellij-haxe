@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Axis')
-    HaxePsiToken:{('{')
     ENUM_BODY
+      HaxePsiToken:{('{')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
@@ -21,4 +21,4 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('z')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

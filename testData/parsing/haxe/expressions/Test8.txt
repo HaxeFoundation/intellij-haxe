@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Test8')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -28,23 +28,25 @@ Haxe File
           HaxePsiToken:{('{')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
-            PREFIX_EXPRESSION
-              IF_STATEMENT
+            IF_STATEMENT
+              GUARD
                 HaxePsiToken:if('if')
                 HaxePsiToken:(('(')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('isFlag')
                 HaxePsiToken:)(')')
+              GUARDED_STATEMENT
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('flagExample')
-                HaxePsiToken:;(';')
+              HaxePsiToken:;(';')
+              ELSE_STATEMENT
                 HaxePsiToken:else('else')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('noFlagExample')
-                HaxePsiToken:;(';')
+              HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       METHOD_DECLARATION
         METHOD_MODIFIER
@@ -67,7 +69,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -139,35 +142,34 @@ Haxe File
             HaxePsiToken:;(';')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
-            PREFIX_EXPRESSION
-              TRY_STATEMENT
-                HaxePsiToken:try('try')
-                CALL_EXPRESSION
-                  REFERENCE_EXPRESSION
+            TRY_STATEMENT
+              HaxePsiToken:try('try')
+              CALL_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('example')
+                HaxePsiToken:(('(')
+                HaxePsiToken:)(')')
+              CATCH_STATEMENT
+                HaxePsiToken:catch('catch')
+                HaxePsiToken:(('(')
+                PARAMETER
+                  COMPONENT_NAME
                     IDENTIFIER
-                      HaxePsiToken:ID('example')
-                  HaxePsiToken:(('(')
-                  HaxePsiToken:)(')')
-                CATCH_STATEMENT
-                  HaxePsiToken:catch('catch')
-                  HaxePsiToken:(('(')
-                  PARAMETER
-                    COMPONENT_NAME
-                      IDENTIFIER
-                        HaxePsiToken:ID('e')
-                    TYPE_TAG
-                      HaxePsiToken::(':')
-                      TYPE_OR_ANONYMOUS
-                        TYPE
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('String')
-                  HaxePsiToken:)(')')
-                  BLOCK_STATEMENT
-                    HaxePsiToken:{('{')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:null('null')
-                    HaxePsiToken:;(';')
-                    HaxePsiToken:}('}')
+                      HaxePsiToken:ID('e')
+                  TYPE_TAG
+                    HaxePsiToken::(':')
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('String')
+                HaxePsiToken:)(')')
+                BLOCK_STATEMENT
+                  HaxePsiToken:{('{')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:null('null')
+                  HaxePsiToken:;(';')
+                  HaxePsiToken:}('}')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Void')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -25,14 +25,16 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           IF_STATEMENT
-            HaxePsiToken:if('if')
-            HaxePsiToken:(('(')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('abort')
-            HaxePsiToken:)(')')
-            RETURN_STATEMENT
-              HaxePsiToken:return('return')
-              HaxePsiToken:;(';')
+            GUARD
+              HaxePsiToken:if('if')
+              HaxePsiToken:(('(')
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('abort')
+              HaxePsiToken:)(')')
+            GUARDED_STATEMENT
+              RETURN_STATEMENT
+                HaxePsiToken:return('return')
+                HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

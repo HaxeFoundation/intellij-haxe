@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.actions;
 
-import com.intellij.codeInsight.TargetElementUtilBase;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -34,6 +35,11 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     return "/goto/";
   }
 
+  protected void setUp() throws Exception {
+    useHaxeToolkit();
+    super.setUp();
+  }
+
   protected void doTest(PsiFile file, int expectedSize) {
     doTest(new PsiFile[]{file}, expectedSize);
   }
@@ -42,7 +48,7 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
     assertNotNull(files);
     final PsiFile myFile = files[0];
     assertNotNull(myFile);
-    final TargetElementUtilBase util = TargetElementUtilBase.getInstance();
+    final TargetElementUtil util = TargetElementUtil.getInstance();
     assertNotNull(util);
 
     final PsiReference found = myFile.findReferenceAt(myFixture.getCaretOffset());
@@ -117,15 +123,15 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testUsingUtil1() {
-    doTest(myFixture.configureByFiles("UsingUtil1.hx", "com/utils/MathUtil.hx", "std/StdTypes.hx", "std/String.hx"), 1);
+    doTest(myFixture.configureByFiles("UsingUtil1.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   public void testUsingUtil2() {
-    doTest(myFixture.configureByFiles("UsingUtil2.hx", "com/utils/MathUtil.hx", "std/StdTypes.hx", "std/String.hx"), 0);
+    doTest(myFixture.configureByFiles("UsingUtil2.hx", "com/utils/MathUtil.hx"), 0);
   }
 
   public void testUsingUtil3() {
-    doTest(myFixture.configureByFiles("UsingUtil3.hx", "com/utils/StringUtil.hx", "com/utils/Tools.hx", "com/utils/MathUtil.hx", "std/StdTypes.hx", "std/String.hx"), 1);
+    doTest(myFixture.configureByFiles("UsingUtil3.hx", "com/utils/StringUtil.hx", "com/utils/Tools.hx", "com/utils/MathUtil.hx"), 1);
   }
 
   public void testSamePackage() {
@@ -190,22 +196,16 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testRegularExpression() {
-    doTest(myFixture.configureByFiles("RegularExpression.hx", "std/EReg.hx"), 1);
+    doTest(myFixture.configureByFiles("RegularExpression.hx"), 1);
   }
 
   public void testStringLiteral() {
     assertNotNull(myFixture);
-    doTest(myFixture.configureByFiles("StringLiteral.hx",
-                                      "std/Array.hx",
-                                      "std/StdTypes.hx",
-                                      "std/String.hx"), 1);
+    doTest(myFixture.configureByFiles("StringLiteral.hx"), 1);
   }
 
   public void testArrayLiteral() {
-    doTest(myFixture.configureByFiles("ArrayLiteral.hx",
-                                      "std/Array.hx",
-                                      "std/StdTypes.hx",
-                                      "std/String.hx"), 1);
+    doTest(myFixture.configureByFiles("ArrayLiteral.hx"), 1);
   }
 
   public void testAssign1() {
@@ -225,15 +225,15 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testCallFunction() {
-    doTest(myFixture.configureByFiles("CallFunction.hx", "std/String.hx", "std/Array.hx"), 1);
+    doTest(myFixture.configureByFiles("CallFunction.hx"), 1);
   }
 
   public void testGeneric1() {
-    doTest(myFixture.configureByFiles("Generic1.hx", "std/String.hx", "std/Array.hx"), 1);
+    doTest(myFixture.configureByFiles("Generic1.hx"), 1);
   }
 
   public void testGeneric2() {
-    doTest(myFixture.configureByFiles("Generic2.hx", "std/String.hx", "std/Array.hx"), 1);
+    doTest(myFixture.configureByFiles("Generic2.hx"), 1);
   }
 
   public void testGeneric3() {
@@ -241,15 +241,15 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testGeneric4() {
-    doTest(myFixture.configureByFiles("Generic4.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("Generic4.hx"), 1);
   }
 
   public void testGeneric5() {
-    doTest(myFixture.configureByFiles("Generic5.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("Generic5.hx"), 1);
   }
 
   public void testGeneric6() {
-    doTest(myFixture.configureByFiles("Generic6.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("Generic6.hx"), 1);
   }
 
   public void testGeneric7() {
@@ -261,15 +261,15 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   }
 
   public void testTypeDef1() {
-    doTest(myFixture.configureByFiles("TypeDef1.hx", "std/String.hx"), 1);
+    doTest(myFixture.configureByFiles("TypeDef1.hx"), 1);
   }
 
   public void testTypeDef2() {
-    doTest(myFixture.configureByFiles("TypeDef2.hx", "std/String.hx"), 1);
+    doTest(myFixture.configureByFiles("TypeDef2.hx"), 1);
   }
 
   public void testTypeDef3() {
-    doTest(myFixture.configureByFiles("TypeDef3.hx", "std/String.hx"), 1);
+    doTest(myFixture.configureByFiles("TypeDef3.hx"), 1);
   }
 
   public void testTypeDef4() {
@@ -283,23 +283,23 @@ public class HaxeGoToDeclarationActionTest extends HaxeCodeInsightFixtureTestCas
   public void testTypeDef6() { doTest(myFixture.configureByFiles("TypeDef6.hx"), 1); }
 
   public void testArrayAccess1() {
-    doTest(myFixture.configureByFiles("ArrayAccess1.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("ArrayAccess1.hx"), 1);
   }
 
   public void testArrayAccess2() {
-    doTest(myFixture.configureByFiles("ArrayAccess2.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("ArrayAccess2.hx"), 1);
   }
 
   public void testArrayIteration1() {
-    doTest(myFixture.configureByFiles("ArrayIteration1.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("ArrayIteration1.hx"), 1);
   }
 
   public void testArrayIteration2() {
-    doTest(myFixture.configureByFiles("ArrayIteration2.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("ArrayIteration2.hx"), 1);
   }
 
   public void testArrayIteration3() {
-    doTest(myFixture.configureByFiles("ArrayIteration3.hx", "std/String.hx", "std/Array.hx", "std/StdTypes.hx"), 1);
+    doTest(myFixture.configureByFiles("ArrayIteration3.hx"), 1);
   }
 
   public void testHelperClass1() {

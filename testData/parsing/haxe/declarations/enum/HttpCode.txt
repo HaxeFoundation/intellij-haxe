@@ -1,9 +1,10 @@
 Haxe File
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('enum')
   ABSTRACT_CLASS_DECLARATION
-    PsiModifierList:@:enum
-      MACRO_CLASS
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:enum')
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -17,8 +18,8 @@ Haxe File
             IDENTIFIER
               HaxePsiToken:ID('Int')
       HaxePsiToken:)(')')
-    HaxePsiToken:{('{')
     ABSTRACT_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
@@ -41,4 +42,4 @@ Haxe File
           LITERAL_EXPRESSION
             HaxePsiToken:LITINT('404')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

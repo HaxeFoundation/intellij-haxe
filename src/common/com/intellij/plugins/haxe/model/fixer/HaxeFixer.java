@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +27,31 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 abstract public class HaxeFixer implements IntentionAction, Runnable {
+  @FunctionalInterface
+  public interface IntentionCallback {
+    void run();
+  }
+
+  private static class CallbackFixer extends HaxeFixer {
+    final private IntentionCallback callback;
+    CallbackFixer(@NotNull String text, @NotNull IntentionCallback cb) {
+      super(text);
+      this.callback = cb;
+    }
+    @Override
+    public void run() {
+      callback.run();
+    }
+  }
+
   private String text;
 
   public HaxeFixer(String text) {
     this.text = text;
+  }
+
+  public static HaxeFixer create(@NotNull String text, @NotNull IntentionCallback cb) {
+    return new CallbackFixer(text, cb);
   }
 
   @Nls

@@ -3,6 +3,7 @@
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeClassReference;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiClass;
@@ -27,8 +29,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Extensions for resolving and analyzing Haxe @:enum abstract type
@@ -56,16 +56,18 @@ public class HaxeAbstractEnumUtil {
   }
 
   @Nullable
-  public static HaxeClassResolveResult resolveFieldType(@Nullable PsiElement element) {
-    final HaxeClass cls = getFieldClass(element);
-    return cls != null ? HaxeClassResolveResult.create(cls) : null;
+  public static HaxeClassResolveResult resolveFieldType(@Nullable PsiElement element, HaxeGenericSpecialization specialization) {
+    final HaxeGenericResolver resolver = null == specialization ? null : specialization.toGenericResolver(element);
+    final SpecificHaxeClassReference cls = getFieldClass(element, resolver);
+    return cls != null ? cls.asResolveResult() : null;
   }
 
   @Nullable
-  public static ResultHolder getFieldType(@Nullable PsiElement element) {
-    final HaxeClass cls = getFieldClass(element);
+  public static ResultHolder getFieldType(@Nullable PsiElement element, @Nullable HaxeGenericResolver resolver) {
+    final SpecificHaxeClassReference cls = getFieldClass(element, resolver); // returns null if element is not an abstract field.
     if (cls != null && element != null) {
-      ResultHolder result = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(cls.getModel(), element)));
+      ResultHolder result = new ResultHolder(cls);
+
       if (element instanceof HaxeFieldDeclaration) {
         final HaxeVarInit init = ((HaxeFieldDeclaration)element).getVarInit();
         if (init != null && init.getExpression() != null) {
@@ -78,8 +80,8 @@ public class HaxeAbstractEnumUtil {
   }
 
   @Nullable
-  @Contract("null -> null")
-  public static ResultHolder getStaticMemberExpression(@Nullable PsiElement expression) {
+  @Contract("null,null -> null")
+  public static ResultHolder getStaticMemberExpression(@Nullable PsiElement expression, HaxeGenericResolver resolver) {
     if (expression != null) {
       final PsiElement containerElement = expression.getFirstChild();
       final PsiElement memberElement = expression.getLastChild();
@@ -87,9 +89,9 @@ public class HaxeAbstractEnumUtil {
       if (containerElement instanceof HaxeReference && memberElement instanceof HaxeIdentifier) {
         final HaxeClass leftClass = ((HaxeReference)containerElement).resolveHaxeClass().getHaxeClass();
         if (isAbstractEnum(leftClass)) {
-          final HaxeNamedComponent enumField = leftClass.findHaxeFieldByName(memberElement.getText());
+          final HaxeNamedComponent enumField = leftClass.findHaxeFieldByName(memberElement.getText(), resolver);
           if (enumField != null) {
-            ResultHolder result = getFieldType(enumField);
+            ResultHolder result = getFieldType(enumField, resolver);
             if (result != null) {
               return result;
             }
@@ -103,20 +105,23 @@ public class HaxeAbstractEnumUtil {
   /*** HELPERS ***/
 
   @Nullable
-  private static HaxeClass getFieldClass(@Nullable PsiElement element) {
-    final HaxeFieldDeclaration varDecl = element != null && (element instanceof HaxeFieldDeclaration) ?
+  private static SpecificHaxeClassReference getFieldClass(@Nullable PsiElement element, @Nullable HaxeGenericResolver resolver) {
+    final HaxeFieldDeclaration varDecl = (element instanceof HaxeFieldDeclaration) ?
                                        (HaxeFieldDeclaration)element : null;
     if (couldBeAbstractEnumField(varDecl)) {
       final HaxeAbstractClassDeclaration abstractEnumClass =
         PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
+      SpecificHaxeClassReference specificRef;
       if (isAbstractEnum(abstractEnumClass)) {
         if (varDecl.getTypeTag() == null) {
-          return abstractEnumClass;
+          HaxeClassReference enumReference = new HaxeClassReference(abstractEnumClass.getModel(), element);
+          ResultHolder[] specifics = resolver != null ? resolver.getSpecificsFor(enumReference) : ResultHolder.EMPTY;
+          specificRef = SpecificHaxeClassReference.withGenerics(enumReference, specifics);
+          return SpecificHaxeClassReference.propagateGenericsToType(specificRef, resolver);
         }
-      }
-      HaxeClassResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(varDecl, new HaxeGenericSpecialization());
-      if (result.getHaxeClass() != null) {
-        return result.getHaxeClass();
+        HaxeGenericSpecialization specialization = resolver != null ? resolver.getSpecialization(element) : HaxeGenericSpecialization.EMPTY;
+        HaxeClassResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(varDecl, specialization);
+        return result.getSpecificClassReference(element, resolver);  // Propagates generics internally.
       }
     }
     return null;

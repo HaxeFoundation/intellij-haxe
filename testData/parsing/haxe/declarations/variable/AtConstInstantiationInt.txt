@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('AtConstTest')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -42,7 +42,7 @@ Haxe File
           HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// Invalid, but should parse OK.')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
@@ -50,15 +50,18 @@ Haxe File
         HaxePsiToken:ID('Test')
     GENERIC_PARAM
       HaxePsiToken:<('<')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('const')
       GENERIC_LIST_PART
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@:const')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('T')
       HaxePsiToken:>('>')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -75,7 +78,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -114,4 +118,4 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

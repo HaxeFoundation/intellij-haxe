@@ -11,8 +11,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('A')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -27,7 +27,7 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
@@ -40,8 +40,8 @@ Haxe File
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('A')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -62,7 +62,7 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
@@ -75,8 +75,8 @@ Haxe File
           REFERENCE_EXPRESSION
             IDENTIFIER
               HaxePsiToken:ID('B')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -107,14 +107,14 @@ Haxe File
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Test')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -160,7 +160,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -236,7 +237,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -314,7 +316,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -498,4 +501,4 @@ Haxe File
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

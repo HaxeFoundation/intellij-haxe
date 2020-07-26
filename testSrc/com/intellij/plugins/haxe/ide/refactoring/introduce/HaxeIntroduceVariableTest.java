@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,10 +111,6 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
   }
 
   public void testExtractAnonymousStructure() throws Throwable {
-    doTestInplace(null, true, null);
-  }
-
-  public void testExtractVariableDeclaration() throws Throwable {
     doTestInplace(null, true, null);
   }
 

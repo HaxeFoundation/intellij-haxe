@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +19,12 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -35,10 +38,12 @@ import java.util.List;
 
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
   private HaxeMethod haxeMethod;
+  private String name;
 
   public HaxeMethodModel(HaxeMethod haxeMethod) {
     super(haxeMethod);
     this.haxeMethod = haxeMethod;
+    this.name = getName();
   }
 
   @Override
@@ -104,14 +109,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isArrayAccessor() {
-    // Would be nice if this worked, but it won't until the lexer and/or parser stops using MACRO_ID:
-    //   return null != UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeArrayAccessMeta.class);
-    for (HaxeCustomMeta meta : UsefulPsiTreeUtil.getChildren(this.getMethodPsi(), HaxeCustomMeta.class)) {
-      if ("@:arrayAccess".equals(meta.getText())) {
-        return true;
-      }
-    }
-    return false;
+    return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS);
   }
 
   @Override
@@ -150,14 +148,20 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);
   }
 
-  public HaxeMethodModel getParentMethod() {
+  public HaxeMethodModel getParentMethod(@Nullable HaxeGenericResolver resolver) {
     final HaxeClassModel aClass = getDeclaringClass().getParentClass();
-    return (aClass != null) ? aClass.getMethod(this.getName()) : null;
+    return (aClass != null) ? aClass.getMethod(this.getName(), resolver) : null;
   }
 
   @Override
   public String toString() {
-    return "HaxeMethodModel(" + this.getName() + ", " + this.getParameters() + ")";
+    String parameters = null;
+    try {
+      parameters = this.getParameters().toString();
+    } catch (ProcessCanceledException e) {
+      parameters = "?";
+    }
+    return "HaxeMethodModel(" + this.name + ", " + parameters + ")";
   }
 
   @Override

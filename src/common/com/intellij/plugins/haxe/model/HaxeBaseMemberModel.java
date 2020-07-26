@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
@@ -56,7 +57,6 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
       }
       return new HaxeFieldModel((HaxeFieldDeclaration)element);
     }
-    if (element instanceof HaxeAnonymousTypeField) return new HaxeFieldModel((HaxeAnonymousTypeField)element);
     if (element instanceof HaxeEnumValueDeclaration) return new HaxeEnumValueModel((HaxeEnumValueDeclaration)element);
     if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);
     if (element instanceof HaxeAnonymousTypeField) return new HaxeAnonymousTypeFieldModel((HaxeAnonymousTypeField)element);
@@ -98,6 +98,10 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
 
   public ResultHolder getResultType() {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
+  }
+
+  public ResultHolder getResultType(HaxeGenericResolver resolver) {
+    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi, resolver);
   }
 
   public String getPresentableText(HaxeMethodContext context) {

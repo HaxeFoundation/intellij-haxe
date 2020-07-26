@@ -1,124 +1,175 @@
 Haxe File
-  CLASS_DECLARATION
-    PsiModifierList:@:keep
-@:final @:hack
-@:native("my.real.Path")
-@:ns("namespace")
-@:meta(Event(name="test",type="Foo"))
-@:bitmap("myfile.png")
-@:build(MacroGenerator.build())
-@:require(dep1, dep2, dep3)
-@:require(haxe_ver >= 3.2)
-@superClass("user name", {name:"user"})
-      MACRO_CLASS
-        SIMPLE_META
-          KEEP_META
-            HaxePsiToken:@:keep('@:keep')
-      MACRO_CLASS
-        SIMPLE_META
-          FINAL_META
-            HaxePsiToken:@:final('@:final')
-      MACRO_CLASS
-        SIMPLE_META
-          HACK_META
-            HaxePsiToken:@:hack('@:hack')
-      MACRO_CLASS
-        NATIVE_META
-          HaxePsiToken:@:native('@:native')
-          HaxePsiToken:(('(')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('my.real.Path')
-            HaxePsiToken:CLOSING_QUOTE('"')
-          HaxePsiToken:)(')')
-      MACRO_CLASS
-        NS_META
-          HaxePsiToken:@:ns('@:ns')
-          HaxePsiToken:(('(')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('namespace')
-            HaxePsiToken:CLOSING_QUOTE('"')
-          HaxePsiToken:)(')')
-      MACRO_CLASS
-        META_META
-          HaxePsiToken:@:meta('@:meta')
-          HaxePsiToken:(('(')
-          HaxePsiToken:ID('Event')
-          HaxePsiToken:(('(')
-          META_KEY_VALUE
-            HaxePsiToken:ID('name')
-            HaxePsiToken:=('=')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('keep')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('final')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('hack')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('native')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
             STRING_LITERAL_EXPRESSION
               HaxePsiToken:OPEN_QUOTE('"')
-              HaxePsiToken:REGULAR_STRING_PART('test')
+              HaxePsiToken:REGULAR_STRING_PART('my.real.Path')
               HaxePsiToken:CLOSING_QUOTE('"')
-          HaxePsiToken:,(',')
-          META_KEY_VALUE
-            HaxePsiToken:ID('type')
-            HaxePsiToken:=('=')
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('ns')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
             STRING_LITERAL_EXPRESSION
               HaxePsiToken:OPEN_QUOTE('"')
-              HaxePsiToken:REGULAR_STRING_PART('Foo')
+              HaxePsiToken:REGULAR_STRING_PART('namespace')
               HaxePsiToken:CLOSING_QUOTE('"')
-          HaxePsiToken:)(')')
-          HaxePsiToken:)(')')
-      MACRO_CLASS
-        BITMAP_META
-          HaxePsiToken:@:bitmap('@:bitmap')
-          HaxePsiToken:(('(')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('myfile.png')
-            HaxePsiToken:CLOSING_QUOTE('"')
-          HaxePsiToken:)(')')
-      MACRO_CLASS
-        BUILD_MACRO
-          HaxePsiToken:@:build('@:build')
-          HaxePsiToken:(('(')
-          CALL_EXPRESSION
-            REFERENCE_EXPRESSION
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('meta')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            CALL_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  HaxePsiToken:ID('MacroGenerator')
-              HaxePsiToken:.('.')
+                  HaxePsiToken:ID('Event')
+              HaxePsiToken:(('(')
+              EXPRESSION_LIST
+                ASSIGN_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('name')
+                  ASSIGN_OPERATION
+                    HaxePsiToken:=('=')
+                  STRING_LITERAL_EXPRESSION
+                    HaxePsiToken:OPEN_QUOTE('"')
+                    HaxePsiToken:REGULAR_STRING_PART('test')
+                    HaxePsiToken:CLOSING_QUOTE('"')
+                HaxePsiToken:,(',')
+                ASSIGN_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('type')
+                  ASSIGN_OPERATION
+                    HaxePsiToken:=('=')
+                  STRING_LITERAL_EXPRESSION
+                    HaxePsiToken:OPEN_QUOTE('"')
+                    HaxePsiToken:REGULAR_STRING_PART('Foo')
+                    HaxePsiToken:CLOSING_QUOTE('"')
+              HaxePsiToken:)(')')
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('bitmap')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('myfile.png')
+              HaxePsiToken:CLOSING_QUOTE('"')
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('build')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('MacroGenerator')
+                HaxePsiToken:.('.')
+                IDENTIFIER
+                  HaxePsiToken:ID('build')
+              HaxePsiToken:(('(')
+              HaxePsiToken:)(')')
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('require')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            REFERENCE_EXPRESSION
               IDENTIFIER
-                HaxePsiToken:ID('build')
-            HaxePsiToken:(('(')
-            HaxePsiToken:)(')')
-          HaxePsiToken:)(')')
-      MACRO_CLASS
-        REQUIRE_META
-          HaxePsiToken:@:require('@:require')
-          HaxePsiToken:(('(')
-          IDENTIFIER
-            HaxePsiToken:ID('dep1')
+                HaxePsiToken:ID('dep1')
           HaxePsiToken:,(',')
-          IDENTIFIER
-            HaxePsiToken:ID('dep2')
+          COMPILE_TIME_META_ARG
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('dep2')
           HaxePsiToken:,(',')
-          IDENTIFIER
-            HaxePsiToken:ID('dep3')
-          HaxePsiToken:)(')')
-      MACRO_CLASS
-        REQUIRE_META
-          HaxePsiToken:@:require('@:require')
-          HaxePsiToken:(('(')
-          HaxePsiToken:ID('haxe_ver')
-          COMPARE_OPERATION
-            HaxePsiToken:>=('>=')
-          HaxePsiToken:LITFLOAT('3.2')
-          HaxePsiToken:)(')')
-      MACRO_CLASS
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@superClass')
-          HaxePsiToken:(('(')
-          EXPRESSION_LIST
+          COMPILE_TIME_META_ARG
+            REFERENCE_EXPRESSION
+              IDENTIFIER
+                HaxePsiToken:ID('dep3')
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('require')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            COMPARE_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('haxe_ver')
+              COMPARE_OPERATION
+                HaxePsiToken:>=('>=')
+              LITERAL_EXPRESSION
+                HaxePsiToken:LITFLOAT('3.2')
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    RUN_TIME_META
+      HaxePsiToken:@('@')
+      TYPE
+        HaxePsiToken:META_TYPE('superClass')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(RT_META_ARGS)
+          RUN_TIME_META_ARG
             STRING_LITERAL_EXPRESSION
               HaxePsiToken:OPEN_QUOTE('"')
               HaxePsiToken:REGULAR_STRING_PART('user name')
               HaxePsiToken:CLOSING_QUOTE('"')
-            HaxePsiToken:,(',')
+          HaxePsiToken:,(',')
+          RUN_TIME_META_ARG
             OBJECT_LITERAL
               HaxePsiToken:{('{')
               OBJECT_LITERAL_ELEMENT
@@ -130,30 +181,54 @@ Haxe File
                   HaxePsiToken:REGULAR_STRING_PART('user')
                   HaxePsiToken:CLOSING_QUOTE('"')
               HaxePsiToken:}('}')
-          HaxePsiToken:)(')')
+      HaxePsiToken:)(')')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('myMeta.HasADot')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('something')
+              HaxePsiToken:CLOSING_QUOTE('"')
+      HaxePsiToken:)(')')
+  CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('FullOfMacro')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
+      PsiElement(EMBEDDED_META)
+        RUN_TIME_META
+          HaxePsiToken:@('@')
+          TYPE
+            HaxePsiToken:META_TYPE('customUser')
       FIELD_DECLARATION
-        CUSTOM_META
-          HaxePsiToken:MACRO_ID('@customUser')
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
         COMPONENT_NAME
           IDENTIFIER
             HaxePsiToken:ID('_value')
         HaxePsiToken:;(';')
-      METHOD_DECLARATION
-        GETTER_META
-          HaxePsiToken:@:getter('@:getter')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('getter')
           HaxePsiToken:(('(')
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              HaxePsiToken:ID('_value')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('_value')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -171,14 +246,20 @@ Haxe File
                 HaxePsiToken:ID('_value')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      METHOD_DECLARATION
-        SETTER_META
-          HaxePsiToken:@:setter('@:setter')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('setter')
           HaxePsiToken:(('(')
-          REFERENCE_EXPRESSION
-            IDENTIFIER
-              HaxePsiToken:ID('_value')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('_value')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -203,53 +284,59 @@ Haxe File
                 HaxePsiToken:ID('value')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      METHOD_DECLARATION
-        OVERLOAD_META
-          HaxePsiToken:@:overload('@:overload')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('overload')
           HaxePsiToken:(('(')
-          LOCAL_FUNCTION_DECLARATION
-            HaxePsiToken:function('function')
-            HaxePsiToken:(('(')
-            PARAMETER_LIST
-              PARAMETER
-                COMPONENT_NAME
-                  IDENTIFIER
-                    HaxePsiToken:ID('name')
-                TYPE_TAG
-                  HaxePsiToken::(':')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                FUNCTION_LITERAL
+                  HaxePsiToken:function('function')
+                  HaxePsiToken:(('(')
+                  PARAMETER_LIST
+                    PARAMETER
+                      COMPONENT_NAME
                         IDENTIFIER
-                          HaxePsiToken:ID('String')
-              HaxePsiToken:,(',')
-              PARAMETER
-                COMPONENT_NAME
-                  IDENTIFIER
-                    HaxePsiToken:ID('value')
-                TYPE_TAG
-                  HaxePsiToken::(':')
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
+                          HaxePsiToken:ID('name')
+                      TYPE_TAG
+                        HaxePsiToken::(':')
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
+                    HaxePsiToken:,(',')
+                    PARAMETER
+                      COMPONENT_NAME
                         IDENTIFIER
-                          HaxePsiToken:ID('String')
-            HaxePsiToken:)(')')
-            TYPE_TAG
-              HaxePsiToken::(':')
-              TYPE_OR_ANONYMOUS
-                TYPE
-                  REFERENCE_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('js')
-                    HaxePsiToken:.('.')
-                    IDENTIFIER
-                      HaxePsiToken:ID('JQuery')
-            BLOCK_STATEMENT
-              HaxePsiToken:{('{')
-              HaxePsiToken:}('}')
+                          HaxePsiToken:ID('value')
+                      TYPE_TAG
+                        HaxePsiToken::(':')
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
+                  HaxePsiToken:)(')')
+                  TYPE_TAG
+                    HaxePsiToken::(':')
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('js')
+                          HaxePsiToken:.('.')
+                          IDENTIFIER
+                            HaxePsiToken:ID('JQuery')
+                  BLOCK_STATEMENT
+                    HaxePsiToken:{('{')
+                    HaxePsiToken:}('}')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -278,40 +365,45 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
-  EXTERN_CLASS_DECLARATION
-    PsiModifierList:@:build(MacroGenerator.build([], true))
-      MACRO_CLASS
-        BUILD_MACRO
-          HaxePsiToken:@:build('@:build')
-          HaxePsiToken:(('(')
-          CALL_EXPRESSION
-            REFERENCE_EXPRESSION
+      HaxePsiToken:}('}')
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('build')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            CALL_EXPRESSION
               REFERENCE_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('MacroGenerator')
+                HaxePsiToken:.('.')
                 IDENTIFIER
-                  HaxePsiToken:ID('MacroGenerator')
-              HaxePsiToken:.('.')
-              IDENTIFIER
-                HaxePsiToken:ID('build')
-            HaxePsiToken:(('(')
-            EXPRESSION_LIST
-              ARRAY_LITERAL
-                HaxePsiToken:[('[')
-                HaxePsiToken:](']')
-              HaxePsiToken:,(',')
-              LITERAL_EXPRESSION
-                HaxePsiToken:true('true')
-            HaxePsiToken:)(')')
-          HaxePsiToken:)(')')
-    EXTERN_KEY_WORD
-      HaxePsiToken:extern('extern ')
-    PRIVATE_KEY_WORD
-      HaxePsiToken:private('private')
+                  HaxePsiToken:ID('build')
+              HaxePsiToken:(('(')
+              EXPRESSION_LIST
+                ARRAY_LITERAL
+                  HaxePsiToken:[('[')
+                  HaxePsiToken:](']')
+                HaxePsiToken:,(',')
+                LITERAL_EXPRESSION
+                  HaxePsiToken:true('true')
+              HaxePsiToken:)(')')
+      HaxePsiToken:)(')')
+  EXTERN_CLASS_DECLARATION
+    EXTERN_CLASS_MODIFIER_LIST
+      EXTERN_KEY_WORD
+        HaxePsiToken:extern('extern ')
+      CLASS_MODIFIER
+        PRIVATE_KEY_WORD
+          HaxePsiToken:private('private')
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Test')
-    HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')

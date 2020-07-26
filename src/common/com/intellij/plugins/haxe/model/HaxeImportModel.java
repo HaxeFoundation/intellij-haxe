@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public class HaxeImportModel implements HaxeExposableModel {
       return (Objects.equals(getAliasName(), name)) ? members.get(0) : null;
     }
     return members.stream()
-      .filter(model -> model.getName().equals(name))
+      .filter(model -> name.equals(model.getName()))
       .findFirst()
       .orElse(null);
   }
@@ -185,5 +185,18 @@ public class HaxeImportModel implements HaxeExposableModel {
   @Override
   protected void finalize() throws Throwable {
     super.finalize();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    HaxeImportModel model = (HaxeImportModel)o;
+    return getBasePsi().equals(model.getBasePsi());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getBasePsi());
   }
 }

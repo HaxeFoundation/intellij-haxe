@@ -3,7 +3,7 @@
  * Copyright 2014-2014 TiVo Inc.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,11 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.InheritanceImplUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
@@ -81,9 +84,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
     if (name == null && this instanceof HaxeAnonymousType) {
       // restore name from parent
-      final PsiElement typedefDecl = getParent().getParent();
-      if (typedefDecl != null && typedefDecl instanceof HaxeTypedefDeclaration) {
-        name = ((HaxeTypedefDeclaration)typedefDecl).getName();
+      final HaxeTypedefDeclaration typedefDecl = UsefulPsiTreeUtil.getParentOfType(this, HaxeTypedefDeclaration.class);
+      if (null != typedefDecl) {
+        name = typedefDecl.getName();
       }
     }
 
@@ -168,10 +171,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public List<HaxeMethod> getHaxeMethods() {
+  public List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
     // XXX: This implementation is equivalent to getAllMethods().  That
     //      may not be what we want.
-    final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(this);
+    final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(resolver, this);
     final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
     final List<HaxeMethod> result = new ArrayList<>();
     for (HaxeNamedComponent method : methods) {
@@ -182,21 +185,21 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getHaxeFields() {
-    final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(this);
+  public List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver) {
+    final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(resolver, this);
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.FIELD);
   }
 
   @NotNull
   @Override
-  public List<HaxeFieldDeclaration> getFieldDeclarations() {
+  public List<HaxeFieldDeclaration> getFieldDeclarations(@Nullable HaxeGenericResolver resolver) {
     return HaxeResolveUtil.getClassVarDeclarations(this);
   }
 
   @Nullable
   @Override
-  public HaxeNamedComponent findHaxeFieldByName(@NotNull final String name) {
-    return ContainerUtil.find(getHaxeFields(), new Condition<HaxeNamedComponent>() {
+  public HaxeNamedComponent findHaxeFieldByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
+    return ContainerUtil.find(getHaxeFields(resolver), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
         return name.equals(component.getName());
@@ -205,8 +208,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public HaxeNamedComponent findHaxeMethodByName(@NotNull final String name) {
-    return ContainerUtil.find(getHaxeMethods(), new Condition<HaxeNamedComponent>() {
+  public HaxeNamedComponent findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
+    return ContainerUtil.find(getHaxeMethods(resolver), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
         return name.equals(component.getName());
@@ -216,8 +219,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   /** Optimized path to replace findHaxeMethod and findHaxeField when used together. */
   @Override
-  public HaxeNamedComponent findHaxeMemberByName(@NotNull final String name) {
-    return ContainerUtil.find(HaxeResolveUtil.findNamedSubComponents(this),
+  public HaxeNamedComponent findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
+    return ContainerUtil.find(HaxeResolveUtil.findNamedSubComponents(resolver, this),
                               component -> {
       HaxeComponentType type = HaxeComponentType.typeOf(component);
       return ((type == HaxeComponentType.FIELD || type == HaxeComponentType.METHOD)
@@ -227,8 +230,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Nullable
   @Override
-  public HaxeNamedComponent findArrayAccessGetter() {
-    HaxeNamedComponent accessor = ContainerUtil.find(getHaxeMethods(), new Condition<HaxeNamedComponent>() {
+  public HaxeNamedComponent findArrayAccessGetter(@Nullable HaxeGenericResolver resolver) {
+    HaxeNamedComponent accessor = ContainerUtil.find(getHaxeMethods(resolver), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
         if (component instanceof HaxeMethod) {
@@ -240,9 +243,14 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     });
     // Maybe old style getter?
     if (null == accessor) {
-      accessor = findHaxeMethodByName("__get");
+      accessor = findHaxeMethodByName("__get", resolver);
     }
     return accessor;
+  }
+
+  @Override
+  public HaxeGenericResolver getMemberResolver(HaxeGenericResolver resolver) {
+    return resolver;
   }
 
   @Override
@@ -254,7 +262,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public boolean isEnum() {
     if (HaxeComponentType.typeOf(this) == HaxeComponentType.ENUM) return true;
     if (isAbstract()) {
-      return hasMeta("@:enum") || ((HaxeAbstractClassDeclaration)this).getAbstractClassType().getFirstChild().getText().equals("enum");
+      return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractClassDeclaration)this).getAbstractClassType().getFirstChild().getText().equals("enum");
     }
     return false;
   }
@@ -367,7 +375,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public HaxePsiField[] getFields() {
-    List<HaxeNamedComponent> haxeFields = getHaxeFields();
+    List<HaxeNamedComponent> haxeFields = getHaxeFields(null);
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
     return haxeFields.toArray(psiFields);
   }
@@ -465,11 +473,11 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   private boolean isPrivate() {
     HaxePrivateKeyWord privateKeyWord = null;
     if (this instanceof HaxeClassDeclaration) { // concrete class
-      privateKeyWord = ((HaxeClassDeclaration)this).getPrivateKeyWord();
+      privateKeyWord = getPrivateKeyWord(((HaxeClassDeclaration)this).getClassModifierList());
     } else if (this instanceof HaxeAbstractClassDeclaration) { // abstract class
       privateKeyWord = ((HaxeAbstractClassDeclaration)this).getPrivateKeyWord();
     } else if (this instanceof HaxeExternClassDeclaration) { // extern class
-      privateKeyWord = ((HaxeExternClassDeclaration)this).getPrivateKeyWord();
+      privateKeyWord = getPrivateKeyWord(((HaxeExternClassDeclaration)this).getExternClassModifierList());
     } else if (this instanceof HaxeTypedefDeclaration) { // typedef
       privateKeyWord = ((HaxeTypedefDeclaration)this).getPrivateKeyWord();
     } else if (this instanceof HaxeInterfaceDeclaration) { // interface
@@ -478,6 +486,18 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       privateKeyWord = ((HaxeEnumDeclaration)this).getPrivateKeyWord();
     }
     return (privateKeyWord != null);
+  }
+
+  private HaxePrivateKeyWord getPrivateKeyWord(HaxeClassModifierList list) {
+    if (null != list) {
+      for (HaxeClassModifier cm: list.getClassModifierList()) {
+        HaxePrivateKeyWord pvtKeyword = cm.getPrivateKeyWord();
+        if (null != pvtKeyword) {
+          return pvtKeyword;
+        }
+      }
+    }
+    return null;
   }
 
   @Override

@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2018 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,20 +181,21 @@ class RootsCache {
   }
 
   private static HaxeSourceRootModel getSdkRoot(final HaxeProjectModel model) {
-    final VirtualFile[] roots;
+    VirtualFile[] roots;
+    roots = ApplicationManager.getApplication().isUnitTestMode()
+            ? OrderEnumerator.orderEntries(model.getProject()).getAllSourceRoots()
+            : OrderEnumerator.orderEntries(model.getProject()).sdkOnly().getAllSourceRoots();
+    for (VirtualFile root : roots) {
+      if (root.findChild(STD_TYPES_HX) != null) {
+        return new HaxeSourceRootModel(model, root);
+      }
+    }
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       roots = OrderEnumerator.orderEntries(model.getProject()).getAllSourceRoots();
       if (roots.length > 0) {
         VirtualFile stdRootForTests = roots[0].findChild("std");
         if (stdRootForTests != null) {
           return new HaxeSourceRootModel(model, stdRootForTests);
-        }
-      }
-    } else {
-      roots = OrderEnumerator.orderEntries(model.getProject()).sdkOnly().getAllSourceRoots();
-      for (VirtualFile root : roots) {
-        if (root.findChild(STD_TYPES_HX) != null) {
-          return new HaxeSourceRootModel(model, root);
         }
       }
     }

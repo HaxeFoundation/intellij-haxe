@@ -1,5 +1,6 @@
 /*
  * Copyright 2018 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +17,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +88,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   }
 
   @Override
-  public boolean hasMethod(String name) {
+  public boolean hasMethod(String name, @Nullable HaxeGenericResolver resolver) {
     return false;
   }
 
@@ -106,34 +108,34 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   }
 
   @Override
-  public HaxeMethodModel getConstructor() {
+  public HaxeMethodModel getConstructor(@Nullable HaxeGenericResolver resolver) {
     return null;
   }
 
   @Override
-  public boolean hasConstructor() {
+  public boolean hasConstructor(@Nullable HaxeGenericResolver resolver) {
     return false;
   }
 
   @Override
-  public HaxeMethodModel getParentConstructor() {
+  public HaxeMethodModel getParentConstructor(@Nullable HaxeGenericResolver resolver) {
     return null;
   }
 
   @Override
-  public HaxeMemberModel getMember(@NotNull final String name) {
+  public HaxeMemberModel getMember(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
     return getValue(name);
   }
 
   @Override
-  public List<HaxeMemberModel> getMembers() {
+  public List<HaxeMemberModel> getMembers(@Nullable HaxeGenericResolver resolver) {
     return getValuesStream().collect(Collectors.toList());
   }
 
   @NotNull
   @Override
   public List<HaxeMemberModel> getMembersSelf() {
-    return getMembers();
+    return getMembers(null);
   }
 
 
@@ -169,7 +171,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   }
 
   @Override
-  public HaxeFieldModel getField(String name) {
+  public HaxeFieldModel getField(String name, @Nullable HaxeGenericResolver resolver) {
     return null;
   }
 
@@ -179,22 +181,22 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   }
 
   @Override
-  public HaxeMethodModel getMethod(String name) {
+  public HaxeMethodModel getMethod(String name, @Nullable HaxeGenericResolver resolver) {
     return null;
   }
 
   @Override
-  public List<HaxeMethodModel> getMethods() {
+  public List<HaxeMethodModel> getMethods(@Nullable HaxeGenericResolver resolver) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<HaxeMethodModel> getMethodsSelf() {
+  public List<HaxeMethodModel> getMethodsSelf(@Nullable HaxeGenericResolver resolver) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<HaxeMethodModel> getAncestorMethods() {
+  public List<HaxeMethodModel> getAncestorMethods(@Nullable HaxeGenericResolver resolver) {
     return Collections.emptyList();
   }
 
@@ -210,6 +212,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
     return getEnumBodyPsi();
   }
 
+  @NotNull
   @Override
   public List<HaxeGenericParamModel> getGenericParams() {
     return super.getGenericParams();

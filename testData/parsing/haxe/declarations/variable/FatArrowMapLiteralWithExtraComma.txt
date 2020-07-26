@@ -7,8 +7,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('MapInitializerParsingIssue')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         FIELD_MODIFIER
           HaxePsiToken:private('private')
@@ -49,7 +49,7 @@ Haxe File
           MAP_LITERAL
             HaxePsiToken:[('[')
             MAP_INITIALIZER_EXPRESSION_LIST
-              FAT_ARROW_EXPRESSION
+              MAP_INITIALIZER_EXPRESSION
                 STRING_LITERAL_EXPRESSION
                   HaxePsiToken:OPEN_QUOTE('"')
                   HaxePsiToken:REGULAR_STRING_PART('Something')
@@ -60,7 +60,7 @@ Haxe File
                   HaxePsiToken:REGULAR_STRING_PART('Nothing')
                   HaxePsiToken:CLOSING_QUOTE('"')
               HaxePsiToken:,(',')
-              FAT_ARROW_EXPRESSION
+              MAP_INITIALIZER_EXPRESSION
                 STRING_LITERAL_EXPRESSION
                   HaxePsiToken:OPEN_QUOTE('"')
                   HaxePsiToken:REGULAR_STRING_PART('Other')
@@ -74,4 +74,4 @@ Haxe File
             PsiComment(MSL_COMMENT)('// <<-- Extra comma at end.')
             HaxePsiToken:](']')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

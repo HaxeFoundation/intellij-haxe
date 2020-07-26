@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ package com.intellij.plugins.haxe.ide.annotator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -64,15 +64,13 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   private boolean isInsidePackageStatement(@NotNull HaxeReferenceExpression reference) {
     return PsiTreeUtil.getParentOfType(reference, HaxePackageStatement.class) != null;
+
   }
 
   @Override
   public void visitMethodDeclaration(@NotNull HaxeMethodDeclaration functionDeclaration) {
-    List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
-    for (HaxeCustomMeta meta : metas) {
-      if (isDeprecatedMeta(meta)) {
-        handleDeprecatedFunctionDeclaration(functionDeclaration);
-      }
+    if (functionDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+      handleDeprecatedFunctionDeclaration(functionDeclaration);
     }
 
     super.visitMethod(functionDeclaration);
@@ -87,11 +85,8 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
       if (reference instanceof HaxeMethodDeclaration) {
         final HaxeMethodDeclaration functionDeclaration = (HaxeMethodDeclaration)reference;
-        final List<HaxeCustomMeta> metas = functionDeclaration.getCustomMetaList();
-        for (HaxeCustomMeta meta : metas) {
-          if (isDeprecatedMeta(meta)) {
-            handleDeprecatedCallExpression(referenceExpression);
-          }
+        if (functionDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+          handleDeprecatedCallExpression(referenceExpression);
         }
       }
     }
@@ -101,13 +96,9 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
   @Override
   public void visitFieldDeclaration(@NotNull HaxeFieldDeclaration varDeclaration) {
-    List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
-    for (HaxeCustomMeta meta : metas) {
-      if (isDeprecatedMeta(meta)) {
-        handleDeprecatedFieldDeclaration(varDeclaration);
-      }
+    if (varDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+      handleDeprecatedFieldDeclaration(varDeclaration);
     }
-
     super.visitFieldDeclaration(varDeclaration);
   }
 
@@ -134,18 +125,13 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
     if (reference instanceof HaxeFieldDeclaration) {
       HaxeFieldDeclaration varDeclaration = (HaxeFieldDeclaration)reference;
-
-      List<HaxeCustomMeta> metas = varDeclaration.getCustomMetaList();
-      for (HaxeCustomMeta meta : metas) {
-        if (isDeprecatedMeta(meta)) {
-          handleDeprecatedCallExpression(referenceExpression);
-        }
+      if (varDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
+        handleDeprecatedCallExpression(referenceExpression);
       }
     }
   }
 
-  private boolean isDeprecatedMeta(@NotNull HaxeCustomMeta meta) {
-    String metaText = meta.getText();
-    return metaText != null && metaText.startsWith(HaxePsiModifier.DEPRECATED);
+  private boolean isDeprecatedMeta(@NotNull HaxeMeta meta) {
+    return meta.isType(HaxeMeta.DEPRECATED);
   }
 }

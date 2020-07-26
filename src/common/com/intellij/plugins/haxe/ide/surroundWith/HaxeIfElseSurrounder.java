@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +20,8 @@ package com.intellij.plugins.haxe.ide.surroundWith;
 
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeGuardedStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeIfStatement;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementUtils;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
@@ -34,13 +37,16 @@ public class HaxeIfElseSurrounder extends HaxeManyStatementsSurrounder {
   protected PsiElement doSurroundElements(PsiElement[] elements, PsiElement parent) {
     final HaxeIfStatement ifStatement =
       (HaxeIfStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "if(a){\n}else{\n}");
-    addStatements(HaxeStatementUtils.getBlockStatement(ifStatement), elements);
+    final HaxeGuardedStatement guardedStatement = ifStatement.getGuardedStatement();
+    addStatements(HaxeStatementUtils.getBlockStatement(guardedStatement), elements);
     return ifStatement;
   }
 
   @Override
   protected TextRange getSurroundSelectionRange(PsiElement element) {
-    return null == element ? null : HaxeStatementUtils.getExpression(element).getTextRange();
+    // Retrieves the expression inside of the statement guard.
+    HaxeExpression expr = HaxeStatementUtils.getGuardExpression(element);
+    return null == expr ? TextRange.EMPTY_RANGE : expr.getTextRange();
   }
 
   @Override

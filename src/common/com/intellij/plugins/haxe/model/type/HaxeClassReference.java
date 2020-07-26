@@ -3,6 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2018 Ilya Malanin
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -25,8 +27,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HaxeClassReference {
   public final String name;
@@ -60,7 +62,7 @@ public class HaxeClassReference {
 
   private String getClassNameInternal(HaxeClassModel clazz) {
     if (clazz.haxeClass instanceof HaxeAnonymousType) {
-      HaxeNamedComponent namedComponent = PsiTreeUtil.getParentOfType(clazz.haxeClass.getContext(), HaxeNamedComponent.class);
+      HaxeNamedComponent namedComponent = HaxeResolveUtil.findTypeParameterContributor(clazz.getBasePsi());
       if (namedComponent instanceof HaxeTypedefDeclaration) {
         final HaxeComponentName name = namedComponent.getComponentName();
         if (name != null) {
@@ -99,5 +101,34 @@ public class HaxeClassReference {
     // @TODO: This should check fqNames
     if (obj instanceof HaxeClassReference) return getName().equals(((HaxeClassReference)obj).getName());
     return false;
+  }
+
+  /**
+   * Checks whether two references refer to the same underlying haxe class.
+
+   * NOTE: May cause resolution of one or both references to occur.
+   *
+   * @param other - other HaxeClassReference to compare with.
+   * @return true if this reference refers to the same class as other; false otherwise.
+   */
+  public boolean refersToSameClass(@Nullable HaxeClassReference other) {
+    if (null == other) return false;
+
+    HaxeClass myClass = getHaxeClass();
+    if (null == myClass) return false;
+
+    HaxeClass otherClass = other.getHaxeClass();
+    if (null == otherClass) return false;
+
+    // Optimization
+    ASTNode myNode = myClass.getNode();
+    ASTNode otherNode = otherClass.getNode();
+    if (myNode == otherNode) return true;
+
+    String myClassName = null != myClass ? myClass.getQualifiedName() : null;
+    String otherClassName = null != otherClass ? otherClass.getQualifiedName() : null;
+
+    boolean isSame = null != myClassName && myClassName.equals(otherClassName);
+    return isSame;
   }
 }

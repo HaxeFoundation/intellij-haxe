@@ -1,8 +1,8 @@
 class Test1 implements Test3 {
   public function test(a:Int) return 10;
-  public function <error descr="Not compatible return type Int = 10 != String">test2</error>(b:Int) return 10;
+  public function <error descr="Incompatible return type: Int should be String">test2</error>(b:Int) return 10;
   public function test3(b:Int) return 'test';
-  public function test4(b:Int, <error descr="Unexpected argument">c:String</error>)<error descr="Not compatible return type String != Int">:String</error> {
+  public function test4(b:Int, <error descr="Unexpected argument">c:String</error>)<error descr="Incompatible return type: String should be Int">:String</error> {
     return 'test';
   }
 }

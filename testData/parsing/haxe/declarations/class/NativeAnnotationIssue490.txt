@@ -1,32 +1,43 @@
 Haxe File
+  PsiElement(EMBEDDED_META)
+    COMPILE_TIME_META
+      HaxePsiToken:@:('@:')
+      TYPE
+        HaxePsiToken:META_TYPE('native')
+      HaxePsiToken:(('(')
+      CONTENT
+        PsiElement(CT_META_ARGS)
+          COMPILE_TIME_META_ARG
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('Test')
+              HaxePsiToken:CLOSING_QUOTE('"')
+      HaxePsiToken:)(')')
   EXTERN_CLASS_DECLARATION
-    PsiModifierList:@:native("Test")
-      MACRO_CLASS
-        NATIVE_META
-          HaxePsiToken:@:native('@:native')
-          HaxePsiToken:(('(')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('Test')
-            HaxePsiToken:CLOSING_QUOTE('"')
-          HaxePsiToken:)(')')
-    EXTERN_KEY_WORD
-      HaxePsiToken:extern('extern ')
+    EXTERN_CLASS_MODIFIER_LIST
+      EXTERN_KEY_WORD
+        HaxePsiToken:extern('extern ')
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('NativeAnnotationIssue490')
-    HaxePsiToken:{('{')
     EXTERN_CLASS_DECLARATION_BODY
-      METHOD_DECLARATION
-        NATIVE_META
-          HaxePsiToken:@:native('@:native')
+      HaxePsiToken:{('{')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('native')
           HaxePsiToken:(('(')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('foo')
-            HaxePsiToken:CLOSING_QUOTE('"')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                STRING_LITERAL_EXPRESSION
+                  HaxePsiToken:OPEN_QUOTE('"')
+                  HaxePsiToken:REGULAR_STRING_PART('foo')
+                  HaxePsiToken:CLOSING_QUOTE('"')
           HaxePsiToken:)(')')
+      METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
           IDENTIFIER
@@ -43,15 +54,21 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Void')
         HaxePsiToken:;(';')
-      FIELD_DECLARATION
-        NATIVE_META
-          HaxePsiToken:@:native('@:native')
+      PsiElement(EMBEDDED_META)
+        COMPILE_TIME_META
+          HaxePsiToken:@:('@:')
+          TYPE
+            HaxePsiToken:META_TYPE('native')
           HaxePsiToken:(('(')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('a')
-            HaxePsiToken:CLOSING_QUOTE('"')
+          CONTENT
+            PsiElement(CT_META_ARGS)
+              COMPILE_TIME_META_ARG
+                STRING_LITERAL_EXPRESSION
+                  HaxePsiToken:OPEN_QUOTE('"')
+                  HaxePsiToken:REGULAR_STRING_PART('a')
+                  HaxePsiToken:CLOSING_QUOTE('"')
           HaxePsiToken:)(')')
+      FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
         COMPONENT_NAME
@@ -65,4 +82,4 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Int')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

@@ -7,45 +7,44 @@ Haxe File
     HaxePsiToken:=('=')
     TYPE_OR_ANONYMOUS
       ANONYMOUS_TYPE
-        HaxePsiToken:{('{')
         ANONYMOUS_TYPE_BODY
-          INTERFACE_BODY
-            FIELD_DECLARATION
-              MUTABILITY_MODIFIER
-                HaxePsiToken:var('var')
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('x')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Int')
-              HaxePsiToken:;(';')
-            FIELD_DECLARATION
-              MUTABILITY_MODIFIER
-                HaxePsiToken:var('var')
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('y')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Int')
-              HaxePsiToken:;(';')
-        HaxePsiToken:}('}')
+          HaxePsiToken:{('{')
+          FIELD_DECLARATION
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('x')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('Int')
+            HaxePsiToken:;(';')
+          FIELD_DECLARATION
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('y')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('Int')
+            HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Points')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -58,7 +57,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -67,8 +67,8 @@ Haxe File
                 HaxePsiToken::(':')
                 TYPE_OR_ANONYMOUS
                   ANONYMOUS_TYPE
-                    HaxePsiToken:{('{')
                     ANONYMOUS_TYPE_BODY
+                      HaxePsiToken:{('{')
                       TYPE_EXTENDS_LIST
                         HaxePsiToken:>('>')
                         TYPE
@@ -88,7 +88,7 @@ Haxe File
                                 REFERENCE_EXPRESSION
                                   IDENTIFIER
                                     HaxePsiToken:ID('Int')
-                    HaxePsiToken:}('}')
+                      HaxePsiToken:}('}')
           ASSIGN_EXPRESSION
             REFERENCE_EXPRESSION
               IDENTIFIER
@@ -120,4 +120,4 @@ Haxe File
               HaxePsiToken:}('}')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

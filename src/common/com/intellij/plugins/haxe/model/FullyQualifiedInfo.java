@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2019 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +64,7 @@ public class FullyQualifiedInfo {
         className = null;
         return;
       }
-      if (!Character.isLowerCase(identifier.charAt(0))) {
+      if (Character.isUpperCase(identifier.charAt(0))) {
         break;
       }
       if (i > 0) packagePathBuilder.append(PATH_SEPARATOR);

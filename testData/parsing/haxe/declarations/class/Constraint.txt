@@ -28,8 +28,8 @@ Haxe File
                     HaxePsiToken:ID('EventDispatcher')
         HaxePsiToken:)(')')
       HaxePsiToken:>('>')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
@@ -44,7 +44,7 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('T')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
@@ -64,8 +64,8 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('EventDispatcher')
       HaxePsiToken:>('>')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
@@ -80,7 +80,7 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('T')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
@@ -93,8 +93,8 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('T')
       HaxePsiToken:>('>')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
@@ -109,4 +109,4 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('T')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

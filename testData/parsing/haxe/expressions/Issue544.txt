@@ -20,8 +20,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('TestIssue544')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -39,7 +39,8 @@ Haxe File
           PsiComment(MSL_COMMENT)('//                          and here ---------------------------------------------+  |')
           PsiComment(MSL_COMMENT)('//                                                                                v  v')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -112,7 +113,8 @@ Haxe File
             HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// This should parse cleanly and not be in a dummy block.')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -140,4 +142,4 @@ Haxe File
                   HaxePsiToken:{('{')
                   HaxePsiToken:}('}')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

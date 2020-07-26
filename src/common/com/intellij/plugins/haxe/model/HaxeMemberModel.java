@@ -3,7 +3,7 @@
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
@@ -50,7 +52,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
            // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
            || ((declaringClass.isInterface() || declaringClass.isExtern()) && !hasModifier(PRIVATE))
            || isOverriddenPublicMethod()
-           || getDeclaringClass().hasMeta("@:publicFields");
+           || getDeclaringClass().hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS);
   }
 
   public boolean isFinal() {
@@ -88,6 +90,10 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     return hasModifier(HaxePsiModifier.STATIC);
   }
 
+  public boolean isInline() {
+    return hasModifier(INLINE);
+  }
+
   @NotNull
   public PsiElement getNameOrBasePsi() {
     PsiElement element = getNamePsi();
@@ -105,7 +111,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   public HaxeMemberModel getParentMember() {
     final HaxeClassModel aClass = getDeclaringClass().getParentClass();
-    return (aClass != null) ? aClass.getMember(this.getName()) : null;
+    return (aClass != null) ? aClass.getMember(this.getName(), null) : null;
   }
 
   @Nullable

@@ -7,8 +7,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('MapLiteral')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         MUTABILITY_MODIFIER
           HaxePsiToken:var('var')
@@ -66,7 +66,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('length')
               HaxePsiToken:)(')')
-              FAT_ARROW_EXPRESSION
+              MAP_INITIALIZER_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('n')
@@ -82,4 +82,4 @@ Haxe File
                   HaxePsiToken:](']')
             HaxePsiToken:](']')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

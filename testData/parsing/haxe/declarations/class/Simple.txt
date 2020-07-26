@@ -4,7 +4,6 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Simple')
-    HaxePsiToken:{('{')
     CLASS_BODY
-      <empty list>
-    HaxePsiToken:}('}')
+      HaxePsiToken:{('{')
+      HaxePsiToken:}('}')

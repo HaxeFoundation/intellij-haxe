@@ -1,5 +1,6 @@
 /*
  * Copyright 2018 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,9 +58,10 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
     return this.isAbstract;
   }
 
-  @NotNull
+  @Nullable
   public HaxeEnumValueDeclaration getEnumValuePsi() {
-    return (HaxeEnumValueDeclaration)getBasePsi();
+    PsiElement declaration = getBasePsi();
+    return declaration instanceof HaxeEnumValueDeclaration ? (HaxeEnumValueDeclaration)declaration : null;
   }
 
   @Nullable
@@ -74,7 +76,8 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
 
   @Nullable
   public HaxeParameterList getConstructorParameters() {
-    return !hasConstructor ? ((HaxeEnumValueDeclaration)getBasePsi()).getParameterList() : null;
+    HaxeEnumValueDeclaration declaration = getEnumValuePsi();
+    return null != declaration ? declaration.getParameterList() : null;
   }
 
   @Override

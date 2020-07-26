@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  * Copyright 2017-2018 Ilya Malanin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,10 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
@@ -51,7 +54,7 @@ import java.util.Set;
 /**
  * @author: Fedor.Korotkov
  */
-abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElementImpl
+abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
   private String myName;
@@ -131,7 +134,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxeMetaContainerElemen
           final ResultHolder resultType = model.getResultType();
           if (resultType != null) {
             result.append(":");
-            result.append(model.getResultType().toString());
+            result.append(resultType.toString());
           }
         }
 

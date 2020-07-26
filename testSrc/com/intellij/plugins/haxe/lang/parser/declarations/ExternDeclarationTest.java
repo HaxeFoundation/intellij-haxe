@@ -39,4 +39,8 @@ public class ExternDeclarationTest extends DeclarationTestBase {
   public void testInterface() throws Throwable {
     doTest(true);
   }
+
+  public void testFinal() throws Throwable {
+    doTest(true);
+  }
 }

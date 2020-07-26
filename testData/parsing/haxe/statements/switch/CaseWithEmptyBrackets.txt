@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('EmptySwitchCase')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
@@ -20,7 +20,8 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           LOCAL_VAR_DECLARATION_LIST
-            HaxePsiToken:var('var')
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
@@ -42,8 +43,9 @@ Haxe File
               HaxePsiToken:{('{')
               SWITCH_CASE
                 HaxePsiToken:case('case')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:true('true')
+                SWITCH_CASE_EXPR
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:true('true')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
                   LITERAL_EXPRESSION
@@ -64,8 +66,9 @@ Haxe File
                       HaxePsiToken:}('}')
               SWITCH_CASE
                 HaxePsiToken:case('case')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:false('false')
+                SWITCH_CASE_EXPR
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:false('false')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
                   OBJECT_LITERAL
@@ -74,4 +77,4 @@ Haxe File
                     HaxePsiToken:}('}')
               HaxePsiToken:}('}')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

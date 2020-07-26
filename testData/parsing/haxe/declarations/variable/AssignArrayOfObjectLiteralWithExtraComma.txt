@@ -10,73 +10,72 @@ Haxe File
     HaxePsiToken:=('=')
     TYPE_OR_ANONYMOUS
       ANONYMOUS_TYPE
-        HaxePsiToken:{('{')
         ANONYMOUS_TYPE_BODY
-          INTERFACE_BODY
-            FIELD_DECLARATION
-              MUTABILITY_MODIFIER
-                HaxePsiToken:var('var')
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('id')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('String')
-              HaxePsiToken:;(';')
-            FIELD_DECLARATION
-              MUTABILITY_MODIFIER
-                HaxePsiToken:var('var')
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('title')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('String')
-              HaxePsiToken:;(';')
-            FIELD_DECLARATION
-              MUTABILITY_MODIFIER
-                HaxePsiToken:var('var')
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('height')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Int')
-              HaxePsiToken:;(';')
-            FIELD_DECLARATION
-              MUTABILITY_MODIFIER
-                HaxePsiToken:var('var')
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('width')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Int')
-              HaxePsiToken:;(';')
-        HaxePsiToken:}('}')
+          HaxePsiToken:{('{')
+          FIELD_DECLARATION
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('id')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('String')
+            HaxePsiToken:;(';')
+          FIELD_DECLARATION
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('title')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('String')
+            HaxePsiToken:;(';')
+          FIELD_DECLARATION
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('height')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('Int')
+            HaxePsiToken:;(';')
+          FIELD_DECLARATION
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
+            COMPONENT_NAME
+              IDENTIFIER
+                HaxePsiToken:ID('width')
+            TYPE_TAG
+              HaxePsiToken::(':')
+              TYPE_OR_ANONYMOUS
+                TYPE
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('Int')
+            HaxePsiToken:;(';')
+          HaxePsiToken:}('}')
   CLASS_DECLARATION
     HaxePsiToken:class('class')
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Test')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       FIELD_DECLARATION
         FIELD_MODIFIER
           HaxePsiToken:private('private')
@@ -186,4 +185,4 @@ Haxe File
             PsiComment(MSL_COMMENT)('// <-- extra comma')
             HaxePsiToken:](']')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

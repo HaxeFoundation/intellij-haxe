@@ -228,6 +228,30 @@ public class HaxeStringUtil {
     return s.substring(0, len - ELLIPSES.length()) + ELLIPSES;
   }
 
+  /**
+   * Elides all characters between the first incidence of startChar and the last
+   * incidence of endChar.
+   *
+   * @param s String to elide.
+   * @param startChar Beginning character to start eliding at. Character is kept.
+   * @param endChar Last character to end eliding at. Character is kept.
+   * @return An elided string.
+   */
+  @Nullable
+  public static String elideBetween(@Nullable String s, char startChar, char endChar) {
+    if (null == s) return null;
+
+    int startPos = s.indexOf(startChar);
+    int endPos = s.lastIndexOf(endChar);
+    if (startPos < endPos - ELLIPSES.length()) {
+      StringBuilder b = new StringBuilder(s.substring(0,startPos+1));
+      b.append("...");
+      b.append(s.substring(endPos));
+      return b.toString();
+    }
+    return s;
+  }
+
 
   /**
    * Gets a version of the given string with a lower-cased first character.

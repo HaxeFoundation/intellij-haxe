@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeModifierListPsiMixin;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.impl.source.PsiModifierListImpl;
@@ -36,7 +41,7 @@ import java.util.HashMap;
  */
 public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements HaxeModifierListPsiMixin {
 
-  private HashMap<String, String> mModifierStatusMap;
+  private final HashMap<String, String> mModifierStatusMap;
 
   public HaxeModifierListPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
@@ -56,7 +61,7 @@ public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements
   @Override
   public void setModifierProperty(@PsiModifier.ModifierConstant @NotNull @NonNls String name, boolean value)
     throws IncorrectOperationException {
-    mModifierStatusMap.put(name, new Boolean(value).toString());
+    mModifierStatusMap.put(name, Boolean.toString(value));
   }
 
   @Override
@@ -103,6 +108,17 @@ public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements
 
   @Override
   public IElementType getTokenType() {
-    return HaxeTokenTypes.MACRO_CLASS_LIST;
+    return HaxeTokenTypes.CLASS_MODIFIER_LIST;
+  }
+
+  @NotNull
+  @Override
+  public HaxeMetadataList getMetadataList(@Nullable Class<? extends HaxeMeta> metadataType) {
+    return HaxeMetadataUtils.getMetadataList(this, metadataType);
+  }
+
+  @Override
+  public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
+    return HaxeMetadataUtils.hasMeta(this, metadataType, name);
   }
 }

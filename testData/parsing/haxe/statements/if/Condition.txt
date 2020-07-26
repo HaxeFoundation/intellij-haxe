@@ -4,8 +4,8 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Condition')
-    HaxePsiToken:{('{')
     CLASS_BODY
+      HaxePsiToken:{('{')
       METHOD_DECLARATION
         HaxePsiToken:function('function')
         COMPONENT_NAME
@@ -25,37 +25,39 @@ Haxe File
         BLOCK_STATEMENT
           HaxePsiToken:{('{')
           IF_STATEMENT
-            HaxePsiToken:if('if')
-            HaxePsiToken:(('(')
-            LOGIC_AND_EXPRESSION
-              CALL_EXPRESSION
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('isPrime')
-                HaxePsiToken:(('(')
-                EXPRESSION_LIST
-                  LITERAL_EXPRESSION
-                    HaxePsiToken:LITINT('239')
-                HaxePsiToken:)(')')
-              HaxePsiToken:&&('&&')
-              PARENTHESIZED_EXPRESSION
-                HaxePsiToken:(('(')
-                COMPARE_EXPRESSION
-                  BITWISE_EXPRESSION
+            GUARD
+              HaxePsiToken:if('if')
+              HaxePsiToken:(('(')
+              LOGIC_AND_EXPRESSION
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('isPrime')
+                  HaxePsiToken:(('(')
+                  EXPRESSION_LIST
                     LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('3')
-                    BIT_OPERATION
-                      HaxePsiToken:^('^')
+                      HaxePsiToken:LITINT('239')
+                  HaxePsiToken:)(')')
+                HaxePsiToken:&&('&&')
+                PARENTHESIZED_EXPRESSION
+                  HaxePsiToken:(('(')
+                  COMPARE_EXPRESSION
+                    BITWISE_EXPRESSION
+                      LITERAL_EXPRESSION
+                        HaxePsiToken:LITINT('3')
+                      BIT_OPERATION
+                        HaxePsiToken:^('^')
+                      LITERAL_EXPRESSION
+                        HaxePsiToken:LITINT('5')
+                    COMPARE_OPERATION
+                      HaxePsiToken:==('==')
                     LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('5')
-                  COMPARE_OPERATION
-                    HaxePsiToken:==('==')
-                  LITERAL_EXPRESSION
-                    HaxePsiToken:LITINT('6')
-                HaxePsiToken:)(')')
-            HaxePsiToken:)(')')
-            BLOCK_STATEMENT
-              HaxePsiToken:{('{')
-              HaxePsiToken:}('}')
+                      HaxePsiToken:LITINT('6')
+                  HaxePsiToken:)(')')
+              HaxePsiToken:)(')')
+            GUARDED_STATEMENT
+              BLOCK_STATEMENT
+                HaxePsiToken:{('{')
+                HaxePsiToken:}('}')
           HaxePsiToken:}('}')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

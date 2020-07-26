@@ -11,8 +11,8 @@ Haxe File
           IDENTIFIER
             HaxePsiToken:ID('T')
       HaxePsiToken:>('>')
-    HaxePsiToken:{('{')
     ENUM_BODY
+      HaxePsiToken:{('{')
       ENUM_VALUE_DECLARATION
         COMPONENT_NAME
           IDENTIFIER
@@ -59,4 +59,4 @@ Haxe File
                     HaxePsiToken:>('>')
         HaxePsiToken:)(')')
         HaxePsiToken:;(';')
-    HaxePsiToken:}('}')
+      HaxePsiToken:}('}')

@@ -1,8 +1,8 @@
 /*
- * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2000-2018 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,51 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * --------------------------------------------------------------------------------
+ * Portions of this file were copied from from JavaCodeInsightFixtureTestCase.java,
+ * from the IntelliJ IDEA community sources, under the above license.
+ * --------------------------------------------------------------------------------
  */
 package com.intellij.plugins.haxe;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.plugins.haxe.build.ClassWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
-import com.intellij.plugins.haxe.build.MethodWrapper;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
+import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.testFramework.UsefulTestCase;
+import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
+import com.intellij.testFramework.builders.ModuleFixtureBuilder;
+import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
+import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Created by fedorkorotkov.
  */
-abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixtureTestCase {
+abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
+  protected CodeInsightTestFixture myFixture;
+  private ModuleFixtureBuilder moduleFixtureBuilder;
+  protected String myHaxeToolkit = null;
+
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   protected HaxeCodeInsightFixtureTestCase() {
     super();
@@ -42,8 +67,111 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
   }
 
   @Override
-  protected String getTestDataPath() {
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    final IdeaTestFixtureFactory testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
+    testFixtureFactory.registerFixtureBuilder(MyHaxeModuleFixtureBuilderImpl.class, MyHaxeModuleFixtureBuilderImpl.class);
+    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = testFixtureFactory.createFixtureBuilder(getName());
+    myFixture = testFixtureFactory.createCodeInsightFixture(projectBuilder.getFixture());
+    moduleFixtureBuilder = projectBuilder.addModule(MyHaxeModuleFixtureBuilderImpl.class);
+
+    if (toAddSourceRoot()) {
+      moduleFixtureBuilder.addSourceContentRoot(myFixture.getTempDirPath());
+    } else {
+      moduleFixtureBuilder.addContentRoot(myFixture.getTempDirPath());
+    }
+
+    if (usingHaxeToolkit()) {
+      moduleFixtureBuilder.addSourceContentRoot(myHaxeToolkit);
+    }
+
+    tuneFixture(moduleFixtureBuilder);
+
+    myFixture.setTestDataPath(getTestDataPath());
+    myFixture.setUp();
+    LanguageLevelProjectExtension.getInstance(getProject()).setLanguageLevel(LanguageLevel.JDK_1_6);
+  }
+
+  protected boolean toAddSourceRoot() {
+    return true;
+  }
+
+  protected boolean usingHaxeToolkit() {
+    return null != myHaxeToolkit;
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myFixture.tearDown();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
+      myFixture = null;
+      super.tearDown();
+    }
+  }
+
+  protected void addSuppressedException(@NotNull Throwable e) {
+    // This routine is overridden for compatibility's sake only.  It can be deleted when we no longer
+    // test with pre 18.3 versions of idea.
+
+    if (IdeaTarget.IS_VERSION_18_3_COMPATIBLE) {
+      try {
+        Method sase = super.getClass().getDeclaredMethod("addSuppressedException", Throwable.class);
+        sase.invoke(e);
+      }
+      catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+        // TODO: Bubble the exception out??
+        assertEmpty("Could not find or execute addSuppressedException. Was it removed?");
+      }
+    } else {
+      assertEmpty("Exception during teardown:" + e.getMessage() + "\n" + e.getStackTrace());
+    }
+  }
+
+    /**
+     * Return relative path to the test data. Path is relative to the
+     * {@link PathManager#getHomePath()}
+     *
+     * @return relative path to the test data.
+     */
+  @NonNls
+  abstract protected String getBasePath();
+
+  /**
+   * Return absolute path to the test data. Not intended to be overridden.
+   *
+   * @return absolute path to the test data.
+   */
+  @NonNls
+  //protected String getTestDataPath() {
+  //  return PathManager.getHomePath().replace(File.separatorChar, '/') + getBasePath();
+  //}
+  public String getTestDataPath() {
     return HaxeTestUtils.BASE_TEST_DATA_PATH + getBasePath();
+  }
+
+  @SuppressWarnings("rawtypes")
+  protected void tuneFixture(final ModuleFixtureBuilder moduleBuilder) throws Exception {}
+
+  protected Project getProject() {
+    return myFixture.getProject();
+  }
+
+  protected PsiManagerEx getPsiManager() {
+    return PsiManagerEx.getInstanceEx(getProject());
+  }
+
+  public PsiElementFactory getElementFactory() {
+    return JavaPsiFacade.getElementFactory(getProject());
+  }
+
+  protected Module getModule() {
+    return myFixture.getModule();
   }
 
   /**
@@ -85,5 +213,36 @@ abstract public class HaxeCodeInsightFixtureTestCase extends JavaCodeInsightFixt
     indentOptions.INDENT_SIZE = indent;
     assertNotNull(indentOptions);
     CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);
+  }
+
+  public String[] useToolkitFiles(String... files) {
+    List<String> tkFiles = HaxeTestUtils.useToolkitFiles(this, HaxeTestUtils.LATEST, files);
+    return tkFiles.toArray(new String[tkFiles.size()]);
+  }
+
+  public void useHaxeToolkit() {
+    useHaxeToolkit(HaxeTestUtils.LATEST);
+  }
+
+  public void useHaxeToolkit(String version) {
+    String relativeParent = HaxeTestUtils.getAbsoluteToolkitPath(version);
+    assert(null != relativeParent);
+    myHaxeToolkit = relativeParent;
+  }
+
+  public CodeInsightTestFixture getFixture() {
+    return myFixture;
+  }
+
+  public static class MyHaxeModuleFixtureBuilderImpl extends ModuleFixtureBuilderImpl {
+    public MyHaxeModuleFixtureBuilderImpl(final TestFixtureBuilder<? extends IdeaProjectTestFixture> testFixtureBuilder) {
+      super(new HaxeModuleType(), testFixtureBuilder);
+    }
+
+    @NotNull
+    @Override
+    protected ModuleFixture instantiateFixture() {
+      return new ModuleFixtureImpl(this);
+    }
   }
 }
