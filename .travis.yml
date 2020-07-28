@@ -13,6 +13,9 @@ jobs:
       env: IDEA_VERSION=2019.2
 
     - os: linux
+      env: IDEA_VERSION=2020.1.4
+      jdk: openjdk8
+    - os: linux
       env: IDEA_VERSION=2019.3.5
       jdk: openjdk8
     - os: linux
