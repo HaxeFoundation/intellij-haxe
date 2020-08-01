@@ -74,6 +74,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // Set this true when debugging the resolver.
     boolean skipCachingForDebug = false;  // Should always be false when checked in.
 
+    // Kill circular resolutions -- before checking the cache.
+    if (isResolving(reference)) {
+      reportSkip(reference);
+      return EMPTY_LIST;
+    }
+
     // If we are in dumb mode (e.g. we are still indexing files and resolving may
     // fail until the indices are complete), we don't want to cache the (likely incorrect)
     // results.
@@ -106,20 +112,25 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return elements;
   }
 
+  private boolean isResolving(@NotNull HaxeReference reference) {
+    Stack<String> stack = referencesProcessing.get();
+    String referenceText = reference.getText();
+    return stack.contains(referenceText);
+  }
+
+  private void reportSkip(HaxeReference reference) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(traceMsg("-----------------------------------------"));
+      LOG.trace(traceMsg("Skipping circular resolve for reference: " + reference.getText()));
+      LOG.trace(traceMsg("-----------------------------------------"));
+    }
+  }
+
   private List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
     Stack<String> stack = referencesProcessing.get();
     boolean traceEnabled = LOG.isTraceEnabled();
 
     String referenceText = reference.getText();
-    if (stack.contains(referenceText)) {
-      if (traceEnabled) {
-        LOG.trace(traceMsg("-----------------------------------------"));
-        LOG.trace(traceMsg("Skipping circular resolve for reference: " + referenceText));
-        LOG.trace(traceMsg("-----------------------------------------"));
-      }
-      return EMPTY_LIST;
-    }
-
     stack.push(referenceText);
     try {
       if (traceEnabled) {
