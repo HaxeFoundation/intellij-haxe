@@ -18,7 +18,6 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,6 +56,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
@@ -593,7 +593,11 @@ public class HaxelibProjectUpdater {
         else {
           // XXX: EMB - Not sure of the validity of using this path if xml lib isn't specified.
 
-          File dir = BuildProperties.getProjectBaseDir(project);
+          @SystemIndependent String projectBasePath = project.getBasePath();
+          if (null == projectBasePath) {
+            projectBasePath = "";
+          }
+          File dir = new File(projectBasePath);
           List<String> projectClasspaths =
             HaxelibClasspathUtils.getProjectDisplayInformation(project, dir, "openfl",
                                                                HaxelibSdkUtils.lookupSdk(module));

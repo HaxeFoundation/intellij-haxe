@@ -79,7 +79,7 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
 
   @Override
   public boolean processElementUsages(@NotNull PsiElement element,
-                                      @NotNull Processor<UsageInfo> processor,
+                                      @NotNull Processor<? super UsageInfo> processor,
                                       @NotNull FindUsagesOptions options) {
     final SearchScope scope = options.searchScope;
 
@@ -124,7 +124,7 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
   }
 
   @NotNull
-  private static ReadActionProcessor<PsiReference> getSimpleSearchProcessor(@NotNull Processor<UsageInfo> processor) {
+  private static ReadActionProcessor<PsiReference> getSimpleSearchProcessor(@NotNull Processor<? super UsageInfo> processor) {
     return new ReadActionProcessor<PsiReference>() {
       @Override
       public boolean processInReadAction(final PsiReference ref) {
@@ -136,7 +136,7 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
   }
 
   @NotNull
-  private static ReadActionProcessor<PsiReference> getConstructorSearchProcessor(@NotNull Processor<UsageInfo> processor) {
+  private static ReadActionProcessor<PsiReference> getConstructorSearchProcessor(@NotNull Processor<? super UsageInfo> processor) {
     return new ReadActionProcessor<PsiReference>() {
       @Override
       public boolean processInReadAction(PsiReference reference) {
