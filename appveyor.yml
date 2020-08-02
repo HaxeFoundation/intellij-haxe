@@ -12,6 +12,8 @@ environment:
         - IDEA_VERSION: 2017.2.7
         - IDEA_VERSION: 2017.3.5
         - IDEA_VERSION: 2018.1.6
+        - IDEA_VERSION: 2019.3.5
+        - IDEA_VERSION: 2020.1.4
 
 install:
     # disable windows update service

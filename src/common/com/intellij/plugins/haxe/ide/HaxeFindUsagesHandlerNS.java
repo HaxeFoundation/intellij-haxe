@@ -45,42 +45,28 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class HaxeFindUsagesHandler extends FindUsagesHandler {
+/**
+ * Worker (super)class for HaxeFindUsagesHandler. (@see {@link FindUsagesHandler})
+ *
+ * Refactored out of HaxeFindUsageHandler so that the {@link HaxeFindUsagesHandler#processElementUsages}
+ * method could have a different signature for legacy builds.
+ */
 
+public abstract class HaxeFindUsagesHandlerNS extends FindUsagesHandler {
   private static final String SETTER_PREFIX = "set_";
   private static final String GETTER_PREFIX = "get_";
+  protected final PsiElement[] extraElementsToSearch;
 
-  private final PsiElement[] extraElementsToSearch;
-
-  protected HaxeFindUsagesHandler(@NotNull PsiElement psiElement) {
-    this(psiElement, PsiElement.EMPTY_ARRAY);
-  }
-
-  protected HaxeFindUsagesHandler(@NotNull PsiElement psiElement, @Nullable PsiElement[] others) {
+  public HaxeFindUsagesHandlerNS(
+    PsiElement psiElement,
+    @Nullable PsiElement[] others) {
     super(psiElement);
     extraElementsToSearch = others != null ? others : PsiElement.EMPTY_ARRAY;
   }
 
-  @NotNull
-  @Override
-  public AbstractFindUsagesDialog getFindUsagesDialog(boolean isSingleFile, boolean toShowInNewTab, boolean mustOpenInNewTab) {
-    return super.getFindUsagesDialog(isSingleFile, toShowInNewTab, mustOpenInNewTab);
-  }
-
-  @NotNull
-  @Override
-  public PsiElement[] getPrimaryElements() {
-    // Return the element.  In Java, this checks for the named parameter in overriding methods (and lamdas) and adds them to to search scope.
-    // See @{JavaFindUsagesProvider#getPrimaryElements}
-
-    // We check for the presence of overriding methods, et cetera, before we create this handler.
-    return ArrayUtil.mergeArrays(super.getPrimaryElements(), extraElementsToSearch);
-  }
-
-  @Override
-  public boolean processElementUsages(@NotNull PsiElement element,
-                                      @NotNull Processor<UsageInfo> processor,
-                                      @NotNull FindUsagesOptions options) {
+  protected boolean processElementUsagesWorker(@NotNull PsiElement element,
+                                               @NotNull Processor<UsageInfo> processor,
+                                               @NotNull FindUsagesOptions options) {
     final SearchScope scope = options.searchScope;
 
     final boolean searchText = options.isSearchForTextOccurrences && scope instanceof GlobalSearchScope;
@@ -124,7 +110,7 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
   }
 
   @NotNull
-  private static ReadActionProcessor<PsiReference> getSimpleSearchProcessor(@NotNull Processor<UsageInfo> processor) {
+  private static ReadActionProcessor<PsiReference> getSimpleSearchProcessor(@NotNull Processor<? super UsageInfo> processor) {
     return new ReadActionProcessor<PsiReference>() {
       @Override
       public boolean processInReadAction(final PsiReference ref) {
@@ -136,7 +122,7 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
   }
 
   @NotNull
-  private static ReadActionProcessor<PsiReference> getConstructorSearchProcessor(@NotNull Processor<UsageInfo> processor) {
+  private static ReadActionProcessor<PsiReference> getConstructorSearchProcessor(@NotNull Processor<? super UsageInfo> processor) {
     return new ReadActionProcessor<PsiReference>() {
       @Override
       public boolean processInReadAction(PsiReference reference) {
@@ -149,22 +135,6 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
         return true;
       }
     };
-  }
-
-  @NotNull
-  @Override
-  public PsiElement[] getSecondaryElements() {
-    PsiElement[] secondaryElements = ReadAction.compute(() -> {
-      if (getPsiElement() instanceof HaxeMethodDeclaration) {
-        return tryGetProperty((HaxeMethodDeclaration)getPsiElement());
-      } else if (getPsiElement() instanceof HaxeFieldDeclaration &&
-                 ((HaxeFieldDeclaration)getPsiElement()).getPropertyDeclaration() != null) {
-        return tryGetPropertyAccessMethods((HaxeFieldDeclaration)getPsiElement());
-      }
-      return null;
-    });
-
-    return secondaryElements == null ? super.getSecondaryElements() : secondaryElements;
   }
 
   @Nullable
@@ -194,5 +164,37 @@ public class HaxeFindUsagesHandler extends FindUsagesHandler {
     if (getterMethod != null) methods.add(getterMethod.getBasePsi());
 
     return methods.size() == 0 ? null : methods.toArray(PsiElement.EMPTY_ARRAY);
+  }
+
+  @NotNull
+  @Override
+  public AbstractFindUsagesDialog getFindUsagesDialog(boolean isSingleFile, boolean toShowInNewTab, boolean mustOpenInNewTab) {
+    return super.getFindUsagesDialog(isSingleFile, toShowInNewTab, mustOpenInNewTab);
+  }
+
+  @NotNull
+  @Override
+  public PsiElement[] getPrimaryElements() {
+    // Return the element.  In Java, this checks for the named parameter in overriding methods (and lamdas) and adds them to to search scope.
+    // See @{JavaFindUsagesProvider#getPrimaryElements}
+
+    // We check for the presence of overriding methods, et cetera, before we create this handler.
+    return ArrayUtil.mergeArrays(super.getPrimaryElements(), extraElementsToSearch);
+  }
+
+  @NotNull
+  @Override
+  public PsiElement[] getSecondaryElements() {
+    PsiElement[] secondaryElements = ReadAction.compute(() -> {
+      if (getPsiElement() instanceof HaxeMethodDeclaration) {
+        return HaxeFindUsagesHandlerNS.tryGetProperty((HaxeMethodDeclaration)getPsiElement());
+      } else if (getPsiElement() instanceof HaxeFieldDeclaration &&
+                 ((HaxeFieldDeclaration)getPsiElement()).getPropertyDeclaration() != null) {
+        return HaxeFindUsagesHandlerNS.tryGetPropertyAccessMethods((HaxeFieldDeclaration)getPsiElement());
+      }
+      return null;
+    });
+
+    return secondaryElements == null ? super.getSecondaryElements() : secondaryElements;
   }
 }

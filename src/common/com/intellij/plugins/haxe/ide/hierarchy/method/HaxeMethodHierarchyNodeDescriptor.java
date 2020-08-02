@@ -26,6 +26,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.util.CompositeAppearance;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Iconable;
+import com.intellij.plugins.haxe.build.FieldWrapper;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyNodeDescriptor;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
@@ -116,7 +118,8 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HaxeHierarchyNodeDe
       if (myIsBase) {
         final LayeredIcon icon = new LayeredIcon(2);
         icon.setIcon(newIcon, 0);
-        icon.setIcon(AllIcons.Hierarchy.Base, 1, -AllIcons.Hierarchy.Base.getIconWidth() / 2, 0);
+        Icon baseIcon = getModifiedIcon();
+        icon.setIcon(baseIcon, 1, -baseIcon.getIconWidth() / 2, 0);
         newIcon = icon;
       }
 
@@ -150,6 +153,17 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HaxeHierarchyNodeDe
     }
     return changes;
   }
+
+  public static Icon getModifiedIcon() {
+    FieldWrapper<Icon> wrapper;
+    if (IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
+      wrapper = new FieldWrapper<>(AllIcons.General.class, "Modified");
+    } else {
+      wrapper = new FieldWrapper<>(AllIcons.Hierarchy.class, "Base");
+    }
+    return wrapper.get(null);
+  }
+
 
   private Icon calculateState(final PsiClass psiClass) {
     final PsiMethod method = getMethod(psiClass, false);

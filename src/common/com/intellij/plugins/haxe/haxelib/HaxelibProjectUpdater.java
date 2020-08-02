@@ -18,7 +18,6 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.compiler.ant.BuildProperties;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -593,7 +592,11 @@ public class HaxelibProjectUpdater {
         else {
           // XXX: EMB - Not sure of the validity of using this path if xml lib isn't specified.
 
-          File dir = BuildProperties.getProjectBaseDir(project);
+          String projectBasePath = project.getBasePath();
+          if (null == projectBasePath) {
+            projectBasePath = "";
+          }
+          File dir = new File(projectBasePath);
           List<String> projectClasspaths =
             HaxelibClasspathUtils.getProjectDisplayInformation(project, dir, "openfl",
                                                                HaxelibSdkUtils.lookupSdk(module));

@@ -26,6 +26,7 @@ import com.intellij.openapi.roots.ui.util.CompositeAppearance;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyNodeDescriptor;
+import com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyNodeDescriptor;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeExternClassDeclaration;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -34,6 +35,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.ui.LayeredIcon;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -70,7 +72,8 @@ final public class HaxeTypeHierarchyNodeDescriptor extends HaxeHierarchyNodeDesc
     if (changes && myIsBase) {
       final LayeredIcon icon = new LayeredIcon(2);
       icon.setIcon(getIcon(), 0);
-      icon.setIcon(AllIcons.Hierarchy.Base, 1, -AllIcons.Hierarchy.Base.getIconWidth() / 2, 0);
+      Icon baseIcon = HaxeMethodHierarchyNodeDescriptor.getModifiedIcon();
+      icon.setIcon(baseIcon, 1, -baseIcon.getIconWidth() / 2, 0);
       setIcon(icon);
     }
 

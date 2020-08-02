@@ -83,6 +83,7 @@
       <p/>
       <p>Unreleased Changes</p>
       <ul>
+        <li>IDEA Versions 2020.1 and 2019.3 support.</li>
         <li>Rewrite metadata handling:
           <ul>
             <li>Allow metadata at all positions.</li>
