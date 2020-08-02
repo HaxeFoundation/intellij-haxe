@@ -56,7 +56,6 @@ import com.intellij.psi.xml.XmlFile;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
@@ -593,7 +592,7 @@ public class HaxelibProjectUpdater {
         else {
           // XXX: EMB - Not sure of the validity of using this path if xml lib isn't specified.
 
-          @SystemIndependent String projectBasePath = project.getBasePath();
+          String projectBasePath = project.getBasePath();
           if (null == projectBasePath) {
             projectBasePath = "";
           }

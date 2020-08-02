@@ -26,6 +26,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.util.ArrayUtil;
@@ -448,13 +449,18 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
-  // Modified test case now has errors.  Fix it later.
-  //public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
-  //  doTestNoFixWithWarnings();
-  //}
+  public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
+    if (!IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
+      doTestNoFixWithWarnings();
+    }
+  }
 
   public void testMissingInterfaceMethodsOnConstrainedGenericOverrides() throws Exception {
-    doTestNoFixWithWarnings();
+    // Pre-2020.1, the underlying (Java) class/symbol map code worked a bit differently, and the
+    // missing overrides were not detected.
+    if (IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
+      doTestNoFixWithWarnings();
+    }
   }
 
   //public void testAssignmentOfParameterizedType() throws Exception {
