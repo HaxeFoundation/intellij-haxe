@@ -25,6 +25,7 @@ package com.intellij.plugins.haxe;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -123,14 +124,19 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
       try {
         Method sase = super.getClass().getDeclaredMethod("addSuppressedException", Throwable.class);
         sase.invoke(e);
+        return;
       }
-      catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-        // TODO: Bubble the exception out??
-        assertEmpty("Could not find or execute addSuppressedException. Was it removed?");
+      catch (NoSuchMethodException ex) {
+        Logger.getInstance("#HaxeCodeInsightFixtureTestCase")
+          .warn("Could not find UsefulTestCase.addSuppressedException(). Was it removed?");
       }
-    } else {
-      assertEmpty("Exception during teardown:" + e.getMessage() + "\n" + e.getStackTrace());
+      catch (IllegalAccessException | InvocationTargetException ex) {
+        Logger.getInstance("#HaxeCodeInsightFixtureTestCase")
+          .warn("Could not execute UsefulTestCase.addSuppressedException(): " + ex.getMessage() + "\n" + e.getStackTrace());
+      }
     }
+
+    assertEmpty("Exception during teardown:" + e.getMessage() + "\n" + e.getStackTrace());
   }
 
     /**
