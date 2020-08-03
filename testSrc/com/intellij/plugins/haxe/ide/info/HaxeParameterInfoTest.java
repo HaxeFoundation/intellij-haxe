@@ -46,9 +46,10 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    super.tearDown();
+    // Must come before super.tearDown because oldLogSettings is cleared magically (via reflection).
     oldLogSettings.restore();
     oldLogSettings = null;
+    super.tearDown();
   }
 
   @NotNull
