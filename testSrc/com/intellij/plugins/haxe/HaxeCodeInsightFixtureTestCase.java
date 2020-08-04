@@ -47,14 +47,21 @@ import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
+import com.intellij.util.ReflectionUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by fedorkorotkov.
@@ -108,6 +115,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      cleanupUnexpiredAppleUITimers();
       myFixture.tearDown();
     }
     catch (Throwable e) {
@@ -116,6 +124,38 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     finally {
       myFixture = null;
       super.tearDown();
+    }
+  }
+
+  protected void cleanupUnexpiredAppleUITimers() {
+    // NOTE: On macOS, plugin tests fail because swing timers which have nothing to do with the plugin test aren't being disposed.
+    // See TestApplicationManagerKt.checkJavaSwingTimersAreDisposed, from which this code is adapted.
+    try {
+      Class<?> timerQueueClass = Class.forName("javax.swing.TimerQueue");
+      Method sharedInstance = timerQueueClass.getMethod("sharedInstance");
+      sharedInstance.setAccessible(true);
+      Object timerQueue = sharedInstance.invoke(null);
+      DelayQueue<?> delayQueue = ReflectionUtil.getField(timerQueueClass, timerQueue, DelayQueue.class, "queue");
+
+      // Iterator for DelayQueue is a snapshot, so manipulating delayQueue has no effect on the iterator.
+      for (Object queuedObject: delayQueue) {
+        if (queuedObject instanceof Delayed) {
+          Delayed timer = (Delayed)queuedObject;
+
+          Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
+          Timer swingTimer = (Timer) getTimer.invoke(timer);
+          ActionListener[] listeners = swingTimer.getActionListeners();
+          if (listeners.length == 1 && listeners[0].toString().contains("AquaProgressBarUI")) {
+
+            swingTimer.stop();
+          }
+        }
+      }
+    } catch ( ClassNotFoundException
+            | NoSuchMethodException
+            | IllegalAccessException
+            | InvocationTargetException e) {
+      addSuppressedException(e);
     }
   }
 
