@@ -33,6 +33,7 @@ import com.intellij.plugins.haxe.build.ClassWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
@@ -49,6 +50,8 @@ import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -132,11 +135,12 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
       }
       catch (IllegalAccessException | InvocationTargetException ex) {
         Logger.getInstance("#HaxeCodeInsightFixtureTestCase")
-          .warn("Could not execute UsefulTestCase.addSuppressedException(): " + ex.getMessage() + "\n" + e.getStackTrace());
+          .warn("Could not execute UsefulTestCase.addSuppressedException(): ", ex);
       }
     }
 
-    assertEmpty("Exception during teardown:" + e.getMessage() + "\n" + e.getStackTrace());
+    String stackInfo = HaxeDebugUtil.getExceptionStackAsString(e);
+    assertEmpty("Exception during teardown:" + e.getMessage() + "\n" + stackInfo);
   }
 
     /**
