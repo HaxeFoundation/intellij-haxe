@@ -144,11 +144,13 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
 
           Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
           Timer swingTimer = (Timer) getTimer.invoke(timer);
-          ActionListener[] listeners = swingTimer.getActionListeners();
-          if (listeners.length == 1 && listeners[0].toString().contains("AquaProgressBarUI")) {
-
-            swingTimer.stop();
+          for (ActionListener listener : swingTimer.getActionListeners()) {
+            System.out.println(" -> open listener:" + listener.toString());
+            if (listener.toString().contains("AquaProgressBarUI")) {
+              swingTimer.stop();
+            }
           }
+
         }
       }
     } catch ( ClassNotFoundException
