@@ -19,24 +19,31 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.plugins.haxe.build.IdeaTarget;
+import com.intellij.plugins.haxe.build.MethodWrapper;
+import com.intellij.plugins.haxe.build.UnsupportedMethodException;
+import com.intellij.testFramework.UsefulTestCase;
+import com.intellij.util.ReflectionUtil;
+import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.function.Consumer;
 
 /**
  * Created by fedorkorotkov.
  */
 public class HaxeTestUtils {
+  public static final Logger LOG = Logger.getInstance("#HaxeTestUtils");
 
   public static final String HAXE_TOOLKIT_BASE_DIR = "haxe";
   public static final String HAXE_STDLIB_DIR = "std";
@@ -123,5 +130,76 @@ public class HaxeTestUtils {
       return f.getAbsolutePath();
     }
     return PathManager.getHomePath() + "/plugins/haxe/testData";
+  }
+
+  /**
+   * Finds unterminated UI timers (that probably have nothing to do with your tests) and shuts them down.
+   *
+   * Call this in your test's tearDown() method before calling super.tearDown().
+   * @param exceptionHandler
+   */
+  public static void cleanupUnexpiredAppleUITimers(Consumer<Throwable> exceptionHandler) {
+    // NOTE: On macOS, plugin tests fail because swing timers which have nothing to do with the plugin test aren't being disposed.
+    // See TestApplicationManagerKt.checkJavaSwingTimersAreDisposed, from which this code is adapted.
+    try {
+      Class<?> timerQueueClass = Class.forName("javax.swing.TimerQueue");
+      Method sharedInstance = timerQueueClass.getMethod("sharedInstance");
+      sharedInstance.setAccessible(true);
+      Object timerQueue = sharedInstance.invoke(null);
+      DelayQueue<?> delayQueue = ReflectionUtil.getField(timerQueueClass, timerQueue, DelayQueue.class, "queue");
+
+      // Iterator for DelayQueue is a snapshot, so manipulating delayQueue has no effect on the iterator.
+      for (Object queuedObject: delayQueue) {
+        if (queuedObject instanceof Delayed) {
+          Delayed timer = (Delayed)queuedObject;
+
+          Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
+          Timer swingTimer = (Timer) getTimer.invoke(timer);
+          for (ActionListener listener : swingTimer.getActionListeners()) {
+            System.out.println(" -> open listener:" + listener.toString());
+            if (listener.toString().contains("AquaProgressBarUI")) {
+              swingTimer.stop();
+            }
+          }
+
+        }
+      }
+    } catch ( ClassNotFoundException
+            | NoSuchMethodException
+            | IllegalAccessException
+            | InvocationTargetException e) {
+      exceptionHandler.accept(e);
+    }
+  }
+
+  /**
+   * Common implementation of addSuppressedException to be used in all of the Haxe test classes.
+   *
+   * It is expected that the test class will implement addSuppressedException by
+   * calling this.  However, addSuppressedException is only overridden in our tests for compatibility's sake.
+   * It (and this implementation) can be deleted when we no longer test with pre 18.3 versions of idea.
+   *
+   * NOTE: It would have been better to place this code in a common base class for all Haxe test
+   *       classes.  However, there is no such thing; our tests override many different test classes.
+   *
+   * @param e
+   * @param testCase
+   */
+  public static void suppressException(@NotNull Throwable e, @NotNull UsefulTestCase testCase) {
+
+    if (IdeaTarget.IS_VERSION_18_3_COMPATIBLE) {
+      try {
+
+        MethodWrapper sase = new MethodWrapper(testCase.getClass().getSuperclass(), true, "addSuppressedException", Throwable.class);
+        sase.invoke(e);
+        return;
+      }
+      catch (UnsupportedMethodException ex) {
+        LOG.warn("Could not find or execute addSuppressedException() in any test super class. Was it removed?");
+      }
+    }
+
+    String stackInfo = HaxeDebugUtil.getExceptionStackAsString(e);
+    LOG.warn("Exception during teardown:" + e.getMessage() + "\n" + stackInfo);
   }
 }

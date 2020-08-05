@@ -25,7 +25,6 @@ package com.intellij.plugins.haxe;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -33,7 +32,6 @@ import com.intellij.plugins.haxe.build.ClassWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
-import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
@@ -42,26 +40,14 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
-import com.intellij.util.ReflectionUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.event.ActionListener;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by fedorkorotkov.
@@ -115,7 +101,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      cleanupUnexpiredAppleUITimers();
+      HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
       myFixture.tearDown();
     }
     catch (Throwable e) {
@@ -127,62 +113,10 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     }
   }
 
-  protected void cleanupUnexpiredAppleUITimers() {
-    // NOTE: On macOS, plugin tests fail because swing timers which have nothing to do with the plugin test aren't being disposed.
-    // See TestApplicationManagerKt.checkJavaSwingTimersAreDisposed, from which this code is adapted.
-    try {
-      Class<?> timerQueueClass = Class.forName("javax.swing.TimerQueue");
-      Method sharedInstance = timerQueueClass.getMethod("sharedInstance");
-      sharedInstance.setAccessible(true);
-      Object timerQueue = sharedInstance.invoke(null);
-      DelayQueue<?> delayQueue = ReflectionUtil.getField(timerQueueClass, timerQueue, DelayQueue.class, "queue");
-
-      // Iterator for DelayQueue is a snapshot, so manipulating delayQueue has no effect on the iterator.
-      for (Object queuedObject: delayQueue) {
-        if (queuedObject instanceof Delayed) {
-          Delayed timer = (Delayed)queuedObject;
-
-          Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
-          Timer swingTimer = (Timer) getTimer.invoke(timer);
-          for (ActionListener listener : swingTimer.getActionListeners()) {
-            System.out.println(" -> open listener:" + listener.toString());
-            if (listener.toString().contains("AquaProgressBarUI")) {
-              swingTimer.stop();
-            }
-          }
-
-        }
-      }
-    } catch ( ClassNotFoundException
-            | NoSuchMethodException
-            | IllegalAccessException
-            | InvocationTargetException e) {
-      addSuppressedException(e);
-    }
-  }
-
   protected void addSuppressedException(@NotNull Throwable e) {
     // This routine is overridden for compatibility's sake only.  It can be deleted when we no longer
     // test with pre 18.3 versions of idea.
-
-    if (IdeaTarget.IS_VERSION_18_3_COMPATIBLE) {
-      try {
-        Method sase = super.getClass().getDeclaredMethod("addSuppressedException", Throwable.class);
-        sase.invoke(e);
-        return;
-      }
-      catch (NoSuchMethodException ex) {
-        Logger.getInstance("#HaxeCodeInsightFixtureTestCase")
-          .warn("Could not find UsefulTestCase.addSuppressedException(). Was it removed?");
-      }
-      catch (IllegalAccessException | InvocationTargetException ex) {
-        Logger.getInstance("#HaxeCodeInsightFixtureTestCase")
-          .warn("Could not execute UsefulTestCase.addSuppressedException(): ", ex);
-      }
-    }
-
-    String stackInfo = HaxeDebugUtil.getExceptionStackAsString(e);
-    assertEmpty("Exception during teardown:" + e.getMessage() + "\n" + stackInfo);
+    HaxeTestUtils.suppressException(e, this);
   }
 
     /**

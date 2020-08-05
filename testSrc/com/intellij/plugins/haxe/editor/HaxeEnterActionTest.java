@@ -39,6 +39,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     // Must come before super.tearDown because oldLogSettings is cleared magically (via reflection).
     oldLogSettings.restore();
     oldLogSettings = null;
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
     super.tearDown();
   }
 
