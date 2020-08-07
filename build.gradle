@@ -37,6 +37,10 @@ if (!project.hasProperty('targetVersion')) {
 }
 println "Target set to IDEA ${ideaVersion}"
 
+String[] versionInfo = "${ideaVersion}".split("\\.")
+boolean requiresJavaPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2019 || (versionInfo[0].toInteger() == 2019 && versionInfo[1].toInteger() >= 2))
+boolean requiresFlexPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2020 || (versionInfo[0].toInteger() == 2020 && versionInfo[1].toInteger() >=2 ))
+
 allprojects {
     repositories { mavenCentral() }
 
@@ -73,6 +77,7 @@ allprojects {
     apply plugin: 'idea'
     apply plugin: 'org.jetbrains.intellij'
     apply from: "${haxePluginDir}/template.gradle"
+    apply from: "${haxePluginDir}/testSettings.gradle"
 
     intellij {
         type = 'IU'
@@ -83,11 +88,16 @@ allprojects {
         sandboxDirectory "${project.rootDir}/build/idea-sandbox"
         // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
         updateSinceUntilBuild false
+
         // Include the "java" built-in plugin for 2019.2 and later builds.
-        String[] versionInfo = "${ideaVersion}".split("\\.")
-        if (versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2019 || (versionInfo[0].toInteger() == 2019 && versionInfo[1].toInteger() >= 2))) {
+        if (requiresJavaPlugin) {
             System.println("Including java plugin for version >= 2019.2")
-            plugins 'java'  // 2019.2 + only.  Causes build errors on earlier versions.
+            plugins += 'java'  // 2019.2 + only.  Causes build errors on earlier versions.
+        }
+        // Flex support was unbundled for version 2020.2.
+        if (requiresFlexPlugin) {
+            System.println("Including Flex plugin for version >= 2020.2")
+            plugins += 'com.intellij.flex:202.6397.59'
         }
     }
 }
@@ -129,8 +139,15 @@ dependencies {
     compile project(':jps-plugin')
     compile project(':hxcpp-debugger-protocol')
 
-    compileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
-    compileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
+    String flexPluginDir = "${ideaTargetDir}"
+    if (requiresFlexPlugin) {
+        flexPluginDir += "/config"
+    }
+    String flexShared = flexPluginDir + "/plugins/flex/lib/flex-shared.jar"
+    String flexSupport = flexPluginDir + "/plugins/flex/lib/FlexSupport.jar"
+
+    compileOnly files(flexShared)
+    compileOnly files(flexSupport)
     compileOnly files("${ideaTargetDir}/lib/openapi.jar")
     compileOnly files("${ideaTargetDir}/lib/util.jar")
 
@@ -140,11 +157,19 @@ dependencies {
     testCompileOnly project(':hxcpp-debugger-protocol')
 
 
-    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/flex-shared.jar")
-    testCompileOnly files("${ideaTargetDir}/plugins/flex/lib/FlexSupport.jar")
-    testCompileOnly files("${ideaTargetDir}/lib/openapi.jar")
+    testCompileOnly files(flexShared)
+    testCompileOnly files(flexSupport)
+    testCompileOnly files("${ideaTargetDir}/lib/ openapi.jar")
     testCompileOnly files("${ideaTargetDir}/lib/util.jar")
 
+}
+
+afterEvaluate {
+    dependencies {
+        if (requiresJavaPlugin) {
+            compile intellijPlugin('java') { include("${ideaTargetDir}/plugins/java/lib/jps-builders.jar") }
+        }
+    }
 }
 
 runIde {

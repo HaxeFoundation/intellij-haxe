@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,26 @@
 package com.intellij.plugins.haxe.actions;
 
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.build.IdeaTarget;
-import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.ide.generation.*;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
-import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
+
+  @Override
+  protected void tearDown() throws Exception {
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
+    super.tearDown();
+  }
+
+  protected void addSuppressedException(@NotNull Throwable e) {
+    // Compatibility with IDEA pre v18.3.
+    HaxeTestUtils.suppressException(e, this);  // Calls super.addSuppressedException if available.
+  }
 
   @NotNull
   @Override

@@ -502,7 +502,7 @@ public class HaxeResolveUtil {
       String msg = "Cannot resolve recursive/cyclic definition of " + element.getText()
                    + ", found at " + HaxeDebugUtil.elementLocation(element);
       traceMessage(msg, stack.size());
-      LOG.warn(msg);
+      // LOG.warn(msg); // Too wordy.
       return HaxeClassResolveResult.EMPTY;
     }
 

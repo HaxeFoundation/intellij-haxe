@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2016 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +36,11 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    super.tearDown();
+    // Must come before super.tearDown because oldLogSettings is cleared magically (via reflection).
     oldLogSettings.restore();
     oldLogSettings = null;
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
+    super.tearDown();
   }
 
   @NotNull

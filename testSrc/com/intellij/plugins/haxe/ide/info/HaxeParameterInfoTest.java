@@ -46,9 +46,16 @@ public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    super.tearDown();
+    // Must come before super.tearDown because oldLogSettings is cleared magically (via reflection).
     oldLogSettings.restore();
     oldLogSettings = null;
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
+    super.tearDown();
+  }
+
+  protected void addSuppressedException(@NotNull Throwable e) {
+    // Compatibility with IDEA pre v18.3.
+    HaxeTestUtils.suppressException(e, this);  // Calls super.addSuppressedException if available.
   }
 
   @NotNull
