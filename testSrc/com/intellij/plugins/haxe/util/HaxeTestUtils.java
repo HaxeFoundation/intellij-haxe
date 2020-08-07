@@ -169,6 +169,7 @@ public class HaxeTestUtils {
             | NoSuchMethodException
             | IllegalAccessException
             | InvocationTargetException e) {
+      LOG.error("Error trying to clean up timers: ", e);
       exceptionHandler.accept(e);
     }
   }
