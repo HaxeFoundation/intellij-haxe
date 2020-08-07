@@ -155,8 +155,9 @@ public class HaxeTestUtils {
 
           Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
           Timer swingTimer = (Timer) getTimer.invoke(timer);
+          LOG.warn("Timer still open:" + swingTimer.toString());
           for (ActionListener listener : swingTimer.getActionListeners()) {
-            System.out.println(" -> open listener:" + listener.toString());
+            LOG.warn(" -> open listener:" + listener.toString());
             if (listener.toString().contains("AquaProgressBarUI")) {
               swingTimer.stop();
             }
