@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeSettingsForm {
+public class HaxeSettingsForProjectForm {
   private JPanel myPanel;
   private MyAddDeleteListPanel myAddDeleteListPanel;
 
