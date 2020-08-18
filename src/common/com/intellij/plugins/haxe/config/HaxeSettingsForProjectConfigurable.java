@@ -31,7 +31,7 @@ import javax.swing.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeSettingsForProjectConfigurable implements SearchableConfigurable, NonDefaultProjectConfigurable {
+public class HaxeSettingsForProjectConfigurable implements SearchableConfigurable {
   private HaxeSettingsForm mySettingsPane;
   private final Project myProject;
 
