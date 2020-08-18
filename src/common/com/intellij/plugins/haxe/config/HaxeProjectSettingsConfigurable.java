@@ -44,7 +44,7 @@ public class HaxeProjectSettingsConfigurable implements SearchableConfigurable {
 
   @NotNull
   public String getId() {
-    return "haxe.settings";
+    return "com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable";
   }
 
   public String getHelpTopic() {
