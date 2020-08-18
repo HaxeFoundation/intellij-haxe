@@ -21,7 +21,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.config.ui.HaxeSettingsForProjectForm;
+import com.intellij.plugins.haxe.config.ui.HaxeProjectSettingsForm;
 import com.intellij.plugins.haxe.util.HaxeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,11 +30,11 @@ import javax.swing.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeSettingsForProjectConfigurable implements SearchableConfigurable {
-  private HaxeSettingsForProjectForm mySettingsPane;
+public class HaxeProjectSettingsConfigurable implements SearchableConfigurable {
+  private HaxeProjectSettingsForm mySettingsPane;
   private final Project myProject;
 
-  public HaxeSettingsForProjectConfigurable(Project project) {
+  public HaxeProjectSettingsConfigurable(Project project) {
     myProject = project;
   }
 
@@ -53,7 +53,7 @@ public class HaxeSettingsForProjectConfigurable implements SearchableConfigurabl
 
   public JComponent createComponent() {
     if (mySettingsPane == null) {
-      mySettingsPane = new HaxeSettingsForProjectForm();
+      mySettingsPane = new HaxeProjectSettingsForm();
     }
     reset();
     return mySettingsPane.getPanel();
