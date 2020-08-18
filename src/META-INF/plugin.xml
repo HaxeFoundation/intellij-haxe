@@ -1068,7 +1068,7 @@
                     serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
     <projectService serviceInterface="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"
                     serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
-    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeSettingsConfigurable" id="haxe.settings" key="haxe.settings.name"
+    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeSettingsForProjectConfigurable" id="haxe.settings" key="haxe.settings.name"
                          bundle="com.intellij.plugins.haxe.HaxeBundle" nonDefaultProject="true"/>
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>

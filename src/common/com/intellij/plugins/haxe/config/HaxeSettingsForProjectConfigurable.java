@@ -31,11 +31,11 @@ import javax.swing.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeSettingsConfigurable implements SearchableConfigurable, NonDefaultProjectConfigurable {
+public class HaxeSettingsForProjectConfigurable implements SearchableConfigurable, NonDefaultProjectConfigurable {
   private HaxeSettingsForm mySettingsPane;
   private final Project myProject;
 
-  public HaxeSettingsConfigurable(Project project) {
+  public HaxeSettingsForProjectConfigurable(Project project) {
     myProject = project;
   }
 
