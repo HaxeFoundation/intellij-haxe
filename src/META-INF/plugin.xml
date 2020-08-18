@@ -1068,8 +1068,11 @@
                     serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
     <projectService serviceInterface="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"
                     serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
-    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable" id="haxe.settings" key="haxe.settings.name"
-                         bundle="com.intellij.plugins.haxe.HaxeBundle" nonDefaultProject="true"/>
+    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
+                         parentId="build"
+                         id="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
+                         key="haxe.settings.name" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                         nonDefaultProject="true" />
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
     <targetElementEvaluator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator"/>
