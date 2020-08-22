@@ -24,6 +24,7 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -69,6 +70,14 @@ public class HaxeRunConfigurationType implements ConfigurationType {
     public RunConfiguration createTemplateConfiguration(Project project) {
       final String name = HaxeBundle.message("runner.configuration.name");
       return new HaxeApplicationConfiguration(name, project, getInstance());
+    }
+
+    @NotNull
+    @Override
+    @NonNls
+    public String getId() {
+      // Must not come from a localized bundle.
+      return "Haxe Application";
     }
   }
 }
