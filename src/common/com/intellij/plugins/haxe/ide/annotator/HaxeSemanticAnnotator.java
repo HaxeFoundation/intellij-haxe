@@ -61,6 +61,10 @@ public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension
     return (file.getLanguage().isKindOf(HaxeLanguage.INSTANCE));
   }
 
+  public static SemanticAnnotatorInspections.Registrar getInspectionProvider() {
+    return new SemanticAnnotatorInspections.Registrar();
+  }
+
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if (element.getLanguage() == HaxeLanguage.INSTANCE) {
@@ -950,7 +954,9 @@ class MethodChecker {
 
     if (!METHOD_OVERRIDE_CHECK.isEnabled(methodPsi)) { // TODO: This check is not granular enough.
       // If the rest of the checks are disabled, we don't want to inhibit the signature check.
-      checkMethodsSignatureCompatibility(currentMethod, parentMethod, holder);
+      if (null != parentMethod) {
+        checkMethodsSignatureCompatibility(currentMethod, parentMethod, holder);
+      }
       return;
     }
 
