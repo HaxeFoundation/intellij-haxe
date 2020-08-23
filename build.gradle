@@ -191,6 +191,13 @@ processResources {
     }
 }
 
+processResources {
+    from('src') {
+        include 'META-INF/pluginIcon.svg'
+        include 'META-INF/pluginIcon_dark.svg'
+    }
+}
+
 patchPluginXml {
     pluginXmlFiles = [
             'src/META-INF/plugin.xml',
