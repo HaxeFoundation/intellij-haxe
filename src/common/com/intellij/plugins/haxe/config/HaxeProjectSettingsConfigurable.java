@@ -18,11 +18,10 @@
 package com.intellij.plugins.haxe.config;
 
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.options.NonDefaultProjectConfigurable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.config.ui.HaxeSettingsForm;
+import com.intellij.plugins.haxe.config.ui.HaxeProjectSettingsForm;
 import com.intellij.plugins.haxe.util.HaxeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,11 +30,11 @@ import javax.swing.*;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeSettingsConfigurable implements SearchableConfigurable, NonDefaultProjectConfigurable {
-  private HaxeSettingsForm mySettingsPane;
+public class HaxeProjectSettingsConfigurable implements SearchableConfigurable {
+  private HaxeProjectSettingsForm mySettingsPane;
   private final Project myProject;
 
-  public HaxeSettingsConfigurable(Project project) {
+  public HaxeProjectSettingsConfigurable(Project project) {
     myProject = project;
   }
 
@@ -45,7 +44,7 @@ public class HaxeSettingsConfigurable implements SearchableConfigurable, NonDefa
 
   @NotNull
   public String getId() {
-    return "haxe.settings";
+    return "com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable";
   }
 
   public String getHelpTopic() {
@@ -54,7 +53,7 @@ public class HaxeSettingsConfigurable implements SearchableConfigurable, NonDefa
 
   public JComponent createComponent() {
     if (mySettingsPane == null) {
-      mySettingsPane = new HaxeSettingsForm();
+      mySettingsPane = new HaxeProjectSettingsForm();
     }
     reset();
     return mySettingsPane.getPanel();

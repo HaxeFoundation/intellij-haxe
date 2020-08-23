@@ -30,7 +30,7 @@ import java.util.List;
 
 public class HaxeGenericResolverUtil {
 
-  @Nullable
+  @NotNull
   public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
 

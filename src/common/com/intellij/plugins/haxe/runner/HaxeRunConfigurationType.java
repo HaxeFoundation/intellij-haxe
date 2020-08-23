@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +25,7 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -69,6 +71,14 @@ public class HaxeRunConfigurationType implements ConfigurationType {
     public RunConfiguration createTemplateConfiguration(Project project) {
       final String name = HaxeBundle.message("runner.configuration.name");
       return new HaxeApplicationConfiguration(name, project, getInstance());
+    }
+
+    // @Override - not in 2016
+    @NotNull
+    @NonNls
+    public String getId() {
+      // Must not come from a localized bundle.
+      return "Haxe Application";
     }
   }
 }

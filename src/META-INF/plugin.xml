@@ -66,6 +66,10 @@
           </table>
       </div>
       <p/>
+      <p>This jar is compatible with @plugin.compatibility.description@</p>
+      <p>It was built using IDEA build @idea.sdk.version@</p>
+      <p/>
+
     ]]>
     </description>
   <vendor>Haxe Community (Original sources provided by JetBrains.)</vendor>
@@ -75,15 +79,13 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>POST.1.2.develop.2@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>POST.1.2.develop.3@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
-      <p>This jar is compatible with @plugin.compatibility.description@</p>
-      <p>It was built using IDEA build @idea.sdk.version@</p>
-      <p/>
       <p>Unreleased Changes</p>
       <ul>
         <li>IDEA Versions 2020.1 and 2019.3 support.</li>
+        <li>Add fine-grained control of the semantic annotator to the Settings panel. (File->Settings->Editor->Inspections->Haxe)</li>
         <li>Rewrite metadata handling:
           <ul>
             <li>Allow metadata at all positions.</li>
@@ -131,6 +133,7 @@
         <li>Properly handle generics on typedefs over generic types.</li>
         <li>Properly unify EnumValue with enum values.</li>
         <li>Fix indenting for map comprehensions.</li>
+        <li>Fix and update inspection descriptions in settings dialog.</li>
       </ul>
       <p>1.2 (HaxeFoundation release)</p>
       <ul>
@@ -1068,8 +1071,11 @@
                     serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
     <projectService serviceInterface="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"
                     serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
-    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeSettingsConfigurable" id="haxe.settings" key="haxe.settings.name"
-                         bundle="com.intellij.plugins.haxe.HaxeBundle" nonDefaultProject="true"/>
+    <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
+                         parentId="build"
+                         id="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
+                         key="haxe.settings.name" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                         nonDefaultProject="true" />
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
     <targetElementEvaluator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator"/>
@@ -1078,6 +1084,21 @@
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator"/>
     <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator"/>
+
+    <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.SemanticAnnotatorInspections$Registrar"/>
+
+<!--
+    <localInspection language="Haxe" shortName="SemanticAnnotator" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                     groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"
+                     key="haxe.inspections.semantic.annotator.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator$SemanticAnnotator"/>
+
+    <localInspection language="Haxe" bundle="com.intellij.plugins.haxe.HaxeBundle" enabledByDefault="true"
+                     groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"
+                     key="haxe.inspections.incompatible.type.checks.name"
+                     shortName="IncompatibleTypeChecks"
+                     implementationClass="com.intellij.plugins.haxe.ide.annotator.TypeCheckExpressionChecker$IncompatibleTypeChecks"/>
+-->
 
     <localInspection language="XML" shortName="NMEBuildDirectory" bundle="com.intellij.plugins.haxe.HaxeBundle"
                      key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"

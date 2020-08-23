@@ -245,7 +245,7 @@ public class HaxeConfigurationEditor {
       @Override
       public void actionPerformed(ActionEvent e) {
         final Project project = myModule.getProject();
-        final HaxeSettingsConfigurable configurable = new HaxeSettingsConfigurable(project);
+        final HaxeProjectSettingsConfigurable configurable = new HaxeProjectSettingsConfigurable(project);
         final SingleConfigurableEditor editor = new SingleConfigurableEditor(
           project,
           configurable,
