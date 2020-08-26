@@ -134,6 +134,7 @@
         <li>Properly unify EnumValue with enum values.</li>
         <li>Fix indenting for map comprehensions.</li>
         <li>Fix and update inspection descriptions in settings dialog.</li>
+        <li>Implement "Implement methods" for missing interface functions.</li>
       </ul>
       <p>1.2 (HaxeFoundation release)</p>
       <ul>

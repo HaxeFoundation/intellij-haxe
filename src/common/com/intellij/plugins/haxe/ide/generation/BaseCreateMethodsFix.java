@@ -20,9 +20,12 @@
 package com.intellij.plugins.haxe.ide.generation;
 
 import com.intellij.codeInsight.FileModificationService;
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.HaxeNamedElementNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
@@ -51,15 +54,32 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   protected void evalAnchor(@Nullable Editor editor, PsiFile file) {
     if (editor == null) return;
     final int caretOffset = editor.getCaretModel().getOffset();
+    PsiElement bodyPsi = null;
     if (myHaxeClass instanceof HaxeClassDeclaration) {
-      final HaxeClassBody body = ((HaxeClassDeclaration)myHaxeClass).getClassBody();
-      assert body != null;
-      for (PsiElement child : body.getChildren()) {
-        if (child.getTextOffset() > caretOffset) return;
+      bodyPsi = ((HaxeClassDeclaration)myHaxeClass).getClassBody();
+    }
+    else if (myHaxeClass instanceof HaxeInterfaceDeclaration) {
+      bodyPsi = ((HaxeInterfaceDeclaration)myHaxeClass).getInterfaceBody();
+    }
+    if (null != bodyPsi) {
+      for (PsiElement child : bodyPsi.getChildren()) {
+        if (child.getTextOffset() > caretOffset) break;
         anchor = child;
       }
       if (null != anchor) return;
+
+      // If we got here, either the cursor wasn't on an element in the class body, or
+      // the class is empty (of composite elements).  Place ourselves at the last
+      // point in the class body, or after the last point if there is no closing bracket.
+      ASTNode lastChild = bodyPsi.getNode().getLastChildNode();
+      while (null != lastChild && (lastChild.getElementType() == HaxeTokenTypes.PRCURLY
+                                   || HaxeTokenTypeSets.WHITESPACES.contains(lastChild.getElementType()))) {
+        lastChild = lastChild.getTreePrev();
+      }
+      anchor = lastChild.getPsi();
+      if (null != anchor) return;
     }
+
     anchor = file.findElementAt(caretOffset);
   }
 
@@ -76,6 +96,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   }
 
   protected void processElements(Project project, Set<T> elementsToProcess) {
+    anchor = addNewlineIfAnchorIsCurly(anchor);
     for (T e : elementsToProcess) {
       anchor = doAddMethodsForOne(project, buildFunctionsText(e), anchor);
       modifyElement(e);
@@ -98,6 +119,15 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
         anchor = insert.addAfter(element, anchor);
         anchor = afterAddHandler(element, anchor);
       }
+    }
+    return anchor;
+  }
+
+  protected PsiElement addNewlineIfAnchorIsCurly(PsiElement anchor) {
+    if (anchor.getNode().getElementType() == HaxeTokenTypes.PLCURLY) {
+      final PsiElement endingNewLineNode =
+              PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
+      anchor.getParent().addAfter(endingNewLineNode, anchor);
     }
     return anchor;
   }

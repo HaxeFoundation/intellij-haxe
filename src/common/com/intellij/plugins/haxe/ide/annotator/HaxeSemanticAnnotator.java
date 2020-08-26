@@ -26,10 +26,13 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.ide.generation.OverrideImplementMethodFix;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
 import com.intellij.plugins.haxe.ide.quickfix.HaxeSwitchMutabilityModifier;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -848,7 +851,14 @@ class ClassChecker {
       annotation.registerFix(new HaxeFixer("Implement methods") {
         @Override
         public void run() {
-          clazz.addMethodsFromPrototype(missingMethods);
+          OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
+          for (HaxeMethodModel mm : missingMethods) {
+            fix.addElementToProcess(mm.getMethodPsi());
+          }
+
+          PsiElement basePsi = clazz.getBasePsi();
+          Project p = basePsi.getProject();
+          fix.invoke(p, FileEditorManager.getInstance(p).getSelectedTextEditor(), basePsi.getContainingFile());
         }
       });
     }
