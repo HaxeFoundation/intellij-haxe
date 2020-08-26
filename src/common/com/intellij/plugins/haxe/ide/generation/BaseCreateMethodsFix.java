@@ -37,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.PRCURLY;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -68,16 +70,21 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
       }
       if (null != anchor) return;
 
-      // If we got here, either the cursor wasn't on an element in the class body, or
-      // the class is empty (of composite elements).  Place ourselves at the last
-      // point in the class body, or after the last point if there is no closing bracket.
+      // If we got here, either the caret wasn't on an element in the class body, or
+      // the class is empty (of composite elements). Place ourselves at the whitespace
+      // just before the closing bracket, or after the last detected position if there
+      // is no closing bracket.
       ASTNode lastChild = bodyPsi.getNode().getLastChildNode();
-      while (null != lastChild && (lastChild.getElementType() == HaxeTokenTypes.PRCURLY
-                                   || HaxeTokenTypeSets.WHITESPACES.contains(lastChild.getElementType()))) {
-        lastChild = lastChild.getTreePrev();
+      if (null != lastChild && lastChild.getElementType() == PRCURLY) {
+        ASTNode prev = lastChild.getTreePrev();
+        if (null != prev) {
+          lastChild = prev;
+        }
       }
-      anchor = lastChild.getPsi();
-      if (null != anchor) return;
+      if (null != lastChild) {
+        anchor = lastChild.getPsi();
+        if (null != anchor) return;
+      }
     }
 
     anchor = file.findElementAt(caretOffset);
@@ -96,11 +103,11 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   }
 
   protected void processElements(Project project, Set<T> elementsToProcess) {
-    anchor = addNewlineIfAnchorIsCurly(anchor);
     for (T e : elementsToProcess) {
       anchor = doAddMethodsForOne(project, buildFunctionsText(e), anchor);
       modifyElement(e);
     }
+    anchor = addNewlineIfNoneBeforeEndCurly(anchor);
   }
 
   protected void modifyElement(T element) {
@@ -123,15 +130,26 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
     return anchor;
   }
 
-  protected PsiElement addNewlineIfAnchorIsCurly(PsiElement anchor) {
+  protected PsiElement addNewlineIfAnchorIsAtOpenCurly(PsiElement anchor) {
     if (anchor.getNode().getElementType() == HaxeTokenTypes.PLCURLY) {
       final PsiElement endingNewLineNode =
               PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
-      anchor.getParent().addAfter(endingNewLineNode, anchor);
+      anchor = anchor.getParent().addAfter(endingNewLineNode, anchor);
     }
     return anchor;
   }
 
+  protected PsiElement addNewlineIfNoneBeforeEndCurly(PsiElement anchor) {
+    ASTNode next = anchor.getNode().getTreeNext();
+    if (next.getElementType() == PRCURLY) {
+      final PsiElement endingNewLineNode =
+              PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
+      anchor = anchor.getParent().addAfter(endingNewLineNode, anchor);
+    }
+    return anchor;
+  }
+
+  /** Called for *each* element that is added. */
   protected PsiElement afterAddHandler(PsiElement element, PsiElement anchor) {
     final PsiElement newLineNode =
       PsiParserFacade.SERVICE.getInstance(element.getProject()).createWhiteSpaceFromText("\n\n");
