@@ -34,7 +34,9 @@ public class HaxeGenericResolverUtil {
   public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
 
-    HaxeMethod method = UsefulPsiTreeUtil.getParentOfType(element, HaxeMethod.class);
+    HaxeMethod method = element instanceof HaxeMethod
+                        ? (HaxeMethod)element
+                        : UsefulPsiTreeUtil.getParentOfType(element, HaxeMethod.class);
     boolean isStatic = null != method && method.isStatic();
     if (!isStatic) {
       appendClassGenericResolver(element, resolver);
