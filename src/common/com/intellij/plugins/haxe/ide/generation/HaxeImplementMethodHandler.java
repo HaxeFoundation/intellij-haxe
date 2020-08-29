@@ -26,6 +26,8 @@ import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -39,19 +41,32 @@ public class HaxeImplementMethodHandler extends BaseHaxeGenerateHandler {
 
   @Override
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
-    for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.findNamedSubComponents(null, haxeClass)) {
-      final boolean prototype = haxeNamedComponent instanceof HaxeMethod;
-      final HaxeClass parentClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class, true);
-      final boolean interfaceField = HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.FIELD &&
-                                     HaxeComponentType.typeOf(parentClass) == HaxeComponentType.INTERFACE;
-      if (!prototype && !interfaceField) continue;
+    // Properties and variables are also part of interface declarations that must be implemented,
+    // so they can/should show up in this list.
 
-      candidates.add(haxeNamedComponent);
+    // Get all of the names and sort them into lists of class methods and interface declarations.
+    List<HaxeNamedComponent> namedComponents = HaxeResolveUtil.findNamedSubComponents(false, null, haxeClass);
+    List<HaxeNamedComponent> interfaceMethods = new ArrayList<>();
+    Hashtable<String, HaxeNamedComponent> classMethods = new Hashtable<>();
+    for (HaxeNamedComponent component : namedComponents) {
+      final HaxeClass parentClass = PsiTreeUtil.getParentOfType(component, HaxeClass.class, true);
+      if (HaxeComponentType.typeOf(parentClass) == HaxeComponentType.CLASS) {
+        classMethods.put(component.getName(), component);
+      } else if (HaxeComponentType.typeOf(parentClass) == HaxeComponentType.INTERFACE) {
+        interfaceMethods.add(component);
+      }
+    }
+
+    // Walk the interface names and make sure that a method implementation exists.
+    for (HaxeNamedComponent component : interfaceMethods) {
+      if (!classMethods.containsKey(component.getName())) {
+        candidates.add(component);
+      }
     }
   }
 
   @Override
-  protected BaseCreateMethodsFix createFix(HaxeClass haxeClass) {
+  protected BaseCreateMethodsFix<HaxeNamedComponent> createFix(HaxeClass haxeClass) {
     return new OverrideImplementMethodFix(haxeClass, false);
   }
 }
