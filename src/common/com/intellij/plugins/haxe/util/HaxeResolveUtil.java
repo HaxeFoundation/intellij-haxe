@@ -253,6 +253,15 @@ public class HaxeResolveUtil {
     return result != null ? result : haxeClass.findHaxeFieldByName(name, resolver);
   }
 
+  /**
+   * Gets the list of named components from the given classes and their supertypes, with duplicate named components removed.
+   * If multiple components share the same name, *which* of those components
+   * will be returned is indeterminate.
+   *
+   * @param resolver - map of generic type names to their concrete types.
+   * @param rootHaxeClasses - which class(es) to gather components from.
+   * @return - a list of named components defined in the rootHaxeClasses and their supertypes.
+   */
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(@Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
     return findNamedSubComponents(true, resolver, rootHaxeClasses);
@@ -267,6 +276,15 @@ public class HaxeResolveUtil {
     }
   }
 
+  /**
+   * Gets the named components from a class and all its supertypes.
+   *
+   * @param unique - whether multiple components sharing a name are included.  If true, *which* of the components
+   *               sharing a name is returned is indeterminate.
+   * @param resolver - map of generic type names to real types.
+   * @param rootHaxeClasses - which class(es) to gather components from.
+   * @return a list of named components defined in the rootHaxeClasses and their supertypes.
+   */
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<>();
@@ -324,6 +342,12 @@ public class HaxeResolveUtil {
     return result;
   }
 
+  /**
+   * Gets all elements defined in a class' body.  This does NOT check superTypes for named elements.
+   *
+   * @param haxeClass to inspect
+   * @return a list of all named components declared in the class' body.
+   */
   public static List<HaxeNamedComponent> getNamedSubComponents(HaxeClass haxeClass) {
     PsiElement body = null;
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
