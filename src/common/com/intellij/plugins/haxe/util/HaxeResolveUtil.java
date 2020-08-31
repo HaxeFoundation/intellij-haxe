@@ -422,7 +422,7 @@ public class HaxeResolveUtil {
    * @param element - element to find and resolve its containing class.
    * @param context - element (thus its class) for which the superclass element must be resolved.
    * @param contextSpecialization - generic arguments at the context.
-   * @return - a fully resolved superclass containing the element.  If the element is not contained in a superclass,
+   * @return - a fully resolved superclass which contains {@code element}.  If the element is not contained in a superclass,
    *           HaxeClassResolveResult.EMPTY is returned.
    */
   @NotNull
@@ -431,24 +431,17 @@ public class HaxeResolveUtil {
                                                                   @Nullable HaxeGenericSpecialization contextSpecialization) {
     if (null == element || null == context) return HaxeClassResolveResult.EMPTY;
 
-    HaxeClassResolveResult contextClassResult = getHaxeClassResolveResult(context, contextSpecialization);
-    if (HaxeClassResolveResult.EMPTY == contextClassResult) {
+    HaxeClass contextClass= UsefulPsiTreeUtil.getParentOfType(context, HaxeClass.class);// getHaxeClassResolveResult(context, contextSpecialization);
+    if (null == contextClass) {
       return HaxeClassResolveResult.EMPTY;
     }
 
-    HaxeClassResolveResult elementClassResult = getHaxeClassResolveResult(element);
-    if (HaxeClassResolveResult.EMPTY == elementClassResult) {
-      HaxeClass elementPsiClass = (HaxeClass) UsefulPsiTreeUtil.getParentOfType(element, HaxeClass.class);
-      if (null == elementPsiClass)
-        return HaxeClassResolveResult.EMPTY;
-      elementClassResult = HaxeClassResolveResult.create(elementPsiClass, null);
+    HaxeClass elementClass= UsefulPsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    if (null == elementClass) {
+      return HaxeClassResolveResult.EMPTY;
     }
 
-    HaxeClass contextClass = contextClassResult.getHaxeClass();
-    HaxeClass elementClass = elementClassResult.getHaxeClass();
-    return (null == elementClass || null == contextClass)
-           ? HaxeClassResolveResult.EMPTY
-           : resolveSuperclass(elementClass, contextClass, contextClassResult.getSpecialization()); //contextSpecialization);
+    return resolveSuperclass(elementClass, contextClass, contextSpecialization); //contextSpecialization);
   }
 
   @NotNull
@@ -459,13 +452,17 @@ public class HaxeResolveUtil {
       return HaxeClassResolveResult.create(elementClass, contextSpecialization);
     }
 
-    HaxeClassResolveResult specializedResult = HaxeClassResolveResult.create(contextClass, contextSpecialization.getInnerSpecialization(contextClass));
-    specializedResult.specialize(elementClass);
+    if (null == contextSpecialization) {
+      contextSpecialization = HaxeGenericResolverUtil.generateResolverFromScopeParents(contextClass).getSpecialization(contextClass);
+    }
 
     PsiClass[] superClasses = contextClass.getSupers();
     for (PsiClass psiClass : superClasses) {
       if (psiClass instanceof HaxeClass) {
         HaxeClass clazz = (HaxeClass) psiClass;
+
+        HaxeClassResolveResult specializedResult = HaxeClassResolveResult.create(contextClass, contextSpecialization.getInnerSpecialization(contextClass));
+        specializedResult.specialize(clazz);
 
         HaxeClassResolveResult superResult = HaxeClassResolveResult.create(clazz, specializedResult.getSpecialization());
 
@@ -502,11 +499,19 @@ public class HaxeResolveUtil {
     }
   }
 
+  @Deprecated
   @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element) {
     return getHaxeClassResolveResult(element, null);
   }
 
+  /**
+   * Determine the type (class) of an element.
+   *
+   * @param element to find
+   * @param specialization contianing generic (type parameter) information for the surrounding scope.
+   * @return the found type and its specialization, or {@link HaxeClassResolveResult#EMPTY}.
+   */
   @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element,
                                                                  @Nullable HaxeGenericSpecialization specialization) {

@@ -96,6 +96,7 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
 
   public abstract HaxeClassModel getDeclaringClass();
 
+  @Deprecated
   public ResultHolder getResultType() {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
   }
