@@ -253,6 +253,15 @@ public class HaxeResolveUtil {
     return result != null ? result : haxeClass.findHaxeFieldByName(name, resolver);
   }
 
+  /**
+   * Gets the list of named components from the given classes and their supertypes, with duplicate named components removed.
+   * If multiple components share the same name, *which* of those components
+   * will be returned is indeterminate.
+   *
+   * @param resolver - map of generic type names to their concrete types.
+   * @param rootHaxeClasses - which class(es) to gather components from.
+   * @return - a list of named components defined in the rootHaxeClasses and their supertypes.
+   */
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(@Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
     return findNamedSubComponents(true, resolver, rootHaxeClasses);
@@ -267,6 +276,15 @@ public class HaxeResolveUtil {
     }
   }
 
+  /**
+   * Gets the named components from a class and all its supertypes.
+   *
+   * @param unique - whether multiple components sharing a name are included.  If true, *which* of the components
+   *               sharing a name is returned is indeterminate.
+   * @param resolver - map of generic type names to real types.
+   * @param rootHaxeClasses - which class(es) to gather components from.
+   * @return a list of named components defined in the rootHaxeClasses and their supertypes.
+   */
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<>();
@@ -324,6 +342,12 @@ public class HaxeResolveUtil {
     return result;
   }
 
+  /**
+   * Gets all elements defined in a class' body.  This does NOT check superTypes for named elements.
+   *
+   * @param haxeClass to inspect
+   * @return a list of all named components declared in the class' body.
+   */
   public static List<HaxeNamedComponent> getNamedSubComponents(HaxeClass haxeClass) {
     PsiElement body = null;
     final HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
@@ -398,7 +422,7 @@ public class HaxeResolveUtil {
    * @param element - element to find and resolve its containing class.
    * @param context - element (thus its class) for which the superclass element must be resolved.
    * @param contextSpecialization - generic arguments at the context.
-   * @return - a fully resolved superclass containing the element.  If the element is not contained in a superclass,
+   * @return - a fully resolved superclass which contains {@code element}.  If the element is not contained in a superclass,
    *           HaxeClassResolveResult.EMPTY is returned.
    */
   @NotNull
@@ -407,24 +431,17 @@ public class HaxeResolveUtil {
                                                                   @Nullable HaxeGenericSpecialization contextSpecialization) {
     if (null == element || null == context) return HaxeClassResolveResult.EMPTY;
 
-    HaxeClassResolveResult contextClassResult = getHaxeClassResolveResult(context, contextSpecialization);
-    if (HaxeClassResolveResult.EMPTY == contextClassResult) {
+    HaxeClass contextClass= UsefulPsiTreeUtil.getParentOfType(context, HaxeClass.class);// getHaxeClassResolveResult(context, contextSpecialization);
+    if (null == contextClass) {
       return HaxeClassResolveResult.EMPTY;
     }
 
-    HaxeClassResolveResult elementClassResult = getHaxeClassResolveResult(element);
-    if (HaxeClassResolveResult.EMPTY == elementClassResult) {
-      HaxeClass elementPsiClass = (HaxeClass) UsefulPsiTreeUtil.getParentOfType(element, HaxeClass.class);
-      if (null == elementPsiClass)
-        return HaxeClassResolveResult.EMPTY;
-      elementClassResult = HaxeClassResolveResult.create(elementPsiClass, null);
+    HaxeClass elementClass= UsefulPsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    if (null == elementClass) {
+      return HaxeClassResolveResult.EMPTY;
     }
 
-    HaxeClass contextClass = contextClassResult.getHaxeClass();
-    HaxeClass elementClass = elementClassResult.getHaxeClass();
-    return (null == elementClass || null == contextClass)
-           ? HaxeClassResolveResult.EMPTY
-           : resolveSuperclass(elementClass, contextClass, contextClassResult.getSpecialization()); //contextSpecialization);
+    return resolveSuperclass(elementClass, contextClass, contextSpecialization); //contextSpecialization);
   }
 
   @NotNull
@@ -435,13 +452,17 @@ public class HaxeResolveUtil {
       return HaxeClassResolveResult.create(elementClass, contextSpecialization);
     }
 
-    HaxeClassResolveResult specializedResult = HaxeClassResolveResult.create(contextClass, contextSpecialization.getInnerSpecialization(contextClass));
-    specializedResult.specialize(elementClass);
+    if (null == contextSpecialization) {
+      contextSpecialization = HaxeGenericResolverUtil.generateResolverFromScopeParents(contextClass).getSpecialization(contextClass);
+    }
 
     PsiClass[] superClasses = contextClass.getSupers();
     for (PsiClass psiClass : superClasses) {
       if (psiClass instanceof HaxeClass) {
         HaxeClass clazz = (HaxeClass) psiClass;
+
+        HaxeClassResolveResult specializedResult = HaxeClassResolveResult.create(contextClass, contextSpecialization.getInnerSpecialization(contextClass));
+        specializedResult.specialize(clazz);
 
         HaxeClassResolveResult superResult = HaxeClassResolveResult.create(clazz, specializedResult.getSpecialization());
 
@@ -478,11 +499,19 @@ public class HaxeResolveUtil {
     }
   }
 
+  @Deprecated
   @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element) {
     return getHaxeClassResolveResult(element, null);
   }
 
+  /**
+   * Determine the type (class) of an element.
+   *
+   * @param element to find
+   * @param specialization contianing generic (type parameter) information for the surrounding scope.
+   * @return the found type and its specialization, or {@link HaxeClassResolveResult#EMPTY}.
+   */
   @NotNull
   public static HaxeClassResolveResult getHaxeClassResolveResult(@Nullable PsiElement element,
                                                                  @Nullable HaxeGenericSpecialization specialization) {

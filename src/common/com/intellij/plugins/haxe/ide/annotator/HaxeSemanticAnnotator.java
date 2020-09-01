@@ -523,6 +523,7 @@ class FieldChecker {
 
     PsiElement fieldBasePsi = field.getBasePsi();
     if (PROPERTY_ACCESSOR_VALID.isEnabled(fieldBasePsi)) {
+// TODO: Bug here.  (set,get) are being marked as errors.
       if (field.getGetterPsi() != null && !field.getGetterType().isValidGetter()) {
         holder.createErrorAnnotation(field.getGetterPsi(), "Invalid getter accessor");
       }
@@ -639,6 +640,7 @@ class ClassChecker {
     checkInterfaces(clazz, holder);
     checkExtends(clazz, holder);
     checkInterfacesMethods(clazz, holder);
+    // TODO: checkInterfacesFields for properties and vars.
   }
 
   static private void checkModifiers(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
@@ -1128,18 +1130,19 @@ class MethodChecker {
       }
     }
 
-    ResultHolder currentResult = currentMethod.getResultType();
-    ResultHolder parentResult = parentMethod.getResultType();
+    // Check the return type...
 
     // Again, the super-class may resolve with different/incompatible type arguments.
     SpecificHaxeClassReference resolvedParent = resolveSuperclassElement(scopeResolver, currentMethod, parentMethod);
 
-    SpecificTypeReference parentType = (resolvedParent != null ? resolvedParent : parentResult.getType());
+    ResultHolder currentResult = currentMethod.getResultType(scopeResolver);
+    ResultHolder parentResult = parentMethod.getResultType(resolvedParent != null ? resolvedParent.getGenericResolver() : scopeResolver);
+
     // Order of assignment compatibility is to parent, from subclass.
-    if (!HaxeTypeCompatible.canAssignToFrom(parentType, currentResult.getType())) {
+    if (!HaxeTypeCompatible.canAssignToFrom(parentResult.getType(), currentResult.getType())) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       HaxeAnnotation annotation =
-        returnTypeMismatch(psi, currentResult.getType().toStringWithoutConstant(), parentType.toStringWithConstant())
+        returnTypeMismatch(psi, currentResult.getType().toStringWithoutConstant(), parentResult.getType().toStringWithConstant())
           .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), ()->{
             document.replaceElementText(currentResult.getElementContext(), parentResult.toStringWithoutConstant());
           }));
