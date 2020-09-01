@@ -196,26 +196,29 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTestInclude();
   }
 
-  public void testAutodetectMethod() throws Throwable {
-    doTestInclude();
-  }
-
-  public void testAutodetectMethod2() throws Throwable {
-    myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
-    doTestInclude();
-  }
-
-  public void testAutodetectConstant() throws Throwable {
-    doTestInclude();
-  }
-
-  public void testAutodetectProperties() throws Throwable {
-    doTestInclude();
-  }
-
-  public void testAbstractThisSemantics() throws Throwable {
-    doTestInclude();
-  }
+// Auto-detection is too slow in medium to large code bases (e.g. HashLink),
+// so it was (temporarily?) removed in favor of showing only specific tagged types.
+//
+//  public void testAutodetectMethod() throws Throwable {
+//    doTestInclude();
+//  }
+//
+//  public void testAutodetectMethod2() throws Throwable {
+//    myFixture.configureByFiles("StdType2.hx", "std/String.hx", "std/Array.hx");
+//    doTestInclude();
+//  }
+//
+//  public void testAutodetectConstant() throws Throwable {
+//    doTestInclude();
+//  }
+//
+//  public void testAutodetectProperties() throws Throwable {
+//    doTestInclude();
+//  }
+//
+//  public void testAbstractThisSemantics() throws Throwable {
+//    doTestInclude();
+//  }
 
   public void testStringCode() throws Throwable {
     doTestInclude();

@@ -136,6 +136,7 @@
         <li>Fix and update inspection descriptions in settings dialog.</li>
         <li>Implement "Implement methods" for missing interface functions.</li>
         <li>Fix the case where generic parameters used in superclasses were not being correctly translated through the type hierarchy when resolving (or were resolving to the wrong type).</li>
+        <li>Fix apparent hang when presenting the "Override Method" dialog in large code bases. (Issue #990)</li>
       </ul>
       <p>1.2 (HaxeFoundation release)</p>
       <ul>
