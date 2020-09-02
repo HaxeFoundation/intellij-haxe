@@ -1,4 +1,61 @@
 # Changelog
+  <p>1.3 (HaxeFoundation release)</p>
+  <ul>
+    <li>IDEA Versions 2020.2, 2020.1 and 2019.3 support.</li>
+    <li>Add fine-grained control of the semantic annotator to the Settings panel. (File->Settings->Editor->Inspections->Haxe)</li>
+    <li>Rewrite metadata handling:
+      <ul>
+        <li>Allow metadata at all positions.</li>
+        <li>Validate object syntax in compile-time metadata.</li>
+        <li>Parse code in run-time metadata, and highlight errors.</li>
+        <li>Check @forward(&lt;names&gt;) for existing method names.</li>
+        <li>Allow completion within metadata parens.</li>
+        <li>Add UI to allow reformatting and color options.</li>
+      </ul>
+    </li>
+    <li>Allow immediate array accesses on literal arrays. (e.g. var a=["1","2"][1];)</li>
+    <li>Fix several issues with type checking, particularly when generics are involved.</li>
+    <li>Allow non-standard orderings of class and method modifiers (e.g. final, private, extern) and warn on duplicates.</li>
+    <li>Recover from circular class dependencies.</li>
+    <li>Better error messages for a number of parsing errors.</li>
+    <li>Fix not finding packages which begin with and underscore. (Issue 941)</li>
+    <li>Handle function-level type parameters during semantic checks. (Issue 973)</li>
+    <li>Don't use class type parameters when resolving static function parameters.</li>
+    <li>Better handling of function types an mismatched assignments. (Issues 943, 773)</li>
+    <li>Fix crash when reading libraries if the library name was empty. (Issue 949)</li>
+    <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
+    <li>Haxe 4: Allow dotted meta names.</li>
+    <li>Haxe 4: Allow 'final' on var declarations in switch cases.</li>
+    <li>Mark attempts to write to 'final' variables.</li>
+    <li>Handle Map types as extended map types. (e.g. IntMap, StringMap, etc.)</li>
+    <li>Better constant detection and handling of default parameters for methods.
+      <ul>
+        <li>Detect function type constants and report accordingly.</li>
+        <li>Detect initialization calculations containing only constants as constant.</li>
+        <li>Detect several standard library functions as returning constants when their arguments are constant. (e.g. Std.int("1"))</li>
+        <li>Detect identifiers/constants referencing other constants as still constant.</li>
+        <li>Detect enums without parameters as constants.</li>
+        <li>Better flagging of errors when default parameters <i>are not</i> constants.</li>
+      </ul>
+    </li>
+    <li>Much better handling of generics throughout, including type error checking code.</li>
+    <li>Use type parameters from left-hand (e.g. left.right) expressions when resolving right-hand fields and method return types.</li>
+    <li>Color unparseable data when typing; shows developers where functionality is limited while code is invalid.</li>
+    <li>Better handling/recovery of errors in String Interpolation. (e.g. '${expr}')</li>
+    <li>Allow/disallow variable declarations in various places.</li>
+    <li>Require semi-colon on return statements in non-lambda bodies.</li>
+    <li>Better recovery on class parsing errors.</li>
+    <li>Fix PsiInvalidElementAccessExceptions (Issue #953)</li>
+    <li>Upgrade smart-enter statement fixer for 'if' statements.</li>
+    <li>Better handling of missing bodies when using smart-enter.</li>
+    <li>Properly handle generics on typedefs over generic types.</li>
+    <li>Properly unify EnumValue with enum values.</li>
+    <li>Fix indenting for map comprehensions.</li>
+    <li>Fix and update inspection descriptions in settings dialog.</li>
+    <li>Implement "Implement methods" for missing interface functions.</li>
+    <li>Fix the case where generic parameters used in superclasses were not being correctly translated through the type hierarchy when resolving (or were resolving to the wrong type).</li>
+  </ul>
+
   <p>1.2 (HaxeFoundation release)</p>
   <ul>
     <li>Update builds for 2019.1 and 2018.x versions.</li>
@@ -33,8 +90,8 @@
     <li>Add support of <a href="https://github.com/HaxeFoundation/haxe/pull/6596">final syntax</a> introduced in Haxe 4.</li>
     <li>Add support of <a href="https://github.com/HaxeFoundation/haxe-evolution/blob/master/proposals/0003-new-function-type.md">new function types syntax</a> introduced in Haxe 4.</li>
     <li>Increased responsiveness in UI, annotations, and other operations that look up type information by a factor of 10.</li>
-    <li>Now infers generic types from map and array literals. (e.g. ["this" => "yours"] is Map<String,String>).</li>
-    <li>Now resolves typedefs to underlying types. (e.g. `var v:Null<String>` is resolved as a `String` type.)</li>
+    <li>Now infers generic types from map and array literals. (e.g. ["this" => "yours"] is Map&lt;String,String&gt;).</li>
+    <li>Now resolves typedefs to underlying types. (e.g. `var v:Null&lt;String&gt;` is resolved as a `String` type.)</li>
     <li>Now propagates type parameters (generics) properly through typedefs.</li>
     <li>Now resolves types when used with array access (e.g. `map[0].length` no longer marked as errors).</li>
     <li>Now infers types of methods without specific typing (e.g. `map.get(0).length` no longer marked as errors).</li>
@@ -181,7 +238,7 @@
     <li>Delay using project indexes until scanning is complete.</li>
     <li>Proper resolution of constructors ('new').</li>
     <li>Display parameter tip text when creating new object instantiations.</li>
-    <li>Better parsing of shift-and-assign operators. <Issue #637)</li>
+    <li>Better parsing of shift-and-assign operators. (Issue #637)</li>
     <li>Now correctly resolves variables declared in 'for' statements when the iterated type is parameterized. (Issue #528)</li>
     <li>Resolve chained classes with type parameters (generics). </li>
     <li>Correct completion with EitherType&lt;&gt;. (Issue#512). </li>
@@ -527,7 +584,7 @@
             "&lt;" to "<" and "&gt;" to ">"
         </li>
         <li>HaxeReferenceImpl.java getVariants(completion): Handle case when
-            "var d:Array<Int> = []; d.|" when d is not resolved
+            "var d:Array&lt;Int&gt; = []; d.|" when d is not resolved
         </li>
         <li>Add description to completion recived from Haxe compiler:
             HaxeMetaTagsCompletionContributor.java

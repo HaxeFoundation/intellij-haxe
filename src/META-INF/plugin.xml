@@ -79,19 +79,19 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>POST.1.2.develop.3@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>1.3@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
-      <p>Unreleased Changes</p>
+      <p>1.3 (HaxeFoundation release)</p>
       <ul>
-        <li>IDEA Versions 2020.1 and 2019.3 support.</li>
+        <li>IDEA Versions 2020.2, 2020.1 and 2019.3 support.</li>
         <li>Add fine-grained control of the semantic annotator to the Settings panel. (File->Settings->Editor->Inspections->Haxe)</li>
         <li>Rewrite metadata handling:
           <ul>
             <li>Allow metadata at all positions.</li>
             <li>Validate object syntax in compile-time metadata.</li>
             <li>Parse code in run-time metadata, and highlight errors.</li>
-            <li>Check @forward(<names>) for existing method names.</li>
+            <li>Check @forward(&lt;names&gt;) for existing method names.</li>
             <li>Allow completion within metadata parens.</li>
             <li>Add UI to allow reformatting and color options.</li>
           </ul>
