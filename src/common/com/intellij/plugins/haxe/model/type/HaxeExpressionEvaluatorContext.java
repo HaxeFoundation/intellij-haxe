@@ -136,6 +136,10 @@ public class HaxeExpressionEvaluatorContext {
     return annotation;
   }
 
+  public boolean isReportingErrors() {
+    return holder != null;
+  }
+
   private Annotation createDummyAnnotation() {
     return new Annotation(0, 0, HighlightSeverity.ERROR, "", "");
   }

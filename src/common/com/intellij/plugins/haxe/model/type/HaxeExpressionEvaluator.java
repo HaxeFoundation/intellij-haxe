@@ -860,6 +860,8 @@ public class HaxeExpressionEvaluator {
     HaxeExpressionEvaluatorContext context,
     HaxeGenericResolver resolver
   ) {
+    if (!context.isReportingErrors()) return;
+
     List<Argument> parameterTypes = ftype.getArguments();
     int len = Math.min(parameterTypes.size(), parameterExpressions.size());
     for (int n = 0; n < len; n++) {
