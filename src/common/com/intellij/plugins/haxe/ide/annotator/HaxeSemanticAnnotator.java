@@ -1260,7 +1260,7 @@ class MethodBodyChecker {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     for (HaxeGenericParamModel param : method.getGenericParams()) {
       ResultHolder constraint = param.getConstraint(resolver);
-      if (null == constraint.getType()) {
+      if (null == constraint) {
         constraint = new ResultHolder(SpecificHaxeClassReference.getDynamic(param.getPsi()));
       }
       resolver.add(param.getName(), constraint);
