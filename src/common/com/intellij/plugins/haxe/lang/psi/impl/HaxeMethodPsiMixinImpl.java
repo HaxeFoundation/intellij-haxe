@@ -136,7 +136,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   public PsiReferenceList getThrowsList() {
     HaxeThrowStatement ts = getThrowStatement();
     return new HaxePsiReferenceList(this.getContainingClass(),
-                                    (ts == null ? new HaxeDummyASTNode("ThrowsList") : ts.getNode()),
+                                    (ts == null ? new HaxeDummyASTNode("EmptyThrowsList", getProject()) : ts.getNode()),
                                     null);
   }
 
@@ -334,7 +334,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Override
   public PsiParameterList getParameterList() {
     final HaxeParameterList list = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
-    return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list")));
+    return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list", getProject())));
   }
 
   @NotNull

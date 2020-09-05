@@ -63,6 +63,6 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    return new HaxeIdentifierImpl(new HaxeDummyASTNode("AnonymousType"));
+    return new HaxeIdentifierImpl(new HaxeDummyASTNode("AnonymousType", getProject()));
   }
 }

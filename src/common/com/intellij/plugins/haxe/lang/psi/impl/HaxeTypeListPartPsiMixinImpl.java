@@ -100,7 +100,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
           } else {
             LOG.debug("Target: " + target.toString());
             LOG.assertTrue(false, "Unexpected token type for child of TYPE_OR_ANONYMOUS");
-            myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
+            myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
           }
         } else if (HaxeTokenTypes.FUNCTION_TYPE.equals(type)) {
           // FIXME: Temporary Hack to get around an unexpected PSI state #627.
@@ -109,15 +109,15 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
           }
           catch(ClassCastException e) {
             HaxeDebugLogger.getLogger().warn("Unexpected PSI state.  See issue #627");
-            myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
+            myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
           }
         } else {
-          myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
+          myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
         }
       } else {
         // No child node?  How can this be?
         LOG.assertTrue(false, "No child node found for TYPE_LIST_PART");
-        myChildClass = AbstractHaxePsiClass.EMPTY_FACADE;
+        myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
       }
     }
     return myChildClass;
@@ -565,13 +565,13 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
     @NotNull
     public PsiReferenceList getExtendsList() {
       // Haxe BNF doesn't allow for extends in this position.
-      return new HaxeExtendsDeclarationImpl(new HaxeDummyASTNode("Empty Extends List"));
+      return new HaxeExtendsDeclarationImpl(new HaxeDummyASTNode("Empty Extends List", getProject()));
     }
 
     @Override
     public PsiReferenceList getImplementsList() {
       // Haxe BNF doesn't allow for implements in this position.
-      return new HaxeImplementsDeclarationImpl(new HaxeDummyASTNode("Empty Implements List"));
+      return new HaxeImplementsDeclarationImpl(new HaxeDummyASTNode("Empty Implements List", getProject()));
     }
 
     @Override

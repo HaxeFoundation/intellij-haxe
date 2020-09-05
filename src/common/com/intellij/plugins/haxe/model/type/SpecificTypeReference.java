@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
+import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +42,7 @@ public abstract class SpecificTypeReference {
   public static final String ENUM_VALUE = "EnumValue";
   public static final String ENUM = "Enum";  // For Enum<EnumName>
   public static final String FLAT_ENUM = "haxe.Constraints.FlatEnum";
-  public static final String UNKNOWN = "Unknown"; // TODO: Should NOT a legal type name.
+  public static final String UNKNOWN = "unknown"; // TODO: Should NOT a legal type name.
   public static final String ITERATOR = "Iterator";
   public static final String FUNCTION = "Function";
   public static final String INVALID = "@@Invalid";
@@ -52,9 +53,6 @@ public abstract class SpecificTypeReference {
   public static final String OBJECT_MAP = "haxe.ds.ObjectMap";
   public static final String ENUM_VALUE_MAP = "haxe.ds.EnumValueMap";
   public static final String ANY = "Any"; // Specifically, the "Any" class; See <Haxe>/std/Any.hx.
-
-  /** A context to use when there is none to be found.  Try very hard not to use this, please. */
-  public static final PsiElement UNKNOWN_CONTEXT = new HaxePsiCompositeElementImpl(new HaxeDummyASTNode(UNKNOWN));
 
   /**
    * The context is a parent to be used in a treeWalkUp -- see {@link PsiElement#getContext()}.
@@ -81,6 +79,15 @@ public abstract class SpecificTypeReference {
     final PsiElement context = keyType.getElementContext();
     final ResultHolder[] generics = new ResultHolder[]{keyType, valueType};
     return getStdClass(MAP, context, generics);
+  }
+
+  /**
+   * Creates a context to use when there is none to be found.  Try *very* hard not to use this, please.
+   *
+   * @return a context that leads nowhere
+   */
+  public static PsiElement createUnknownContext() {
+    return new HaxePsiCompositeElementImpl(new HaxeDummyASTNode(UNKNOWN, HaxeProjectUtil.getLikelyCurrentProject()));
   }
 
   public static SpecificTypeReference getExpectedMapType(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
