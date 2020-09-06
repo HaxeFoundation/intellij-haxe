@@ -528,7 +528,7 @@ expressionList ::= forStatement | whileStatement | (expression (',' expression)*
 private expression_list_recover ::= !(')' | ']')
 
 expression ::= assignExpressionWrapper {recoverWhile="expression_recover" name="expression"}
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>' | isTypeOperator)
 
 private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression?
 left assignExpression ::= assignOperation iteratorExpressionWrapper { pin=2 }
@@ -537,10 +537,14 @@ private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpressio
 private iteratorOperator ::= '...'
 left iteratorExpression ::= iteratorOperator ternaryExpressionWrapper {pin=2}
 
-private ternaryExpressionWrapper ::= logicOrExpressionWrapper ternaryExpression?
+private ternaryExpressionWrapper ::= isTypeExpressionWrapper ternaryExpression?
 private ternaryFirstOperator ::= '?'
 private ternarySecondOperator ::= ':'
 left ternaryExpression ::= ternaryFirstOperator expression ternarySecondOperator ternaryExpressionWrapper {pin=2}
+
+private isTypeExpressionWrapper ::= logicOrExpressionWrapper isTypeExpression?
+private isTypeOperator ::= 'is'
+left isTypeExpression ::= isTypeOperator typeWrapper | '(' isTypeOperator typeWrapper ')' logicOrExpressionWrapper? {pin=2}
 
 private logicOrExpressionWrapper ::= logicAndExpressionWrapper logicOrExpression*
 private logicOrExpressionOperator ::= '||'
